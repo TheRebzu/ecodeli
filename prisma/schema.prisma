@@ -1,0 +1,42 @@
+model User {
+  id         Int        @id @default(autoincrement())
+  email      String     @unique
+  password   String
+  name       String?
+  role       Role
+  createdAt  DateTime   @default(now())
+  // Relations
+  profile    Profile?
+  deliveries Delivery[]
+}
+
+model Profile {
+  id     Int     @id @default(autoincrement())
+  userId Int     @unique
+  bio    String?
+  user   User    @relation(fields: [userId], references: [id])
+}
+
+model Delivery {
+  id          Int            @id @default(autoincrement())
+  description String
+  status      DeliveryStatus
+  userId      Int
+  createdAt   DateTime       @default(now())
+  user        User           @relation(fields: [userId], references: [id])
+}
+
+enum Role {
+  CLIENT
+  LIVREUR
+  COMMERCANT
+  PRESTATAIRE
+  ADMIN
+}
+
+enum DeliveryStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
