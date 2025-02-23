@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,8 +7,448 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Enums
+enum UserRole {
+  ADMIN
+  CUSTOMER
+  COURIER
+  MERCHANT
+  PROVIDER
+}
+
+enum UserStatus {
+  PENDING
+  ACTIVE
+  SUSPENDED
+  BANNED
+}
+
+enum DeliveryStatus {
+  PENDING
+  ACCEPTED
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum AnnouncementType {
+  DELIVERY_REQUEST
+  TRANSPORT_OFFER
+  SERVICE_REQUEST
+  SHOPPING_REQUEST
+}
+
+enum SubscriptionTier {
+  FREE
+  STARTER
+  PREMIUM
+}
+
+// Base User Model
 model User {
-  id    Int     @id @default(autoincrement())
-  email String  @unique
-  name  String?
+  id            String     @id @default(cuid())
+  email         String     @unique
+  password      String
+  role          UserRole   @default(CUSTOMER)
+  status        UserStatus @default(PENDING)
+  firstName     String?
+  lastName      String?
+  phoneNumber   String?
+  address       String?
+  city          String?
+  country       String?
+  postalCode    String?
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  emailVerified DateTime?
+  language      String     @default("fr")
+
+  // Relations selon le rôle
+  customerProfile CustomerProfile?
+  courierProfile  CourierProfile?
+  merchantProfile MerchantProfile?
+  providerProfile ProviderProfile?
+  notifications   Notification[]
+  documents       Document[]
+  reviews         Review[]         @relation("ReviewAuthor")
+  receivedReviews Review[]         @relation("ReviewTarget")
+  messages        Message[]
+  wallet          Wallet?
+}
+
+// Profiles
+model CustomerProfile {
+  id               String           @id @default(cuid())
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           String           @unique
+  subscription     SubscriptionTier @default(FREE)
+  stripeCustomerId String?
+  preferences      Json? // Notifications, language, etc.
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  // Relations
+  announcements Announcement[]
+  orders        Order[]
+  deliveries    Delivery[]     @relation("CustomerDeliveries")
+}
+
+model CourierProfile {
+  id                 String   @id @default(cuid())
+  user               User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId             String   @unique
+  vehicleType        String?
+  licenseNumber      String?
+  isVerified         Boolean  @default(false)
+  documentsSubmitted Boolean  @default(false)
+  rating             Float?
+  availability       Json? // Schedule and zones
+  nfcCardId          String?  @unique
+  expertise          String[] // Types of deliveries/services
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  // Relations
+  deliveries      Delivery[] @relation("CourierDeliveries")
+  currentLocation Location?  @relation(fields: [locationId], references: [id])
+  locationId      String?
+}
+
+model MerchantProfile {
+  id              String   @id @default(cuid())
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId          String   @unique
+  companyName     String
+  siret           String   @unique
+  businessType    String
+  isVerified      Boolean  @default(false)
+  stripeAccountId String?
+  openingHours    Json?
+  description     String?
+  website         String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  // Relations
+  products   Product[]
+  orders     Order[]
+  warehouses Warehouse[]
+}
+
+model ProviderProfile {
+  id           String   @id @default(cuid())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId       String   @unique
+  services     String[] // Types of services offered
+  isVerified   Boolean  @default(false)
+  rating       Float?
+  availability Json? // Schedule and zones
+  pricing      Json? // Service pricing structure
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  serviceRequests ServiceRequest[]
+}
+
+// Core Business Models
+model Announcement {
+  id          String           @id @default(cuid())
+  type        AnnouncementType
+  title       String
+  description String
+  customer    CustomerProfile  @relation(fields: [customerId], references: [id])
+  customerId  String
+  status      String // Active, Completed, Cancelled
+  budget      Float?
+  location    Location?        @relation(fields: [locationId], references: [id])
+  locationId  String?
+  deadline    DateTime?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  // Relations
+  deliveries Delivery[]
+}
+
+model Delivery {
+  id              String          @id @default(cuid())
+  announcement    Announcement    @relation(fields: [announcementId], references: [id])
+  announcementId  String
+  courier         CourierProfile  @relation("CourierDeliveries", fields: [courierId], references: [id])
+  courierId       String
+  customer        CustomerProfile @relation("CustomerDeliveries", fields: [customerId], references: [id])
+  customerId      String
+  status          DeliveryStatus
+  startLocation   Location        @relation("StartLocation", fields: [startLocationId], references: [id])
+  startLocationId String
+  endLocation     Location        @relation("EndLocation", fields: [endLocationId], references: [id])
+  endLocationId   String
+  price           Float
+  validationCode  String? // Code for delivery confirmation
+  tracking        Json? // Tracking history
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  // Relations
+  payment Payment?
+  Order   Order[]
+}
+
+model ServiceRequest {
+  id          String          @id @default(cuid())
+  provider    ProviderProfile @relation(fields: [providerId], references: [id])
+  providerId  String
+  type        String // Type of service
+  description String
+  status      String // Pending, Accepted, Completed, Cancelled
+  schedule    DateTime
+  location    Location        @relation(fields: [locationId], references: [id])
+  locationId  String
+  price       Float
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  // Relations
+  payment Payment?
+}
+
+model Product {
+  id          String          @id @default(cuid())
+  merchant    MerchantProfile @relation(fields: [merchantId], references: [id])
+  merchantId  String
+  name        String
+  description String
+  price       Float
+  stock       Int
+  category    String
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  // Relations
+  orderItems OrderItem[]
+}
+
+model Order {
+  id         String          @id @default(cuid())
+  customer   CustomerProfile @relation(fields: [customerId], references: [id])
+  customerId String
+  merchant   MerchantProfile @relation(fields: [merchantId], references: [id])
+  merchantId String
+  status     String // Pending, Confirmed, Shipped, Delivered
+  total      Float
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  // Relations
+  items      OrderItem[]
+  payment    Payment?
+  delivery   Delivery?   @relation(fields: [deliveryId], references: [id])
+  deliveryId String?
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  order     Order   @relation(fields: [orderId], references: [id])
+  orderId   String
+  product   Product @relation(fields: [productId], references: [id])
+  productId String
+  quantity  Int
+  price     Float
+}
+
+// Supporting Models
+model Location {
+  id         String @id @default(cuid())
+  address    String
+  city       String
+  country    String
+  postalCode String
+  latitude   Float?
+  longitude  Float?
+
+  // Relations
+  announcements   Announcement[]
+  startDeliveries Delivery[]       @relation("StartLocation")
+  endDeliveries   Delivery[]       @relation("EndLocation")
+  serviceRequests ServiceRequest[]
+  CourierProfile  CourierProfile[]
+  Warehouse       Warehouse[]
+}
+
+model Warehouse {
+  id         String          @id @default(cuid())
+  merchant   MerchantProfile @relation(fields: [merchantId], references: [id])
+  merchantId String
+  name       String
+  location   Location        @relation(fields: [locationId], references: [id])
+  locationId String
+  capacity   Int
+  isActive   Boolean         @default(true)
+}
+
+model Payment {
+  id         String          @id @default(cuid())
+  amount     Float
+  currency   String          @default("EUR")
+  status     PaymentStatus
+  stripeId   String?         @unique
+  delivery   Delivery?       @relation(fields: [deliveryId], references: [id])
+  deliveryId String?         @unique
+  order      Order?          @relation(fields: [orderId], references: [id])
+  orderId    String?         @unique
+  service    ServiceRequest? @relation(fields: [serviceId], references: [id])
+  serviceId  String?         @unique
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+}
+
+model Wallet {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String   @unique
+  balance   Float    @default(0)
+  currency  String   @default("EUR")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  transactions Transaction[]
+}
+
+model Transaction {
+  id        String   @id @default(cuid())
+  wallet    Wallet   @relation(fields: [walletId], references: [id])
+  walletId  String
+  amount    Float
+  type      String // Credit, Debit
+  status    String // Pending, Completed, Failed
+  reference String? // External reference (e.g., Stripe payment ID)
+  createdAt DateTime @default(now())
+}
+
+model Review {
+  id        String   @id @default(cuid())
+  author    User     @relation("ReviewAuthor", fields: [authorId], references: [id])
+  authorId  String
+  target    User     @relation("ReviewTarget", fields: [targetId], references: [id])
+  targetId  String
+  rating    Float
+  comment   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
+  userId    String
+  type      String // ID, License, Insurance, etc.
+  status    String // Pending, Verified, Rejected
+  url       String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  message   String
+  type      String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+}
+
+model Message {
+  id        String   @id @default(cuid())
+  sender    User     @relation(fields: [senderId], references: [id])
+  senderId  String
+  content   String
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model VerificationToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expires   DateTime
+  createdAt DateTime @default(now())
+}
+
+model ResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expires   DateTime
+  createdAt DateTime @default(now())
+}
+
+model SubscriptionTier {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  price       Float
+  currency    String   @default("EUR")
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Subscription {
+  id        String           @id @default(cuid())
+  user      User             @relation(fields: [userId], references: [id])
+  userId    String
+  tier      SubscriptionTier @relation(fields: [tierId], references: [id])
+  tierId    String
+  status    String           @default("ACTIVE")
+  startDate DateTime
+  endDate   DateTime
+  stripeId  String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  description String?
+  price       Float
+  currency    String   @default("EUR")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ServicePricing {
+  id        String           @id @default(cuid())
+  service   Service          @relation(fields: [serviceId], references: [id])
+  serviceId String
+  tier      SubscriptionTier @relation(fields: [tierId], references: [id])
+  tierId    String
+  price     Float
+  currency  String           @default("EUR")
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model ServiceRequestPricing {
+  id        String           @id @default(cuid())
+  service   Service          @relation(fields: [serviceId], references: [id])
+  serviceId String
+  tier      SubscriptionTier @relation(fields: [tierId], references: [id])
+  tierId    String
+  price     Float
+  currency  String           @default("EUR")
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
 }

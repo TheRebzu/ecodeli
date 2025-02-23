@@ -5,7 +5,64 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="c216115a-dea1-447b-a77f-b2b0bad18559" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/k8s/base/configmaps/app-config.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/k8s/base/deployments/web-deployment.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/k8s/base/ingress/ingress.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/k8s/base/kustomization.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/k8s/base/namespaces/ecodeli.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/k8s/base/services/web-service.yaml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/(auth)/announcements/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/(auth)/courier/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/(auth)/customer/layout.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/(auth)/layout.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/api/admin/dashboard/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/api/auth/[...nextauth]/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/api/auth/me/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/api/auth/signin/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/api/auth/signup/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/api/auth/verify-email/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/api/create-checkout-session/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/api/delivery/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/api/merchant/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/api/payment/webhook/route.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/auth/signin/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/app/auth/signup/page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/admin/dashboard/content.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/auth/ProtectedRoute.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/auth/SignInForm.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/auth/SignUpForm.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/checkout-button.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/customer/dashboard/content.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/layout/Navbar.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/layout/Sidebar.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/layout/main-nav.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/layout/user-nav.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/mode-toggle.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/page-header.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/theme-provider.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/ui/placeholder-image.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/contexts/AuthContext.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/lib/api/admin.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/lib/auth.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/lib/stripe.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/lib/theme.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/providers/auth.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/types/next-auth.d.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/next.config.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/postcss.config.mjs" beforeDir="false" afterPath="$PROJECT_DIR$/postcss.config.mjs" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/prisma/schema.prisma" beforeDir="false" afterPath="$PROJECT_DIR$/prisma/schema.prisma" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/next.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/public/vercel.svg" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/globals.css" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/app/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/app/page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/lib/utils.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/lib/utils.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/tailwind.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/tailwind.config.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -27,6 +84,17 @@
     &quot;accountId&quot;: &quot;c4e0bcd9-2879-40da-94e3-9fc327d49f2c&quot;
   }
 }</component>
+  <component name="KubernetesApiPersistence">{}</component>
+  <component name="KubernetesApiProvider">{
+  &quot;configuredContexts&quot;: [
+    {
+      &quot;name&quot;: &quot;minikube&quot;,
+      &quot;kubeConfigUrl&quot;: &quot;file://C:/Users/Amine/.kube/config&quot;,
+      &quot;originalNamespace&quot;: &quot;default&quot;
+    }
+  ],
+  &quot;isMigrated&quot;: true
+}</component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 5
@@ -40,22 +108,31 @@
     <option name="showLibraryContents" value="true" />
     <option name="showMembers" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
-    &quot;com.codeium.enabled&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;#1 on amine&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;npm.dev.executor&quot;: &quot;Run&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;terminal&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "com.codeium.enabled": "true",
+    "git-widget-placeholder": "amine",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "npm.build.executor": "Run",
+    "npm.deploy:dev.executor": "Run",
+    "npm.dev.executor": "Run",
+    "npm.docker:dev.executor": "Run",
+    "settings.editor.selected.configurable": "terminal",
+    "ts.external.directory.path": "C:\\Users\\Amine\\WebstormProjects\\ecodeli\\node_modules\\typescript\\lib",
+    "vue.rearranger.settings.migration": "true"
+  },
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "postgresql"
+    ]
   }
-}</component>
+}]]></component>
   <component name="ReactDesignerToolWindowState">
     <option name="myId2Visible">
       <map>
@@ -65,7 +142,35 @@
       </map>
     </option>
   </component>
-  <component name="RunManager">
+  <component name="RecentsManager">
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\Amine\WebstormProjects\ecodeli\src\lib" />
+      <recent name="C:\Users\Amine\WebstormProjects\ecodeli\src\app\(auth)\admin\dashboard" />
+      <recent name="C:\Users\Amine\WebstormProjects\ecodeli\src\app\(auth)\customer\dashboard" />
+      <recent name="C:\Users\Amine\WebstormProjects\ecodeli\src\lib\db" />
+    </key>
+  </component>
+  <component name="RunManager" selected="npm.dev">
+    <configuration name="build" type="js.build_tools.npm" temporary="true" nameIsGenerated="true">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="build" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
+    <configuration name="deploy:dev" type="js.build_tools.npm" temporary="true" nameIsGenerated="true">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="deploy:dev" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
     <configuration name="dev" type="js.build_tools.npm" temporary="true" nameIsGenerated="true">
       <package-json value="$PROJECT_DIR$/package.json" />
       <command value="run" />
@@ -76,9 +181,22 @@
       <envs />
       <method v="2" />
     </configuration>
+    <configuration name="docker:dev" type="js.build_tools.npm" temporary="true" nameIsGenerated="true">
+      <package-json value="$PROJECT_DIR$/package.json" />
+      <command value="run" />
+      <scripts>
+        <script value="docker:dev" />
+      </scripts>
+      <node-interpreter value="project" />
+      <envs />
+      <method v="2" />
+    </configuration>
     <recent_temporary>
       <list>
         <item itemvalue="npm.dev" />
+        <item itemvalue="npm.deploy:dev" />
+        <item itemvalue="npm.build" />
+        <item itemvalue="npm.docker:dev" />
       </list>
     </recent_temporary>
   </component>
@@ -98,12 +216,26 @@
       <option name="presentableId" value="Default" />
       <updated>1740080195319</updated>
       <workItem from="1740080197533" duration="1217000" />
-      <workItem from="1740212480037" duration="1321000" />
+      <workItem from="1740212480037" duration="6431000" />
+      <workItem from="1740219138961" duration="8642000" />
+      <workItem from="1740305597248" duration="6010000" />
+      <workItem from="1740315653718" duration="6712000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
   <component name="XSLT-Support.FileAssociations.UIState">
     <expand />

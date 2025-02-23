@@ -1,0 +1,10 @@
+# k8s/base/configmaps/app-config.yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ecodeli-config
+  namespace: ecodeli
+data:
+  NEXT_PUBLIC_API_URL: "https://api.ecodeli.me"
+  NEXT_PUBLIC_APP_URL: "https://ecodeli.me"
+  NEXTAUTH_URL: "https://ecodeli.me"
