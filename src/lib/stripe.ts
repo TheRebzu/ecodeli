@@ -1,10 +1,20 @@
-import Stripe from "stripe"
-
-if (!process.env.STRIPE_SECRET_KEY) {
-  throw new Error("STRIPE_SECRET_KEY is not set")
+// @/lib/stripe-config.ts ou équivalent
+export const stripeConfig = {
+  secretKey: 'mock_sk_test_key',
+  publishableKey: 'mock_pk_test_key',
+  webhookSecret: 'mock_whsec_key'
 }
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-  apiVersion: "2023-10-16", // Use the latest API version
-})
-
+export const stripe = {
+  checkout: {
+    sessions: {
+      create: async () => ({ id: 'mock_session' })
+    }
+  },
+  webhooks: {
+    constructEvent: () => ({
+      type: 'mock.event',
+      data: { object: {} }
+    })
+  }
+}

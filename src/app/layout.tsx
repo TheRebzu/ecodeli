@@ -1,4 +1,3 @@
-import type React from "react"
 import type { Metadata } from "next"
 import { Inter } from "next/font/google"
 import { ThemeProvider } from "@/components/theme-provider"
@@ -19,16 +18,25 @@ export const metadata: Metadata = {
   description: config.siteName,
 }
 
+interface RootLayoutProps {
+  children: React.ReactNode
+}
+
 export default function RootLayout({
   children,
-}: {
-  children: React.ReactNode
-}) {
+}: RootLayoutProps) {
   return (
     <html lang="fr" suppressHydrationWarning>
-      <body className={`min-h-screen bg-background font-sans antialiased ${inter.variable}`}>
+      <body
+        className={`min-h-screen bg-background font-sans antialiased ${inter.variable}`}
+      >
         <AuthProvider>
-          <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem={true}
+            disableTransitionOnChange={true}
+          >
             {children}
           </ThemeProvider>
         </AuthProvider>
@@ -36,4 +44,3 @@ export default function RootLayout({
     </html>
   )
 }
-

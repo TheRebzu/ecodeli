@@ -41,7 +41,7 @@
     "k8s:events": "kubectl get events -n ecodeli"
   },
   "dependencies": {
-    "@auth/core": "^0.34.2",
+    "@auth/core": "^0.37.4",
     "@auth/prisma-adapter": "^2.7.4",
     "@geist-ui/core": "^2.3.8",
     "@geist-ui/icons": "^1.0.2",
