@@ -33,7 +33,8 @@ enum DeliveryStatus {
 
 enum PaymentStatus {
   PENDING
-  PAID
+  PROCESSING
+  COMPLETED
   FAILED
   REFUNDED
 }
@@ -49,6 +50,32 @@ enum SubscriptionTier {
   FREE
   STARTER
   PREMIUM
+}
+
+enum TransactionType {
+  CREDIT
+  DEBIT
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum DocumentStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum DocumentType {
+  ID_CARD
+  DRIVER_LICENSE
+  INSURANCE
+  VEHICLE_REGISTRATION
+  PROFESSIONAL_CERTIFICATION
+  OTHER
 }
 
 // Base User Model
@@ -70,25 +97,29 @@ model User {
   emailVerified DateTime?
   language      String     @default("fr")
 
-  // Relations selon le rôle
-  customerProfile CustomerProfile?
-  courierProfile  CourierProfile?
-  merchantProfile MerchantProfile?
-  providerProfile ProviderProfile?
-  notifications   Notification[]
-  documents       Document[]
-  reviews         Review[]         @relation("ReviewAuthor")
-  receivedReviews Review[]         @relation("ReviewTarget")
-  messages        Message[]
-  wallet          Wallet?
+  // Relations
+  customerProfile  CustomerProfile?
+  courierProfile   CourierProfile?
+  merchantProfile  MerchantProfile?
+  providerProfile  ProviderProfile?
+  notifications    Notification[]
+  documents        Document[]
+  reviews          Review[]         @relation("ReviewAuthor")
+  receivedReviews  Review[]         @relation("ReviewTarget")
+  messages         Message[]        @relation("MessageSender")
+  receivedMessages Message[]        @relation("MessageReceiver")
+  wallet           Wallet?
+
+  @@index([email])
+  @@map("users")
 }
 
-// Profiles
 model CustomerProfile {
   id               String           @id @default(cuid())
   user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId           String           @unique
   subscription     SubscriptionTier @default(FREE)
+  subscriptionEnd  DateTime?
   stripeCustomerId String?
   preferences      Json? // Notifications, language, etc.
   createdAt        DateTime         @default(now())
@@ -98,6 +129,9 @@ model CustomerProfile {
   announcements Announcement[]
   orders        Order[]
   deliveries    Delivery[]     @relation("CustomerDeliveries")
+  serviceOrders ServiceOrder[]
+
+  @@map("customer_profiles")
 }
 
 model CourierProfile {
@@ -119,6 +153,9 @@ model CourierProfile {
   deliveries      Delivery[] @relation("CourierDeliveries")
   currentLocation Location?  @relation(fields: [locationId], references: [id])
   locationId      String?
+  earnings        Earning[]
+
+  @@map("courier_profiles")
 }
 
 model MerchantProfile {
@@ -140,6 +177,9 @@ model MerchantProfile {
   products   Product[]
   orders     Order[]
   warehouses Warehouse[]
+  contracts  Contract[]
+
+  @@map("merchant_profiles")
 }
 
 model ProviderProfile {
@@ -155,10 +195,12 @@ model ProviderProfile {
   updatedAt    DateTime @updatedAt
 
   // Relations
-  serviceRequests ServiceRequest[]
+  serviceOrders ServiceOrder[]
+  earnings      Earning[]
+
+  @@map("provider_profiles")
 }
 
-// Core Business Models
 model Announcement {
   id          String           @id @default(cuid())
   type        AnnouncementType
@@ -176,6 +218,8 @@ model Announcement {
 
   // Relations
   deliveries Delivery[]
+
+  @@map("announcements")
 }
 
 model Delivery {
@@ -198,12 +242,17 @@ model Delivery {
   updatedAt       DateTime        @updatedAt
 
   // Relations
-  payment Payment?
-  Order   Order[]
+  payment  Payment?
+  orders   Order[]
+  earnings Earning[]
+
+  @@map("deliveries")
 }
 
-model ServiceRequest {
+model ServiceOrder {
   id          String          @id @default(cuid())
+  customer    CustomerProfile @relation(fields: [customerId], references: [id])
+  customerId  String
   provider    ProviderProfile @relation(fields: [providerId], references: [id])
   providerId  String
   type        String // Type of service
@@ -217,7 +266,10 @@ model ServiceRequest {
   updatedAt   DateTime        @updatedAt
 
   // Relations
-  payment Payment?
+  payment  Payment?
+  earnings Earning[]
+
+  @@map("service_orders")
 }
 
 model Product {
@@ -234,6 +286,8 @@ model Product {
 
   // Relations
   orderItems OrderItem[]
+
+  @@map("products")
 }
 
 model Order {
@@ -252,6 +306,8 @@ model Order {
   payment    Payment?
   delivery   Delivery?   @relation(fields: [deliveryId], references: [id])
   deliveryId String?
+
+  @@map("orders")
 }
 
 model OrderItem {
@@ -262,9 +318,10 @@ model OrderItem {
   productId String
   quantity  Int
   price     Float
+
+  @@map("order_items")
 }
 
-// Supporting Models
 model Location {
   id         String @id @default(cuid())
   address    String
@@ -278,9 +335,11 @@ model Location {
   announcements   Announcement[]
   startDeliveries Delivery[]       @relation("StartLocation")
   endDeliveries   Delivery[]       @relation("EndLocation")
-  serviceRequests ServiceRequest[]
-  CourierProfile  CourierProfile[]
-  Warehouse       Warehouse[]
+  serviceOrders   ServiceOrder[]
+  courierProfiles CourierProfile[]
+  warehouses      Warehouse[]
+
+  @@map("locations")
 }
 
 model Warehouse {
@@ -292,22 +351,26 @@ model Warehouse {
   locationId String
   capacity   Int
   isActive   Boolean         @default(true)
+
+  @@map("warehouses")
 }
 
 model Payment {
-  id         String          @id @default(cuid())
-  amount     Float
-  currency   String          @default("EUR")
-  status     PaymentStatus
-  stripeId   String?         @unique
-  delivery   Delivery?       @relation(fields: [deliveryId], references: [id])
-  deliveryId String?         @unique
-  order      Order?          @relation(fields: [orderId], references: [id])
-  orderId    String?         @unique
-  service    ServiceRequest? @relation(fields: [serviceId], references: [id])
-  serviceId  String?         @unique
-  createdAt  DateTime        @default(now())
-  updatedAt  DateTime        @updatedAt
+  id             String        @id @default(cuid())
+  amount         Float
+  currency       String        @default("EUR")
+  status         PaymentStatus
+  stripeId       String?       @unique
+  delivery       Delivery?     @relation(fields: [deliveryId], references: [id])
+  deliveryId     String?       @unique
+  order          Order?        @relation(fields: [orderId], references: [id])
+  orderId        String?       @unique
+  serviceOrder   ServiceOrder? @relation(fields: [serviceOrderId], references: [id])
+  serviceOrderId String?       @unique
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  @@map("payments")
 }
 
 model Wallet {
@@ -321,17 +384,52 @@ model Wallet {
 
   // Relations
   transactions Transaction[]
+
+  @@map("wallets")
 }
 
 model Transaction {
-  id        String   @id @default(cuid())
-  wallet    Wallet   @relation(fields: [walletId], references: [id])
+  id        String            @id @default(cuid())
+  wallet    Wallet            @relation(fields: [walletId], references: [id])
   walletId  String
   amount    Float
-  type      String // Credit, Debit
-  status    String // Pending, Completed, Failed
+  type      TransactionType
+  status    TransactionStatus
   reference String? // External reference (e.g., Stripe payment ID)
-  createdAt DateTime @default(now())
+  createdAt DateTime          @default(now())
+
+  @@map("transactions")
+}
+
+model Earning {
+  id             String           @id @default(cuid())
+  amount         Float
+  serviceOrder   ServiceOrder?    @relation(fields: [serviceOrderId], references: [id])
+  serviceOrderId String?
+  delivery       Delivery?        @relation(fields: [deliveryId], references: [id])
+  deliveryId     String?
+  courier        CourierProfile?  @relation(fields: [courierId], references: [id])
+  courierId      String?
+  provider       ProviderProfile? @relation(fields: [providerId], references: [id])
+  providerId     String?
+  createdAt      DateTime         @default(now())
+  paidAt         DateTime?
+
+  @@map("earnings")
+}
+
+model Contract {
+  id         String          @id @default(cuid())
+  merchant   MerchantProfile @relation(fields: [merchantId], references: [id])
+  merchantId String
+  startDate  DateTime
+  endDate    DateTime?
+  terms      Json
+  isActive   Boolean         @default(true)
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  @@map("contracts")
 }
 
 model Review {
@@ -344,39 +442,48 @@ model Review {
   comment   String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  @@map("reviews")
 }
 
 model Document {
-  id        String   @id @default(cuid())
-  user      User     @relation(fields: [userId], references: [id])
+  id        String         @id @default(cuid())
+  user      User           @relation(fields: [userId], references: [id])
   userId    String
-  type      String // ID, License, Insurance, etc.
-  status    String // Pending, Verified, Rejected
+  type      DocumentType
+  status    DocumentStatus
   url       String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  @@map("documents")
 }
 
 model Notification {
   id        String   @id @default(cuid())
+  user      User     @relation(fields: [userId], references: [id])
   userId    String
   message   String
   type      String
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id])
 
   @@index([userId])
+  @@map("notifications")
 }
 
 model Message {
-  id        String   @id @default(cuid())
-  sender    User     @relation(fields: [senderId], references: [id])
-  senderId  String
-  content   String
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
+  id         String   @id @default(cuid())
+  sender     User     @relation("MessageSender", fields: [senderId], references: [id])
+  senderId   String
+  receiver   User     @relation("MessageReceiver", fields: [receiverId], references: [id])
+  receiverId String
+  content    String
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@map("messages")
 }
 
 model VerificationToken {
@@ -385,6 +492,8 @@ model VerificationToken {
   userId    String
   expires   DateTime
   createdAt DateTime @default(now())
+
+  @@map("verification_tokens")
 }
 
 model ResetToken {
@@ -393,62 +502,6 @@ model ResetToken {
   userId    String
   expires   DateTime
   createdAt DateTime @default(now())
-}
 
-model SubscriptionTier {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  price       Float
-  currency    String   @default("EUR")
-  description String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-model Subscription {
-  id        String           @id @default(cuid())
-  user      User             @relation(fields: [userId], references: [id])
-  userId    String
-  tier      SubscriptionTier @relation(fields: [tierId], references: [id])
-  tierId    String
-  status    String           @default("ACTIVE")
-  startDate DateTime
-  endDate   DateTime
-  stripeId  String?
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
-}
-
-model Service {
-  id          String   @id @default(cuid())
-  name        String   @unique
-  description String?
-  price       Float
-  currency    String   @default("EUR")
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-}
-
-model ServicePricing {
-  id        String           @id @default(cuid())
-  service   Service          @relation(fields: [serviceId], references: [id])
-  serviceId String
-  tier      SubscriptionTier @relation(fields: [tierId], references: [id])
-  tierId    String
-  price     Float
-  currency  String           @default("EUR")
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
-}
-
-model ServiceRequestPricing {
-  id        String           @id @default(cuid())
-  service   Service          @relation(fields: [serviceId], references: [id])
-  serviceId String
-  tier      SubscriptionTier @relation(fields: [tierId], references: [id])
-  tierId    String
-  price     Float
-  currency  String           @default("EUR")
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
+  @@map("reset_tokens")
 }
