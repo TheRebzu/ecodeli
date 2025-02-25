@@ -1002,8 +1002,8 @@ export default function Home() {
                   </div>
                 </CardContent>
                 <CardFooter className="flex flex-col gap-4">
-                  <div className="w-full">
-                    <CheckoutButton amount={1599} className="w-full bg-gradient-to-r from-ecodeli-600 to-ecodeli-500 hover:from-ecodeli-700 hover:to-ecodeli-600 text-white dark:from-ecodeli-500 dark:to-ecodeli-600 dark:hover:from-ecodeli-400 dark:hover:to-ecodeli-500 transition-all duration-300 hover:shadow-lg shadow-md py-3 text-lg font-medium" />
+                  <div className="w-full bg-gradient-to-r from-ecodeli-600 to-ecodeli-500 hover:from-ecodeli-700 hover:to-ecodeli-600 text-white dark:from-ecodeli-500 dark:to-ecodeli-600 dark:hover:from-ecodeli-400 dark:hover:to-ecodeli-500 transition-all duration-300 hover:shadow-lg shadow-md py-3 text-lg font-medium rounded-md">
+                    <CheckoutButton amount={1599} />
                   </div>
                   <p className="text-sm text-ecodeli-500 italic dark:text-ecodeli-400 text-center">
                     *Ceci est une démonstration. Aucun frais ne sera prélevé.

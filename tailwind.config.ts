@@ -1,5 +1,6 @@
 import type { Config } from "tailwindcss"
 import { fontFamily } from "tailwindcss/defaultTheme"
+import plugin from "tailwindcss/plugin"
 
 export default {
   darkMode: ["class"],
@@ -214,7 +215,7 @@ export default {
     }),
     require('@tailwindcss/aspect-ratio'),
     // Plugin personnalisé pour les variants de sélection de texte
-    function({ addUtilities }) {
+    plugin(({ addUtilities }) => {
       const newUtilities = {
         '.select-none': {
           'user-select': 'none',
@@ -230,9 +231,9 @@ export default {
         },
       }
       addUtilities(newUtilities)
-    },
+    }),
     // Plugin pour les styles de scrollbar
-    function({ addUtilities }) {
+    plugin(({ addUtilities }) => {
       const newUtilities = {
         '.scrollbar-thin': {
           '&::-webkit-scrollbar': {
@@ -260,6 +261,6 @@ export default {
         },
       }
       addUtilities(newUtilities)
-    },
+    }),
   ],
 } satisfies Config
