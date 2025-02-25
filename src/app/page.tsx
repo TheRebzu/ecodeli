@@ -756,7 +756,7 @@ export default function Home() {
                             <div>
                               <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 mb-6">
                                 <div className="rounded-full overflow-hidden border-2 border-ecodeli-300 dark:border-ecodeli-500 w-16 h-16 flex-shrink-0 shadow-md">
-                                  <PlaceholderImage width={64} height={64} className="object-cover" />
+                                  <PlaceholderImage width={64} height={64} />
                                 </div>
                                 <div className="text-center sm:text-left">
                                   <h3 className="font-bold text-ecodeli-800 text-lg dark:text-ecodeli-200">
