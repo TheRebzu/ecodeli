@@ -1,0 +1,24 @@
+# k8s/base/kustomization.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+- namespaces/ecodeli.yaml
+- deployments/web-deployment.yaml
+- services/web-service.yaml
+- ingress/ingress.yaml
+- configmaps/app-config.yaml
+
+# k8s/overlays/production/kustomization.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+bases:
+- ../../base
+
+patches:
+- path: replicas-patch.yaml
+
+images:
+- name: ecodeli/web
+  newTag: latest

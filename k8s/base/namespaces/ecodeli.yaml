@@ -1,0 +1,8 @@
+# k8s/base/namespaces/ecodeli.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ecodeli
+  labels:
+    name: ecodeli
+    environment: production
