@@ -1,0 +1,539 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* Couleurs de base du système */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
+    --primary: 142.1 76.2% 36.3%;
+    --primary-foreground: 355.7 100% 97.3%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 142.1 76.2% 36.3%;
+    --radius: 0.5rem;
+
+    /* Palette EcoDeli */
+    --ecodeli-50: 141 84% 97%;
+    --ecodeli-100: 141 79% 92%;
+    --ecodeli-200: 142 77% 83%;
+    --ecodeli-300: 142 77% 73%;
+    --ecodeli-400: 142 76% 62%;
+    --ecodeli-500: 142 76% 47%;
+    --ecodeli-600: 142 76% 36%;
+    --ecodeli-700: 142 75% 29%;
+    --ecodeli-800: 143 74% 24%;
+    --ecodeli-900: 144 61% 20%;
+
+    /* Couleurs supplémentaires */
+    --success: 160 84% 39%;
+    --success-foreground: 0 0% 98%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 0%;
+    --info: 217 92% 51%;
+    --info-foreground: 0 0% 98%;
+
+    /* Autres variables */
+    --header-height: 4rem;
+    --sidebar-width: 16rem;
+    --footer-height: 3rem;
+    --font-sans: 'Inter', system-ui, sans-serif;
+    --font-heading: 'Inter', system-ui, sans-serif;
+
+    /* Ombres */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+
+    /* Transitions */
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-normal: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 500ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    /* Z-index */
+    --z-dropdown: 1000;
+    --z-sticky: 1020;
+    --z-fixed: 1030;
+    --z-modal: 1040;
+    --z-popover: 1050;
+    --z-tooltip: 1060;
+
+    /* Code syntaxe */
+    --code-bg: 220 13% 95%;
+    --code-color: 348 83% 47%;
+    --code-border: 220 13% 90%;
+  }
+
+  .dark {
+    --background: 240 10% 4%;
+    --foreground: 0 0% 95%;
+    --card: 240 10% 6%;
+    --card-foreground: 0 0% 95%;
+    --popover: 240 10% 6%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 142.1 70.6% 45.3%;
+    --primary-foreground: 144.9 80.4% 10%;
+    --secondary: 240 3.7% 15.9%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 240 3.7% 15.9%;
+    --muted-foreground: 240 5% 64.9%;
+    --accent: 142 70% 12%;
+    --accent-foreground: 0 0% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 0 85.7% 97.3%;
+    --border: 240 3.7% 15.9%;
+    --input: 240 3.7% 15.9%;
+    --ring: 142.4 71.8% 29.2%;
+
+    /* Palette EcoDeli inversée */
+    --ecodeli-50: 144 61% 20%;
+    --ecodeli-100: 143 74% 24%;
+    --ecodeli-200: 142 75% 29%;
+    --ecodeli-300: 142 76% 36%;
+    --ecodeli-400: 142 76% 45%;
+    --ecodeli-500: 142 76% 55%;
+    --ecodeli-600: 142 77% 65%;
+    --ecodeli-700: 142 77% 78%;
+    --ecodeli-800: 141 79% 90%;
+    --ecodeli-900: 141 84% 97%;
+
+    /* Couleurs supplémentaires */
+    --success: 160 84% 39%;
+    --success-foreground: 0 0% 98%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 0%;
+    --info: 217 92% 51%;
+    --info-foreground: 0 0% 98%;
+
+    /* Ombres en mode sombre */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.4);
+    --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.4), 0 1px 2px -1px rgb(0 0 0 / 0.4);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.4), 0 2px 4px -2px rgb(0 0 0 / 0.4);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.4), 0 4px 6px -4px rgb(0 0 0 / 0.4);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.4), 0 8px 10px -6px rgb(0 0 0 / 0.4);
+
+    /* Code syntaxe */
+    --code-bg: 240 10% 10%;
+    --code-color: 348 83% 58%;
+    --code-border: 240 10% 15%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border box-border;
+  }
+
+  html {
+    -webkit-tap-highlight-color: transparent;
+    text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased min-h-screen flex flex-col;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Typographie de base */
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading font-semibold tracking-tight text-foreground;
+    scroll-margin-top: calc(var(--header-height) + 1rem);
+  }
+
+  h1 {
+    @apply text-4xl md:text-5xl lg:text-6xl leading-tight;
+  }
+
+  h2 {
+    @apply text-3xl md:text-4xl leading-tight;
+  }
+
+  h3 {
+    @apply text-2xl md:text-3xl leading-snug;
+  }
+
+  h4 {
+    @apply text-xl md:text-2xl;
+  }
+
+  h5 {
+    @apply text-lg md:text-xl;
+  }
+
+  h6 {
+    @apply text-base md:text-lg;
+  }
+
+  p {
+    @apply leading-relaxed mb-4;
+  }
+
+  ul, ol {
+    @apply pl-6 mb-4;
+  }
+
+  ul {
+    @apply list-disc;
+  }
+
+  ol {
+    @apply list-decimal;
+  }
+
+  li {
+    @apply mb-2;
+  }
+
+  a {
+    @apply text-primary hover:text-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-colors;
+  }
+
+  /* Focus styles */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+  }
+
+  /* Sélection de texte */
+  ::selection {
+    @apply bg-primary/20 text-foreground;
+  }
+
+  /* Images */
+  img {
+    @apply max-w-full h-auto align-middle;
+  }
+
+  /* Code */
+  pre, code {
+    @apply font-mono;
+  }
+
+  code {
+    @apply px-1.5 py-0.5 text-sm rounded-md relative;
+    background-color: hsl(var(--code-bg));
+    color: hsl(var(--code-color));
+    border: 1px solid hsl(var(--code-border));
+  }
+
+  pre {
+    @apply p-4 rounded-lg overflow-x-auto text-sm mb-4;
+    background-color: hsl(var(--code-bg));
+    code {
+      @apply p-0 bg-transparent border-0;
+    }
+  }
+
+  /* Tableaux */
+  table {
+    @apply w-full border-collapse mb-4;
+  }
+
+  thead {
+    @apply bg-muted dark:bg-muted/50;
+  }
+
+  th {
+    @apply text-left p-2 font-medium text-muted-foreground border border-border;
+  }
+
+  td {
+    @apply p-2 border border-border;
+  }
+
+  /* Formulaires */
+  input, textarea, select, button {
+    @apply font-sans text-base;
+  }
+
+  /* Autres éléments */
+  hr {
+    @apply border-t border-border my-8;
+  }
+
+  blockquote {
+    @apply border-l-4 border-primary pl-4 italic my-6;
+  }
+
+  /* Images SVG */
+  svg {
+    @apply inline-block;
+  }
+
+  /* Désactiver les transitions pour les personnes qui préfèrent réduire le mouvement */
+  @media (prefers-reduced-motion: reduce) {
+    *, ::before, ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer components {
+  /* Conteneurs */
+  .container-small {
+    @apply container max-w-4xl;
+  }
+
+  .container-large {
+    @apply container max-w-7xl;
+  }
+
+  /* Layout */
+  .layout {
+    @apply min-h-screen flex flex-col;
+  }
+
+  .main-content {
+    @apply flex-grow pt-24 pb-16;
+  }
+
+  /* Cartes */
+  .card-hover {
+    @apply transition-all duration-300 hover:shadow-md hover:-translate-y-1;
+  }
+
+  .card-interactive {
+    @apply cursor-pointer transition-all duration-300 hover:shadow-md hover:-translate-y-1 active:translate-y-0 active:shadow-sm;
+  }
+
+  /* Boutons */
+  .icon-button {
+    @apply inline-flex items-center justify-center rounded-md w-10 h-10;
+  }
+
+  .btn-icon-left {
+    @apply inline-flex items-center justify-center;
+
+    svg {
+      @apply mr-2 -ml-1 h-5 w-5;
+    }
+  }
+
+  .btn-icon-right {
+    @apply inline-flex items-center justify-center;
+
+    svg {
+      @apply ml-2 -mr-1 h-5 w-5;
+    }
+  }
+
+  /* Badges */
+  .badge-success {
+    @apply bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200;
+  }
+
+  .badge-warning {
+    @apply bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200;
+  }
+
+  .badge-error {
+    @apply bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200;
+  }
+
+  .badge-info {
+    @apply bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200;
+  }
+
+  /* Alertes */
+  .alert {
+    @apply p-4 rounded-lg border mb-4;
+  }
+
+  .alert-info {
+    @apply bg-blue-50 border-blue-200 text-blue-800 dark:bg-blue-950 dark:border-blue-900 dark:text-blue-200;
+  }
+
+  .alert-success {
+    @apply bg-green-50 border-green-200 text-green-800 dark:bg-green-950 dark:border-green-900 dark:text-green-200;
+  }
+
+  .alert-warning {
+    @apply bg-yellow-50 border-yellow-200 text-yellow-800 dark:bg-yellow-950 dark:border-yellow-900 dark:text-yellow-200;
+  }
+
+  .alert-error {
+    @apply bg-red-50 border-red-200 text-red-800 dark:bg-red-950 dark:border-red-900 dark:text-red-200;
+  }
+
+  /* Formulaires */
+  .form-group {
+    @apply mb-4;
+  }
+
+  .form-label {
+    @apply block text-sm font-medium text-foreground mb-1;
+  }
+
+  .form-helper {
+    @apply mt-1 text-sm text-muted-foreground;
+  }
+
+  .form-error {
+    @apply mt-1 text-sm text-destructive;
+  }
+
+  /* Navigation */
+  .nav-link {
+    @apply relative px-3 py-2 text-foreground/70 hover:text-foreground transition-colors duration-200;
+  }
+
+  .nav-link-active {
+    @apply text-primary;
+
+    &:after {
+      content: '';
+      @apply absolute bottom-0 left-0 w-full h-0.5 bg-primary;
+    }
+  }
+
+  /* Skeletons */
+  .skeleton {
+    @apply animate-pulse bg-muted rounded;
+  }
+
+  /* Glass effect */
+  .glass {
+    @apply bg-white/80 dark:bg-black/80 backdrop-blur-md border border-white/20 dark:border-white/10;
+  }
+
+  /* Gradients */
+  .gradient-primary {
+    @apply bg-gradient-to-r from-ecodeli-600 to-ecodeli-500;
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent;
+  }
+
+  /* Animations */
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+
+  .animate-slide-up {
+    animation: slideUp 0.5s ease-out;
+  }
+
+  .animate-bounce-in {
+    animation: bounceIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+}
+
+@layer utilities {
+  /* Masques de texte */
+  .mask-text {
+    mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+    -webkit-mask-image: linear-gradient(to bottom, black 50%, transparent 100%);
+  }
+
+  /* Layout */
+  .centered {
+    @apply grid place-items-center;
+  }
+
+  .flex-center {
+    @apply flex items-center justify-center;
+  }
+
+  /* Visually Hidden (pour l'accessibilité) */
+  .sr-only {
+    @apply absolute w-px h-px p-0 -m-px overflow-hidden whitespace-nowrap border-0;
+    clip: rect(0, 0, 0, 0);
+    clip-path: inset(50%);
+  }
+
+  /* Coupure de texte */
+  .truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .truncate-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Effet d'ombre à l'intérieur */
+  .inner-shadow {
+    box-shadow: inset 0 2px 4px 0 rgb(0 0 0 / 0.1);
+  }
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes bounceIn {
+  0% { transform: scale(0.8); opacity: 0; }
+  70% { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); }
+}
+
+/* Styles pour impression */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+
+  body {
+    font-size: 12pt;
+    line-height: 1.5;
+    color: #000;
+    background: #fff;
+  }
+
+  .page-break {
+    page-break-before: always;
+  }
+
+  a {
+    color: #000 !important;
+    text-decoration: underline;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+    page-break-inside: avoid;
+  }
+
+  img {
+    page-break-inside: avoid;
+    max-width: 100% !important;
+  }
+
+  pre, blockquote, table, ul, ol, dl {
+    page-break-inside: avoid;
+  }
+}
