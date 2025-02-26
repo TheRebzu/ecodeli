@@ -2,7 +2,79 @@ import type { Config } from "tailwindcss"
 import { fontFamily } from "tailwindcss/defaultTheme"
 import plugin from "tailwindcss/plugin"
 
-export default {
+// Définition des plugins avec gestion des erreurs pour Docker
+const loadPlugin = (pluginPath: string, options = {}) => {
+  try {
+    return require(pluginPath)(options)
+  } catch (error) {
+    console.warn(`⚠️ Attention: Impossible de charger le plugin ${pluginPath}`)
+    console.warn(`   ${error.message}`)
+    console.warn(`   Ce plugin sera ignoré, ce qui peut affecter certains styles.`)
+    return null
+  }
+}
+
+const plugins = [
+  // Plugin principal - toujours inclus
+  require("tailwindcss-animate"),
+
+  // Plugins optionnels avec gestion des erreurs
+  loadPlugin('@tailwindcss/typography'),
+  loadPlugin('@tailwindcss/forms', { strategy: 'class' }),
+  loadPlugin('@tailwindcss/aspect-ratio'),
+
+  // Plugin personnalisé pour les variants de sélection de texte
+  plugin(({ addUtilities }) => {
+    const newUtilities = {
+      '.select-none': {
+        'user-select': 'none',
+      },
+      '.select-text': {
+        'user-select': 'text',
+      },
+      '.select-all': {
+        'user-select': 'all',
+      },
+      '.select-auto': {
+        'user-select': 'auto',
+      },
+    }
+    addUtilities(newUtilities)
+  }),
+
+  // Plugin pour les styles de scrollbar
+  plugin(({ addUtilities }) => {
+    const newUtilities = {
+      '.scrollbar-thin': {
+        '&::-webkit-scrollbar': {
+          width: '6px',
+          height: '6px',
+        },
+        '&::-webkit-scrollbar-track': {
+          backgroundColor: 'rgb(var(--background) / 0.1)',
+          borderRadius: '100vh',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          backgroundColor: 'rgb(var(--foreground) / 0.2)',
+          borderRadius: '100vh',
+        },
+        '&::-webkit-scrollbar-thumb:hover': {
+          backgroundColor: 'rgb(var(--foreground) / 0.3)',
+        },
+      },
+      '.scrollbar-hide': {
+        '-ms-overflow-style': 'none',
+        'scrollbar-width': 'none',
+        '&::-webkit-scrollbar': {
+          display: 'none',
+        },
+      },
+    }
+    addUtilities(newUtilities)
+  }),
+].filter(Boolean) // Filtrer les plugins null (qui n'ont pas pu être chargés)
+
+const config: Config = {
   darkMode: ["class"],
   content: [
     "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
@@ -207,60 +279,7 @@ export default {
       transform: ['group-hover', 'hover'],
     },
   },
-  plugins: [
-    require("tailwindcss-animate"),
-    require('@tailwindcss/typography'),
-    require('@tailwindcss/forms')({
-      strategy: 'class',
-    }),
-    require('@tailwindcss/aspect-ratio'),
-    // Plugin personnalisé pour les variants de sélection de texte
-    plugin(({ addUtilities }) => {
-      const newUtilities = {
-        '.select-none': {
-          'user-select': 'none',
-        },
-        '.select-text': {
-          'user-select': 'text',
-        },
-        '.select-all': {
-          'user-select': 'all',
-        },
-        '.select-auto': {
-          'user-select': 'auto',
-        },
-      }
-      addUtilities(newUtilities)
-    }),
-    // Plugin pour les styles de scrollbar
-    plugin(({ addUtilities }) => {
-      const newUtilities = {
-        '.scrollbar-thin': {
-          '&::-webkit-scrollbar': {
-            width: '6px',
-            height: '6px',
-          },
-          '&::-webkit-scrollbar-track': {
-            backgroundColor: 'rgb(var(--background) / 0.1)',
-            borderRadius: '100vh',
-          },
-          '&::-webkit-scrollbar-thumb': {
-            backgroundColor: 'rgb(var(--foreground) / 0.2)',
-            borderRadius: '100vh',
-          },
-          '&::-webkit-scrollbar-thumb:hover': {
-            backgroundColor: 'rgb(var(--foreground) / 0.3)',
-          },
-        },
-        '.scrollbar-hide': {
-          '-ms-overflow-style': 'none',
-          'scrollbar-width': 'none',
-          '&::-webkit-scrollbar': {
-            display: 'none',
-          },
-        },
-      }
-      addUtilities(newUtilities)
-    }),
-  ],
-} satisfies Config
+  plugins: plugins,
+}
+
+export default config
