@@ -86,6 +86,7 @@ public/workbox-*.js.map
 # Development tools
 *.local
 .env.local
+.env.example
 .env.development.local
 .env.test.local
 .env.production.local
@@ -126,6 +127,3 @@ storybook-static/
 public/sitemap*.xml
 public/robots.txt
 public/manifest.json
-.env.example
-.env.example
-*.example
