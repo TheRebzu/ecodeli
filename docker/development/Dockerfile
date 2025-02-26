@@ -1,7 +1,6 @@
-# docker/development/Dockerfile
-FROM node:20-alpine AS base
+FROM node:20-alpine
 
-# Installation des dépendances système avec OpenSSL
+# Installation des dépendances système nécessaires
 RUN apk add --no-cache \
     python3 \
     make \
@@ -10,25 +9,41 @@ RUN apk add --no-cache \
     openssl \
     openssl-dev
 
-# Répertoire de travail
 WORKDIR /app
 
-# Copie des fichiers de dépendances
+# Copie des fichiers de définition des dépendances
 COPY package*.json ./
+
+# Modifie temporairement package.json pour éviter l'exécution de prisma generate
+# pendant l'installation des packages
+RUN sed -i 's/"postinstall": "prisma generate"/"postinstall": "echo Skipping prisma generate during build"/' package.json
+
+# Installation des dépendances sans exécuter les scripts postinstall modifiés
+RUN npm install --legacy-peer-deps
+
+# Copie des fichiers Prisma avant d'exécuter prisma generate manuellement
 COPY prisma ./prisma/
 
-# Installation des dépendances avec legacy-peer-deps
-RUN npm install --legacy-peer-deps && \
-    npm install bcryptjs @vercel/analytics --save --legacy-peer-deps
+# Installation explicite des plugins Tailwind
+RUN npm install --no-save \
+    @tailwindcss/typography \
+    @tailwindcss/forms \
+    @tailwindcss/aspect-ratio \
+    framer-motion \
+    next-themes \
+    @vercel/analytics
 
-# Génération du client Prisma
+# Génération des clients Prisma manuellement
 RUN npx prisma generate
 
-# Copie du reste du code source
+# Vérification des installations
+RUN ls -la node_modules/@tailwindcss || echo "Tailwind plugins missing"
+
+# Copie du reste des fichiers de l'application
 COPY . .
 
-# Exposition du port
+# Exposition du port utilisé par Next.js
 EXPOSE 3000
 
-# Commande de démarrage en mode développement
+# Commande pour démarrer l'application
 CMD ["npm", "run", "dev"]

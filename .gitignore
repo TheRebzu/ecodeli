@@ -126,3 +126,6 @@ storybook-static/
 public/sitemap*.xml
 public/robots.txt
 public/manifest.json
+.env.example
+.env.example
+*.example
