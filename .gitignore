@@ -30,6 +30,7 @@ storybook-static/
 .env
 .env.*
 .env.example
+.env.local
 
 # Cache and Logs
 .cache/
