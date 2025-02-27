@@ -1,36 +1,81 @@
-import { NextResponse } from "next/server"
-import { withAuth } from "next-auth/middleware"
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { getToken } from "next-auth/jwt";
 
-export default withAuth(
-  function middleware(req) {
-    console.log("Middleware path:", req.nextUrl.pathname)
-    console.log("Token:", req.nextauth.token)
+// Rôles et leurs pages respectives
+const rolePages = {
+  ADMIN: "/admin",
+  CUSTOMER: "/client",
+  COURIER: "/livreur",
+  MERCHANT: "/commercant",
+  PROVIDER: "/prestataire",
+};
 
-    const isAuthenticated = !!req.nextauth.token
-    const isAdminRoute = req.nextUrl.pathname.startsWith("/admin")
-    const isCustomerRoute = req.nextUrl.pathname.startsWith("/customer")
-    const userRole = req.nextauth.token?.role
+// Pages qui ne nécessitent pas d'authentification
+const publicPages = [
+  "/auth/signin",
+  "/auth/signup",
+  "/auth/forgot-password",
+  "/auth/reset-password",
+  "/auth/verify-email",
+  "/",
+  "/faq",
+  "/contact",
+  "/about",
+  "/terms",
+  "/privacy",
+];
 
-    console.log("Auth status:", { isAuthenticated, isAdminRoute, isCustomerRoute, userRole })
+export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
 
-    if (isAdminRoute && userRole !== "ADMIN") {
-      return NextResponse.redirect(new URL("/", req.url))
+  // Vérifier si la page est publique
+  if (publicPages.some(page => pathname.startsWith(page)) ||
+      pathname.includes("_next") ||
+      pathname.includes("api/auth") ||
+      pathname.includes("favicon.ico") ||
+      pathname.includes(".png") ||
+      pathname.includes(".jpg") ||
+      pathname.includes(".svg")) {
+    return NextResponse.next();
+  }
+
+  // Vérifier le token d'authentification
+  const token = await getToken({ req: request });
+
+  // Rediriger vers la connexion si l'utilisateur n'est pas authentifié
+  if (!token) {
+    const url = new URL("/auth/signin", request.url);
+    url.searchParams.set("callbackUrl", pathname);
+    return NextResponse.redirect(url);
+  }
+
+  // Récupérer le rôle de l'utilisateur
+  const userRole = token.role as keyof typeof rolePages;
+
+  // Vérifier si l'utilisateur a accès à la page
+  // Par exemple, si un CUSTOMER essaie d'accéder à /livreur
+  const rolePaths = Object.entries(rolePages).map(([role, path]) => path);
+
+  if (rolePaths.some(path => pathname.startsWith(path))) {
+    const userRolePath = rolePages[userRole];
+
+    // Vérifier si l'utilisateur a accès à la page actuelle
+    if (!pathname.startsWith(userRolePath)) {
+      return NextResponse.redirect(new URL(userRolePath, request.url));
     }
+  }
 
-    if (isCustomerRoute && userRole !== "CUSTOMER" && userRole !== "ADMIN") {
-      return NextResponse.redirect(new URL("/", req.url))
-    }
-
-    return NextResponse.next()
-  },
-  {
-    callbacks: {
-      authorized: ({ token }) => !!token,
-    },
-  },
-)
-
-export const config = {
-  matcher: ["/admin/:path*", "/customer/:path*"],
+  // Continuer si tout est OK
+  return NextResponse.next();
 }
 
+// Configurer les chemins auxquels ce middleware doit être appliqué
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except for les chemins mentionnés ci-dessus
+     */
+    "/((?!api/auth|_next/static|_next/image|favicon.ico).*)",
+  ],
+};

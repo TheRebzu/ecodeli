@@ -1,65 +1,153 @@
-import { type NextRequest, NextResponse } from "next/server"
-import bcrypt from "bcryptjs"
-import { prisma } from "@/lib/prisma"
-import jwt from "jsonwebtoken"
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { hash, compare } from "bcryptjs";
+import { getServerSession } from "next-auth/next";
+import { NextResponse } from "next/server";
 
-export async function POST(req: NextRequest) {
+export async function POST(req: Request) {
   try {
-    const { email, password } = await req.json()
+    const { email, password } = await req.json();
 
     if (!email || !password) {
-      return new NextResponse("Missing email or password", { status: 400 })
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Email et mot de passe requis"
+        },
+        { status: 400 }
+      );
     }
 
     const user = await prisma.user.findUnique({
-      where: {
-        email,
-      },
+      where: { email },
       include: {
         customerProfile: true,
         courierProfile: true,
         merchantProfile: true,
         providerProfile: true,
       },
-    })
+    });
 
     if (!user) {
-      return new NextResponse("Invalid credentials", { status: 401 })
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Utilisateur non trouvé"
+        },
+        { status: 404 }
+      );
     }
 
-    const passwordMatch = await bcrypt.compare(password, user.password)
+    const isPasswordValid = await compare(password, user.password);
 
-    if (!passwordMatch) {
-      return new NextResponse("Invalid credentials", { status: 401 })
+    if (!isPasswordValid) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Mot de passe incorrect"
+        },
+        { status: 401 }
+      );
     }
 
-    const profileMap = {
-      CUSTOMER: user.customerProfile,
-      COURIER: user.courierProfile,
-      MERCHANT: user.merchantProfile,
-      PROVIDER: user.providerProfile,
-      ADMIN: null, // Admins don't have a specific profile
+    if (user.status !== "ACTIVE") {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Votre compte est inactif. Veuillez vérifier votre email ou contacter le support."
+        },
+        { status: 403 }
+      );
     }
 
-    const profile = user.role === "ADMIN" ? null : profileMap[user.role as keyof typeof profileMap]
+    // Préparer l'objet utilisateur à retourner (sans le mot de passe)
+    const { password: _, ...userWithoutPassword } = user;
 
-    // Générer le JWT
-    const token = jwt.sign(
-      {
-        userId: user.id,
-        email: user.email,
-        role: user.role,
-        status: user.status,
-        profileId: profile?.id,
-      },
-      process.env.JWT_SECRET!,
-      { expiresIn: "24h" },
-    )
+    // Déterminer le profil spécifique
+    let profile = null;
+    switch (user.role) {
+      case "CUSTOMER":
+        profile = user.customerProfile;
+        break;
+      case "COURIER":
+        profile = user.courierProfile;
+        break;
+      case "MERCHANT":
+        profile = user.merchantProfile;
+        break;
+      case "PROVIDER":
+        profile = user.providerProfile;
+        break;
+    }
 
-    return NextResponse.json({ token })
+    return NextResponse.json({
+      success: true,
+      user: {
+        ...userWithoutPassword,
+        profile
+      }
+    });
   } catch (error) {
-    console.error("[SIGNIN_POST]", error)
-    return new NextResponse("Internal error", { status: 500 })
+    console.error("Erreur de connexion:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Une erreur est survenue lors de la connexion"
+      },
+      { status: 500 }
+    );
   }
 }
 
+export async function GET(req: Request) {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Non authentifié"
+      },
+      { status: 401 }
+    );
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      include: {
+        customerProfile: session.user.role === "CUSTOMER",
+        courierProfile: session.user.role === "COURIER",
+        merchantProfile: session.user.role === "MERCHANT",
+        providerProfile: session.user.role === "PROVIDER",
+      },
+    });
+
+    if (!user) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Utilisateur non trouvé"
+        },
+        { status: 404 }
+      );
+    }
+
+    // Suppression du mot de passe
+    const { password, ...userWithoutPassword } = user;
+
+    return NextResponse.json({
+      success: true,
+      user: userWithoutPassword
+    });
+  } catch (error) {
+    console.error("Erreur lors de la récupération de l'utilisateur:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Une erreur est survenue"
+      },
+      { status: 500 }
+    );
+  }
+}

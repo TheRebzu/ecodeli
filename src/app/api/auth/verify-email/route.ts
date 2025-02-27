@@ -1,45 +1,71 @@
-// src/app/api/auth/verify-email/route.ts
-import { NextResponse } from "next/server"
-import { prisma } from "@/lib/prisma"
+import { prisma } from "@/lib/prisma";
+import { NextResponse } from "next/server";
+import { sendEmailVerificationSuccessEmail } from "@/lib/auth/email-utils";
 
-export async function POST(request: Request) {
+export async function POST(req: Request) {
   try {
-    const { token } = await request.json()
+    const { token } = await req.json();
 
-    // Vérifier le token
+    if (!token) {
+      return NextResponse.json(
+        { success: false, message: "Token requis" },
+        { status: 400 }
+      );
+    }
+
+    // Rechercher le token de vérification
     const verificationToken = await prisma.verificationToken.findUnique({
       where: { token },
-    })
+      include: {
+        user: true
+      }
+    });
 
     if (!verificationToken) {
-      return NextResponse.json({ message: "Token de vérification invalide" }, { status: 400 })
+      return NextResponse.json(
+        { success: false, message: "Token de vérification invalide" },
+        { status: 400 }
+      );
     }
 
     // Vérifier si le token n'a pas expiré
     if (verificationToken.expires < new Date()) {
-      return NextResponse.json({ message: "Le token de vérification a expiré" }, { status: 400 })
+      await prisma.verificationToken.delete({
+        where: { id: verificationToken.id },
+      });
+
+      return NextResponse.json(
+        { success: false, message: "Le token de vérification a expiré" },
+        { status: 400 }
+      );
     }
 
-    // Mettre à jour le statut de l'utilisateur
-    await prisma.user.update({
+    // Activer l'utilisateur
+    const updatedUser = await prisma.user.update({
       where: { id: verificationToken.userId },
       data: {
         status: "ACTIVE",
         emailVerified: new Date(),
       },
-    })
+    });
 
     // Supprimer le token utilisé
     await prisma.verificationToken.delete({
       where: { id: verificationToken.id },
-    })
+    });
 
-    return NextResponse.json({ message: "Email vérifié avec succès" }, { status: 200 })
+    // Envoyer un email de confirmation
+    await sendEmailVerificationSuccessEmail(updatedUser);
+
+    return NextResponse.json({
+      success: true,
+      message: "Email vérifié avec succès. Vous pouvez maintenant vous connecter.",
+    });
   } catch (error) {
-    console.error("Email verification error:", error)
-    return NextResponse.json({ message: "Une erreur est survenue lors de la vérification de l'email" }, { status: 500 })
-  } finally {
-    await prisma.$disconnect()
+    console.error("Erreur de vérification d'email:", error);
+    return NextResponse.json(
+      { success: false, message: "Une erreur est survenue lors de la vérification de l'email" },
+      { status: 500 }
+    );
   }
 }
-

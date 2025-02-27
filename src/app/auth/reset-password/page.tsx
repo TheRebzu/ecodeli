@@ -1,24 +1,24 @@
 import { Metadata } from "next";
-import SignInForm from "@/components/auth/SignInForm";
+import ResetPasswordForm from "@/components/auth/ResetPasswordForm";
 
 export const metadata: Metadata = {
-  title: "Connexion | EcoDeli",
-  description: "Connectez-vous à votre compte EcoDeli",
+  title: "Réinitialiser le mot de passe | EcoDeli",
+  description: "Créez un nouveau mot de passe pour votre compte EcoDeli",
 };
 
-export default function SignInPage() {
+export default function ResetPasswordPage() {
   return (
     <div className="container flex h-screen w-screen flex-col items-center justify-center">
       <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
         <div className="flex flex-col space-y-2 text-center">
           <h1 className="text-2xl font-semibold tracking-tight">
-            Bienvenue sur EcoDeli
+            Réinitialiser le mot de passe
           </h1>
           <p className="text-sm text-muted-foreground">
-            Connectez-vous pour accéder à votre espace personnel
+            Créez un nouveau mot de passe sécurisé
           </p>
         </div>
-        <SignInForm />
+        <ResetPasswordForm />
       </div>
     </div>
   );

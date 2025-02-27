@@ -1,16 +1,55 @@
-import { getServerSession } from "next-auth/next"
-import { authOptions } from "@/lib/auth"
-import { NextResponse } from "next/server"
+import { authOptions } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { getServerSession } from "next-auth/next";
+import { NextResponse } from "next/server";
 
 export async function GET() {
-  const session = await getServerSession(authOptions)
+  const session = await getServerSession(authOptions);
 
-  if (!session) {
-    return new NextResponse(JSON.stringify({ error: "unauthorized" }), {
-      status: 401,
-    })
+  if (!session?.user) {
+    return NextResponse.json(
+      { success: false, message: "Non authentifié" },
+      { status: 401 }
+    );
   }
 
-  return NextResponse.json({ name: session.user?.name })
-}
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        phoneNumber: true,
+        role: true,
+        status: true,
+        language: true,
+        createdAt: true,
+        updatedAt: true,
+        customerProfile: session.user.role === "CUSTOMER",
+        courierProfile: session.user.role === "COURIER",
+        merchantProfile: session.user.role === "MERCHANT",
+        providerProfile: session.user.role === "PROVIDER",
+      },
+    });
 
+    if (!user) {
+      return NextResponse.json(
+        { success: false, message: "Utilisateur non trouvé" },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      user,
+    });
+  } catch (error) {
+    console.error("Erreur lors de la récupération des informations utilisateur:", error);
+    return NextResponse.json(
+      { success: false, message: "Une erreur est survenue" },
+      { status: 500 }
+    );
+  }
+}
