@@ -1,61 +1,86 @@
 # Dependencies
-node_modules/
-.pnp/
+/node_modules
+/.pnp
 .pnp.js
-.yarn/
-.yarnrc.yml
-.pnpm-store/
 
 # Testing
-coverage/
-.nyc_output/
-cypress/videos/
-cypress/screenshots/
-test-results/
-playwright-report/
+/coverage
 
 # Next.js
-.next/
-out/
-dist/
-build/
-.swc/
+/.next/
+/out/
+/build
+next-env.d.ts
 
 # Production
-build/
-dist/
-storybook-static/
+/build
 
-# Environment Variables
-.env
-.env.*
-!.env.example
+# Misc
+.DS_Store
+*.pem
 
-# Cache and Logs
-.cache/
-*.log
-logs/
+# Debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
-.eslintcache
-.stylelintcache
-tsconfig.tsbuildinfo
 
-# IDE and Editors
-.idea/
-.vscode/
-*.sublime-project
-*.sublime-workspace
-.project
-.classpath
-*.launch
-.settings/
-*.code-workspace
-.history/
+# Local env files
+.env
+.env*.local
+.env.development
+.env.test
+.env.production
 
-# OS Generated Files
+# Vercel
+.vercel
+
+# TypeScript
+*.tsbuildinfo
+
+# PWA
+**/public/sw.js
+**/public/workbox-*.js
+**/public/worker-*.js
+**/public/fallback-*.js
+**/public/sw.js.map
+**/public/workbox-*.js.map
+**/public/worker-*.js.map
+
+# IDE specific files
+.idea
+.vscode
+*.swp
+*.swo
+
+# Logs
+logs
+*.log
+
+# Docker
+.dockerignore
+
+# Cypress
+cypress/videos
+cypress/screenshots
+
+# Prisma
+/prisma/.env
+/prisma/migrations/*_*
+
+# Temp and cache
+.cache
+.temp
+dist
+tmp
+
+# Package managers
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+.pnpm-store/
+
+# OS generated files
 .DS_Store
 .DS_Store?
 ._*
@@ -63,67 +88,9 @@ tsconfig.tsbuildinfo
 .Trashes
 ehthumbs.db
 Thumbs.db
-Desktop.ini
 
-# Temporary files
-*.swp
-*.swo
-*~
-*.tmp
-*.temp
-*.bak
+# Deploy scripts
+.netlify
 
-# Vercel
-.vercel/
-.now/
-
-# PWA
-public/sw.js
-public/sw.js.map
-public/workbox-*.js
-public/workbox-*.js.map
-
-# Development tools
-*.local
-.env.local
-.env.example
-.env.development.local
-.env.test.local
-.env.production.local
-
-# Build outputs
-*.tsbuildinfo
-next-env.d.ts
-.next-zip
-
-# Docker
-.docker/
-docker-compose.override.yml
-
-# Database
-*.sqlite
-*.sqlite3
-*.db
-
-# Coverage directory used by tools like istanbul
-coverage/
-*.lcov
-
-# Storybook
-storybook-static/
-
-# Misc
-.notes/
-.tmp/
-*.pid
-*.seed
-*.pid.lock
-.env.backup
-.npmrc
-.yarnrc
-.nvmrc
-
-# Generated files
-public/sitemap*.xml
-public/robots.txt
-public/manifest.json
+# Test generated files
+.nyc_output
