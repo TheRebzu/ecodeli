@@ -1,46 +1,25 @@
-import type { Metadata } from "next"
-import { Inter } from "next/font/google"
-import { ThemeProvider } from "@/components/theme-provider"
-import { config } from "@/lib/config"
-import AuthProvider from "@/providers/auth"
-import "@/styles/globals.css"
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { Providers } from "./providers";
 
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-sans",
-})
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: {
-    default: config.siteName,
-    template: `%s | ${config.siteName}`,
-  },
-  description: config.siteName,
-}
-
-interface RootLayoutProps {
-  children: React.ReactNode
-}
+  title: "EcoDeli - Livraison écologique de produits locaux",
+  description: "Plateforme de livraison écologique pour des produits locaux et durables",
+};
 
 export default function RootLayout({
   children,
-}: RootLayoutProps) {
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html lang="fr" suppressHydrationWarning>
-      <body
-        className={`min-h-screen bg-background font-sans antialiased ${inter.variable}`}
-      >
-        <AuthProvider>
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="system"
-            enableSystem={true}
-            disableTransitionOnChange={true}
-          >
-            {children}
-          </ThemeProvider>
-        </AuthProvider>
+    <html lang="fr" className="h-full">
+      <body className={`${inter.className} min-h-full flex flex-col bg-background`}>
+        <Providers>{children}</Providers>
       </body>
     </html>
-  )
-}
+  );
+} 
