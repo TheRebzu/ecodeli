@@ -21,22 +21,22 @@ import { cn } from "@/lib/utils";
 
 export default function HomePage() {
   return (
-    <div className="flex flex-col gap-20 pb-20">
+    <div className="flex flex-col gap-20 pb-20 mx-auto max-w-screen-2xl">
       {/* Section Hero */}
       <section className="relative w-full pt-16 md:pt-24 lg:pt-32 overflow-hidden">
-        <div className="container relative z-10">
+        <div className="container relative z-10 mx-auto px-4 text-center md:text-left">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="space-y-6">
-              <Badge className="px-3 py-1 mb-2">
+            <div className="space-y-6 mx-auto lg:mx-0 max-w-xl">
+              <Badge className="px-3 py-1 mb-2 mx-auto lg:mx-0 inline-flex">
                 Nouveau en France
               </Badge>
               <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold leading-tight">
                 La livraison <span className="text-primary">collaborative</span> qui change tout
               </h1>
-              <p className="text-xl text-muted-foreground max-w-lg">
+              <p className="text-xl text-muted-foreground max-w-lg mx-auto lg:mx-0">
                 EcoDeli connecte particuliers, commerçants et prestataires pour des livraisons plus économiques, écologiques et humaines.
               </p>
-              <div className="flex flex-col sm:flex-row gap-4">
+              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link href="/register">
                   <Button size="lg" className="w-full sm:w-auto">
                     S&apos;inscrire gratuitement
@@ -48,7 +48,7 @@ export default function HomePage() {
                   </Button>
                 </Link>
               </div>
-              <div className="flex items-center gap-4 pt-4">
+              <div className="flex items-center gap-4 pt-4 justify-center lg:justify-start">
                 <div className="flex -space-x-2">
                   {[1, 2, 3, 4].map((i) => (
                     <div 
@@ -62,7 +62,7 @@ export default function HomePage() {
                 </p>
               </div>
             </div>
-            <div className="relative h-[400px] lg:h-[500px]">
+            <div className="relative h-[400px] lg:h-[500px] mx-auto max-w-xl lg:max-w-none w-full">
               <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-secondary/20 rounded-xl" />
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="text-center p-6">
@@ -85,7 +85,7 @@ export default function HomePage() {
 
       {/* Section Comment ça marche */}
       <section className="w-full">
-        <div className="container">
+        <div className="container mx-auto px-4 text-center">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <Badge className="mb-4">Simple & Rapide</Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
@@ -96,7 +96,7 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {[
               {
                 icon: Package,
@@ -149,7 +149,7 @@ export default function HomePage() {
 
       {/* Section Avantages */}
       <section className="bg-muted w-full">
-        <div className="container py-16">
+        <div className="container py-16 mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <Badge className="mb-4">Pourquoi EcoDeli ?</Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
@@ -160,7 +160,7 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {[
               {
                 icon: PiggyBank,
@@ -215,7 +215,7 @@ export default function HomePage() {
 
       {/* Section Témoignages */}
       <section className="w-full py-16">
-        <div className="container">
+        <div className="container mx-auto px-4">
           <div className="text-center max-w-3xl mx-auto mb-16">
             <Badge className="mb-4">Témoignages</Badge>
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
@@ -226,7 +226,7 @@ export default function HomePage() {
             </p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {[
               {
                 name: "Marie L.",

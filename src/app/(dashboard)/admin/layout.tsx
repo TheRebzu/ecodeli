@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { getSession } from "@/lib/session-helper";
+import { AdminSidebar } from "@/components/admin/admin-sidebar";
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -16,11 +17,13 @@ export default async function AdminLayout({ children }: AdminLayoutProps) {
   }
 
   return (
-    <div className="w-full">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">Administration EcoDeli</h1>
+    <div className="flex min-h-screen w-full flex-col md:flex-row">
+      <AdminSidebar />
+      <div className="flex-1 flex flex-col">
+        <main className="flex-1">
+          {children}
+        </main>
       </div>
-      {children}
     </div>
   );
 } 
