@@ -1,27 +1,8 @@
 "use client";
 
+import React from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { signOut, useSession } from "next-auth/react";
-import { 
-  User,
-  Package,
-  ShoppingBag, 
-  Truck, 
-  Settings, 
-  LogOut, 
-  Heart,
-  Map,
-  BarChart,
-  CalendarClock,
-  MessageSquare,
-  Users,
-  Building,
-  PanelRight,
-  LucideIcon
-} from "lucide-react";
 
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -31,167 +12,96 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useState } from "react";
-
-type ProfileMenuItem = {
-  label: string;
-  href: string;
-  icon: LucideIcon;
-};
-
-type ProfileMenuGroup = {
-  items: ProfileMenuItem[];
-};
-
-const roleNavItems: Record<string, ProfileMenuGroup> = {
-  CLIENT: {
-    items: [
-      { label: "Profil", href: "/dashboard/profile", icon: User },
-      { label: "Mes livraisons", href: "/dashboard/deliveries", icon: Package },
-      { label: "Mes favoris", href: "/dashboard/favorites", icon: Heart },
-      { label: "Mes messages", href: "/dashboard/messages", icon: MessageSquare },
-      { label: "Paramètres", href: "/dashboard/settings", icon: Settings },
-    ],
-  },
-  MERCHANT: {
-    items: [
-      { label: "Profil", href: "/dashboard/profile", icon: User },
-      { label: "Tableau de bord", href: "/dashboard", icon: BarChart },
-      { label: "Mes commandes", href: "/dashboard/orders", icon: ShoppingBag },
-      { label: "Mes livraisons", href: "/dashboard/deliveries", icon: Truck },
-      { label: "Paramètres", href: "/dashboard/settings", icon: Settings },
-    ],
-  },
-  COURIER: {
-    items: [
-      { label: "Profil", href: "/dashboard/profile", icon: User },
-      { label: "Mes missions", href: "/dashboard/missions", icon: Map },
-      { label: "Mon planning", href: "/dashboard/schedule", icon: CalendarClock },
-      { label: "Mes revenus", href: "/dashboard/earnings", icon: BarChart },
-      { label: "Paramètres", href: "/dashboard/settings", icon: Settings },
-    ],
-  },
-  PROVIDER: {
-    items: [
-      { label: "Profil", href: "/dashboard/profile", icon: User },
-      { label: "Mes services", href: "/dashboard/services", icon: Users },
-      { label: "Mes clients", href: "/dashboard/clients", icon: Building },
-      { label: "Mes revenus", href: "/dashboard/earnings", icon: BarChart },
-      { label: "Paramètres", href: "/dashboard/settings", icon: Settings },
-    ],
-  },
-  ADMIN: {
-    items: [
-      { label: "Tableau de bord", href: "/dashboard", icon: BarChart },
-      { label: "Administration", href: "/admin", icon: PanelRight },
-      { label: "Paramètres", href: "/dashboard/settings", icon: Settings },
-    ],
-  },
-};
-
-function getInitials(name: string): string {
-  return name
-    .split(" ")
-    .map((part) => part[0])
-    .join("")
-    .toUpperCase()
-    .substring(0, 2);
-}
+import { Icons } from "@/components/shared/icons";
 
 export function ProfileButton() {
-  const { data: session, status } = useSession();
-  const router = useRouter();
-  const [isLoggingOut, setIsLoggingOut] = useState(false);
-
-  if (status === "loading") {
-    return <Skeleton className="h-9 w-9 rounded-full" />;
-  }
-
-  const userRole = session?.user?.role || "CLIENT";
-
-  const handleLogout = async () => {
-    setIsLoggingOut(true);
-    await signOut({ redirect: false });
-    router.push("/");
-    router.refresh();
+  // Utiliser des données statiques plutôt que useSession
+  const user = {
+    name: "Utilisateur Demo",
+    email: "utilisateur@exemple.com",
+    image: null,
   };
 
-  if (session) {
-    return (
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            className="relative h-10 w-10 rounded-full"
-          >
-            <Avatar className="h-9 w-9">
-              <AvatarImage
-                src={session.user?.image || ""}
-                alt={session.user?.name || ""}
-              />
-              <AvatarFallback>
-                {getInitials(session.user?.name || "U")}
-              </AvatarFallback>
-            </Avatar>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56" align="end" forceMount>
-          <DropdownMenuLabel className="font-normal">
-            <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">
-                {session.user?.name}
-              </p>
-              <p className="text-xs leading-none text-muted-foreground">
-                {session.user?.email}
-              </p>
-            </div>
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuGroup>
-            {roleNavItems[userRole].items.map((item) => (
-              <DropdownMenuItem key={item.href} asChild>
-                <Link href={item.href} className="cursor-pointer w-full">
-                  <item.icon className="mr-2 h-4 w-4" />
-                  <span>{item.label}</span>
-                </Link>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuGroup>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            className="cursor-pointer text-destructive focus:text-destructive"
-            onClick={handleLogout}
-            disabled={isLoggingOut}
-          >
-            {isLoggingOut ? (
-              <>
-                <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                <span>Déconnexion...</span>
-              </>
-            ) : (
-              <>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Déconnexion</span>
-              </>
-            )}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
-    );
-  }
+  // Utiliser des liens statiques
+  const menuItems = [
+    {
+      icon: Icons.dashboard,
+      label: "Tableau de bord",
+      href: "/dashboard",
+    },
+    {
+      icon: Icons.user,
+      label: "Profil",
+      href: "/dashboard/profile",
+    },
+    {
+      icon: Icons.message,
+      label: "Messages",
+      href: "/dashboard/messages",
+    },
+    {
+      icon: Icons.settings,
+      label: "Paramètres",
+      href: "/dashboard/settings",
+    },
+  ];
+
+  // Fonction de déconnexion simulée sans appel serveur
+  const handleLogout = () => {
+    // Ne fait pas d'appel réel à signOut de next-auth
+    // Pour un comportement réel, on utiliserait: signOut({ redirect: true, callbackUrl: '/' })
+    window.location.href = '/';
+  };
 
   return (
-    <div className="flex items-center gap-2">
-      <Link href="/login">
-        <Button variant="ghost" size="sm">
-          Connexion
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button 
+          variant="ghost" 
+          className="relative h-9 w-9 rounded-full"
+        >
+          <Avatar className="h-9 w-9">
+            <AvatarImage 
+              src={user.image || ''} 
+              alt={user.name || 'Avatar'}
+            />
+            <AvatarFallback>
+              {user.name?.charAt(0).toUpperCase() || 'U'}
+            </AvatarFallback>
+          </Avatar>
         </Button>
-      </Link>
-      <Link href="/register">
-        <Button size="sm">S&apos;inscrire</Button>
-      </Link>
-    </div>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56" align="end" forceMount>
+        <DropdownMenuLabel className="font-normal">
+          <div className="flex flex-col space-y-1">
+            <p className="text-sm font-medium leading-none">{user.name}</p>
+            <p className="text-xs leading-none text-muted-foreground">
+              {user.email}
+            </p>
+          </div>
+        </DropdownMenuLabel>
+        <DropdownMenuSeparator />
+        <DropdownMenuGroup>
+          {menuItems.map((item, index) => (
+            <DropdownMenuItem key={index} asChild>
+              <Link href={item.href} className="flex w-full cursor-pointer items-center">
+                <item.icon className="mr-2 h-4 w-4" />
+                <span>{item.label}</span>
+              </Link>
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem 
+          className="text-destructive focus:text-destructive cursor-pointer"
+          onClick={handleLogout}
+        >
+          <Icons.logout className="mr-2 h-4 w-4" />
+          <span>Déconnexion</span>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 } 

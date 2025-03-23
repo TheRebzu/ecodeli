@@ -2,7 +2,6 @@
 
 import Link from "next/link"
 import { useState } from "react"
-import { useAuth } from "@/lib/hooks/use-auth"
 import { 
   BellIcon, 
   CalendarIcon, 
@@ -60,7 +59,6 @@ interface DashboardHeaderProps {
 }
 
 export default function DashboardHeader({ user, variant }: DashboardHeaderProps) {
-  const { logout } = useAuth()
   const [notifications, setNotifications] = useState<{ id: string; title: string; description: string }[]>([
     { id: "1", title: "Nouvelle commande", description: "Vous avez reçu une nouvelle commande #1234" },
     { id: "2", title: "Message important", description: "Un administrateur vous a envoyé un message" }
@@ -104,9 +102,10 @@ export default function DashboardHeader({ user, variant }: DashboardHeaderProps)
     setNotifications(prev => prev.filter(n => n.id !== id))
   }
   
-  // Gérer la déconnexion
-  const handleLogout = async () => {
-    await logout()
+  // Gérer la déconnexion avec un lien direct
+  const handleLogout = () => {
+    // Redirection vers la route de déconnexion
+    window.location.href = "/api/auth/signout"
   }
 
   return (

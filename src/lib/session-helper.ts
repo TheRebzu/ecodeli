@@ -1,5 +1,7 @@
 import { getServerSession } from "next-auth";
-import { authConfig } from "@/app/api/auth/[...nextauth]/route";
+import { authOptions } from "@/lib/auth";
+import prisma from "@/lib/prisma";
+import { User } from "@prisma/client";
 
 // Type pour l'utilisateur dans la session
 export interface SessionUser {
@@ -21,8 +23,28 @@ export interface Session {
  * NE PAS UTILISER DANS UN CONTEXTE CACHÉ (unstable_cache)
  */
 export async function getSession(): Promise<Session | null> {
-  const session = await getServerSession(authConfig);
+  const session = await getServerSession(authOptions);
   return session as Session | null;
+}
+
+/**
+ * Récupère l'utilisateur courant complet depuis la base de données
+ */
+export async function getCurrentUser(): Promise<User | null> {
+  const session = await getSession();
+  if (!session?.user?.id) {
+    return null;
+  }
+
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: session.user.id },
+    });
+    return user;
+  } catch (error) {
+    console.error("Erreur lors de la récupération de l'utilisateur:", error);
+    return null;
+  }
 }
 
 /**

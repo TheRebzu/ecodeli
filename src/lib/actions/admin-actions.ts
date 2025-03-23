@@ -181,8 +181,8 @@ export const getAdminDashboardStats = unstable_cache(
 interface UserSearchParams {
   page?: number;
   limit?: number;
-  role?: Role;
-  status?: Status;
+  role?: Role | "all";
+  status?: Status | "all";
   search?: string;
 }
 
@@ -205,11 +205,11 @@ export async function getAdminUsers({
   // Construire les filtres
   const where: Record<string, unknown> = {};
   
-  if (role) {
+  if (role && role !== "all") {
     where.role = role;
   }
   
-  if (status) {
+  if (status && status !== "all") {
     where.status = status;
   }
   

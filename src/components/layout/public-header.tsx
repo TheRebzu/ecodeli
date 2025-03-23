@@ -25,8 +25,16 @@ const mainNavItems: NavItem[] = [
     href: "/",
   },
   {
-    title: "Services",
+    title: "Nos Services",
     href: "/services",
+  },
+  {
+    title: "Expédier",
+    href: "/shipping",
+  },
+  {
+    title: "Devenir Livreur",
+    href: "/become-delivery",
   },
   {
     title: "Tarifs",
@@ -37,8 +45,8 @@ const mainNavItems: NavItem[] = [
     href: "/about",
   },
   {
-    title: "Contact",
-    href: "/contact",
+    title: "FAQ",
+    href: "/faq",
   },
 ]
 
