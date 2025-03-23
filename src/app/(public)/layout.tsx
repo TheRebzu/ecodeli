@@ -1,6 +1,6 @@
 import React from "react";
-import { PublicHeader } from "@/components/public/header";
-import { PublicFooter } from "@/components/public/footer";
+import PublicHeader from "@/components/layout/public-header";
+import PublicFooter from "@/components/layout/public-footer";
 
 export default function PublicLayout({
   children,
@@ -8,11 +8,9 @@ export default function PublicLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="flex min-h-screen flex-col">
       <PublicHeader />
-      <main className="flex-1 mx-auto w-full max-w-screen-xl px-4 sm:px-6 py-8">
-        {children}
-      </main>
+      <main className="flex-1">{children}</main>
       <PublicFooter />
     </div>
   );
