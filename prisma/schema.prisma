@@ -40,6 +40,10 @@ model User {
   // Authentification
   accounts          Account[]
   sessions          Session[]
+  
+  // Alertes
+  alertRules        AlertRule[]
+  alerts            Alert[]
 }
 
 // Modèle pour l'authentification avec NextAuth
@@ -426,4 +430,60 @@ model Notification {
   
   // Utilisateur destinataire
   userId      String
+}
+
+// Modèles pour le système d'alertes
+model AlertRule {
+  id              String          @id @default(cuid())
+  name            String
+  metricType      AlertMetricType
+  condition       AlertCondition
+  threshold       Float
+  enabled         Boolean         @default(true)
+  notifyEmail     Boolean         @default(true)
+  notifyDashboard Boolean         @default(true)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  userId          String
+  user            User            @relation(fields: [userId], references: [id])
+  alerts          Alert[]
+}
+
+model Alert {
+  id            String          @id @default(cuid())
+  ruleId        String
+  rule          AlertRule       @relation(fields: [ruleId], references: [id])
+  userId        String
+  user          User            @relation(fields: [userId], references: [id])
+  metricType    AlertMetricType
+  message       String
+  details       String?
+  value         Float
+  expectedValue Float?
+  deviation     Float?
+  timestamp     DateTime        @default(now())
+  severity      AlertSeverity
+  read          Boolean         @default(false)
+  dismissed     Boolean         @default(false)
+}
+
+enum AlertMetricType {
+  REVENUE
+  SHIPMENTS
+  USERS
+  SATISFACTION
+  COURIER_DELAY
+}
+
+enum AlertCondition {
+  ABOVE
+  BELOW
+  EQUAL
+  CHANGE_RATE
+}
+
+enum AlertSeverity {
+  LOW
+  MEDIUM
+  HIGH
 }

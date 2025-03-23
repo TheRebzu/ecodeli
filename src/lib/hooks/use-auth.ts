@@ -87,7 +87,7 @@ export function useAuth() {
     }
     
     const dashboardUrls: Record<string, string> = {
-      ADMIN: '/admin',
+      ADMIN: '/dashboard',
       CLIENT: '/dashboard/client',
       COURIER: '/dashboard/courier',
       MERCHANT: '/dashboard/merchant',
@@ -143,7 +143,9 @@ export function useAuth() {
       if (callbackUrl) {
         router.push(callbackUrl);
       } else {
-        redirectToDashboard();
+        setTimeout(() => {
+          redirectToDashboard();
+        }, 300);
       }
       
       return { success: true };

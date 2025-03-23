@@ -89,6 +89,12 @@ export function AdminSidebar() {
       variant: pathname === "/admin" ? "default" : "ghost",
     },
     {
+      title: "Espace personnel",
+      href: "/dashboard?role=admin",
+      icon: <Home className="h-4 w-4" />,
+      variant: pathname === "/dashboard" && pathname.includes("role=admin") ? "default" : "ghost",
+    },
+    {
       title: "Utilisateurs",
       href: "/admin/users",
       icon: <Users className="h-4 w-4" />,
