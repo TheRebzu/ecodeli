@@ -21,7 +21,11 @@ export default async function DashboardLayout({ children }: DashboardLayoutProps
     <div className="flex min-h-screen flex-col bg-background">
       <ClientHeader />
       <div className="flex flex-col flex-1">
+<<<<<<< HEAD
         <main className="flex-1 w-full mx-auto max-w-screen-xl px-3 sm:px-4 md:px-6 lg:px-8 py-4 md:py-6 lg:py-8 overflow-x-hidden">
+=======
+        <main className="flex-1 w-full mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8 py-6 md:py-8">
+>>>>>>> 5b14b134948ec7b19d55a9a8fff5829e7f796b19
           {children}
         </main>
         <DashboardFooter />

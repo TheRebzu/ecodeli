@@ -1,8 +1,7 @@
-import NextAuth, { AuthOptions } from "next-auth";
-import CredentialsProvider from "next-auth/providers/credentials";
-import { compare } from "bcrypt";
-import { prisma } from "@/lib/prisma";
+import { authOptions } from "@/lib/auth";
+import NextAuth from "next-auth";
 
+<<<<<<< HEAD
 const authConfig: AuthOptions = {
   providers: [
     CredentialsProvider({
@@ -15,62 +14,8 @@ const authConfig: AuthOptions = {
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
+=======
+const handler = NextAuth(authOptions);
+>>>>>>> 5b14b134948ec7b19d55a9a8fff5829e7f796b19
 
-        const user = await prisma.user.findUnique({
-          where: {
-            email: credentials.email,
-          },
-        });
-
-        if (!user) {
-          return null;
-        }
-
-        const passwordMatch = await compare(credentials.password, user.password);
-
-        if (!passwordMatch) {
-          return null;
-        }
-
-        return {
-          id: user.id.toString(),
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          status: user.status,
-        };
-      },
-    }),
-  ],
-  callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token.role = user.role;
-        token.id = user.id;
-        token.status = user.status;
-      }
-      return token;
-    },
-    async session({ session, token }) {
-      if (session?.user) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as string;
-        session.user.status = token.status as string;
-      }
-      return session;
-    },
-  },
-  pages: {
-    signIn: "/login",
-    error: "/login",
-  },
-  session: {
-    strategy: "jwt" as const,
-  },
-  secret: process.env.NEXTAUTH_SECRET,
-};
-
-const handler = NextAuth(authConfig);
-
-export const GET = handler;
-export const POST = handler;
+export { handler as GET, handler as POST };
