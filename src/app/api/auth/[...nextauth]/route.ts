@@ -3,7 +3,7 @@ import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcrypt";
 import { prisma } from "@/lib/prisma";
 
-export const authConfig: AuthOptions = {
+const authConfig: AuthOptions = {
   providers: [
     CredentialsProvider({
       name: "Credentials",

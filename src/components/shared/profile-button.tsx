@@ -106,7 +106,7 @@ export function ProfileButton() {
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   if (status === "loading") {
-    return <Skeleton className="h-9 w-9 rounded-full" />;
+    return <Skeleton className="h-8 w-8 sm:h-9 sm:w-9 rounded-full" />;
   }
 
   const userRole = session?.user?.role || "CLIENT";
@@ -124,26 +124,26 @@ export function ProfileButton() {
         <DropdownMenuTrigger asChild>
           <Button
             variant="ghost"
-            className="relative h-10 w-10 rounded-full"
+            className="relative h-8 w-8 sm:h-10 sm:w-10 rounded-full p-0"
           >
-            <Avatar className="h-9 w-9">
+            <Avatar className="h-8 w-8 sm:h-9 sm:w-9">
               <AvatarImage
                 src={session.user?.image || ""}
                 alt={session.user?.name || ""}
               />
-              <AvatarFallback>
+              <AvatarFallback className="text-xs sm:text-sm">
                 {getInitials(session.user?.name || "U")}
               </AvatarFallback>
             </Avatar>
           </Button>
         </DropdownMenuTrigger>
-        <DropdownMenuContent className="w-56" align="end" forceMount>
+        <DropdownMenuContent className="w-48 sm:w-56" align="end" forceMount>
           <DropdownMenuLabel className="font-normal">
             <div className="flex flex-col space-y-1">
-              <p className="text-sm font-medium leading-none">
+              <p className="text-sm font-medium leading-none truncate max-w-[180px]">
                 {session.user?.name}
               </p>
-              <p className="text-xs leading-none text-muted-foreground">
+              <p className="text-xs leading-none text-muted-foreground truncate max-w-[180px]">
                 {session.user?.email}
               </p>
             </div>
@@ -153,8 +153,8 @@ export function ProfileButton() {
             {roleNavItems[userRole].items.map((item) => (
               <DropdownMenuItem key={item.href} asChild>
                 <Link href={item.href} className="cursor-pointer w-full">
-                  <item.icon className="mr-2 h-4 w-4" />
-                  <span>{item.label}</span>
+                  <item.icon className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  <span className="text-xs sm:text-sm">{item.label}</span>
                 </Link>
               </DropdownMenuItem>
             ))}
@@ -167,13 +167,13 @@ export function ProfileButton() {
           >
             {isLoggingOut ? (
               <>
-                <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                <span>Déconnexion...</span>
+                <div className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                <span className="text-xs sm:text-sm">Déconnexion...</span>
               </>
             ) : (
               <>
-                <LogOut className="mr-2 h-4 w-4" />
-                <span>Déconnexion</span>
+                <LogOut className="mr-2 h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="text-xs sm:text-sm">Déconnexion</span>
               </>
             )}
           </DropdownMenuItem>
@@ -183,14 +183,14 @@ export function ProfileButton() {
   }
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1 sm:gap-2">
       <Link href="/login">
-        <Button variant="ghost" size="sm">
+        <Button variant="ghost" size="sm" className="h-8 text-xs sm:text-sm px-2 sm:px-3">
           Connexion
         </Button>
       </Link>
       <Link href="/register">
-        <Button size="sm">S&apos;inscrire</Button>
+        <Button size="sm" className="h-8 text-xs sm:text-sm px-2 sm:px-3">S&apos;inscrire</Button>
       </Link>
     </div>
   );

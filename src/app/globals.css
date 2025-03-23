@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -167,4 +166,51 @@
 
 .animation-delay-2000 {
   animation-delay: 2000ms;
+}
+
+/* Définition des animations globales */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slideInLeft {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes slideInUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* Classes d'animation utilisables */
+.animate-fade-in {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.animate-slide-right {
+  animation: slideInRight 0.5s ease-out;
+}
+
+.animate-slide-left {
+  animation: slideInLeft 0.5s ease-out;
+}
+
+.animate-slide-up {
+  animation: slideInUp 0.5s ease-out;
+}
+
+.animate-pulse {
+  animation: pulse 2s infinite ease-in-out;
 }
