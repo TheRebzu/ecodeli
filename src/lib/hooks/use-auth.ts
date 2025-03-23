@@ -1,109 +1,225 @@
 'use client';
 
-import { useSession } from 'next-auth/react';
+import { useSession, signIn, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useCallback, useEffect } from 'react';
-import { Role, Status } from '@prisma/client';
+import { useEffect, useState } from 'react';
+import { UserRole } from '@/middleware';
 
-interface UseAuthOptions {
-  requiredRole?: Role | Role[];
-  requiredStatus?: Status | Status[];
-  redirectTo?: string;
-  redirectIfFound?: boolean;
-}
+export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
+
+// Type pour les rôles utilisateurs
+export type RoleBasedPermission = {
+  roles: UserRole[];
+  allowed: boolean;
+};
+
+// Types de fonctionnalités du système
+export type SystemFeature = 
+  | 'create_shipment'
+  | 'manage_users'
+  | 'access_admin'
+  | 'manage_products'
+  | 'view_analytics'
+  | 'manage_payments'
+  | 'manage_storage'
+  | 'create_service'
+  | 'offer_service';
+
+// Permissions par défaut basées sur les rôles
+const defaultPermissions: Record<SystemFeature, RoleBasedPermission[]> = {
+  create_shipment: [
+    { roles: ['ADMIN', 'CLIENT', 'MERCHANT'], allowed: true },
+    { roles: ['COURIER', 'PROVIDER'], allowed: false }
+  ],
+  manage_users: [
+    { roles: ['ADMIN'], allowed: true },
+    { roles: ['CLIENT', 'COURIER', 'MERCHANT', 'PROVIDER'], allowed: false }
+  ],
+  access_admin: [
+    { roles: ['ADMIN'], allowed: true },
+    { roles: ['CLIENT', 'COURIER', 'MERCHANT', 'PROVIDER'], allowed: false }
+  ],
+  manage_products: [
+    { roles: ['ADMIN', 'MERCHANT'], allowed: true },
+    { roles: ['CLIENT', 'COURIER', 'PROVIDER'], allowed: false }
+  ],
+  view_analytics: [
+    { roles: ['ADMIN'], allowed: true },
+    { roles: ['CLIENT', 'COURIER', 'MERCHANT', 'PROVIDER'], allowed: false }
+  ],
+  manage_payments: [
+    { roles: ['ADMIN'], allowed: true },
+    { roles: ['CLIENT', 'COURIER', 'MERCHANT', 'PROVIDER'], allowed: false }
+  ],
+  manage_storage: [
+    { roles: ['ADMIN', 'PROVIDER'], allowed: true },
+    { roles: ['CLIENT', 'COURIER', 'MERCHANT'], allowed: false }
+  ],
+  create_service: [
+    { roles: ['ADMIN', 'PROVIDER'], allowed: true },
+    { roles: ['CLIENT', 'COURIER', 'MERCHANT'], allowed: false }
+  ],
+  offer_service: [
+    { roles: ['ADMIN', 'PROVIDER', 'COURIER'], allowed: true },
+    { roles: ['CLIENT', 'MERCHANT'], allowed: false }
+  ]
+};
 
 /**
  * Hook personnalisé pour gérer l'authentification et les vérifications d'accès.
  * Utilise useSession de next-auth et fournit des méthodes pour vérifier le rôle et le statut.
  */
-export function useAuth(options: UseAuthOptions = {}) {
-  const { data: session, status: authStatus } = useSession();
+export function useAuth() {
+  const { data: session, status } = useSession();
   const router = useRouter();
+  const [loading, setLoading] = useState<boolean>(status === 'loading');
   
-  const { 
-    requiredRole, 
-    requiredStatus,
-    redirectTo = '/login', 
-    redirectIfFound = false 
-  } = options;
+  // Rediriger vers la page de connexion
+  const redirectToLogin = (callbackUrl?: string) => {
+    router.push(callbackUrl ? `/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}` : '/auth/login');
+  };
   
-  const isAuthenticated = authStatus === 'authenticated';
-  const isLoading = authStatus === 'loading';
-  const user = session?.user;
-  
-  // Fonction de vérification de rôle
-  const hasRequiredRole = useCallback(() => {
-    if (!requiredRole || !user) return false;
-    
-    if (Array.isArray(requiredRole)) {
-      return requiredRole.includes(user.role as Role);
+  // Rediriger vers le dashboard approprié selon le rôle
+  const redirectToDashboard = () => {
+    if (!session?.user?.role) {
+      router.push('/');
+      return;
     }
     
-    return user.role === requiredRole;
-  }, [requiredRole, user]);
+    const dashboardUrls: Record<string, string> = {
+      ADMIN: '/admin',
+      CLIENT: '/dashboard/client',
+      COURIER: '/dashboard/courier',
+      MERCHANT: '/dashboard/merchant',
+      PROVIDER: '/dashboard/provider'
+    };
+    
+    const dashboardUrl = dashboardUrls[session.user.role as string] || '/';
+    router.push(dashboardUrl);
+  };
   
-  // Fonction de vérification de statut
-  const hasRequiredStatus = useCallback(() => {
-    if (!requiredStatus || !user) return false;
+  // Vérifier si l'utilisateur a une permission spécifique
+  const hasPermission = (feature: SystemFeature): boolean => {
+    if (!session?.user?.role) return false;
     
-    if (Array.isArray(requiredStatus)) {
-      return requiredStatus.includes(user.status as Status);
-    }
+    const userRole = session.user.role as UserRole;
+    const permissions = defaultPermissions[feature];
     
-    return user.status === requiredStatus;
-  }, [requiredStatus, user]);
+    if (!permissions) return false;
+    
+    // Trouver la permission qui correspond au rôle
+    const permissionEntry = permissions.find(p => p.roles.includes(userRole));
+    return permissionEntry?.allowed || false;
+  };
   
-  // Vérification des autorisations d'accès
-  const checkAccess = useCallback(() => {
-    if (isLoading) return null;
+  // Vérifier si l'utilisateur a un rôle spécifique
+  const hasRole = (role: UserRole | UserRole[]): boolean => {
+    if (!session?.user?.role) return false;
     
-    if (redirectIfFound && isAuthenticated) {
-      // Rediriger si l'utilisateur est authentifié et qu'on ne veut pas qu'il accède à cette page
-      return router.push(redirectTo);
+    const userRole = session.user.role as UserRole;
+    
+    if (Array.isArray(role)) {
+      return role.includes(userRole);
     }
     
-    if (!redirectIfFound && !isAuthenticated) {
-      // Rediriger si l'utilisateur n'est pas authentifié et que l'authentification est requise
-      return router.push(`${redirectTo}?callbackUrl=${encodeURIComponent(window.location.href)}`);
-    }
-    
-    // Si un rôle spécifique est requis et que l'utilisateur n'a pas ce rôle
-    if (requiredRole && isAuthenticated && !hasRequiredRole()) {
-      return router.push('/unauthorized');
-    }
-    
-    // Si un statut spécifique est requis et que l'utilisateur n'a pas ce statut
-    if (requiredStatus && isAuthenticated && !hasRequiredStatus()) {
-      return router.push('/unauthorized');
-    }
-    
-    return null;
-  }, [
-    isLoading, 
-    isAuthenticated, 
-    redirectIfFound, 
-    redirectTo, 
-    router, 
-    requiredRole, 
-    requiredStatus, 
-    hasRequiredRole, 
-    hasRequiredStatus
-  ]);
+    return userRole === role;
+  };
   
-  // Effectuer la vérification d'accès au chargement du composant
+  // Se connecter et rediriger
+  const login = async (data: { email: string; password: string }, callbackUrl?: string) => {
+    setLoading(true);
+    try {
+      const result = await signIn('credentials', {
+        redirect: false,
+        email: data.email,
+        password: data.password
+      });
+      
+      if (result?.error) {
+        setLoading(false);
+        return { success: false, error: result.error };
+      }
+      
+      if (callbackUrl) {
+        router.push(callbackUrl);
+      } else {
+        redirectToDashboard();
+      }
+      
+      return { success: true };
+    } catch {
+      setLoading(false);
+      return { success: false, error: 'Une erreur est survenue' };
+    }
+  };
+  
+  // S'inscrire et se connecter automatiquement
+  const register = async (data: { 
+    name: string; 
+    email: string; 
+    password: string; 
+    role: UserRole;
+  }) => {
+    setLoading(true);
+    try {
+      // Appel API pour l'inscription
+      const response = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
+
+      const result = await response.json();
+      
+      if (!response.ok) {
+        setLoading(false);
+        return { success: false, error: result.message || 'Échec de l\'inscription' };
+      }
+      
+      // Connexion automatique après inscription réussie
+      const loginResult = await login({ 
+        email: data.email, 
+        password: data.password 
+      });
+      
+      return loginResult;
+    } catch {
+      setLoading(false);
+      return { success: false, error: 'Une erreur est survenue lors de l\'inscription' };
+    }
+  };
+  
+  // Se déconnecter et rediriger vers la page d'accueil
+  const logout = async () => {
+    setLoading(true);
+    try {
+      await signOut({ redirect: false });
+      router.push('/');
+      return { success: true };
+    } catch {
+      setLoading(false);
+      return { success: false, error: 'Une erreur est survenue' };
+    }
+  };
+  
   useEffect(() => {
-    checkAccess();
-  }, [checkAccess]);
+    setLoading(status === 'loading');
+  }, [status]);
   
   return {
-    user,
-    isAuthenticated,
-    isLoading,
-    role: user?.role as Role | undefined,
-    status: user?.status as Status | undefined,
-    hasRequiredRole,
-    hasRequiredStatus,
-    checkAccess,
+    user: session?.user,
+    isAuthenticated: status === 'authenticated',
+    isLoading: loading,
+    status: status as AuthStatus,
+    redirectToLogin,
+    redirectToDashboard,
+    hasPermission,
+    hasRole,
+    login,
+    register,
+    logout
   };
 }
 
