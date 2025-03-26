@@ -2,17 +2,9 @@
 
 import React from "react";
 import Link from "next/link";
-<<<<<<< HEAD
-import { cn } from "@/lib/utils";
-import { usePathname, useRouter } from "next/navigation";
-import { Bell, Menu, MessageSquare, Package } from "lucide-react";
-
-import { Button } from "@/components/ui/button";
-=======
 import { ModeToggle } from "@/components/shared/mode-toggle";
 import { ProfileButton } from "@/components/shared/profile-button";
 import { Icons } from "@/components/shared/icons";
->>>>>>> 5b14b134948ec7b19d55a9a8fff5829e7f796b19
 import {
   NavigationMenu,
   NavigationMenuContent,
@@ -62,130 +54,6 @@ export function DashboardHeader() {
   ];
 
   return (
-<<<<<<< HEAD
-    <header className={cn("sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur-sm transition-all", className)}>
-      <div className="container mx-auto px-2 sm:px-4 lg:px-6">
-        <div className="flex h-14 sm:h-16 items-center justify-between">
-          <div className="flex items-center gap-2 sm:gap-4">
-            <Link href="/dashboard" className="flex items-center space-x-2 shrink-0">
-              <Package className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-              <span className="text-lg sm:text-xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">EcoDeli</span>
-              <Badge variant="outline" className="hidden md:flex">Dashboard</Badge>
-            </Link>
-
-            <nav className="hidden md:flex items-center gap-1 lg:gap-2 text-sm">
-              <Link
-                href="/dashboard"
-                className={cn(
-                  "px-2 lg:px-3 py-1.5 lg:py-2 rounded-md transition-colors hover:bg-muted hover:text-foreground/90",
-                  pathname === "/dashboard" ? "text-foreground font-medium" : "text-foreground/60"
-                )}
-              >
-                Tableau de bord
-              </Link>
-              <Link
-                href="/dashboard/deliveries"
-                className={cn(
-                  "px-2 lg:px-3 py-1.5 lg:py-2 rounded-md transition-colors hover:bg-muted hover:text-foreground/90",
-                  pathname?.startsWith("/dashboard/deliveries") ? "text-foreground font-medium" : "text-foreground/60"
-                )}
-              >
-                Livraisons
-              </Link>
-              <Link
-                href="/dashboard/messages"
-                className={cn(
-                  "px-2 lg:px-3 py-1.5 lg:py-2 rounded-md transition-colors hover:bg-muted hover:text-foreground/90",
-                  pathname?.startsWith("/dashboard/messages") ? "text-foreground font-medium" : "text-foreground/60"
-                )}
-              >
-                Messages
-              </Link>
-              <Link
-                href="/dashboard/profile"
-                className={cn(
-                  "px-2 lg:px-3 py-1.5 lg:py-2 rounded-md transition-colors hover:bg-muted hover:text-foreground/90",
-                  pathname?.startsWith("/dashboard/profile") ? "text-foreground font-medium" : "text-foreground/60"
-                )}
-              >
-                Profil
-              </Link>
-            </nav>
-          </div>
-
-          <div className="flex items-center gap-1 sm:gap-2">
-            <Button variant="ghost" size="icon" className="relative h-8 w-8 sm:h-9 sm:w-9">
-              <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
-              <span className="absolute -top-1 -right-1 h-3.5 w-3.5 sm:h-4 sm:w-4 rounded-full bg-primary text-[9px] sm:text-[10px] font-medium text-primary-foreground flex items-center justify-center">3</span>
-            </Button>
-            <Button variant="ghost" size="icon" className="relative h-8 w-8 sm:h-9 sm:w-9" onClick={() => router.push('/dashboard/messages')}>
-              <MessageSquare className="h-4 w-4 sm:h-5 sm:w-5" />
-              <span className="absolute -top-1 -right-1 h-3.5 w-3.5 sm:h-4 sm:w-4 rounded-full bg-primary text-[9px] sm:text-[10px] font-medium text-primary-foreground flex items-center justify-center">2</span>
-            </Button>
-            <ModeToggle />
-            <div className="hidden md:flex items-center pl-1 sm:pl-2">
-              <ProfileButton />
-            </div>
-          </div>
-
-          <Sheet>
-            <SheetTrigger asChild className="md:hidden">
-              <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-9 sm:w-9 rounded-full hover:bg-muted">
-                <Menu className="h-4 w-4 sm:h-5 sm:w-5" />
-                <span className="sr-only">Menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="w-[min(300px,calc(100vw-1rem))]">
-              <div className="grid gap-4 py-4">
-                <Link 
-                  href="/dashboard"
-                  className={cn(
-                    "flex items-center gap-2 p-2 rounded-md text-sm font-medium transition-colors hover:bg-muted",
-                    pathname === "/dashboard" ? "text-foreground bg-muted/50" : "text-foreground/60"
-                  )}
-                >
-                  Tableau de bord
-                </Link>
-                <Link 
-                  href="/dashboard/deliveries"
-                  className={cn(
-                    "flex items-center gap-2 p-2 rounded-md text-sm font-medium transition-colors hover:bg-muted",
-                    pathname?.startsWith("/dashboard/deliveries") ? "text-foreground bg-muted/50" : "text-foreground/60"
-                  )}
-                >
-                  Livraisons
-                </Link>
-                <Link 
-                  href="/dashboard/messages"
-                  className={cn(
-                    "flex items-center gap-2 p-2 rounded-md text-sm font-medium transition-colors hover:bg-muted",
-                    pathname?.startsWith("/dashboard/messages") ? "text-foreground bg-muted/50" : "text-foreground/60"
-                  )}
-                >
-                  Messages
-                </Link>
-                <Link 
-                  href="/dashboard/profile"
-                  className={cn(
-                    "flex items-center gap-2 p-2 rounded-md text-sm font-medium transition-colors hover:bg-muted",
-                    pathname?.startsWith("/dashboard/profile") ? "text-foreground bg-muted/50" : "text-foreground/60"
-                  )}
-                >
-                  Profil
-                </Link>
-                <div className="flex justify-between mt-4 pt-4 border-t">
-                  <Button variant="ghost" size="icon" className="h-9 w-9 relative">
-                    <Bell className="h-5 w-5" />
-                    <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] font-medium text-primary-foreground flex items-center justify-center">3</span>
-                  </Button>
-                  <Button variant="ghost" size="icon" className="h-9 w-9">
-                    <MessageSquare className="h-5 w-5" />
-                    <span className="absolute -top-1 -right-1 h-4 w-4 rounded-full bg-primary text-[10px] font-medium text-primary-foreground flex items-center justify-center">2</span>
-                  </Button>
-                  <ModeToggle />
-                  <ProfileButton />
-                </div>
-=======
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center justify-between">
         <div className="flex items-center gap-2 md:gap-4">
@@ -249,45 +117,27 @@ export function DashboardHeader() {
                 </NavigationMenuContent>
               </NavigationMenuItem>
               <NavigationMenuItem>
-                <Link href="#" legacyBehavior passHref>
+                <Link href="/dashboard" legacyBehavior passHref>
                   <NavigationMenuLink className={navigationMenuTriggerStyle()}>
-                    Aide
+                    Dashboard
                   </NavigationMenuLink>
                 </Link>
               </NavigationMenuItem>
             </NavigationMenuList>
           </NavigationMenu>
         </div>
-        
-        {/* Navigation mobile */}
-        <Button variant="ghost" size="icon" className="md:hidden">
-          <Icons.menu className="h-5 w-5" />
-          <span className="sr-only">Toggle navigation menu</span>
-        </Button>
-        
-        {/* Navigation principale */}
-        <nav className="hidden md:flex items-center gap-6">
-          {links.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={cn(
-                "text-sm font-medium transition-colors hover:text-foreground/80",
-                link.active ? "text-foreground" : "text-foreground/60"
-              )}
-            >
-              <div className="flex items-center gap-1">
-                {link.label}
-                {link.badge && (
-                  <Badge variant="default" className="ml-1">Admin</Badge>
-                )}
->>>>>>> 5b14b134948ec7b19d55a9a8fff5829e7f796b19
-              </div>
-            </Link>
-          ))}
-        </nav>
-        
         <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="relative h-8 w-8 rounded-full md:h-9 md:w-9"
+            aria-label="Notifications"
+          >
+            <Icons.bell className="h-4 w-4 md:h-5 md:w-5" />
+            <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground md:h-5 md:w-5">
+              5
+            </span>
+          </Button>
           <ModeToggle />
           <ProfileButton />
         </div>
@@ -298,8 +148,8 @@ export function DashboardHeader() {
 
 const ListItem = React.forwardRef<
   React.ElementRef<"a">,
-  React.ComponentPropsWithoutRef<"a"> & { 
-    title: string 
+  React.ComponentPropsWithoutRef<"a"> & {
+    title: string
   }
 >(({ className, title, children, ...props }, ref) => {
   return (
@@ -321,4 +171,6 @@ const ListItem = React.forwardRef<
       </NavigationMenuLink>
     </li>
   );
-}); 
+});
+
+ListItem.displayName = "ListItem"; 
