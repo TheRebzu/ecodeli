@@ -1,0 +1,1 @@
+$content = Get-Content -Path .\prisma\schema.prisma -Raw; $part1 = $content.Substring(0, ($content.IndexOf("// Enumerations"))); $part2 = $content.Substring($content.IndexOf("// Enums for driver advertisements")); $part1 + $part2 | Set-Content -Path .\prisma\schema.prisma.fixed

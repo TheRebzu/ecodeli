@@ -1,9 +1,6 @@
 // This is your Prisma schema file for EcoDeli
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,40 +10,457 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Modèle de base pour les utilisateurs
-model User {
-  id                String    @id @default(cuid())
-  name              String
-  email             String    @unique
-  emailVerified     DateTime?
-  image             String?
-  password          String
-  phone             String?
-  address           String?
-  city              String?
-  postalCode        String?
-  country           String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  role              Role      @default(CLIENT)
-  status            Status    @default(PENDING)
-  
-  // Relations avec les autres modèles en fonction du rôle
-  client            Client?
-  merchant          Merchant?
-  courier           Courier?
-  provider          Provider?
-  
-  // Authentification
-  accounts          Account[]
-  sessions          Session[]
-  
-  // Alertes
-  alertRules        AlertRule[]
-  alerts            Alert[]
+// Enumerations - All in one place
+
+enum UserRole {
+  ADMIN
+  CUSTOMER
+  DELIVERY_PERSON
+  MERCHANT
+  SERVICE_PROVIDER
 }
 
-// Modèle pour l'authentification avec NextAuth
+enum UserStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum SubscriptionPlan {
+  FREE
+  STARTER
+  PREMIUM
+}
+
+enum LoyaltyTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+}
+
+enum VehicleType {
+  CAR
+  BIKE
+  SCOOTER
+  VAN
+  TRUCK
+  PUBLIC_TRANSPORT
+  WALK
+}
+
+enum AccessLevel {
+  STANDARD
+  MANAGER
+  SUPERADMIN
+}
+
+enum ServiceType {
+  PERSON_TRANSPORT
+  AIRPORT_TRANSFER
+  SHOPPING
+  FOREIGN_PURCHASE
+  PET_SITTING
+  HOUSEKEEPING
+  GARDENING
+  OTHER
+}
+
+enum ContractStatus {
+  PENDING
+  ACTIVE
+  EXPIRED
+  TERMINATED
+}
+
+enum PackageSize {
+  SMALL
+  MEDIUM
+  LARGE
+  EXTRA_LARGE
+}
+
+enum AnnouncementStatus {
+  OPEN
+  ASSIGNED
+  COMPLETED
+  CANCELLED
+}
+
+enum DeliveryStatus {
+  PENDING
+  ACCEPTED
+  PICKUP_IN_PROGRESS
+  PICKED_UP
+  IN_TRANSIT
+  IN_STORAGE
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+  FAILED
+}
+
+enum DeliveryIssueType {
+  DELAY
+  DAMAGE
+  LOSS
+  WRONG_ADDRESS
+  ACCESS_PROBLEM
+  RECIPIENT_UNAVAILABLE
+  OTHER
+}
+
+enum IssueStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum RouteStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum ServiceStatus {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum BoxSize {
+  SMALL
+  MEDIUM
+  LARGE
+}
+
+enum CartDropStatus {
+  PENDING
+  PROCESSING
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum RefundStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  REJECTED
+}
+
+enum RefundReason {
+  CUSTOMER_REQUEST
+  SERVICE_ISSUE
+  DUPLICATE_PAYMENT
+  FRAUDULENT_CHARGE
+  OTHER
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  PAYPAL
+  BANK_TRANSFER
+  WALLET
+  CASH
+  APPLE_PAY
+  GOOGLE_PAY
+}
+
+enum PaymentEntityType {
+  DELIVERY
+  SERVICE
+  SUBSCRIPTION
+  FOREIGN_PURCHASE
+  CART_DROP
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  PAYMENT
+  REFUND
+  FEE
+  BONUS
+}
+
+enum InvoiceStatus {
+  DRAFT
+  UNPAID
+  PAID
+  CANCELLED
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+  DELIVERY_UPDATE
+  PAYMENT_UPDATE
+  ANNOUNCEMENT_MATCH
+}
+
+enum DocumentType {
+  ID_CARD
+  DRIVING_LICENSE
+  PASSPORT
+  INSURANCE
+  VEHICLE_REGISTRATION
+  PROFESSIONAL_LICENSE
+  CRIMINAL_RECORD
+  TAX_CERTIFICATE
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ForeignPurchaseStatus {
+  REQUESTED
+  SEARCHING
+  FOUND
+  PURCHASED
+  SHIPPING
+  DELIVERED
+  CANCELLED
+}
+
+enum TeamMemberRole {
+  LEADER
+  MEMBER
+}
+
+enum RecurringFrequency {
+  DAILY
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+}
+
+enum MerchantCategory {
+  GROCERY
+  PHARMACY
+  ELECTRONICS
+  CLOTHING
+  FURNITURE
+  RESTAURANT
+  OTHER
+}
+
+enum DeliverySpecialization {
+  FOOD
+  FRAGILE
+  LARGE_ITEMS
+  URGENT
+  REFRIGERATED
+}
+
+enum AdminDepartment {
+  GENERAL
+  CUSTOMER_SERVICE
+  OPERATIONS
+  FINANCE
+  TECHNICAL
+}
+
+enum DeviceStatus {
+  ACTIVE
+  MAINTENANCE
+  OFFLINE
+  DECOMMISSIONED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_FOR_CUSTOMER
+  RESOLVED
+  CLOSED
+}
+
+enum TicketCategory {
+  ACCOUNT
+  DELIVERY
+  PAYMENT
+  TECHNICAL
+  SERVICE
+  COMPLAINT
+  OTHER
+}
+
+enum MediaType {
+  IMAGE
+  DOCUMENT
+  VIDEO
+  AUDIO
+}
+
+enum ScheduledTaskStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum DriverAdStatus {
+  ACTIVE
+  INACTIVE
+  DRAFT
+}
+
+enum AdResponseStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+// Models
+
+model User {
+  id                 String    @id @default(cuid())
+  email              String    @unique
+  password           String?
+  name               String?
+  phone              String?
+  image              String?
+  emailVerified      DateTime?
+  address            String?
+  city               String?
+  postalCode         String?
+  country            String?
+  profileImage       String?
+  isVerified         Boolean   @default(false)
+  verificationToken  String?
+  resetPasswordToken String?
+  mfaSecret          String?   // Secret for TOTP MFA
+  mfaEnabled         Boolean   @default(false)
+  mfaBackupCodes     String[]  @default([])
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  lastLogin          DateTime?
+  role               UserRole  @default(ADMIN)
+  status             UserStatus @default(PENDING)
+  language           String    @default("fr")
+  settings           Json?     // User preferences and settings
+  tutorialProgress   Json?     // Store tutorial progress
+  deletedAt          DateTime? // Soft delete
+  rating             Float?    // User's average rating
+
+  // Profile relationships
+  clientProfile    ClientProfile?
+  courierProfile   CourierProfile?
+  merchantProfile  MerchantProfile?
+  providerProfile  ProviderProfile?
+
+  // Relations based on role
+  customer        Customer?
+  deliveryPerson  DeliveryPerson?
+  merchant        Merchant?
+  serviceProvider ServiceProvider?
+  admin           Admin?
+
+  // Common relations
+  notifications   Notification[]
+  documents       Document[]
+  reviews         Review[]        @relation("ReviewAuthor")
+  reviewsReceived Review[]        @relation("ReviewTarget")
+  auditLogs       AuditLog[]
+  supportTickets  SupportTicket[]
+  interests       Interest[]      // User's interests in announcements
+
+  // Auth related
+  accounts         Account[]
+  sessions         Session[]
+  sentMessages     Message[] @relation("SenderMessages")
+  receivedMessages Message[] @relation("ReceiverMessages")
+
+  @@index([email])
+  @@index([role, status])
+  @@index([deletedAt])
+}
+
+// Client profile
+model ClientProfile {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptionPlan String   @default("FREE") // FREE, STARTER, PREMIUM
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+// Courier (Livreur) profile
+model CourierProfile {
+  id                String    @id @default(cuid())
+  userId            String    @unique
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  vehicleType       String?   // CAR, BIKE, SCOOTER, VAN, TRUCK, FOOT
+  licenseNumber     String?
+  licensePlate      String?
+  verifiedDocuments Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+// Merchant (Commerçant) profile
+model MerchantProfile {
+  id            String    @id @default(cuid())
+  userId        String    @unique
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  companyName   String
+  siret         String    @unique
+  contractType  String    @default("STANDARD") // STANDARD, PREMIUM, ENTERPRISE
+  contractStart DateTime
+  contractEnd   DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([userId])
+  @@index([siret])
+}
+
+// Provider (Prestataire) profile
+model ProviderProfile {
+  id           String    @id @default(cuid())
+  userId       String    @unique
+  user         User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  serviceTypes String[]  // TRANSPORT, SHOPPING, PET_SITTING, CLEANING, ETC
+  rating       Float?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+// NextAuth models
 model Account {
   id                String  @id @default(cuid())
   userId            String
@@ -64,6 +478,7 @@ model Account {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([provider, providerAccountId])
+  @@index([userId])
 }
 
 model Session {
@@ -72,6 +487,9 @@ model Session {
   userId       String
   expires      DateTime
   user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expires])
 }
 
 model VerificationToken {
@@ -80,410 +498,1281 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
+  @@index([expires])
 }
 
-// Énumération des rôles possibles
-enum Role {
-  ADMIN
-  CLIENT
-  MERCHANT
-  COURIER
-  PROVIDER
+model PasswordResetToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@index([expires])
 }
 
-// Énumération des statuts des utilisateurs
-enum Status {
-  PENDING
-  APPROVED
-  REJECTED
-  SUSPENDED
+// Role-specific models
+model Customer {
+  id                       String           @id @default(cuid())
+  userId                   String           @unique
+  subscriptionPlan         SubscriptionPlan @default(FREE)
+  subscriptionStartDate    DateTime?
+  subscriptionEndDate      DateTime?
+  previousPackages         Int              @default(0)
+  preferredDeliveryPersons String[]
+  loyaltyPoints            Int              @default(0)
+  loyaltyTier              LoyaltyTier      @default(BRONZE)
+  isDeleted                Boolean          @default(false)
+
+  // Relations
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  announcements       Announcement[]       // Announcements created by this customer
+  deliveries          Delivery[]           @relation("CustomerDelivery")
+  services            Service[]
+  storageBoxes        StorageBox[]
+  payments            Payment[]            @relation("CustomerPayment")
+  foreignPurchases    ForeignPurchase[]
+  cartDrops           CartDrop[]
+  recurringDeliveries RecurringDelivery[]
+  loyaltyTransactions LoyaltyTransaction[]
+  adResponses         AdResponse[]         // Responses to driver advertisements
+
+  @@index([subscriptionPlan])
+  @@index([loyaltyTier])
+  @@index([isDeleted])
 }
 
-// Client (Particulier)
-model Client {
-  id                String      @id @default(cuid())
-  userId            String      @unique
-  subscriptionPlan  String?     @default("FREE") // FREE, STARTER, PREMIUM
-  subscriptionEnd   DateTime?
+model DeliveryPerson {
+  id                     String                   @id @default(cuid())
+  userId                 String                   @unique
+  vehicleType            VehicleType?
+  additionalVehicles     VehicleType[]
+  licensePlate           String?
+  idCardNumber           String?
+  drivingLicenseNumber   String?
+  idCardVerified         Boolean                  @default(false)
+  drivingLicenseVerified Boolean                  @default(false)
+  isAvailable            Boolean                  @default(true)
+  radius                 Int                      @default(30)        // in kilometers
+  specializations        DeliverySpecialization[]
+  skills                 String[]
+  isDeleted              Boolean                  @default(false)
+
+  // Relations
+  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deliveries     Delivery[]           @relation("DeliveryPersonDelivery")
+  plannedRoutes  PlannedRoute[]
+  wallet         Wallet?
+  payments       Payment[]            @relation("DeliveryPersonPayment")
+  deliveryTeams  DeliveryTeamMember[]
+  nfcCards       NFCCard[]
+  workingHours   WorkingHour[]
+  serviceAreas   ServiceArea[]
+  driverAds      DriverAdvertisement[] // Driver advertisements
+
+  @@index([isAvailable])
+  @@index([vehicleType])
+  @@index([specializations])
+  @@index([isDeleted])
+}
+
+model WorkingHour {
+  id               String         @id @default(cuid())
+  deliveryPersonId String
+  dayOfWeek        Int            // 0-6, 0 is Sunday
+  startTime        String         // Format "HH:MM"
+  endTime          String         // Format "HH:MM"
+  isRecurring      Boolean        @default(true)
+  specificDate     DateTime?      // For non-recurring hours
   
-  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  shipments         Shipment[]  // Expéditions demandées par le client
-  serviceRequests   Service[]   // Services demandés par le client
-  announcements     Announcement[] // Annonces publiées par le client
+  // Relations
+  deliveryPerson   DeliveryPerson @relation(fields: [deliveryPersonId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryPersonId, dayOfWeek])
+  @@index([specificDate])
 }
 
-// Commerçant
+model ServiceArea {
+  id               String         @id @default(cuid())
+  deliveryPersonId String
+  city             String
+  postalCode       String
+  country          String         @default("France")
+  isDefault        Boolean        @default(false)
+  
+  // Relations
+  deliveryPerson   DeliveryPerson @relation(fields: [deliveryPersonId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryPersonId])
+  @@index([postalCode, country])
+}
+
 model Merchant {
-  id                String      @id @default(cuid())
-  userId            String      @unique
-  companyName       String
-  siret             String      @unique
-  contractType      String
-  contractStart     DateTime
-  contractEnd       DateTime?
-  
-  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  announcements     Announcement[] // Annonces publiées par le commerçant
-  products          Product[]   // Produits proposés par le commerçant
+  id                 String             @id @default(cuid())
+  userId             String             @unique
+  businessName       String
+  businessAddress    String
+  businessCity       String
+  businessPostalCode String
+  businessCountry    String
+  vatNumber          String?
+  siretNumber        String?
+  contractStartDate  DateTime           @default(now())
+  contractEndDate    DateTime?
+  contractStatus     ContractStatus     @default(PENDING)
+  storeFrontImage    String?
+  businessType       String?
+  commissionRate     Float              @default(0.1) // 10% default commission
+  isDeleted          Boolean            @default(false)
+  categories         MerchantCategory[]
+
+  // Relations
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  announcements Announcement[] @relation("MerchantAnnouncement")
+  deliveries    Delivery[]     @relation("MerchantDelivery")
+  cartDrops     CartDrop[]
+  payments      Payment[]      @relation("MerchantPayment")
+  products      Product[]
+  inventory     Inventory[]
+  contracts     Contract[]
+  openingHours  OpeningHour[]
+
+  @@index([businessCity])
+  @@index([businessPostalCode])
+  @@index([contractStatus])
+  @@index([categories])
+  @@index([isDeleted])
 }
 
-// Produit offert par un commerçant
-model Product {
+model OpeningHour {
   id          String    @id @default(cuid())
+  merchantId  String
+  dayOfWeek   Int       // 0-6, 0 is Sunday
+  openTime    String    // Format "HH:MM"
+  closeTime   String    // Format "HH:MM"
+  isClosed    Boolean   @default(false)
+  
+  // Relations
+  merchant    Merchant  @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@index([merchantId, dayOfWeek])
+}
+
+model ServiceProvider {
+  id                String        @id @default(cuid())
+  userId            String        @unique
+  professionalId    String?
+  insuranceNumber   String?
+  serviceTypes      ServiceType[]
+  isVerified        Boolean       @default(false)
+  backgroundChecked Boolean       @default(false)
+  experienceYears   Int           @default(0)
+  specialities      String[]      // Array of specialities
+  workRadius        Int           @default(20) // in kilometers
+  isDeleted         Boolean       @default(false)
+
+  // Relations
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  services       Service[]
+  availabilities Availability[]
+  payments       Payment[]      @relation("ServiceProviderPayment")
+
+  @@index([serviceTypes])
+  @@index([isVerified])
+  @@index([isDeleted])
+}
+
+model Admin {
+  id            String          @id @default(cuid())
+  userId        String          @unique
+  accessLevel   AccessLevel     @default(STANDARD)
+  managedRegion String?         // Region this admin manages
+  department    AdminDepartment @default(GENERAL)
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([accessLevel])
+  @@index([department])
+}
+
+// Delivery-related models
+model Announcement {
+  id                        String             @id @default(cuid())
+  title                     String
+  description               String
+  origin                    String
+  destination               String
+  originCoordinates         Json?              // {lat: number, lng: number}
+  destCoordinates           Json?              // {lat: number, lng: number}
+  packageSize               PackageSize
+  packageWeight             Float              // in kg
+  packageValue              Float?             // in EUR
+  packageContents           String?
+  containsFragile           Boolean            @default(false)
+  needsRefrigeration        Boolean            @default(false)
+  offeredPrice              Float
+  datePosted                DateTime           @default(now())
+  deadlineDate              DateTime
+  status                    AnnouncementStatus @default(OPEN)
+  isInsured                 Boolean            @default(false)
+  viewCount                 Int                @default(0)
+  interestedDeliveryPersons String[]           // Array of delivery person IDs
+  isDeleted                 Boolean            @default(false)
+
+  // Relations
+  customerId String
+  customer   Customer          @relation(fields: [customerId], references: [id])
+  merchantId String?
+  merchant   Merchant?         @relation("MerchantAnnouncement", fields: [merchantId], references: [id])
+  delivery   Delivery?
+  tags       AnnouncementTag[] @relation("AnnouncementToTag")
+  media      Media[]
+  translations AnnouncementTranslation[]
+
+  @@index([status, deadlineDate])
+  @@index([packageSize, packageWeight])
+  @@index([origin, destination])
+  @@index([customerId])
+  @@index([merchantId])
+  @@index([isDeleted])
+}
+
+model AnnouncementTranslation {
+  id             String       @id @default(cuid())
+  announcementId String
+  language       String       // "fr", "en", etc.
+  title          String
+  description    String
+  
+  // Relations
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+
+  @@unique([announcementId, language])
+}
+
+model AnnouncementTag {
+  id            String         @id @default(cuid())
+  name          String         @unique
+  announcements Announcement[] @relation("AnnouncementToTag")
+}
+
+model Delivery {
+  id                String         @id @default(cuid())
+  trackingNumber    String         @unique
+  status            DeliveryStatus @default(PENDING)
+  pickupDate        DateTime?
+  estimatedDelivery DateTime?
+  actualDelivery    DateTime?
+  distance          Float?         // in km
+  price             Float
+  insuranceIncluded Boolean        @default(false)
+  insuranceAmount   Float?
+  notes             String?
+  proofOfDelivery   String?
+  proofOfPickup     String?
+  recipientName     String?
+  recipientContact  String?
+  signatureRequired Boolean        @default(false)
+  deliveryCode      String?        // Confirmation code for delivery
+  feedback          String?
+  isDeleted         Boolean        @default(false)
+  
+  // Relations
+  announcementId      String?            @unique
+  announcement        Announcement?      @relation(fields: [announcementId], references: [id])
+  customerId          String
+  customer            Customer           @relation("CustomerDelivery", fields: [customerId], references: [id])
+  deliveryPersonId    String?
+  deliveryPerson      DeliveryPerson?    @relation("DeliveryPersonDelivery", fields: [deliveryPersonId], references: [id])
+  merchantId          String?
+  merchant            Merchant?          @relation("MerchantDelivery", fields: [merchantId], references: [id])
+  storageBoxes        StorageBox[]
+  trackingUpdates     TrackingUpdate[]
+  payment             Payment?           @relation("DeliveryPayment")
+  cartDrop            CartDrop?
+  deliveryTeamId      String?
+  deliveryTeam        DeliveryTeam?      @relation(fields: [deliveryTeamId], references: [id])
+  recurringDeliveryId String?
+  recurringDelivery   RecurringDelivery? @relation(fields: [recurringDeliveryId], references: [id])
+  issues              DeliveryIssue[]
+  reviews             Review[]
+  history             DeliveryHistory[]
+
+  @@index([status, pickupDate])
+  @@index([status, estimatedDelivery])
+  @@index([customerId])
+  @@index([deliveryPersonId])
+  @@index([merchantId])
+  @@index([deliveryTeamId])
+  @@index([trackingNumber])
+  @@index([isDeleted])
+}
+
+model DeliveryHistory {
+  id          String       @id @default(cuid())
+  deliveryId  String
+  field       String       // Field that changed
+  oldValue    String?
+  newValue    String?
+  changedBy   String       // User ID
+  changeReason String?
+  timestamp   DateTime     @default(now())
+
+  // Relations
+  delivery    Delivery     @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryId, field])
+  @@index([timestamp])
+}
+
+model DeliveryIssue {
+  id           String            @id @default(cuid())
+  deliveryId   String
+  delivery     Delivery          @relation(fields: [deliveryId], references: [id])
+  reportedById String            // User ID who reported the issue
+  issueType    DeliveryIssueType
+  description  String
+  status       IssueStatus       @default(OPEN)
+  reportedAt   DateTime          @default(now())
+  resolvedAt   DateTime?
+  resolution   String?
+  assignedToId String?           // Admin/staff user ID
+
+  @@index([deliveryId])
+  @@index([status])
+  @@index([reportedAt])
+}
+
+model DeliveryTeam {
+  id        String   @id @default(cuid())
+  name      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  // Relations
+  members    DeliveryTeamMember[]
+  deliveries Delivery[]
+
+  @@index([isActive])
+}
+
+model DeliveryTeamMember {
+  id               String         @id @default(cuid())
+  deliveryTeamId   String
+  deliveryPersonId String
+  role             TeamMemberRole @default(MEMBER)
+  joinedAt         DateTime       @default(now())
+
+  // Relations
+  team           DeliveryTeam   @relation(fields: [deliveryTeamId], references: [id], onDelete: Cascade)
+  deliveryPerson DeliveryPerson @relation(fields: [deliveryPersonId], references: [id], onDelete: Cascade)
+
+  @@unique([deliveryTeamId, deliveryPersonId])
+  @@index([deliveryTeamId])
+  @@index([deliveryPersonId])
+}
+
+model RecurringDelivery {
+  id                 String             @id @default(cuid())
+  customerId         String
+  frequency          RecurringFrequency
+  dayOfWeek          Int?               // 0-6 for weekly deliveries
+  dayOfMonth         Int?               // 1-31 for monthly deliveries
+  startDate          DateTime
+  endDate            DateTime?
+  isActive           Boolean            @default(true)
+  origin             String
+  destination        String
+  packageSize        PackageSize
+  packageDescription String?
+
+  // Relations
+  customer   Customer   @relation(fields: [customerId], references: [id])
+  deliveries Delivery[]
+
+  @@index([customerId, isActive])
+  @@index([frequency])
+  @@index([startDate, endDate])
+}
+
+model TrackingUpdate {
+  id          String         @id @default(cuid())
+  deliveryId  String
+  status      DeliveryStatus
+  location    String?
+  coordinates Json?          // {lat: number, lng: number}
+  message     String?
+  timestamp   DateTime       @default(now())
+  updatedBy   String?        // ID of user who made the update
+  isPublic    Boolean        @default(true) // Whether visible to customer
+
+  // Relations
+  delivery Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryId])
+  @@index([status])
+  @@index([timestamp])
+}
+
+model PlannedRoute {
+  id                String      @id @default(cuid())
+  deliveryPersonId  String
+  origin            String
+  destination       String
+  originCoordinates Json?       // {lat: number, lng: number}
+  destCoordinates   Json?       // {lat: number, lng: number}
+  waypoints         Json?       // Array of waypoints
+  departureDate     DateTime
+  arrivalDate       DateTime?
+  status            RouteStatus @default(SCHEDULED)
+  vehicle           VehicleType
+  availableSpace    Float?      // in kg
+  availableVolume   Float?      // in m3
+  isPublic          Boolean     @default(true)
+  routeDistance     Float?      // in km
+  routeDuration     Int?        // in minutes
+
+  // Relations
+  deliveryPerson DeliveryPerson @relation(fields: [deliveryPersonId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryPersonId])
+  @@index([departureDate])
+  @@index([status])
+  @@index([origin, destination])
+}
+
+// Service-related models
+model Service {
+  id                  String        @id @default(cuid())
+  type                ServiceType
+  title               String
+  description         String
+  price               Float
+  duration            Int           // in minutes
+  status              ServiceStatus @default(PENDING)
+  startDate           DateTime?
+  endDate             DateTime?
+  location            String?
+  notes               String?
+  isRecurring         Boolean       @default(false)
+  recurringPattern    String?       // "weekly", "biweekly", "monthly"
+  specialRequirements String?
+  isDeleted           Boolean       @default(false)
+
+  // Relations
+  customerId        String
+  customer          Customer         @relation(fields: [customerId], references: [id])
+  serviceProviderId String?
+  serviceProvider   ServiceProvider? @relation(fields: [serviceProviderId], references: [id])
+  payment           Payment?         @relation("ServicePayment")
+  reviews           Review[]
+  history           ServiceHistory[]
+  translations      ServiceTranslation[]
+
+  @@index([customerId])
+  @@index([serviceProviderId])
+  @@index([type])
+  @@index([status])
+  @@index([startDate])
+  @@index([isDeleted])
+}
+
+model ServiceTranslation {
+  id          String       @id @default(cuid())
+  serviceId   String
+  language    String       // "fr", "en", etc.
+  title       String
+  description String
+  
+  // Relations
+  service     Service      @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@unique([serviceId, language])
+}
+
+model ServiceHistory {
+  id              String   @id @default(cuid())
+  serviceId       String
+  field           String   // Field that changed
+  oldValue        String?
+  newValue        String?
+  changedBy       String   // User ID
+  timestamp       DateTime @default(now())
+
+  // Relations
+  service         Service  @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@index([serviceId])
+  @@index([timestamp])
+}
+
+model Availability {
+  id                String    @id @default(cuid())
+  serviceProviderId String
+  dayOfWeek         Int       // 0-6, 0 is Sunday
+  startTime         String    // "HH:MM" format
+  endTime           String    // "HH:MM" format
+  isRecurring       Boolean   @default(true)
+  specificDate      DateTime? // For non-recurring availability
+
+  // Relations
+  serviceProvider ServiceProvider @relation(fields: [serviceProviderId], references: [id], onDelete: Cascade)
+
+  @@index([serviceProviderId, dayOfWeek])
+  @@index([specificDate])
+}
+
+// Storage-related models
+model StorageBox {
+  id           String    @id @default(cuid())
+  warehouseId  String
+  boxNumber    String
+  size         BoxSize
+  isOccupied   Boolean   @default(false)
+  checkInDate  DateTime?
+  checkOutDate DateTime?
+  accessCode   String?
+  temperature  Float?    // For temperature-controlled boxes
+  humidity     Float?    // For humidity-controlled boxes
+
+  // Relations
+  warehouse  Warehouse @relation(fields: [warehouseId], references: [id])
+  customerId String?
+  customer   Customer? @relation(fields: [customerId], references: [id])
+  deliveryId String?
+  delivery   Delivery? @relation(fields: [deliveryId], references: [id])
+
+  @@index([warehouseId])
+  @@index([isOccupied])
+  @@index([size])
+  @@index([customerId])
+  @@index([deliveryId])
+}
+
+model Warehouse {
+  id             String  @id @default(cuid())
+  name           String
+  address        String
+  city           String
+  postalCode     String
+  country        String
+  coordinates    Json?   // {lat: number, lng: number}
+  isActive       Boolean @default(true)
+  capacity       Int     // Total number of storage boxes
+  availableBoxes Int
+  contactPhone   String?
+
+  // Relations
+  storageBoxes  StorageBox[]
+  nfcTerminals  NFCTerminal[]
+  openingHours  WarehouseHour[]
+
+  @@index([city, postalCode])
+  @@index([isActive])
+}
+
+model WarehouseHour {
+  id          String    @id @default(cuid())
+  warehouseId String
+  dayOfWeek   Int       // 0-6, 0 is Sunday
+  openTime    String    // Format "HH:MM"
+  closeTime   String    // Format "HH:MM"
+  isClosed    Boolean   @default(false)
+  
+  // Relations
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+
+  @@index([warehouseId, dayOfWeek])
+}
+
+// Products and inventory
+model Product {
+  id          String   @id @default(cuid())
   merchantId  String
   name        String
   description String?
   price       Float
-  weight      Float?
-  dimensions  String?   // Format: LxlxH en cm
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  merchant    Merchant  @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  category    String?
+  isAvailable Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  isDeleted   Boolean  @default(false)
+
+  // Relations
+  merchant       Merchant             @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  inventoryItems Inventory[]
+  cartItems      CartItem[]
+  media          Media[]
+  translations   ProductTranslation[]
+
+  @@index([merchantId])
+  @@index([category])
+  @@index([isAvailable])
+  @@index([isDeleted])
 }
 
-// Livreur
-model Courier {
-  id                String      @id @default(cuid())
-  userId            String      @unique
-  vehicleType       String?
-  licenseNumber     String?
-  licensePlate      String?
-  verifiedDocuments Boolean     @default(false)
-  rating            Float?
-  nfcCardId         String?     @unique // Identifiant de la carte NFC
-  
-  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  shipments         ShipmentCourier[] // Livraisons effectuées
-  availabilities    Availability[] // Disponibilités
-  announcements     Announcement[] // Trajets annoncés
-}
-
-// Disponibilité du livreur
-model Availability {
-  id          String    @id @default(cuid())
-  courierId   String
-  date        DateTime
-  startTime   DateTime
-  endTime     DateTime
-  fromAddress String?
-  toAddress   String?
-  
-  courier     Courier   @relation(fields: [courierId], references: [id], onDelete: Cascade)
-}
-
-// Prestataire de services à la personne
-model Provider {
-  id                String      @id @default(cuid())
-  userId            String      @unique
-  serviceTypes      String[]    // Types de services proposés
-  qualifications    String?
-  certifications    String?
-  rating            Float?
-  
-  user              User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  services          Service[]   // Services fournis
-  availabilities    ProviderAvailability[] // Disponibilités
-}
-
-// Disponibilité du prestataire
-model ProviderAvailability {
-  id          String    @id @default(cuid())
-  providerId  String
-  date        DateTime
-  startTime   DateTime
-  endTime     DateTime
-  
-  provider    Provider  @relation(fields: [providerId], references: [id], onDelete: Cascade)
-}
-
-// Annonce (livraison ou service)
-model Announcement {
-  id            String          @id @default(cuid())
-  title         String
-  description   String
-  fromAddress   String
-  toAddress     String
-  packageSize   PackageSize?    // Taille du colis (si applicable)
-  weight        Float?          // Poids en kg (si applicable)
-  price         Float
-  deliveryDate  DateTime?
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  status        AnnouncementStatus @default(OPEN)
-  type          AnnouncementType
+model ProductTranslation {
+  id          String  @id @default(cuid())
+  productId   String
+  language    String  // "fr", "en", etc.
+  name        String
+  description String?
   
   // Relations
-  clientId      String?
-  merchantId    String?
-  courierId     String?         // Si un livreur propose un trajet
-  
-  client        Client?         @relation(fields: [clientId], references: [id])
-  merchant      Merchant?       @relation(fields: [merchantId], references: [id])
-  courier       Courier?        @relation(fields: [courierId], references: [id])
-  shipment      Shipment?
+  product     Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, language])
 }
 
-enum AnnouncementStatus {
-  OPEN
-  ASSIGNED
-  COMPLETED
-  CANCELLED
-}
+model Inventory {
+  id          String   @id @default(cuid())
+  merchantId  String
+  productId   String
+  quantity    Int
+  lastUpdated DateTime @default(now())
 
-enum AnnouncementType {
-  DELIVERY_REQUEST     // Demande de livraison
-  JOURNEY_OFFER        // Offre de trajet par un livreur
-  SERVICE_REQUEST      // Demande de service
-}
-
-enum PackageSize {
-  SMALL
-  MEDIUM
-  LARGE
-  EXTRA_LARGE
-}
-
-// Expédition
-model Shipment {
-  id                String      @id @default(cuid())
-  trackingNumber    String      @unique
-  fromAddress       String
-  toAddress         String
-  packageSize       PackageSize
-  weight            Float
-  price             Float
-  insuranceAmount   Float?
-  createdAt         DateTime    @default(now())
-  updatedAt         DateTime    @updatedAt
-  deliveryDate      DateTime?
-  deliveryStatus    DeliveryStatus @default(PENDING)
-  
-  // Codes de validation
-  validationCode    String?
-  validated         Boolean     @default(false)
-  
   // Relations
-  clientId          String
-  announcementId    String?     @unique
-  
-  client            Client      @relation(fields: [clientId], references: [id])
-  announcement      Announcement? @relation(fields: [announcementId], references: [id])
-  couriers          ShipmentCourier[] // Plusieurs livreurs peuvent participer à une livraison
-  storageFacility   StorageFacility?  @relation(fields: [storageFacilityId], references: [id])
-  storageFacilityId String?
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([merchantId])
+  @@index([productId])
 }
 
-// Relation entre livraison et livreur (permet d'avoir plusieurs livreurs par livraison)
-model ShipmentCourier {
-  id          String    @id @default(cuid())
-  shipmentId  String
-  courierId   String
-  startPoint  String
-  endPoint    String
-  status      DeliveryStatus @default(PENDING)
-  startTime   DateTime?
-  endTime     DateTime?
-  
-  shipment    Shipment  @relation(fields: [shipmentId], references: [id], onDelete: Cascade)
-  courier     Courier   @relation(fields: [courierId], references: [id], onDelete: Cascade)
-  
-  @@unique([shipmentId, courierId])
-}
+// Cart drop service
+model CartDrop {
+  id                String         @id @default(cuid())
+  merchantId        String
+  deliveryId        String         @unique
+  customerId        String
+  orderReference    String
+  orderDate         DateTime       @default(now())
+  scheduledDelivery DateTime
+  status            CartDropStatus @default(PENDING)
+  notes             String?
 
-// Statut de livraison
-enum DeliveryStatus {
-  PENDING
-  PICKED_UP
-  IN_TRANSIT
-  STORED
-  DELIVERED
-  CANCELLED
-  FAILED
-}
-
-// Service à la personne
-model Service {
-  id              String        @id @default(cuid())
-  type            ServiceType
-  description     String
-  address         String?
-  price           Float
-  date            DateTime
-  startTime       DateTime
-  endTime         DateTime?
-  status          ServiceStatus @default(PENDING)
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  
   // Relations
-  clientId        String
-  providerId      String?
-  
-  client          Client        @relation(fields: [clientId], references: [id])
-  provider        Provider?     @relation(fields: [providerId], references: [id])
+  merchant Merchant   @relation(fields: [merchantId], references: [id])
+  delivery Delivery   @relation(fields: [deliveryId], references: [id])
+  customer Customer   @relation(fields: [customerId], references: [id])
+  items    CartItem[]
+
+  @@index([merchantId])
+  @@index([customerId])
+  @@index([status])
+  @@index([scheduledDelivery])
 }
 
-// Types de services
-enum ServiceType {
-  PERSONAL_TRANSPORT     // Transport de personnes
-  AIRPORT_TRANSFER       // Transfert aéroport
-  SHOPPING               // Courses
-  FOREIGN_PURCHASE       // Achat à l'étranger
-  PET_SITTING            // Garde d'animaux
-  HOUSEKEEPING           // Ménage
-  GARDENING              // Jardinage
-  OTHER                  // Autre
+model CartItem {
+  id         String @id @default(cuid())
+  cartDropId String
+  productId  String
+  quantity   Int
+  price      Float
+
+  // Relations
+  cartDrop CartDrop @relation(fields: [cartDropId], references: [id], onDelete: Cascade)
+  product  Product  @relation(fields: [productId], references: [id])
+
+  @@index([cartDropId])
+  @@index([productId])
 }
 
-// Statut du service
-enum ServiceStatus {
-  PENDING
-  CONFIRMED
-  IN_PROGRESS
-  COMPLETED
-  CANCELLED
-}
-
-// Entrepôts de stockage
-model StorageFacility {
-  id        String      @id @default(cuid())
-  name      String
-  address   String
-  city      String
-  capacity  Int
-  
-  shipments Shipment[]
-}
-
-// Factures
-model Invoice {
-  id            String      @id @default(cuid())
-  invoiceNumber String      @unique
-  amount        Float
-  description   String?
-  status        InvoiceStatus @default(PENDING)
-  createdAt     DateTime    @default(now())
-  dueDate       DateTime
-  paidAt        DateTime?
-  
-  // Le type d'entité à qui est destinée la facture (client, commerçant, livreur, prestataire)
-  entityType    String
-  entityId      String
-}
-
-enum InvoiceStatus {
-  PENDING
-  PAID
-  OVERDUE
-  CANCELLED
-}
-
-// Paiements
+// Payment-related models
 model Payment {
-  id            String      @id @default(cuid())
-  amount        Float
-  description   String?
-  status        PaymentStatus @default(PENDING)
-  paymentMethod String
-  createdAt     DateTime    @default(now())
-  
-  // ID de transaction du système de paiement (Stripe, etc.)
-  externalId    String?
-  
-  // Le type d'entité à qui est destiné le paiement (client, commerçant, livreur, prestataire)
-  entityType    String
-  entityId      String
+  id               String        @id @default(cuid())
+  amount           Float
+  currency         String        @default("EUR")
+  status           PaymentStatus @default(PENDING)
+  paymentMethod    PaymentMethod
+  stripePaymentId  String?
+  stripeCustomerId String?
+  receiptUrl       String?
+  description      String?
+  metadata         Json?         // Additional payment data
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  // Entity this payment is for - ONE of these will be non-null
+  entityType PaymentEntityType   // "delivery", "service", "subscription"
+  entityId   String              // ID of the related entity
+
+  // Relations to participants - at least ONE of these will be non-null
+  customerId        String?
+  customer          Customer?        @relation("CustomerPayment", fields: [customerId], references: [id])
+  deliveryPersonId  String?
+  deliveryPerson    DeliveryPerson?  @relation("DeliveryPersonPayment", fields: [deliveryPersonId], references: [id])
+  merchantId        String?
+  merchant          Merchant?        @relation("MerchantPayment", fields: [merchantId], references: [id])
+  serviceProviderId String?
+  serviceProvider   ServiceProvider? @relation("ServiceProviderPayment", fields: [serviceProviderId], references: [id])
+
+  // For backward compatibility - these will be phased out
+  deliveryId String?   @unique
+  delivery   Delivery? @relation("DeliveryPayment", fields: [deliveryId], references: [id])
+  serviceId  String?   @unique
+  service    Service?  @relation("ServicePayment", fields: [serviceId], references: [id])
+
+  // Additional relations
+  invoiceId String?  @unique
+  invoice   Invoice? @relation(fields: [invoiceId], references: [id])
+  refunds   Refund[]
+
+  @@index([status])
+  @@index([createdAt])
+  @@index([customerId])
+  @@index([deliveryPersonId])
+  @@index([merchantId])
+  @@index([serviceProviderId])
+  @@index([entityType, entityId])
 }
 
-enum PaymentStatus {
-  PENDING
-  COMPLETED
-  FAILED
-  REFUNDED
+model Refund {
+  id                String         @id @default(cuid())
+  paymentId         String
+  amount            Float
+  currency          String         @default("EUR")
+  status            RefundStatus   @default(PENDING)
+  stripeRefundId    String?
+  reason            RefundReason
+  description       String?
+  initiatedBy       String         // User ID
+  approvedBy        String?        // Admin User ID
+  initiatedAt       DateTime       @default(now())
+  processedAt       DateTime?
+  
+  // Relations
+  payment           Payment        @relation(fields: [paymentId], references: [id])
+
+  @@index([paymentId])
+  @@index([status])
+  @@index([initiatedAt])
 }
 
-// Évaluations
-model Review {
-  id          String    @id @default(cuid())
-  rating      Float     // Note de 0 à 5
-  comment     String?
-  createdAt   DateTime  @default(now())
-  
-  // Type d'évaluation (livraison, service)
-  reviewType  String
-  
-  // ID de l'élément évalué (livraison, service)
-  itemId      String
-  
-  // Utilisateur qui a posté l'évaluation
-  userId      String
+model Wallet {
+  id          String   @id @default(cuid())
+  balance     Float    @default(0)
+  lastUpdated DateTime @default(now())
+  currency    String   @default("EUR")
+
+  // Relations
+  deliveryPersonId String              @unique
+  deliveryPerson   DeliveryPerson      @relation(fields: [deliveryPersonId], references: [id], onDelete: Cascade)
+  transactions     WalletTransaction[]
+
+  @@index([deliveryPersonId])
 }
 
-// Notifications
+model WalletTransaction {
+  id          String          @id @default(cuid())
+  walletId    String
+  amount      Float
+  type        TransactionType
+  description String?
+  referenceId String?         // ID of related entity (delivery, etc.)
+  createdAt   DateTime        @default(now())
+
+  // Relations
+  wallet Wallet @relation(fields: [walletId], references: [id], onDelete: Cascade)
+
+  @@index([walletId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+model Contract {
+  id                  String         @id @default(cuid())
+  merchantId          String
+  contractReference   String         @unique
+  contractType        String         // "standard", "premium", etc.
+  startDate           DateTime
+  endDate             DateTime?
+  status              ContractStatus @default(PENDING)
+  terms               String?        @db.Text
+  signedByMerchant    Boolean        @default(false)
+  signedByCompany     Boolean        @default(false)
+  merchantSignatureId String?
+  companySignatureId  String?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  
+  // Relations
+  merchant            Merchant       @relation(fields: [merchantId], references: [id])
+
+  @@index([merchantId])
+  @@index([status])
+  @@index([startDate, endDate])
+}
+
+model Invoice {
+  id            String        @id @default(cuid())
+  invoiceNumber String        @unique
+  issueDate     DateTime      @default(now())
+  dueDate       DateTime
+  subtotal      Float
+  tax           Float
+  total         Float
+  status        InvoiceStatus @default(UNPAID)
+  pdfUrl        String?
+  notes         String?
+
+  // Relations
+  payment Payment?
+  items   InvoiceItem[]
+
+  @@index([status])
+  @@index([issueDate])
+  @@index([dueDate])
+}
+
+model InvoiceItem {
+  id          String @id @default(cuid())
+  invoiceId   String
+  description String
+  quantity    Int
+  unitPrice   Float
+  total       Float
+
+  // Relations
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+}
+
+// Loyalty system
+model LoyaltyTransaction {
+  id            String   @id @default(cuid())
+  customerId    String
+  customer      Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  points        Int      // Can be positive (earned) or negative (spent)
+  description   String
+  referenceType String?  // "delivery", "service", etc.
+  referenceId   String?  // ID of related entity
+  createdAt     DateTime @default(now())
+
+  @@index([customerId])
+  @@index([createdAt])
+}
+
+// Communication and feedback models
 model Notification {
-  id          String    @id @default(cuid())
-  title       String
+  id        String           @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      NotificationType
+  isRead    Boolean          @default(false)
+  actionUrl String?          // URL to navigate to on click
+  createdAt DateTime         @default(now())
+  expiresAt DateTime?
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead])
+  @@index([createdAt])
+  @@index([expiresAt])
+}
+
+// Combined message model
+model Message {
+  id          String   @id @default(cuid())
+  senderId    String
+  receiverId  String
   content     String
-  isRead      Boolean   @default(false)
-  createdAt   DateTime  @default(now())
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  attachments String[] // Array of attachment URLs
+
+  // Chat functionality
+  conversationId  String?
+  isSystemMessage Boolean @default(false)
+
+  // Relations
+  sender   User @relation("SenderMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("ReceiverMessages", fields: [receiverId], references: [id])
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([conversationId])
+  @@index([isRead])
+  @@index([createdAt])
+}
+
+model Conversation {
+  id            String   @id @default(cuid())
+  participants  String[] // Array of user IDs
+  lastMessageAt DateTime @default(now())
+  createdAt     DateTime @default(now())
   
-  // Utilisateur destinataire
-  userId      String
+  @@index([lastMessageAt])
 }
 
-// Modèles pour le système d'alertes
-model AlertRule {
-  id              String          @id @default(cuid())
-  name            String
-  metricType      AlertMetricType
-  condition       AlertCondition
-  threshold       Float
-  enabled         Boolean         @default(true)
-  notifyEmail     Boolean         @default(true)
-  notifyDashboard Boolean         @default(true)
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  userId          String
-  user            User            @relation(fields: [userId], references: [id])
-  alerts          Alert[]
+model Review {
+  id         String    @id @default(cuid())
+  authorId   String
+  targetId   String
+  rating     Int       // 1-5
+  comment    String?
+  deliveryId String?
+  delivery   Delivery? @relation(fields: [deliveryId], references: [id])
+  serviceId  String?
+  service    Service?  @relation(fields: [serviceId], references: [id])
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  isVerified Boolean   @default(false)
+
+  // Relations
+  author User @relation("ReviewAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  target User @relation("ReviewTarget", fields: [targetId], references: [id])
+
+  @@index([authorId])
+  @@index([targetId])
+  @@index([deliveryId])
+  @@index([serviceId])
+  @@index([rating])
+  @@index([createdAt])
 }
 
-model Alert {
-  id            String          @id @default(cuid())
-  ruleId        String
-  rule          AlertRule       @relation(fields: [ruleId], references: [id])
-  userId        String
-  user          User            @relation(fields: [userId], references: [id])
-  metricType    AlertMetricType
-  message       String
-  details       String?
-  value         Float
-  expectedValue Float?
-  deviation     Float?
-  timestamp     DateTime        @default(now())
-  severity      AlertSeverity
-  read          Boolean         @default(false)
-  dismissed     Boolean         @default(false)
+// Document verification models
+model Document {
+  id               String             @id @default(cuid())
+  userId           String
+  type             DocumentType
+  fileUrl          String
+  status           VerificationStatus @default(PENDING)
+  uploadDate       DateTime           @default(now())
+  verificationDate DateTime?
+  rejectionReason  String?
+  expiryDate       DateTime?          // For documents that expire
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([type])
+  @@index([expiryDate])
 }
 
-enum AlertMetricType {
-  REVENUE
-  SHIPMENTS
-  USERS
-  SATISFACTION
-  COURIER_DELAY
+// Foreign purchase service
+model ForeignPurchase {
+  id              String                @id @default(cuid())
+  customerId      String
+  customer        Customer              @relation(fields: [customerId], references: [id])
+  productName     String
+  description     String
+  countryOfOrigin String
+  estimatedPrice  Float
+  actualPrice     Float?
+  currency        String                @default("EUR")
+  purchaseDate    DateTime?
+  status          ForeignPurchaseStatus @default(REQUESTED)
+  trackingNumber  String?
+  deliveryAddress String
+  notes           String?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  @@index([customerId])
+  @@index([status])
+  @@index([countryOfOrigin])
+  @@index([createdAt])
 }
 
-enum AlertCondition {
-  ABOVE
-  BELOW
-  EQUAL
-  CHANGE_RATE
+// NFC functionalities for delivery persons
+model NFCCard {
+  id              String   @id @default(cuid())
+  cardNumber      String   @unique
+  isActive        Boolean  @default(true)
+  activationDate  DateTime @default(now())
+  deactivationDate DateTime?
+  lastUsed        DateTime?
+  
+  // Relations
+  deliveryPersonId String
+  deliveryPerson   DeliveryPerson @relation(fields: [deliveryPersonId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryPersonId])
+  @@index([isActive])
+  @@index([cardNumber])
 }
 
-enum AlertSeverity {
-  LOW
-  MEDIUM
-  HIGH
+model NFCTerminal {
+  id              String       @id @default(cuid())
+  serialNumber    String       @unique
+  location        String
+  warehouseId     String?
+  warehouse       Warehouse?   @relation(fields: [warehouseId], references: [id])
+  lastPing        DateTime?
+  status          DeviceStatus @default(ACTIVE)
+  firmware        String
+  installedAt     DateTime     @default(now())
+  lastMaintenance DateTime?
+
+  @@index([warehouseId])
+  @@index([status])
+  @@index([serialNumber])
+}
+
+model NFCTransaction {
+  id              String   @id @default(cuid())
+  cardNumber      String   // NFC card number
+  terminalId      String?  // Terminal ID if scanned at terminal
+  scanType        String   // "delivery_validation", "identity_check", etc.
+  referenceId     String?  // ID of related entity
+  timestamp       DateTime @default(now())
+  location        String?
+  coordinates     Json?    // {lat: number, lng: number}
+  success         Boolean  @default(true)
+  failureReason   String?
+
+  @@index([cardNumber])
+  @@index([terminalId])
+  @@index([timestamp])
+  @@index([scanType, referenceId])
+}
+
+// Support system
+model SupportTicket {
+  id           String         @id @default(cuid())
+  userId       String
+  subject      String
+  description  String         @db.Text
+  priority     TicketPriority @default(MEDIUM)
+  status       TicketStatus   @default(OPEN)
+  category     TicketCategory
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  assignedToId String?
+  resolvedAt   DateTime?
+
+  user      User             @relation(fields: [userId], references: [id])
+  responses TicketResponse[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([priority])
+  @@index([category])
+  @@index([createdAt])
+}
+
+model TicketResponse {
+  id          String        @id @default(cuid())
+  ticketId    String
+  ticket      SupportTicket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  userId      String        // ID of responder
+  message     String        @db.Text
+  createdAt   DateTime      @default(now())
+  attachments String[]      // URLs to attached files
+  isInternal  Boolean       @default(false) // Whether visible to customer
+
+  @@index([ticketId])
+  @@index([createdAt])
+}
+
+// System tracking models
+model AuditLog {
+  id         String   @id @default(cuid())
+  userId     String?
+  user       User?    @relation(fields: [userId], references: [id])
+  action     String
+  entityType String
+  entityId   String?
+  details    String?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  @@index([userId])
+  @@index([entityType, entityId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// Media management
+model Media {
+  id        String    @id @default(cuid())
+  userId    String    // Owner of the media file
+  type      MediaType
+  url       String    // Storage URL
+  name      String    // Original filename
+  size      Int       // In bytes
+  mimeType  String
+  isPublic  Boolean   @default(false)
+  createdAt DateTime  @default(now())
+
+  // Relations for galleries, product images, etc.
+  productId      String?
+  product        Product?      @relation(fields: [productId], references: [id])
+  announcementId String?
+  announcement   Announcement? @relation(fields: [announcementId], references: [id])
+
+  @@index([userId])
+  @@index([type])
+  @@index([productId])
+  @@index([announcementId])
+}
+
+// System configuration
+model SystemConfig {
+  id          String @id
+  value       String
+  type        String // "number", "string", "boolean", "json"
+  description String?
+  updatedAt   DateTime @updatedAt
+  updatedBy   String?  // User ID
+}
+
+// Statistics and Reporting
+model DailyStats {
+  id                   String   @id @default(cuid())
+  date                 DateTime @unique
+  newUsers             Int      @default(0)
+  activeUsers          Int      @default(0)
+  completedDeliveries  Int      @default(0)
+  failedDeliveries     Int      @default(0)
+  totalRevenue         Float    @default(0)
+  averageDeliveryTime  Float?   // In minutes
+  customerSatisfaction Float?   // Average rating
+  totalOrders          Int      @default(0)
+
+  @@index([date])
+}
+
+// Scheduled Tasks
+model ScheduledTask {
+  id            String               @id @default(cuid())
+  type          String               // "email", "notification", "invoice", etc.
+  status        ScheduledTaskStatus  @default(PENDING)
+  payload       Json
+  scheduledFor  DateTime
+  processedAt   DateTime?
+  attempts      Int                  @default(0)
+  maxAttempts   Int                  @default(3)
+  lastError     String?
+  createdAt     DateTime             @default(now())
+
+  @@index([status, scheduledFor])
+  @@index([type])
+}
+
+// Driver advertisements - separate model for driver ads
+model DriverAdvertisement {
+  id               String               @id @default(cuid())
+  title            String
+  description      String               @db.Text
+  vehicleType      String               // Type of vehicle used for delivery
+  pricing          Json                 // Pricing details (basePrice, pricePerKm, etc.)
+  maxDistance      Float                // Maximum distance the driver is willing to travel
+  specializations  String[]             // Special delivery capabilities
+  requirements     String[]             // Requirements for delivery
+  tags             String[]             // Tags for searchability  
+  status           DriverAdStatus       @default(ACTIVE)
+  contactPreference String              // How the driver prefers to be contacted
+  customContactInfo String?             // Additional contact information
+  location         Json?                // Location coordinates and address
+  createdAt        DateTime             @default(now())
+  updatedAt        DateTime             @updatedAt
+
+  // Relations
+  driver          DeliveryPerson        @relation(fields: [driverId], references: [id])
+  driverId        String
+  category        AdCategory?           @relation(fields: [categoryId], references: [id])
+  categoryId      String?
+  serviceArea     AdServiceArea[]
+  availability    AdAvailability[]
+  responses       AdResponse[]
+  interestedUsers Interest[]
+
+  @@index([status])
+  @@index([vehicleType])
+  @@index([driverId])
+  @@index([categoryId])
+  @@index([createdAt])
+}
+
+// Categories for advertisements
+model AdCategory {
+  id              String                @id @default(cuid())
+  name            String                @unique
+  description     String?
+  icon            String?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  
+  // Relations
+  advertisements  DriverAdvertisement[]
+
+  @@index([name])
+}
+
+// Service areas for advertisements
+model AdServiceArea {
+  id               String              @id @default(cuid())
+  city             String
+  postalCode       String
+  country          String              @default("France")
+  
+  // Relations
+  advertisement    DriverAdvertisement @relation(fields: [advertisementId], references: [id], onDelete: Cascade)
+  advertisementId  String
+
+  @@index([advertisementId])
+  @@index([postalCode, country])
+  @@index([city])
+}
+
+// Availability slots for advertisements
+model AdAvailability {
+  id               String              @id @default(cuid())
+  dayOfWeek        Int                 // 0-6, 0 is Sunday
+  startTime        String              // Format "HH:MM"
+  endTime          String              // Format "HH:MM"
+  
+  // Relations
+  advertisement    DriverAdvertisement @relation(fields: [advertisementId], references: [id], onDelete: Cascade)
+  advertisementId  String
+
+  @@index([advertisementId])
+  @@index([dayOfWeek])
+}
+
+// User responses to advertisements
+model AdResponse {
+  id                     String            @id @default(cuid())
+  message                String            @db.Text
+  phoneNumber            String?
+  preferredContactMethod String?
+  details                Json?             // Additional details (pickup, delivery, etc.)
+  status                 AdResponseStatus  @default(PENDING)
+  createdAt              DateTime          @default(now())
+  updatedAt              DateTime          @updatedAt
+  
+  // Relations
+  advertisement    DriverAdvertisement @relation(fields: [advertisementId], references: [id], onDelete: Cascade)
+  advertisementId  String
+  customer         Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  customerId       String
+
+  @@index([advertisementId])
+  @@index([customerId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+// User interests in advertisements
+model Interest {
+  id               String              @id @default(cuid())
+  createdAt        DateTime            @default(now())
+  
+  // Relations
+  advertisement    DriverAdvertisement @relation(fields: [advertisementId], references: [id], onDelete: Cascade)
+  advertisementId  String
+  user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId           String
+
+  @@unique([advertisementId, userId])
+  @@index([advertisementId])
+  @@index([userId])
 }

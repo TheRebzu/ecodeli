@@ -1,4 +1,4 @@
-import NextAuth, { AuthOptions } from "next-auth";
+import { AuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { compare } from "bcryptjs";
 import prisma from "@/lib/prisma";
@@ -61,11 +61,14 @@ export const authOptions: AuthOptions = {
     },
   },
   pages: {
-    signIn: "/login",
-    error: "/login",
+    signIn: "/auth/login",
+    error: "/auth/login",
+    newUser: "/auth/register",
   },
   session: {
-    strategy: "jwt" as const,
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   secret: process.env.NEXTAUTH_SECRET,
+  debug: process.env.NODE_ENV === "development",
 }; 

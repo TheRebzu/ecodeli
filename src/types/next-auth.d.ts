@@ -1,4 +1,5 @@
-import type { DefaultSession } from "next-auth";
+import { DefaultSession, DefaultUser } from "next-auth";
+import { UserRole } from "@/lib/validations/auth";
 
 declare module "next-auth" {
   /**
@@ -9,16 +10,21 @@ declare module "next-auth" {
       id: string;
       role: string;
       status: string;
+      mfaEnabled?: boolean;
     } & DefaultSession["user"];
   }
 
   /**
    * Extension du type User
    */
-  interface User {
+  interface User extends DefaultUser {
     id: string;
-    role: string;
+    role: UserRole;
     status: string;
+    mfaEnabled?: boolean;
+    mfaSecret?: string;
+    mfaBackupCodes?: string[];
+    lastLogin?: Date;
   }
 }
 
@@ -30,5 +36,6 @@ declare module "next-auth/jwt" {
     id: string;
     role: string;
     status: string;
+    mfaEnabled?: boolean;
   }
 } 

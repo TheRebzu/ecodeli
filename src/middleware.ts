@@ -19,7 +19,8 @@ const publicRoutes = [
   "/legal/terms",
   "/legal/privacy",
   "/api/webhook",
-  "/api/auth"
+  "/api/auth",
+  "/auth/forgot-password",
 ];
 
 // Routes statiques (images, etc.)
@@ -95,45 +96,54 @@ export async function middleware(request: NextRequest) {
   }
 
   // Récupérer la session utilisateur
-  const token = await getToken({ req: request });
-  const userRole = token?.role as UserRole | undefined;
-  const isAuthenticated = !!token;
+  const token = await getToken({
+    req: request,
+    secret: process.env.NEXTAUTH_SECRET,
+  });
 
-  // ---- 1. Gestion des routes publiques ----
-  if (isPublicRoute(pathname)) {
-    // Si l'utilisateur est déjà authentifié et essaye d'accéder à login/register, rediriger vers son dashboard
-    if (isAuthenticated && (
-      pathname.startsWith('/auth/login') || 
-      pathname.startsWith('/auth/register') ||
-      pathname.startsWith('/login') || 
-      pathname.startsWith('/register')
-    )) {
-      const redirectUrl = new URL(dashboardRoutes[userRole as UserRole] || '/', request.url);
-      return NextResponse.redirect(redirectUrl);
-    }
-    
-    // Sinon pour les autres routes publiques, autoriser l'accès
+  // Check if the path is a public route or static asset
+  const isPublicRoute = publicRoutes.some(route => 
+    pathname === route || pathname.startsWith(route + "/")
+  );
+  const isStaticAsset = pathname.startsWith("/_next") || 
+    pathname.startsWith("/favicon.ico") || 
+    pathname.includes(".");
+  
+  // Allow access to public routes and static assets
+  if (isPublicRoute || isStaticAsset) {
     return NextResponse.next();
   }
 
-  // ---- 2. Gestion des routes protégées ----
-  
-  // Si l'utilisateur n'est pas authentifié sur une route protégée
-  if (!isAuthenticated) {
-    // Rediriger vers la page de login pour les routes protégées
-    const redirectUrl = new URL('/auth/login', request.url);
-    redirectUrl.searchParams.set('callbackUrl', encodeURI(pathname));
-    return NextResponse.redirect(redirectUrl);
-  }
-  
-  // Vérifier les autorisations pour les routes protégées
-  if (!canAccessRoute(pathname, userRole)) {
-    // Rediriger vers le dashboard approprié à leur rôle
-    const redirectUrl = new URL(dashboardRoutes[userRole as UserRole] || '/', request.url);
-    return NextResponse.redirect(redirectUrl);
+  // Redirect to login if not authenticated
+  if (!token) {
+    const url = new URL("/auth/login", request.url);
+    url.searchParams.set("callbackUrl", encodeURI(pathname));
+    return NextResponse.redirect(url);
   }
 
-  // Si tout est en ordre, autoriser l'accès
+  // Role-based route protection
+  const userRole = token.role as string;
+  
+  // Check if user is trying to access a role-specific route
+  const roleRoutes = {
+    client: "/client",
+    livreur: "/livreur",
+    commercant: "/commercant",
+    prestataire: "/prestataire",
+    admin: "/admin",
+  };
+
+  // Check for role-specific route access
+  for (const [role, route] of Object.entries(roleRoutes)) {
+    if (pathname.startsWith(route) && userRole?.toLowerCase() !== role) {
+      // If user tries to access a route they don't have permission for,
+      // redirect to their dashboard
+      const dashboardUrl = roleRoutes[userRole?.toLowerCase() as keyof typeof roleRoutes] || "/dashboard";
+      return NextResponse.redirect(new URL(dashboardUrl, request.url));
+    }
+  }
+
+  // Allow access if authenticated and authorized
   return NextResponse.next();
 }
 
@@ -158,10 +168,11 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
+     * - api (API routes)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    "/((?!api|_next/static|_next/image|favicon.ico).*)",
   ],
 }; 
