@@ -511,6 +511,3 @@ export async function GET(req: NextRequest) {
     );
   }
 } 
-
-  return results;
-} 

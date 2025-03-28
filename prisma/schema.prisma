@@ -338,6 +338,13 @@ enum AdResponseStatus {
   CANCELLED
 }
 
+enum BoxStatus {
+  AVAILABLE
+  OCCUPIED
+  MAINTENANCE
+  OUT_OF_SERVICE
+}
+
 // Models
 
 model User {

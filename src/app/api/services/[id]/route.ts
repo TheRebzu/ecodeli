@@ -10,7 +10,10 @@ const updateServiceSchema = z.object({
   name: z.string().min(3).max(100).optional(),
   description: z.string().min(10).max(1000).optional(),
   categoryId: z.string().uuid().optional(),
-  price: z.number().min(0).precision(2).optional(),
+  price: z.number().min(0).refine(
+    (n) => Number(n.toFixed(2)) === n,
+    { message: "Price must have at most 2 decimal places" }
+  ).optional(),
   durationMinutes: z.number().int().min(15).optional(),
   isActive: z.boolean().optional(),
   imageUrl: z.string().url().optional().nullable(),

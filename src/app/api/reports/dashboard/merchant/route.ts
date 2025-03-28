@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
-import { DeliveryStatus, OrderStatus } from "@prisma/client";
+import { DeliveryStatus, CartDropStatus } from "@prisma/client";
 
 export async function GET(req: NextRequest) {
   try {
@@ -60,7 +60,7 @@ export async function GET(req: NextRequest) {
       prisma.cartDrop.count({
         where: {
           merchantId: merchant.id,
-          status: OrderStatus.COMPLETED,
+          status: CartDropStatus.DELIVERED,
         },
       }),
       // Pending orders
@@ -68,7 +68,7 @@ export async function GET(req: NextRequest) {
         where: {
           merchantId: merchant.id,
           status: {
-            in: [OrderStatus.PENDING, OrderStatus.PROCESSING],
+            in: [CartDropStatus.PENDING, CartDropStatus.PROCESSING],
           },
         },
       }),
@@ -76,7 +76,7 @@ export async function GET(req: NextRequest) {
       prisma.cartDrop.count({
         where: {
           merchantId: merchant.id,
-          status: OrderStatus.CANCELLED,
+          status: CartDropStatus.CANCELLED,
         },
       }),
       // Last month orders
@@ -180,16 +180,20 @@ export async function GET(req: NextRequest) {
       prisma.product.count({
         where: {
           merchantId: merchant.id,
-          isActive: true,
+          isAvailable: true,
         },
       }),
       // Low stock products
       prisma.product.count({
         where: {
           merchantId: merchant.id,
-          isActive: true,
-          stock: {
-            lte: 10,
+          isAvailable: true,
+          inventory: {
+            some: {
+              quantity: {
+                lte: 10,
+              },
+            },
           },
         },
       }),
@@ -449,62 +453,29 @@ export async function GET(req: NextRequest) {
 
     // Return dashboard data
     return NextResponse.json({
+      success: true,
       data: {
         orders: {
           total: totalOrders,
           completed: completedOrders,
           pending: pendingOrders,
           cancelled: cancelledOrders,
-          today: todayOrders,
-          thisMonth: thisMonthOrders,
           lastMonth: lastMonthOrders,
-          growth: Math.round(orderGrowth * 100) / 100,
-          recent: recentOrders.map(order => {
-            // Calculate order total
-            const orderTotal = order.items.reduce(
-              (sum, item) => sum + (item.price * item.quantity), 
-              0
-            );
-            
-            return {
-              id: order.id,
-              reference: order.orderReference,
-              date: order.orderDate,
-              status: order.status,
-              total: orderTotal,
-              items: order.items.length,
-              customerName: order.customer?.user?.name || 'N/A',
-              customerEmail: order.customer?.user?.email || 'N/A',
-              customerImage: order.customer?.user?.image,
-              deliveryStatus: order.delivery?.status || 'Not Scheduled',
-              trackingNumber: order.delivery?.trackingNumber || 'N/A',
-              estimatedDelivery: order.delivery?.estimatedDelivery,
-              deliveryPersonName: order.delivery?.deliveryPerson?.user?.name || 'Not Assigned',
-              deliveryPersonPhone: order.delivery?.deliveryPerson?.user?.phone,
-            };
-          }),
+          thisMonth: thisMonthOrders,
+          today: todayOrders,
+          recent: recentOrders,
         },
         products: {
           total: totalProducts,
           active: activeProducts,
           lowStock: lowStockProducts,
-          topSelling: topSellingProducts.map(product => ({
-            id: product.productId,
-            name: product.productName,
-            totalSold: product.totalSold,
-            revenue: product.revenue,
-          })),
+          topSelling: topSellingProducts,
         },
         revenue: {
-          total: totalRevenueAmount,
-          thisMonth: thisMonthRevenueAmount,
-          lastMonth: lastMonthRevenueAmount,
-          growth: Math.round(revenueGrowth * 100) / 100,
-          daily: dailyRevenueArray,
-          wallet: wallet ? {
-            balance: wallet.balance,
-            currency: wallet.currency,
-          } : { balance: 0, currency: 'USD' },
+          total: totalRevenue._sum.amount || 0,
+          lastMonth: lastMonthRevenue._sum.amount || 0,
+          thisMonth: thisMonthRevenue._sum.amount || 0,
+          daily: dailyRevenue,
         },
         deliveries: {
           total: totalDeliveries,
@@ -523,14 +494,17 @@ export async function GET(req: NextRequest) {
             ? Math.round((returningCustomers / totalCustomers) * 100) 
             : 0,
         },
+        wallet: wallet ? {
+          balance: wallet.balance,
+          currency: wallet.currency,
+        } : { balance: 0, currency: 'USD' },
       },
     });
-  } catch (error: unknown) {
-    console.error("Error fetching merchant dashboard:", error);
+  } catch (error) {
+    console.error("Error in merchant dashboard:", error);
     return NextResponse.json(
-      { error: "Failed to load dashboard data" },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }
-} 
 } 

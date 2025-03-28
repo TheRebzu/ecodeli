@@ -3,11 +3,11 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
-import { DocumentStatus, UserRole } from "@prisma/client";
+import { UserRole, VerificationStatus } from "@prisma/client";
 
 // Schema for document verification request
 const verifyDocumentSchema = z.object({
-  status: z.enum([DocumentStatus.VERIFIED, DocumentStatus.REJECTED]),
+  status: z.enum([VerificationStatus.APPROVED, VerificationStatus.REJECTED]),
   notes: z.string().max(1000).optional(),
   expiryDate: z.string().optional(), // ISO date string, for setting document expiry if verified
 });
@@ -94,15 +94,15 @@ export async function POST(
 
     // Check if document is already verified or rejected
     if (
-      document.status === DocumentStatus.VERIFIED ||
-      document.status === DocumentStatus.REJECTED
+      document.status === VerificationStatus.APPROVED ||
+      document.status === VerificationStatus.REJECTED
     ) {
       return NextResponse.json(
         {
           success: false,
           error: {
             code: "INVALID_STATE",
-            message: `Document is already ${document.status.toLowerCase()}`,
+            message: `Document is already ${document.status === VerificationStatus.APPROVED ? "approved" : "rejected"}`,
           },
         },
         { status: 400 }
@@ -148,7 +148,7 @@ export async function POST(
         data: {
           documentId,
           status,
-          notes: notes || `Document ${status === DocumentStatus.VERIFIED ? "verified" : "rejected"} by administrator`,
+          notes: notes || `Document ${status === VerificationStatus.APPROVED ? "approved" : "rejected"} by administrator`,
           userId: session.user.id,
         },
       });
@@ -157,10 +157,10 @@ export async function POST(
       await tx.notification.create({
         data: {
           userId: document.userId,
-          title: `Document ${status === DocumentStatus.VERIFIED ? "Verified" : "Rejected"}`,
+          title: `Document ${status === VerificationStatus.APPROVED ? "Approved" : "Rejected"}`,
           message: 
-            status === DocumentStatus.VERIFIED
-              ? `Your document "${document.title}" has been verified by an administrator`
+            status === VerificationStatus.APPROVED
+              ? `Your document "${document.title}" has been approved by an administrator`
               : `Your document "${document.title}" has been rejected. Please check the admin notes for details.`,
           type: "DOCUMENT",
           referenceId: documentId,
@@ -170,7 +170,7 @@ export async function POST(
       // Create audit log
       await tx.auditLog.create({
         data: {
-          action: status === DocumentStatus.VERIFIED ? "VERIFY" : "REJECT",
+          action: status === VerificationStatus.APPROVED ? "VERIFY" : "REJECT",
           entityType: "DOCUMENT",
           entityId: documentId,
           userId: session.user.id,
@@ -236,7 +236,7 @@ export async function POST(
     return NextResponse.json({
       success: true,
       data: verifiedDocument,
-      message: `Document has been ${status === DocumentStatus.VERIFIED ? "verified" : "rejected"} successfully`,
+      message: `Document has been ${status === VerificationStatus.APPROVED ? "approved" : "rejected"} successfully`,
     });
   } catch (error) {
     console.error("Error verifying document:", error);
