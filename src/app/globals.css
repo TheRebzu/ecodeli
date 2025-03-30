@@ -150,6 +150,59 @@
   .outline-ring\/40 {
     outline-color: color-mix(in srgb, var(--ring) 40%, transparent);
   }
+
+  /* Responsive Utilities */
+  .mobile-container {
+    @apply px-3 sm:px-4 md:px-6 lg:px-8;
+  }
+  
+  .mobile-py {
+    @apply py-3 sm:py-4 md:py-6 lg:py-8;
+  }
+  
+  .mobile-mt {
+    @apply mt-3 sm:mt-4 md:mt-6 lg:mt-8;
+  }
+  
+  .mobile-mb {
+    @apply mb-3 sm:mb-4 md:mb-6 lg:mb-8;
+  }
+  
+  .mobile-gap {
+    @apply gap-2 sm:gap-4 md:gap-6;
+  }
+  
+  .mobile-text {
+    @apply text-sm sm:text-base md:text-lg;
+  }
+  
+  .mobile-heading {
+    @apply text-xl sm:text-2xl md:text-3xl lg:text-4xl;
+  }
+  
+  /* Fixed element sizing for mobile */
+  .btn-mobile {
+    @apply h-8 sm:h-9 text-xs sm:text-sm px-2 sm:px-4;
+  }
+  
+  /* Improved card spacing for mobile */
+  .card-mobile {
+    @apply p-3 sm:p-4 md:p-6;
+  }
+}
+
+/* Prevent overflow on mobile */
+html, body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Better tap targets on mobile */
+@media (max-width: 640px) {
+  button, a, [role="button"] {
+    min-height: 40px;
+    min-width: 40px;
+  }
 }
 
 /* Définition des animations globales */

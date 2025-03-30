@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import prisma from "@/lib/prisma";
 import { z } from "zod";
-import bcrypt from "bcrypt";
+import * as bcrypt from "bcryptjs";
 
 // Schema for account deletion confirmation
 const accountDeletionSchema = z.object({

@@ -1,6 +1,6 @@
 import { PrismaClient, UserRole, UserStatus, SubscriptionPlan, VehicleType, ContractStatus, PackageSize, AnnouncementStatus, DeliveryStatus, ServiceType, ServiceStatus, BoxSize, CartDropStatus, PaymentStatus, PaymentMethod, PaymentEntityType, ForeignPurchaseStatus, DocumentType, VerificationStatus } from '@prisma/client';
 import { faker } from '@faker-js/faker/locale/fr';
-import * as bcrypt from 'bcrypt';
+import * as bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
@@ -567,7 +567,7 @@ async function seed() {
   for (let i = 0; i < TOTAL_ADMINS; i++) {
     const firstName = faker.person.firstName();
     const lastName = faker.person.lastName();
-    const email = faker.internet.email({ firstName, lastName, provider: 'ecodeli.fr' }).toLowerCase();
+    const email = faker.internet.email({ firstName, lastName, provider: 'ecodeli.me' }).toLowerCase();
     
     const user = await prisma.user.create({
       data: {
@@ -606,7 +606,7 @@ async function seed() {
   // Test client
   const testClient = await prisma.user.create({
     data: {
-      email: 'client@ecodeli.fr',
+      email: 'client@ecodeli.me',
       password: passwordHash,
       name: 'Client Test',
       phone: '0612345678',
@@ -636,7 +636,7 @@ async function seed() {
   // Test driver
   const testDriver = await prisma.user.create({
     data: {
-      email: 'livreur@ecodeli.fr',
+      email: 'livreur@ecodeli.me',
       password: passwordHash,
       name: 'Livreur Test',
       phone: '0623456789',
@@ -688,7 +688,7 @@ async function seed() {
   // Test merchant
   const testMerchant = await prisma.user.create({
     data: {
-      email: 'commercant@ecodeli.fr',
+      email: 'commercant@ecodeli.me',
       password: passwordHash,
       name: 'Commerçant Test',
       phone: '0634567890',
@@ -725,7 +725,7 @@ async function seed() {
   // Test provider
   const testProvider = await prisma.user.create({
     data: {
-      email: 'prestataire@ecodeli.fr',
+      email: 'prestataire@ecodeli.me',
       password: passwordHash,
       name: 'Prestataire Test',
       phone: '0645678901',
@@ -758,7 +758,7 @@ async function seed() {
   // Test admin
   const testAdmin = await prisma.user.create({
     data: {
-      email: 'admin@ecodeli.fr',
+      email: 'admin@ecodeli.me',
       password: passwordHash,
       name: 'Admin Test',
       phone: '0656789012',

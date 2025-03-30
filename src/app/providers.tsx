@@ -17,7 +17,11 @@ export function Providers({ children }: ProvidersProps) {
   }, []);
 
   return (
-    <SessionProvider>
+    <SessionProvider 
+      refetchInterval={5 * 60} // Rafraîchir la session toutes les 5 minutes
+      refetchOnWindowFocus={true} // Rafraîchir quand la fenêtre regagne le focus
+      refetchWhenOffline={false} // Ne pas rafraîchir quand hors ligne
+    >
       <ThemeProvider 
         attribute="class" 
         defaultTheme="light" 

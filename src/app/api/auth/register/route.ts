@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { hash } from "bcryptjs";
+import * as bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 import { randomUUID } from "crypto";
-import * as bcrypt from "bcrypt";
-import { registerSchema } from "@/lib/validations/auth";
 
 // Schema for validating registration data
 const registerSchema = z.object({

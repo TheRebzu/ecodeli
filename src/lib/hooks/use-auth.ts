@@ -2,7 +2,7 @@
 
 import { useSession, signIn, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { UserRole } from '@/middleware';
 
 export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
@@ -70,17 +70,36 @@ const defaultPermissions: Record<SystemFeature, RoleBasedPermission[]> = {
  * Utilise useSession de next-auth et fournit des méthodes pour vérifier le rôle et le statut.
  */
 export function useAuth() {
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const router = useRouter();
   const [loading, setLoading] = useState<boolean>(status === 'loading');
+  const [authError, setAuthError] = useState<string | null>(null);
+  
+  // Gérer les erreurs de session
+  useEffect(() => {
+    if (status === 'unauthenticated' && authError) {
+      console.error("Erreur d'authentification:", authError);
+    }
+  }, [status, authError]);
+  
+  // Rafraîchir manuellement la session
+  const refreshSession = useCallback(async () => {
+    try {
+      await update();
+      setAuthError(null);
+    } catch (error) {
+      console.error("Erreur lors du rafraîchissement de la session:", error);
+      setAuthError("Erreur de session. Veuillez vous reconnecter.");
+    }
+  }, [update]);
   
   // Rediriger vers la page de connexion
-  const redirectToLogin = (callbackUrl?: string) => {
+  const redirectToLogin = useCallback((callbackUrl?: string) => {
     router.push(callbackUrl ? `/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}` : '/auth/login');
-  };
+  }, [router]);
   
   // Rediriger vers le dashboard approprié selon le rôle
-  const redirectToDashboard = () => {
+  const redirectToDashboard = useCallback(() => {
     if (!session?.user?.role) {
       router.push('/');
       return;
@@ -96,10 +115,10 @@ export function useAuth() {
     
     const dashboardUrl = dashboardUrls[session.user.role as string] || '/';
     router.push(dashboardUrl);
-  };
+  }, [router, session?.user?.role]);
   
   // Vérifier si l'utilisateur a une permission spécifique
-  const hasPermission = (feature: SystemFeature): boolean => {
+  const hasPermission = useCallback((feature: SystemFeature): boolean => {
     if (!session?.user?.role) return false;
     
     const userRole = session.user.role as UserRole;
@@ -110,10 +129,10 @@ export function useAuth() {
     // Trouver la permission qui correspond au rôle
     const permissionEntry = permissions.find(p => p.roles.includes(userRole));
     return permissionEntry?.allowed || false;
-  };
+  }, [session?.user?.role]);
   
   // Vérifier si l'utilisateur a un rôle spécifique
-  const hasRole = (role: UserRole | UserRole[]): boolean => {
+  const hasRole = useCallback((role: UserRole | UserRole[]): boolean => {
     if (!session?.user?.role) return false;
     
     const userRole = session.user.role as UserRole;
@@ -123,11 +142,12 @@ export function useAuth() {
     }
     
     return userRole === role;
-  };
+  }, [session?.user?.role]);
   
   // Se connecter et rediriger
   const login = async (data: { email: string; password: string }, callbackUrl?: string) => {
     setLoading(true);
+    setAuthError(null);
     try {
       const result = await signIn('credentials', {
         redirect: false,
@@ -137,8 +157,12 @@ export function useAuth() {
       
       if (result?.error) {
         setLoading(false);
+        setAuthError(result.error);
         return { success: false, error: result.error };
       }
+      
+      // Rafraîchir la session après une connexion réussie
+      await refreshSession();
       
       if (callbackUrl) {
         router.push(callbackUrl);
@@ -149,9 +173,11 @@ export function useAuth() {
       }
       
       return { success: true };
-    } catch {
+    } catch (error) {
       setLoading(false);
-      return { success: false, error: 'Une erreur est survenue' };
+      const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue';
+      setAuthError(errorMessage);
+      return { success: false, error: errorMessage };
     }
   };
   
@@ -163,6 +189,7 @@ export function useAuth() {
     role: UserRole;
   }) => {
     setLoading(true);
+    setAuthError(null);
     try {
       // Appel API pour l'inscription
       const response = await fetch('/api/auth/register', {
@@ -177,7 +204,9 @@ export function useAuth() {
       
       if (!response.ok) {
         setLoading(false);
-        return { success: false, error: result.message || 'Échec de l\'inscription' };
+        const errorMessage = result.message || 'Échec de l\'inscription';
+        setAuthError(errorMessage);
+        return { success: false, error: errorMessage };
       }
       
       // Connexion automatique après inscription réussie
@@ -187,9 +216,11 @@ export function useAuth() {
       });
       
       return loginResult;
-    } catch {
+    } catch (error) {
       setLoading(false);
-      return { success: false, error: 'Une erreur est survenue lors de l\'inscription' };
+      const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue lors de l\'inscription';
+      setAuthError(errorMessage);
+      return { success: false, error: errorMessage };
     }
   };
   
@@ -200,9 +231,11 @@ export function useAuth() {
       await signOut({ redirect: false });
       router.push('/');
       return { success: true };
-    } catch {
+    } catch (error) {
       setLoading(false);
-      return { success: false, error: 'Une erreur est survenue' };
+      const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue';
+      setAuthError(errorMessage);
+      return { success: false, error: errorMessage };
     }
   };
   
@@ -215,6 +248,8 @@ export function useAuth() {
     isAuthenticated: status === 'authenticated',
     isLoading: loading,
     status: status as AuthStatus,
+    authError,
+    refreshSession,
     redirectToLogin,
     redirectToDashboard,
     hasPermission,

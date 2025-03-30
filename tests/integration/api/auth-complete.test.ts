@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { compare } from 'bcrypt';
+import { compare } from 'bcryptjs';
 
 // Mocks des dépendances
 const mockPrisma = {
@@ -48,7 +48,7 @@ jest.mock('next-auth', () => ({
   getServerSession: jest.fn(),
 }));
 
-jest.mock('bcrypt', () => ({
+jest.mock('bcryptjs', () => ({
   hash: jest.fn().mockImplementation((password) => Promise.resolve(`hashed_${password}`)),
   compare: jest.fn().mockImplementation((password, hashedPassword) => {
     return Promise.resolve(hashedPassword === `hashed_${password}`);

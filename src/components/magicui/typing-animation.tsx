@@ -1,10 +1,10 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { motion, MotionProps } from "motion/react";
+import { motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 
-interface TypingAnimationProps extends MotionProps {
+interface TypingAnimationProps extends React.ComponentPropsWithoutRef<"span"> {
   children?: string;
   words?: string[];
   className?: string;
@@ -13,6 +13,7 @@ interface TypingAnimationProps extends MotionProps {
   as?: React.ElementType;
   startOnView?: boolean;
   wordDelay?: number;
+  mobileAdjust?: boolean;
 }
 
 export function TypingAnimation({
@@ -22,18 +23,33 @@ export function TypingAnimation({
   duration = 100,
   delay = 0,
   wordDelay = 2000,
-  as: Component = "div",
+  as: Component = "span",
   startOnView = false,
+  mobileAdjust = true,
   ...props
 }: TypingAnimationProps) {
-  const MotionComponent = motion(Component);
+  const MotionComponent = motion.create(Component);
 
   const [displayedText, setDisplayedText] = useState<string>("");
   const [started, setStarted] = useState(false);
   const [currentWordIndex, setCurrentWordIndex] = useState(0);
+  const [isMobile, setIsMobile] = useState(false);
   const elementRef = useRef<HTMLElement | null>(null);
 
-  // Determine what text to type
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  const adjustedDuration = isMobile && mobileAdjust ? duration * 1.5 : duration;
+  const adjustedWordDelay = isMobile && mobileAdjust ? wordDelay * 0.8 : wordDelay;
+
   const textToType = words ? words[currentWordIndex] : children || "";
 
   useEffect(() => {
@@ -72,24 +88,20 @@ export function TypingAnimation({
     
     const typingEffect = () => {
       if (isTyping) {
-        // Typing effect
         if (i < textToType.length) {
           setDisplayedText(textToType.substring(0, i + 1));
           i++;
-          typingTimeout = setTimeout(typingEffect, duration);
+          typingTimeout = setTimeout(typingEffect, adjustedDuration);
         } else {
-          // Wait before erasing
           isTyping = false;
-          typingTimeout = setTimeout(typingEffect, wordDelay);
+          typingTimeout = setTimeout(typingEffect, adjustedWordDelay);
         }
       } else {
-        // Erasing effect
         if (i > 0) {
           setDisplayedText(textToType.substring(0, i - 1));
           i--;
-          typingTimeout = setTimeout(typingEffect, duration / 2);
+          typingTimeout = setTimeout(typingEffect, adjustedDuration / 2);
         } else {
-          // Move to next word when done erasing
           isTyping = true;
           if (words) {
             setCurrentWordIndex((prevIndex) => (prevIndex + 1) % words.length);
@@ -106,15 +118,25 @@ export function TypingAnimation({
         clearTimeout(typingTimeout);
       }
     };
-  }, [started, textToType, duration, wordDelay, words]);
+  }, [started, textToType, adjustedDuration, adjustedWordDelay, words]);
 
   return (
     <MotionComponent
       ref={elementRef}
       className={cn(
         "inline-block",
+        isMobile && mobileAdjust ? "text-balance max-w-full" : "",
         className,
       )}
+      style={{
+        maxWidth: "100%",
+        display: "inline-block",
+        ...(isMobile && mobileAdjust ? { 
+          wordBreak: "break-word",
+          overflow: "hidden",
+          hyphens: "auto"
+        } : {})
+      }}
       {...props}
     >
       {displayedText}

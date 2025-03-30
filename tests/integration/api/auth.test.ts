@@ -2,10 +2,10 @@ import { NextRequest } from "next/server";
 import { mockDeep, mockReset } from "jest-mock-extended";
 import { PrismaClient } from "@prisma/client";
 import * as auth from "next-auth";
-import * as bcrypt from "bcrypt";
+import * as bcrypt from "bcryptjs";
 
 // Mock bcrypt
-jest.mock("bcrypt");
+jest.mock("bcryptjs");
 (bcrypt.compare as jest.Mock) = jest.fn();
 (bcrypt.hash as jest.Mock) = jest.fn().mockResolvedValue("hashed_password");
 
