@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 import { NextRequest, NextResponse } from "next/server";
 import { getToken } from "next-auth/jwt";
 
@@ -72,28 +73,18 @@ function canAccessRoute(pathname: string, userRole?: string): boolean {
     pathname === route || pathname.startsWith(`${route}/`)
   ) || false;
 }
+=======
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+// import { auth } from "./auth";
+>>>>>>> Stashed changes
 
 export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  
-  // Autoriser les routes statiques sans vérification d'auth
-  if (isStaticRoute(pathname)) {
-    return NextResponse.next();
-  }
-  
-  // Autoriser les routes d'API pour CORS
-  if (pathname.startsWith('/api/')) {
-    // Gérer la requête CORS preflight OPTIONS
-    if (request.method === 'OPTIONS') {
-      return handleCorsPreflightRequest();
-    }
-    
-    // Pour les autres requêtes API, continuer tout en ajoutant les headers CORS
-    const response = NextResponse.next();
-    addCorsHeaders(response);
-    return response;
-  }
+  // Récupère le chemin de la requête
+  const path = request.nextUrl.pathname;
+  const url = request.nextUrl.clone();
 
+<<<<<<< Updated upstream
   // Récupérer la session utilisateur
   const token = await getToken({ req: request });
   const userRole = token?.role as UserRole | undefined;
@@ -134,28 +125,139 @@ export async function middleware(request: NextRequest) {
   }
 
   // Si tout est en ordre, autoriser l'accès
+=======
+  // Logique de redirection pour le tableau de bord
+  if (path === '/dashboard') {
+    url.pathname = '/client/dashboard';
+    return NextResponse.redirect(url);
+  }
+
+  // Logique de redirection pour /auth/signin vers /login
+  if (path === '/auth/signin') {
+    url.pathname = '/login';
+    return NextResponse.redirect(url);
+  }
+
+  // Logique de redirection pour /(auth)/login vers /login
+  if (path === '/(auth)/login') {
+    url.pathname = '/login';
+    return NextResponse.redirect(url);
+  }
+
+  // Redirection pour les sections client
+  const clientPaths = [
+    '/announcements', 
+    '/cart', 
+    '/shopping', 
+    '/orders', 
+    '/tracking', 
+    '/services', 
+    '/storage', 
+    '/payments', 
+    '/subscription', 
+    '/help',
+    '/foreign-purchases',
+    '/cart-drops',
+    '/insurance',
+    '/reviews'
+  ];
+  
+  // Vérifie si le chemin commence par l'un des chemins client
+  for (const clientPath of clientPaths) {
+    if (path === clientPath || path.startsWith(`${clientPath}/`)) {
+      // Redirige vers le préfixe client
+      url.pathname = `/client${path}`;
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // Redirection pour les vues livreur (courier)
+  const courierPaths = [
+    '/deliveries', 
+    '/schedule', 
+    '/earnings', 
+    '/profile', 
+    '/vehicle', 
+    '/settings'
+  ];
+  
+  for (const courierPath of courierPaths) {
+    if ((path === courierPath || path.startsWith(`${courierPath}/`)) && !path.includes('/provider/')) {
+      url.pathname = `/courier${path}`;
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // Redirection pour les vues commerçant (merchant)
+  const merchantPaths = [
+    '/products', 
+    '/categories', 
+    '/store', 
+    '/promotions', 
+    '/analytics'
+  ];
+  
+  for (const merchantPath of merchantPaths) {
+    if (path === merchantPath || path.startsWith(`${merchantPath}/`)) {
+      url.pathname = `/merchant${path}`;
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // Redirection pour les vues prestataire (provider)
+  const providerPaths = [
+    '/services', 
+    '/requests'
+  ];
+  
+  for (const providerPath of providerPaths) {
+    if (path === providerPath || path.startsWith(`${providerPath}/`)) {
+      url.pathname = `/provider${path}`;
+      return NextResponse.redirect(url);
+    }
+  }
+
+  // Pour les chemins partagés (comme /schedule, /earnings, etc.)
+  const sharedPaths = [
+    '/schedule', 
+    '/earnings', 
+    '/profile', 
+    '/settings'
+  ];
+  
+  for (const sharedPath of sharedPaths) {
+    if (path === sharedPath || path.startsWith(`${sharedPath}/`)) {
+      // Si c'est un chemin partagé et qu'il ne contient pas déjà courier ou provider
+      if (!path.includes('/courier/') && !path.includes('/provider/')) {
+        url.pathname = `/provider${path}`;
+        return NextResponse.redirect(url);
+      }
+    }
+  }
+
+  // Redirection pour les vues admin
+  const adminPaths = [
+    '/users', 
+    '/verification', 
+    '/reports', 
+    '/logs'
+  ];
+  
+  for (const adminPath of adminPaths) {
+    if (path === adminPath || path.startsWith(`${adminPath}/`)) {
+      url.pathname = `/admin${path}`;
+      return NextResponse.redirect(url);
+    }
+  }
+
+>>>>>>> Stashed changes
   return NextResponse.next();
 }
 
-// Gérer les requêtes CORS preflight
-function handleCorsPreflightRequest() {
-  const response = new NextResponse(null, { status: 204 });
-  addCorsHeaders(response);
-  return response;
-}
-
-// Ajouter des headers CORS à la réponse
-function addCorsHeaders(response: NextResponse) {
-  response.headers.set('Access-Control-Allow-Origin', '*');
-  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  response.headers.set('Access-Control-Max-Age', '86400');
-  return response;
-}
-
-// Configuration du middleware pour toutes les routes sauf les assets statiques
+// Configure les routes à intercepter
 export const config = {
   matcher: [
+<<<<<<< Updated upstream
     /*
      * Match all request paths except for the ones starting with:
      * - _next/static (static files)
@@ -163,5 +265,54 @@ export const config = {
      * - favicon.ico (favicon file)
      */
     '/((?!_next/static|_next/image|favicon.ico).*)',
+=======
+    // Chemins d'authentification
+    "/auth/signin",
+    "/(auth)/login",
+    
+    // Chemin de base
+    "/dashboard",
+    
+    // Chemins client
+    "/announcements", "/announcements/:path*",
+    "/cart", "/cart/:path*",
+    "/shopping", "/shopping/:path*", 
+    "/orders", "/orders/:path*",
+    "/tracking", "/tracking/:path*",
+    "/services", "/services/:path*",
+    "/storage", "/storage/:path*",
+    "/payments", "/payments/:path*",
+    "/subscription", "/subscription/:path*",
+    "/help", "/help/:path*",
+    "/foreign-purchases", "/foreign-purchases/:path*",
+    "/cart-drops", "/cart-drops/:path*",
+    "/insurance", "/insurance/:path*",
+    "/reviews", "/reviews/:path*",
+    
+    // Chemins livreur
+    "/deliveries", "/deliveries/:path*",
+    "/schedule", "/schedule/:path*",
+    "/earnings", "/earnings/:path*",
+    "/profile", "/profile/:path*",
+    "/vehicle", "/vehicle/:path*",
+    "/settings", "/settings/:path*",
+    
+    // Chemins commerçant
+    "/products", "/products/:path*",
+    "/categories", "/categories/:path*",
+    "/store", "/store/:path*",
+    "/promotions", "/promotions/:path*",
+    "/analytics", "/analytics/:path*",
+    
+    // Chemins admin
+    "/users", "/users/:path*",
+    "/verification", "/verification/:path*",
+    "/reports", "/reports/:path*",
+    "/logs", "/logs/:path*",
+    
+    // Chemins prestataire
+    "/services", "/services/:path*",
+    "/requests", "/requests/:path*",
+>>>>>>> Stashed changes
   ],
 }; 

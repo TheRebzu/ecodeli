@@ -175,9 +175,15 @@ export default function PublicFooter() {
                 <Phone className="h-5 w-5 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">+33 1 23 45 67 89</span>
               </li>
+<<<<<<< Updated upstream
               <li className="flex items-center space-x-3">
                 <Mail className="h-5 w-5 text-muted-foreground" />
                 <span className="text-sm text-muted-foreground">contact@ecodeli.fr</span>
+=======
+              <li className="flex items-center space-x-2 sm:space-x-3">
+                <Mail className="h-4 w-4 sm:h-5 sm:w-5 text-muted-foreground" />
+                <span className="text-xs sm:text-sm text-muted-foreground">contact@ecodeli.me</span>
+>>>>>>> Stashed changes
               </li>
             </ul>
 

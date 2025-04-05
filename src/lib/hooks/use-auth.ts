@@ -2,8 +2,13 @@
 
 import { useSession, signIn, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
+<<<<<<< Updated upstream
 import { useEffect, useState } from 'react';
 import { UserRole } from '@/middleware';
+=======
+import { useCallback, useEffect, useState } from 'react';
+import { UserRole } from '@/lib/validations/auth';
+>>>>>>> Stashed changes
 
 export type AuthStatus = 'loading' | 'authenticated' | 'unauthenticated';
 
@@ -75,9 +80,15 @@ export function useAuth() {
   const [loading, setLoading] = useState<boolean>(status === 'loading');
   
   // Rediriger vers la page de connexion
+<<<<<<< Updated upstream
   const redirectToLogin = (callbackUrl?: string) => {
     router.push(callbackUrl ? `/auth/login?callbackUrl=${encodeURIComponent(callbackUrl)}` : '/auth/login');
   };
+=======
+  const redirectToLogin = useCallback((callbackUrl?: string) => {
+    router.push(callbackUrl ? `/login?callbackUrl=${encodeURIComponent(callbackUrl)}` : '/login');
+  }, [router]);
+>>>>>>> Stashed changes
   
   // Rediriger vers le dashboard approprié selon le rôle
   const redirectToDashboard = () => {
@@ -194,15 +205,26 @@ export function useAuth() {
   };
   
   // Se déconnecter et rediriger vers la page d'accueil
-  const logout = async () => {
+  const logout = async (callbackUrl?: string) => {
     setLoading(true);
     try {
       await signOut({ redirect: false });
+<<<<<<< Updated upstream
       router.push('/');
       return { success: true };
     } catch {
       setLoading(false);
       return { success: false, error: 'Une erreur est survenue' };
+=======
+      
+      // Rafraîchir l'état du hook et rediriger vers la page de connexion
+      setAuthError(null);
+      router.push(callbackUrl ? `/login?callbackUrl=${encodeURIComponent(callbackUrl)}` : '/login');
+    } catch (error) {
+      console.error('Erreur lors de la déconnexion:', error);
+    } finally {
+      setLoading(false);
+>>>>>>> Stashed changes
     }
   };
   

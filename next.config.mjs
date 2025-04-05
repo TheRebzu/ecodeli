@@ -33,10 +33,10 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   distDir: process.env.BUILD_DIR || '.next',
-  experimental: {
-    // Force static generation even on error
-    forceSwcTransforms: true,
-  },
 };
 
+<<<<<<< Updated upstream
 export default nextConfig;
+=======
+export default nextConfig;
+>>>>>>> Stashed changes
