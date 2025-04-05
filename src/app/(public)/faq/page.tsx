@@ -328,8 +328,8 @@ export default function FAQPage() {
                   <Link href="/contact">Contactez-nous</Link>
                 </Button>
                 <Button asChild variant="outline">
-                  <Link href="mailto:support@ecodeli.fr">
-                    support@ecodeli.fr
+                  <Link href="mailto:support@ecodeli.me">
+                    support@ecodeli.me
                   </Link>
                 </Button>
               </div>

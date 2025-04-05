@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 "use client";
 
 import { ReactNode, useState } from "react";
@@ -37,8 +38,12 @@ interface SidebarNavProps {
 // Composants de layout
 function SidebarNav({ links, isCollapsed }: SidebarNavProps) {
   const pathname = usePathname();
+=======
+import React from "react";
+>>>>>>> Stashed changes
 
   return (
+<<<<<<< Updated upstream
     <div
       data-collapsed={isCollapsed}
       className="group flex flex-col gap-4 py-2 data-[collapsed=true]:py-2"
@@ -269,6 +274,46 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
           {children}
         </div>
       </main>
+=======
+    <div className="min-h-screen flex flex-col">
+      <header className="bg-gray-800 text-white p-4">
+        <div className="container mx-auto">
+          <h1 className="text-xl font-bold">Administration</h1>
+        </div>
+      </header>
+      
+      <div className="flex flex-1">
+        <aside className="w-64 bg-gray-100 p-4">
+          <nav className="space-y-2">
+            <a href="/admin/dashboard" className="block p-2 hover:bg-gray-200 rounded">
+              Tableau de bord
+            </a>
+            <a href="/admin/users" className="block p-2 hover:bg-gray-200 rounded">
+              Utilisateurs
+            </a>
+            <a href="/admin/verification" className="block p-2 hover:bg-gray-200 rounded">
+              Vérifications
+            </a>
+            <a href="/admin/orders" className="block p-2 hover:bg-gray-200 rounded">
+              Commandes
+            </a>
+            <a href="/admin/reports" className="block p-2 hover:bg-gray-200 rounded">
+              Rapports
+            </a>
+            <a href="/admin/settings" className="block p-2 hover:bg-gray-200 rounded">
+              Paramètres
+            </a>
+            <a href="/admin/logs" className="block p-2 hover:bg-gray-200 rounded">
+              Journaux
+            </a>
+          </nav>
+        </aside>
+        
+        <main className="flex-1 p-4">
+          {children}
+        </main>
+      </div>
+>>>>>>> Stashed changes
     </div>
   );
 } 

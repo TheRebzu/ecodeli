@@ -76,7 +76,7 @@ export default function ContactPage() {
                   <CardDescription>Envoyez-nous un message</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="font-medium">contact@ecodeli.fr</p>
+                  <p className="font-medium">contact@ecodeli.me</p>
                 </CardContent>
                 <CardFooter>
                   <Button variant="outline" size="sm" className="w-full">

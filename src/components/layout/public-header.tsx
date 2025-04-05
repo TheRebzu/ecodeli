@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Menu, Globe, ChevronDown } from "lucide-react"
+import { Menu, Globe, ChevronDown, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   DropdownMenu,
@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { cn } from "@/lib/utils"
+import { AnimatePresence, motion } from "framer-motion"
 
 type NavItem = {
   title: string
@@ -95,20 +97,33 @@ export default function PublicHeader() {
             </DropdownMenuContent>
           </DropdownMenu>
 
+<<<<<<< Updated upstream
           {/* Auth Buttons */}
           <div className="flex items-center gap-2">
             <Link href="/auth/login">
               <Button variant="outline" size="sm">
+=======
+          {/* Menu Utilisateur (non connecté) */}
+          <div className="hidden md:flex items-center gap-3 ml-4">
+            <Button
+              asChild
+              variant="outline"
+              size="sm"
+              className="border border-primary/30 hover:border-primary/80 transition duration-200"
+            >
+              <Link href="/(auth)/login">
+>>>>>>> Stashed changes
                 Connexion
-              </Button>
-            </Link>
-            <Link href="/auth/register">
-              <Button size="sm">
+              </Link>
+            </Button>
+            <Button asChild size="sm">
+              <Link href="/(auth)/register">
                 Inscription
-              </Button>
-            </Link>
+              </Link>
+            </Button>
           </div>
 
+<<<<<<< Updated upstream
           {/* Navigation mobile */}
           <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
             <SheetTrigger asChild>
@@ -150,8 +165,73 @@ export default function PublicHeader() {
               </nav>
             </SheetContent>
           </Sheet>
+=======
+          {/* Menu Mobile */}
+          <div className="md:hidden flex items-center">
+            <Button
+              variant="ghost"
+              size="icon"
+              className={cn("ml-1", mobileNavOpen && "text-primary")}
+              onClick={() => setMobileNavOpen(!mobileNavOpen)}
+              aria-label="Navigation"
+            >
+              {mobileNavOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </Button>
+          </div>
+>>>>>>> Stashed changes
         </div>
       </div>
+
+      {/* Drawer de navigation mobile */}
+      <AnimatePresence>
+        {mobileNavOpen && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.3 }}
+            className="block md:hidden border-t"
+          >
+            <div className="px-4 py-3 space-y-3">
+              {mainNavItems.map((item, index) => (
+                <Link 
+                  key={index}
+                  href={item.href}
+                  className="block py-2 hover:text-primary transition-colors" 
+                  onClick={() => setMobileNavOpen(false)}
+                >
+                  {item.title}
+                </Link>
+              ))}
+              <div className="pt-2 border-t grid grid-cols-2 gap-2">
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                >
+                  <Link href="/(auth)/login" onClick={() => setMobileNavOpen(false)}>
+                    Connexion
+                  </Link>
+                </Button>
+                <Button
+                  asChild
+                  size="sm"
+                  className="w-full"
+                >
+                  <Link href="/(auth)/register" onClick={() => setMobileNavOpen(false)}>
+                    Inscription
+                  </Link>
+                </Button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </header>
   )
 }

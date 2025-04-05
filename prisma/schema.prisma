@@ -13,8 +13,462 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+<<<<<<< Updated upstream
 // Modèle de base pour les utilisateurs
 model User {
+=======
+// Enumerations - All in one place
+
+enum UserRole {
+  ADMIN
+  CUSTOMER
+  DELIVERY_PERSON
+  MERCHANT
+  SERVICE_PROVIDER
+}
+
+enum UserStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum SubscriptionPlan {
+  FREE
+  STARTER
+  PREMIUM
+}
+
+enum LoyaltyTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+}
+
+enum VehicleType {
+  CAR
+  BIKE
+  SCOOTER
+  VAN
+  TRUCK
+  PUBLIC_TRANSPORT
+  WALK
+}
+
+enum AccessLevel {
+  STANDARD
+  MANAGER
+  SUPERADMIN
+}
+
+enum ServiceType {
+  PERSON_TRANSPORT
+  AIRPORT_TRANSFER
+  SHOPPING
+  FOREIGN_PURCHASE
+  PET_SITTING
+  HOUSEKEEPING
+  GARDENING
+  OTHER
+}
+
+enum ContractStatus {
+  PENDING
+  ACTIVE
+  EXPIRED
+  TERMINATED
+}
+
+enum PackageSize {
+  SMALL
+  MEDIUM
+  LARGE
+  EXTRA_LARGE
+}
+
+enum AnnouncementStatus {
+  PENDING    // En attente de publication
+  PUBLISHED  // Annonce publiée et visible
+  ASSIGNED   // Livreur assigné
+  IN_TRANSIT // Colis en transit
+  DELIVERED  // Colis livré
+  COMPLETED  // Livraison confirmée et finalisée
+  CANCELLED  // Annulée par le client
+  EXPIRED    // Expirée (date dépassée)
+}
+
+enum DeliveryStatus {
+  PENDING
+  ACCEPTED
+  PICKUP_IN_PROGRESS
+  PICKED_UP
+  IN_TRANSIT
+  IN_STORAGE
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+  FAILED
+}
+
+enum DeliveryIssueType {
+  DELAY
+  DAMAGE
+  LOSS
+  WRONG_ADDRESS
+  ACCESS_PROBLEM
+  RECIPIENT_UNAVAILABLE
+  OTHER
+}
+
+enum IssueStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum RouteStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum ServiceStatus {
+  PENDING
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum BoxSize {
+  SMALL
+  MEDIUM
+  LARGE
+}
+
+enum CartDropStatus {
+  PENDING
+  PROCESSING
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum RefundStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  REJECTED
+}
+
+enum RefundReason {
+  CUSTOMER_REQUEST
+  SERVICE_ISSUE
+  DUPLICATE_PAYMENT
+  FRAUDULENT_CHARGE
+  OTHER
+}
+
+enum PaymentMethod {
+  CREDIT_CARD
+  PAYPAL
+  BANK_TRANSFER
+  WALLET
+  CASH
+  APPLE_PAY
+  GOOGLE_PAY
+}
+
+enum PaymentEntityType {
+  DELIVERY
+  SERVICE
+  SUBSCRIPTION
+  FOREIGN_PURCHASE
+  CART_DROP
+}
+
+enum TransactionType {
+  DEPOSIT
+  WITHDRAWAL
+  PAYMENT
+  REFUND
+  FEE
+  BONUS
+}
+
+enum InvoiceStatus {
+  DRAFT
+  UNPAID
+  PAID
+  CANCELLED
+}
+
+enum NotificationType {
+  INFO
+  SUCCESS
+  WARNING
+  ERROR
+  DELIVERY_UPDATE
+  PAYMENT_UPDATE
+  ANNOUNCEMENT_MATCH
+}
+
+enum DocumentType {
+  ID_CARD
+  DRIVING_LICENSE
+  PASSPORT
+  INSURANCE
+  VEHICLE_REGISTRATION
+  PROFESSIONAL_LICENSE
+  CRIMINAL_RECORD
+  TAX_CERTIFICATE
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum ForeignPurchaseStatus {
+  REQUESTED
+  SEARCHING
+  FOUND
+  PURCHASED
+  SHIPPING
+  DELIVERED
+  CANCELLED
+}
+
+enum TeamMemberRole {
+  LEADER
+  MEMBER
+}
+
+enum RecurringFrequency {
+  DAILY
+  WEEKLY
+  BIWEEKLY
+  MONTHLY
+}
+
+enum MerchantCategory {
+  GROCERY
+  PHARMACY
+  ELECTRONICS
+  CLOTHING
+  FURNITURE
+  RESTAURANT
+  OTHER
+}
+
+enum DeliverySpecialization {
+  FOOD
+  FRAGILE
+  LARGE_ITEMS
+  URGENT
+  REFRIGERATED
+}
+
+enum AdminDepartment {
+  GENERAL
+  CUSTOMER_SERVICE
+  OPERATIONS
+  FINANCE
+  TECHNICAL
+}
+
+enum DeviceStatus {
+  ACTIVE
+  MAINTENANCE
+  OFFLINE
+  DECOMMISSIONED
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  WAITING_FOR_CUSTOMER
+  RESOLVED
+  CLOSED
+}
+
+enum TicketCategory {
+  ACCOUNT
+  DELIVERY
+  PAYMENT
+  TECHNICAL
+  SERVICE
+  COMPLAINT
+  OTHER
+}
+
+enum MediaType {
+  IMAGE
+  DOCUMENT
+  VIDEO
+  AUDIO
+}
+
+enum ScheduledTaskStatus {
+  PENDING
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+enum DriverAdStatus {
+  ACTIVE
+  INACTIVE
+  DRAFT
+}
+
+enum AdResponseStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+enum BoxStatus {
+  AVAILABLE
+  OCCUPIED
+  MAINTENANCE
+  OUT_OF_SERVICE
+}
+
+enum PackageType {
+  SMALL
+  MEDIUM
+  LARGE
+  EXTRA_LARGE
+  CUSTOM
+}
+
+enum InsuranceOption {
+  NONE
+  BASIC
+  PREMIUM
+}
+
+enum BidStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+// Models
+
+model User {
+  id                 String    @id @default(cuid())
+  email              String    @unique
+  password           String?
+  name               String?
+  phone              String?
+  image              String?
+  emailVerified      DateTime?
+  city               String?
+  postalCode         String?
+  country            String?
+  profileImage       String?
+  isVerified         Boolean   @default(false)
+  verificationToken  String?
+  resetPasswordToken String?
+  mfaSecret          String?   // Secret for TOTP MFA
+  mfaEnabled         Boolean   @default(false)
+  mfaBackupCodes     String[]  @default([])
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  lastLogin          DateTime?
+  role               UserRole  @default(ADMIN)
+  status             UserStatus @default(PENDING)
+  language           String    @default("fr")
+  tutorialProgress   Json?     // Store tutorial progress
+  deletedAt          DateTime? // Soft delete
+  rating             Float?    // User's average rating
+
+  // Profile relationships
+  clientProfile    ClientProfile?
+  courierProfile   CourierProfile?
+  merchantProfile  MerchantProfile?
+  providerProfile  ProviderProfile?
+
+  // Relations based on role
+  customer        Customer?
+  deliveryPerson  DeliveryPerson?
+  merchant        Merchant?
+  serviceProvider ServiceProvider?
+  admin           Admin?
+
+  // Common relations
+  notifications   Notification[]
+  documents       Document[]
+  reviews         Review[]        @relation("ReviewAuthor")
+  reviewsReceived Review[]        @relation("ReviewTarget")
+  auditLogs       AuditLog[]
+  supportTickets  SupportTicket[]
+  interests       Interest[]      // User's interests in announcements
+
+  // Auth related
+  accounts         Account[]
+  sessions         Session[]
+  sentMessages     Message[] @relation("SenderMessages")
+  receivedMessages Message[] @relation("ReceiverMessages")
+
+  // Add todos relation to User
+  todos            Todo[]
+
+  // Add address relation
+  userAddress      Address?
+
+  // Add settings relation
+  userSettings     UserSettings?
+
+  // Add announcement relations
+  createdAnnouncements        Announcement[]         @relation("CustomerAnnouncements")
+  deliveredAnnouncements      Announcement[]         @relation("CourierAnnouncements")
+  bids                        Bid[]
+
+  @@index([email])
+  @@index([role, status])
+  @@index([deletedAt])
+}
+
+// Client profile
+model ClientProfile {
+  id              String    @id @default(cuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscriptionPlan String   @default("FREE") // FREE, STARTER, PREMIUM
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+// Courier (Livreur) profile
+model CourierProfile {
+>>>>>>> Stashed changes
   id                String    @id @default(cuid())
   name              String
   email             String    @unique
@@ -99,8 +553,392 @@ enum Status {
   SUSPENDED
 }
 
+<<<<<<< Updated upstream
 // Client (Particulier)
 model Client {
+=======
+model DeliveryPerson {
+  id                     String                   @id @default(cuid())
+  userId                 String                   @unique
+  vehicleType            VehicleType?
+  additionalVehicles     VehicleType[]
+  licensePlate           String?
+  idCardNumber           String?
+  drivingLicenseNumber   String?
+  idCardVerified         Boolean                  @default(false)
+  drivingLicenseVerified Boolean                  @default(false)
+  isAvailable            Boolean                  @default(true)
+  radius                 Int                      @default(30)        // in kilometers
+  specializations        DeliverySpecialization[]
+  skills                 String[]
+  isDeleted              Boolean                  @default(false)
+
+  // Relations
+  user           User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deliveries     Delivery[]           @relation("DeliveryPersonDelivery")
+  plannedRoutes  PlannedRoute[]
+  wallet         Wallet?
+  payments       Payment[]            @relation("DeliveryPersonPayment")
+  deliveryTeams  DeliveryTeamMember[]
+  nfcCards       NFCCard[]
+  workingHours   WorkingHour[]
+  serviceAreas   ServiceArea[]
+  driverAds      DriverAdvertisement[] // Driver advertisements
+
+  @@index([isAvailable])
+  @@index([vehicleType])
+  @@index([specializations])
+  @@index([isDeleted])
+}
+
+model WorkingHour {
+  id               String         @id @default(cuid())
+  deliveryPersonId String
+  dayOfWeek        Int            // 0-6, 0 is Sunday
+  startTime        String         // Format "HH:MM"
+  endTime          String         // Format "HH:MM"
+  isRecurring      Boolean        @default(true)
+  specificDate     DateTime?      // For non-recurring hours
+  
+  // Relations
+  deliveryPerson   DeliveryPerson @relation(fields: [deliveryPersonId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryPersonId, dayOfWeek])
+  @@index([specificDate])
+}
+
+model ServiceArea {
+  id               String         @id @default(cuid())
+  deliveryPersonId String
+  city             String
+  postalCode       String
+  country          String         @default("France")
+  isDefault        Boolean        @default(false)
+  
+  // Relations
+  deliveryPerson   DeliveryPerson @relation(fields: [deliveryPersonId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryPersonId])
+  @@index([postalCode, country])
+}
+
+model Merchant {
+  id                 String             @id @default(cuid())
+  userId             String             @unique
+  businessName       String
+  businessAddress    String
+  businessCity       String
+  businessPostalCode String
+  businessCountry    String
+  vatNumber          String?
+  siretNumber        String?
+  contractStartDate  DateTime           @default(now())
+  contractEndDate    DateTime?
+  contractStatus     ContractStatus     @default(PENDING)
+  storeFrontImage    String?
+  businessType       String?
+  commissionRate     Float              @default(0.1) // 10% default commission
+  isDeleted          Boolean            @default(false)
+  categories         MerchantCategory[]
+
+  // Relations
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  announcements Announcement[] @relation("MerchantAnnouncement")
+  deliveries    Delivery[]     @relation("MerchantDelivery")
+  cartDrops     CartDrop[]
+  payments      Payment[]      @relation("MerchantPayment")
+  products      Product[]
+  inventory     Inventory[]
+  contracts     Contract[]
+  openingHours  OpeningHour[]
+
+  @@index([businessCity])
+  @@index([businessPostalCode])
+  @@index([contractStatus])
+  @@index([categories])
+  @@index([isDeleted])
+}
+
+model OpeningHour {
+  id          String    @id @default(cuid())
+  merchantId  String
+  dayOfWeek   Int       // 0-6, 0 is Sunday
+  openTime    String    // Format "HH:MM"
+  closeTime   String    // Format "HH:MM"
+  isClosed    Boolean   @default(false)
+  
+  // Relations
+  merchant    Merchant  @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@index([merchantId, dayOfWeek])
+}
+
+model ServiceProvider {
+  id                String        @id @default(cuid())
+  userId            String        @unique
+  professionalId    String?
+  insuranceNumber   String?
+  serviceTypes      ServiceType[]
+  isVerified        Boolean       @default(false)
+  backgroundChecked Boolean       @default(false)
+  experienceYears   Int           @default(0)
+  specialities      String[]      // Array of specialities
+  workRadius        Int           @default(20) // in kilometers
+  isDeleted         Boolean       @default(false)
+
+  // Relations
+  user           User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  services       Service[]
+  availabilities Availability[]
+  payments       Payment[]      @relation("ServiceProviderPayment")
+
+  @@index([serviceTypes])
+  @@index([isVerified])
+  @@index([isDeleted])
+}
+
+model Admin {
+  id            String          @id @default(cuid())
+  userId        String          @unique
+  accessLevel   AccessLevel     @default(STANDARD)
+  managedRegion String?         // Region this admin manages
+  department    AdminDepartment @default(GENERAL)
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([accessLevel])
+  @@index([department])
+}
+
+// Delivery-related models
+model Announcement {
+  id                     String             @id @default(uuid())
+  
+  // Informations générales
+  title                  String
+  description            String?
+  
+  // Informations sur le paquet
+  packageType            PackageType
+  weight                 Float
+  width                  Float?
+  height                 Float?
+  length                 Float?
+  isFragile              Boolean            @default(false)
+  requiresRefrigeration  Boolean            @default(false)
+  
+  // Adresse de ramassage
+  pickupAddress          String
+  pickupCity             String
+  pickupPostalCode       String
+  pickupCountry          String
+  pickupCoordinates      Json               // { lat: number, lng: number }
+  
+  // Adresse de livraison
+  deliveryAddress        String
+  deliveryCity           String
+  deliveryPostalCode     String
+  deliveryCountry        String
+  deliveryCoordinates    Json               // { lat: number, lng: number }
+  
+  // Informations temporelles
+  pickupDate             DateTime
+  deliveryDeadline       DateTime
+  
+  // Informations sur le prix
+  price                  Float
+  isNegotiable           Boolean            @default(false)
+  
+  // Assurance
+  insuranceOption        InsuranceOption    @default(NONE)
+  insuranceAmount        Float?
+  
+  // Images du colis
+  packageImages          String[]           @default([])
+  
+  // État de l'annonce
+  status                 AnnouncementStatus @default(PENDING)
+  
+  // Relations
+  customerId             String
+  customer               Customer           @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  deliveryPersonId       String?
+  deliveryPerson         DeliveryPerson?    @relation(fields: [deliveryPersonId], references: [id])
+  bids                   Bid[]
+  
+  // Dates
+  createdAt              DateTime           @default(now())
+  updatedAt              DateTime           @updatedAt
+  deletedAt              DateTime?
+
+  @@index([customerId])
+  @@index([deliveryPersonId])
+  @@index([status])
+  @@index([pickupCity])
+  @@index([deliveryCity])
+}
+
+model Delivery {
+  id                String         @id @default(cuid())
+  trackingNumber    String         @unique
+  status            DeliveryStatus @default(PENDING)
+  pickupDate        DateTime?
+  estimatedDelivery DateTime?
+  actualDelivery    DateTime?
+  distance          Float?         // in km
+  price             Float
+  insuranceIncluded Boolean        @default(false)
+  insuranceAmount   Float?
+  notes             String?
+  proofOfDelivery   String?
+  proofOfPickup     String?
+  recipientName     String?
+  recipientContact  String?
+  signatureRequired Boolean        @default(false)
+  deliveryCode      String?        // Confirmation code for delivery
+  feedback          String?
+  isDeleted         Boolean        @default(false)
+  
+  // Relations
+  announcementId      String?            @unique
+  announcement        Announcement?      @relation(fields: [announcementId], references: [id])
+  customerId          String
+  customer            Customer           @relation("CustomerDelivery", fields: [customerId], references: [id])
+  deliveryPersonId    String?
+  deliveryPerson      DeliveryPerson?    @relation("DeliveryPersonDelivery", fields: [deliveryPersonId], references: [id])
+  merchantId          String?
+  merchant            Merchant?          @relation("MerchantDelivery", fields: [merchantId], references: [id])
+  storageBoxes        StorageBox[]
+  trackingUpdates     TrackingUpdate[]
+  payment             Payment?           @relation("DeliveryPayment")
+  cartDrop            CartDrop?
+  deliveryTeamId      String?
+  deliveryTeam        DeliveryTeam?      @relation(fields: [deliveryTeamId], references: [id])
+  recurringDeliveryId String?
+  recurringDelivery   RecurringDelivery? @relation(fields: [recurringDeliveryId], references: [id])
+  issues              DeliveryIssue[]
+  reviews             Review[]
+  history             DeliveryHistory[]
+
+  @@index([status, pickupDate])
+  @@index([status, estimatedDelivery])
+  @@index([customerId])
+  @@index([deliveryPersonId])
+  @@index([merchantId])
+  @@index([deliveryTeamId])
+  @@index([trackingNumber])
+  @@index([isDeleted])
+}
+
+model DeliveryHistory {
+  id          String       @id @default(cuid())
+  deliveryId  String
+  field       String       // Field that changed
+  oldValue    String?
+  newValue    String?
+  changedBy   String       // User ID
+  changeReason String?
+  timestamp   DateTime     @default(now())
+
+  // Relations
+  delivery    Delivery     @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryId, field])
+  @@index([timestamp])
+}
+
+model DeliveryIssue {
+  id           String            @id @default(cuid())
+  deliveryId   String
+  delivery     Delivery          @relation(fields: [deliveryId], references: [id])
+  reportedById String            // User ID who reported the issue
+  issueType    DeliveryIssueType
+  description  String
+  status       IssueStatus       @default(OPEN)
+  reportedAt   DateTime          @default(now())
+  resolvedAt   DateTime?
+  resolution   String?
+  assignedToId String?           // Admin/staff user ID
+
+  @@index([deliveryId])
+  @@index([status])
+  @@index([reportedAt])
+}
+
+model DeliveryTeam {
+  id        String   @id @default(cuid())
+  name      String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  // Relations
+  members    DeliveryTeamMember[]
+  deliveries Delivery[]
+
+  @@index([isActive])
+}
+
+model DeliveryTeamMember {
+  id               String         @id @default(cuid())
+  deliveryTeamId   String
+  deliveryPersonId String
+  role             TeamMemberRole @default(MEMBER)
+  joinedAt         DateTime       @default(now())
+
+  // Relations
+  team           DeliveryTeam   @relation(fields: [deliveryTeamId], references: [id], onDelete: Cascade)
+  deliveryPerson DeliveryPerson @relation(fields: [deliveryPersonId], references: [id], onDelete: Cascade)
+
+  @@unique([deliveryTeamId, deliveryPersonId])
+  @@index([deliveryTeamId])
+  @@index([deliveryPersonId])
+}
+
+model RecurringDelivery {
+  id                 String             @id @default(cuid())
+  customerId         String
+  frequency          RecurringFrequency
+  dayOfWeek          Int?               // 0-6 for weekly deliveries
+  dayOfMonth         Int?               // 1-31 for monthly deliveries
+  startDate          DateTime
+  endDate            DateTime?
+  isActive           Boolean            @default(true)
+  origin             String
+  destination        String
+  packageSize        PackageSize
+  packageDescription String?
+
+  // Relations
+  customer   Customer   @relation(fields: [customerId], references: [id])
+  deliveries Delivery[]
+
+  @@index([customerId, isActive])
+  @@index([frequency])
+  @@index([startDate, endDate])
+}
+
+model TrackingUpdate {
+  id          String         @id @default(cuid())
+  deliveryId  String
+  status      DeliveryStatus
+  location    String?
+  coordinates Json?          // {lat: number, lng: number}
+  message     String?
+  timestamp   DateTime       @default(now())
+  updatedBy   String?        // ID of user who made the update
+  isPublic    Boolean        @default(true) // Whether visible to customer
+
+  // Relations
+  delivery Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryId])
+  @@index([status])
+  @@index([timestamp])
+}
+
+model PlannedRoute {
+>>>>>>> Stashed changes
   id                String      @id @default(cuid())
   userId            String      @unique
   subscriptionPlan  String?     @default("FREE") // FREE, STARTER, PREMIUM
@@ -372,6 +1210,7 @@ model Invoice {
   entityId      String
 }
 
+<<<<<<< Updated upstream
 enum InvoiceStatus {
   PENDING
   PAID
@@ -487,3 +1326,100 @@ enum AlertSeverity {
   MEDIUM
   HIGH
 }
+=======
+  @@unique([advertisementId, userId])
+  @@index([advertisementId])
+  @@index([userId])
+}
+
+// Add the Todo model to the schema
+
+model Todo {
+  id        String   @id @default(cuid())
+  title     String
+  completed Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Add Address model to the schema
+
+model Address {
+  id         String   @id @default(cuid())
+  street     String
+  city       String
+  postalCode String
+  country    String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  userId     String   @unique
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Add UserSettings model to the schema
+
+model UserSettings {
+  id        String   @id @default(cuid())
+  settings  Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+// Bid model for delivery offers
+model Bid {
+  id              String      @id @default(uuid())
+  announcementId  String
+  courierId       String
+  status          BidStatus   @default(PENDING)
+  price           Float
+  message         String?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  // Relations
+  announcement    Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  courier         DeliveryPerson @relation(fields: [courierId], references: [id], onDelete: Cascade)
+
+  @@index([announcementId])
+  @@index([courierId])
+  @@index([status])
+}
+
+model AnnouncementTranslation {
+  id          String       @id @default(cuid())
+  announcementId String
+  language    String       // "fr", "en", etc.
+  title       String
+  description String
+  
+  // Relations
+  announcement Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+
+  @@unique([announcementId, language])
+}
+
+model AnnouncementTag {
+  id              String                @id @default(cuid())
+  name            String                @unique
+  description     String?
+  icon            String?
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+  
+  // Relations
+  tags            Interest[]
+  advertisements  DriverAdvertisement[]
+
+  @@index([name])
+}
+>>>>>>> Stashed changes
