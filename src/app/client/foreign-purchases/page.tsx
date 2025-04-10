@@ -1,12 +1,5 @@
 'use client'
 
-import { Metadata } from 'next'
-
-export const metadata: Metadata = {
-  title: 'Foreign Purchases | EcoDeli',
-  description: 'EcoDeli Foreign Purchases page',
-}
-
 export default function ForeignPurchasesPage() {
   return (
     <div className="container mx-auto py-8">

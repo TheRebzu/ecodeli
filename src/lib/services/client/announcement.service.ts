@@ -1,448 +1,243 @@
-import { PrismaClient, Prisma } from "@prisma/client";
-import {
-  CreateAnnouncementParams,
-  UpdateAnnouncementParams,
-  Coordinates,
+import { db } from "@/lib/db";
+import { 
+  AnnouncementFilterParams, 
   AnnouncementStatus,
+  CreateAnnouncementParams,
+  UpdateAnnouncementParams
 } from "@/shared/types/announcement.types";
-import { getDistanceFromLatLonInKm } from "@/lib/utils/geo";
-
-const prisma = new PrismaClient();
+import { auth } from "@/auth";
+import { PrismaWhereInput } from "@/shared/types/onboarding.types";
 
 export class AnnouncementService {
   /**
-   * Crée une nouvelle annonce pour un client
+   * Récupère la liste des annonces avec filtres
    */
-  static async createAnnouncement(
-    userId: string,
-    data: CreateAnnouncementParams
-  ) {
+  static async getAnnouncements(filters?: AnnouncementFilterParams) {
     try {
-      // Validation préliminaire
-      if (!userId) {
-        throw new Error("User ID is required");
+      const session = await auth();
+      if (!session?.user) {
+        throw new Error("Vous devez être connecté pour accéder à vos annonces");
       }
 
-      // Création de l'annonce
-      const announcement = await prisma.announcement.create({
-        data: {
-          title: data.title,
-          description: data.description,
-          packageType: data.packageType,
-          weight: data.weight,
-          width: data.width,
-          height: data.height,
-          length: data.length,
-          isFragile: data.isFragile,
-          requiresRefrigeration: data.requiresRefrigeration,
-          pickupAddress: data.pickupAddress,
-          pickupCity: data.pickupCity,
-          pickupPostalCode: data.pickupPostalCode,
-          pickupCountry: data.pickupCountry,
-          pickupCoordinates: data.pickupCoordinates,
-          deliveryAddress: data.deliveryAddress,
-          deliveryCity: data.deliveryCity,
-          deliveryPostalCode: data.deliveryPostalCode,
-          deliveryCountry: data.deliveryCountry,
-          deliveryCoordinates: data.deliveryCoordinates,
-          pickupDate: data.pickupDate,
-          deliveryDeadline: data.deliveryDeadline,
-          price: data.price,
-          isNegotiable: data.isNegotiable,
-          insuranceOption: data.insuranceOption,
-          insuranceAmount: data.insuranceAmount,
-          packageImages: data.packageImages,
-          status: "PENDING",
-          customerId: userId,
-        },
-      });
-
-      return { success: true, data: announcement };
-    } catch (error) {
-      console.error("Error creating announcement:", error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-      };
-    }
-  }
-
-  /**
-   * Met à jour une annonce existante
-   */
-  static async updateAnnouncement(
-    userId: string,
-    data: UpdateAnnouncementParams
-  ) {
-    try {
-      // Vérification que l'annonce existe et appartient à l'utilisateur
-      const existingAnnouncement = await prisma.announcement.findFirst({
-        where: {
-          id: data.id,
-          customerId: userId,
-        },
-      });
-
-      if (!existingAnnouncement) {
-        return {
-          success: false,
-          error: "Announcement not found or not authorized",
-        };
-      }
-
-      // Vérification que l'annonce peut être modifiée
-      if (
-        existingAnnouncement.status !== "PENDING" &&
-        existingAnnouncement.status !== "PUBLISHED"
-      ) {
-        return {
-          success: false,
-          error: "Cannot update announcement in its current status",
-        };
-      }
-
-      // Mise à jour de l'annonce
-      const updateData = { ...data };
-      delete updateData.id; // Retirer l'ID des données à mettre à jour
-
-      const updatedAnnouncement = await prisma.announcement.update({
-        where: {
-          id: data.id,
-        },
-        data: updateData as Prisma.AnnouncementUpdateInput,
-      });
-
-      return { success: true, data: updatedAnnouncement };
-    } catch (error) {
-      console.error("Error updating announcement:", error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-      };
-    }
-  }
-
-  /**
-   * Supprime une annonce (soft delete)
-   */
-  static async deleteAnnouncement(userId: string, announcementId: string) {
-    try {
-      // Vérification que l'annonce existe et appartient à l'utilisateur
-      const existingAnnouncement = await prisma.announcement.findFirst({
-        where: {
-          id: announcementId,
-          customerId: userId,
-        },
-      });
-
-      if (!existingAnnouncement) {
-        return {
-          success: false,
-          error: "Announcement not found or not authorized",
-        };
-      }
-
-      // Vérification que l'annonce peut être supprimée
-      if (
-        existingAnnouncement.status !== "PENDING" &&
-        existingAnnouncement.status !== "PUBLISHED" &&
-        existingAnnouncement.status !== "EXPIRED"
-      ) {
-        return {
-          success: false,
-          error: "Cannot delete announcement in its current status",
-        };
-      }
-
-      // Soft delete
-      const deletedAnnouncement = await prisma.announcement.update({
-        where: {
-          id: announcementId,
-        },
-        data: {
-          deletedAt: new Date(),
-          status: "CANCELLED",
-        },
-      });
-
-      return { success: true, data: deletedAnnouncement };
-    } catch (error) {
-      console.error("Error deleting announcement:", error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-      };
-    }
-  }
-
-  /**
-   * Publie une annonce
-   */
-  static async publishAnnouncement(userId: string, announcementId: string) {
-    try {
-      // Vérification que l'annonce existe et appartient à l'utilisateur
-      const existingAnnouncement = await prisma.announcement.findFirst({
-        where: {
-          id: announcementId,
-          customerId: userId,
-        },
-      });
-
-      if (!existingAnnouncement) {
-        return {
-          success: false,
-          error: "Announcement not found or not authorized",
-        };
-      }
-
-      // Vérification que l'annonce peut être publiée
-      if (existingAnnouncement.status !== "PENDING") {
-        return {
-          success: false,
-          error: "Only pending announcements can be published",
-        };
-      }
-
-      // Publication de l'annonce
-      const publishedAnnouncement = await prisma.announcement.update({
-        where: {
-          id: announcementId,
-        },
-        data: {
-          status: "PUBLISHED",
-        },
-      });
-
-      return { success: true, data: publishedAnnouncement };
-    } catch (error) {
-      console.error("Error publishing announcement:", error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-      };
-    }
-  }
-
-  /**
-   * Récupère les annonces d'un client
-   */
-  static async getClientAnnouncements(userId: string, filters?: {
-    status?: string;
-    search?: string;
-    fromDate?: Date;
-    toDate?: Date;
-  }) {
-    try {
-      // Construction des filtres
-      const where: Prisma.AnnouncementWhereInput = {
-        customerId: userId,
-        deletedAt: null,
+      const where: PrismaWhereInput = {
+        customerId: session.user.id,
       };
 
-      // Filtre par statut
+      // Appliquer les filtres si disponibles
       if (filters?.status) {
         where.status = filters.status;
       }
 
-      // Filtre par date
-      if (filters?.fromDate || filters?.toDate) {
-        where.pickupDate = {};
-        
-        if (filters.fromDate) {
-          where.pickupDate.gte = filters.fromDate;
-        }
-        
-        if (filters.toDate) {
-          where.pickupDate.lte = filters.toDate;
-        }
-      }
-
-      // Filtre par texte
       if (filters?.search) {
         where.OR = [
-          { title: { contains: filters.search, mode: "insensitive" } },
-          { description: { contains: filters.search, mode: "insensitive" } },
-          { pickupCity: { contains: filters.search, mode: "insensitive" } },
-          { deliveryCity: { contains: filters.search, mode: "insensitive" } },
+          { title: { contains: filters.search } },
+          { description: { contains: filters.search } }
         ];
       }
 
-      // Récupération des annonces
-      const announcements = await prisma.announcement.findMany({
+      // Récupérer les annonces
+      const announcements = await db.announcement.findMany({
         where,
-        orderBy: {
-          createdAt: "desc",
-        },
-        include: {
-          bids: {
-            select: {
-              id: true,
-              price: true,
-              status: true,
-              createdAt: true,
-              courier: {
-                select: {
-                  id: true,
-                  name: true,
-                  image: true,
-                  rating: true,
-                },
-              },
-            },
-          },
-        },
+        orderBy: { createdAt: "desc" },
+        take: filters?.limit || 10,
+        skip: filters?.offset || 0
       });
 
-      return { success: true, data: announcements };
-    } catch (error) {
-      console.error("Error fetching client announcements:", error);
+      // Compter le total
+      const total = await db.announcement.count({ where });
+
       return {
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
+        data: announcements,
+        meta: {
+          total,
+          page: filters?.offset ? Math.floor(filters.offset / (filters?.limit || 10)) + 1 : 1,
+          pageSize: filters?.limit || 10
+        }
       };
+    } catch (error) {
+      console.error("Erreur lors de la récupération des annonces:", error);
+      throw new Error("Erreur lors de la récupération des annonces");
     }
   }
 
   /**
    * Récupère une annonce par son ID
    */
-  static async getAnnouncementById(announcementId: string, userId?: string) {
+  static async getAnnouncementById(id: string) {
     try {
-      // Configuration de la requête
-      const where: Prisma.AnnouncementWhereInput = {
-        id: announcementId,
-        deletedAt: null,
-      };
-
-      // Si un userId est fourni, vérifier que l'annonce est visible pour cet utilisateur
-      if (userId) {
-        where.OR = [
-          { customerId: userId }, // Le client qui a créé l'annonce
-          { deliveryPersonId: userId }, // Le livreur assigné
-          { status: "PUBLISHED" }, // Les annonces publiées sont visibles par tous
-        ];
+      const session = await auth();
+      if (!session?.user) {
+        throw new Error("Vous devez être connecté pour accéder à cette annonce");
       }
 
-      // Récupération de l'annonce
-      const announcement = await prisma.announcement.findFirst({
-        where,
-        include: {
-          customer: {
-            select: {
-              id: true,
-              name: true,
-              image: true,
-              rating: true,
-            },
-          },
-          deliveryPerson: userId
-            ? {
-                select: {
-                  id: true,
-                  name: true,
-                  image: true,
-                  rating: true,
-                },
-              }
-            : false,
-          bids: userId
-            ? {
-                select: {
-                  id: true,
-                  price: true,
-                  message: true,
-                  status: true,
-                  createdAt: true,
-                  courier: {
-                    select: {
-                      id: true,
-                      name: true,
-                      image: true,
-                      rating: true,
-                    },
-                  },
-                },
-                where: {
-                  OR: [
-                    { courierId: userId }, // Les offres de l'utilisateur
-                    { status: "ACCEPTED" }, // Les offres acceptées
-                  ],
-                },
-              }
-            : false,
-        },
+      const announcement = await db.announcement.findFirst({
+        where: {
+          id,
+          customerId: session.user.id
+        }
       });
 
       if (!announcement) {
-        return {
-          success: false,
-          error: "Announcement not found or not accessible",
-        };
+        throw new Error("Annonce introuvable");
       }
 
-      return { success: true, data: announcement };
+      return announcement;
     } catch (error) {
-      console.error("Error fetching announcement:", error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-      };
+      console.error("Erreur lors de la récupération de l'annonce:", error);
+      throw new Error("Erreur lors de la récupération de l'annonce");
     }
   }
 
   /**
-   * Calcule un prix recommandé en fonction de la distance et du poids
+   * Crée une nouvelle annonce
    */
-  static calculateRecommendedPrice(
-    pickupCoordinates: Coordinates,
-    deliveryCoordinates: Coordinates,
-    weight: number,
-    isFragile: boolean,
-    requiresRefrigeration: boolean
-  ) {
+  static async createAnnouncement(data: CreateAnnouncementParams) {
     try {
-      // Calcul de la distance
-      const distance = getDistanceFromLatLonInKm(
-        pickupCoordinates.lat,
-        pickupCoordinates.lng,
-        deliveryCoordinates.lat,
-        deliveryCoordinates.lng
-      );
-
-      // Tarif de base par km
-      const baseRatePerKm = 0.5; // 0.50€ par km
-
-      // Tarif de base par kg
-      const baseRatePerKg = 0.3; // 0.30€ par kg
-
-      // Prix minimum
-      const minimumPrice = 5.0; // 5€ minimum
-
-      // Calcul du prix de base
-      let price = distance * baseRatePerKm + weight * baseRatePerKg;
-
-      // Frais supplémentaires
-      if (isFragile) {
-        price *= 1.2; // +20% pour les objets fragiles
+      const session = await auth();
+      if (!session?.user) {
+        throw new Error("Vous devez être connecté pour créer une annonce");
       }
 
-      if (requiresRefrigeration) {
-        price *= 1.3; // +30% pour la réfrigération
-      }
+      const announcement = await db.announcement.create({
+        data: {
+          ...data,
+          status: AnnouncementStatus.DRAFT,
+          customerId: session.user.id,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      });
 
-      // Assurer le prix minimum
-      price = Math.max(price, minimumPrice);
-
-      // Arrondir à 2 décimales
-      price = Math.round(price * 100) / 100;
-
-      return { success: true, data: price };
+      return announcement;
     } catch (error) {
-      console.error("Error calculating recommended price:", error);
-      return {
-        success: false,
-        error: error instanceof Error ? error.message : "Unknown error",
-      };
+      console.error("Erreur lors de la création de l'annonce:", error);
+      throw new Error("Erreur lors de la création de l'annonce");
+    }
+  }
+
+  /**
+   * Met à jour une annonce
+   */
+  static async updateAnnouncement(id: string, data: UpdateAnnouncementParams) {
+    try {
+      const session = await auth();
+      if (!session?.user) {
+        throw new Error("Vous devez être connecté pour modifier cette annonce");
+      }
+
+      // Vérifier que l'annonce appartient à l'utilisateur
+      const announcement = await db.announcement.findFirst({
+        where: {
+          id,
+          customerId: session.user.id
+        }
+      });
+
+      if (!announcement) {
+        throw new Error("Annonce introuvable ou vous n'avez pas les droits pour la modifier");
+      }
+
+      // Vérifier que l'annonce est modifiable
+      if (announcement.status !== AnnouncementStatus.DRAFT && 
+          announcement.status !== AnnouncementStatus.REJECTED) {
+        throw new Error("Vous ne pouvez pas modifier une annonce qui n'est pas en brouillon ou rejetée");
+      }
+
+      // Mettre à jour l'annonce
+      const updatedAnnouncement = await db.announcement.update({
+        where: { id },
+        data: {
+          ...data,
+          updatedAt: new Date()
+        }
+      });
+
+      return updatedAnnouncement;
+    } catch (error) {
+      console.error("Erreur lors de la mise à jour de l'annonce:", error);
+      throw new Error("Erreur lors de la mise à jour de l'annonce");
+    }
+  }
+
+  /**
+   * Supprime une annonce
+   */
+  static async deleteAnnouncement(id: string) {
+    try {
+      const session = await auth();
+      if (!session?.user) {
+        throw new Error("Vous devez être connecté pour supprimer cette annonce");
+      }
+
+      // Vérifier que l'annonce appartient à l'utilisateur
+      const announcement = await db.announcement.findFirst({
+        where: {
+          id,
+          customerId: session.user.id
+        }
+      });
+
+      if (!announcement) {
+        throw new Error("Annonce introuvable ou vous n'avez pas les droits pour la supprimer");
+      }
+
+      // Simuler la suppression (soft delete)
+      const deletedAnnouncement = await db.announcement.update({
+        where: { id },
+        data: {
+          status: AnnouncementStatus.DELETED,
+          updatedAt: new Date()
+        }
+      });
+
+      return deletedAnnouncement;
+    } catch (error) {
+      console.error("Erreur lors de la suppression de l'annonce:", error);
+      throw new Error("Erreur lors de la suppression de l'annonce");
+    }
+  }
+
+  /**
+   * Publie une annonce (change son statut)
+   */
+  static async publishAnnouncement(id: string) {
+    try {
+      const session = await auth();
+      if (!session?.user) {
+        throw new Error("Vous devez être connecté pour publier cette annonce");
+      }
+
+      // Vérifier que l'annonce appartient à l'utilisateur
+      const announcement = await db.announcement.findFirst({
+        where: {
+          id,
+          customerId: session.user.id
+        }
+      });
+
+      if (!announcement) {
+        throw new Error("Annonce introuvable ou vous n'avez pas les droits pour la publier");
+      }
+
+      // Vérifier que l'annonce est publiable
+      if (announcement.status !== AnnouncementStatus.DRAFT && 
+          announcement.status !== AnnouncementStatus.REJECTED) {
+        throw new Error("Vous ne pouvez publier que des annonces en brouillon ou rejetées");
+      }
+
+      // Publier l'annonce
+      const publishedAnnouncement = await db.announcement.update({
+        where: { id },
+        data: {
+          status: AnnouncementStatus.PENDING,
+          updatedAt: new Date()
+        }
+      });
+
+      return publishedAnnouncement;
+    } catch (error) {
+      console.error("Erreur lors de la publication de l'annonce:", error);
+      throw new Error("Erreur lors de la publication de l'annonce");
     }
   }
 } 

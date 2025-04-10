@@ -2,10 +2,11 @@
 
 import * as React from "react";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { Calendar as CalendarIcon } from "lucide-react";
+import { fr } from "date-fns/locale";
 import { DateRange } from "react-day-picker";
 
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -13,19 +14,16 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
 
-interface DatePickerWithRangeProps {
-  className?: string;
-  date: DateRange | undefined;
-  setDate: (date: DateRange | undefined) => void;
-}
-
-export function DatePickerWithRange({
+export function DateRangePicker({
   className,
   date,
   setDate,
-}: DatePickerWithRangeProps) {
+}: {
+  className?: string;
+  date?: DateRange;
+  setDate: (date?: DateRange) => void;
+}) {
   return (
     <div className={cn("grid gap-2", className)}>
       <Popover>
@@ -34,7 +32,7 @@ export function DatePickerWithRange({
             id="date"
             variant={"outline"}
             className={cn(
-              "w-[300px] justify-start text-left font-normal",
+              "w-full justify-start text-left font-normal",
               !date && "text-muted-foreground"
             )}
           >
@@ -42,14 +40,14 @@ export function DatePickerWithRange({
             {date?.from ? (
               date.to ? (
                 <>
-                  {format(date.from, "P", { locale: fr })} -{" "}
-                  {format(date.to, "P", { locale: fr })}
+                  {format(date.from, "LLL dd, y", { locale: fr })} -{" "}
+                  {format(date.to, "LLL dd, y", { locale: fr })}
                 </>
               ) : (
-                format(date.from, "P", { locale: fr })
+                format(date.from, "LLL dd, y", { locale: fr })
               )
             ) : (
-              <span>Sélectionner une période</span>
+              <span>Choisir une période</span>
             )}
           </Button>
         </PopoverTrigger>

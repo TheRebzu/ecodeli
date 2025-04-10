@@ -1,5 +1,6 @@
-import { z } from "zod";
-import { User } from "./user.types";
+/**
+ * Types pour les annonces
+ */
 
 export enum PackageType {
   SMALL = "SMALL",
@@ -10,14 +11,17 @@ export enum PackageType {
 }
 
 export enum AnnouncementStatus {
-  PENDING = "PENDING",
-  PUBLISHED = "PUBLISHED",
-  ASSIGNED = "ASSIGNED",
-  IN_TRANSIT = "IN_TRANSIT",
-  DELIVERED = "DELIVERED",
-  COMPLETED = "COMPLETED",
-  CANCELLED = "CANCELLED",
-  EXPIRED = "EXPIRED"
+  DRAFT = "DRAFT",            // Brouillon
+  PENDING = "PENDING",        // En attente de validation
+  PUBLISHED = "PUBLISHED",    // Publiée et visible
+  ASSIGNED = "ASSIGNED",      // Assignée à un livreur
+  IN_PROGRESS = "IN_PROGRESS", // En cours de livraison
+  DELIVERED = "DELIVERED",    // Livrée
+  COMPLETED = "COMPLETED",    // Complétée et confirmée
+  CANCELLED = "CANCELLED",    // Annulée
+  REJECTED = "REJECTED",      // Rejetée
+  EXPIRED = "EXPIRED",        // Expirée
+  DELETED = "DELETED"         // Supprimée
 }
 
 export enum InsuranceOption {
@@ -56,6 +60,14 @@ export interface PackageDetails {
   requiresRefrigeration: boolean;
 }
 
+// Type simplifié pour éviter une dépendance circulaire
+export interface UserBrief {
+  id: string;
+  name: string;
+  image?: string;
+  rating?: number;
+}
+
 export interface Bid {
   id: string;
   price: number;
@@ -63,7 +75,7 @@ export interface Bid {
   status: BidStatus;
   announcementId: string;
   courierId: string;
-  courier: User;
+  courier: UserBrief;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -73,11 +85,11 @@ export interface Announcement {
   
   // Informations générales
   title: string;
-  description?: string;
+  description: string;
   
   // Informations sur le paquet
-  packageType: PackageType;
-  weight: number;
+  packageType: string;
+  weight?: number;
   width?: number;
   height?: number;
   length?: number;
@@ -89,14 +101,14 @@ export interface Announcement {
   pickupCity: string;
   pickupPostalCode: string;
   pickupCountry: string;
-  pickupCoordinates: Coordinates;
+  pickupCoordinates?: Coordinates;
   
   // Adresse de livraison
   deliveryAddress: string;
   deliveryCity: string;
   deliveryPostalCode: string;
   deliveryCountry: string;
-  deliveryCoordinates: Coordinates;
+  deliveryCoordinates?: Coordinates;
   
   // Informations temporelles
   pickupDate: Date;
@@ -107,31 +119,21 @@ export interface Announcement {
   isNegotiable: boolean;
   
   // Assurance
-  insuranceOption: InsuranceOption;
+  insuranceOption: string;
   insuranceAmount?: number;
   
   // Images du colis
-  packageImages: string[];
+  packageImages?: string[];
   
   // État de l'annonce
   status: AnnouncementStatus;
   
   // Relations
   customerId: string;
-  customer?: {
-    id: string;
-    name: string;
-    image?: string;
-    rating?: number;
-  };
+  customer?: UserBrief;
   
   deliveryPersonId?: string;
-  deliveryPerson?: {
-    id: string;
-    name: string;
-    image?: string;
-    rating?: number;
-  };
+  deliveryPerson?: UserBrief;
   
   bids?: Bid[];
   
@@ -143,42 +145,30 @@ export interface Announcement {
 
 export interface CreateAnnouncementParams {
   title: string;
-  description?: string;
-  
-  // Package details
-  packageType: PackageType;
-  weight: number;
+  description: string;
+  packageType: string;
+  weight?: number;
   width?: number;
   height?: number;
   length?: number;
   isFragile: boolean;
   requiresRefrigeration: boolean;
-  
-  // Pickup location
   pickupAddress: string;
   pickupCity: string;
   pickupPostalCode: string;
   pickupCountry: string;
-  pickupCoordinates: Coordinates;
-  
-  // Delivery location
+  pickupCoordinates?: Coordinates;
   deliveryAddress: string;
   deliveryCity: string;
   deliveryPostalCode: string;
   deliveryCountry: string;
-  deliveryCoordinates: Coordinates;
-  
-  // Times
-  pickupDate: Date;
-  deliveryDeadline: Date;
-  
-  // Pricing and options
+  deliveryCoordinates?: Coordinates;
+  pickupDate: string | Date;
+  deliveryDeadline: string | Date;
   price: number;
   isNegotiable: boolean;
-  insuranceOption: InsuranceOption;
+  insuranceOption: string;
   insuranceAmount?: number;
-  
-  // Media
   packageImages?: string[];
 }
 
@@ -197,4 +187,35 @@ export interface UpdateBidParams {
   price?: number;
   message?: string;
   status?: BidStatus;
-} 
+}
+
+export type AnnouncementType = 
+  | 'DELIVERY'        // Livraison standard
+  | 'FOREIGN_PURCHASE' // Achat à l'étranger
+  | 'SPECIAL_DELIVERY' // Livraison spéciale
+  | 'SERVICE';        // Service (non livraison)
+
+export type PackageSize = 
+  | 'SMALL'
+  | 'MEDIUM'
+  | 'LARGE'
+  | 'EXTRA_LARGE';
+
+export type AnnouncementFilter = {
+  status?: AnnouncementStatus | 'ALL';
+  type?: AnnouncementType | 'ALL';
+  dateFrom?: Date;
+  dateTo?: Date;
+  searchTerm?: string;
+  sortBy?: 'createdAt' | 'updatedAt' | 'price' | 'pickupDate';
+  sortDirection?: 'asc' | 'desc';
+};
+
+export type AnnouncementFilterParams = {
+  status?: AnnouncementStatus;
+  search?: string;
+  limit?: number;
+  offset?: number;
+  fromDate?: Date;
+  toDate?: Date;
+}; 

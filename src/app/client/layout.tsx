@@ -1,45 +1,43 @@
-import { auth } from "@/auth";
-import { redirect } from "next/navigation";
-import { Suspense } from "react";
+"use client";
 
-import ClientSidebar from "@/components/client/shared/client-sidebar";
-import ClientHeader from "@/components/client/shared/client-header";
-import ClientFooter from "@/components/client/shared/client-footer";
+import { useAuth } from "@/hooks/use-auth";
+import { useEffect, useState } from "react";
+import { UserRole } from "@/lib/auth-utils";
 
-export const metadata = {
-  title: "Espace Client | EcoDeli",
-  description: "Gérez vos livraisons, colis et services depuis votre espace client EcoDeli.",
-};
-
-export default async function ClientLayout({
-  children,
-}: {
+interface ClientLayoutProps {
   children: React.ReactNode;
-}) {
-  // Check if user is authenticated and has CLIENT role
-  const session = await auth();
-  
-  if (!session || !session.user) {
-    redirect("/login?callbackUrl=/client");
-  }
-  
-  return (
-    <Suspense fallback={<div className="min-h-screen w-full flex items-center justify-center">Chargement...</div>}>
-      <div className="min-h-screen flex flex-col">
-        <ClientHeader userId={session.user.id} />
-        
-        <div className="flex-1 flex flex-col md:flex-row">
-          <ClientSidebar userId={session.user.id} />
-          
-          <main className="flex-1 p-4 md:p-6 lg:p-8 bg-gray-50">
-            <div className="max-w-7xl mx-auto">
-              {children}
-            </div>
-          </main>
-        </div>
-        
-        <ClientFooter />
+}
+
+export default function ClientLayout({ children }: ClientLayoutProps) {
+  const { isAuthenticated, isLoading, hasRole } = useAuth();
+  const [isAuthorized, setIsAuthorized] = useState(false);
+
+  // Vérifier l'autorisation sans redirection automatique
+  useEffect(() => {
+    if (!isLoading) {
+      // Autorisation accordée si authentifié et rôle correct
+      const authorized = isAuthenticated && hasRole(UserRole.CLIENT);
+      console.log(`[client-layout] Utilisateur autorisé: ${authorized}`);
+      setIsAuthorized(authorized);
+    }
+  }, [isAuthenticated, isLoading, hasRole]);
+
+  // Afficher un indicateur de chargement si nécessaire
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
       </div>
-    </Suspense>
+    );
+  }
+
+  // Toujours afficher le contenu - la logique de redirection est gérée par les pages individuelles
+  return (
+    <div className="flex min-h-screen bg-gray-50">
+      {/* Le contenu de la page */}
+      <main className="flex-1 p-4 sm:p-6 md:p-8 max-w-screen-2xl mx-auto">
+        {children}
+      </main>
+    </div>
   );
 } 
