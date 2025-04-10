@@ -1,5 +1,5 @@
 import { Metadata } from "next";
-import { RegisterForm } from "@/components/auth/register-form";
+import { RegisterForm } from "@/components/auth/RegisterForm";
 
 export const metadata: Metadata = {
   title: "Inscription | EcoDeli",

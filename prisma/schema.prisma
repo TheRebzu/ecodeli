@@ -13,372 +13,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-<<<<<<< Updated upstream
 // Modèle de base pour les utilisateurs
-model User {
-=======
-// Enumerations - All in one place
-
-enum UserRole {
-  ADMIN
-  CUSTOMER
-  DELIVERY_PERSON
-  MERCHANT
-  SERVICE_PROVIDER
-}
-
-enum UserStatus {
-  PENDING
-  APPROVED
-  REJECTED
-  SUSPENDED
-}
-
-enum SubscriptionPlan {
-  FREE
-  STARTER
-  PREMIUM
-}
-
-enum LoyaltyTier {
-  BRONZE
-  SILVER
-  GOLD
-  PLATINUM
-}
-
-enum VehicleType {
-  CAR
-  BIKE
-  SCOOTER
-  VAN
-  TRUCK
-  PUBLIC_TRANSPORT
-  WALK
-}
-
-enum AccessLevel {
-  STANDARD
-  MANAGER
-  SUPERADMIN
-}
-
-enum ServiceType {
-  PERSON_TRANSPORT
-  AIRPORT_TRANSFER
-  SHOPPING
-  FOREIGN_PURCHASE
-  PET_SITTING
-  HOUSEKEEPING
-  GARDENING
-  OTHER
-}
-
-enum ContractStatus {
-  PENDING
-  ACTIVE
-  EXPIRED
-  TERMINATED
-}
-
-enum PackageSize {
-  SMALL
-  MEDIUM
-  LARGE
-  EXTRA_LARGE
-}
-
-enum AnnouncementStatus {
-  PENDING    // En attente de publication
-  PUBLISHED  // Annonce publiée et visible
-  ASSIGNED   // Livreur assigné
-  IN_TRANSIT // Colis en transit
-  DELIVERED  // Colis livré
-  COMPLETED  // Livraison confirmée et finalisée
-  CANCELLED  // Annulée par le client
-  EXPIRED    // Expirée (date dépassée)
-}
-
-enum DeliveryStatus {
-  PENDING
-  ACCEPTED
-  PICKUP_IN_PROGRESS
-  PICKED_UP
-  IN_TRANSIT
-  IN_STORAGE
-  OUT_FOR_DELIVERY
-  DELIVERED
-  CANCELLED
-  FAILED
-}
-
-enum DeliveryIssueType {
-  DELAY
-  DAMAGE
-  LOSS
-  WRONG_ADDRESS
-  ACCESS_PROBLEM
-  RECIPIENT_UNAVAILABLE
-  OTHER
-}
-
-enum IssueStatus {
-  OPEN
-  IN_PROGRESS
-  RESOLVED
-  CLOSED
-}
-
-enum RouteStatus {
-  SCHEDULED
-  IN_PROGRESS
-  COMPLETED
-  CANCELLED
-}
-
-enum ServiceStatus {
-  PENDING
-  CONFIRMED
-  IN_PROGRESS
-  COMPLETED
-  CANCELLED
-}
-
-enum BoxSize {
-  SMALL
-  MEDIUM
-  LARGE
-}
-
-enum CartDropStatus {
-  PENDING
-  PROCESSING
-  OUT_FOR_DELIVERY
-  DELIVERED
-  CANCELLED
-}
-
-enum PaymentStatus {
-  PENDING
-  PROCESSING
-  COMPLETED
-  FAILED
-  REFUNDED
-}
-
-enum RefundStatus {
-  PENDING
-  PROCESSING
-  COMPLETED
-  REJECTED
-}
-
-enum RefundReason {
-  CUSTOMER_REQUEST
-  SERVICE_ISSUE
-  DUPLICATE_PAYMENT
-  FRAUDULENT_CHARGE
-  OTHER
-}
-
-enum PaymentMethod {
-  CREDIT_CARD
-  PAYPAL
-  BANK_TRANSFER
-  WALLET
-  CASH
-  APPLE_PAY
-  GOOGLE_PAY
-}
-
-enum PaymentEntityType {
-  DELIVERY
-  SERVICE
-  SUBSCRIPTION
-  FOREIGN_PURCHASE
-  CART_DROP
-}
-
-enum TransactionType {
-  DEPOSIT
-  WITHDRAWAL
-  PAYMENT
-  REFUND
-  FEE
-  BONUS
-}
-
-enum InvoiceStatus {
-  DRAFT
-  UNPAID
-  PAID
-  CANCELLED
-}
-
-enum NotificationType {
-  INFO
-  SUCCESS
-  WARNING
-  ERROR
-  DELIVERY_UPDATE
-  PAYMENT_UPDATE
-  ANNOUNCEMENT_MATCH
-}
-
-enum DocumentType {
-  ID_CARD
-  DRIVING_LICENSE
-  PASSPORT
-  INSURANCE
-  VEHICLE_REGISTRATION
-  PROFESSIONAL_LICENSE
-  CRIMINAL_RECORD
-  TAX_CERTIFICATE
-}
-
-enum VerificationStatus {
-  PENDING
-  APPROVED
-  REJECTED
-}
-
-enum ForeignPurchaseStatus {
-  REQUESTED
-  SEARCHING
-  FOUND
-  PURCHASED
-  SHIPPING
-  DELIVERED
-  CANCELLED
-}
-
-enum TeamMemberRole {
-  LEADER
-  MEMBER
-}
-
-enum RecurringFrequency {
-  DAILY
-  WEEKLY
-  BIWEEKLY
-  MONTHLY
-}
-
-enum MerchantCategory {
-  GROCERY
-  PHARMACY
-  ELECTRONICS
-  CLOTHING
-  FURNITURE
-  RESTAURANT
-  OTHER
-}
-
-enum DeliverySpecialization {
-  FOOD
-  FRAGILE
-  LARGE_ITEMS
-  URGENT
-  REFRIGERATED
-}
-
-enum AdminDepartment {
-  GENERAL
-  CUSTOMER_SERVICE
-  OPERATIONS
-  FINANCE
-  TECHNICAL
-}
-
-enum DeviceStatus {
-  ACTIVE
-  MAINTENANCE
-  OFFLINE
-  DECOMMISSIONED
-}
-
-enum TicketPriority {
-  LOW
-  MEDIUM
-  HIGH
-  URGENT
-}
-
-enum TicketStatus {
-  OPEN
-  IN_PROGRESS
-  WAITING_FOR_CUSTOMER
-  RESOLVED
-  CLOSED
-}
-
-enum TicketCategory {
-  ACCOUNT
-  DELIVERY
-  PAYMENT
-  TECHNICAL
-  SERVICE
-  COMPLAINT
-  OTHER
-}
-
-enum MediaType {
-  IMAGE
-  DOCUMENT
-  VIDEO
-  AUDIO
-}
-
-enum ScheduledTaskStatus {
-  PENDING
-  PROCESSING
-  COMPLETED
-  FAILED
-}
-
-enum DriverAdStatus {
-  ACTIVE
-  INACTIVE
-  DRAFT
-}
-
-enum AdResponseStatus {
-  PENDING
-  ACCEPTED
-  REJECTED
-  CANCELLED
-}
-
-enum BoxStatus {
-  AVAILABLE
-  OCCUPIED
-  MAINTENANCE
-  OUT_OF_SERVICE
-}
-
-enum PackageType {
-  SMALL
-  MEDIUM
-  LARGE
-  EXTRA_LARGE
-  CUSTOM
-}
-
-enum InsuranceOption {
-  NONE
-  BASIC
-  PREMIUM
-}
-
-enum BidStatus {
-  PENDING
-  ACCEPTED
-  REJECTED
-  CANCELLED
-}
-
-// Models
-
 model User {
   id                 String    @id @default(cuid())
   email              String    @unique
@@ -468,7 +103,6 @@ model ClientProfile {
 
 // Courier (Livreur) profile
 model CourierProfile {
->>>>>>> Stashed changes
   id                String    @id @default(cuid())
   name              String
   email             String    @unique
@@ -553,10 +187,82 @@ enum Status {
   SUSPENDED
 }
 
-<<<<<<< Updated upstream
 // Client (Particulier)
 model Client {
-=======
+  id                 String    @id @default(cuid())
+  email              String    @unique
+  password           String?
+  name               String?
+  phone              String?
+  image              String?
+  emailVerified      DateTime?
+  city               String?
+  postalCode         String?
+  country            String?
+  profileImage       String?
+  isVerified         Boolean   @default(false)
+  verificationToken  String?
+  resetPasswordToken String?
+  mfaSecret          String?   // Secret for TOTP MFA
+  mfaEnabled         Boolean   @default(false)
+  mfaBackupCodes     String[]  @default([])
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  lastLogin          DateTime?
+  role               UserRole  @default(ADMIN)
+  status             UserStatus @default(PENDING)
+  language           String    @default("fr")
+  tutorialProgress   Json?     // Store tutorial progress
+  deletedAt          DateTime? // Soft delete
+  rating             Float?    // User's average rating
+
+  // Profile relationships
+  clientProfile    ClientProfile?
+  courierProfile   CourierProfile?
+  merchantProfile  MerchantProfile?
+  providerProfile  ProviderProfile?
+
+  // Relations based on role
+  customer        Customer?
+  deliveryPerson  DeliveryPerson?
+  merchant        Merchant?
+  serviceProvider ServiceProvider?
+  admin           Admin?
+
+  // Common relations
+  notifications   Notification[]
+  documents       Document[]
+  reviews         Review[]        @relation("ReviewAuthor")
+  reviewsReceived Review[]        @relation("ReviewTarget")
+  auditLogs       AuditLog[]
+  supportTickets  SupportTicket[]
+  interests       Interest[]      // User's interests in announcements
+
+  // Auth related
+  accounts         Account[]
+  sessions         Session[]
+  sentMessages     Message[] @relation("SenderMessages")
+  receivedMessages Message[] @relation("ReceiverMessages")
+
+  // Add todos relation to User
+  todos            Todo[]
+
+  // Add address relation
+  userAddress      Address?
+
+  // Add settings relation
+  userSettings     UserSettings?
+
+  // Add announcement relations
+  createdAnnouncements        Announcement[]         @relation("CustomerAnnouncements")
+  deliveredAnnouncements      Announcement[]         @relation("CourierAnnouncements")
+  bids                        Bid[]
+
+  @@index([email])
+  @@index([role, status])
+  @@index([deletedAt])
+}
+
 model DeliveryPerson {
   id                     String                   @id @default(cuid())
   userId                 String                   @unique
@@ -938,7 +644,6 @@ model TrackingUpdate {
 }
 
 model PlannedRoute {
->>>>>>> Stashed changes
   id                String      @id @default(cuid())
   userId            String      @unique
   subscriptionPlan  String?     @default("FREE") // FREE, STARTER, PREMIUM
@@ -1210,216 +915,38 @@ model Invoice {
   entityId      String
 }
 
-<<<<<<< Updated upstream
-enum InvoiceStatus {
-  PENDING
-  PAID
-  OVERDUE
-  CANCELLED
+// Modèles pour le système de tutoriel
+model TutorialStep {
+  id             String   @id @default(cuid())
+  title          String
+  content        String
+  targetElementId String?
+  featureId      String?
+  position       String?
+  order          Int
+  isCompleted    Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 }
 
-// Paiements
-model Payment {
-  id            String      @id @default(cuid())
-  amount        Float
-  description   String?
-  status        PaymentStatus @default(PENDING)
-  paymentMethod String
-  createdAt     DateTime    @default(now())
+model UserTutorialProgress {
+  userId         String   @id
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  currentStepId  String?
+  completedSteps String[]
+  isCompleted    Boolean  @default(false)
+  lastUpdated    DateTime @default(now())
+}
+
+model FeatureTutorialProgress {
+  id             String   @id @default(cuid())
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  featureId      String
+  currentStepId  String?
+  completedSteps String[]
+  isCompleted    Boolean  @default(false)
+  lastUpdated    DateTime @default(now())
   
-  // ID de transaction du système de paiement (Stripe, etc.)
-  externalId    String?
-  
-  // Le type d'entité à qui est destiné le paiement (client, commerçant, livreur, prestataire)
-  entityType    String
-  entityId      String
+  @@unique([userId, featureId])
 }
-
-enum PaymentStatus {
-  PENDING
-  COMPLETED
-  FAILED
-  REFUNDED
-}
-
-// Évaluations
-model Review {
-  id          String    @id @default(cuid())
-  rating      Float     // Note de 0 à 5
-  comment     String?
-  createdAt   DateTime  @default(now())
-  
-  // Type d'évaluation (livraison, service)
-  reviewType  String
-  
-  // ID de l'élément évalué (livraison, service)
-  itemId      String
-  
-  // Utilisateur qui a posté l'évaluation
-  userId      String
-}
-
-// Notifications
-model Notification {
-  id          String    @id @default(cuid())
-  title       String
-  content     String
-  isRead      Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  
-  // Utilisateur destinataire
-  userId      String
-}
-
-// Modèles pour le système d'alertes
-model AlertRule {
-  id              String          @id @default(cuid())
-  name            String
-  metricType      AlertMetricType
-  condition       AlertCondition
-  threshold       Float
-  enabled         Boolean         @default(true)
-  notifyEmail     Boolean         @default(true)
-  notifyDashboard Boolean         @default(true)
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
-  userId          String
-  user            User            @relation(fields: [userId], references: [id])
-  alerts          Alert[]
-}
-
-model Alert {
-  id            String          @id @default(cuid())
-  ruleId        String
-  rule          AlertRule       @relation(fields: [ruleId], references: [id])
-  userId        String
-  user          User            @relation(fields: [userId], references: [id])
-  metricType    AlertMetricType
-  message       String
-  details       String?
-  value         Float
-  expectedValue Float?
-  deviation     Float?
-  timestamp     DateTime        @default(now())
-  severity      AlertSeverity
-  read          Boolean         @default(false)
-  dismissed     Boolean         @default(false)
-}
-
-enum AlertMetricType {
-  REVENUE
-  SHIPMENTS
-  USERS
-  SATISFACTION
-  COURIER_DELAY
-}
-
-enum AlertCondition {
-  ABOVE
-  BELOW
-  EQUAL
-  CHANGE_RATE
-}
-
-enum AlertSeverity {
-  LOW
-  MEDIUM
-  HIGH
-}
-=======
-  @@unique([advertisementId, userId])
-  @@index([advertisementId])
-  @@index([userId])
-}
-
-// Add the Todo model to the schema
-
-model Todo {
-  id        String   @id @default(cuid())
-  title     String
-  completed Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-}
-
-// Add Address model to the schema
-
-model Address {
-  id         String   @id @default(cuid())
-  street     String
-  city       String
-  postalCode String
-  country    String
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  userId     String   @unique
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-}
-
-// Add UserSettings model to the schema
-
-model UserSettings {
-  id        String   @id @default(cuid())
-  settings  Json
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  userId    String   @unique
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-}
-
-// Bid model for delivery offers
-model Bid {
-  id              String      @id @default(uuid())
-  announcementId  String
-  courierId       String
-  status          BidStatus   @default(PENDING)
-  price           Float
-  message         String?
-  createdAt       DateTime    @default(now())
-  updatedAt       DateTime    @updatedAt
-
-  // Relations
-  announcement    Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
-  courier         DeliveryPerson @relation(fields: [courierId], references: [id], onDelete: Cascade)
-
-  @@index([announcementId])
-  @@index([courierId])
-  @@index([status])
-}
-
-model AnnouncementTranslation {
-  id          String       @id @default(cuid())
-  announcementId String
-  language    String       // "fr", "en", etc.
-  title       String
-  description String
-  
-  // Relations
-  announcement Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
-
-  @@unique([announcementId, language])
-}
-
-model AnnouncementTag {
-  id              String                @id @default(cuid())
-  name            String                @unique
-  description     String?
-  icon            String?
-  createdAt       DateTime              @default(now())
-  updatedAt       DateTime              @updatedAt
-  
-  // Relations
-  tags            Interest[]
-  advertisements  DriverAdvertisement[]
-
-  @@index([name])
-}
->>>>>>> Stashed changes

@@ -1,6 +1,10 @@
-import React from "react";
-import { Metadata } from "next";
+"use client";
+
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/use-auth";
+import { UserRole } from "@/lib/auth-utils";
 import {
   Package,
   Truck,
@@ -20,17 +24,43 @@ import {
   MessageSquare
 } from "lucide-react";
 
-export const metadata: Metadata = {
-  title: "Tableau de bord | EcoDeli",
-  description: "Consultez votre tableau de bord personnel sur EcoDeli",
-};
-
 export default function DashboardPage() {
+  const { isAuthenticated, isLoading, user, hasRole } = useAuth();
+  const router = useRouter();
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    if (!isLoading) {
+      if (!isAuthenticated) {
+        console.log("[dashboard] Utilisateur non authentifié, redirection login");
+        router.push("/login");
+        return;
+      }
+
+      if (!hasRole(UserRole.CLIENT)) {
+        console.log("[dashboard] Mauvais rôle, redirection dashboard général");
+        router.push("/dashboard");
+        return;
+      }
+
+      setIsReady(true);
+    }
+  }, [isAuthenticated, isLoading, hasRole, router]);
+
+  // Afficher un indicateur de chargement pendant la vérification
+  if (isLoading || !isReady) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
   return (
     <div>
       <div className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">Tableau de bord</h1>
-        <p className="text-gray-600 mt-1">Bienvenue sur votre espace personnel, Thomas</p>
+        <p className="text-gray-600 mt-1">Bienvenue sur votre espace personnel, {user?.name || "Client"}</p>
       </div>
 
       {/* Cartes de statistiques */}
@@ -545,6 +575,8 @@ export default function DashboardPage() {
           </div>
         </div>
       </div>
+
+      <p className="text-center text-gray-500">Votre tableau de bord client est prêt !</p>
     </div>
   );
 } 

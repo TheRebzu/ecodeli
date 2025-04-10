@@ -29,10 +29,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { AnimatedGradientText } from "@/components/magicui/animated-gradient-text";
+import { AnimatedGradientText } from "@/components/magicui/AnimatedGradientText";
 import { Marquee } from "@/components/magicui/marquee";
-import { TypingAnimation } from "@/components/magicui/typing-animation";
-import { AuroraText } from "@/components/magicui/aurora-text";
+import { TypingAnimation } from "@/components/magicui/TypingAnimation";
+import { AuroraText } from "@/components/magicui/AuroraText";
 import { Confetti } from "@/components/magicui/confetti";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
@@ -53,7 +53,7 @@ export default function HomePage() {
               >
                 La livraison <span>collaborative</span> qui change tout
               </AnimatedGradientText>
-              <p className="text-xl text-muted-foreground max-w-lg mx-auto lg:mx-0">
+              <div className="text-xl text-muted-foreground max-w-lg mx-auto lg:mx-0">
                 EcoDeli connecte particuliers, commerçants et prestataires pour des livraisons 
                 <TypingAnimation 
                   className="mx-1 font-medium text-primary"
@@ -64,7 +64,7 @@ export default function HomePage() {
                     "plus rapides"
                   ]}
                 />
-              </p>
+              </div>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Confetti>
                   <Link href="/register">

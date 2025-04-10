@@ -1,89 +1,84 @@
 "use client";
 
 import {
-<<<<<<< Updated upstream
   AlertCircle,
-=======
   AlertTriangle,
   ArrowLeft,
->>>>>>> Stashed changes
   ArrowRight,
+  ArrowUpDown,
+  Bell,
+  Bike,
   Building,
+  Calendar,
   Check,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
-<<<<<<< Updated upstream
-  Clock,
-  CreditCard,
-=======
   ChevronUp,
+  Clock,
   Command,
+  CreditCard,
   DollarSign,
   Eye,
   EyeOff,
   Facebook,
->>>>>>> Stashed changes
   File,
   FileText,
+  Filter,
   Globe,
   HelpCircle,
-<<<<<<< Updated upstream
   Home,
-  Image as ImageIcon,
-  Inbox,
-  Loader2,
-  LucideProps,
-=======
   Image,
+  Inbox,
   Info,
   Laptop,
+  LayoutDashboard,
   Loader2,
   Lock,
->>>>>>> Stashed changes
+  LogOut,
+  LucideProps,
+  Mail,
+  MapPin,
+  Menu,
+  MessageSquare,
   Moon,
   MoreVertical,
   Package,
+  Pizza,
   Plus,
   Search,
   Settings,
+  ShoppingBag,
   ShoppingCart,
   Star,
-  Sun,
-  Trash,
-  Twitter,
-  User,
-  X,
-<<<<<<< Updated upstream
-  Menu,
-  Bell,
-  LogOut,
-  Mail,
-  MessageSquare,
   Store,
+  Sun,
+  SunMedium,
+  Trash,
   Truck,
+  Twitter,
+  Upload,
+  User,
   Users,
-  Calendar,
-  Building,
-  MapPin,
-  Info,
-  Filter,
-  ArrowUpDown,
-  LayoutDashboard,
+  Wrench,
+  X,
 } from "lucide-react";
 
-export type Icon = typeof AlertCircle;
+export type Icon = typeof Command;
 
 export const Icons = {
-  // Navigation
+  // Logo & Navigation
+  logo: Command,
   home: Home,
   arrowRight: ArrowRight,
+  arrowLeft: ArrowLeft,
   chevronLeft: ChevronLeft,
   chevronRight: ChevronRight,
   chevronDown: ChevronDown,
+  chevronUp: ChevronUp,
   menu: Menu,
   
-  // User
+  // User related
   user: User,
   users: Users,
   logout: LogOut,
@@ -97,6 +92,7 @@ export const Icons = {
   store: Store,
   truck: Truck,
   package: Package,
+  shoppingBag: ShoppingBag,
   
   // Notifications & Messages
   bell: Bell,
@@ -106,7 +102,7 @@ export const Icons = {
   // Content
   file: File,
   fileText: FileText,
-  image: ImageIcon,
+  image: Image,
   
   // UI Elements
   loader: Loader2,
@@ -114,16 +110,22 @@ export const Icons = {
   plus: Plus,
   moreVertical: MoreVertical,
   trash: Trash,
+  close: X,
   x: X,
   sun: Sun,
+  sunMedium: SunMedium,
   moon: Moon,
   star: Star,
   filter: Filter,
   arrowUpDown: ArrowUpDown,
+  ellipsis: MoreVertical,
+  add: Plus,
   
   // Feedback
   alertCircle: AlertCircle,
+  alertTriangle: AlertTriangle,
   helpCircle: HelpCircle,
+  warning: AlertTriangle,
   
   // Misc
   inbox: Inbox,
@@ -134,65 +136,25 @@ export const Icons = {
   building: Building,
   mapPin: MapPin,
   info: Info,
+  billing: MoreVertical,
+  laptop: Laptop,
+  lock: Lock,
+  pizza: Pizza,
+  tool: Wrench,
+  bicycle: Bike,
+  upload: Upload,
+  dollarSign: DollarSign,
+  eye: Eye,
+  eyeOff: EyeOff,
   
   // Social
   twitter: Twitter,
+  facebook: Facebook,
+  google: User,
+  globe: Globe,
   
   // Spinner
   spinner: (props: LucideProps) => (
     <Loader2 {...props} className={`animate-spin ${props.className || ""}`} />
   ),
-}; 
-=======
-  Bike,
-  ShoppingBag,
-  Wrench,
-  Upload
-} from "lucide-react";
-
-export type Icon = typeof Command;
-
-export const Icons = {
-  logo: Command,
-  close: X,
-  spinner: Loader2,
-  chevronLeft: ChevronLeft,
-  chevronRight: ChevronRight,
-  trash: Trash,
-  user: User,
-  arrowRight: ArrowRight,
-  arrowLeft: ArrowLeft,
-  help: HelpCircle,
-  pizza: Pizza,
-  sun: SunMedium,
-  moon: Moon,
-  laptop: Laptop,
-  settings: Settings,
-  billing: MoreVertical,
-  ellipsis: MoreVertical,
-  add: Plus,
-  warning: AlertTriangle,
-  twitter: Twitter,
-  check: Check,
-  bicycle: Bike,
-  store: ShoppingBag,
-  tool: Wrench,
-  upload: Upload,
-  fileText: FileText,
-  file: File,
-  image: Image,
-  package: Package,
-  google: User,
-  facebook: Facebook,
-  globe: Globe,
-  eyeOff: EyeOff,
-  eye: Eye,
-  info: Info,
-  x: X,
-  chevronUp: ChevronUp,
-  chevronDown: ChevronDown,
-  dollarSign: DollarSign,
-  lock: Lock,
-  building: Building,
-} as const;
->>>>>>> Stashed changes
+};

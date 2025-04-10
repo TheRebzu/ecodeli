@@ -1,237 +1,146 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import { Menu, Globe, ChevronDown, X } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
-import { ThemeToggle } from "@/components/theme-toggle"
-import { cn } from "@/lib/utils"
-import { AnimatePresence, motion } from "framer-motion"
+import React from "react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { cn } from "@/lib/utils";
 
-type NavItem = {
-  title: string
-  href: string
-  description?: string
-}
-
-const mainNavItems: NavItem[] = [
-  {
-    title: "Accueil",
-    href: "/",
-  },
-  {
-    title: "Nos Services",
-    href: "/services",
-  },
-  {
-    title: "Expédier",
-    href: "/shipping",
-  },
-  {
-    title: "Devenir Livreur",
-    href: "/become-delivery",
-  },
-  {
-    title: "Tarifs",
-    href: "/pricing",
-  },
-  {
-    title: "À propos",
-    href: "/about",
-  },
-  {
-    title: "FAQ",
-    href: "/faq",
-  },
-]
+const navigation = [
+  { name: "Home", href: "/" },
+  { name: "Services", href: "/services" },
+  { name: "Pricing", href: "/pricing" },
+  { name: "About", href: "/about" },
+  { name: "Contact", href: "/contact" },
+];
 
 export default function PublicHeader() {
-  const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-background">
-      <div className="container flex h-16 items-center px-4 sm:px-8">
-        <div className="flex items-center space-x-4">
-          <Link href="/" className="flex items-center space-x-2">
-            <span className="inline-block h-8 w-8 bg-primary rounded-md"></span>
-            <span className="hidden font-bold sm:inline-block">EcoDeli</span>
+    <header className="bg-background border-b">
+      <nav className="mx-auto flex max-w-7xl items-center justify-between p-6 lg:px-8" aria-label="Global">
+        <div className="flex lg:flex-1">
+          <Link href="/" className="-m-1.5 p-1.5">
+            <span className="sr-only">EcoDeli</span>
+            <div className="flex items-center">
+              <span className="text-2xl font-bold text-primary">Eco<span className="text-green-500">Deli</span></span>
+            </div>
           </Link>
         </div>
-
-        {/* Navigation desktop */}
-        <nav className="hidden md:flex ml-8 space-x-6">
-          {mainNavItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="text-sm font-medium transition-colors hover:text-primary"
+        <div className="flex lg:hidden">
+          <button
+            type="button"
+            className="-m-2.5 inline-flex items-center justify-center rounded-md p-2.5 text-gray-700 dark:text-gray-200"
+            onClick={() => setMobileMenuOpen(true)}
+          >
+            <span className="sr-only">Open main menu</span>
+            <svg
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.5"
+              stroke="currentColor"
+              aria-hidden="true"
             >
-              {item.title}
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5"
+              />
+            </svg>
+          </button>
+        </div>
+        <div className="hidden lg:flex lg:gap-x-12">
+          {navigation.map((item) => (
+            <Link
+              key={item.name}
+              href={item.href}
+              className="text-sm font-semibold leading-6 text-foreground hover:text-primary"
+            >
+              {item.name}
             </Link>
           ))}
-        </nav>
-
-        {/* Boutons d'authentification et sélecteur de langue */}
-        <div className="ml-auto flex items-center space-x-3">
-          <ThemeToggle />
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm" className="px-2">
-                <Globe className="h-4 w-4 mr-2" />
-                FR
-                <ChevronDown className="h-4 w-4 ml-1" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem>Français</DropdownMenuItem>
-              <DropdownMenuItem>English</DropdownMenuItem>
-              <DropdownMenuItem>Español</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-<<<<<<< Updated upstream
-          {/* Auth Buttons */}
-          <div className="flex items-center gap-2">
-            <Link href="/auth/login">
-              <Button variant="outline" size="sm">
-=======
-          {/* Menu Utilisateur (non connecté) */}
-          <div className="hidden md:flex items-center gap-3 ml-4">
-            <Button
-              asChild
-              variant="outline"
-              size="sm"
-              className="border border-primary/30 hover:border-primary/80 transition duration-200"
-            >
-              <Link href="/(auth)/login">
->>>>>>> Stashed changes
-                Connexion
-              </Link>
-            </Button>
-            <Button asChild size="sm">
-              <Link href="/(auth)/register">
-                Inscription
-              </Link>
-            </Button>
-          </div>
-
-<<<<<<< Updated upstream
-          {/* Navigation mobile */}
-          <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Menu</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="right" className="pr-0">
-              <div className="px-7">
-                <Link href="/" className="flex items-center space-x-2" onClick={() => setMobileNavOpen(false)}>
-                  <span className="inline-block h-8 w-8 bg-primary rounded-md"></span>
-                  <span className="font-bold">EcoDeli</span>
-                </Link>
-              </div>
-              <nav className="flex flex-col gap-4 px-7 mt-10">
-                {mainNavItems.map((item) => (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className="text-base font-medium transition-colors hover:text-primary"
-                    onClick={() => setMobileNavOpen(false)}
-                  >
-                    {item.title}
-                  </Link>
-                ))}
-                <div className="flex flex-col gap-2 mt-4">
-                  <Button variant="outline" size="sm" asChild>
-                    <Link href="/auth/login" onClick={() => setMobileNavOpen(false)}>
-                      Se connecter
-                    </Link>
-                  </Button>
-                  <Button size="sm" asChild>
-                    <Link href="/auth/register" onClick={() => setMobileNavOpen(false)}>
-                      S&apos;inscrire
-                    </Link>
-                  </Button>
-                </div>
-              </nav>
-            </SheetContent>
-          </Sheet>
-=======
-          {/* Menu Mobile */}
-          <div className="md:hidden flex items-center">
-            <Button
-              variant="ghost"
-              size="icon"
-              className={cn("ml-1", mobileNavOpen && "text-primary")}
-              onClick={() => setMobileNavOpen(!mobileNavOpen)}
-              aria-label="Navigation"
-            >
-              {mobileNavOpen ? (
-                <X className="h-6 w-6" />
-              ) : (
-                <Menu className="h-6 w-6" />
-              )}
-            </Button>
-          </div>
->>>>>>> Stashed changes
         </div>
-      </div>
-
-      {/* Drawer de navigation mobile */}
-      <AnimatePresence>
-        {mobileNavOpen && (
-          <motion.div
-            initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: "auto" }}
-            exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3 }}
-            className="block md:hidden border-t"
-          >
-            <div className="px-4 py-3 space-y-3">
-              {mainNavItems.map((item, index) => (
-                <Link 
-                  key={index}
-                  href={item.href}
-                  className="block py-2 hover:text-primary transition-colors" 
-                  onClick={() => setMobileNavOpen(false)}
+        <div className="hidden lg:flex lg:flex-1 lg:justify-end items-center gap-4">
+          <ThemeToggle />
+          <Link href="/login" className="text-sm font-semibold leading-6 text-foreground hover:text-primary">
+            Log in <span aria-hidden="true">&rarr;</span>
+          </Link>
+          <Button asChild className="ml-2">
+            <Link href="/register">Sign up</Link>
+          </Button>
+        </div>
+      </nav>
+      
+      {/* Mobile menu */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden">
+          <div className="fixed inset-0 bg-black/25" onClick={() => setMobileMenuOpen(false)} />
+          <div className="fixed inset-y-0 right-0 z-50 w-full overflow-y-auto bg-background px-6 py-6 sm:max-w-sm sm:ring-1 sm:ring-gray-900/10">
+            <div className="flex items-center justify-between">
+              <Link href="/" className="-m-1.5 p-1.5">
+                <span className="sr-only">EcoDeli</span>
+                <div className="flex items-center">
+                  <span className="text-2xl font-bold text-primary">Eco<span className="text-green-500">Deli</span></span>
+                </div>
+              </Link>
+              <button
+                type="button"
+                className="-m-2.5 rounded-md p-2.5 text-gray-700 dark:text-gray-200"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <span className="sr-only">Close menu</span>
+                <svg
+                  className="h-6 w-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.5"
+                  stroke="currentColor"
+                  aria-hidden="true"
                 >
-                  {item.title}
-                </Link>
-              ))}
-              <div className="pt-2 border-t grid grid-cols-2 gap-2">
-                <Button
-                  asChild
-                  variant="outline"
-                  size="sm"
-                  className="w-full"
-                >
-                  <Link href="/(auth)/login" onClick={() => setMobileNavOpen(false)}>
-                    Connexion
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="mt-6 flow-root">
+              <div className="-my-6 divide-y divide-gray-500/10">
+                <div className="space-y-2 py-6">
+                  {navigation.map((item) => (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className="-mx-3 block rounded-lg px-3 py-2 text-base font-semibold leading-7 text-foreground hover:bg-gray-50 dark:hover:bg-gray-800"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                </div>
+                <div className="py-6">
+                  <div className="flex items-center mb-4">
+                    <ThemeToggle />
+                  </div>
+                  <Link
+                    href="/login"
+                    className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 text-foreground hover:bg-gray-50 dark:hover:bg-gray-800"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Log in
                   </Link>
-                </Button>
-                <Button
-                  asChild
-                  size="sm"
-                  className="w-full"
-                >
-                  <Link href="/(auth)/register" onClick={() => setMobileNavOpen(false)}>
-                    Inscription
+                  <Link
+                    href="/register"
+                    className="-mx-3 block rounded-lg px-3 py-2.5 text-base font-semibold leading-7 bg-primary text-primary-foreground hover:bg-primary/90 mt-2"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Sign up
                   </Link>
-                </Button>
+                </div>
               </div>
             </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </div>
+        </div>
+      )}
     </header>
-  )
-}
+  );
+} 

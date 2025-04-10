@@ -1,0 +1,9 @@
+{
+  "common": {
+    "welcome": "Bienvenue",
+    "login": "Connexion",
+    "register": "Inscription",
+    "logout": "Déconnexion"
+  }
+}
+

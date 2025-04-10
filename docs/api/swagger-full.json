@@ -1,0 +1,21 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "EcoDeli API",
+    "description": "API pour la plateforme EcoDeli",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/api/example": {
+      "get": {
+        "summary": "Exemple d'endpoint",
+        "responses": {
+          "200": {
+            "description": "Succès"
+          }
+        }
+      }
+    }
+  }
+}
+

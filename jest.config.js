@@ -1,5 +1,3 @@
-<<<<<<< Updated upstream
-=======
 const nextJest = require('next/jest');
 
 const createJestConfig = nextJest({
@@ -46,11 +44,7 @@ const customJestConfig = {
   transformIgnorePatterns: [
     '/node_modules/(?!next-auth|@auth/core|@auth/core/providers|@auth/core/.*)',
   ],
-  transform: {
-    '^.+\\.(js|jsx|ts|tsx)$': ['babel-jest', { presets: ['next/babel'] }],
-  },
 };
 
 // createJestConfig is exported this way to ensure that next/jest can load the Next.js config which is async
 module.exports = createJestConfig(customJestConfig);
->>>>>>> Stashed changes

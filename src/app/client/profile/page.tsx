@@ -18,6 +18,7 @@ import {
   Clock,
   CheckCircle
 } from 'lucide-react';
+import { TutorialReset } from '@/components/client/tutorial/tutorial-reset'
 
 export const metadata: Metadata = {
   title: 'Profil | EcoDeli',
@@ -416,6 +417,12 @@ export default function ProfilePage() {
                     <Clock size={16} className="text-gray-500 mr-2" />
                     <span className="text-gray-700">Livraison préférée entre 18h et 20h</span>
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <h3 className="text-lg font-medium">Tutoriel</h3>
+                  <p className="text-sm text-muted-foreground">Réinitialisez le tutoriel pour revoir les différentes fonctionnalités de la plateforme.</p>
+                  <TutorialReset />
                 </div>
               </div>
             </div>
