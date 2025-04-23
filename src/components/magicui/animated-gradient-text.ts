@@ -1,1 +1,0 @@
-export { AnimatedGradientText } from "./AnimatedGradientText"; 
