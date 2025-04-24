@@ -1,327 +1,466 @@
-import { z } from 'zod';
-import { TRPCError } from '@trpc/server';
-import { hash, compare } from 'bcrypt';
-import { router, publicProcedure, protectedProcedure } from '@/lib/trpc';
-import { prisma } from '@/lib/prisma';
-import { generateVerificationToken, validateVerificationToken, generatePasswordResetToken, validatePasswordResetToken } from '@/lib/tokens';
-import { sendVerificationEmail, sendPasswordResetEmail, sendWelcomeEmail } from '@/lib/email';
+import { z } from "zod";
+import { createTRPCRouter, publicProcedure, protectedProcedure } from "@/server/api/trpc";
+import { TRPCError } from "@trpc/server";
+import { hashPassword, verifyPassword } from "@/lib/auth";
+import { generateVerificationToken, generatePasswordResetToken, verifyVerificationToken, verifyPasswordResetToken, consumePasswordResetToken } from "@/lib/tokens";
+import { sendVerificationEmail, sendPasswordResetEmail } from "@/lib/email";
+import { validatePassword } from "@/lib/auth/password";
 
-// Basic registration schema
+// Schéma de validation commun pour tous les types d'inscription
 const baseRegistrationSchema = z.object({
   firstName: z.string().min(2, "Le prénom doit contenir au moins 2 caractères"),
   lastName: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
   email: z.string().email("Veuillez saisir une adresse email valide"),
-  password: z
-    .string()
-    .min(8, "Le mot de passe doit contenir au moins 8 caractères")
-    .regex(/[A-Z]/, "Le mot de passe doit contenir au moins une lettre majuscule")
-    .regex(/[a-z]/, "Le mot de passe doit contenir au moins une lettre minuscule")
-    .regex(/[0-9]/, "Le mot de passe doit contenir au moins un chiffre"),
+  password: z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères"),
   role: z.enum(["CLIENT", "DELIVERER", "MERCHANT", "PROVIDER"]),
   phone: z.string().optional(),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  postalCode: z.string().optional(),
 });
 
-// Role-specific schemas
-const clientSchema = baseRegistrationSchema;
+// Schéma spécifique pour l'inscription des clients
+const clientRegistrationSchema = baseRegistrationSchema.extend({
+  role: z.literal("CLIENT"),
+});
 
-const delivererSchema = baseRegistrationSchema.extend({
+// Schéma spécifique pour l'inscription des livreurs
+const delivererRegistrationSchema = baseRegistrationSchema.extend({
+  role: z.literal("DELIVERER"),
   vehicleType: z.string().min(1, "Le type de véhicule est requis"),
-  licenseNumber: z.string().min(1, "Le numéro de permis est requis"),
-  idCardNumber: z.string().min(1, "Le numéro de carte d'identité est requis"),
-  address: z.string().min(5, "L'adresse doit contenir au moins 5 caractères"),
-  city: z.string().min(2, "La ville doit contenir au moins 2 caractères"),
-  postalCode: z.string().regex(/^\d{5}$/, "Le code postal doit contenir 5 chiffres"),
+  licenseNumber: z.string().optional(),
+  idCardNumber: z.string().optional(),
   availability: z.array(z.string()).optional(),
 });
 
-const merchantSchema = baseRegistrationSchema.extend({
+// Schéma spécifique pour l'inscription des commerçants
+const merchantRegistrationSchema = baseRegistrationSchema.extend({
+  role: z.literal("MERCHANT"),
   storeName: z.string().min(2, "Le nom du commerce doit contenir au moins 2 caractères"),
   storeType: z.string().min(1, "Le type de commerce est requis"),
-  address: z.string().min(5, "L'adresse doit contenir au moins 5 caractères"),
-  city: z.string().min(2, "La ville doit contenir au moins 2 caractères"),
-  postalCode: z.string().regex(/^\d{5}$/, "Le code postal doit contenir 5 chiffres"),
-  siret: z.string().regex(/^\d{14}$/, "Le numéro SIRET doit contenir 14 chiffres"),
+  siret: z.string().min(14, "Le numéro SIRET doit contenir 14 caractères").max(14),
 });
 
-const providerSchema = baseRegistrationSchema.extend({
+// Schéma spécifique pour l'inscription des prestataires
+const providerRegistrationSchema = baseRegistrationSchema.extend({
+  role: z.literal("PROVIDER"),
   serviceType: z.string().min(1, "Le type de service est requis"),
   experience: z.string().optional(),
-  address: z.string().min(5, "L'adresse doit contenir au moins 5 caractères"),
-  city: z.string().min(2, "La ville doit contenir au moins 2 caractères"),
-  postalCode: z.string().regex(/^\d{5}$/, "Le code postal doit contenir 5 chiffres"),
+  hourlyRate: z.string().optional(),
   serviceArea: z.number().optional(),
   description: z.string().optional(),
-  hourlyRate: z.string().optional(),
   siret: z.string().optional(),
 });
 
-// Union of all registration schemas
-const registrationSchema = z.discriminatedUnion('role', [
-  clientSchema.extend({ role: z.literal('CLIENT') }),
-  delivererSchema.extend({ role: z.literal('DELIVERER') }),
-  merchantSchema.extend({ role: z.literal('MERCHANT') }),
-  providerSchema.extend({ role: z.literal('PROVIDER') }),
+// Union des schémas pour valider tous les types d'inscription
+const registrationSchema = z.discriminatedUnion("role", [
+  clientRegistrationSchema,
+  delivererRegistrationSchema,
+  merchantRegistrationSchema,
+  providerRegistrationSchema,
 ]);
 
-export const authRouter = router({
-  signUp: publicProcedure
+export const authRouter = createTRPCRouter({
+  // Procédure d'inscription
+  register: publicProcedure
     .input(registrationSchema)
-    .mutation(async ({ input }) => {
+    .mutation(async ({ ctx, input }) => {
       const { email, password, firstName, lastName, role, ...roleSpecificData } = input;
       const name = `${firstName} ${lastName}`;
 
-      // Check if user already exists
-      const existingUser = await prisma.user.findUnique({
+      // Validation du mot de passe
+      const passwordValidation = validatePassword(password);
+      if (!passwordValidation.isValid) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: passwordValidation.message || "Mot de passe invalide",
+        });
+      }
+
+      // Vérification si l'utilisateur existe déjà
+      const existingUser = await ctx.prisma.user.findUnique({
         where: { email: email.toLowerCase() },
       });
 
       if (existingUser) {
         throw new TRPCError({
-          code: 'CONFLICT',
-          message: 'Un utilisateur avec cette adresse email existe déjà',
+          code: "CONFLICT",
+          message: "Un utilisateur avec cette adresse email existe déjà",
         });
       }
 
-      // Hash password
-      const hashedPassword = await hash(password, 12);
+      // Hachage du mot de passe
+      const hashedPassword = await hashPassword(password);
 
-      // Create user
-      const user = await prisma.user.create({
+      // Création de l'utilisateur
+      const user = await ctx.prisma.user.create({
         data: {
           name,
           email: email.toLowerCase(),
           password: hashedPassword,
-          role: role,
+          role,
         },
       });
 
-      // Create role-specific profile
-      if (role === 'MERCHANT' && 'storeName' in roleSpecificData && 'storeType' in roleSpecificData) {
-        await prisma.store.create({
-          data: {
-            name: roleSpecificData.storeName,
-            description: 'Description par défaut du commerce',
-            type: roleSpecificData.storeType,
-            siret: roleSpecificData.siret,
-            address: roleSpecificData.address,
-            city: roleSpecificData.city,
-            postalCode: roleSpecificData.postalCode,
-            phoneNumber: roleSpecificData.phone || '',
-            merchantId: user.id,
-          },
-        });
-      } else if (role === 'DELIVERER' && 'vehicleType' in roleSpecificData) {
-        await prisma.delivererProfile.create({
-          data: {
-            userId: user.id,
-            vehicleType: roleSpecificData.vehicleType,
-            licenseNumber: roleSpecificData.licenseNumber,
-            idCardNumber: roleSpecificData.idCardNumber,
-            address: roleSpecificData.address,
-            city: roleSpecificData.city,
-            postalCode: roleSpecificData.postalCode,
-            availability: roleSpecificData.availability,
-            isVerified: false,
-          },
-        });
-      } else if (role === 'PROVIDER' && 'serviceType' in roleSpecificData) {
-        await prisma.serviceProvider.create({
-          data: {
-            userId: user.id,
-            serviceType: roleSpecificData.serviceType,
-            experience: roleSpecificData.experience,
-            hourlyRate: roleSpecificData.hourlyRate,
-            address: roleSpecificData.address,
-            city: roleSpecificData.city,
-            postalCode: roleSpecificData.postalCode,
-            serviceArea: roleSpecificData.serviceArea,
-            description: roleSpecificData.description,
-            siret: roleSpecificData.siret,
-            isVerified: false,
-          },
-        });
-      } else if (role === 'CLIENT') {
-        // Client profile with optional phone
-        await prisma.clientProfile.create({
-          data: {
-            userId: user.id,
-            phone: roleSpecificData.phone,
-          },
-        });
+      // Création du profil spécifique au rôle
+      switch (role) {
+        case "CLIENT":
+          await ctx.prisma.clientProfile.create({
+            data: {
+              userId: user.id,
+              phone: roleSpecificData.phone,
+              address: roleSpecificData.address,
+              city: roleSpecificData.city,
+              postalCode: roleSpecificData.postalCode,
+            },
+          });
+          break;
+          
+        case "DELIVERER":
+          const delivererData = roleSpecificData as z.infer<typeof delivererRegistrationSchema>;
+          await ctx.prisma.delivererProfile.create({
+            data: {
+              userId: user.id,
+              vehicleType: delivererData.vehicleType,
+              licenseNumber: delivererData.licenseNumber,
+              idCardNumber: delivererData.idCardNumber,
+              address: delivererData.address || "",
+              city: delivererData.city || "",
+              postalCode: delivererData.postalCode || "",
+              availability: delivererData.availability || [],
+              isVerified: false,
+            },
+          });
+          break;
+          
+        case "MERCHANT":
+          const merchantData = roleSpecificData as z.infer<typeof merchantRegistrationSchema>;
+          await ctx.prisma.store.create({
+            data: {
+              name: merchantData.storeName,
+              type: merchantData.storeType,
+              description: "Description par défaut du commerce",
+              siret: merchantData.siret,
+              address: merchantData.address || "",
+              city: merchantData.city || "",
+              postalCode: merchantData.postalCode || "",
+              phoneNumber: merchantData.phone || "",
+              merchantId: user.id,
+            },
+          });
+          break;
+          
+        case "PROVIDER":
+          const providerData = roleSpecificData as z.infer<typeof providerRegistrationSchema>;
+          await ctx.prisma.serviceProvider.create({
+            data: {
+              userId: user.id,
+              serviceType: providerData.serviceType,
+              experience: providerData.experience,
+              hourlyRate: providerData.hourlyRate,
+              address: providerData.address || "",
+              city: providerData.city || "",
+              postalCode: providerData.postalCode || "",
+              serviceArea: providerData.serviceArea,
+              description: providerData.description,
+              siret: providerData.siret,
+              isVerified: false,
+            },
+          });
+          break;
       }
 
-      // Generate and store verification token
+      // Génération et stockage du token de vérification
       const verificationToken = await generateVerificationToken(user.id);
 
-      // Send verification email
+      // Envoi de l'email de vérification
       await sendVerificationEmail(
         user.email,
-        user.name || 'Utilisateur',
+        user.name || "Utilisateur",
         verificationToken
       );
 
       return {
-        status: 201,
-        message: 'Inscription réussie. Veuillez vérifier votre email pour activer votre compte.',
-        data: {
-          userId: user.id,
+        success: true,
+        message: "Inscription réussie. Veuillez vérifier votre email pour activer votre compte.",
+        user: {
+          id: user.id,
           name: user.name,
           email: user.email,
           role: user.role,
-        },
+        }
       };
     }),
 
+  // Procédure de vérification d'email
   verifyEmail: publicProcedure
     .input(z.object({ token: z.string() }))
-    .mutation(async ({ input }) => {
-      const { token } = input;
+    .mutation(async ({ ctx, input }) => {
+      const userId = await verifyVerificationToken(input.token);
       
-      // Validate token
-      const result = await validateVerificationToken(token);
-      
-      if (!result.valid || !result.userId) {
+      if (!userId) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Le lien de vérification est invalide ou a expiré',
+          code: "BAD_REQUEST",
+          message: "Le token de vérification est invalide ou a expiré",
         });
       }
       
-      // Update user
-      const user = await prisma.user.update({
-        where: { id: result.userId },
-        data: { emailVerified: new Date() }
+      const user = await ctx.prisma.user.findUnique({
+        where: { id: userId },
       });
       
-      // Send welcome email
-      await sendWelcomeEmail(user.email, user.name || 'Utilisateur');
+      if (!user) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Utilisateur non trouvé",
+        });
+      }
       
       return {
         success: true,
-        message: 'Votre adresse email a été vérifiée avec succès',
+        message: "Votre adresse email a été vérifiée avec succès",
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        }
       };
     }),
 
+  // Procédure de demande de réinitialisation de mot de passe
   forgotPassword: publicProcedure
     .input(z.object({ email: z.string().email() }))
-    .mutation(async ({ input }) => {
-      const { email } = input;
+    .mutation(async ({ ctx, input }) => {
+      const token = await generatePasswordResetToken(input.email);
       
-      // Generate reset token (function handles finding the user)
-      const token = await generatePasswordResetToken(email);
-      
-      if (token) {
-        const user = await prisma.user.findUnique({
-          where: { email: email.toLowerCase() }
-        });
-        
-        if (user) {
-          // Send reset email
-          await sendPasswordResetEmail(
-            user.email,
-            user.name || 'Utilisateur',
-            token
-          );
-        }
+      if (!token) {
+        // Ne pas révéler si l'email existe ou non pour des raisons de sécurité
+        return {
+          success: true,
+          message: "Si cette adresse email est associée à un compte, un email de réinitialisation a été envoyé",
+        };
       }
       
-      // Always return success to prevent email enumeration
-      return {
-        success: true,
-        message: 'Si votre adresse est associée à un compte, un email de réinitialisation a été envoyé',
-      };
-    }),
-
-  resetPassword: publicProcedure
-    .input(z.object({ 
-      token: z.string(),
-      password: z.string()
-        .min(8, "Le mot de passe doit contenir au moins 8 caractères")
-        .regex(/[A-Z]/, "Le mot de passe doit contenir au moins une lettre majuscule")
-        .regex(/[a-z]/, "Le mot de passe doit contenir au moins une lettre minuscule")
-        .regex(/[0-9]/, "Le mot de passe doit contenir au moins un chiffre")
-    }))
-    .mutation(async ({ input }) => {
-      const { token, password } = input;
-      
-      // Validate token
-      const result = await validatePasswordResetToken(token);
-      
-      if (!result.valid || !result.userId) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Le lien de réinitialisation est invalide ou a expiré',
-        });
-      }
-      
-      // Hash new password
-      const hashedPassword = await hash(password, 12);
-      
-      // Update user
-      await prisma.user.update({
-        where: { id: result.userId },
-        data: { password: hashedPassword }
+      const user = await ctx.prisma.user.findUnique({
+        where: { email: input.email.toLowerCase() },
       });
       
+      if (user) {
+        await sendPasswordResetEmail(
+          user.email,
+          user.name || "Utilisateur",
+          token
+        );
+      }
+      
       return {
         success: true,
-        message: 'Votre mot de passe a été réinitialisé avec succès',
+        message: "Si cette adresse email est associée à un compte, un email de réinitialisation a été envoyé",
       };
     }),
 
-  validateSession: protectedProcedure.query(async ({ ctx }) => {
-    return {
-      user: ctx.session.user,
-    };
-  }),
+  // Procédure de réinitialisation de mot de passe
+  resetPassword: publicProcedure
+    .input(z.object({
+      token: z.string(),
+      password: z.string().min(8),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // Validation du mot de passe
+      const passwordValidation = validatePassword(input.password);
+      if (!passwordValidation.isValid) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: passwordValidation.message || "Mot de passe invalide",
+        });
+      }
+      
+      const userId = await verifyPasswordResetToken(input.token);
+      
+      if (!userId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Le token de réinitialisation est invalide ou a expiré",
+        });
+      }
+      
+      // Hachage du nouveau mot de passe
+      const hashedPassword = await hashPassword(input.password);
+      
+      // Mise à jour du mot de passe
+      await ctx.prisma.user.update({
+        where: { id: userId },
+        data: { password: hashedPassword },
+      });
+      
+      // Consommation du token
+      await consumePasswordResetToken(input.token);
+      
+      return {
+        success: true,
+        message: "Votre mot de passe a été réinitialisé avec succès",
+      };
+    }),
 
+  // Procédure pour obtenir le profil de l'utilisateur connecté
+  getProfile: protectedProcedure
+    .query(async ({ ctx }) => {
+      const userId = ctx.session.user.id;
+      
+      const user = await ctx.prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          image: true,
+          emailVerified: true,
+          clientProfile: true,
+          delivererProfile: true,
+          serviceProvider: true,
+          stores: true,
+        },
+      });
+      
+      if (!user) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Utilisateur non trouvé",
+        });
+      }
+      
+      return user;
+    }),
+
+  // Procédure pour mettre à jour le profil de l'utilisateur connecté
+  updateProfile: protectedProcedure
+    .input(z.object({
+      name: z.string().optional(),
+      image: z.string().optional(),
+      phone: z.string().optional(),
+      address: z.string().optional(),
+      city: z.string().optional(),
+      postalCode: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      const userRole = ctx.session.user.role;
+      
+      // Mise à jour des informations de base de l'utilisateur
+      const updatedUser = await ctx.prisma.user.update({
+        where: { id: userId },
+        data: {
+          name: input.name,
+          image: input.image,
+        },
+      });
+      
+      // Mise à jour des informations spécifiques au rôle
+      switch (userRole) {
+        case "CLIENT":
+          await ctx.prisma.clientProfile.upsert({
+            where: { userId },
+            update: {
+              phone: input.phone,
+              address: input.address,
+              city: input.city,
+              postalCode: input.postalCode,
+            },
+            create: {
+              userId,
+              phone: input.phone,
+              address: input.address,
+              city: input.city,
+              postalCode: input.postalCode,
+            },
+          });
+          break;
+          
+        case "DELIVERER":
+          await ctx.prisma.delivererProfile.update({
+            where: { userId },
+            data: {
+              address: input.address,
+              city: input.city,
+              postalCode: input.postalCode,
+            },
+          });
+          break;
+          
+        case "PROVIDER":
+          await ctx.prisma.serviceProvider.update({
+            where: { userId },
+            data: {
+              address: input.address,
+              city: input.city,
+              postalCode: input.postalCode,
+            },
+          });
+          break;
+      }
+      
+      return {
+        success: true,
+        message: "Profil mis à jour avec succès",
+        user: updatedUser,
+      };
+    }),
+
+  // Procédure pour changer le mot de passe de l'utilisateur connecté
   changePassword: protectedProcedure
     .input(z.object({
       currentPassword: z.string(),
-      newPassword: z.string()
-        .min(8, "Le mot de passe doit contenir au moins 8 caractères")
-        .regex(/[A-Z]/, "Le mot de passe doit contenir au moins une lettre majuscule")
-        .regex(/[a-z]/, "Le mot de passe doit contenir au moins une lettre minuscule")
-        .regex(/[0-9]/, "Le mot de passe doit contenir au moins un chiffre")
+      newPassword: z.string().min(8),
     }))
     .mutation(async ({ ctx, input }) => {
-      const { currentPassword, newPassword } = input;
       const userId = ctx.session.user.id;
       
-      // Get user with password
-      const user = await prisma.user.findUnique({
+      const user = await ctx.prisma.user.findUnique({
         where: { id: userId },
-        select: { password: true }
+        select: {
+          password: true,
+        },
       });
       
       if (!user || !user.password) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Compte non valide pour cette opération',
+          code: "UNAUTHORIZED",
+          message: "Utilisateur non trouvé ou connecté via un fournisseur externe",
         });
       }
       
-      // Verify current password
-      const passwordValid = await compare(currentPassword, user.password);
+      // Vérification du mot de passe actuel
+      const isValid = await verifyPassword(input.currentPassword, user.password);
       
-      if (!passwordValid) {
+      if (!isValid) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Le mot de passe actuel est incorrect',
+          code: "UNAUTHORIZED",
+          message: "Mot de passe actuel incorrect",
         });
       }
       
-      // Hash and update new password
-      const hashedPassword = await hash(newPassword, 12);
+      // Validation du nouveau mot de passe
+      const passwordValidation = validatePassword(input.newPassword);
+      if (!passwordValidation.isValid) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: passwordValidation.message || "Nouveau mot de passe invalide",
+        });
+      }
       
-      await prisma.user.update({
+      // Hachage et mise à jour du nouveau mot de passe
+      const hashedPassword = await hashPassword(input.newPassword);
+      
+      await ctx.prisma.user.update({
         where: { id: userId },
-        data: { password: hashedPassword }
+        data: { password: hashedPassword },
       });
       
       return {
         success: true,
-        message: 'Votre mot de passe a été modifié avec succès',
+        message: "Mot de passe changé avec succès",
       };
     }),
-}); 
+});

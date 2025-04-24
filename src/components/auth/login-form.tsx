@@ -2,203 +2,184 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import Link from "next/link";
+import { useTranslations } from "next-intl";
 
-// Schema for login form
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { getAuthErrorMessage } from "@/lib/auth-error";
+
+// Schéma de validation pour le formulaire de connexion
 const loginSchema = z.object({
-  email: z.string().email({
-    message: "Veuillez saisir une adresse email valide",
-  }),
-  password: z.string().min(1, {
-    message: "Veuillez saisir votre mot de passe",
-  }),
-  rememberMe: z.boolean().optional(),
+  email: z.string().email("Veuillez saisir une adresse email valide"),
+  password: z.string().min(1, "Le mot de passe est requis"),
 });
 
-type LoginFormData = z.infer<typeof loginSchema>;
+type LoginFormValues = z.infer<typeof loginSchema>;
 
 export function LoginForm() {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [authError, setAuthError] = useState<string | null>(null);
   const router = useRouter();
+  const t = useTranslations("auth");
+  const searchParams = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
+  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const error = searchParams.get("error");
+  
+  const [isLoading, setIsLoading] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(
+    error ? getAuthErrorMessage(error) : null
+  );
 
   const {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginFormData>({
+  } = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
       email: "",
       password: "",
-      rememberMe: false,
     },
   });
 
-  const onSubmit = async (data: LoginFormData) => {
-    setIsSubmitting(true);
+  const onSubmit = async (data: LoginFormValues) => {
+    setIsLoading(true);
     setAuthError(null);
-    
+
     try {
-      // Here would be the actual API call to authenticate the user
-      console.log("Login attempt:", data.email);
-      
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-      
-      // For demonstration, let's simulate a successful login
-      // In a real implementation, this would check the response from the server
-      if (data.email === "demo@ecodeli.fr" && data.password === "password") {
-        // Redirect to dashboard after successful login
-        router.push("/dashboard");
-      } else {
-        // Show authentication error
-        setAuthError("Email ou mot de passe incorrect");
+      const result = await signIn("credentials", {
+        email: data.email.toLowerCase(),
+        password: data.password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        setAuthError(getAuthErrorMessage(result.error) || t("login.errors.default"));
+        setIsLoading(false);
+        return;
       }
+
+      router.push(callbackUrl);
+      router.refresh();
     } catch (error) {
       console.error("Login error:", error);
-      setAuthError("Une erreur est survenue. Veuillez réessayer plus tard.");
-    } finally {
-      setIsSubmitting(false);
+      setAuthError(t("login.errors.unexpected"));
+      setIsLoading(false);
     }
   };
 
   return (
-    <div className="w-full max-w-md mx-auto px-4">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-2">Connexion</h1>
-        <p className="text-muted-foreground">
-          Accédez à votre compte EcoDeli
-        </p>
-      </div>
-
-      {authError && (
-        <div className="mb-6 p-3 bg-destructive/10 border border-destructive rounded-md text-destructive text-sm">
-          {authError}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div className="space-y-4">
+    <Card className="w-full max-w-md mx-auto">
+      <CardHeader>
+        <CardTitle className="text-2xl font-bold text-center">{t("login.title")}</CardTitle>
+        <CardDescription className="text-center">
+          {t("login.description")}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          {authError && (
+            <Alert variant="destructive">
+              <AlertDescription>{authError}</AlertDescription>
+            </Alert>
+          )}
+          
           <div className="space-y-2">
-            <label
-              htmlFor="email"
-              className="text-sm font-medium leading-none"
-            >
-              Email
-            </label>
-            <input
+            <Label htmlFor="email">{t("login.form.email.label")}</Label>
+            <Input
               id="email"
               type="email"
+              placeholder={t("login.form.email.placeholder")}
               autoComplete="email"
-              className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ${
-                errors.email ? "border-destructive" : "border-input"
-              }`}
+              disabled={isLoading}
               {...register("email")}
             />
             {errors.email && (
-              <p className="text-sm text-destructive">{errors.email.message}</p>
+              <p className="text-sm text-red-500">{errors.email.message}</p>
             )}
           </div>
-
+          
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label
-                htmlFor="password"
-                className="text-sm font-medium leading-none"
-              >
-                Mot de passe
-              </label>
+              <Label htmlFor="password">{t("login.form.password.label")}</Label>
               <Link
-                href="/reset-password"
+                href="/forgot-password"
                 className="text-sm text-primary hover:underline"
               >
-                Mot de passe oublié?
+                {t("login.forgotPassword")}
               </Link>
             </div>
-            <input
+            <Input
               id="password"
               type="password"
+              placeholder="••••••••"
               autoComplete="current-password"
-              className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ${
-                errors.password ? "border-destructive" : "border-input"
-              }`}
+              disabled={isLoading}
               {...register("password")}
             />
             {errors.password && (
-              <p className="text-sm text-destructive">
-                {errors.password.message}
-              </p>
+              <p className="text-sm text-red-500">{errors.password.message}</p>
             )}
           </div>
-
-          <div className="flex items-center space-x-2">
-            <input
-              id="rememberMe"
-              type="checkbox"
-              className="h-4 w-4 rounded border-input"
-              {...register("rememberMe")}
-            />
-            <label
-              htmlFor="rememberMe"
-              className="text-sm text-muted-foreground"
+          
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? t("login.form.submitting") : t("login.form.submit")}
+          </Button>
+          
+          <div className="relative my-4">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">
+                {t("login.orContinueWith")}
+              </span>
+            </div>
+          </div>
+          
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full"
+            onClick={() => {
+              setIsLoading(true);
+              signIn("google", { callbackUrl });
+            }}
+            disabled={isLoading}
+          >
+            <svg
+              className="mr-2 h-4 w-4"
+              aria-hidden="true"
+              focusable="false"
+              data-prefix="fab"
+              data-icon="google"
+              role="img"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 488 512"
             >
-              Se souvenir de moi
-            </label>
-          </div>
-        </div>
-
-        <button
-          type="submit"
-          disabled={isSubmitting}
-          className={`w-full py-2.5 px-4 bg-primary text-primary-foreground rounded-md text-sm font-medium ${
-            isSubmitting ? "opacity-70 cursor-not-allowed" : ""
-          }`}
-        >
-          {isSubmitting ? "Connexion en cours..." : "Se connecter"}
-        </button>
-
-        <div className="mt-4 text-center text-sm">
-          <p className="text-muted-foreground">
-            Vous n&apos;avez pas de compte?{" "}
-            <Link href="/register" className="text-primary hover:underline">
-              S&apos;inscrire
-            </Link>
-          </p>
-        </div>
-
-        {/* Social login options would go here */}
-        <div className="relative mt-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-border"></div>
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">
-              Ou continuer avec
-            </span>
-          </div>
-        </div>
-        
-        <div className="grid grid-cols-2 gap-4 mt-6">
-          <button
-            type="button"
-            className="flex items-center justify-center py-2 px-4 border border-input rounded-md text-sm font-medium bg-background"
-          >
+              <path
+                fill="currentColor"
+                d="M488 261.8C488 403.3 391.1 504 248 504 110.8 504 0 393.2 0 256S110.8 8 248 8c66.8 0 123 24.5 166.3 64.9l-67.5 64.9C258.5 52.6 94.3 116.6 94.3 256c0 86.5 69.1 156.6 153.7 156.6 98.2 0 135-70.4 140.8-106.9H248v-85.3h236.1c2.3 12.7 3.9 24.9 3.9 41.4z"
+              ></path>
+            </svg>
             Google
-          </button>
-          <button
-            type="button"
-            className="flex items-center justify-center py-2 px-4 border border-input rounded-md text-sm font-medium bg-background"
-          >
-            Facebook
-          </button>
-        </div>
-      </form>
-    </div>
+          </Button>
+        </form>
+      </CardContent>
+      <CardFooter className="flex justify-center">
+        <p className="text-sm text-center text-muted-foreground">
+          {t("login.noAccount")}{" "}
+          <Link href="/register" className="text-primary hover:underline">
+            {t("login.register")}
+          </Link>
+        </p>
+      </CardFooter>
+    </Card>
   );
 }
-
-export default LoginForm;

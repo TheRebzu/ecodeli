@@ -1,59 +1,51 @@
 import nodemailer from "nodemailer";
-import { env } from "@/lib/env";
 
-// Create reusable transporter
+// Configuration du transporteur d'emails
 const transporter = nodemailer.createTransport({
-  host: env.SMTP_HOST,
-  port: env.SMTP_PORT,
-  secure: env.SMTP_PORT === 465,
+  host: process.env.EMAIL_SERVER_HOST || "smtp.example.com",
+  port: parseInt(process.env.EMAIL_SERVER_PORT || "587"),
+  secure: process.env.EMAIL_SERVER_SECURE === "true",
   auth: {
-    user: env.SMTP_USER,
-    pass: env.SMTP_PASSWORD,
+    user: process.env.EMAIL_SERVER_USER || "user@example.com",
+    pass: process.env.EMAIL_SERVER_PASSWORD || "password",
   },
 });
 
-// Send account verification email
+/**
+ * Envoie un email de vérification à l'utilisateur
+ * @param to Adresse email du destinataire
+ * @param name Nom du destinataire
+ * @param token Token de vérification
+ * @returns Résultat de l'envoi
+ */
 export async function sendVerificationEmail(
   to: string,
   name: string,
   token: string
-) {
-  const verificationUrl = `${env.NEXTAUTH_URL}/verify-email/${token}`;
-
-  const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #333; text-align: center;">Bienvenue sur EcoDeli, ${name}!</h2>
-      <p style="color: #555; line-height: 1.5;">
-        Merci de vous être inscrit(e) sur EcoDeli. Pour activer votre compte, veuillez cliquer sur le bouton ci-dessous:
-      </p>
-      <div style="text-align: center; margin: 30px 0;">
-        <a href="${verificationUrl}" style="background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
-          Vérifier mon adresse email
-        </a>
-      </div>
-      <p style="color: #555; line-height: 1.5;">
-        Si vous n'avez pas créé de compte, vous pouvez ignorer cet email.
-      </p>
-      <p style="color: #555; line-height: 1.5;">
-        Si le bouton ne fonctionne pas, vous pouvez copier et coller le lien suivant dans votre navigateur:
-      </p>
-      <p style="color: #555; line-height: 1.5; word-break: break-all;">
-        ${verificationUrl}
-      </p>
-      <p style="color: #777; font-size: 14px; margin-top: 40px; text-align: center;">
-        &copy; ${new Date().getFullYear()} EcoDeli. Tous droits réservés.
-      </p>
-    </div>
-  `;
-
+): Promise<boolean> {
   try {
+    const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${token}`;
+    
     await transporter.sendMail({
-      from: `"EcoDeli" <${env.SMTP_FROM}>`,
+      from: `"EcoDeli" <${process.env.EMAIL_FROM || "noreply@ecodeli.com"}>`,
       to,
-      subject: "Vérification de votre adresse email - EcoDeli",
-      html,
+      subject: "Vérification de votre adresse email",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #4CAF50;">Bienvenue sur EcoDeli, ${name} !</h2>
+          <p>Merci de vous être inscrit sur notre plateforme. Pour activer votre compte, veuillez cliquer sur le lien ci-dessous :</p>
+          <p style="margin: 20px 0;">
+            <a href="${verificationUrl}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+              Vérifier mon adresse email
+            </a>
+          </p>
+          <p>Si vous n'avez pas créé de compte sur EcoDeli, vous pouvez ignorer cet email.</p>
+          <p>Ce lien expirera dans 24 heures.</p>
+          <p>Cordialement,<br>L'équipe EcoDeli</p>
+        </div>
+      `,
     });
-    console.log(`Verification email sent to ${to}`);
+    
     return true;
   } catch (error) {
     console.error("Error sending verification email:", error);
@@ -61,51 +53,42 @@ export async function sendVerificationEmail(
   }
 }
 
-// Send password reset email
+/**
+ * Envoie un email de réinitialisation de mot de passe
+ * @param to Adresse email du destinataire
+ * @param name Nom du destinataire
+ * @param token Token de réinitialisation
+ * @returns Résultat de l'envoi
+ */
 export async function sendPasswordResetEmail(
   to: string,
   name: string,
   token: string
-) {
-  const resetUrl = `${env.NEXTAUTH_URL}/reset-password/${token}`;
-
-  const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #333; text-align: center;">Réinitialisation de mot de passe</h2>
-      <p style="color: #555; line-height: 1.5;">
-        Bonjour ${name},
-      </p>
-      <p style="color: #555; line-height: 1.5;">
-        Vous avez demandé à réinitialiser votre mot de passe. Cliquez sur le bouton ci-dessous pour créer un nouveau mot de passe:
-      </p>
-      <div style="text-align: center; margin: 30px 0;">
-        <a href="${resetUrl}" style="background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
-          Réinitialiser mon mot de passe
-        </a>
-      </div>
-      <p style="color: #555; line-height: 1.5;">
-        Si vous n'avez pas demandé à réinitialiser votre mot de passe, vous pouvez ignorer cet email.
-      </p>
-      <p style="color: #555; line-height: 1.5;">
-        Si le bouton ne fonctionne pas, vous pouvez copier et coller le lien suivant dans votre navigateur:
-      </p>
-      <p style="color: #555; line-height: 1.5; word-break: break-all;">
-        ${resetUrl}
-      </p>
-      <p style="color: #777; font-size: 14px; margin-top: 40px; text-align: center;">
-        &copy; ${new Date().getFullYear()} EcoDeli. Tous droits réservés.
-      </p>
-    </div>
-  `;
-
+): Promise<boolean> {
   try {
+    const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;
+    
     await transporter.sendMail({
-      from: `"EcoDeli" <${env.SMTP_FROM}>`,
+      from: `"EcoDeli" <${process.env.EMAIL_FROM || "noreply@ecodeli.com"}>`,
       to,
-      subject: "Réinitialisation de votre mot de passe - EcoDeli",
-      html,
+      subject: "Réinitialisation de votre mot de passe",
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #4CAF50;">Réinitialisation de mot de passe</h2>
+          <p>Bonjour ${name},</p>
+          <p>Vous avez demandé la réinitialisation de votre mot de passe. Cliquez sur le lien ci-dessous pour créer un nouveau mot de passe :</p>
+          <p style="margin: 20px 0;">
+            <a href="${resetUrl}" style="background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">
+              Réinitialiser mon mot de passe
+            </a>
+          </p>
+          <p>Si vous n'avez pas demandé cette réinitialisation, vous pouvez ignorer cet email.</p>
+          <p>Ce lien expirera dans 1 heure.</p>
+          <p>Cordialement,<br>L'équipe EcoDeli</p>
+        </div>
+      `,
     });
-    console.log(`Password reset email sent to ${to}`);
+    
     return true;
   } catch (error) {
     console.error("Error sending password reset email:", error);
@@ -113,42 +96,36 @@ export async function sendPasswordResetEmail(
   }
 }
 
-// Send welcome email after verification
-export async function sendWelcomeEmail(to: string, name: string) {
-  const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <h2 style="color: #333; text-align: center;">Bienvenue sur EcoDeli!</h2>
-      <p style="color: #555; line-height: 1.5;">
-        Bonjour ${name},
-      </p>
-      <p style="color: #555; line-height: 1.5;">
-        Votre compte a été vérifié avec succès! Nous sommes ravis de vous accueillir sur EcoDeli.
-      </p>
-      <p style="color: #555; line-height: 1.5;">
-        Vous pouvez maintenant vous connecter et commencer à utiliser nos services.
-      </p>
-      <div style="text-align: center; margin: 30px 0;">
-        <a href="${env.NEXTAUTH_URL}/login" style="background-color: #4F46E5; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold;">
-          Se connecter
-        </a>
-      </div>
-      <p style="color: #777; font-size: 14px; margin-top: 40px; text-align: center;">
-        &copy; ${new Date().getFullYear()} EcoDeli. Tous droits réservés.
-      </p>
-    </div>
-  `;
-
+/**
+ * Envoie un email de notification
+ * @param to Adresse email du destinataire
+ * @param subject Sujet de l'email
+ * @param content Contenu HTML de l'email
+ * @returns Résultat de l'envoi
+ */
+export async function sendNotificationEmail(
+  to: string,
+  subject: string,
+  content: string
+): Promise<boolean> {
   try {
     await transporter.sendMail({
-      from: `"EcoDeli" <${env.SMTP_FROM}>`,
+      from: `"EcoDeli" <${process.env.EMAIL_FROM || "noreply@ecodeli.com"}>`,
       to,
-      subject: "Bienvenue sur EcoDeli!",
-      html,
+      subject,
+      html: `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          ${content}
+          <p style="margin-top: 30px; font-size: 12px; color: #666;">
+            Cet email a été envoyé automatiquement par EcoDeli. Merci de ne pas y répondre.
+          </p>
+        </div>
+      `,
     });
-    console.log(`Welcome email sent to ${to}`);
+    
     return true;
   } catch (error) {
-    console.error("Error sending welcome email:", error);
+    console.error("Error sending notification email:", error);
     return false;
   }
-} 
+}

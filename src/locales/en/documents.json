@@ -1,0 +1,75 @@
+{
+  "documents": {
+    "upload": {
+      "title": "Document Upload",
+      "description": "Upload your documents for verification",
+      "form": {
+        "documentType": {
+          "label": "Document Type",
+          "options": {
+            "idCard": "ID Card",
+            "driverLicense": "Driver's License",
+            "businessRegistration": "Business Registration",
+            "insurance": "Insurance Certificate",
+            "other": "Other Document"
+          }
+        },
+        "description": {
+          "label": "Description (optional)",
+          "placeholder": "Add additional information about this document..."
+        },
+        "file": {
+          "label": "File",
+          "formats": "Accepted formats: PDF, JPG, JPEG, PNG (max 5 MB)"
+        },
+        "submit": "Upload Document",
+        "submitting": "Uploading..."
+      },
+      "success": "Document uploaded successfully. It will be verified by our team.",
+      "error": "An error occurred while uploading the document."
+    },
+    "list": {
+      "title": "My Documents",
+      "empty": "You haven't uploaded any documents yet.",
+      "status": {
+        "pending": "Pending verification",
+        "verified": "Verified",
+        "rejected": "Rejected"
+      },
+      "actions": {
+        "view": "View",
+        "delete": "Delete",
+        "upload": "Upload new document"
+      }
+    },
+    "verification": {
+      "title": "Document Verification",
+      "description": "To ensure the safety and quality of our service, we need to verify certain documents.",
+      "required": {
+        "title": "Required Documents",
+        "deliverer": [
+          "ID card or passport",
+          "Driver's license (for motorized vehicles)",
+          "Insurance certificate"
+        ],
+        "merchant": [
+          "Business registration certificate",
+          "Professional liability insurance",
+          "ID card of the manager"
+        ],
+        "provider": [
+          "ID card or passport",
+          "Proof of qualifications or diplomas",
+          "Professional insurance certificate"
+        ]
+      },
+      "status": {
+        "title": "Verification Status",
+        "pending": "Your account is pending verification. We will review your documents as soon as possible.",
+        "incomplete": "Please upload all required documents to complete your account verification.",
+        "verified": "Your account is verified. You can now access all features.",
+        "rejected": "Some of your documents have been rejected. Please upload them again."
+      }
+    }
+  }
+}
