@@ -15,5 +15,21 @@
       "DELIVERED": "Delivered",
       "CANCELLED": "Cancelled"
     }
+  },
+  "metadata": {
+    "title": "EcoDeli",
+    "description": "Eco-friendly delivery platform",
+    "keywords": "delivery, eco-friendly, sustainable"
+  },
+  "navigation": {
+    "home": "Home",
+    "about": "About",
+    "services": "Services",
+    "contact": "Contact"
+  },
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "forgotPassword": "Forgot Password"
   }
 }

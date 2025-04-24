@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { useRouter } from 'next/navigation'
+import { AlertTriangle } from 'lucide-react'
 
 interface ErrorProps {
   error: Error & { digest?: string }
@@ -13,24 +14,37 @@ export default function Error({ error, reset }: ErrorProps) {
   const router = useRouter()
 
   useEffect(() => {
-    // Optionally log the error to an error reporting service
-    console.error(error)
+    // Log l'erreur dans la console pour le débogage
+    console.error('Error occurred:', error)
   }, [error])
 
   return (
-    <div className="flex min-h-[50vh] flex-col items-center justify-center gap-4 text-center">
-      <h2 className="text-2xl font-bold">Something went wrong!</h2>
-      <p className="text-muted-foreground">
-        {error.message || 'An unexpected error occurred'}
-      </p>
-      <div className="flex gap-2">
-        <Button onClick={reset} variant="outline">
-          Try again
+    <div className="flex min-h-[70vh] flex-col items-center justify-center gap-6 px-4 py-16 text-center md:py-24">
+      <div className="rounded-full bg-destructive/10 p-5">
+        <AlertTriangle className="h-10 w-10 text-destructive" />
+      </div>
+      
+      <div className="max-w-md space-y-2">
+        <h2 className="text-3xl font-bold tracking-tight">Une erreur est survenue</h2>
+        <p className="text-muted-foreground">
+          {error.message || "Quelque chose s'est mal passé. Veuillez réessayer ou revenir à l'accueil."}
+        </p>
+      </div>
+      
+      <div className="flex gap-3">
+        <Button onClick={reset} variant="default">
+          Réessayer
         </Button>
-        <Button onClick={() => router.push('/')}>
-          Go back home
+        <Button onClick={() => router.push('/home')} variant="outline">
+          Retour à l&apos;accueil
         </Button>
       </div>
+      
+      {error.digest && (
+        <p className="text-xs text-muted-foreground">
+          Erreur ID: {error.digest}
+        </p>
+      )}
     </div>
   )
 }
