@@ -1,0 +1,64 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Database Schema
+
+EcoDeli uses Prisma ORM with a PostgreSQL database. The schema is defined in [prisma/schema.prisma](mdc:prisma/schema.prisma).
+
+## Core Models
+
+### Users and Authentication
+- `User` - Core user model with role-based profiles
+- `RefreshToken` - For JWT refresh functionality
+- `VerificationToken` - For email verification
+- `PasswordResetToken` - For password reset flow
+- `Session` - For managing active sessions
+
+### User Profiles
+- `ClientProfile` - Client-specific profile data
+- `DeliveryProfile` - Delivery personnel profile
+- `MerchantProfile` - Merchant business profile
+- `ProviderProfile` - Service provider profile
+- `Address` - User addresses (multiple per profile)
+
+### Delivery System
+- `Delivery` - Core delivery entity
+- `DeliveryDetails` - Detailed delivery information
+- `StatusHistory` - Tracking delivery status changes
+- `TrackingEvent` - Detailed tracking events
+- `Bid` - Delivery bid system for deliverers
+- `Assignment` - Delivery personnel assignments
+- `DeliveryRoute` - Routes offered by delivery personnel
+
+### Financial System
+- `Payment` - Payment transactions
+- `Wallet` - User wallet for transactions
+- `WalletTransaction` - Wallet transaction history
+- `Invoice` - Invoicing system
+- `InvoiceItem` - Individual invoice items
+
+### Services and Products
+- `Service` - Services offered by providers
+- `ServiceCategory` - Categories for services
+- `ServiceBooking` - Service booking entity
+- `ServiceReview` - Reviews for services
+- `Product` - Products from merchants
+- `Warehouse` - Warehouse management
+- `StorageBox` - Physical storage boxes
+- `StorageRental` - Storage rental bookings
+
+### Communication
+- `Notification` - User notifications
+- `Activity` - User activity history
+- `Announcement` - System announcements
+
+## Key Relationships
+
+- Users have role-specific profiles (1:1)
+- Profiles have multiple addresses (1:N)
+- Clients make delivery requests (1:N)
+- Delivery personnel fulfill deliveries (1:N)
+- Merchants offer products (1:N)
+- Providers offer services (1:N)

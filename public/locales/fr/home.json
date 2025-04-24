@@ -1,0 +1,27 @@
+{
+  "login": "Connexion",
+  "register": "Inscription",
+  "title": "Livraison collaborative et services à la personne",
+  "description": "EcoDeli est une plateforme de crowdshipping qui met en relation des particuliers et des entreprises pour la livraison de colis et des services à la personne.",
+  "getStarted": "Commencer",
+  "learnMore": "En savoir plus",
+  "features": {
+    "title": "Nos services",
+    "description": "EcoDeli propose une large gamme de services pour répondre à tous vos besoins.",
+    "delivery": {
+      "title": "Livraison de colis",
+      "description": "Faites livrer vos colis par des particuliers à moindre coût et de manière écologique."
+    },
+    "services": {
+      "title": "Services à la personne",
+      "description": "Bénéficiez de services personnalisés comme le transport, la garde d'animaux ou les petits travaux."
+    },
+    "merchants": {
+      "title": "Espace commerçants",
+      "description": "Proposez la livraison à domicile à vos clients grâce à notre réseau de livreurs."
+    }
+  },
+  "footer": {
+    "rights": "Tous droits réservés."
+  }
+}
