@@ -1,24 +1,27 @@
-import React from 'react'
-import { cn } from '@/lib/utils'
+import React from 'react';
+import { cn } from '@/lib/utils';
 
 interface ContainerProps extends React.HTMLAttributes<HTMLDivElement> {
-  children: React.ReactNode
+  children: React.ReactNode;
+  fluid?: boolean;
 }
 
-export const Container = ({
+export function Container({
   children,
+  fluid = false,
   className,
   ...props
-}: ContainerProps) => {
+}: ContainerProps) {
   return (
     <div
       className={cn(
-        'w-full max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8',
+        'mx-auto w-full',
+        fluid ? 'px-4' : 'max-w-screen-xl px-4 md:px-8',
         className
       )}
       {...props}
     >
       {children}
     </div>
-  )
+  );
 } 
