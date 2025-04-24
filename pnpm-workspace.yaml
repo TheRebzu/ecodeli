@@ -2,4 +2,13 @@ overrides:
   cookie@<0.7.0: '>=0.7.0'
 
 onlyBuiltDependencies:
+  - '@prisma/client'
+  - '@prisma/engines'
   - '@sentry/cli'
+  - bcrypt
+  - canvas
+  - esbuild
+  - msw
+  - prisma
+  - sharp
+  - unrs-resolver

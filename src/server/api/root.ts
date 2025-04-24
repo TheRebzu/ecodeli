@@ -1,36 +1,19 @@
-import { router } from '@/lib/trpc';
-import { userRouter } from './routers/user';
-import { deliveryRouter } from './routers/delivery';
-import { announcementRouter } from './routers/announcement';
-import { merchantRouter } from './routers/merchant';
-import { providerRouter } from './routers/provider';
-import { paymentRouter } from './routers/payment';
-import { authRouter } from './routers/auth';
-import { subscriptionRouter } from './routers/subscription';
-import { warehouseRouter } from './routers/warehouse';
-import { analyticsRouter } from './routers/analytics';
-import { localizationRouter } from './routers/localization';
-import { tutorialStepRouter } from './routers/tutorialStep';
-import { notificationRouter } from './routers/notification';
-import { invoiceRouter } from "./routers/invoice";
+import { authRouter } from "@/server/api/routers/auth";
+import { dashboardRouter } from "@/server/api/routers/dashboard";
+import { documentsRouter } from "@/server/api/routers/documents";
+import { createTRPCRouter } from "@/server/api/trpc";
 
-export const appRouter = router({
-  user: userRouter,
-  delivery: deliveryRouter,
-  announcement: announcementRouter,
-  merchant: merchantRouter,
-  provider: providerRouter,
-  payment: paymentRouter,
+/**
+ * Ce fichier contient la définition du routeur API tRPC principal.
+ * Il importe tous les sous-routeurs et les exporte comme un routeur unique.
+ */
+
+export const appRouter = createTRPCRouter({
   auth: authRouter,
-  subscription: subscriptionRouter,
-  warehouse: warehouseRouter,
-  analytics: analyticsRouter,
-  localization: localizationRouter,
-  tutorialStep: tutorialStepRouter,
-  notification: notificationRouter,
-  invoice: invoiceRouter,
+  dashboard: dashboardRouter,
+  documents: documentsRouter,
+  // Ajoutez d'autres routeurs ici au besoin
 });
 
-// Export type router type signature,
-// NOT the router itself.
-export type AppRouter = typeof appRouter; 
+// Type d'inférence du routeur API - ne pas importer depuis d'autres fichiers
+export type AppRouter = typeof appRouter;

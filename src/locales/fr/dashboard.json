@@ -1,0 +1,302 @@
+{
+  "dashboard": {
+    "common": {
+      "loading": "Chargement...",
+      "error": {
+        "title": "Une erreur est survenue",
+        "description": "Impossible de charger les données du tableau de bord. Veuillez réessayer.",
+        "retry": "Réessayer"
+      },
+      "empty": {
+        "title": "Aucune donnée disponible",
+        "description": "Il n'y a pas encore de données à afficher."
+      }
+    },
+    "client": {
+      "title": "Tableau de bord Client",
+      "description": "Gérez vos commandes, adresses et méthodes de paiement",
+      "stats": {
+        "totalOrders": "Total des commandes",
+        "pendingOrders": "Commandes en cours",
+        "completedOrders": "Commandes livrées"
+      },
+      "recentOrders": {
+        "title": "Commandes récentes",
+        "description": "Vos dernières commandes",
+        "empty": {
+          "title": "Aucune commande récente",
+          "description": "Vous n'avez pas encore passé de commande",
+          "action": "Explorer les commerces"
+        }
+      },
+      "addresses": {
+        "title": "Adresses de livraison",
+        "description": "Gérez vos adresses de livraison",
+        "add": "Ajouter une adresse",
+        "empty": {
+          "title": "Aucune adresse enregistrée",
+          "description": "Vous n'avez pas encore ajouté d'adresse de livraison",
+          "action": "Ajouter une adresse"
+        }
+      },
+      "payment": {
+        "title": "Méthodes de paiement",
+        "description": "Gérez vos méthodes de paiement",
+        "add": "Ajouter une méthode de paiement",
+        "empty": {
+          "title": "Aucune méthode de paiement",
+          "description": "Vous n'avez pas encore ajouté de méthode de paiement",
+          "action": "Ajouter une méthode de paiement"
+        }
+      }
+    },
+    "deliverer": {
+      "title": "Tableau de bord Livreur",
+      "description": "Gérez vos livraisons et documents",
+      "verification": {
+        "required": {
+          "title": "Vérification requise",
+          "description": "Votre compte nécessite une vérification. Veuillez télécharger les documents requis pour commencer à livrer. ",
+          "action": "Télécharger mes documents"
+        }
+      },
+      "stats": {
+        "totalDeliveries": "Total des livraisons",
+        "completedDeliveries": "Livraisons effectuées",
+        "failedDeliveries": "Livraisons échouées",
+        "averageRating": "Note moyenne"
+      },
+      "currentDeliveries": {
+        "title": "Livraisons en cours",
+        "description": "Vos livraisons actuellement en cours",
+        "empty": {
+          "title": "Aucune livraison en cours",
+          "description": "Vous n'avez pas de livraison en cours pour le moment",
+          "action": "Rechercher des livraisons"
+        }
+      },
+      "deliveryHistory": {
+        "title": "Historique des livraisons",
+        "description": "Vos livraisons passées",
+        "empty": {
+          "title": "Aucun historique",
+          "description": "Vous n'avez pas encore effectué de livraison"
+        }
+      },
+      "documents": {
+        "title": "Documents",
+        "description": "Gérez vos documents de vérification",
+        "empty": {
+          "title": "Aucun document",
+          "description": "Vous n'avez pas encore téléchargé de document",
+          "action": "Télécharger un document"
+        }
+      }
+    },
+    "merchant": {
+      "title": "Tableau de bord Commerçant",
+      "description": "Gérez vos commerces, produits et commandes",
+      "actions": {
+        "newStore": "Nouveau commerce"
+      },
+      "verification": {
+        "required": {
+          "title": "Vérification requise",
+          "description": "Votre compte nécessite une vérification. Veuillez télécharger les documents requis pour activer toutes les fonctionnalités. ",
+          "action": "Télécharger mes documents"
+        }
+      },
+      "stats": {
+        "totalStores": "Commerces",
+        "totalProducts": "Produits",
+        "totalOrders": "Commandes",
+        "revenue": "Chiffre d'affaires"
+      },
+      "stores": {
+        "title": "Mes commerces",
+        "description": "Gérez vos commerces",
+        "empty": {
+          "title": "Aucun commerce",
+          "description": "Vous n'avez pas encore créé de commerce",
+          "action": "Créer un commerce"
+        }
+      },
+      "recentOrders": {
+        "title": "Commandes récentes",
+        "description": "Les dernières commandes de vos commerces",
+        "empty": {
+          "title": "Aucune commande récente",
+          "description": "Vous n'avez pas encore reçu de commande"
+        }
+      },
+      "topProducts": {
+        "title": "Produits populaires",
+        "description": "Vos produits les plus vendus",
+        "empty": {
+          "title": "Aucun produit populaire",
+          "description": "Vous n'avez pas encore de produits ou de ventes",
+          "action": "Ajouter un produit"
+        }
+      },
+      "documents": {
+        "title": "Documents",
+        "description": "Gérez vos documents de vérification",
+        "empty": {
+          "title": "Aucun document",
+          "description": "Vous n'avez pas encore téléchargé de document",
+          "action": "Télécharger un document"
+        }
+      }
+    },
+    "provider": {
+      "title": "Tableau de bord Prestataire",
+      "description": "Gérez vos services et réservations",
+      "actions": {
+        "newService": "Nouveau service"
+      },
+      "verification": {
+        "required": {
+          "title": "Vérification requise",
+          "description": "Votre compte nécessite une vérification. Veuillez télécharger les documents requis pour activer toutes les fonctionnalités. ",
+          "action": "Télécharger mes documents"
+        }
+      },
+      "stats": {
+        "totalServices": "Services",
+        "totalBookings": "Réservations",
+        "averageRating": "Note moyenne",
+        "revenue": "Chiffre d'affaires"
+      },
+      "services": {
+        "title": "Mes services",
+        "description": "Gérez vos services proposés",
+        "empty": {
+          "title": "Aucun service",
+          "description": "Vous n'avez pas encore créé de service",
+          "action": "Créer un service"
+        }
+      },
+      "currentBookings": {
+        "title": "Réservations en cours",
+        "description": "Vos réservations actuellement planifiées",
+        "empty": {
+          "title": "Aucune réservation en cours",
+          "description": "Vous n'avez pas de réservation en cours pour le moment"
+        }
+      },
+      "bookingHistory": {
+        "title": "Historique des réservations",
+        "description": "Vos réservations passées",
+        "empty": {
+          "title": "Aucun historique",
+          "description": "Vous n'avez pas encore effectué de réservation"
+        }
+      },
+      "documents": {
+        "title": "Documents",
+        "description": "Gérez vos documents de vérification",
+        "empty": {
+          "title": "Aucun document",
+          "description": "Vous n'avez pas encore téléchargé de document",
+          "action": "Télécharger un document"
+        }
+      }
+    },
+    "admin": {
+      "title": "Tableau de bord Administrateur",
+      "description": "Gérez l'ensemble de la plateforme EcoDeli",
+      "actions": {
+        "sendNotification": "Envoyer une notification"
+      },
+      "userStats": {
+        "title": "Statistiques utilisateurs",
+        "description": "Aperçu des utilisateurs de la plateforme",
+        "totalUsers": "Total utilisateurs",
+        "clients": "Clients",
+        "deliverers": "Livreurs",
+        "merchants": "Commerçants",
+        "providers": "Prestataires",
+        "admins": "Administrateurs"
+      },
+      "orderStats": {
+        "title": "Statistiques commandes",
+        "description": "Aperçu des commandes sur la plateforme",
+        "totalOrders": "Total commandes",
+        "pendingOrders": "En attente",
+        "deliveredOrders": "Livrées",
+        "revenue": "Chiffre d'affaires"
+      },
+      "businessStats": {
+        "title": "Statistiques commerces et services",
+        "description": "Aperçu des commerces et services sur la plateforme",
+        "totalStores": "Total commerces",
+        "verifiedStores": "Commerces vérifiés",
+        "totalServices": "Total services",
+        "totalBookings": "Total réservations"
+      },
+      "pendingDocuments": {
+        "title": "Documents en attente",
+        "description": "Documents nécessitant une vérification",
+        "waiting": "documents en attente de vérification",
+        "action": "Vérifier les documents",
+        "empty": {
+          "title": "Aucun document en attente",
+          "description": "Tous les documents ont été vérifiés"
+        }
+      },
+      "recentUsers": {
+        "title": "Utilisateurs récents",
+        "description": "Les derniers utilisateurs inscrits sur la plateforme",
+        "empty": {
+          "title": "Aucun utilisateur récent",
+          "description": "Aucun nouvel utilisateur ne s'est inscrit récemment"
+        }
+      },
+      "recentOrders": {
+        "title": "Commandes récentes",
+        "description": "Les dernières commandes sur la plateforme",
+        "empty": {
+          "title": "Aucune commande récente",
+          "description": "Aucune commande n'a été passée récemment"
+        }
+      }
+    }
+  },
+  "navigation": {
+    "dashboard": "Tableau de bord",
+    "profile": "Profil",
+    "settings": "Paramètres",
+    "help": "Aide",
+    "client": {
+      "orders": "Mes commandes",
+      "addresses": "Mes adresses",
+      "paymentMethods": "Méthodes de paiement"
+    },
+    "deliverer": {
+      "deliveries": "Mes livraisons",
+      "documents": "Mes documents"
+    },
+    "merchant": {
+      "stores": "Mes commerces",
+      "products": "Mes produits",
+      "orders": "Commandes",
+      "documents": "Mes documents"
+    },
+    "provider": {
+      "services": "Mes services",
+      "bookings": "Mes réservations",
+      "documents": "Mes documents"
+    },
+    "admin": {
+      "users": "Utilisateurs",
+      "stores": "Commerces",
+      "orders": "Commandes",
+      "services": "Services",
+      "documents": "Documents",
+      "notifications": "Notifications"
+    }
+  },
+  "common": {
+    "signOut": "Déconnexion"
+  }
+}

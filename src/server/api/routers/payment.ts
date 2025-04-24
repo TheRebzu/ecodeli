@@ -1,232 +1,264 @@
-import { z } from 'zod';
-import { router, protectedProcedure, adminProcedure } from '@/lib/trpc';
-import { TRPCError } from '@trpc/server';
-import { prisma } from '@/lib/prisma';
-import Stripe from 'stripe';
+import { z } from "zod";
+import { createTRPCRouter, protectedProcedure, publicProcedure } from "@/server/api/trpc";
+import { OrderStatus, PaymentStatus, PaymentType } from "@prisma/client";
+import { TRPCError } from "@trpc/server";
+import { createCheckoutSession, getCheckoutSession } from "@/lib/stripe";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-  apiVersion: '2023-10-16' as any,
-});
-
-export const paymentRouter = router({
-  createPaymentIntent: protectedProcedure
+export const paymentRouter = createTRPCRouter({
+  // Créer une session de paiement Stripe pour une commande
+  createCheckoutSession: protectedProcedure
     .input(
       z.object({
-        announcementId: z.string(),
-        paymentType: z.enum(['ANNOUNCEMENT_CREATION', 'DELIVERER_PAYMENT', 'SUBSCRIPTION']),
+        orderId: z.string(),
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
-      const { announcementId, paymentType } = input;
-
-      let amount = 0;
-      let description = '';
-
-      // Determine the amount to charge based on payment type
-      if (paymentType === 'ANNOUNCEMENT_CREATION') {
-        const announcement = await prisma.announcement.findUnique({
-          where: { id: announcementId },
-        });
-
-        if (!announcement) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Announcement not found',
-          });
-        }
-
-        if (announcement.clientId !== userId) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'You are not authorized to pay for this announcement',
-          });
-        }
-
-        amount = announcement.price * 100; // Convert to cents for Stripe
-        description = `Payment for announcement: ${announcement.title}`;
-      } else if (paymentType === 'DELIVERER_PAYMENT') {
-        const announcement = await prisma.announcement.findUnique({
-          where: { id: announcementId },
-          include: {
-            deliveries: {
-              where: { status: 'DELIVERED' },
+      // Récupérer les détails de la commande
+      const order = await ctx.db.order.findUnique({
+        where: { id: input.orderId },
+        include: {
+          client: true,
+          store: true,
+          orderItems: {
+            include: {
+              product: true,
             },
           },
-        });
-
-        if (!announcement) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Announcement not found',
-          });
-        }
-
-        if (announcement.clientId !== userId) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: 'You are not authorized to pay for this delivery',
-          });
-        }
-
-        if (announcement.deliveries.length === 0) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'No completed delivery found for this announcement',
-          });
-        }
-
-        amount = announcement.price * 100; // Convert to cents for Stripe
-        description = `Payment to deliverer for announcement: ${announcement.title}`;
-      } else if (paymentType === 'SUBSCRIPTION') {
-        // Handle subscription payment logic
-        // This would typically look up a subscription plan price
-        const subscriptionAmount = 2999; // $29.99 for example
-        amount = subscriptionAmount;
-        description = 'Monthly subscription payment';
-      }
-
-      try {
-        // Create a payment intent with Stripe
-        const paymentIntent = await stripe.paymentIntents.create({
-          amount,
-          currency: 'eur',
-          metadata: {
-            userId,
-            announcementId,
-            paymentType,
-          },
-          description,
-        });
-
-        return {
-          clientSecret: paymentIntent.client_secret,
-          amount: amount / 100, // Convert back to decimal for display
-        };
-      } catch (error) {
-        console.error('Error creating payment intent:', error);
+        },
+      });
+      
+      if (!order) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Failed to create payment intent',
+          code: "NOT_FOUND",
+          message: "Commande introuvable",
         });
       }
+      
+      // Vérifier que l'utilisateur est autorisé à payer cette commande
+      if (order.clientId !== ctx.session.user.id && ctx.session.user.role !== "ADMIN") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Vous n'êtes pas autorisé à payer cette commande",
+        });
+      }
+      
+      // Vérifier que la commande est en attente de paiement
+      if (order.paymentStatus !== PaymentStatus.PENDING) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Cette commande a déjà été payée ou annulée",
+        });
+      }
+      
+      // Préparer les éléments pour Stripe Checkout
+      const items = order.orderItems.map(item => ({
+        name: item.product.name,
+        description: item.product.description.substring(0, 100), // Limiter la longueur de la description
+        amount: Math.round(item.unitPrice * 100), // Convertir en centimes
+        quantity: item.quantity,
+      }));
+      
+      // Ajouter les frais de livraison comme élément séparé
+      items.push({
+        name: "Frais de livraison",
+        description: "Livraison pour votre commande",
+        amount: Math.round(order.shippingFee * 100), // Convertir en centimes
+        quantity: 1,
+      });
+      
+      // Ajouter les taxes comme élément séparé
+      items.push({
+        name: "TVA",
+        description: "Taxes applicables",
+        amount: Math.round(order.tax * 100), // Convertir en centimes
+        quantity: 1,
+      });
+      
+      // URL de base pour les redirections
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+      
+      // Créer la session Stripe Checkout
+      const { sessionId, url } = await createCheckoutSession({
+        orderId: order.id,
+        orderNumber: order.orderNumber,
+        customerEmail: order.client.email,
+        customerName: order.client.name || "Client",
+        amount: Math.round(order.totalAmount * 100), // Convertir en centimes
+        successUrl: `${baseUrl}/payment/success`,
+        cancelUrl: `${baseUrl}/payment/cancel?orderId=${order.id}`,
+        items,
+      });
+      
+      // Enregistrer la référence à la session Stripe dans la base de données
+      await ctx.db.payment.create({
+        data: {
+          amount: order.totalAmount,
+          type: PaymentType.ORDER,
+          status: PaymentStatus.PENDING,
+          externalId: sessionId,
+          orderId: order.id,
+        },
+      });
+      
+      return { sessionId, url };
     }),
-
-  getPaymentHistory: protectedProcedure
+    
+  // Vérifier le statut d'une session de paiement
+  checkPaymentStatus: protectedProcedure
     .input(
       z.object({
-        limit: z.number().min(1).max(50).default(10),
-        cursor: z.string().nullish(),
-        type: z.enum(['ANNOUNCEMENT_CREATION', 'DELIVERER_PAYMENT', 'SUBSCRIPTION']).optional(),
+        sessionId: z.string(),
       })
     )
     .query(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
-      const { limit, cursor, type } = input;
-
-      // For a real app, we would have a userId field in the payment model
-      // For this example, we'll filter based on announcements associated with the user
-      const userAnnouncements = await prisma.announcement.findMany({
-        where: {
-          OR: [
-            { clientId: userId },
-            { delivererId: userId },
-          ],
-        },
-        select: {
-          id: true,
+      // Récupérer la session Stripe
+      const session = await getCheckoutSession(input.sessionId);
+      
+      // Récupérer le paiement associé à cette session
+      const payment = await ctx.db.payment.findFirst({
+        where: { externalId: input.sessionId },
+        include: {
+          order: true,
         },
       });
-
-      const announcementIds = userAnnouncements.map(a => a.id);
-
-      const items = await prisma.payment.findMany({
-        take: limit + 1,
-        where: {
-          announcementId: {
-            in: announcementIds,
-          },
-          ...(type ? { type } : {}),
-        },
-        cursor: cursor ? { id: cursor } : undefined,
-        orderBy: {
-          createdAt: 'desc',
+      
+      if (!payment) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Paiement introuvable",
+        });
+      }
+      
+      // Vérifier que l'utilisateur est autorisé à voir ce paiement
+      if (
+        payment.order?.clientId !== ctx.session.user.id && 
+        ctx.session.user.role !== "ADMIN" &&
+        ctx.session.user.role !== "MERCHANT"
+      ) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Vous n'êtes pas autorisé à voir ce paiement",
+        });
+      }
+      
+      // Mettre à jour le statut du paiement si nécessaire
+      if (session.payment_status === "paid" && payment.status === PaymentStatus.PENDING) {
+        await ctx.db.payment.update({
+          where: { id: payment.id },
+          data: { status: PaymentStatus.COMPLETED },
+        });
+        
+        // Mettre à jour le statut de la commande
+        if (payment.orderId) {
+          await ctx.db.order.update({
+            where: { id: payment.orderId },
+            data: { 
+              paymentStatus: PaymentStatus.COMPLETED,
+              status: OrderStatus.CONFIRMED,
+            },
+          });
+        }
+      } else if (session.payment_status === "unpaid" && payment.status === PaymentStatus.COMPLETED) {
+        await ctx.db.payment.update({
+          where: { id: payment.id },
+          data: { status: PaymentStatus.FAILED },
+        });
+        
+        // Mettre à jour le statut de la commande
+        if (payment.orderId) {
+          await ctx.db.order.update({
+            where: { id: payment.orderId },
+            data: { paymentStatus: PaymentStatus.FAILED },
+          });
+        }
+      }
+      
+      return {
+        paymentStatus: session.payment_status,
+        paymentIntent: session.payment_intent,
+        customerEmail: session.customer_email,
+        amountTotal: session.amount_total ? session.amount_total / 100 : 0, // Convertir de centimes à euros
+        currency: session.currency,
+        orderId: payment.orderId,
+      };
+    }),
+    
+  // Récupérer l'historique des paiements d'un utilisateur
+  getUserPayments: protectedProcedure
+    .query(async ({ ctx }) => {
+      // Récupérer les commandes de l'utilisateur
+      const orders = await ctx.db.order.findMany({
+        where: { clientId: ctx.session.user.id },
+        select: { id: true },
+      });
+      
+      const orderIds = orders.map(order => order.id);
+      
+      // Récupérer les paiements associés à ces commandes
+      const payments = await ctx.db.payment.findMany({
+        where: { 
+          orderId: { in: orderIds },
         },
         include: {
-          announcement: true,
+          order: {
+            select: {
+              orderNumber: true,
+              createdAt: true,
+              store: {
+                select: {
+                  name: true,
+                },
+              },
+            },
+          },
         },
+        orderBy: { createdAt: "desc" },
       });
-
-      let nextCursor: typeof cursor = undefined;
-      if (items.length > limit) {
-        const nextItem = items.pop();
-        nextCursor = nextItem?.id;
-      }
-
-      return {
-        items,
-        nextCursor,
-      };
+      
+      return payments;
     }),
-
-  getAdminPaymentStats: adminProcedure
+    
+  // Récupérer les paiements pour une commande spécifique
+  getOrderPayments: protectedProcedure
     .input(
       z.object({
-        startDate: z.date().optional(),
-        endDate: z.date().optional(),
+        orderId: z.string(),
       })
     )
-    .query(async ({ input }) => {
-      const { startDate, endDate } = input;
-
-      const where = {
-        ...(startDate && endDate
-          ? {
-              createdAt: {
-                gte: startDate,
-                lte: endDate,
-              },
-            }
-          : {}),
-      };
-
-      // Get total payments by type
-      const paymentsByType = await prisma.payment.groupBy({
-        by: ['type', 'status'],
-        where,
-        _sum: {
-          amount: true,
+    .query(async ({ ctx, input }) => {
+      // Récupérer la commande
+      const order = await ctx.db.order.findUnique({
+        where: { id: input.orderId },
+        include: {
+          store: true,
         },
       });
-
-      // Get total successful payments
-      const successfulPayments = await prisma.payment.aggregate({
-        where: {
-          ...where,
-          status: 'COMPLETED',
-        },
-        _sum: {
-          amount: true,
-        },
-        _count: true,
+      
+      if (!order) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Commande introuvable",
+        });
+      }
+      
+      // Vérifier que l'utilisateur est autorisé à voir les paiements de cette commande
+      if (
+        order.clientId !== ctx.session.user.id && 
+        ctx.session.user.role !== "ADMIN" &&
+        (ctx.session.user.role !== "MERCHANT" || order.store.merchantId !== ctx.session.user.id)
+      ) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Vous n'êtes pas autorisé à voir les paiements de cette commande",
+        });
+      }
+      
+      // Récupérer les paiements
+      const payments = await ctx.db.payment.findMany({
+        where: { orderId: input.orderId },
+        orderBy: { createdAt: "desc" },
       });
-
-      // Get total failed payments
-      const failedPayments = await prisma.payment.aggregate({
-        where: {
-          ...where,
-          status: 'FAILED',
-        },
-        _sum: {
-          amount: true,
-        },
-        _count: true,
-      });
-
-      return {
-        paymentsByType,
-        successfulPayments,
-        failedPayments,
-      };
+      
+      return payments;
     }),
-}); 
+});
