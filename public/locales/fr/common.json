@@ -1,0 +1,19 @@
+{
+  "common": {
+    "welcome": "Bienvenue sur EcoDeli",
+    "login": "Connexion",
+    "register": "Inscription",
+    "logout": "Déconnexion"
+  },
+  "delivery": {
+    "create": "Créer une livraison",
+    "status": {
+      "PENDING": "En attente",
+      "ACCEPTED": "Acceptée",
+      "PICKED_UP": "Récupérée",
+      "IN_TRANSIT": "En transit",
+      "DELIVERED": "Livrée",
+      "CANCELLED": "Annulée"
+    }
+  }
+}
