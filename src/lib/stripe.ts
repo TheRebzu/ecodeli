@@ -1,8 +1,7 @@
 import Stripe from 'stripe';
 
 // Initialisation de l'API Stripe avec la clé secrète
-// En production, cette clé devrait être stockée dans une variable d'environnement
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_test_51O9JqzBVQeUXD3XDTMlbDsO9DVd7Vl4GGskaoeFwxPMX4elFVPwht1EcGWbQOgBDvhMBBTRNBWwGpQYGBdMJAHSP00oBRzVmIm');
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
 
 export interface CreateCheckoutSessionParams {
   orderId: string;
@@ -105,7 +104,7 @@ export async function handleStripeWebhook(rawBody: string, signature: string) {
     const event = stripe.webhooks.constructEvent(
       rawBody,
       signature,
-      process.env.STRIPE_WEBHOOK_SECRET || 'whsec_test'
+      process.env.STRIPE_WEBHOOK_SECRET || ''
     );
 
     return event;
