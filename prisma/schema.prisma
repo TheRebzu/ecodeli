@@ -1,0 +1,341 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Modèles d'utilisateurs
+model User {
+  id            String        @id @default(cuid())
+  name          String?
+  email         String        @unique
+  emailVerified DateTime?
+  password      String?
+  image         String?
+  role          UserRole      @default(CLIENT)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  lastLoginAt   DateTime?
+
+  // Relations
+  accounts         Account[]
+  sessions         Session[]
+  clientAnnouncements    Announcement[]  @relation("ClientAnnouncements")
+  delivererAnnouncements Announcement[]  @relation("DelivererAnnouncements")
+  clientAppointments     Appointment[]   @relation("ClientAppointments")
+  providerAppointments   Appointment[]   @relation("ProviderAppointments")
+  stores          Store[]
+  services        Service[]
+  
+  // Nouvelles relations pour les profils spécifiques aux rôles
+  clientProfile   ClientProfile?
+  delivererProfile DelivererProfile?
+  serviceProvider ServiceProvider?
+  verificationTokens VerificationToken[]
+  passwordResetTokens PasswordResetToken[]
+}
+
+enum UserRole {
+  CLIENT
+  DELIVERER
+  MERCHANT
+  PROVIDER
+  ADMIN
+}
+
+// Modèles d'authentification (compatibles NextAuth)
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// Tokens pour la vérification d'email et réinitialisation de mot de passe
+model VerificationToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  expires   DateTime
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  expires   DateTime
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+// Modèles métier
+model Announcement {
+  id                String               @id @default(cuid())
+  title             String
+  description       String               @db.Text
+  pickupAddress     String
+  deliveryAddress   String
+  packageSize       PackageSize
+  packageWeight     Float
+  packageValue      Float
+  deadline          DateTime
+  price             Float
+  requiresInsurance Boolean              @default(false)
+  status            AnnouncementStatus   @default(OPEN)
+  paymentStatus     PaymentStatus?
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+
+  // Relations
+  clientId    String
+  client      User                @relation("ClientAnnouncements", fields: [clientId], references: [id])
+  delivererId String?
+  deliverer   User?               @relation("DelivererAnnouncements", fields: [delivererId], references: [id])
+  deliveries  Delivery[]
+  payments    Payment[]
+}
+
+enum PackageSize {
+  SMALL
+  MEDIUM
+  LARGE
+  EXTRA_LARGE
+}
+
+enum AnnouncementStatus {
+  OPEN
+  ASSIGNED
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  PAID_TO_DELIVERER
+  REFUNDED
+}
+
+model Delivery {
+  id                      String        @id @default(cuid())
+  announcementId          String
+  status                  DeliveryStatus @default(PENDING)
+  startTime               DateTime?
+  endTime                 DateTime?
+  proof                   String?        // URL to image or document
+  requiresConfirmationCode Boolean       @default(true)
+  clientConfirmed         Boolean        @default(false)
+  rating                  Int?           // 1-5 rating
+  feedback                String?
+  paymentStatus           PaymentStatus? 
+  createdAt               DateTime       @default(now())
+  updatedAt               DateTime       @updatedAt
+
+  // Relations
+  announcement   Announcement    @relation(fields: [announcementId], references: [id])
+  locationUpdates LocationUpdate[]
+}
+
+enum DeliveryStatus {
+  PENDING
+  IN_TRANSIT
+  DELIVERED
+  CANCELLED
+}
+
+model LocationUpdate {
+  id          String   @id @default(cuid())
+  deliveryId  String
+  latitude    Float
+  longitude   Float
+  timestamp   DateTime @default(now())
+
+  // Relations
+  delivery    Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+}
+
+model Store {
+  id          String      @id @default(cuid())
+  name        String
+  description String      @db.Text
+  type        String      // Type of store (restaurant, grocery, etc.)
+  address     String
+  city        String
+  postalCode  String
+  phoneNumber String
+  siret       String?     // French business identification number
+  logoUrl     String?
+  status      StoreStatus @default(PENDING)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  // Relations
+  merchantId  String
+  merchant    User        @relation(fields: [merchantId], references: [id])
+}
+
+enum StoreStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+model Service {
+  id          String        @id @default(cuid())
+  title       String
+  description String        @db.Text
+  category    ServiceCategory
+  price       Float
+  duration    Int           // Duration in minutes
+  imageUrl    String?
+  status      ServiceStatus @default(ACTIVE)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  providerId  String
+  provider    User          @relation(fields: [providerId], references: [id])
+  appointments Appointment[]
+}
+
+enum ServiceCategory {
+  TRANSPORT
+  HOUSEWORK
+  SHOPPING
+  OTHER
+}
+
+enum ServiceStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model Appointment {
+  id          String            @id @default(cuid())
+  startTime   DateTime
+  endTime     DateTime
+  status      AppointmentStatus @default(SCHEDULED)
+  notes       String?
+  price       Float
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  // Relations
+  clientId    String
+  client      User              @relation("ClientAppointments", fields: [clientId], references: [id])
+  providerId  String
+  provider    User              @relation("ProviderAppointments", fields: [providerId], references: [id])
+  serviceId   String
+  service     Service           @relation(fields: [serviceId], references: [id])
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+model Payment {
+  id              String        @id @default(cuid())
+  stripePaymentId String        @unique
+  amount          Float
+  currency        String
+  status          PaymentStatus
+  type            PaymentType
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  announcementId  String
+  announcement    Announcement  @relation(fields: [announcementId], references: [id])
+}
+
+enum PaymentType {
+  ANNOUNCEMENT_CREATION
+  DELIVERER_PAYMENT
+  SUBSCRIPTION
+}
+
+// Profils spécifiques aux rôles
+model ClientProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model DelivererProfile {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  vehicleType   String
+  licenseNumber String
+  idCardNumber  String
+  address       String
+  city          String
+  postalCode    String
+  availability  String[]
+  isVerified    Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relations
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ServiceProvider {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  serviceType String
+  experience  String?
+  hourlyRate  String?
+  address     String
+  city        String
+  postalCode  String
+  serviceArea Int?
+  description String?
+  siret       String?
+  isVerified  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

@@ -1,36 +1,127 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# EcoDeli - Plateforme de livraison collaborative écologique
 
-## Getting Started
+EcoDeli est une plateforme de livraison collaborative qui met en relation des personnes ayant besoin de faire livrer un colis avec des livreurs indépendants, des commerçants locaux et des prestataires de services, dans une démarche écologique et solidaire.
 
-First, run the development server:
+## 🌱 Vision
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+Notre vision est de révolutionner le secteur de la livraison en:
+- Réduisant l'empreinte carbone des livraisons
+- Créant des opportunités économiques locales
+- Favorisant l'entraide et le lien social
+- Proposant des prix équitables et transparents
+
+## 🚀 Fonctionnalités principales
+
+- **Livraisons collaboratives**: Les utilisateurs peuvent poster des annonces de livraison et des livreurs indépendants peuvent les accepter
+- **Marketplace de commerçants**: Les commerçants locaux peuvent créer leur boutique et proposer leurs produits
+- **Services de proximité**: Des prestataires peuvent proposer des services à domicile
+- **Système de paiement sécurisé**: Intégration avec Stripe pour des transactions sécurisées
+- **Système de notation**: Évaluation des livreurs, clients, commerçants et prestataires
+- **Suivi en temps réel**: Suivi de la position du livreur pendant la livraison
+
+## 🛠️ Technologies utilisées
+
+- **Frontend**: Next.js, React, TailwindCSS, shadcn/ui
+- **Backend**: Next.js API Routes, tRPC
+- **Base de données**: PostgreSQL avec Prisma ORM
+- **Authentification**: NextAuth.js
+- **Paiement**: Stripe
+- **Déploiement**: Vercel
+
+## 📦 Structure du projet
+
+```
+ecodeli/
+├── src/
+│   ├── app/               # Routage et pages Next.js App Router
+│   │   ├── (auth)/        # Pages liées à l'authentification
+│   │   ├── (dashboard)/   # Pages du tableau de bord
+│   │   ├── (public)/      # Pages publiques
+│   │   └── api/           # Routes API Next.js
+│   ├── components/        # Composants React
+│   ├── hooks/             # Hooks React personnalisés
+│   ├── lib/               # Utilitaires et configurations
+│   ├── server/            # Logique côté serveur
+│   │   └── api/routers/   # Routeurs tRPC
+│   └── types/             # Types TypeScript
+├── prisma/                # Schéma et migrations Prisma
+│   └── schema.prisma      # Modèles de données
+├── public/                # Fichiers statiques
+└── docs/                  # Documentation
+    └── api-documentation.md # Documentation de l'API
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚦 Installation et démarrage
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Prérequis
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- Node.js 18+
+- PostgreSQL
+- Un compte Stripe pour les paiements
 
-## Learn More
+### Installation
 
-To learn more about Next.js, take a look at the following resources:
+1. Cloner le dépôt
+```bash
+git clone https://github.com/TheRebzu/ecodeli.git
+cd ecodeli
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+2. Installer les dépendances
+```bash
+npm install
+# ou
+pnpm install
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+3. Configurer les variables d'environnement
+```bash
+cp .env.example .env
+# Remplir les variables dans .env
+```
 
-## Deploy on Vercel
+4. Configurer la base de données
+```bash
+npx prisma migrate dev
+npx prisma db seed
+```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+5. Lancer le serveur de développement
+```bash
+npm run dev
+# ou
+pnpm dev
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+6. Ouvrir [http://localhost:3000](http://localhost:3000) dans votre navigateur
+
+## 📝 Documentation
+
+- La documentation de l'API est disponible dans [docs/api-documentation.md](docs/api-documentation.md)
+- Des exemples d'utilisation sont disponibles dans le répertoire `examples/`
+
+## 🧪 Tests
+
+```bash
+# Exécuter les tests unitaires
+npm run test
+# ou
+pnpm test
+
+# Exécuter les tests d'intégration
+npm run test:integration
+# ou
+pnpm test:integration
+```
+
+## 🤝 Contribution
+
+Les contributions sont les bienvenues ! Consultez [CONTRIBUTING.md](CONTRIBUTING.md) pour plus d'informations.
+
+## 📜 Licence
+
+Ce projet est sous licence [MIT](LICENSE).
+
+## 📞 Contact
+
+Pour toute question, vous pouvez nous contacter à [contact@ecodeli.com](mailto:contact@ecodeli.com).
