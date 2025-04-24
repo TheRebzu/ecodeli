@@ -90,7 +90,7 @@
     "pdfmake": "^0.2.18",
     "rate-limiter-flexible": "^7.0.0",
     "react": "^19.1.0",
-    "react-day-picker": "^9.6.7",
+    "react-day-picker": "^8.10.1",
     "react-dom": "^19.1.0",
     "react-dropzone": "^14.3.8",
     "react-email": "^4.0.7",

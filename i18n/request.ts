@@ -6,10 +6,16 @@ export default getRequestConfig(async ({locale}) => {
     throw new Error('Locale is required but was undefined');
   }
   
-  // Safe access to locale messages
-  const messages = await import(`../../public/locales/${locale}/common.json`)
-    .then(module => module.default)
-    .catch(() => ({}));
+  // Check if we're in a production build or development
+  let messages = {};
+  
+  try {
+    // Direct dynamic import which works in both dev and production
+    messages = (await import(`../public/locales/${locale}/common.json`)).default;
+  } catch (error) {
+    console.error(`Failed to load locale messages for ${locale}:`, error);
+    // Fallback to empty messages object
+  }
     
   return {
     messages,

@@ -27,8 +27,6 @@ export async function createCheckoutSession({
   orderId,
   orderNumber,
   customerEmail,
-  customerName,
-  amount,
   currency = 'eur',
   successUrl,
   cancelUrl,
