@@ -1,5 +1,5 @@
 import createMiddleware from 'next-intl/middleware';
-import {routing} from './i18n/routing';
+import {routing} from '../i18n/routing';
 
 // This function creates a middleware handler for internationalization
 export default createMiddleware(routing);
