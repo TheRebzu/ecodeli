@@ -1,0 +1,1 @@
+export default function DelivererMessagesPage() {\n  return <div>Messages livreur</div>;\n}

@@ -1,0 +1,1 @@
+export default function ProviderMessagesPage() {\n  return <div>Messages prestataire</div>;\n}

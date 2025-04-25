@@ -1,0 +1,1 @@
+export async function POST(req) {\n  // Webhook Stripe\n  return new Response('OK');\n}

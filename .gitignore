@@ -1,4 +1,6 @@
-# Dependencies
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
 /node_modules
 /.pnp
 .pnp.*
@@ -6,186 +8,34 @@
 !.yarn/patches
 !.yarn/plugins
 !.yarn/releases
-!.yarn/sdks
 !.yarn/versions
 
-# Package managers
-package-lock.json
-yarn.lock
-# Keep pnpm-lock.yaml for CI
-# pnpm-lock.yaml
-.pnpm-store/
-.npm/
+# testing
+/coverage
 
-# Build outputs
+# next.js
 /.next/
 /out/
+
+# production
 /build
-/dist
-/storybook-static
 
-# Testing
-/coverage
-/tests/.results/
-/test-results/
-/playwright-report/
-/playwright/.cache/
-.nyc_output
-/.jest-cache
-/.jest-coverage
-/.eslintcache
-/.stylelintcache
-
-# Environment files
-.env
-.env.*
-.env.local
-.env.development
-.env.test
-.env.production
-.env.development.local
-.env.test.local
-.env.production.local
-!.env.example
-.envrc
-
-# Editor/IDE specific
-# VSCode
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
-# JetBrains / WebStorm / IntelliJ / PhpStorm / PyCharm
-.idea/
-*.iml
-*.iws
-*.ipr
-.idea_modules/
-# Vim
-*.swp
-*.swo
-# Sublime Text
-*.sublime-project
-*.sublime-workspace
-# Eclipse
-.project
-.classpath
-.settings/
-# NetBeans
-/nbproject/
-
-# OS specific
+# misc
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-Icon?
-ehthumbs.db
-Thumbs.db
-Desktop.ini
+*.pem
 
-# Logs
-logs
-*.log
+# debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
-lerna-debug.log*
 
-# Prisma specific
-/prisma/.env
-/prisma/dev.db
-/prisma/dev.db-journal
-/prisma/migrations/dev/
-/prisma/migrations/.migrate
+# env files (can opt-in for committing if needed)
+.env*
 
-# Cache and bundler
-.cache/
-.swc/
-.turbo
-.webpack/
-.rollup.cache/
-.parcel-cache/
-.next-cache/
-tsconfig.tsbuildinfo
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
 next-env.d.ts
-
-# Temp file directories
-/tmp/
-/temp/
-.serverless/
-
-# Generated files
-/public/sitemap*.xml
-/public/robots.txt
-/public/sw.js
-/public/workbox-*.js
-.generated/
-/src/types/generated/
-/src/graphql/generated/
-.contentlayer
-
-# Config backups
-*.bak
-*.backup
-*~
-*.old
-
-# Debug
-.chrome/
-/.debug/
-
-# Misc build tools
-.now/
-.vercel/
-.netlify/
-.docusaurus/
-.firebase/
-.grunt/
-_SpecRunner.html
-__benchmarks__
-build/Release
-
-# Email preview & temporary files
-/emails/.preview/
-/emails/.temp/
-
-# Secrets and keys
-*.pem
-*.key
-*.cert
-*.p12
-.npmrc
-.yarnrc
-
-# Sentry
-.sentryclirc
-sentry.properties
-
-# Documentation build
-/docs/build/
-/docs/dist/
-
-# Docker
-.docker/
-docker-compose.override.yml
-
-# Misc application specific
-.credentials/
-.history/
-stats.json
-stats.html
-.verdaccio_storage/
-.dynamodb/
-.fusebox/
-.rts2_cache_cjs/
-.rts2_cache_es/
-.rts2_cache_umd/
-.rpt2_cache/
-*.tgz
-.tern-port
-.vscode-test
-*.vsix

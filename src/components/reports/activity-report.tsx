@@ -1,0 +1,1 @@
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';\n\nexport function ActivityReport({ data }) {\n  return (\n    <Card>\n      <CardHeader>\n        <CardTitle>Rapport d'activité</CardTitle>\n      </CardHeader>\n      <CardContent>\n        {/* Contenu du rapport d'activité */}\n      </CardContent>\n    </Card>\n  );\n}

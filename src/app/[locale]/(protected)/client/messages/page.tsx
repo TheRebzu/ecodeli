@@ -1,0 +1,1 @@
+export default function ClientMessagesPage() {\n  return <div>Messages client</div>;\n}

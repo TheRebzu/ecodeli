@@ -1,0 +1,1 @@
+export default function ClientMessageDetailPage({ params }) {\n  return <div>Conversation {params.id}</div>;\n}

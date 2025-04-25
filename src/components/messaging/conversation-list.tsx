@@ -1,0 +1,1 @@
+export function ConversationList() {\n  return <div>Liste des conversations</div>;\n}

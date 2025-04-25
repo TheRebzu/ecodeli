@@ -1,0 +1,1 @@
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';\n\nexport function DeliveryStatistics({ data }) {\n  return (\n    <Card>\n      <CardHeader>\n        <CardTitle>Statistiques de livraison</CardTitle>\n      </CardHeader>\n      <CardContent>\n        {/* Statistiques sur les livraisons */}\n      </CardContent>\n    </Card>\n  );\n}

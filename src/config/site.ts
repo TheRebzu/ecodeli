@@ -1,0 +1,1 @@
+export const siteConfig = {\n  name: 'EcoDeli',\n  description: 'Plateforme de crowdshipping pour des livraisons plus écologiques',\n  url: 'https://ecodeli.com',\n  ogImage: 'https://ecodeli.com/og.jpg',\n  links: {\n    twitter: 'https://twitter.com/ecodeli',\n    github: 'https://github.com/ecodeli'\n  }\n};
