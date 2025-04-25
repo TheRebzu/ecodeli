@@ -1,0 +1,302 @@
+{
+  "dashboard": {
+    "common": {
+      "loading": "Loading...",
+      "error": {
+        "title": "An error occurred",
+        "description": "Unable to load dashboard data. Please try again.",
+        "retry": "Retry"
+      },
+      "empty": {
+        "title": "No data available",
+        "description": "There is no data to display yet."
+      }
+    },
+    "client": {
+      "title": "Client Dashboard",
+      "description": "Manage your orders, addresses and payment methods",
+      "stats": {
+        "totalOrders": "Total orders",
+        "pendingOrders": "Pending orders",
+        "completedOrders": "Delivered orders"
+      },
+      "recentOrders": {
+        "title": "Recent orders",
+        "description": "Your latest orders",
+        "empty": {
+          "title": "No recent orders",
+          "description": "You haven't placed any orders yet",
+          "action": "Explore stores"
+        }
+      },
+      "addresses": {
+        "title": "Delivery addresses",
+        "description": "Manage your delivery addresses",
+        "add": "Add an address",
+        "empty": {
+          "title": "No saved addresses",
+          "description": "You haven't added any delivery addresses yet",
+          "action": "Add an address"
+        }
+      },
+      "payment": {
+        "title": "Payment methods",
+        "description": "Manage your payment methods",
+        "add": "Add a payment method",
+        "empty": {
+          "title": "No payment methods",
+          "description": "You haven't added any payment methods yet",
+          "action": "Add a payment method"
+        }
+      }
+    },
+    "deliverer": {
+      "title": "Deliverer Dashboard",
+      "description": "Manage your deliveries and documents",
+      "verification": {
+        "required": {
+          "title": "Verification required",
+          "description": "Your account requires verification. Please upload the required documents to start delivering. ",
+          "action": "Upload my documents"
+        }
+      },
+      "stats": {
+        "totalDeliveries": "Total deliveries",
+        "completedDeliveries": "Completed deliveries",
+        "failedDeliveries": "Failed deliveries",
+        "averageRating": "Average rating"
+      },
+      "currentDeliveries": {
+        "title": "Current deliveries",
+        "description": "Your deliveries currently in progress",
+        "empty": {
+          "title": "No current deliveries",
+          "description": "You don't have any deliveries in progress at the moment",
+          "action": "Search for deliveries"
+        }
+      },
+      "deliveryHistory": {
+        "title": "Delivery history",
+        "description": "Your past deliveries",
+        "empty": {
+          "title": "No history",
+          "description": "You haven't made any deliveries yet"
+        }
+      },
+      "documents": {
+        "title": "Documents",
+        "description": "Manage your verification documents",
+        "empty": {
+          "title": "No documents",
+          "description": "You haven't uploaded any documents yet",
+          "action": "Upload a document"
+        }
+      }
+    },
+    "merchant": {
+      "title": "Merchant Dashboard",
+      "description": "Manage your stores, products and orders",
+      "actions": {
+        "newStore": "New store"
+      },
+      "verification": {
+        "required": {
+          "title": "Verification required",
+          "description": "Your account requires verification. Please upload the required documents to enable all features. ",
+          "action": "Upload my documents"
+        }
+      },
+      "stats": {
+        "totalStores": "Stores",
+        "totalProducts": "Products",
+        "totalOrders": "Orders",
+        "revenue": "Revenue"
+      },
+      "stores": {
+        "title": "My stores",
+        "description": "Manage your stores",
+        "empty": {
+          "title": "No stores",
+          "description": "You haven't created any stores yet",
+          "action": "Create a store"
+        }
+      },
+      "recentOrders": {
+        "title": "Recent orders",
+        "description": "The latest orders from your stores",
+        "empty": {
+          "title": "No recent orders",
+          "description": "You haven't received any orders yet"
+        }
+      },
+      "topProducts": {
+        "title": "Popular products",
+        "description": "Your best-selling products",
+        "empty": {
+          "title": "No popular products",
+          "description": "You don't have any products or sales yet",
+          "action": "Add a product"
+        }
+      },
+      "documents": {
+        "title": "Documents",
+        "description": "Manage your verification documents",
+        "empty": {
+          "title": "No documents",
+          "description": "You haven't uploaded any documents yet",
+          "action": "Upload a document"
+        }
+      }
+    },
+    "provider": {
+      "title": "Service Provider Dashboard",
+      "description": "Manage your services and bookings",
+      "actions": {
+        "newService": "New service"
+      },
+      "verification": {
+        "required": {
+          "title": "Verification required",
+          "description": "Your account requires verification. Please upload the required documents to enable all features. ",
+          "action": "Upload my documents"
+        }
+      },
+      "stats": {
+        "totalServices": "Services",
+        "totalBookings": "Bookings",
+        "averageRating": "Average rating",
+        "revenue": "Revenue"
+      },
+      "services": {
+        "title": "My services",
+        "description": "Manage your offered services",
+        "empty": {
+          "title": "No services",
+          "description": "You haven't created any services yet",
+          "action": "Create a service"
+        }
+      },
+      "currentBookings": {
+        "title": "Current bookings",
+        "description": "Your currently scheduled bookings",
+        "empty": {
+          "title": "No current bookings",
+          "description": "You don't have any bookings in progress at the moment"
+        }
+      },
+      "bookingHistory": {
+        "title": "Booking history",
+        "description": "Your past bookings",
+        "empty": {
+          "title": "No history",
+          "description": "You haven't completed any bookings yet"
+        }
+      },
+      "documents": {
+        "title": "Documents",
+        "description": "Manage your verification documents",
+        "empty": {
+          "title": "No documents",
+          "description": "You haven't uploaded any documents yet",
+          "action": "Upload a document"
+        }
+      }
+    },
+    "admin": {
+      "title": "Admin Dashboard",
+      "description": "Manage the entire EcoDeli platform",
+      "actions": {
+        "sendNotification": "Send notification"
+      },
+      "userStats": {
+        "title": "User statistics",
+        "description": "Overview of platform users",
+        "totalUsers": "Total users",
+        "clients": "Clients",
+        "deliverers": "Deliverers",
+        "merchants": "Merchants",
+        "providers": "Providers",
+        "admins": "Admins"
+      },
+      "orderStats": {
+        "title": "Order statistics",
+        "description": "Overview of orders on the platform",
+        "totalOrders": "Total orders",
+        "pendingOrders": "Pending",
+        "deliveredOrders": "Delivered",
+        "revenue": "Revenue"
+      },
+      "businessStats": {
+        "title": "Store and service statistics",
+        "description": "Overview of stores and services on the platform",
+        "totalStores": "Total stores",
+        "verifiedStores": "Verified stores",
+        "totalServices": "Total services",
+        "totalBookings": "Total bookings"
+      },
+      "pendingDocuments": {
+        "title": "Pending documents",
+        "description": "Documents requiring verification",
+        "waiting": "documents awaiting verification",
+        "action": "Verify documents",
+        "empty": {
+          "title": "No pending documents",
+          "description": "All documents have been verified"
+        }
+      },
+      "recentUsers": {
+        "title": "Recent users",
+        "description": "The latest users registered on the platform",
+        "empty": {
+          "title": "No recent users",
+          "description": "No new users have registered recently"
+        }
+      },
+      "recentOrders": {
+        "title": "Recent orders",
+        "description": "The latest orders on the platform",
+        "empty": {
+          "title": "No recent orders",
+          "description": "No orders have been placed recently"
+        }
+      }
+    }
+  },
+  "navigation": {
+    "dashboard": "Dashboard",
+    "profile": "Profile",
+    "settings": "Settings",
+    "help": "Help",
+    "client": {
+      "orders": "My orders",
+      "addresses": "My addresses",
+      "paymentMethods": "Payment methods"
+    },
+    "deliverer": {
+      "deliveries": "My deliveries",
+      "documents": "My documents"
+    },
+    "merchant": {
+      "stores": "My stores",
+      "products": "My products",
+      "orders": "Orders",
+      "documents": "My documents"
+    },
+    "provider": {
+      "services": "My services",
+      "bookings": "My bookings",
+      "documents": "My documents"
+    },
+    "admin": {
+      "users": "Users",
+      "stores": "Stores",
+      "orders": "Orders",
+      "services": "Services",
+      "documents": "Documents",
+      "notifications": "Notifications"
+    }
+  },
+  "common": {
+    "signOut": "Sign out"
+  }
+}

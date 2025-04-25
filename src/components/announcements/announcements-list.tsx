@@ -61,8 +61,8 @@ export function AnnouncementsList() {
   const { data, isLoading, isFetching, fetchNextPage, hasNextPage } =
     api.announcement.getAll.useInfiniteQuery(
       {
-        status: status as AnnouncementStatus | undefined,
-        packageSize: packageSize as PackageSize | undefined,
+        status: status === "all" ? undefined : status as AnnouncementStatus | undefined,
+        packageSize: packageSize === "all" ? undefined : packageSize as PackageSize | undefined,
         minPrice: minPrice || undefined,
         maxPrice: maxPrice || undefined,
         searchTerm: searchTerm || undefined,
@@ -81,8 +81,8 @@ export function AnnouncementsList() {
 
   // Fonction pour réinitialiser les filtres
   const resetFilters = () => {
-    setStatus("");
-    setPackageSize("");
+    setStatus("all");
+    setPackageSize("all");
     setMinPrice(0);
     setMaxPrice(1000);
     setSearchTerm("");
@@ -154,7 +154,7 @@ export function AnnouncementsList() {
                     <SelectValue placeholder={t("allStatuses")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">{t("allStatuses")}</SelectItem>
+                    <SelectItem value="all">{t("allStatuses")}</SelectItem>
                     <SelectItem value={AnnouncementStatus.OPEN}>
                       {t("status.open")}
                     </SelectItem>
@@ -188,7 +188,7 @@ export function AnnouncementsList() {
                     <SelectValue placeholder={t("allSizes")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">{t("allSizes")}</SelectItem>
+                    <SelectItem value="all">{t("allSizes")}</SelectItem>
                     <SelectItem value={PackageSize.SMALL}>
                       {t("sizeSmall")}
                     </SelectItem>

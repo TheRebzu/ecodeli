@@ -1,0 +1,47 @@
+{
+  "title": "Cart",
+  "description": "Manage products in your cart",
+  "empty": {
+    "title": "Your cart is empty",
+    "description": "Add products to start shopping",
+    "action": "Continue shopping"
+  },
+  "emptyCart": "Your cart is empty",
+  "emptyCartDescription": "Add products to start shopping",
+  "browseStores": "Browse stores",
+  "cartItems": "Cart items ({count})",
+  "unavailableProduct": "Unavailable product",
+  "multipleStoresError": "You cannot order products from different stores at the same time",
+  "multipleStoresWarning": "Products from different stores must be ordered separately",
+  "continueShopping": "Continue shopping",
+  "addMoreItems": "Add more items",
+  "orderSummary": "Order summary",
+  "summary": {
+    "title": "Order summary",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "tax": "Tax",
+    "total": "Total",
+    "checkout": "Checkout"
+  },
+  "subtotal": "Subtotal",
+  "shipping": "Shipping",
+  "tax": "Tax",
+  "total": "Total",
+  "proceedToCheckout": "Proceed to checkout",
+  "item": {
+    "quantity": "Quantity",
+    "remove": "Remove"
+  },
+  "quantity": "Quantity",
+  "actions": {
+    "continueShopping": "Continue shopping",
+    "clearCart": "Clear cart"
+  },
+  "clearCart": "Clear cart",
+  "notifications": {
+    "itemAdded": "Product added to cart",
+    "itemRemoved": "Product removed from cart",
+    "cartCleared": "Cart has been cleared"
+  }
+} 

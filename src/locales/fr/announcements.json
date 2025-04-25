@@ -1,0 +1,117 @@
+{
+  "title": "Annonces",
+  "announcements": "Annonces",
+  "announcementsDescription": "Parcourez les demandes de livraison et faites des offres",
+  "createAnnouncement": "Créer une annonce",
+  "createAnnouncementDescription": "Créez une demande de livraison",
+  "createButton": "Créer une annonce",
+  "noAnnouncements": "Aucune annonce pour le moment",
+  "viewAll": "Voir toutes les annonces",
+  "titlePlaceholder": "Entrez un titre pour votre annonce",
+  "description": "Description",
+  "descriptionPlaceholder": "Décrivez ce qui doit être livré",
+  "pickupAddress": "Adresse de ramassage",
+  "addressPlaceholder": "Entrez une adresse",
+  "deliveryAddress": "Adresse de livraison",
+  "packageSize": "Taille du colis",
+  "selectSize": "Sélectionnez la taille",
+  "sizeSmall": "Petit (tient dans un petit sac)",
+  "sizeMedium": "Moyen (tient dans un sac à dos)",
+  "sizeLarge": "Grand (tient dans un coffre de voiture)",
+  "sizeExtraLarge": "Très grand (nécessite une camionnette)",
+  "packageWeight": "Poids (kg)",
+  "packageValue": "Valeur (€)",
+  "deadline": "Date limite de livraison",
+  "price": "Prix proposé (€)",
+  "priceDescription": "Montant que vous êtes prêt à payer pour la livraison",
+  "requiresInsurance": "Nécessite une assurance",
+  "insuranceDescription": "Assurance supplémentaire pour les objets de valeur",
+  "form": {
+    "title": "Titre",
+    "content": "Contenu",
+    "submit": "Soumettre",
+    "placeholders": {
+      "title": "Entrez le titre de l'annonce",
+      "content": "Entrez le contenu de l'annonce"
+    },
+    "validation": {
+      "titleRequired": "Le titre est requis",
+      "contentRequired": "Le contenu est requis"
+    }
+  },
+  "filters": {
+    "title": "Filtres",
+    "category": "Catégorie",
+    "date": "Date",
+    "status": "Statut",
+    "apply": "Appliquer",
+    "reset": "Réinitialiser"
+  },
+  "details": {
+    "postedBy": "Publié par",
+    "postedOn": "Publié le",
+    "lastUpdated": "Dernière mise à jour",
+    "category": "Catégorie",
+    "status": "Statut",
+    "actions": {
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "share": "Partager"
+    }
+  },
+  "categories": {
+    "all": "Toutes",
+    "general": "Général",
+    "important": "Important",
+    "update": "Mise à jour",
+    "event": "Événement",
+    "promotion": "Promotion"
+  },
+  "statuses": {
+    "active": "Actif",
+    "inactive": "Inactif",
+    "draft": "Brouillon",
+    "archived": "Archivé"
+  },
+  "status": {
+    "open": "Ouvert aux offres",
+    "assigned": "Assigné",
+    "inProgress": "En cours",
+    "completed": "Terminé",
+    "cancelled": "Annulé"
+  },
+  "confirmations": {
+    "delete": {
+      "title": "Supprimer l'annonce",
+      "message": "Êtes-vous sûr de vouloir supprimer cette annonce? Cette action ne peut pas être annulée.",
+      "confirm": "Oui, supprimer",
+      "cancel": "Annuler"
+    }
+  },
+  "notifications": {
+    "created": "L'annonce a été créée avec succès",
+    "updated": "L'annonce a été mise à jour avec succès",
+    "deleted": "L'annonce a été supprimée avec succès"
+  },
+  "payment": {
+    "title": "Paiement pour l'annonce",
+    "description": "Complétez le paiement pour publier votre annonce",
+    "amount": "Montant",
+    "method": "Méthode de paiement",
+    "proceed": "Procéder au paiement",
+    "success": "Paiement réussi",
+    "failed": "Échec du paiement",
+    "cancel": "Annuler le paiement"
+  },
+  "error": {
+    "create": "Échec de la création de l'annonce",
+    "load": "Échec du chargement des annonces"
+  },
+  "success": {
+    "created": "Annonce créée avec succès"
+  },
+  "empty": {
+    "title": "Pas encore d'annonces",
+    "description": "Soyez le premier à publier une demande de livraison"
+  }
+} 

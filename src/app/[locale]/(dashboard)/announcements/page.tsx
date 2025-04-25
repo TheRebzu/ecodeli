@@ -2,24 +2,40 @@
 
 import { useTranslations } from "next-intl";
 import { AnnouncementsList } from "@/components/announcements/announcements-list";
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
+import { DashboardLayout, DashboardHeader } from "@/components/dashboard/dashboard-layout";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { api } from "@/trpc/react";
+import { useSession } from "next-auth/react";
+import { ClientSidebar } from "@/components/dashboard/client/client-sidebar";
+import { DelivererSidebar } from "@/components/dashboard/deliverer/deliverer-sidebar";
+import { MerchantSidebar } from "@/components/dashboard/merchant/merchant-sidebar";
+import { AdminSidebar } from "@/components/dashboard/admin/admin-sidebar";
+import { ProviderSidebar } from "@/components/dashboard/provider/provider-sidebar";
 
 export default function AnnouncementsPage() {
   const t = useTranslations("announcements");
   const router = useRouter();
-
-  // Récupérer la session utilisateur pour déterminer le rôle
-  const { data: session } = api.auth.getSession.useQuery();
+  const { data: session } = useSession();
 
   // Déterminer le composant de barre latérale à utiliser en fonction du rôle
   const getSidebar = () => {
-    // Cette fonction sera implémentée pour retourner le bon composant de barre latérale
-    // en fonction du rôle de l'utilisateur
-    return null;
+    if (!session?.user) return null;
+    
+    switch (session.user.role) {
+      case "CLIENT":
+        return <ClientSidebar />;
+      case "DELIVERER":
+        return <DelivererSidebar />;
+      case "MERCHANT":
+        return <MerchantSidebar />;
+      case "PROVIDER":
+        return <ProviderSidebar />;
+      case "ADMIN":
+        return <AdminSidebar />;
+      default:
+        return null;
+    }
   };
 
   // Vérifier si l'utilisateur est un client (pour afficher le bouton de création)
@@ -27,16 +43,20 @@ export default function AnnouncementsPage() {
 
   return (
     <DashboardLayout
-      title={t("announcements")}
-      description={t("announcementsDescription")}
       sidebar={getSidebar()}
-      action={
-        isClient ? (
-          <Button onClick={() => router.push("/announcements/new")}>
-            <Plus className="mr-2 h-4 w-4" />
-            {t("createAnnouncement")}
-          </Button>
-        ) : undefined
+      header={
+        <DashboardHeader
+          title={t("announcements")}
+          description={t("announcementsDescription")}
+          actions={
+            isClient ? (
+              <Button onClick={() => router.push("/announcements/new")}>
+                <Plus className="mr-2 h-4 w-4" />
+                {t("createAnnouncement")}
+              </Button>
+            ) : undefined
+          }
+        />
       }
     >
       <AnnouncementsList />

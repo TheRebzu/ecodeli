@@ -9,8 +9,8 @@ export const api = createTRPCProxyClient<AppRouter>({
   links: [
     httpBatchLink({
       url: `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/trpc`,
-      headers() {
-        const heads = new Map(headers());
+      async headers() {
+        const heads = new Map(await headers());
         heads.set('x-trpc-source', 'server');
         return Object.fromEntries(heads);
       },

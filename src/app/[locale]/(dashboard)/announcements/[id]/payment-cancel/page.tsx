@@ -12,9 +12,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, ArrowLeft } from "lucide-react";
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
+import { DashboardLayout, DashboardHeader } from "@/components/dashboard/dashboard-layout";
 import { XCircle } from "lucide-react";
+import { ClientSidebar } from "@/components/dashboard/client/client-sidebar";
 
 export default function PaymentCancelPage() {
   const t = useTranslations("payments");
@@ -24,8 +24,13 @@ export default function PaymentCancelPage() {
 
   return (
     <DashboardLayout
-      title={t("paymentCancelTitle")}
-      description={t("paymentCancelDescription")}
+      sidebar={<ClientSidebar />}
+      header={
+        <DashboardHeader
+          title={t("paymentCancelTitle")}
+          description={t("paymentCancelDescription")}
+        />
+      }
     >
       <div className="max-w-md mx-auto">
         <Card>

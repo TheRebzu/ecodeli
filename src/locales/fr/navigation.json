@@ -1,0 +1,34 @@
+{
+  "dashboard": "Tableau de bord",
+  "profile": "Profil",
+  "settings": "Paramètres",
+  "help": "Aide",
+  "client": {
+    "orders": "Mes commandes",
+    "addresses": "Mes adresses",
+    "paymentMethods": "Méthodes de paiement"
+  },
+  "deliverer": {
+    "deliveries": "Mes livraisons",
+    "documents": "Mes documents"
+  },
+  "merchant": {
+    "stores": "Mes commerces",
+    "products": "Mes produits",
+    "orders": "Commandes",
+    "documents": "Mes documents"
+  },
+  "provider": {
+    "services": "Mes services",
+    "bookings": "Mes réservations",
+    "documents": "Mes documents"
+  },
+  "admin": {
+    "users": "Utilisateurs",
+    "stores": "Commerces",
+    "orders": "Commandes",
+    "services": "Services",
+    "documents": "Documents",
+    "notifications": "Notifications"
+  }
+} 

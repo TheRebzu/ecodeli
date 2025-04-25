@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
+import { DashboardLayout, DashboardHeader } from "@/components/dashboard/dashboard-layout";
 import { ClientSidebar } from "@/components/dashboard/client/client-sidebar";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,12 +32,27 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/hooks/use-cart";
 
+// Définition du type Product pour éviter les erreurs de type implicite
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  imageUrl?: string;
+  storeId: string;
+  store: {
+    id: string;
+    name: string;
+    logoUrl?: string;
+  };
+}
+
 export default function CheckoutPage() {
   const t = useTranslations("checkout");
   const router = useRouter();
-  const { cart, clearCart } = useCart();
+  const { items, clearCart } = useCart();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("card");
+  const [isClient, setIsClient] = useState(false);
 
   // État du formulaire
   const [formData, setFormData] = useState({
@@ -56,9 +71,19 @@ export default function CheckoutPage() {
       limit: 100,
     },
     {
-      enabled: cart.items.length > 0,
+      enabled: items.length > 0 && isClient,
     },
   );
+  
+  // Set isClient to true on component mount
+  useEffect(() => {
+    setIsClient(true);
+    
+    // Redirect to cart if empty (client-side only)
+    if (items.length === 0 && !isLoading) {
+      router.push("/cart");
+    }
+  }, [items.length, isLoading, router]);
 
   // Mutation pour créer une commande
   const createOrder = api.order.createOrder.useMutation({
@@ -77,9 +102,9 @@ export default function CheckoutPage() {
   const calculateSubtotal = () => {
     if (!productsData?.products) return 0;
 
-    return cart.items.reduce((total, item) => {
+    return items.reduce((total, item) => {
       const product = productsData.products.find(
-        (p) => p.id === item.productId,
+        (p: Product) => p.id === item.id,
       );
       if (product) {
         return total + product.price * item.quantity;
@@ -89,18 +114,18 @@ export default function CheckoutPage() {
   };
 
   const subtotal = calculateSubtotal();
-  const shipping = cart.items.length > 0 ? 5 : 0;
+  const shipping = items.length > 0 ? 5 : 0;
   const tax = subtotal * 0.2;
   const total = subtotal + shipping + tax;
 
   // Vérifier si tous les produits sont du même commerce
   const getStoreId = () => {
-    if (!productsData?.products || cart.items.length === 0) return null;
+    if (!productsData?.products || items.length === 0) return null;
 
     const storeIds = new Set();
-    cart.items.forEach((item) => {
+    items.forEach((item) => {
       const product = productsData.products.find(
-        (p) => p.id === item.productId,
+        (p: Product) => p.id === item.id,
       );
       if (product) {
         storeIds.add(product.storeId);
@@ -124,7 +149,7 @@ export default function CheckoutPage() {
     e.preventDefault();
 
     // Vérifier que le panier n'est pas vide
-    if (cart.items.length === 0) {
+    if (items.length === 0) {
       toast.error(t("emptyCartError"));
       return;
     }
@@ -144,10 +169,10 @@ export default function CheckoutPage() {
     // Créer la commande
     createOrder.mutate({
       storeId,
-      items: cart.items.map((item) => ({
-        productId: item.productId,
+      items: items.map((item) => ({
+        productId: item.id,
         quantity: item.quantity,
-        notes: item.notes,
+        notes: '',
       })),
       shippingAddress,
       notes: formData.notes,
@@ -155,35 +180,45 @@ export default function CheckoutPage() {
   };
 
   // Produits enrichis avec les détails
-  const cartItems = cart.items.map((item) => {
-    const product = productsData?.products.find((p) => p.id === item.productId);
+  const cartItems = items.map((item) => {
+    const product = productsData?.products?.find((p: Product) => p.id === item.id);
     return {
       ...item,
       product,
     };
   });
 
-  // Rediriger vers le panier si vide
-  if (cart.items.length === 0 && !isLoading) {
-    router.push("/cart");
-    return null;
+  // If not client-side yet, show loading state
+  if (!isClient) {
+    return (
+      <DashboardLayout sidebar={<ClientSidebar />}>
+        <DashboardHeader title={t("title")} description={t("description")} />
+        <div className="container mx-auto py-6">
+          <div className="space-y-4">
+            <Skeleton className="h-12 w-1/3" />
+            <Skeleton className="h-48 w-full" />
+            <Skeleton className="h-48 w-full" />
+          </div>
+        </div>
+      </DashboardLayout>
+    );
   }
 
+  // Normal render
   return (
     <DashboardLayout sidebar={<ClientSidebar />}>
-      <div className="container mx-auto py-6">
-        <div className="flex items-center mb-6">
-          <Button
-            variant="ghost"
-            onClick={() => router.back()}
-            className="mr-4"
-          >
+      <DashboardHeader
+        title={t("title")}
+        description={t("description")}
+        actions={
+          <Button variant="outline" onClick={() => router.push("/cart")}>
             <ArrowLeft className="h-4 w-4 mr-2" />
             {t("backToCart")}
           </Button>
-          <h1 className="text-3xl font-bold">{t("title")}</h1>
-        </div>
+        }
+      />
 
+      <div className="container mx-auto py-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <div className="md:col-span-2">
             <form onSubmit={handleSubmit}>
@@ -270,10 +305,9 @@ export default function CheckoutPage() {
                     <Textarea
                       id="notes"
                       name="notes"
+                      placeholder={t("orderNotesPlaceholder")}
                       value={formData.notes}
                       onChange={handleChange}
-                      placeholder={t("orderNotesPlaceholder")}
-                      rows={3}
                     />
                   </div>
                 </CardContent>
@@ -289,35 +323,25 @@ export default function CheckoutPage() {
                     onValueChange={setPaymentMethod}
                     className="space-y-3"
                   >
-                    <div className="flex items-center space-x-2 border p-3 rounded-md">
+                    <div className="flex items-center space-x-2">
                       <RadioGroupItem value="card" id="card" />
-                      <Label htmlFor="card" className="flex items-center">
-                        <CreditCard className="mr-2 h-4 w-4" />
+                      <Label
+                        htmlFor="card"
+                        className="flex items-center cursor-pointer"
+                      >
+                        <CreditCard className="h-4 w-4 mr-2" />
                         {t("creditCard")}
                       </Label>
                     </div>
-
-                    <div className="flex items-center space-x-2 border p-3 rounded-md">
-                      <RadioGroupItem value="cash" id="cash" />
-                      <Label htmlFor="cash">{t("cashOnDelivery")}</Label>
-                    </div>
                   </RadioGroup>
-
-                  {paymentMethod === "card" && (
-                    <div className="mt-4 p-4 bg-muted/50 rounded-md">
-                      <p className="text-sm text-muted-foreground">
-                        {t("demoPaymentNotice")}
-                      </p>
-                    </div>
-                  )}
                 </CardContent>
               </Card>
 
               <Button
                 type="submit"
+                disabled={isSubmitting}
                 className="w-full"
                 size="lg"
-                disabled={isSubmitting}
               >
                 {isSubmitting ? (
                   <>
@@ -325,10 +349,7 @@ export default function CheckoutPage() {
                     {t("processing")}
                   </>
                 ) : (
-                  <>
-                    <Check className="mr-2 h-4 w-4" />
-                    {t("placeOrder")}
-                  </>
+                  t("placeOrder")
                 )}
               </Button>
             </form>
@@ -339,7 +360,7 @@ export default function CheckoutPage() {
               <CardHeader>
                 <CardTitle>{t("orderSummary")}</CardTitle>
               </CardHeader>
-              <CardContent>
+              <CardContent className="space-y-4">
                 {isLoading ? (
                   <div className="space-y-4">
                     <Skeleton className="h-16 w-full" />
@@ -348,75 +369,73 @@ export default function CheckoutPage() {
                   </div>
                 ) : (
                   <>
-                    <div className="space-y-4 max-h-80 overflow-y-auto">
+                    <div className="space-y-3">
                       {cartItems.map((item) => (
                         <div
-                          key={item.productId}
-                          className="flex items-center space-x-3"
+                          key={item.id}
+                          className="flex items-center justify-between"
                         >
-                          {item.product?.imageUrl ? (
-                            <div className="h-12 w-12 rounded-md overflow-hidden relative flex-shrink-0">
-                              <Image
-                                src={item.product.imageUrl}
-                                alt={item.product.name}
-                                fill
-                                className="object-cover"
-                              />
+                          <div className="flex items-center">
+                            {item.product?.imageUrl ? (
+                              <div className="h-12 w-12 rounded-md overflow-hidden relative mr-3">
+                                <Image
+                                  src={item.product.imageUrl}
+                                  alt={item.product.name}
+                                  fill
+                                  className="object-cover"
+                                />
+                              </div>
+                            ) : (
+                              <div className="h-12 w-12 rounded-md bg-muted flex items-center justify-center mr-3">
+                                <ShoppingCart className="h-5 w-5" />
+                              </div>
+                            )}
+                            <div>
+                              <p className="font-medium text-sm">
+                                {item.product?.name || t("unavailableProduct")}
+                              </p>
+                              <p className="text-xs text-muted-foreground">
+                                {t("quantity")}: {item.quantity}
+                              </p>
                             </div>
-                          ) : (
-                            <div className="h-12 w-12 rounded-md bg-muted flex items-center justify-center flex-shrink-0">
-                              <ShoppingCart className="h-6 w-6" />
-                            </div>
-                          )}
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium truncate">
-                              {item.product?.name || t("unavailableProduct")}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {t("quantity")}: {item.quantity}
-                            </p>
                           </div>
-                          <div className="text-right">
+                          <p className="font-medium">
                             {item.product
-                              ? `${(item.product.price * item.quantity).toFixed(2)} €`
+                              ? `${(
+                                  item.product.price * item.quantity
+                                ).toFixed(2)} €`
                               : ""}
-                          </div>
+                          </p>
                         </div>
                       ))}
                     </div>
 
-                    <Separator className="my-4" />
+                    <Separator />
 
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-sm">
+                    <div className="space-y-1.5">
+                      <div className="flex justify-between">
                         <span>{t("subtotal")}</span>
                         <span>{subtotal.toFixed(2)} €</span>
                       </div>
-                      <div className="flex justify-between text-sm">
+                      <div className="flex justify-between">
                         <span>{t("shipping")}</span>
                         <span>{shipping.toFixed(2)} €</span>
                       </div>
-                      <div className="flex justify-between text-sm">
+                      <div className="flex justify-between">
                         <span>{t("tax")}</span>
                         <span>{tax.toFixed(2)} €</span>
                       </div>
-                      <Separator className="my-2" />
-                      <div className="flex justify-between font-medium">
-                        <span>{t("total")}</span>
-                        <span>{total.toFixed(2)} €</span>
-                      </div>
+                    </div>
+
+                    <Separator />
+
+                    <div className="flex justify-between font-medium text-lg">
+                      <span>{t("total")}</span>
+                      <span>{total.toFixed(2)} €</span>
                     </div>
                   </>
                 )}
               </CardContent>
-              <CardFooter>
-                <Button variant="outline" className="w-full" asChild>
-                  <Link href="/cart">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    {t("editCart")}
-                  </Link>
-                </Button>
-              </CardFooter>
             </Card>
           </div>
         </div>

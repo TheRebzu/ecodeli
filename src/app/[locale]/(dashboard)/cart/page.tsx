@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { api } from "@/trpc/react";
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
+import { DashboardLayout, DashboardHeader } from "@/components/dashboard/dashboard-layout";
 import { ClientSidebar } from "@/components/dashboard/client/client-sidebar";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,10 +21,24 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/hooks/use-cart";
 
+// Définition du type Product pour éviter les erreurs de type implicite
+interface Product {
+  id: string;
+  name: string;
+  price: number;
+  imageUrl?: string;
+  storeId: string;
+  store: {
+    id: string;
+    name: string;
+    logoUrl?: string;
+  };
+}
+
 export default function CartPage() {
   const t = useTranslations("cart");
   const router = useRouter();
-  const { cart, updateQuantity, removeItem, clearCart } = useCart();
+  const { items, updateQuantity, removeItem, clearCart } = useCart();
   const [isCheckingOut, setIsCheckingOut] = useState(false);
 
   // Récupérer les détails des produits dans le panier
@@ -33,7 +47,7 @@ export default function CartPage() {
       limit: 100,
     },
     {
-      enabled: cart.items.length > 0,
+      enabled: items.length > 0,
     },
   );
 
@@ -41,9 +55,9 @@ export default function CartPage() {
   const calculateTotal = () => {
     if (!productsData?.products) return 0;
 
-    return cart.items.reduce((total, item) => {
+    return items.reduce((total, item) => {
       const product = productsData.products.find(
-        (p) => p.id === item.productId,
+        (p: Product) => p.id === item.id,
       );
       if (product) {
         return total + product.price * item.quantity;
@@ -54,12 +68,12 @@ export default function CartPage() {
 
   // Vérifier si tous les produits sont du même commerce
   const isSingleStore = () => {
-    if (!productsData?.products || cart.items.length === 0) return true;
+    if (!productsData?.products || items.length === 0) return true;
 
     const storeIds = new Set();
-    cart.items.forEach((item) => {
+    items.forEach((item) => {
       const product = productsData.products.find(
-        (p) => p.id === item.productId,
+        (p: Product) => p.id === item.id,
       );
       if (product) {
         storeIds.add(product.storeId);
@@ -81,8 +95,8 @@ export default function CartPage() {
   };
 
   // Produits enrichis avec les détails
-  const cartItems = cart.items.map((item) => {
-    const product = productsData?.products.find((p) => p.id === item.productId);
+  const cartItems = items.map((item) => {
+    const product = productsData?.products.find((p: Product) => p.id === item.id);
     return {
       ...item,
       product,
@@ -91,15 +105,18 @@ export default function CartPage() {
 
   return (
     <DashboardLayout sidebar={<ClientSidebar />}>
-      <div className="container mx-auto py-6">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-3xl font-bold">{t("title")}</h1>
+      <DashboardHeader 
+        title={t("title")}
+        description={t("description")}
+        actions={
           <Button variant="outline" onClick={() => router.back()}>
             {t("continueShopping")}
           </Button>
-        </div>
+        }
+      />
 
-        {cart.items.length === 0 ? (
+      <div className="container mx-auto py-6">
+        {items.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <ShoppingCart className="h-16 w-16 text-muted-foreground opacity-50 mb-4" />
@@ -118,7 +135,7 @@ export default function CartPage() {
               <Card>
                 <CardHeader>
                   <CardTitle>
-                    {t("cartItems", { count: cart.items.length })}
+                    {t("cartItems", { count: items.length })}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -132,7 +149,7 @@ export default function CartPage() {
                     <div className="space-y-4">
                       {cartItems.map((item) => (
                         <div
-                          key={item.productId}
+                          key={item.id}
                           className="flex items-center justify-between border-b pb-4"
                         >
                           <div className="flex items-center space-x-4">
@@ -173,7 +190,7 @@ export default function CartPage() {
                                 className="h-8 w-8 rounded-none"
                                 onClick={() =>
                                   updateQuantity(
-                                    item.productId,
+                                    item.id,
                                     Math.max(1, item.quantity - 1),
                                   )
                                 }
@@ -190,7 +207,7 @@ export default function CartPage() {
                                 className="h-8 w-8 rounded-none"
                                 onClick={() =>
                                   updateQuantity(
-                                    item.productId,
+                                    item.id,
                                     item.quantity + 1,
                                   )
                                 }
@@ -209,7 +226,7 @@ export default function CartPage() {
                               variant="ghost"
                               size="icon"
                               className="text-destructive"
-                              onClick={() => removeItem(item.productId)}
+                              onClick={() => removeItem(item.id)}
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
@@ -242,18 +259,18 @@ export default function CartPage() {
                   </div>
                   <div className="flex justify-between">
                     <span>{t("shipping")}</span>
-                    <span>{cart.items.length > 0 ? "5.00 €" : "0.00 €"}</span>
+                    <span>{items.length > 0 ? "5.00 €" : "0.00 €"}</span>
                   </div>
                   <div className="flex justify-between">
                     <span>{t("tax")}</span>
                     <span>{(calculateTotal() * 0.2).toFixed(2)} €</span>
                   </div>
-                  <div className="border-t pt-4 flex justify-between font-medium text-lg">
+                  <div className="border-t pt-4 flex justify-between font-medium">
                     <span>{t("total")}</span>
                     <span>
                       {(
                         calculateTotal() +
-                        (cart.items.length > 0 ? 5 : 0) +
+                        (items.length > 0 ? 5 : 0) +
                         calculateTotal() * 0.2
                       ).toFixed(2)}{" "}
                       €
@@ -261,7 +278,7 @@ export default function CartPage() {
                   </div>
 
                   {!isSingleStore() && (
-                    <div className="bg-destructive/10 text-destructive p-3 rounded-md text-sm">
+                    <div className="bg-yellow-50 p-3 rounded-md text-sm text-yellow-800 mt-4">
                       {t("multipleStoresWarning")}
                     </div>
                   )}
@@ -269,16 +286,10 @@ export default function CartPage() {
                 <CardFooter>
                   <Button
                     className="w-full"
-                    size="lg"
-                    disabled={
-                      isCheckingOut ||
-                      cart.items.length === 0 ||
-                      !isSingleStore()
-                    }
                     onClick={handleCheckout}
+                    disabled={items.length === 0 || isCheckingOut || !isSingleStore()}
                   >
-                    {t("proceedToCheckout")}
-                    <ArrowRight className="ml-2 h-4 w-4" />
+                    {t("proceedToCheckout")} <ArrowRight className="ml-2 h-4 w-4" />
                   </Button>
                 </CardFooter>
               </Card>

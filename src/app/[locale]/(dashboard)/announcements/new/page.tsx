@@ -1,6 +1,6 @@
 import { useTranslations } from "next-intl";
 import { CreateAnnouncementForm } from "@/components/announcements/create-announcement-form";
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
+import { DashboardLayout, DashboardHeader } from "@/components/dashboard/dashboard-layout";
 import { ClientSidebar } from "@/components/dashboard/client/client-sidebar";
 
 export default function CreateAnnouncementPage() {
@@ -8,9 +8,13 @@ export default function CreateAnnouncementPage() {
 
   return (
     <DashboardLayout
-      title={t("createAnnouncement")}
-      description={t("createAnnouncementDescription")}
       sidebar={<ClientSidebar />}
+      header={
+        <DashboardHeader
+          title={t("createAnnouncement")}
+          description={t("createAnnouncementDescription")}
+        />
+      }
     >
       <CreateAnnouncementForm />
     </DashboardLayout>

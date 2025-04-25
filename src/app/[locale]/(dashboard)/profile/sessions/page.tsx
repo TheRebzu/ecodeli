@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Laptop, Smartphone, Clock, Check, X } from "lucide-react";
 import { api } from "@/trpc/server";
 
+// Marquer cette page comme dynamique pour éviter les erreurs de prérendu
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: "Mes sessions",
   description: "Gérez vos sessions actives et sécurisez votre compte",

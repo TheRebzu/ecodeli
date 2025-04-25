@@ -3,9 +3,35 @@ import {
   createTRPCRouter,
   publicProcedure,
   protectedProcedure,
+  adminProcedure,
 } from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { UserRole } from "@prisma/client";
+
+// Define interfaces to fix type issues
+interface DocumentWithUser {
+  id: string;
+  userId: string;
+  documentType: string;
+  status: string;
+  createdAt: Date;
+  fileUrl: string;
+  description?: string;
+  user: {
+    id: string;
+    name: string | null;
+    role: string;
+  };
+}
+
+interface Document {
+  id: string;
+  userId: string;
+  documentType: string;
+  status: string;
+  createdAt: Date;
+  fileUrl: string;
+  description?: string;
+}
 
 export const documentsRouter = createTRPCRouter({
   // Récupérer la liste des documents de l'utilisateur connecté
@@ -134,169 +160,206 @@ export const documentsRouter = createTRPCRouter({
     }),
 
   // Pour les administrateurs : récupérer les documents en attente de vérification
-  getPendingDocuments: protectedProcedure
-    .input(
-      z.object({
-        status: z.enum(["PENDING", "VERIFIED", "REJECTED"]).optional(),
-        role: z.enum(["DELIVERER", "MERCHANT", "PROVIDER"]).optional(),
-        page: z.number().default(1),
-        limit: z.number().default(10),
-      }),
-    )
-    .query(async ({ ctx, input }) => {
-      // Vérifier si l'utilisateur est un administrateur
-      if (ctx.session.user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Vous n'êtes pas autorisé à accéder à cette ressource",
-        });
-      }
-
-      // Construire la requête
-      const where: any = {};
-      if (input.status) {
-        where.status = input.status;
-      }
-
-      if (input.role) {
-        where.user = {
-          role: input.role,
-        };
-      }
-
-      // Calculer le nombre total de documents
-      const totalCount = await ctx.prisma.document.count({ where });
-
-      // Récupérer les documents paginés
-      const documents = await ctx.prisma.document.findMany({
-        where,
-        include: {
-          user: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              role: true,
-            },
+  getPendingDocuments: adminProcedure.query(async ({ ctx }) => {
+    const pendingDocuments = await ctx.prisma.document.findMany({
+      where: {
+        status: "PENDING",
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            role: true,
           },
         },
-        orderBy: { createdAt: "desc" },
-        skip: (input.page - 1) * input.limit,
-        take: input.limit,
-      });
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
 
-      return {
-        documents,
-        pagination: {
-          total: totalCount,
-          page: input.page,
-          limit: input.limit,
-          pages: Math.ceil(totalCount / input.limit),
-        },
-      };
-    }),
+    return pendingDocuments.map((doc: DocumentWithUser) => ({
+      id: doc.id,
+      userId: doc.userId,
+      userName: doc.user.name || "Unknown User",
+      userRole: doc.user.role,
+      documentType: doc.documentType,
+      status: doc.status,
+      submittedAt: doc.createdAt.toISOString(),
+      fileUrl: doc.fileUrl,
+      description: doc.description,
+    }));
+  }),
 
   // Pour les administrateurs : vérifier un document
-  verifyDocument: protectedProcedure
+  verifyDocument: adminProcedure
     .input(
       z.object({
         documentId: z.string(),
-        status: z.enum(["VERIFIED", "REJECTED"]),
-        comment: z.string().optional(),
-      }),
+        reviewNote: z.string().optional(),
+      })
     )
     .mutation(async ({ ctx, input }) => {
-      // Vérifier si l'utilisateur est un administrateur
-      if (ctx.session.user.role !== "ADMIN") {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Vous n'êtes pas autorisé à effectuer cette action",
-        });
-      }
-
-      // Mettre à jour le statut du document
-      const document = await ctx.prisma.document.update({
-        where: { id: input.documentId },
-        data: {
-          status: input.status,
-          adminComment: input.comment,
-          verifiedAt: input.status === "VERIFIED" ? new Date() : null,
-          verifiedBy: input.status === "VERIFIED" ? ctx.session.user.id : null,
-        },
-        include: {
-          user: true,
+      const document = await ctx.prisma.document.findUnique({
+        where: {
+          id: input.documentId,
         },
       });
 
-      // Si tous les documents requis sont vérifiés, mettre à jour le statut de vérification de l'utilisateur
-      if (input.status === "VERIFIED") {
-        const userId = document.userId;
-        const userRole = document.user.role as UserRole;
-
-        // Définir les documents requis en fonction du rôle
-        let requiredDocuments: string[] = [];
-
-        switch (userRole) {
-          case "DELIVERER":
-            requiredDocuments = ["ID_CARD", "DRIVER_LICENSE", "INSURANCE"];
-            break;
-          case "MERCHANT":
-            requiredDocuments = [
-              "BUSINESS_REGISTRATION",
-              "INSURANCE",
-              "ID_CARD",
-            ];
-            break;
-          case "PROVIDER":
-            requiredDocuments = ["ID_CARD", "QUALIFICATION", "INSURANCE"];
-            break;
-        }
-
-        // Vérifier si tous les documents requis sont vérifiés
-        const verifiedDocuments = await ctx.prisma.document.findMany({
-          where: {
-            userId,
-            status: "VERIFIED",
-          },
+      if (!document) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Document not found",
         });
-
-        const verifiedDocumentTypes = verifiedDocuments.map((doc) => doc.type);
-        const allRequiredDocumentsVerified = requiredDocuments.every(
-          (docType) => verifiedDocumentTypes.includes(docType),
-        );
-
-        // Mettre à jour le statut de vérification de l'utilisateur
-        if (allRequiredDocumentsVerified) {
-          switch (userRole) {
-            case "DELIVERER":
-              await ctx.prisma.delivererProfile.update({
-                where: { userId },
-                data: { isVerified: true },
-              });
-              break;
-            case "MERCHANT":
-              await ctx.prisma.store.updateMany({
-                where: { merchantId: userId },
-                data: { isVerified: true },
-              });
-              break;
-            case "PROVIDER":
-              await ctx.prisma.serviceProvider.update({
-                where: { userId },
-                data: { isVerified: true },
-              });
-              break;
-          }
-        }
       }
 
-      return {
-        success: true,
-        message:
-          input.status === "VERIFIED"
-            ? "Document vérifié avec succès"
-            : "Document rejeté",
-        document,
-      };
+      if (document.status !== "PENDING") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Document is not in pending status",
+        });
+      }
+
+      // Update the document status
+      const updatedDocument = await ctx.prisma.document.update({
+        where: {
+          id: input.documentId,
+        },
+        data: {
+          status: "VERIFIED",
+          verifiedAt: new Date(),
+          verifiedById: ctx.session.user.id,
+          reviewNote: input.reviewNote,
+        },
+      });
+
+      // Create an activity record
+      await ctx.prisma.activity.create({
+        data: {
+          type: "DOCUMENT_VERIFIED",
+          userId: document.userId,
+          performedById: ctx.session.user.id,
+          metadata: {
+            documentId: document.id,
+            documentType: document.documentType,
+          },
+        },
+      });
+
+      // Create a notification for the user
+      await ctx.prisma.notification.create({
+        data: {
+          type: "DOCUMENT_VERIFIED",
+          userId: document.userId,
+          title: "Document Verified",
+          content: `Your ${(document as Document).documentType.toLowerCase().replace(/_/g, " ")} has been verified.`,
+          metadata: {
+            documentId: document.id,
+            documentType: (document as Document).documentType,
+          },
+        },
+      });
+
+      return updatedDocument;
     }),
+
+  rejectDocument: adminProcedure
+    .input(
+      z.object({
+        documentId: z.string(),
+        reviewNote: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const document = await ctx.prisma.document.findUnique({
+        where: {
+          id: input.documentId,
+        },
+      });
+
+      if (!document) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Document not found",
+        });
+      }
+
+      if (document.status !== "PENDING") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Document is not in pending status",
+        });
+      }
+
+      if (!input.reviewNote) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Review note is required for rejected documents",
+        });
+      }
+
+      // Update the document status
+      const updatedDocument = await ctx.prisma.document.update({
+        where: {
+          id: input.documentId,
+        },
+        data: {
+          status: "REJECTED",
+          verifiedAt: new Date(),
+          verifiedById: ctx.session.user.id,
+          reviewNote: input.reviewNote,
+        },
+      });
+
+      // Create an activity record
+      await ctx.prisma.activity.create({
+        data: {
+          type: "DOCUMENT_REJECTED",
+          userId: document.userId,
+          performedById: ctx.session.user.id,
+          metadata: {
+            documentId: document.id,
+            documentType: (document as Document).documentType,
+            reason: input.reviewNote,
+          },
+        },
+      });
+
+      // Create a notification for the user
+      await ctx.prisma.notification.create({
+        data: {
+          type: "DOCUMENT_REJECTED",
+          userId: document.userId,
+          title: "Document Rejected",
+          content: `Your ${(document as Document).documentType.toLowerCase().replace(/_/g, " ")} has been rejected. Please check the details and resubmit.`,
+          metadata: {
+            documentId: document.id,
+            documentType: (document as Document).documentType,
+            reason: input.reviewNote,
+          },
+        },
+      });
+
+      return updatedDocument;
+    }),
+
+  getUserDocuments: protectedProcedure.query(async ({ ctx }) => {
+    return ctx.prisma.document.findMany({
+      where: {
+        userId: ctx.session.user.id,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  }),
+
+  countPendingDocuments: adminProcedure.query(async ({ ctx }) => {
+    return ctx.prisma.document.count({
+      where: {
+        status: "PENDING",
+      },
+    });
+  }),
 });
