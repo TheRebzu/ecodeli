@@ -7,6 +7,7 @@ EcoDeli est une société de crowdshipping créée à Paris en 2018, qui met en 
 ## Services Proposés par EcoDeli
 
 ### Services de Livraison
+
 - Gestion des annonces proposées par les particuliers ou les commerçants
 - Prise en charge intégrale ou partielle du trajet de livraison
 - Livraison aux destinataires finaux
@@ -15,6 +16,7 @@ EcoDeli est une société de crowdshipping créée à Paris en 2018, qui met en 
 - Lâcher de chariot (livraison à domicile des achats effectués chez un commerçant partenaire)
 
 ### Services à la Personne
+
 - Transport quotidien de personnes (personnes âgées, voisins, etc.)
 - Transfert aéroport au départ ou à l'arrivée
 - Courses effectuées par un livreur EcoDeli
@@ -23,12 +25,14 @@ EcoDeli est une société de crowdshipping créée à Paris en 2018, qui met en 
 - Petits travaux ménagers et de jardinage
 
 ### Infrastructure Physique
+
 - Entrepôts dans plusieurs villes (Paris, Marseille, Lyon, Lille, Montpellier, Rennes)
 - L'entrepôt de Paris sert également de bureau principal
 
 ## Structure Actuelle du Projet
 
 Le projet EcoDeli est une application Next.js avec une architecture organisée en plusieurs dossiers principaux:
+
 - `/app` (structure principale avec App Router)
 - `/components` (composants UI réutilisables)
 - `/lib` (code de bibliothèque)
@@ -41,6 +45,7 @@ Le projet EcoDeli est une application Next.js avec une architecture organisée e
 - `/docker` (configuration de conteneurisation)
 
 L'application est divisée en sections pour différents types d'utilisateurs:
+
 - `/admin`
 - `/client`
 - `/courier` (livreur)
@@ -64,12 +69,14 @@ L'application est divisée en sections pour différents types d'utilisateurs:
 ## Flux de Travail Principaux
 
 ### Authentification
+
 1. L'utilisateur s'inscrit en spécifiant son rôle
 2. Des informations supplémentaires sont demandées selon le rôle
 3. Pour les livreurs et prestataires, des documents justificatifs sont requis
 4. Les administrateurs vérifient les documents et valident les comptes
 
 ### Livraison
+
 1. Un client ou commerçant crée une annonce de livraison
 2. Les livreurs consultent les annonces et proposent leurs services
 3. Le client/commerçant sélectionne un livreur
@@ -79,6 +86,7 @@ L'application est divisée en sections pour différents types d'utilisateurs:
 7. Le paiement est libéré et une facture est générée
 
 ### Services à la Personne
+
 1. Un client demande un service
 2. Les prestataires disponibles sont notifiés
 3. Un prestataire accepte la demande

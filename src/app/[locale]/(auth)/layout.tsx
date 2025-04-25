@@ -1,7 +1,7 @@
-import React from 'react'
+import React from "react";
 
 interface AuthLayoutProps {
-  children: React.ReactNode
+  children: React.ReactNode;
 }
 
 export default function AuthLayout({ children }: AuthLayoutProps) {
@@ -11,5 +11,5 @@ export default function AuthLayout({ children }: AuthLayoutProps) {
         {children}
       </div>
     </div>
-  )
+  );
 }

@@ -1,7 +1,13 @@
 "use client";
 
 import { ReactNode } from "react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 interface DashboardCardProps {
   title: string;
@@ -10,7 +16,12 @@ interface DashboardCardProps {
   className?: string;
 }
 
-export function DashboardCard({ title, description, children, className = "" }: DashboardCardProps) {
+export function DashboardCard({
+  title,
+  description,
+  children,
+  className = "",
+}: DashboardCardProps) {
   return (
     <Card className={`shadow-sm ${className}`}>
       <CardHeader className="pb-3">

@@ -18,16 +18,18 @@ export default function Error({
     console.error("Erreur dans la section publique:", error);
   }, [error]);
 
-  const errorMessage = getAuthErrorMessage(error.message) || "Une erreur inattendue s&apos;est produite.";
+  const errorMessage =
+    getAuthErrorMessage(error.message) ||
+    "Une erreur inattendue s&apos;est produite.";
 
   return (
     <div className="container flex flex-col items-center justify-center min-h-[70vh] py-10">
       <div className="max-w-md w-full space-y-6 text-center">
         <div className="space-y-2">
-          <h2 className="text-3xl font-bold tracking-tight">Oups, quelque chose s&apos;est mal passé</h2>
-          <p className="text-muted-foreground">
-            {errorMessage}
-          </p>
+          <h2 className="text-3xl font-bold tracking-tight">
+            Oups, quelque chose s&apos;est mal passé
+          </h2>
+          <p className="text-muted-foreground">{errorMessage}</p>
           {error.digest && (
             <p className="text-xs text-muted-foreground mt-2">
               ID Erreur: {error.digest}
@@ -41,9 +43,7 @@ export default function Error({
             Réessayer
           </Button>
           <Button asChild>
-            <Link href="/">
-              Retour à l&apos;accueil
-            </Link>
+            <Link href="/">Retour à l&apos;accueil</Link>
           </Button>
         </div>
       </div>

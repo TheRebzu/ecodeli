@@ -1,14 +1,19 @@
-import { z } from 'zod';
-import { router, protectedProcedure, adminProcedure, clientProcedure } from '@/lib/trpc';
-import { TRPCError } from '@trpc/server';
-import { prisma } from '@/lib/prisma';
+import { z } from "zod";
+import {
+  router,
+  protectedProcedure,
+  adminProcedure,
+  clientProcedure,
+} from "@/lib/trpc";
+import { TRPCError } from "@trpc/server";
+import { prisma } from "@/lib/prisma";
 
 export const tutorialStepRouter = router({
   // Get all tutorial steps
   getAllSteps: protectedProcedure.query(async () => {
     return await prisma.tutorialStep.findMany({
       orderBy: {
-        order: 'asc',
+        order: "asc",
       },
     });
   }),
@@ -17,21 +22,18 @@ export const tutorialStepRouter = router({
   getStepsByUserType: protectedProcedure
     .input(
       z.object({
-        userType: z.enum(['CLIENT', 'DELIVERER', 'MERCHANT', 'PROVIDER']),
-      })
+        userType: z.enum(["CLIENT", "DELIVERER", "MERCHANT", "PROVIDER"]),
+      }),
     )
     .query(async ({ input }) => {
       const { userType } = input;
-      
+
       return await prisma.tutorialStep.findMany({
         where: {
-          OR: [
-            { userTypes: { has: userType } },
-            { userTypes: { has: 'ALL' } },
-          ],
+          OR: [{ userTypes: { has: userType } }, { userTypes: { has: "ALL" } }],
         },
         orderBy: {
-          order: 'asc',
+          order: "asc",
         },
       });
     }),
@@ -39,37 +41,34 @@ export const tutorialStepRouter = router({
   // Get tutorial progress for the current user
   getUserProgress: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session?.user?.id;
-    
+
     if (!userId) {
       throw new TRPCError({
-        code: 'UNAUTHORIZED',
-        message: 'User not authenticated',
+        code: "UNAUTHORIZED",
+        message: "User not authenticated",
       });
     }
-    
+
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { role: true },
     });
-    
+
     // Get all steps for this user type
     const steps = await prisma.tutorialStep.findMany({
       where: {
-        OR: [
-          { userTypes: { has: user?.role } },
-          { userTypes: { has: 'ALL' } },
-        ],
+        OR: [{ userTypes: { has: user?.role } }, { userTypes: { has: "ALL" } }],
       },
       orderBy: {
-        order: 'asc',
+        order: "asc",
       },
     });
-    
+
     // Get user's progress
     const progress = await prisma.tutorialProgress.findUnique({
       where: { userId },
     });
-    
+
     // Build response with steps and completion status
     return {
       steps,
@@ -85,42 +84,42 @@ export const tutorialStepRouter = router({
       z.object({
         currentStep: z.number().int().min(0),
         completed: z.boolean().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session?.user?.id;
-      
+
       if (!userId) {
         throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'User not authenticated',
+          code: "UNAUTHORIZED",
+          message: "User not authenticated",
         });
       }
-      
+
       const { currentStep, completed } = input;
-      
+
       // Validate that the step exists
       const user = await prisma.user.findUnique({
         where: { id: userId },
         select: { role: true },
       });
-      
+
       const totalSteps = await prisma.tutorialStep.count({
         where: {
           OR: [
             { userTypes: { has: user?.role } },
-            { userTypes: { has: 'ALL' } },
+            { userTypes: { has: "ALL" } },
           ],
         },
       });
-      
+
       if (currentStep > totalSteps) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
+          code: "BAD_REQUEST",
           message: `Invalid step number. Total steps: ${totalSteps}`,
         });
       }
-      
+
       // Update or create progress
       return await prisma.tutorialProgress.upsert({
         where: { userId },
@@ -139,14 +138,14 @@ export const tutorialStepRouter = router({
   // Skip tutorial for the current user
   skipTutorial: protectedProcedure.mutation(async ({ ctx }) => {
     const userId = ctx.session?.user?.id;
-    
+
     if (!userId) {
       throw new TRPCError({
-        code: 'UNAUTHORIZED',
-        message: 'User not authenticated',
+        code: "UNAUTHORIZED",
+        message: "User not authenticated",
       });
     }
-    
+
     return await prisma.tutorialProgress.upsert({
       where: { userId },
       update: {
@@ -168,9 +167,11 @@ export const tutorialStepRouter = router({
         description: z.string().min(1),
         element: z.string().optional(),
         order: z.number().int().positive(),
-        userTypes: z.array(z.enum(['ALL', 'CLIENT', 'DELIVERER', 'MERCHANT', 'PROVIDER'])),
+        userTypes: z.array(
+          z.enum(["ALL", "CLIENT", "DELIVERER", "MERCHANT", "PROVIDER"]),
+        ),
         imageUrl: z.string().url().optional(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       return await prisma.tutorialStep.create({
@@ -187,13 +188,15 @@ export const tutorialStepRouter = router({
         description: z.string().min(1).optional(),
         element: z.string().optional(),
         order: z.number().int().positive().optional(),
-        userTypes: z.array(z.enum(['ALL', 'CLIENT', 'DELIVERER', 'MERCHANT', 'PROVIDER'])).optional(),
+        userTypes: z
+          .array(z.enum(["ALL", "CLIENT", "DELIVERER", "MERCHANT", "PROVIDER"]))
+          .optional(),
         imageUrl: z.string().url().optional(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const { id, ...data } = input;
-      
+
       return await prisma.tutorialStep.update({
         where: { id },
         data,
@@ -217,27 +220,27 @@ export const tutorialStepRouter = router({
           z.object({
             id: z.string(),
             order: z.number().int().positive(),
-          })
+          }),
         ),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const { steps } = input;
-      
+
       // Update each step's order
       await Promise.all(
-        steps.map(step => 
+        steps.map((step) =>
           prisma.tutorialStep.update({
             where: { id: step.id },
             data: { order: step.order },
-          })
-        )
+          }),
+        ),
       );
-      
+
       return await prisma.tutorialStep.findMany({
         orderBy: {
-          order: 'asc',
+          order: "asc",
         },
       });
     }),
-}); 
+});

@@ -3,6 +3,7 @@
 ## Modèles existants à utiliser
 
 ### Modèle Announcement
+
 ```prisma
 model Announcement {
   id                String               @id @default(cuid())
@@ -31,6 +32,7 @@ model Announcement {
 ```
 
 ### Énumérations existantes
+
 ```prisma
 enum PackageSize {
   SMALL
@@ -59,6 +61,7 @@ enum PaymentStatus {
 ## Nouveaux modèles à ajouter
 
 ### Modèle AnnouncementApplication
+
 Ce modèle représente les candidatures des livreurs pour prendre en charge une annonce.
 
 ```prisma
@@ -69,13 +72,13 @@ model AnnouncementApplication {
   status        ApplicationStatus         @default(PENDING)
   createdAt     DateTime                  @default(now())
   updatedAt     DateTime                  @updatedAt
-  
+
   // Relations
   announcementId String
   announcement   Announcement             @relation(fields: [announcementId], references: [id], onDelete: Cascade)
   delivererId    String
   deliverer      User                     @relation(fields: [delivererId], references: [id])
-  
+
   @@unique([announcementId, delivererId])
 }
 
@@ -88,6 +91,7 @@ enum ApplicationStatus {
 ```
 
 ### Modèle AnnouncementReview
+
 Ce modèle représente les évaluations laissées par les clients et les livreurs après une livraison.
 
 ```prisma
@@ -98,7 +102,7 @@ model AnnouncementReview {
   reviewType    ReviewType                // Type d'évaluation (client vers livreur ou livreur vers client)
   createdAt     DateTime                  @default(now())
   updatedAt     DateTime                  @updatedAt
-  
+
   // Relations
   announcementId String
   announcement   Announcement             @relation(fields: [announcementId], references: [id])
@@ -106,7 +110,7 @@ model AnnouncementReview {
   reviewer       User                     @relation("ReviewerReviews", fields: [reviewerId], references: [id])
   targetId       String
   target         User                     @relation("TargetReviews", fields: [targetId], references: [id])
-  
+
   @@unique([announcementId, reviewerId, targetId])
 }
 
@@ -117,6 +121,7 @@ enum ReviewType {
 ```
 
 ### Modèle AnnouncementDispute
+
 Ce modèle représente les litiges liés aux annonces.
 
 ```prisma
@@ -127,7 +132,7 @@ model AnnouncementDispute {
   resolution    String?                   @db.Text
   createdAt     DateTime                  @default(now())
   updatedAt     DateTime                  @updatedAt
-  
+
   // Relations
   announcementId String
   announcement   Announcement             @relation(fields: [announcementId], references: [id])
@@ -148,6 +153,7 @@ enum DisputeStatus {
 ```
 
 ### Modèle AnnouncementMessage
+
 Ce modèle représente les messages échangés entre le client et le livreur concernant une annonce.
 
 ```prisma
@@ -156,7 +162,7 @@ model AnnouncementMessage {
   content       String                    @db.Text
   isRead        Boolean                   @default(false)
   createdAt     DateTime                  @default(now())
-  
+
   // Relations
   announcementId String
   announcement   Announcement             @relation(fields: [announcementId], references: [id], onDelete: Cascade)
@@ -168,6 +174,7 @@ model AnnouncementMessage {
 ```
 
 ### Modèle AnnouncementLocation
+
 Ce modèle représente les coordonnées géographiques des adresses de ramassage et de livraison.
 
 ```prisma
@@ -176,11 +183,11 @@ model AnnouncementLocation {
   latitude      Float
   longitude     Float
   locationType  LocationType
-  
+
   // Relations
   announcementId String
   announcement   Announcement             @relation(fields: [announcementId], references: [id], onDelete: Cascade)
-  
+
   @@unique([announcementId, locationType])
 }
 
@@ -193,16 +200,17 @@ enum LocationType {
 ## Modifications à apporter aux modèles existants
 
 ### Mise à jour du modèle User
+
 Ajouter des relations pour les nouveaux modèles.
 
 ```prisma
 model User {
   // Champs existants...
-  
+
   // Relations existantes...
   clientAnnouncements      Announcement[]           @relation("ClientAnnouncements")
   delivererAnnouncements   Announcement[]           @relation("DelivererAnnouncements")
-  
+
   // Nouvelles relations
   announcementApplications AnnouncementApplication[] @relation()
   reviewsGiven             AnnouncementReview[]      @relation("ReviewerReviews")
@@ -216,14 +224,15 @@ model User {
 ```
 
 ### Mise à jour du modèle Announcement
+
 Ajouter des relations pour les nouveaux modèles.
 
 ```prisma
 model Announcement {
   // Champs existants...
-  
+
   // Relations existantes...
-  
+
   // Nouvelles relations
   applications  AnnouncementApplication[]
   reviews       AnnouncementReview[]
@@ -281,7 +290,7 @@ model Announcement {
   paymentStatus     PaymentStatus?
   createdAt         DateTime             @default(now())
   updatedAt         DateTime             @updatedAt
-  
+
   // Relations existantes
   clientId    String
   client      User                @relation("ClientAnnouncements", fields: [clientId], references: [id])
@@ -289,7 +298,7 @@ model Announcement {
   deliverer   User?               @relation("DelivererAnnouncements", fields: [delivererId], references: [id])
   deliveries  Delivery[]
   payments    Payment[]
-  
+
   // Nouvelles relations
   applications  AnnouncementApplication[]
   reviews       AnnouncementReview[]
@@ -306,13 +315,13 @@ model AnnouncementApplication {
   status        ApplicationStatus         @default(PENDING)
   createdAt     DateTime                  @default(now())
   updatedAt     DateTime                  @updatedAt
-  
+
   // Relations
   announcementId String
   announcement   Announcement             @relation(fields: [announcementId], references: [id], onDelete: Cascade)
   delivererId    String
   deliverer      User                     @relation(fields: [delivererId], references: [id])
-  
+
   @@unique([announcementId, delivererId])
 }
 
@@ -323,7 +332,7 @@ model AnnouncementReview {
   reviewType    ReviewType
   createdAt     DateTime                  @default(now())
   updatedAt     DateTime                  @updatedAt
-  
+
   // Relations
   announcementId String
   announcement   Announcement             @relation(fields: [announcementId], references: [id])
@@ -331,7 +340,7 @@ model AnnouncementReview {
   reviewer       User                     @relation("ReviewerReviews", fields: [reviewerId], references: [id])
   targetId       String
   target         User                     @relation("TargetReviews", fields: [targetId], references: [id])
-  
+
   @@unique([announcementId, reviewerId, targetId])
 }
 
@@ -342,7 +351,7 @@ model AnnouncementDispute {
   resolution    String?                   @db.Text
   createdAt     DateTime                  @default(now())
   updatedAt     DateTime                  @updatedAt
-  
+
   // Relations
   announcementId String
   announcement   Announcement             @relation(fields: [announcementId], references: [id])
@@ -359,7 +368,7 @@ model AnnouncementMessage {
   content       String                    @db.Text
   isRead        Boolean                   @default(false)
   createdAt     DateTime                  @default(now())
-  
+
   // Relations
   announcementId String
   announcement   Announcement             @relation(fields: [announcementId], references: [id], onDelete: Cascade)
@@ -374,11 +383,11 @@ model AnnouncementLocation {
   latitude      Float
   longitude     Float
   locationType  LocationType
-  
+
   // Relations
   announcementId String
   announcement   Announcement             @relation(fields: [announcementId], references: [id], onDelete: Cascade)
-  
+
   @@unique([announcementId, locationType])
 }
 

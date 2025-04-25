@@ -1,14 +1,19 @@
-import { z } from 'zod';
-import { router, protectedProcedure, adminProcedure, clientProcedure } from '@/lib/trpc';
-import { TRPCError } from '@trpc/server';
-import { prisma } from '@/lib/prisma';
+import { z } from "zod";
+import {
+  router,
+  protectedProcedure,
+  adminProcedure,
+  clientProcedure,
+} from "@/lib/trpc";
+import { TRPCError } from "@trpc/server";
+import { prisma } from "@/lib/prisma";
 
 export const subscriptionRouter = router({
   // Get all available subscription plans
   getPlans: protectedProcedure.query(async () => {
     return await prisma.subscriptionPlan.findMany({
       orderBy: {
-        price: 'asc',
+        price: "asc",
       },
     });
   }),
@@ -30,8 +35,8 @@ export const subscriptionRouter = router({
 
     if (!clientProfile) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Client profile not found',
+        code: "NOT_FOUND",
+        message: "Client profile not found",
       });
     }
 
@@ -44,7 +49,7 @@ export const subscriptionRouter = router({
       z.object({
         planId: z.string(),
         paymentMethodId: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
@@ -57,8 +62,8 @@ export const subscriptionRouter = router({
 
       if (!plan) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Subscription plan not found',
+          code: "NOT_FOUND",
+          message: "Subscription plan not found",
         });
       }
 
@@ -72,8 +77,8 @@ export const subscriptionRouter = router({
 
       if (!clientProfile) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Client profile not found',
+          code: "NOT_FOUND",
+          message: "Client profile not found",
         });
       }
 
@@ -86,7 +91,7 @@ export const subscriptionRouter = router({
             startDate: new Date(),
             // Calculate end date (1 month from now)
             endDate: new Date(new Date().setMonth(new Date().getMonth() + 1)),
-            status: 'ACTIVE',
+            status: "ACTIVE",
           },
           include: {
             plan: true,
@@ -102,7 +107,7 @@ export const subscriptionRouter = router({
           startDate: new Date(),
           // Calculate end date (1 month from now)
           endDate: new Date(new Date().setMonth(new Date().getMonth() + 1)),
-          status: 'ACTIVE',
+          status: "ACTIVE",
           // Payment details would be handled with Stripe integration
         },
         include: {
@@ -124,15 +129,15 @@ export const subscriptionRouter = router({
 
     if (!clientProfile || !clientProfile.subscription) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'No active subscription found',
+        code: "NOT_FOUND",
+        message: "No active subscription found",
       });
     }
 
     return await prisma.subscription.update({
       where: { id: clientProfile.subscription.id },
       data: {
-        status: 'CANCELLED',
+        status: "CANCELLED",
         // Keep the end date as is, allowing the user to use the subscription until it expires
       },
     });
@@ -151,7 +156,7 @@ export const subscriptionRouter = router({
         priorityShippingDiscount: z.number().min(0).max(100),
         permanentDiscount: z.number().min(0).max(100),
         freeShipments: z.number().int().nonnegative(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       return await prisma.subscriptionPlan.create({
@@ -173,7 +178,7 @@ export const subscriptionRouter = router({
         priorityShippingDiscount: z.number().min(0).max(100).optional(),
         permanentDiscount: z.number().min(0).max(100).optional(),
         freeShipments: z.number().int().nonnegative().optional(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const { id, ...data } = input;
@@ -189,7 +194,7 @@ export const subscriptionRouter = router({
     .input(
       z.object({
         amount: z.number().positive(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
@@ -206,7 +211,11 @@ export const subscriptionRouter = router({
         },
       });
 
-      if (!clientProfile || !clientProfile.subscription || clientProfile.subscription.status !== 'ACTIVE') {
+      if (
+        !clientProfile ||
+        !clientProfile.subscription ||
+        clientProfile.subscription.status !== "ACTIVE"
+      ) {
         return {
           covered: false,
           coverageAmount: 0,
@@ -220,7 +229,8 @@ export const subscriptionRouter = router({
       return {
         covered: amount <= coverageAmount,
         coverageAmount,
-        additionalCost: amount <= coverageAmount ? 0 : (amount - coverageAmount) * 0.05,
+        additionalCost:
+          amount <= coverageAmount ? 0 : (amount - coverageAmount) * 0.05,
       };
     }),
-}); 
+});

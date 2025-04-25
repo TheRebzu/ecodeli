@@ -1,13 +1,17 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { DashboardNavigation, DashboardUserInfo, DashboardSidebarFooter } from "@/components/dashboard/dashboard-navigation";
+import {
+  DashboardNavigation,
+  DashboardUserInfo,
+  DashboardSidebarFooter,
+} from "@/components/dashboard/dashboard-navigation";
 import { DashboardSidebar } from "@/components/dashboard/dashboard-layout";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export function ProviderSidebar() {
   const { data: session, status } = useSession();
-  
+
   if (status === "loading") {
     return (
       <DashboardSidebar>
@@ -27,11 +31,11 @@ export function ProviderSidebar() {
       </DashboardSidebar>
     );
   }
-  
+
   if (!session?.user) {
     return null;
   }
-  
+
   return (
     <DashboardSidebar>
       <DashboardUserInfo />

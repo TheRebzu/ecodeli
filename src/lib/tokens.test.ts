@@ -1,5 +1,10 @@
 import { expect, test, vi } from "vitest";
-import { generateVerificationToken, verifyVerificationToken, generatePasswordResetToken, verifyPasswordResetToken } from "@/lib/tokens";
+import {
+  generateVerificationToken,
+  verifyVerificationToken,
+  generatePasswordResetToken,
+  verifyPasswordResetToken,
+} from "@/lib/tokens";
 import { PrismaClient } from "@prisma/client";
 
 // Mock de Prisma
@@ -29,16 +34,16 @@ test("generateVerificationToken should create a token", async () => {
     userId,
     expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
   });
-  
+
   const db = {
     verificationToken: {
       create: mockCreate,
     },
   };
-  
+
   // @ts-ignore - Mock implementation
   const token = await generateVerificationToken(userId, db);
-  
+
   expect(token).toBeDefined();
   expect(typeof token).toBe("string");
   expect(mockCreate).toHaveBeenCalledWith({
@@ -58,19 +63,19 @@ test("verifyVerificationToken should validate a token", async () => {
     userId,
     expires: new Date(Date.now() + 1000), // Not expired
   });
-  
+
   const mockDelete = vi.fn();
-  
+
   const db = {
     verificationToken: {
       findFirst: mockFindFirst,
       delete: mockDelete,
     },
   };
-  
+
   // @ts-ignore - Mock implementation
   const result = await verifyVerificationToken(token, db);
-  
+
   expect(result).toBe(userId);
   expect(mockFindFirst).toHaveBeenCalledWith({
     where: { token },
@@ -88,19 +93,19 @@ test("verifyVerificationToken should reject expired token", async () => {
     userId: "user123",
     expires: new Date(Date.now() - 1000), // Expired
   });
-  
+
   const mockDelete = vi.fn();
-  
+
   const db = {
     verificationToken: {
       findFirst: mockFindFirst,
       delete: mockDelete,
     },
   };
-  
+
   // @ts-ignore - Mock implementation
   const result = await verifyVerificationToken(token, db);
-  
+
   expect(result).toBeNull();
   expect(mockFindFirst).toHaveBeenCalledWith({
     where: { token },
@@ -113,17 +118,17 @@ test("verifyVerificationToken should reject expired token", async () => {
 test("verifyVerificationToken should reject invalid token", async () => {
   const token = "invalid-token";
   const mockFindFirst = vi.fn().mockResolvedValue(null);
-  
+
   const db = {
     verificationToken: {
       findFirst: mockFindFirst,
       delete: vi.fn(),
     },
   };
-  
+
   // @ts-ignore - Mock implementation
   const result = await verifyVerificationToken(token, db);
-  
+
   expect(result).toBeNull();
   expect(mockFindFirst).toHaveBeenCalledWith({
     where: { token },

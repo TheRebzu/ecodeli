@@ -17,41 +17,45 @@ export async function POST(request: NextRequest) {
 
     // Generate reset token (function handles finding the user)
     const token = await generatePasswordResetToken(email);
-    
+
     // If a token was generated (valid user found)
     if (token) {
       const user = await prisma.user.findUnique({
-        where: { email: email.toLowerCase() }
+        where: { email: email.toLowerCase() },
       });
-      
+
       if (user) {
         // Send reset email
         await sendPasswordResetEmail(
           user.email,
           user.name || "Utilisateur",
-          token
+          token,
         );
       }
     }
-    
+
     // Always return success to prevent email enumeration
     return NextResponse.json({
       success: true,
-      message: "Si votre adresse est associée à un compte, un email de réinitialisation a été envoyé"
+      message:
+        "Si votre adresse est associée à un compte, un email de réinitialisation a été envoyé",
     });
   } catch (error) {
     console.error("Password reset request error:", error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Données invalides", details: error.errors },
-        { status: 400 }
+        { status: 400 },
       );
     }
-    
+
     return NextResponse.json(
-      { error: "Une erreur est survenue lors de la demande de réinitialisation du mot de passe" },
-      { status: 500 }
+      {
+        error:
+          "Une erreur est survenue lors de la demande de réinitialisation du mot de passe",
+      },
+      { status: 500 },
     );
   }
-} 
+}

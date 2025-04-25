@@ -1,7 +1,7 @@
-import Stripe from 'stripe';
+import Stripe from "stripe";
 
 // Initialisation de l'API Stripe avec la clé secrète
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '');
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "");
 
 export interface CreateCheckoutSessionParams {
   orderId: string;
@@ -27,7 +27,7 @@ export async function createCheckoutSession({
   orderId,
   orderNumber,
   customerEmail,
-  currency = 'eur',
+  currency = "eur",
   successUrl,
   cancelUrl,
   items,
@@ -35,8 +35,8 @@ export async function createCheckoutSession({
   try {
     // Création de la session Stripe Checkout
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      mode: 'payment',
+      payment_method_types: ["card"],
+      mode: "payment",
       customer_email: customerEmail,
       client_reference_id: orderId,
       success_url: `${successUrl}?session_id={CHECKOUT_SESSION_ID}`,
@@ -45,7 +45,7 @@ export async function createCheckoutSession({
         orderId,
         orderNumber,
       },
-      line_items: items.map(item => ({
+      line_items: items.map((item) => ({
         price_data: {
           currency,
           product_data: {
@@ -60,8 +60,8 @@ export async function createCheckoutSession({
 
     return { sessionId: session.id, url: session.url };
   } catch (error) {
-    console.error('Erreur lors de la création de la session Stripe:', error);
-    throw new Error('Impossible de créer la session de paiement');
+    console.error("Erreur lors de la création de la session Stripe:", error);
+    throw new Error("Impossible de créer la session de paiement");
   }
 }
 
@@ -73,8 +73,11 @@ export async function getCheckoutSession(sessionId: string) {
     const session = await stripe.checkout.sessions.retrieve(sessionId);
     return session;
   } catch (error) {
-    console.error('Erreur lors de la récupération de la session Stripe:', error);
-    throw new Error('Impossible de récupérer la session de paiement');
+    console.error(
+      "Erreur lors de la récupération de la session Stripe:",
+      error,
+    );
+    throw new Error("Impossible de récupérer la session de paiement");
   }
 }
 
@@ -89,8 +92,8 @@ export async function createRefund(paymentIntentId: string, amount?: number) {
     });
     return refund;
   } catch (error) {
-    console.error('Erreur lors du remboursement Stripe:', error);
-    throw new Error('Impossible de créer le remboursement');
+    console.error("Erreur lors du remboursement Stripe:", error);
+    throw new Error("Impossible de créer le remboursement");
   }
 }
 
@@ -102,12 +105,12 @@ export async function handleStripeWebhook(rawBody: string, signature: string) {
     const event = stripe.webhooks.constructEvent(
       rawBody,
       signature,
-      process.env.STRIPE_WEBHOOK_SECRET || ''
+      process.env.STRIPE_WEBHOOK_SECRET || "",
     );
 
     return event;
   } catch (error) {
-    console.error('Erreur lors du traitement du webhook Stripe:', error);
-    throw new Error('Impossible de traiter le webhook Stripe');
+    console.error("Erreur lors du traitement du webhook Stripe:", error);
+    throw new Error("Impossible de traiter le webhook Stripe");
   }
 }

@@ -11,8 +11,21 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { Loader2, Plus } from "lucide-react";
 
@@ -20,10 +33,11 @@ export default function CreateProductPage() {
   const t = useTranslations("products");
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   // Récupérer les commerces de l'utilisateur
-  const { data: storesData, isLoading: isLoadingStores } = api.store.getMyStores.useQuery();
-  
+  const { data: storesData, isLoading: isLoadingStores } =
+    api.store.getMyStores.useQuery();
+
   // Mutation pour créer un produit
   const createProduct = api.order.createProduct.useMutation({
     onSuccess: () => {
@@ -35,7 +49,7 @@ export default function CreateProductPage() {
       setIsSubmitting(false);
     },
   });
-  
+
   // État du formulaire
   const [formData, setFormData] = useState({
     name: "",
@@ -50,47 +64,54 @@ export default function CreateProductPage() {
     stockQuantity: "",
     storeId: "",
   });
-  
+
   // Gérer les changements dans le formulaire
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
-  
+
   // Gérer la sélection du commerce
   const handleStoreChange = (value: string) => {
     setFormData((prev) => ({ ...prev, storeId: value }));
   };
-  
+
   // Gérer la soumission du formulaire
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     // Convertir les valeurs numériques
     const price = parseFloat(formData.price);
     const weight = formData.weight ? parseFloat(formData.weight) : undefined;
-    const stockQuantity = formData.stockQuantity ? parseInt(formData.stockQuantity, 10) : undefined;
-    
+    const stockQuantity = formData.stockQuantity
+      ? parseInt(formData.stockQuantity, 10)
+      : undefined;
+
     // Valider les données
     if (isNaN(price) || price <= 0) {
       toast.error(t("invalidPrice"));
       setIsSubmitting(false);
       return;
     }
-    
+
     if (formData.weight && (isNaN(weight!) || weight! <= 0)) {
       toast.error(t("invalidWeight"));
       setIsSubmitting(false);
       return;
     }
-    
-    if (formData.stockQuantity && (isNaN(stockQuantity!) || stockQuantity! < 0)) {
+
+    if (
+      formData.stockQuantity &&
+      (isNaN(stockQuantity!) || stockQuantity! < 0)
+    ) {
       toast.error(t("invalidStock"));
       setIsSubmitting(false);
       return;
     }
-    
+
     // Créer le produit
     createProduct.mutate({
       name: formData.name,
@@ -106,7 +127,7 @@ export default function CreateProductPage() {
       storeId: formData.storeId,
     });
   };
-  
+
   return (
     <DashboardLayout sidebar={<MerchantSidebar />}>
       <div className="container mx-auto py-6">
@@ -116,7 +137,7 @@ export default function CreateProductPage() {
             {t("back")}
           </Button>
         </div>
-        
+
         <Card>
           <CardHeader>
             <CardTitle>{t("productDetails")}</CardTitle>
@@ -135,7 +156,7 @@ export default function CreateProductPage() {
                     required
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="price">{t("price")} (€) *</Label>
                   <Input
@@ -150,7 +171,7 @@ export default function CreateProductPage() {
                   />
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="description">{t("description")} *</Label>
                 <Textarea
@@ -162,7 +183,7 @@ export default function CreateProductPage() {
                   required
                 />
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="category">{t("category")} *</Label>
@@ -174,7 +195,7 @@ export default function CreateProductPage() {
                     required
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="storeId">{t("store")} *</Label>
                   <Select
@@ -196,7 +217,7 @@ export default function CreateProductPage() {
                   </Select>
                 </div>
               </div>
-              
+
               <div className="space-y-2">
                 <Label htmlFor="imageUrl">{t("imageUrl")}</Label>
                 <Input
@@ -208,7 +229,7 @@ export default function CreateProductPage() {
                   placeholder="https://..."
                 />
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="sku">{t("sku")}</Label>
@@ -219,7 +240,7 @@ export default function CreateProductPage() {
                     onChange={handleChange}
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="barcode">{t("barcode")}</Label>
                   <Input
@@ -229,7 +250,7 @@ export default function CreateProductPage() {
                     onChange={handleChange}
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <Label htmlFor="stockQuantity">{t("stockQuantity")}</Label>
                   <Input
@@ -243,7 +264,7 @@ export default function CreateProductPage() {
                   />
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label htmlFor="weight">{t("weight")} (g)</Label>
@@ -257,9 +278,11 @@ export default function CreateProductPage() {
                     onChange={handleChange}
                   />
                 </div>
-                
+
                 <div className="space-y-2">
-                  <Label htmlFor="dimensions">{t("dimensions")} (LxWxH cm)</Label>
+                  <Label htmlFor="dimensions">
+                    {t("dimensions")} (LxWxH cm)
+                  </Label>
                   <Input
                     id="dimensions"
                     name="dimensions"
@@ -278,10 +301,7 @@ export default function CreateProductPage() {
               >
                 {t("cancel")}
               </Button>
-              <Button
-                type="submit"
-                disabled={isSubmitting}
-              >
+              <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

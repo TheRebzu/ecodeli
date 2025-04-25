@@ -13,15 +13,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from "@/components/ui/table";
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -30,15 +30,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { toast } from "sonner";
-import { 
-  Package, 
-  Search, 
-  Plus, 
-  MoreHorizontal, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  Filter 
+import {
+  Package,
+  Search,
+  Plus,
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  Eye,
+  Filter,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -47,18 +47,25 @@ export default function ProductsPage() {
   const t = useTranslations("products");
   const router = useRouter();
   const searchParams = useSearchParams();
-  
+
   // États pour la recherche et le filtrage
-  const [searchQuery, setSearchQuery] = useState(searchParams.get("search") || "");
-  const [selectedStore, setSelectedStore] = useState(searchParams.get("storeId") || "");
-  const [selectedCategory, setSelectedCategory] = useState(searchParams.get("category") || "");
+  const [searchQuery, setSearchQuery] = useState(
+    searchParams.get("search") || "",
+  );
+  const [selectedStore, setSelectedStore] = useState(
+    searchParams.get("storeId") || "",
+  );
+  const [selectedCategory, setSelectedCategory] = useState(
+    searchParams.get("category") || "",
+  );
   const [selectedStatus, setSelectedStatus] = useState<ProductStatus | "">("");
-  
+
   // Récupérer les commerces de l'utilisateur
-  const { data: storesData, isLoading: isLoadingStores } = api.store.getMyStores.useQuery();
-  
+  const { data: storesData, isLoading: isLoadingStores } =
+    api.store.getMyStores.useQuery();
+
   // Récupérer les produits
-  const { data, isLoading, error, fetchNextPage, hasNextPage, refetch } = 
+  const { data, isLoading, error, fetchNextPage, hasNextPage, refetch } =
     api.order.getProducts.useInfiniteQuery(
       {
         storeId: selectedStore || undefined,
@@ -69,9 +76,9 @@ export default function ProductsPage() {
       },
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
-      }
+      },
     );
-  
+
   // Mutation pour supprimer un produit
   const deleteProduct = api.order.deleteProduct.useMutation({
     onSuccess: () => {
@@ -82,38 +89,39 @@ export default function ProductsPage() {
       toast.error(error.message);
     },
   });
-  
+
   // Gérer la recherche
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // Mettre à jour l'URL avec les paramètres de recherche
     const params = new URLSearchParams();
     if (searchQuery) params.set("search", searchQuery);
     if (selectedStore) params.set("storeId", selectedStore);
     if (selectedCategory) params.set("category", selectedCategory);
-    
+
     router.push(`/merchant/products?${params.toString()}`);
-    
+
     // Déclencher une nouvelle requête
     refetch();
   };
-  
+
   // Gérer la suppression d'un produit
   const handleDelete = (id: string) => {
     if (confirm(t("deleteConfirm"))) {
       deleteProduct.mutate({ id });
     }
   };
-  
+
   // Extraire toutes les catégories uniques des produits
-  const categories = data?.pages.flatMap(page => 
-    page.products.map(product => product.category)
-  ).filter((value, index, self) => self.indexOf(value) === index) || [];
-  
+  const categories =
+    data?.pages
+      .flatMap((page) => page.products.map((product) => product.category))
+      .filter((value, index, self) => self.indexOf(value) === index) || [];
+
   // Tous les produits de toutes les pages
-  const products = data?.pages.flatMap(page => page.products) || [];
-  
+  const products = data?.pages.flatMap((page) => page.products) || [];
+
   // Fonction pour afficher le statut du produit
   const renderStatus = (status: ProductStatus) => {
     switch (status) {
@@ -127,7 +135,7 @@ export default function ProductsPage() {
         return <Badge>{status}</Badge>;
     }
   };
-  
+
   return (
     <DashboardLayout sidebar={<MerchantSidebar />}>
       <div className="container mx-auto py-6">
@@ -140,7 +148,7 @@ export default function ProductsPage() {
             </Link>
           </Button>
         </div>
-        
+
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>{t("filterProducts")}</CardTitle>
@@ -157,7 +165,7 @@ export default function ProductsPage() {
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
-                
+
                 <select
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   value={selectedStore}
@@ -171,7 +179,7 @@ export default function ProductsPage() {
                     </option>
                   ))}
                 </select>
-                
+
                 <select
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   value={selectedCategory}
@@ -184,11 +192,13 @@ export default function ProductsPage() {
                     </option>
                   ))}
                 </select>
-                
+
                 <select
                   className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value as ProductStatus | "")}
+                  onChange={(e) =>
+                    setSelectedStatus(e.target.value as ProductStatus | "")
+                  }
                 >
                   <option value="">{t("allStatuses")}</option>
                   <option value="ACTIVE">{t("status.active")}</option>
@@ -196,7 +206,7 @@ export default function ProductsPage() {
                   <option value="OUT_OF_STOCK">{t("status.outOfStock")}</option>
                 </select>
               </div>
-              
+
               <div className="flex justify-end">
                 <Button type="submit">
                   <Filter className="mr-2 h-4 w-4" />
@@ -206,7 +216,7 @@ export default function ProductsPage() {
             </form>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader>
             <CardTitle>{t("productsList")}</CardTitle>
@@ -223,9 +233,9 @@ export default function ProductsPage() {
             ) : error ? (
               <div className="text-center py-8 text-destructive">
                 <p>{t("error")}</p>
-                <Button 
-                  variant="outline" 
-                  onClick={() => refetch()} 
+                <Button
+                  variant="outline"
+                  onClick={() => refetch()}
                   className="mt-2"
                 >
                   {t("retry")}
@@ -235,7 +245,9 @@ export default function ProductsPage() {
               <div className="text-center py-8">
                 <Package className="mx-auto h-12 w-12 text-muted-foreground opacity-50" />
                 <h3 className="mt-2 text-lg font-medium">{t("noProducts")}</h3>
-                <p className="text-muted-foreground">{t("noProductsDescription")}</p>
+                <p className="text-muted-foreground">
+                  {t("noProductsDescription")}
+                </p>
                 <Button className="mt-4" asChild>
                   <Link href="/merchant/products/new">
                     <Plus className="mr-2 h-4 w-4" />
@@ -254,7 +266,9 @@ export default function ProductsPage() {
                         <TableHead>{t("price")}</TableHead>
                         <TableHead>{t("store")}</TableHead>
                         <TableHead>{t("status")}</TableHead>
-                        <TableHead className="text-right">{t("actions")}</TableHead>
+                        <TableHead className="text-right">
+                          {t("actions")}
+                        </TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -288,19 +302,27 @@ export default function ProductsPage() {
                               <DropdownMenuTrigger asChild>
                                 <Button variant="ghost" size="sm">
                                   <MoreHorizontal className="h-4 w-4" />
-                                  <span className="sr-only">{t("openMenu")}</span>
+                                  <span className="sr-only">
+                                    {t("openMenu")}
+                                  </span>
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>{t("actions")}</DropdownMenuLabel>
+                                <DropdownMenuLabel>
+                                  {t("actions")}
+                                </DropdownMenuLabel>
                                 <DropdownMenuItem asChild>
-                                  <Link href={`/merchant/products/${product.id}`}>
+                                  <Link
+                                    href={`/merchant/products/${product.id}`}
+                                  >
                                     <Eye className="mr-2 h-4 w-4" />
                                     {t("view")}
                                   </Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem asChild>
-                                  <Link href={`/merchant/products/${product.id}/edit`}>
+                                  <Link
+                                    href={`/merchant/products/${product.id}/edit`}
+                                  >
                                     <Edit className="mr-2 h-4 w-4" />
                                     {t("edit")}
                                   </Link>
@@ -321,13 +343,10 @@ export default function ProductsPage() {
                     </TableBody>
                   </Table>
                 </div>
-                
+
                 {hasNextPage && (
                   <div className="mt-4 flex justify-center">
-                    <Button
-                      variant="outline"
-                      onClick={() => fetchNextPage()}
-                    >
+                    <Button variant="outline" onClick={() => fetchNextPage()}>
                       {t("loadMore")}
                     </Button>
                   </div>

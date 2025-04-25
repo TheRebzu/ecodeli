@@ -17,7 +17,7 @@ export async function hash(password: string): Promise<string> {
  */
 export async function verify(
   password: string,
-  hashedPassword: string
+  hashedPassword: string,
 ): Promise<boolean> {
   return await bcrypt.compare(password, hashedPassword);
 }
@@ -27,35 +27,35 @@ export async function verify(
  * @param password Le mot de passe à valider
  * @returns Un objet contenant le résultat de la validation et un message d'erreur si nécessaire
  */
-export function validatePassword(password: string): { 
-  isValid: boolean; 
-  message?: string 
+export function validatePassword(password: string): {
+  isValid: boolean;
+  message?: string;
 } {
   if (password.length < 8) {
-    return { 
-      isValid: false, 
-      message: "Le mot de passe doit contenir au moins 8 caractères" 
+    return {
+      isValid: false,
+      message: "Le mot de passe doit contenir au moins 8 caractères",
     };
   }
 
   if (!/[A-Z]/.test(password)) {
-    return { 
-      isValid: false, 
-      message: "Le mot de passe doit contenir au moins une lettre majuscule" 
+    return {
+      isValid: false,
+      message: "Le mot de passe doit contenir au moins une lettre majuscule",
     };
   }
 
   if (!/[a-z]/.test(password)) {
-    return { 
-      isValid: false, 
-      message: "Le mot de passe doit contenir au moins une lettre minuscule" 
+    return {
+      isValid: false,
+      message: "Le mot de passe doit contenir au moins une lettre minuscule",
     };
   }
 
   if (!/[0-9]/.test(password)) {
-    return { 
-      isValid: false, 
-      message: "Le mot de passe doit contenir au moins un chiffre" 
+    return {
+      isValid: false,
+      message: "Le mot de passe doit contenir au moins un chiffre",
     };
   }
 

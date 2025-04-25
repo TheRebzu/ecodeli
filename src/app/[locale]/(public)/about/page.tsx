@@ -3,7 +3,16 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
-import { ArrowRight, Award, Heart, Leaf, LucideIcon, Recycle, Shield, Users } from "lucide-react";
+import {
+  ArrowRight,
+  Award,
+  Heart,
+  Leaf,
+  LucideIcon,
+  Recycle,
+  Shield,
+  Users,
+} from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -14,12 +23,15 @@ export default function AboutPage() {
       <section className="relative w-full pt-16 md:pt-24 lg:pt-32 overflow-hidden">
         <div className="container relative z-10 mx-auto px-4 text-center">
           <div className="max-w-3xl mx-auto space-y-6">
-            <Badge className="px-3 py-1 mb-2 inline-flex mx-auto">À propos</Badge>
+            <Badge className="px-3 py-1 mb-2 inline-flex mx-auto">
+              À propos
+            </Badge>
             <h1 className="text-4xl md:text-5xl font-bold mb-4">
               Nous réinventons la livraison avec le crowdshipping
             </h1>
             <p className="text-xl text-muted-foreground">
-              Découvrez EcoDeli, notre mission et notre vision d'une livraison plus écologique et économique
+              Découvrez EcoDeli, notre mission et notre vision d'une livraison
+              plus écologique et économique
             </p>
           </div>
         </div>
@@ -34,35 +46,50 @@ export default function AboutPage() {
             <div className="lg:w-1/2">
               <div className="relative aspect-square max-w-lg mx-auto">
                 <div className="absolute inset-0 rounded-xl overflow-hidden">
-                  <Image 
-                    src="/images/about/founding-team.jpg" 
-                    alt="L'équipe d'EcoDeli" 
+                  <Image
+                    src="/images/about/founding-team.jpg"
+                    alt="L'équipe d'EcoDeli"
                     className="object-cover"
                     width={600}
                     height={600}
                   />
                 </div>
                 <div className="absolute -bottom-6 -right-6 bg-background rounded-lg p-4 shadow-lg border">
-                  <p className="text-sm font-medium">Le concept de crowdshipping</p>
+                  <p className="text-sm font-medium">
+                    Le concept de crowdshipping
+                  </p>
                 </div>
               </div>
             </div>
-            
+
             <div className="lg:w-1/2 space-y-6">
               <Badge>Notre concept</Badge>
-              <h2 className="text-3xl font-bold">EcoDeli, une plateforme de crowdshipping innovante</h2>
+              <h2 className="text-3xl font-bold">
+                EcoDeli, une plateforme de crowdshipping innovante
+              </h2>
               <div className="space-y-4 text-muted-foreground">
                 <p>
-                  EcoDeli est une plateforme de crowdshipping qui permet aux particuliers de confier leurs colis à d'autres particuliers pour des livraisons écologiques et économiques.
+                  EcoDeli est une plateforme de crowdshipping qui permet aux
+                  particuliers de confier leurs colis à d'autres particuliers
+                  pour des livraisons écologiques et économiques.
                 </p>
                 <p>
-                  Notre concept repose sur l'optimisation des trajets existants : au lieu de créer de nouveaux déplacements, nous utilisons ceux que des personnes effectuent déjà pour transporter des colis ou proposer des services.
+                  Notre concept repose sur l'optimisation des trajets existants
+                  : au lieu de créer de nouveaux déplacements, nous utilisons
+                  ceux que des personnes effectuent déjà pour transporter des
+                  colis ou proposer des services.
                 </p>
                 <p>
-                  Cette approche permet de réduire l'empreinte carbone des livraisons, de générer des revenus complémentaires pour les livreurs, et d'offrir des tarifs plus avantageux aux utilisateurs.
+                  Cette approche permet de réduire l'empreinte carbone des
+                  livraisons, de générer des revenus complémentaires pour les
+                  livreurs, et d'offrir des tarifs plus avantageux aux
+                  utilisateurs.
                 </p>
                 <p>
-                  Au-delà du transport de colis, notre plateforme propose également des services à la personne, tels que le transport de personnes, les courses, ou la garde d'animaux, toujours dans une logique d'optimisation des déplacements.
+                  Au-delà du transport de colis, notre plateforme propose
+                  également des services à la personne, tels que le transport de
+                  personnes, les courses, ou la garde d'animaux, toujours dans
+                  une logique d'optimisation des déplacements.
                 </p>
               </div>
               <div className="pt-4">
@@ -87,7 +114,8 @@ export default function AboutPage() {
               Révolutionner la livraison grâce au crowdshipping
             </h2>
             <p className="text-lg text-muted-foreground">
-              Notre mission est de créer un système de livraison plus écologique, économique et solidaire
+              Notre mission est de créer un système de livraison plus
+              écologique, économique et solidaire
             </p>
           </div>
 
@@ -96,35 +124,44 @@ export default function AboutPage() {
               {
                 icon: Leaf,
                 title: "Réduire l'impact environnemental",
-                description: "En optimisant les trajets existants, nous contribuons à réduire les émissions de CO2 liées au transport de colis et de personnes."
+                description:
+                  "En optimisant les trajets existants, nous contribuons à réduire les émissions de CO2 liées au transport de colis et de personnes.",
               },
               {
                 icon: Users,
                 title: "Créer du pouvoir d'achat",
-                description: "Notre plateforme permet aux particuliers de générer des revenus complémentaires en proposant leurs services de livraison ou autres."
+                description:
+                  "Notre plateforme permet aux particuliers de générer des revenus complémentaires en proposant leurs services de livraison ou autres.",
               },
               {
                 icon: Shield,
                 title: "Lutter contre l'isolement",
-                description: "Nos services favorisent les liens sociaux et contribuent à lutter contre l'isolement, notamment des personnes âgées ou à mobilité réduite."
+                description:
+                  "Nos services favorisent les liens sociaux et contribuent à lutter contre l'isolement, notamment des personnes âgées ou à mobilité réduite.",
               },
               {
                 icon: Recycle,
                 title: "Optimiser les ressources",
-                description: "En utilisant les trajets existants, nous optimisons les ressources déjà en circulation plutôt que d'en ajouter de nouvelles."
+                description:
+                  "En utilisant les trajets existants, nous optimisons les ressources déjà en circulation plutôt que d'en ajouter de nouvelles.",
               },
               {
                 icon: Award,
                 title: "Proposer des services variés",
-                description: "Au-delà du transport de colis, nous proposons divers services à la personne pour répondre à tous les besoins."
+                description:
+                  "Au-delà du transport de colis, nous proposons divers services à la personne pour répondre à tous les besoins.",
               },
               {
                 icon: Heart,
                 title: "Soutenir l'économie locale",
-                description: "Notre système facilite les échanges locaux et aide les petits commerces à proposer des livraisons abordables."
-              }
+                description:
+                  "Notre système facilite les échanges locaux et aide les petits commerces à proposer des livraisons abordables.",
+              },
             ].map((item, index) => (
-              <Card key={index} className="p-6 border hover:border-primary/50 transition-all">
+              <Card
+                key={index}
+                className="p-6 border hover:border-primary/50 transition-all"
+              >
                 <item.icon className="h-10 w-10 text-primary mb-4" />
                 <h3 className="text-xl font-semibold mb-2">{item.title}</h3>
                 <p className="text-muted-foreground">{item.description}</p>
@@ -143,7 +180,8 @@ export default function AboutPage() {
               Une gamme complète de services
             </h2>
             <p className="text-lg text-muted-foreground">
-              EcoDeli propose différents types de services pour répondre à tous vos besoins
+              EcoDeli propose différents types de services pour répondre à tous
+              vos besoins
             </p>
           </div>
 
@@ -179,11 +217,15 @@ export default function AboutPage() {
             </div>
 
             <div className="bg-muted/30 rounded-xl p-8">
-              <h3 className="text-2xl font-bold mb-4">Services à la personne</h3>
+              <h3 className="text-2xl font-bold mb-4">
+                Services à la personne
+              </h3>
               <ul className="space-y-3">
                 <li className="flex items-start">
                   <span className="mr-2 text-primary">•</span>
-                  <span>Transport de personnes (rendez-vous médicaux, gare, travail)</span>
+                  <span>
+                    Transport de personnes (rendez-vous médicaux, gare, travail)
+                  </span>
                 </li>
                 <li className="flex items-start">
                   <span className="mr-2 text-primary">•</span>
@@ -220,7 +262,8 @@ export default function AboutPage() {
               Un système simple et efficace
             </h2>
             <p className="text-lg text-muted-foreground">
-              Notre plateforme est conçue pour faciliter les échanges entre utilisateurs
+              Notre plateforme est conçue pour faciliter les échanges entre
+              utilisateurs
             </p>
           </div>
 
@@ -229,25 +272,32 @@ export default function AboutPage() {
               {
                 number: "01",
                 title: "Publication d'annonces",
-                description: "Les utilisateurs publient leurs besoins ou les services qu'ils proposent via notre système d'annonces."
+                description:
+                  "Les utilisateurs publient leurs besoins ou les services qu'ils proposent via notre système d'annonces.",
               },
               {
                 number: "02",
                 title: "Mise en relation",
-                description: "Notre plateforme met en relation les personnes ayant des besoins compatibles avec celles proposant des services."
+                description:
+                  "Notre plateforme met en relation les personnes ayant des besoins compatibles avec celles proposant des services.",
               },
               {
                 number: "03",
                 title: "Suivi en temps réel",
-                description: "Durant le service, un système de suivi en temps réel permet de savoir où en est la livraison ou le service."
+                description:
+                  "Durant le service, un système de suivi en temps réel permet de savoir où en est la livraison ou le service.",
               },
               {
                 number: "04",
                 title: "Validation et paiement",
-                description: "Une fois le service effectué, un code de confirmation valide la livraison et déclenche le paiement."
-              }
+                description:
+                  "Une fois le service effectué, un code de confirmation valide la livraison et déclenche le paiement.",
+              },
             ].map((step, index) => (
-              <div key={index} className="relative p-6 bg-background rounded-xl border">
+              <div
+                key={index}
+                className="relative p-6 bg-background rounded-xl border"
+              >
                 <div className="absolute -top-4 -right-4 w-8 h-8 rounded-full bg-primary flex items-center justify-center text-primary-foreground font-semibold text-sm">
                   {step.number}
                 </div>
@@ -269,7 +319,9 @@ export default function AboutPage() {
                 Prêt à essayer EcoDeli ?
               </h2>
               <p className="text-lg text-muted-foreground max-w-[700px]">
-                Que vous ayez besoin d'un service ou que vous souhaitiez en proposer, rejoignez notre communauté et découvrez les avantages du crowdshipping.
+                Que vous ayez besoin d'un service ou que vous souhaitiez en
+                proposer, rejoignez notre communauté et découvrez les avantages
+                du crowdshipping.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button size="lg" asChild>
@@ -288,4 +340,4 @@ export default function AboutPage() {
       </section>
     </div>
   );
-} 
+}

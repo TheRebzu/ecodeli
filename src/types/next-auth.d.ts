@@ -6,7 +6,7 @@ export enum Role {
   DELIVERER = "DELIVERER",
   MERCHANT = "MERCHANT",
   PROVIDER = "PROVIDER",
-  ADMIN = "ADMIN"
+  ADMIN = "ADMIN",
 }
 
 declare module "next-auth" {
@@ -41,4 +41,4 @@ declare module "next-auth/jwt" {
     role: Role;
     emailVerified?: string | null;
   }
-} 
+}

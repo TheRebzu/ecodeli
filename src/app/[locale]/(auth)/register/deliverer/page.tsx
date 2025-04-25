@@ -3,7 +3,8 @@ import DelivererRegistrationForm from "@/components/auth/register-forms/delivere
 
 export const metadata: Metadata = {
   title: "Inscription Livreur | EcoDeli",
-  description: "Devenez livreur freelance et gagnez de l'argent en livrant des colis avec EcoDeli.",
+  description:
+    "Devenez livreur freelance et gagnez de l'argent en livrant des colis avec EcoDeli.",
 };
 
 export default function DelivererRegistrationPage() {
@@ -12,4 +13,4 @@ export default function DelivererRegistrationPage() {
       <DelivererRegistrationForm />
     </div>
   );
-} 
+}

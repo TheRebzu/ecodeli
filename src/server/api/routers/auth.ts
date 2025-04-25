@@ -1,8 +1,18 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure, protectedProcedure } from "@/server/api/trpc";
+import {
+  createTRPCRouter,
+  publicProcedure,
+  protectedProcedure,
+} from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { hashPassword, verifyPassword } from "@/lib/auth";
-import { generateVerificationToken, generatePasswordResetToken, verifyVerificationToken, verifyPasswordResetToken, consumePasswordResetToken } from "@/lib/tokens";
+import {
+  generateVerificationToken,
+  generatePasswordResetToken,
+  verifyVerificationToken,
+  verifyPasswordResetToken,
+  consumePasswordResetToken,
+} from "@/lib/tokens";
 import { sendVerificationEmail, sendPasswordResetEmail } from "@/lib/email";
 import { validatePassword } from "@/lib/auth/password";
 
@@ -11,7 +21,9 @@ const baseRegistrationSchema = z.object({
   firstName: z.string().min(2, "Le prénom doit contenir au moins 2 caractères"),
   lastName: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
   email: z.string().email("Veuillez saisir une adresse email valide"),
-  password: z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères"),
+  password: z
+    .string()
+    .min(8, "Le mot de passe doit contenir au moins 8 caractères"),
   role: z.enum(["CLIENT", "DELIVERER", "MERCHANT", "PROVIDER"]),
   phone: z.string().optional(),
   address: z.string().optional(),
@@ -36,9 +48,14 @@ const delivererRegistrationSchema = baseRegistrationSchema.extend({
 // Schéma spécifique pour l'inscription des commerçants
 const merchantRegistrationSchema = baseRegistrationSchema.extend({
   role: z.literal("MERCHANT"),
-  storeName: z.string().min(2, "Le nom du commerce doit contenir au moins 2 caractères"),
+  storeName: z
+    .string()
+    .min(2, "Le nom du commerce doit contenir au moins 2 caractères"),
   storeType: z.string().min(1, "Le type de commerce est requis"),
-  siret: z.string().min(14, "Le numéro SIRET doit contenir 14 caractères").max(14),
+  siret: z
+    .string()
+    .min(14, "Le numéro SIRET doit contenir 14 caractères")
+    .max(14),
 });
 
 // Schéma spécifique pour l'inscription des prestataires
@@ -65,7 +82,14 @@ export const authRouter = createTRPCRouter({
   register: publicProcedure
     .input(registrationSchema)
     .mutation(async ({ ctx, input }) => {
-      const { email, password, firstName, lastName, role, ...roleSpecificData } = input;
+      const {
+        email,
+        password,
+        firstName,
+        lastName,
+        role,
+        ...roleSpecificData
+      } = input;
       const name = `${firstName} ${lastName}`;
 
       // Validation du mot de passe
@@ -115,9 +139,11 @@ export const authRouter = createTRPCRouter({
             },
           });
           break;
-          
+
         case "DELIVERER":
-          const delivererData = roleSpecificData as z.infer<typeof delivererRegistrationSchema>;
+          const delivererData = roleSpecificData as z.infer<
+            typeof delivererRegistrationSchema
+          >;
           await ctx.prisma.delivererProfile.create({
             data: {
               userId: user.id,
@@ -132,9 +158,11 @@ export const authRouter = createTRPCRouter({
             },
           });
           break;
-          
+
         case "MERCHANT":
-          const merchantData = roleSpecificData as z.infer<typeof merchantRegistrationSchema>;
+          const merchantData = roleSpecificData as z.infer<
+            typeof merchantRegistrationSchema
+          >;
           await ctx.prisma.store.create({
             data: {
               name: merchantData.storeName,
@@ -149,9 +177,11 @@ export const authRouter = createTRPCRouter({
             },
           });
           break;
-          
+
         case "PROVIDER":
-          const providerData = roleSpecificData as z.infer<typeof providerRegistrationSchema>;
+          const providerData = roleSpecificData as z.infer<
+            typeof providerRegistrationSchema
+          >;
           await ctx.prisma.serviceProvider.create({
             data: {
               userId: user.id,
@@ -177,18 +207,19 @@ export const authRouter = createTRPCRouter({
       await sendVerificationEmail(
         user.email,
         user.name || "Utilisateur",
-        verificationToken
+        verificationToken,
       );
 
       return {
         success: true,
-        message: "Inscription réussie. Veuillez vérifier votre email pour activer votre compte.",
+        message:
+          "Inscription réussie. Veuillez vérifier votre email pour activer votre compte.",
         user: {
           id: user.id,
           name: user.name,
           email: user.email,
           role: user.role,
-        }
+        },
       };
     }),
 
@@ -197,25 +228,25 @@ export const authRouter = createTRPCRouter({
     .input(z.object({ token: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const userId = await verifyVerificationToken(input.token);
-      
+
       if (!userId) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Le token de vérification est invalide ou a expiré",
         });
       }
-      
+
       const user = await ctx.prisma.user.findUnique({
         where: { id: userId },
       });
-      
+
       if (!user) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Utilisateur non trouvé",
         });
       }
-      
+
       return {
         success: true,
         message: "Votre adresse email a été vérifiée avec succès",
@@ -224,7 +255,7 @@ export const authRouter = createTRPCRouter({
           name: user.name,
           email: user.email,
           role: user.role,
-        }
+        },
       };
     }),
 
@@ -233,39 +264,43 @@ export const authRouter = createTRPCRouter({
     .input(z.object({ email: z.string().email() }))
     .mutation(async ({ ctx, input }) => {
       const token = await generatePasswordResetToken(input.email);
-      
+
       if (!token) {
         // Ne pas révéler si l'email existe ou non pour des raisons de sécurité
         return {
           success: true,
-          message: "Si cette adresse email est associée à un compte, un email de réinitialisation a été envoyé",
+          message:
+            "Si cette adresse email est associée à un compte, un email de réinitialisation a été envoyé",
         };
       }
-      
+
       const user = await ctx.prisma.user.findUnique({
         where: { email: input.email.toLowerCase() },
       });
-      
+
       if (user) {
         await sendPasswordResetEmail(
           user.email,
           user.name || "Utilisateur",
-          token
+          token,
         );
       }
-      
+
       return {
         success: true,
-        message: "Si cette adresse email est associée à un compte, un email de réinitialisation a été envoyé",
+        message:
+          "Si cette adresse email est associée à un compte, un email de réinitialisation a été envoyé",
       };
     }),
 
   // Procédure de réinitialisation de mot de passe
   resetPassword: publicProcedure
-    .input(z.object({
-      token: z.string(),
-      password: z.string().min(8),
-    }))
+    .input(
+      z.object({
+        token: z.string(),
+        password: z.string().min(8),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       // Validation du mot de passe
       const passwordValidation = validatePassword(input.password);
@@ -275,28 +310,28 @@ export const authRouter = createTRPCRouter({
           message: passwordValidation.message || "Mot de passe invalide",
         });
       }
-      
+
       const userId = await verifyPasswordResetToken(input.token);
-      
+
       if (!userId) {
         throw new TRPCError({
           code: "BAD_REQUEST",
           message: "Le token de réinitialisation est invalide ou a expiré",
         });
       }
-      
+
       // Hachage du nouveau mot de passe
       const hashedPassword = await hashPassword(input.password);
-      
+
       // Mise à jour du mot de passe
       await ctx.prisma.user.update({
         where: { id: userId },
         data: { password: hashedPassword },
       });
-      
+
       // Consommation du token
       await consumePasswordResetToken(input.token);
-      
+
       return {
         success: true,
         message: "Votre mot de passe a été réinitialisé avec succès",
@@ -304,50 +339,51 @@ export const authRouter = createTRPCRouter({
     }),
 
   // Procédure pour obtenir le profil de l'utilisateur connecté
-  getProfile: protectedProcedure
-    .query(async ({ ctx }) => {
-      const userId = ctx.session.user.id;
-      
-      const user = await ctx.prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          role: true,
-          image: true,
-          emailVerified: true,
-          clientProfile: true,
-          delivererProfile: true,
-          serviceProvider: true,
-          stores: true,
-        },
+  getProfile: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+
+    const user = await ctx.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        image: true,
+        emailVerified: true,
+        clientProfile: true,
+        delivererProfile: true,
+        serviceProvider: true,
+        stores: true,
+      },
+    });
+
+    if (!user) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Utilisateur non trouvé",
       });
-      
-      if (!user) {
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Utilisateur non trouvé",
-        });
-      }
-      
-      return user;
-    }),
+    }
+
+    return user;
+  }),
 
   // Procédure pour mettre à jour le profil de l'utilisateur connecté
   updateProfile: protectedProcedure
-    .input(z.object({
-      name: z.string().optional(),
-      image: z.string().optional(),
-      phone: z.string().optional(),
-      address: z.string().optional(),
-      city: z.string().optional(),
-      postalCode: z.string().optional(),
-    }))
+    .input(
+      z.object({
+        name: z.string().optional(),
+        image: z.string().optional(),
+        phone: z.string().optional(),
+        address: z.string().optional(),
+        city: z.string().optional(),
+        postalCode: z.string().optional(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
       const userRole = ctx.session.user.role;
-      
+
       // Mise à jour des informations de base de l'utilisateur
       const updatedUser = await ctx.prisma.user.update({
         where: { id: userId },
@@ -356,7 +392,7 @@ export const authRouter = createTRPCRouter({
           image: input.image,
         },
       });
-      
+
       // Mise à jour des informations spécifiques au rôle
       switch (userRole) {
         case "CLIENT":
@@ -377,7 +413,7 @@ export const authRouter = createTRPCRouter({
             },
           });
           break;
-          
+
         case "DELIVERER":
           await ctx.prisma.delivererProfile.update({
             where: { userId },
@@ -388,7 +424,7 @@ export const authRouter = createTRPCRouter({
             },
           });
           break;
-          
+
         case "PROVIDER":
           await ctx.prisma.serviceProvider.update({
             where: { userId },
@@ -400,7 +436,7 @@ export const authRouter = createTRPCRouter({
           });
           break;
       }
-      
+
       return {
         success: true,
         message: "Profil mis à jour avec succès",
@@ -410,54 +446,61 @@ export const authRouter = createTRPCRouter({
 
   // Procédure pour changer le mot de passe de l'utilisateur connecté
   changePassword: protectedProcedure
-    .input(z.object({
-      currentPassword: z.string(),
-      newPassword: z.string().min(8),
-    }))
+    .input(
+      z.object({
+        currentPassword: z.string(),
+        newPassword: z.string().min(8),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
-      
+
       const user = await ctx.prisma.user.findUnique({
         where: { id: userId },
         select: {
           password: true,
         },
       });
-      
+
       if (!user || !user.password) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
-          message: "Utilisateur non trouvé ou connecté via un fournisseur externe",
+          message:
+            "Utilisateur non trouvé ou connecté via un fournisseur externe",
         });
       }
-      
+
       // Vérification du mot de passe actuel
-      const isValid = await verifyPassword(input.currentPassword, user.password);
-      
+      const isValid = await verifyPassword(
+        input.currentPassword,
+        user.password,
+      );
+
       if (!isValid) {
         throw new TRPCError({
           code: "UNAUTHORIZED",
           message: "Mot de passe actuel incorrect",
         });
       }
-      
+
       // Validation du nouveau mot de passe
       const passwordValidation = validatePassword(input.newPassword);
       if (!passwordValidation.isValid) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: passwordValidation.message || "Nouveau mot de passe invalide",
+          message:
+            passwordValidation.message || "Nouveau mot de passe invalide",
         });
       }
-      
+
       // Hachage et mise à jour du nouveau mot de passe
       const hashedPassword = await hashPassword(input.newPassword);
-      
+
       await ctx.prisma.user.update({
         where: { id: userId },
         data: { password: hashedPassword },
       });
-      
+
       return {
         success: true,
         message: "Mot de passe changé avec succès",

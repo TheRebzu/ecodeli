@@ -113,7 +113,7 @@ model User {
   role              UserRole  @default(CLIENT)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
-  
+
   // Relations selon le rôle
   client            Client?
   deliverer         Deliverer?
@@ -135,7 +135,7 @@ model Client {
   id                String    @id @default(cuid())
   userId            String    @unique
   user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   // Relations
   deliveries        Delivery[]
   services          Service[]
@@ -150,10 +150,10 @@ model Deliverer {
   user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   isVerified        Boolean   @default(false)
   rating            Float?
-  
+
   // Documents justificatifs
   documents         Document[]
-  
+
   // Relations
   deliveries        Delivery[]
   announcements     Announcement[]
@@ -169,7 +169,7 @@ model Merchant {
   companyName       String
   siret             String    @unique
   contractId        String?
-  
+
   // Relations
   announcements     Announcement[]
   payments          Payment[]
@@ -184,10 +184,10 @@ model Provider {
   isVerified        Boolean   @default(false)
   skills            String[]
   rating            Float?
-  
+
   // Documents justificatifs
   documents         Document[]
-  
+
   // Relations
   services          Service[]
   payments          Payment[]
@@ -210,7 +210,7 @@ model Document {
   isVerified        Boolean   @default(false)
   uploadedAt        DateTime  @default(now())
   verifiedAt        DateTime?
-  
+
   // Relations
   delivererId       String?
   deliverer         Deliverer? @relation(fields: [delivererId], references: [id])
@@ -233,7 +233,7 @@ model Delivery {
   price             Float
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
-  
+
   // Relations
   clientId          String
   client            Client    @relation(fields: [clientId], references: [id])
@@ -273,7 +273,7 @@ model Service {
   status            ServiceStatus
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
-  
+
   // Relations
   clientId          String
   client            Client    @relation(fields: [clientId], references: [id])
@@ -310,7 +310,7 @@ model Announcement {
   isActive          Boolean   @default(true)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
-  
+
   // Relations
   clientId          String?
   client            Client?   @relation(fields: [clientId], references: [id])
@@ -335,7 +335,7 @@ model Payment {
   stripePaymentId   String?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
-  
+
   // Relations
   clientId          String?
   client            Client?   @relation(fields: [clientId], references: [id])
@@ -367,7 +367,7 @@ model Invoice {
   pdfUrl            String?
   createdAt         DateTime  @default(now())
   dueDate           DateTime
-  
+
   // Relations
   merchantId        String?
   merchant          Merchant? @relation(fields: [merchantId], references: [id])
@@ -388,7 +388,7 @@ model Schedule {
   startTime         DateTime
   endTime           DateTime
   isAvailable       Boolean   @default(true)
-  
+
   // Relations
   delivererId       String?
   deliverer         Deliverer? @relation(fields: [delivererId], references: [id])
@@ -405,7 +405,7 @@ model Warehouse {
   postalCode        String
   country           String
   capacity          Int
-  
+
   // Relations
   boxes             Box[]
 }
@@ -416,7 +416,7 @@ model Box {
   number            String
   size              String
   isOccupied        Boolean   @default(false)
-  
+
   // Relations
   warehouseId       String
   warehouse         Warehouse @relation(fields: [warehouseId], references: [id])

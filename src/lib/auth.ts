@@ -22,7 +22,7 @@ declare module "next-auth" {
       email: string;
       role: UserRole;
       image?: string | null;
-    }
+    };
   }
 
   interface User {
@@ -91,7 +91,10 @@ export const authOptions: NextAuthOptions = {
           throw new Error("Veuillez vous connecter avec votre compte Google");
         }
 
-        const isValid = await bcrypt.compare(credentials.password, user.password);
+        const isValid = await bcrypt.compare(
+          credentials.password,
+          user.password,
+        );
 
         if (!isValid) {
           throw new Error("Email ou mot de passe incorrect");
@@ -99,7 +102,7 @@ export const authOptions: NextAuthOptions = {
 
         if (!user.emailVerified) {
           throw new Error(
-            "Veuillez vérifier votre adresse email avant de vous connecter"
+            "Veuillez vérifier votre adresse email avant de vous connecter",
           );
         }
 
@@ -139,7 +142,7 @@ export const authOptions: NextAuthOptions = {
         token.email = session.user.email;
         token.picture = session.user.image;
       }
-      
+
       return token;
     },
     // Callback pour la redirection après connexion
@@ -148,7 +151,7 @@ export const authOptions: NextAuthOptions = {
       if (url.startsWith(baseUrl)) return url;
       if (url.startsWith("/")) return `${baseUrl}${url}`;
       return baseUrl;
-    }
+    },
   },
   events: {
     async signIn({ user }) {
@@ -176,11 +179,11 @@ export async function getSession() {
  */
 export async function getCurrentUser() {
   const session = await getSession();
-  
+
   if (!session?.user?.email) {
     return null;
   }
-  
+
   const user = await prisma.user.findUnique({
     where: { email: session.user.email },
     select: {
@@ -195,7 +198,7 @@ export async function getCurrentUser() {
       serviceProvider: true,
     },
   });
-  
+
   return user;
 }
 
@@ -211,7 +214,7 @@ export async function hashPassword(password: string): Promise<string> {
  */
 export async function verifyPassword(
   password: string,
-  hashedPassword: string
+  hashedPassword: string,
 ): Promise<boolean> {
   return await bcrypt.compare(password, hashedPassword);
 }

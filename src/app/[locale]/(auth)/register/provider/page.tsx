@@ -3,7 +3,8 @@ import ProviderRegistrationForm from "@/components/auth/register-forms/provider-
 
 export const metadata: Metadata = {
   title: "Inscription Prestataire | EcoDeli",
-  description: "Inscrivez-vous comme prestataire de services et développez votre clientèle avec EcoDeli.",
+  description:
+    "Inscrivez-vous comme prestataire de services et développez votre clientèle avec EcoDeli.",
 };
 
 export default function ProviderRegistrationPage() {
@@ -12,4 +13,4 @@ export default function ProviderRegistrationPage() {
       <ProviderRegistrationForm />
     </div>
   );
-} 
+}

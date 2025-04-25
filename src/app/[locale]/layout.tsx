@@ -12,7 +12,7 @@ import { ThemeProvider } from "@/components/providers/theme-provider";
 const inter = Inter({ subsets: ["latin"] });
 
 export async function generateMetadata({
-  params
+  params,
 }: {
   params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
@@ -21,13 +21,13 @@ export async function generateMetadata({
   if (!hasLocale(routing.locales, locale)) {
     return {
       title: "Not Found",
-      description: "The page you're looking for doesn't exist."
+      description: "The page you're looking for doesn't exist.",
     };
   }
-  
+
   // Set request locale for static rendering
   setRequestLocale(locale);
-  
+
   const t = await getTranslations({ locale, namespace: "metadata" });
 
   return {
@@ -41,7 +41,7 @@ export async function generateMetadata({
 }
 
 export function generateStaticParams() {
-  return routing.locales.map(locale => ({ locale }));
+  return routing.locales.map((locale) => ({ locale }));
 }
 
 interface RootLayoutProps {
@@ -61,10 +61,10 @@ export default async function RootLayout({
     // Will be caught by not-found page
     throw new Error(`Locale '${locale}' is not supported`);
   }
-  
+
   // Set request locale for static rendering
   setRequestLocale(locale);
-  
+
   return (
     <html lang={locale} suppressHydrationWarning>
       <body className={inter.className}>

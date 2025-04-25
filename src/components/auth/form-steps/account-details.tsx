@@ -62,23 +62,23 @@ export function AccountDetails({ onSubmit, onBack }: AccountDetailsProps) {
   // Calculate password strength
   const getPasswordStrength = (password: string) => {
     if (!password) return 0;
-    
+
     let strength = 0;
-    
+
     // Length check
     if (password.length >= 8) strength += 1;
-    
+
     // Character type checks
     if (/[A-Z]/.test(password)) strength += 1;
     if (/[a-z]/.test(password)) strength += 1;
     if (/[0-9]/.test(password)) strength += 1;
     if (/[^A-Za-z0-9]/.test(password)) strength += 1;
-    
+
     return strength;
   };
 
   const passwordStrength = getPasswordStrength(password);
-  
+
   // Get strength label
   const getStrengthLabel = (strength: number) => {
     if (strength <= 1) return "Très faible";
@@ -131,9 +131,7 @@ export function AccountDetails({ onSubmit, onBack }: AccountDetailsProps) {
               id="password"
               type={showPassword ? "text" : "password"}
               className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ${
-                errors.password
-                  ? "border-destructive"
-                  : "border-input"
+                errors.password ? "border-destructive" : "border-input"
               }`}
               {...register("password")}
             />
@@ -146,7 +144,9 @@ export function AccountDetails({ onSubmit, onBack }: AccountDetailsProps) {
             </button>
           </div>
           {errors.password && (
-            <p className="text-sm text-destructive">{errors.password.message}</p>
+            <p className="text-sm text-destructive">
+              {errors.password.message}
+            </p>
           )}
 
           {password && (
@@ -170,20 +170,21 @@ export function AccountDetails({ onSubmit, onBack }: AccountDetailsProps) {
             htmlFor="confirmPassword"
             className="text-sm font-medium leading-none"
           >
-            Confirmer le mot de passe <span className="text-destructive">*</span>
+            Confirmer le mot de passe{" "}
+            <span className="text-destructive">*</span>
           </label>
           <input
             id="confirmPassword"
             type={showPassword ? "text" : "password"}
             className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ${
-              errors.confirmPassword
-                ? "border-destructive"
-                : "border-input"
+              errors.confirmPassword ? "border-destructive" : "border-input"
             }`}
             {...register("confirmPassword")}
           />
           {errors.confirmPassword && (
-            <p className="text-sm text-destructive">{errors.confirmPassword.message}</p>
+            <p className="text-sm text-destructive">
+              {errors.confirmPassword.message}
+            </p>
           )}
         </div>
 
@@ -219,7 +220,9 @@ export function AccountDetails({ onSubmit, onBack }: AccountDetailsProps) {
             </label>
           </div>
           {errors.acceptTerms && (
-            <p className="text-sm text-destructive mt-1">{errors.acceptTerms.message}</p>
+            <p className="text-sm text-destructive mt-1">
+              {errors.acceptTerms.message}
+            </p>
           )}
         </div>
       </div>

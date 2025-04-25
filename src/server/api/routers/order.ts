@@ -1,6 +1,15 @@
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure, publicProcedure } from "@/server/api/trpc";
-import { OrderStatus, PaymentStatus, ProductStatus, UserRole } from "@prisma/client";
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+} from "@/server/api/trpc";
+import {
+  OrderStatus,
+  PaymentStatus,
+  ProductStatus,
+  UserRole,
+} from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 
 export const orderRouter = createTRPCRouter({
@@ -14,15 +23,15 @@ export const orderRouter = createTRPCRouter({
         status: z.nativeEnum(ProductStatus).optional(),
         limit: z.number().min(1).max(100).optional().default(20),
         cursor: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const { storeId, category, search, status, limit, cursor } = input;
-      
+
       const where = {
         ...(storeId && { storeId }),
         ...(category && { category }),
-        ...(search && { 
+        ...(search && {
           OR: [
             { name: { contains: search, mode: "insensitive" } },
             { description: { contains: search, mode: "insensitive" } },
@@ -31,7 +40,7 @@ export const orderRouter = createTRPCRouter({
         ...(status && { status }),
         status: { not: ProductStatus.INACTIVE },
       };
-      
+
       const products = await ctx.db.product.findMany({
         where,
         take: limit + 1,
@@ -47,19 +56,19 @@ export const orderRouter = createTRPCRouter({
           },
         },
       });
-      
+
       let nextCursor: typeof cursor | undefined = undefined;
       if (products.length > limit) {
         const nextItem = products.pop();
         nextCursor = nextItem?.id;
       }
-      
+
       return {
         products,
         nextCursor,
       };
     }),
-    
+
   getProductById: publicProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -78,17 +87,17 @@ export const orderRouter = createTRPCRouter({
           },
         },
       });
-      
+
       if (!product) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Product not found",
         });
       }
-      
+
       return product;
     }),
-    
+
   createProduct: protectedProcedure
     .input(
       z.object({
@@ -103,23 +112,26 @@ export const orderRouter = createTRPCRouter({
         dimensions: z.string().optional(),
         stockQuantity: z.number().int().optional(),
         storeId: z.string(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Vérifier que l'utilisateur est un commerçant
-      if (ctx.session.user.role !== UserRole.MERCHANT && ctx.session.user.role !== UserRole.ADMIN) {
+      if (
+        ctx.session.user.role !== UserRole.MERCHANT &&
+        ctx.session.user.role !== UserRole.ADMIN
+      ) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Only merchants can create products",
         });
       }
-      
+
       // Vérifier que le commerce appartient à l'utilisateur
       if (ctx.session.user.role === UserRole.MERCHANT) {
         const store = await ctx.db.store.findUnique({
           where: { id: input.storeId },
         });
-        
+
         if (!store || store.merchantId !== ctx.session.user.id) {
           throw new TRPCError({
             code: "FORBIDDEN",
@@ -127,7 +139,7 @@ export const orderRouter = createTRPCRouter({
           });
         }
       }
-      
+
       // Créer le produit
       const product = await ctx.db.product.create({
         data: {
@@ -145,10 +157,10 @@ export const orderRouter = createTRPCRouter({
           storeId: input.storeId,
         },
       });
-      
+
       return product;
     }),
-    
+
   updateProduct: protectedProcedure
     .input(
       z.object({
@@ -164,7 +176,7 @@ export const orderRouter = createTRPCRouter({
         dimensions: z.string().optional(),
         stockQuantity: z.number().int().optional(),
         status: z.nativeEnum(ProductStatus).optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Vérifier que le produit existe
@@ -172,25 +184,26 @@ export const orderRouter = createTRPCRouter({
         where: { id: input.id },
         include: { store: true },
       });
-      
+
       if (!product) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Product not found",
         });
       }
-      
+
       // Vérifier que l'utilisateur est autorisé à modifier ce produit
       if (
         ctx.session.user.role !== UserRole.ADMIN &&
-        (ctx.session.user.role !== UserRole.MERCHANT || product.store.merchantId !== ctx.session.user.id)
+        (ctx.session.user.role !== UserRole.MERCHANT ||
+          product.store.merchantId !== ctx.session.user.id)
       ) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You don't have permission to update this product",
         });
       }
-      
+
       // Mettre à jour le produit
       const updatedProduct = await ctx.db.product.update({
         where: { id: input.id },
@@ -204,17 +217,17 @@ export const orderRouter = createTRPCRouter({
           ...(input.barcode && { barcode: input.barcode }),
           ...(input.weight && { weight: input.weight }),
           ...(input.dimensions && { dimensions: input.dimensions }),
-          ...(input.stockQuantity !== undefined && { 
+          ...(input.stockQuantity !== undefined && {
             stockQuantity: input.stockQuantity,
             inStock: input.stockQuantity > 0,
           }),
           ...(input.status && { status: input.status }),
         },
       });
-      
+
       return updatedProduct;
     }),
-    
+
   deleteProduct: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
@@ -223,34 +236,35 @@ export const orderRouter = createTRPCRouter({
         where: { id: input.id },
         include: { store: true },
       });
-      
+
       if (!product) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Product not found",
         });
       }
-      
+
       // Vérifier que l'utilisateur est autorisé à supprimer ce produit
       if (
         ctx.session.user.role !== UserRole.ADMIN &&
-        (ctx.session.user.role !== UserRole.MERCHANT || product.store.merchantId !== ctx.session.user.id)
+        (ctx.session.user.role !== UserRole.MERCHANT ||
+          product.store.merchantId !== ctx.session.user.id)
       ) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You don't have permission to delete this product",
         });
       }
-      
+
       // Supprimer le produit (ou le marquer comme inactif)
       await ctx.db.product.update({
         where: { id: input.id },
         data: { status: ProductStatus.INACTIVE },
       });
-      
+
       return { success: true };
     }),
-  
+
   // Procédures pour les commandes
   getOrders: protectedProcedure
     .input(
@@ -259,14 +273,14 @@ export const orderRouter = createTRPCRouter({
         storeId: z.string().optional(),
         limit: z.number().min(1).max(100).optional().default(20),
         cursor: z.string().optional(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const { status, storeId, limit, cursor } = input;
-      
+
       // Construire la requête en fonction du rôle de l'utilisateur
       let where = {};
-      
+
       if (ctx.session.user.role === UserRole.CLIENT) {
         // Les clients ne peuvent voir que leurs propres commandes
         where = {
@@ -280,9 +294,9 @@ export const orderRouter = createTRPCRouter({
           where: { merchantId: ctx.session.user.id },
           select: { id: true },
         });
-        
-        const storeIds = stores.map(store => store.id);
-        
+
+        const storeIds = stores.map((store) => store.id);
+
         where = {
           storeId: { in: storeIds },
           ...(status && { status }),
@@ -291,19 +305,21 @@ export const orderRouter = createTRPCRouter({
       } else if (ctx.session.user.role === UserRole.DELIVERER) {
         // Les livreurs ne peuvent voir que les commandes qui leur sont assignées
         const deliveries = await ctx.db.delivery.findMany({
-          where: { 
+          where: {
             announcementId: {
-              in: await ctx.db.announcement.findMany({
-                where: { delivererId: ctx.session.user.id },
-                select: { id: true },
-              }).then(announcements => announcements.map(a => a.id)),
+              in: await ctx.db.announcement
+                .findMany({
+                  where: { delivererId: ctx.session.user.id },
+                  select: { id: true },
+                })
+                .then((announcements) => announcements.map((a) => a.id)),
             },
           },
           select: { id: true },
         });
-        
-        const deliveryIds = deliveries.map(delivery => delivery.id);
-        
+
+        const deliveryIds = deliveries.map((delivery) => delivery.id);
+
         where = {
           deliveryId: { in: deliveryIds },
           ...(status && { status }),
@@ -321,7 +337,7 @@ export const orderRouter = createTRPCRouter({
           message: "You don't have permission to view orders",
         });
       }
-      
+
       const orders = await ctx.db.order.findMany({
         where,
         take: limit + 1,
@@ -364,19 +380,19 @@ export const orderRouter = createTRPCRouter({
           },
         },
       });
-      
+
       let nextCursor: typeof cursor | undefined = undefined;
       if (orders.length > limit) {
         const nextItem = orders.pop();
         nextCursor = nextItem?.id;
       }
-      
+
       return {
         orders,
         nextCursor,
       };
     }),
-    
+
   getOrderById: protectedProcedure
     .input(z.object({ id: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -416,27 +432,30 @@ export const orderRouter = createTRPCRouter({
           payments: true,
         },
       });
-      
+
       if (!order) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Order not found",
         });
       }
-      
+
       // Vérifier que l'utilisateur est autorisé à voir cette commande
-      if (ctx.session.user.role === UserRole.CLIENT && order.clientId !== ctx.session.user.id) {
+      if (
+        ctx.session.user.role === UserRole.CLIENT &&
+        order.clientId !== ctx.session.user.id
+      ) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "You don't have permission to view this order",
         });
       }
-      
+
       if (ctx.session.user.role === UserRole.MERCHANT) {
         const store = await ctx.db.store.findUnique({
           where: { id: order.storeId },
         });
-        
+
         if (!store || store.merchantId !== ctx.session.user.id) {
           throw new TRPCError({
             code: "FORBIDDEN",
@@ -444,7 +463,7 @@ export const orderRouter = createTRPCRouter({
           });
         }
       }
-      
+
       if (ctx.session.user.role === UserRole.DELIVERER && order.delivery) {
         const delivery = await ctx.db.delivery.findUnique({
           where: { id: order.deliveryId! },
@@ -452,18 +471,21 @@ export const orderRouter = createTRPCRouter({
             announcement: true,
           },
         });
-        
-        if (!delivery?.announcement || delivery.announcement.delivererId !== ctx.session.user.id) {
+
+        if (
+          !delivery?.announcement ||
+          delivery.announcement.delivererId !== ctx.session.user.id
+        ) {
           throw new TRPCError({
             code: "FORBIDDEN",
             message: "You don't have permission to view this order",
           });
         }
       }
-      
+
       return order;
     }),
-    
+
   createOrder: protectedProcedure
     .input(
       z.object({
@@ -473,64 +495,68 @@ export const orderRouter = createTRPCRouter({
             productId: z.string(),
             quantity: z.number().int().positive(),
             notes: z.string().optional(),
-          })
+          }),
         ),
         shippingAddress: z.string(),
         notes: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Vérifier que l'utilisateur est un client
-      if (ctx.session.user.role !== UserRole.CLIENT && ctx.session.user.role !== UserRole.ADMIN) {
+      if (
+        ctx.session.user.role !== UserRole.CLIENT &&
+        ctx.session.user.role !== UserRole.ADMIN
+      ) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Only clients can create orders",
         });
       }
-      
+
       // Vérifier que le commerce existe
       const store = await ctx.db.store.findUnique({
         where: { id: input.storeId },
       });
-      
+
       if (!store) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Store not found",
         });
       }
-      
+
       // Récupérer les produits pour calculer le montant total
-      const productIds = input.items.map(item => item.productId);
+      const productIds = input.items.map((item) => item.productId);
       const products = await ctx.db.product.findMany({
         where: {
           id: { in: productIds },
           storeId: input.storeId,
         },
       });
-      
+
       // Vérifier que tous les produits existent et appartiennent au commerce
       if (products.length !== productIds.length) {
         throw new TRPCError({
           code: "BAD_REQUEST",
-          message: "One or more products not found or not available in this store",
+          message:
+            "One or more products not found or not available in this store",
         });
       }
-      
+
       // Calculer le montant total et préparer les éléments de commande
       let totalAmount = 0;
-      const orderItems = input.items.map(item => {
-        const product = products.find(p => p.id === item.productId);
+      const orderItems = input.items.map((item) => {
+        const product = products.find((p) => p.id === item.productId);
         if (!product) {
           throw new TRPCError({
             code: "BAD_REQUEST",
             message: `Product ${item.productId} not found`,
           });
         }
-        
+
         const totalPrice = product.price * item.quantity;
         totalAmount += totalPrice;
-        
+
         return {
           productId: item.productId,
           quantity: item.quantity,
@@ -539,17 +565,17 @@ export const orderRouter = createTRPCRouter({
           notes: item.notes,
         };
       });
-      
+
       // Calculer les frais de livraison et les taxes
       const shippingFee = 5.0; // Frais de livraison fixe pour l'exemple
       const taxRate = 0.2; // TVA à 20% pour l'exemple
       const tax = totalAmount * taxRate;
-      
+
       totalAmount += shippingFee + tax;
-      
+
       // Générer un numéro de commande unique
       const orderNumber = `ECO-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-      
+
       // Créer la commande avec ses éléments
       const order = await ctx.db.order.create({
         data: {
@@ -573,16 +599,16 @@ export const orderRouter = createTRPCRouter({
           },
         },
       });
-      
+
       return order;
     }),
-    
+
   updateOrderStatus: protectedProcedure
     .input(
       z.object({
         id: z.string(),
         status: z.nativeEnum(OrderStatus),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Vérifier que la commande existe
@@ -592,14 +618,14 @@ export const orderRouter = createTRPCRouter({
           store: true,
         },
       });
-      
+
       if (!order) {
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "Order not found",
         });
       }
-      
+
       // Vérifier que l'utilisateur est autorisé à modifier cette commande
       if (ctx.session.user.role === UserRole.CLIENT) {
         // Les clients ne peuvent annuler que leurs propres commandes en statut PENDING
@@ -621,7 +647,7 @@ export const orderRouter = createTRPCRouter({
             message: "You don't have permission to update this order",
           });
         }
-        
+
         // Les commerçants ne peuvent pas marquer une commande comme livrée
         if (input.status === OrderStatus.DELIVERED) {
           throw new TRPCError({
@@ -634,22 +660,27 @@ export const orderRouter = createTRPCRouter({
         // et uniquement pour les statuts IN_TRANSIT et DELIVERED
         if (
           !order.deliveryId ||
-          ![OrderStatus.IN_TRANSIT, OrderStatus.DELIVERED].includes(input.status)
+          ![OrderStatus.IN_TRANSIT, OrderStatus.DELIVERED].includes(
+            input.status,
+          )
         ) {
           throw new TRPCError({
             code: "FORBIDDEN",
             message: "You don't have permission to update this order",
           });
         }
-        
+
         const delivery = await ctx.db.delivery.findUnique({
           where: { id: order.deliveryId },
           include: {
             announcement: true,
           },
         });
-        
-        if (!delivery?.announcement || delivery.announcement.delivererId !== ctx.session.user.id) {
+
+        if (
+          !delivery?.announcement ||
+          delivery.announcement.delivererId !== ctx.session.user.id
+        ) {
           throw new TRPCError({
             code: "FORBIDDEN",
             message: "You don't have permission to update this order",
@@ -661,13 +692,13 @@ export const orderRouter = createTRPCRouter({
           message: "You don't have permission to update this order",
         });
       }
-      
+
       // Mettre à jour le statut de la commande
       const updatedOrder = await ctx.db.order.update({
         where: { id: input.id },
         data: { status: input.status },
       });
-      
+
       // Si la commande est livrée, mettre à jour la livraison également
       if (input.status === OrderStatus.DELIVERED && order.deliveryId) {
         await ctx.db.delivery.update({
@@ -678,17 +709,19 @@ export const orderRouter = createTRPCRouter({
           },
         });
       }
-      
+
       return updatedOrder;
     }),
-    
+
   // Procédures pour le panier (cart)
-  getCart: protectedProcedure
-    .query(async ({ ctx }) => {
-      // Récupérer le panier depuis la session ou la base de données
-      // Pour cet exemple, nous utilisons une approche simplifiée avec localStorage côté client
-      // Dans une implémentation réelle, vous pourriez stocker le panier dans la base de données
-      
-      return { message: "Cart functionality should be implemented client-side with localStorage" };
-    }),
+  getCart: protectedProcedure.query(async ({ ctx }) => {
+    // Récupérer le panier depuis la session ou la base de données
+    // Pour cet exemple, nous utilisons une approche simplifiée avec localStorage côté client
+    // Dans une implémentation réelle, vous pourriez stocker le panier dans la base de données
+
+    return {
+      message:
+        "Cart functionality should be implemented client-side with localStorage",
+    };
+  }),
 });

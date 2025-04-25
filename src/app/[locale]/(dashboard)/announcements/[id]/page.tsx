@@ -1,3 +1,5 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { AnnouncementDetail } from "@/components/announcements/announcement-detail";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
@@ -10,17 +12,17 @@ export default function AnnouncementDetailPage() {
   const t = useTranslations("announcements");
   const router = useRouter();
   const params = useParams();
-  
+
   // Récupérer la session utilisateur pour déterminer le rôle
   const { data: session } = api.auth.getSession.useQuery();
-  
+
   // Déterminer le composant de barre latérale à utiliser en fonction du rôle
   const getSidebar = () => {
     // Cette fonction sera implémentée pour retourner le bon composant de barre latérale
     // en fonction du rôle de l'utilisateur
     return null;
   };
-  
+
   return (
     <DashboardLayout
       title={t("announcementDetails")}

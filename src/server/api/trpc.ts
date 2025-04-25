@@ -1,11 +1,11 @@
-import { initTRPC, TRPCError } from '@trpc/server';
-import { type CreateNextContextOptions } from '@trpc/server/adapters/next';
-import superjson from 'superjson';
-import { ZodError } from 'zod';
-import { getServerSession } from 'next-auth';
+import { initTRPC, TRPCError } from "@trpc/server";
+import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
+import superjson from "superjson";
+import { ZodError } from "zod";
+import { getServerSession } from "next-auth";
 
-import { prisma } from '../db';
-import { authOptions } from '../auth';
+import { prisma } from "../db";
+import { authOptions } from "../auth";
 
 export const createTRPCContext = async (opts: CreateNextContextOptions) => {
   const { req, res } = opts;
@@ -36,7 +36,7 @@ export const publicProcedure = t.procedure;
 
 const isAuthed = t.middleware(({ ctx, next }) => {
   if (!ctx.session || !ctx.session.user) {
-    throw new TRPCError({ code: 'UNAUTHORIZED' });
+    throw new TRPCError({ code: "UNAUTHORIZED" });
   }
   return next({
     ctx: {
@@ -49,18 +49,21 @@ export const protectedProcedure = t.procedure.use(isAuthed);
 
 const isAdmin = t.middleware(async ({ ctx, next }) => {
   if (!ctx.session?.user) {
-    throw new TRPCError({ code: 'UNAUTHORIZED' });
+    throw new TRPCError({ code: "UNAUTHORIZED" });
   }
-  
+
   const user = await ctx.prisma.user.findUnique({
     where: { id: ctx.session.user.id },
     include: { admin: true },
   });
-  
+
   if (!user?.admin) {
-    throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required' });
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Admin access required",
+    });
   }
-  
+
   return next({
     ctx: {
       ...ctx,

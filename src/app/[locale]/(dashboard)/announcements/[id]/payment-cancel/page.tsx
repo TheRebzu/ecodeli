@@ -1,3 +1,5 @@
+"use client";
+
 import { useTranslations } from "next-intl";
 import { useRouter, useParams } from "next/navigation";
 
@@ -10,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { AlertCircle, ArrowLeft } from "lucide-react";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { XCircle } from "lucide-react";
 
@@ -18,7 +21,7 @@ export default function PaymentCancelPage() {
   const router = useRouter();
   const params = useParams();
   const id = params.id as string;
-  
+
   return (
     <DashboardLayout
       title={t("paymentCancelTitle")}
@@ -31,9 +34,7 @@ export default function PaymentCancelPage() {
               <XCircle className="h-8 w-8" />
             </div>
             <CardTitle>{t("paymentCancelled")}</CardTitle>
-            <CardDescription>
-              {t("paymentCancelMessage")}
-            </CardDescription>
+            <CardDescription>{t("paymentCancelMessage")}</CardDescription>
           </CardHeader>
           <CardContent>
             <p className="text-center text-gray-500">
@@ -41,15 +42,15 @@ export default function PaymentCancelPage() {
             </p>
           </CardContent>
           <CardFooter className="flex flex-col space-y-2">
-            <Button 
-              className="w-full" 
+            <Button
+              className="w-full"
               onClick={() => router.push(`/announcements/${id}/payment`)}
             >
               {t("tryAgain")}
             </Button>
-            <Button 
+            <Button
               variant="outline"
-              className="w-full" 
+              className="w-full"
               onClick={() => router.push(`/announcements/${id}`)}
             >
               {t("backToAnnouncement")}

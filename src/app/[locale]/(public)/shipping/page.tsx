@@ -42,7 +42,9 @@ export default function ShippingPage() {
                   Le crowdshipping au service de tous
                 </h1>
                 <p className="text-xl text-muted-foreground">
-                  Confiez vos colis à des livreurs indépendants qui se déplacent déjà dans votre direction ou profitez de nos services à la personne
+                  Confiez vos colis à des livreurs indépendants qui se déplacent
+                  déjà dans votre direction ou profitez de nos services à la
+                  personne
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 pt-4">
                   <Button size="lg" asChild>
@@ -56,8 +58,8 @@ export default function ShippingPage() {
               <div className="md:w-1/2 relative">
                 <div className="aspect-square max-w-lg mx-auto">
                   <div className="absolute inset-0 rounded-xl overflow-hidden">
-                    <Image 
-                      src="/images/shipping/hero-delivery.jpg" 
+                    <Image
+                      src="/images/shipping/hero-delivery.jpg"
                       alt="Livraison de colis EcoDeli"
                       className="object-cover"
                       width={600}
@@ -67,7 +69,9 @@ export default function ShippingPage() {
                   <div className="absolute -bottom-6 -right-6 bg-background rounded-lg p-4 shadow-lg border">
                     <div className="flex items-center gap-2">
                       <Leaf className="h-5 w-5 text-green-500" />
-                      <p className="text-sm font-medium">Réduisez votre empreinte carbone</p>
+                      <p className="text-sm font-medium">
+                        Réduisez votre empreinte carbone
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -85,7 +89,8 @@ export default function ShippingPage() {
                 Une large gamme de services
               </h2>
               <p className="text-muted-foreground max-w-[700px]">
-                EcoDeli vous propose bien plus que de la simple livraison de colis
+                EcoDeli vous propose bien plus que de la simple livraison de
+                colis
               </p>
             </div>
 
@@ -128,7 +133,10 @@ export default function ShippingPage() {
                     "Réduction de l'impact environnemental des livraisons, pouvoir d'achat favorisé et lutte contre l'isolement social.",
                 },
               ].map((service, index) => (
-                <Card key={index} className="flex flex-col p-6 border bg-background">
+                <Card
+                  key={index}
+                  className="flex flex-col p-6 border bg-background"
+                >
                   <div className="flex items-center space-x-4 mb-4">
                     <div className="bg-primary/10 p-3 rounded-lg">
                       <service.icon className="h-6 w-6 text-primary" />
@@ -161,13 +169,17 @@ export default function ShippingPage() {
                 <TabsTrigger value="express">Express</TabsTrigger>
                 <TabsTrigger value="special">Spécial</TabsTrigger>
               </TabsList>
-              
+
               <TabsContent value="standard" className="space-y-4">
                 <div className="flex flex-col md:flex-row gap-8 items-center">
                   <div className="md:w-1/2">
-                    <h3 className="text-2xl font-bold mb-4">Livraison Standard</h3>
+                    <h3 className="text-2xl font-bold mb-4">
+                      Livraison Standard
+                    </h3>
                     <p className="text-muted-foreground mb-6">
-                      Livraison économique et écologique. Vos colis sont livrés par des particuliers qui effectuent déjà un trajet similaire.
+                      Livraison économique et écologique. Vos colis sont livrés
+                      par des particuliers qui effectuent déjà un trajet
+                      similaire.
                     </p>
                     <ul className="space-y-2">
                       {[
@@ -175,7 +187,7 @@ export default function ShippingPage() {
                         "Suivi en temps réel",
                         "Assurance proposée par la société",
                         "Code de confirmation à la livraison",
-                        "Paiement sécurisé"
+                        "Paiement sécurisé",
                       ].map((feature, i) => (
                         <li key={i} className="flex items-center">
                           <CheckCircle className="h-5 w-5 text-primary mr-2" />
@@ -189,8 +201,8 @@ export default function ShippingPage() {
                   </div>
                   <div className="md:w-1/2">
                     <div className="rounded-xl overflow-hidden">
-                      <Image 
-                        src="/images/shipping/standard-delivery.jpg" 
+                      <Image
+                        src="/images/shipping/standard-delivery.jpg"
                         alt="Livraison standard EcoDeli"
                         width={500}
                         height={350}
@@ -200,13 +212,17 @@ export default function ShippingPage() {
                   </div>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="express" className="space-y-4">
                 <div className="flex flex-col md:flex-row gap-8 items-center">
                   <div className="md:w-1/2">
-                    <h3 className="text-2xl font-bold mb-4">Distribution locale</h3>
+                    <h3 className="text-2xl font-bold mb-4">
+                      Distribution locale
+                    </h3>
                     <p className="text-muted-foreground mb-6">
-                      Un livreur occasionnel se charge de distribuer vos marchandises aux destinataires finaux dans une zone géographique définie.
+                      Un livreur occasionnel se charge de distribuer vos
+                      marchandises aux destinataires finaux dans une zone
+                      géographique définie.
                     </p>
                     <ul className="space-y-2">
                       {[
@@ -214,7 +230,7 @@ export default function ShippingPage() {
                         "Idéal pour les commerçants locaux",
                         "Parfait pour les livraisons groupées",
                         "Notification aux destinataires",
-                        "Confirmation de livraison en temps réel"
+                        "Confirmation de livraison en temps réel",
                       ].map((feature, i) => (
                         <li key={i} className="flex items-center">
                           <CheckCircle className="h-5 w-5 text-primary mr-2" />
@@ -228,8 +244,8 @@ export default function ShippingPage() {
                   </div>
                   <div className="md:w-1/2">
                     <div className="rounded-xl overflow-hidden">
-                      <Image 
-                        src="/images/shipping/express-delivery.jpg" 
+                      <Image
+                        src="/images/shipping/express-delivery.jpg"
                         alt="Distribution locale EcoDeli"
                         width={500}
                         height={350}
@@ -239,13 +255,17 @@ export default function ShippingPage() {
                   </div>
                 </div>
               </TabsContent>
-              
+
               <TabsContent value="special" className="space-y-4">
                 <div className="flex flex-col md:flex-row gap-8 items-center">
                   <div className="md:w-1/2">
-                    <h3 className="text-2xl font-bold mb-4">Stockage temporaire</h3>
+                    <h3 className="text-2xl font-bold mb-4">
+                      Stockage temporaire
+                    </h3>
                     <p className="text-muted-foreground mb-6">
-                      Stockage temporaire de vos colis dans l'un de nos entrepôts avant la livraison finale par l'un de nos livreurs.
+                      Stockage temporaire de vos colis dans l'un de nos
+                      entrepôts avant la livraison finale par l'un de nos
+                      livreurs.
                     </p>
                     <ul className="space-y-2">
                       {[
@@ -253,7 +273,7 @@ export default function ShippingPage() {
                         "Idéal pour les livraisons en plusieurs étapes",
                         "Sécurité garantie",
                         "Suivi en temps réel",
-                        "Flexibilité maximale"
+                        "Flexibilité maximale",
                       ].map((feature, i) => (
                         <li key={i} className="flex items-center">
                           <CheckCircle className="h-5 w-5 text-primary mr-2" />
@@ -267,8 +287,8 @@ export default function ShippingPage() {
                   </div>
                   <div className="md:w-1/2">
                     <div className="rounded-xl overflow-hidden">
-                      <Image 
-                        src="/images/shipping/special-delivery.jpg" 
+                      <Image
+                        src="/images/shipping/special-delivery.jpg"
                         alt="Stockage temporaire EcoDeli"
                         width={500}
                         height={350}
@@ -366,7 +386,9 @@ export default function ShippingPage() {
               <Card className="flex flex-col p-6 border bg-background h-full">
                 <div className="mb-6">
                   <h3 className="text-2xl font-bold">Free</h3>
-                  <p className="text-muted-foreground mt-2">Pour les utilisateurs occasionnels</p>
+                  <p className="text-muted-foreground mt-2">
+                    Pour les utilisateurs occasionnels
+                  </p>
                   <div className="mt-4 text-3xl font-bold">0€</div>
                 </div>
                 <ul className="space-y-3 mb-8 flex-grow">
@@ -387,13 +409,22 @@ export default function ShippingPage() {
                   Commencer gratuitement
                 </Button>
               </Card>
-              
+
               <Card className="flex flex-col p-6 border bg-primary/5 border-primary/20 h-full">
                 <div className="mb-6">
-                  <Badge className="bg-primary/10 text-primary border-primary/30 mb-2">Populaire</Badge>
+                  <Badge className="bg-primary/10 text-primary border-primary/30 mb-2">
+                    Populaire
+                  </Badge>
                   <h3 className="text-2xl font-bold">Starter</h3>
-                  <p className="text-muted-foreground mt-2">Pour les utilisateurs réguliers</p>
-                  <div className="mt-4 text-3xl font-bold">9,90€<span className="text-lg font-normal text-muted-foreground">/mois</span></div>
+                  <p className="text-muted-foreground mt-2">
+                    Pour les utilisateurs réguliers
+                  </p>
+                  <div className="mt-4 text-3xl font-bold">
+                    9,90€
+                    <span className="text-lg font-normal text-muted-foreground">
+                      /mois
+                    </span>
+                  </div>
                 </div>
                 <ul className="space-y-3 mb-8 flex-grow">
                   <li className="flex items-start">
@@ -417,12 +448,19 @@ export default function ShippingPage() {
                   Choisir Starter
                 </Button>
               </Card>
-              
+
               <Card className="flex flex-col p-6 border bg-background h-full">
                 <div className="mb-6">
                   <h3 className="text-2xl font-bold">Premium</h3>
-                  <p className="text-muted-foreground mt-2">Pour une utilisation intensive</p>
-                  <div className="mt-4 text-3xl font-bold">19,99€<span className="text-lg font-normal text-muted-foreground">/mois</span></div>
+                  <p className="text-muted-foreground mt-2">
+                    Pour une utilisation intensive
+                  </p>
+                  <div className="mt-4 text-3xl font-bold">
+                    19,99€
+                    <span className="text-lg font-normal text-muted-foreground">
+                      /mois
+                    </span>
+                  </div>
                 </div>
                 <ul className="space-y-3 mb-8 flex-grow">
                   <li className="flex items-start">
@@ -464,7 +502,8 @@ export default function ShippingPage() {
                   Prêt à utiliser EcoDeli ?
                 </h2>
                 <p className="text-lg text-muted-foreground max-w-[700px]">
-                  Inscrivez-vous gratuitement et découvrez tous nos services de livraison et à la personne
+                  Inscrivez-vous gratuitement et découvrez tous nos services de
+                  livraison et à la personne
                 </p>
                 <div className="flex gap-3 pt-4">
                   <Button size="lg" asChild>
@@ -489,7 +528,10 @@ export default function ShippingPage() {
                       text: "Démarche écologique",
                     },
                   ].map((item, index) => (
-                    <div key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <div
+                      key={index}
+                      className="flex items-center gap-2 text-sm text-muted-foreground"
+                    >
                       <item.icon className="h-4 w-4 text-primary" />
                       <span>{item.text}</span>
                     </div>
@@ -502,4 +544,4 @@ export default function ShippingPage() {
       </main>
     </div>
   );
-} 
+}

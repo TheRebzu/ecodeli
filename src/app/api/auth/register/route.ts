@@ -11,7 +11,9 @@ const baseRegistrationSchema = z.object({
   firstName: z.string().min(2, "Le prénom doit contenir au moins 2 caractères"),
   lastName: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
   email: z.string().email("Veuillez saisir une adresse email valide"),
-  password: z.string().min(8, "Le mot de passe doit contenir au moins 8 caractères"),
+  password: z
+    .string()
+    .min(8, "Le mot de passe doit contenir au moins 8 caractères"),
   role: z.enum(["CLIENT", "DELIVERER", "MERCHANT", "PROVIDER"]),
   phone: z.string().optional(),
   address: z.string().optional(),
@@ -36,9 +38,14 @@ const delivererRegistrationSchema = baseRegistrationSchema.extend({
 // Schéma spécifique pour l'inscription des commerçants
 const merchantRegistrationSchema = baseRegistrationSchema.extend({
   role: z.literal("MERCHANT"),
-  storeName: z.string().min(2, "Le nom du commerce doit contenir au moins 2 caractères"),
+  storeName: z
+    .string()
+    .min(2, "Le nom du commerce doit contenir au moins 2 caractères"),
   storeType: z.string().min(1, "Le type de commerce est requis"),
-  siret: z.string().min(14, "Le numéro SIRET doit contenir 14 caractères").max(14),
+  siret: z
+    .string()
+    .min(14, "Le numéro SIRET doit contenir 14 caractères")
+    .max(14),
 });
 
 // Schéma spécifique pour l'inscription des prestataires
@@ -63,20 +70,21 @@ const registrationSchema = z.discriminatedUnion("role", [
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    
+
     // Validation du mot de passe avant la validation du schéma complet
     const passwordValidation = validatePassword(body.password);
     if (!passwordValidation.isValid) {
       return NextResponse.json(
         { error: passwordValidation.message },
-        { status: 400 }
+        { status: 400 },
       );
     }
-    
+
     // Validation des données selon le schéma
     const validatedData = registrationSchema.parse(body);
 
-    const { email, password, firstName, lastName, role, ...roleSpecificData } = validatedData;
+    const { email, password, firstName, lastName, role, ...roleSpecificData } =
+      validatedData;
     const name = `${firstName} ${lastName}`;
 
     // Vérification si l'utilisateur existe déjà
@@ -87,7 +95,7 @@ export async function POST(request: NextRequest) {
     if (existingUser) {
       return NextResponse.json(
         { error: "Un utilisateur avec cette adresse email existe déjà" },
-        { status: 409 }
+        { status: 409 },
       );
     }
 
@@ -117,9 +125,11 @@ export async function POST(request: NextRequest) {
           },
         });
         break;
-        
+
       case "DELIVERER":
-        const delivererData = roleSpecificData as z.infer<typeof delivererRegistrationSchema>;
+        const delivererData = roleSpecificData as z.infer<
+          typeof delivererRegistrationSchema
+        >;
         await prisma.delivererProfile.create({
           data: {
             userId: user.id,
@@ -134,9 +144,11 @@ export async function POST(request: NextRequest) {
           },
         });
         break;
-        
+
       case "MERCHANT":
-        const merchantData = roleSpecificData as z.infer<typeof merchantRegistrationSchema>;
+        const merchantData = roleSpecificData as z.infer<
+          typeof merchantRegistrationSchema
+        >;
         await prisma.store.create({
           data: {
             name: merchantData.storeName,
@@ -151,9 +163,11 @@ export async function POST(request: NextRequest) {
           },
         });
         break;
-        
+
       case "PROVIDER":
-        const providerData = roleSpecificData as z.infer<typeof providerRegistrationSchema>;
+        const providerData = roleSpecificData as z.infer<
+          typeof providerRegistrationSchema
+        >;
         await prisma.serviceProvider.create({
           data: {
             userId: user.id,
@@ -179,35 +193,36 @@ export async function POST(request: NextRequest) {
     await sendVerificationEmail(
       user.email,
       user.name || "Utilisateur",
-      verificationToken
+      verificationToken,
     );
 
     return NextResponse.json(
-      { 
-        success: true, 
-        message: "Inscription réussie. Veuillez vérifier votre email pour activer votre compte.",
+      {
+        success: true,
+        message:
+          "Inscription réussie. Veuillez vérifier votre email pour activer votre compte.",
         user: {
           id: user.id,
           name: user.name,
           email: user.email,
           role: user.role,
-        }
+        },
       },
-      { status: 201 }
+      { status: 201 },
     );
   } catch (error) {
     console.error("Registration error:", error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Données invalides", details: error.errors },
-        { status: 400 }
+        { status: 400 },
       );
     }
-    
+
     return NextResponse.json(
       { error: "Une erreur est survenue lors de l'inscription" },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

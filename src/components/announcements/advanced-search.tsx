@@ -7,12 +7,7 @@ import { format } from "date-fns";
 import { fr, enUS } from "date-fns/locale";
 import { toast } from "sonner";
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
@@ -38,16 +33,16 @@ import {
 } from "@/components/ui/popover";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Search, 
-  MapPin, 
-  Calendar, 
-  Package, 
+import {
+  Search,
+  MapPin,
+  Calendar,
+  Package,
   Filter,
   X,
   Clock,
   History,
-  Loader2
+  Loader2,
 } from "lucide-react";
 
 import { AnnouncementsList } from "@/components/announcements/announcements-list";
@@ -58,47 +53,51 @@ export function AdvancedSearch() {
   const searchParams = useSearchParams();
   const locale = searchParams.get("locale") || "fr";
   const dateLocale = locale === "fr" ? fr : enUS;
-  
+
   // États pour les filtres
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [status, setStatus] = useState<AnnouncementStatus | "">("");
   const [packageSize, setPackageSize] = useState<PackageSize | "">("");
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
   const [weightRange, setWeightRange] = useState<[number, number]>([0, 50]);
-  const [requiresInsurance, setRequiresInsurance] = useState<boolean | undefined>(undefined);
+  const [requiresInsurance, setRequiresInsurance] = useState<
+    boolean | undefined
+  >(undefined);
   const [fromDate, setFromDate] = useState<Date | undefined>(undefined);
   const [toDate, setToDate] = useState<Date | undefined>(undefined);
-  const [location, setLocation] = useState<{ latitude: number; longitude: number } | undefined>(undefined);
+  const [location, setLocation] = useState<
+    { latitude: number; longitude: number } | undefined
+  >(undefined);
   const [radius, setRadius] = useState<number>(10);
   const [sortBy, setSortBy] = useState<string>("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
-  
+
   // État pour les suggestions de recherche
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
-  
+
   // Récupérer les suggestions de recherche
   const { data: suggestionsData } = api.search.getSearchSuggestions.useQuery(
     { prefix: searchTerm, limit: 5 },
     {
       enabled: searchTerm.length >= 2 && showSuggestions,
       refetchOnWindowFocus: false,
-    }
+    },
   );
-  
+
   // Récupérer les statistiques de recherche de l'utilisateur
   const { data: searchStats } = api.search.getUserSearchStats.useQuery(
     undefined,
     {
       refetchOnWindowFocus: false,
-    }
+    },
   );
-  
+
   // Mutation pour enregistrer un terme de recherche
   const saveSearchTerm = api.search.saveSearchTerm.useMutation();
-  
+
   // Effectuer la recherche
-  const { data, isLoading, isFetching, fetchNextPage, hasNextPage } = 
+  const { data, isLoading, isFetching, fetchNextPage, hasNextPage } =
     api.search.searchAnnouncements.useInfiniteQuery(
       {
         searchTerm: searchTerm || undefined,
@@ -121,9 +120,9 @@ export function AdvancedSearch() {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
         keepPreviousData: true,
         enabled: !isSearching,
-      }
+      },
     );
-  
+
   // Géolocalisation de l'utilisateur
   const getUserLocation = () => {
     if (navigator.geolocation) {
@@ -138,34 +137,34 @@ export function AdvancedSearch() {
         (error) => {
           console.error("Erreur de géolocalisation:", error);
           toast.error(t("locationError"));
-        }
+        },
       );
     } else {
       toast.error(t("geolocationNotSupported"));
     }
   };
-  
+
   // Réinitialiser la localisation
   const resetLocation = () => {
     setLocation(undefined);
     setRadius(10);
   };
-  
+
   // Gérer la soumission de la recherche
   const handleSearch = () => {
     setIsSearching(true);
-    
+
     // Enregistrer le terme de recherche s'il existe
     if (searchTerm.trim()) {
       saveSearchTerm.mutate({ searchTerm: searchTerm.trim() });
     }
-    
+
     // Simuler un délai de recherche
     setTimeout(() => {
       setIsSearching(false);
     }, 500);
   };
-  
+
   // Réinitialiser tous les filtres
   const resetFilters = () => {
     setSearchTerm("");
@@ -181,14 +180,14 @@ export function AdvancedSearch() {
     setSortBy("createdAt");
     setSortOrder("desc");
   };
-  
+
   // Utiliser un terme de recherche suggéré
   const useSearchSuggestion = (suggestion: string) => {
     setSearchTerm(suggestion);
     setShowSuggestions(false);
     handleSearch();
   };
-  
+
   // Compter le nombre de filtres actifs
   const getActiveFiltersCount = () => {
     let count = 0;
@@ -202,10 +201,10 @@ export function AdvancedSearch() {
     if (location) count++;
     return count;
   };
-  
+
   // Récupérer toutes les annonces de toutes les pages
   const announcements = data?.pages.flatMap((page) => page.announcements) || [];
-  
+
   return (
     <div className="space-y-6">
       {/* Barre de recherche principale */}
@@ -276,41 +275,63 @@ export function AdvancedSearch() {
                   <h4 className="font-medium">{t("status")}</h4>
                   <Select
                     value={status}
-                    onValueChange={(value) => setStatus(value as AnnouncementStatus | "")}
+                    onValueChange={(value) =>
+                      setStatus(value as AnnouncementStatus | "")
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder={t("allStatuses")} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="">{t("allStatuses")}</SelectItem>
-                      <SelectItem value={AnnouncementStatus.OPEN}>{t("status.open")}</SelectItem>
-                      <SelectItem value={AnnouncementStatus.ASSIGNED}>{t("status.assigned")}</SelectItem>
-                      <SelectItem value={AnnouncementStatus.IN_TRANSIT}>{t("status.in_transit")}</SelectItem>
-                      <SelectItem value={AnnouncementStatus.DELIVERED}>{t("status.delivered")}</SelectItem>
-                      <SelectItem value={AnnouncementStatus.CANCELLED}>{t("status.cancelled")}</SelectItem>
+                      <SelectItem value={AnnouncementStatus.OPEN}>
+                        {t("status.open")}
+                      </SelectItem>
+                      <SelectItem value={AnnouncementStatus.ASSIGNED}>
+                        {t("status.assigned")}
+                      </SelectItem>
+                      <SelectItem value={AnnouncementStatus.IN_TRANSIT}>
+                        {t("status.in_transit")}
+                      </SelectItem>
+                      <SelectItem value={AnnouncementStatus.DELIVERED}>
+                        {t("status.delivered")}
+                      </SelectItem>
+                      <SelectItem value={AnnouncementStatus.CANCELLED}>
+                        {t("status.cancelled")}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="space-y-2">
                   <h4 className="font-medium">{t("packageSize")}</h4>
                   <Select
                     value={packageSize}
-                    onValueChange={(value) => setPackageSize(value as PackageSize | "")}
+                    onValueChange={(value) =>
+                      setPackageSize(value as PackageSize | "")
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder={t("allSizes")} />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="">{t("allSizes")}</SelectItem>
-                      <SelectItem value={PackageSize.SMALL}>{t("size.small")}</SelectItem>
-                      <SelectItem value={PackageSize.MEDIUM}>{t("size.medium")}</SelectItem>
-                      <SelectItem value={PackageSize.LARGE}>{t("size.large")}</SelectItem>
-                      <SelectItem value={PackageSize.EXTRA_LARGE}>{t("size.extra_large")}</SelectItem>
+                      <SelectItem value={PackageSize.SMALL}>
+                        {t("size.small")}
+                      </SelectItem>
+                      <SelectItem value={PackageSize.MEDIUM}>
+                        {t("size.medium")}
+                      </SelectItem>
+                      <SelectItem value={PackageSize.LARGE}>
+                        {t("size.large")}
+                      </SelectItem>
+                      <SelectItem value={PackageSize.EXTRA_LARGE}>
+                        {t("size.extra_large")}
+                      </SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <h4 className="font-medium">{t("priceRange")}</h4>
@@ -323,10 +344,12 @@ export function AdvancedSearch() {
                     min={0}
                     max={1000}
                     step={10}
-                    onValueChange={(values) => setPriceRange(values as [number, number])}
+                    onValueChange={(values) =>
+                      setPriceRange(values as [number, number])
+                    }
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <h4 className="font-medium">{t("weightRange")}</h4>
@@ -339,10 +362,12 @@ export function AdvancedSearch() {
                     min={0}
                     max={50}
                     step={1}
-                    onValueChange={(values) => setWeightRange(values as [number, number])}
+                    onValueChange={(values) =>
+                      setWeightRange(values as [number, number])
+                    }
                   />
                 </div>
-                
+
                 <div className="space-y-2">
                   <h4 className="font-medium">{t("insurance")}</h4>
                   <div className="flex items-center space-x-2">
@@ -365,28 +390,31 @@ export function AdvancedSearch() {
                     </label>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <h4 className="font-medium">{t("dateRange")}</h4>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <p className="text-sm text-gray-500 mb-1">{t("fromDate")}</p>
-                      <DatePicker
-                        date={fromDate}
-                        setDate={setFromDate}
-                      />
+                      <p className="text-sm text-gray-500 mb-1">
+                        {t("fromDate")}
+                      </p>
+                      <DatePicker date={fromDate} setDate={setFromDate} />
                     </div>
                     <div>
-                      <p className="text-sm text-gray-500 mb-1">{t("toDate")}</p>
+                      <p className="text-sm text-gray-500 mb-1">
+                        {t("toDate")}
+                      </p>
                       <DatePicker
                         date={toDate}
                         setDate={setToDate}
-                        disabled={(date) => fromDate ? date < fromDate : false}
+                        disabled={(date) =>
+                          fromDate ? date < fromDate : false
+                        }
                       />
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="space-y-2">
                   <h4 className="font-medium">{t("location")}</h4>
                   {location ? (
@@ -408,8 +436,12 @@ export function AdvancedSearch() {
                       </div>
                       <div className="space-y-1">
                         <div className="flex justify-between">
-                          <span className="text-sm text-gray-500">{t("searchRadius")}</span>
-                          <span className="text-sm font-medium">{radius} km</span>
+                          <span className="text-sm text-gray-500">
+                            {t("searchRadius")}
+                          </span>
+                          <span className="text-sm font-medium">
+                            {radius} km
+                          </span>
                         </div>
                         <Slider
                           value={[radius]}
@@ -431,29 +463,36 @@ export function AdvancedSearch() {
                     </Button>
                   )}
                 </div>
-                
+
                 <div className="space-y-2">
                   <h4 className="font-medium">{t("sorting")}</h4>
                   <div className="grid grid-cols-2 gap-2">
-                    <Select
-                      value={sortBy}
-                      onValueChange={setSortBy}
-                    >
+                    <Select value={sortBy} onValueChange={setSortBy}>
                       <SelectTrigger>
                         <SelectValue placeholder={t("sortBy")} />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="createdAt">{t("sortByDate")}</SelectItem>
-                        <SelectItem value="price">{t("sortByPrice")}</SelectItem>
-                        <SelectItem value="deadline">{t("sortByDeadline")}</SelectItem>
+                        <SelectItem value="createdAt">
+                          {t("sortByDate")}
+                        </SelectItem>
+                        <SelectItem value="price">
+                          {t("sortByPrice")}
+                        </SelectItem>
+                        <SelectItem value="deadline">
+                          {t("sortByDeadline")}
+                        </SelectItem>
                         {location && (
-                          <SelectItem value="distance">{t("sortByDistance")}</SelectItem>
+                          <SelectItem value="distance">
+                            {t("sortByDistance")}
+                          </SelectItem>
                         )}
                       </SelectContent>
                     </Select>
                     <Select
                       value={sortOrder}
-                      onValueChange={(value) => setSortOrder(value as "asc" | "desc")}
+                      onValueChange={(value) =>
+                        setSortOrder(value as "asc" | "desc")
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder={t("sortOrder")} />
@@ -465,23 +504,18 @@ export function AdvancedSearch() {
                     </Select>
                   </div>
                 </div>
-                
+
                 <div className="flex justify-between">
-                  <Button
-                    variant="outline"
-                    onClick={resetFilters}
-                  >
+                  <Button variant="outline" onClick={resetFilters}>
                     {t("resetFilters")}
                   </Button>
-                  <Button onClick={handleSearch}>
-                    {t("applyFilters")}
-                  </Button>
+                  <Button onClick={handleSearch}>{t("applyFilters")}</Button>
                 </div>
               </div>
             </PopoverContent>
           </Popover>
         </div>
-        
+
         {/* Suggestions de recherche */}
         {showSuggestions && suggestionsData?.suggestions.length > 0 && (
           <div className="absolute z-10 w-full bg-white rounded-md shadow-lg mt-1 border">
@@ -500,73 +534,74 @@ export function AdvancedSearch() {
           </div>
         )}
       </div>
-      
+
       {/* Historique de recherche */}
-      {searchStats && (searchStats.recentSearches.length > 0 || searchStats.frequentSearches.length > 0) && (
-        <Accordion type="single" collapsible className="w-full">
-          <AccordionItem value="search-history">
-            <AccordionTrigger className="text-sm">
-              <div className="flex items-center">
-                <History className="h-4 w-4 mr-2" />
-                {t("searchHistory")}
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {searchStats.recentSearches.length > 0 && (
-                  <div>
-                    <h4 className="font-medium text-sm mb-2 flex items-center">
-                      <Clock className="h-4 w-4 mr-1" />
-                      {t("recentSearches")}
-                    </h4>
-                    <div className="flex flex-wrap gap-2">
-                      {searchStats.recentSearches.map((term, index) => (
-                        <Badge
-                          key={index}
-                          variant="secondary"
-                          className="cursor-pointer"
-                          onClick={() => useSearchSuggestion(term)}
-                        >
-                          {term}
-                        </Badge>
-                      ))}
+      {searchStats &&
+        (searchStats.recentSearches.length > 0 ||
+          searchStats.frequentSearches.length > 0) && (
+          <Accordion type="single" collapsible className="w-full">
+            <AccordionItem value="search-history">
+              <AccordionTrigger className="text-sm">
+                <div className="flex items-center">
+                  <History className="h-4 w-4 mr-2" />
+                  {t("searchHistory")}
+                </div>
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {searchStats.recentSearches.length > 0 && (
+                    <div>
+                      <h4 className="font-medium text-sm mb-2 flex items-center">
+                        <Clock className="h-4 w-4 mr-1" />
+                        {t("recentSearches")}
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {searchStats.recentSearches.map((term, index) => (
+                          <Badge
+                            key={index}
+                            variant="secondary"
+                            className="cursor-pointer"
+                            onClick={() => useSearchSuggestion(term)}
+                          >
+                            {term}
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-                
-                {searchStats.frequentSearches.length > 0 && (
-                  <div>
-                    <h4 className="font-medium text-sm mb-2">{t("frequentSearches")}</h4>
-                    <div className="flex flex-wrap gap-2">
-                      {searchStats.frequentSearches.map((item, index) => (
-                        <Badge
-                          key={index}
-                          variant="secondary"
-                          className="cursor-pointer"
-                          onClick={() => useSearchSuggestion(item.term)}
-                        >
-                          {item.term} ({item.count})
-                        </Badge>
-                      ))}
+                  )}
+
+                  {searchStats.frequentSearches.length > 0 && (
+                    <div>
+                      <h4 className="font-medium text-sm mb-2">
+                        {t("frequentSearches")}
+                      </h4>
+                      <div className="flex flex-wrap gap-2">
+                        {searchStats.frequentSearches.map((item, index) => (
+                          <Badge
+                            key={index}
+                            variant="secondary"
+                            className="cursor-pointer"
+                            onClick={() => useSearchSuggestion(item.term)}
+                          >
+                            {item.term} ({item.count})
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-              </div>
-            </AccordionContent>
-          </AccordionItem>
-        </Accordion>
-      )}
-      
+                  )}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        )}
+
       {/* Filtres actifs */}
       {getActiveFiltersCount() > 0 && (
         <div className="flex flex-wrap gap-2 items-center">
           <span className="text-sm font-medium">{t("activeFilters")}:</span>
-          
+
           {status && (
-            <Badge
-              variant="secondary"
-              className="flex items-center gap-1"
-            >
+            <Badge variant="secondary" className="flex items-center gap-1">
               {t("status.label")}: {t(`status.${status.toLowerCase()}`)}
               <X
                 className="h-3 w-3 cursor-pointer"
@@ -574,12 +609,9 @@ export function AdvancedSearch() {
               />
             </Badge>
           )}
-          
+
           {packageSize && (
-            <Badge
-              variant="secondary"
-              className="flex items-center gap-1"
-            >
+            <Badge variant="secondary" className="flex items-center gap-1">
               {t("packageSize")}: {t(`size.${packageSize.toLowerCase()}`)}
               <X
                 className="h-3 w-3 cursor-pointer"
@@ -587,12 +619,9 @@ export function AdvancedSearch() {
               />
             </Badge>
           )}
-          
+
           {(priceRange[0] > 0 || priceRange[1] < 1000) && (
-            <Badge
-              variant="secondary"
-              className="flex items-center gap-1"
-            >
+            <Badge variant="secondary" className="flex items-center gap-1">
               {t("price")}: {priceRange[0]}€ - {priceRange[1]}€
               <X
                 className="h-3 w-3 cursor-pointer"
@@ -600,12 +629,9 @@ export function AdvancedSearch() {
               />
             </Badge>
           )}
-          
+
           {(weightRange[0] > 0 || weightRange[1] < 50) && (
-            <Badge
-              variant="secondary"
-              className="flex items-center gap-1"
-            >
+            <Badge variant="secondary" className="flex items-center gap-1">
               {t("weight")}: {weightRange[0]} kg - {weightRange[1]} kg
               <X
                 className="h-3 w-3 cursor-pointer"
@@ -613,12 +639,9 @@ export function AdvancedSearch() {
               />
             </Badge>
           )}
-          
+
           {requiresInsurance !== undefined && (
-            <Badge
-              variant="secondary"
-              className="flex items-center gap-1"
-            >
+            <Badge variant="secondary" className="flex items-center gap-1">
               {requiresInsurance ? t("insured") : t("notInsured")}
               <X
                 className="h-3 w-3 cursor-pointer"
@@ -626,12 +649,9 @@ export function AdvancedSearch() {
               />
             </Badge>
           )}
-          
+
           {fromDate && (
-            <Badge
-              variant="secondary"
-              className="flex items-center gap-1"
-            >
+            <Badge variant="secondary" className="flex items-center gap-1">
               {t("from")}: {format(fromDate, "P", { locale: dateLocale })}
               <X
                 className="h-3 w-3 cursor-pointer"
@@ -639,12 +659,9 @@ export function AdvancedSearch() {
               />
             </Badge>
           )}
-          
+
           {toDate && (
-            <Badge
-              variant="secondary"
-              className="flex items-center gap-1"
-            >
+            <Badge variant="secondary" className="flex items-center gap-1">
               {t("to")}: {format(toDate, "P", { locale: dateLocale })}
               <X
                 className="h-3 w-3 cursor-pointer"
@@ -652,30 +669,20 @@ export function AdvancedSearch() {
               />
             </Badge>
           )}
-          
+
           {location && (
-            <Badge
-              variant="secondary"
-              className="flex items-center gap-1"
-            >
+            <Badge variant="secondary" className="flex items-center gap-1">
               {t("nearMe")}: {radius} km
-              <X
-                className="h-3 w-3 cursor-pointer"
-                onClick={resetLocation}
-              />
+              <X className="h-3 w-3 cursor-pointer" onClick={resetLocation} />
             </Badge>
           )}
-          
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={resetFilters}
-          >
+
+          <Button variant="ghost" size="sm" onClick={resetFilters}>
             {t("clearAll")}
           </Button>
         </div>
       )}
-      
+
       {/* Résultats de recherche */}
       <div>
         {isLoading ? (
@@ -694,11 +701,11 @@ export function AdvancedSearch() {
                 {announcements.length} {t("resultsFound")}
               </p>
             </div>
-            
+
             <div className="space-y-4">
               {/* Utiliser le composant AnnouncementsList pour afficher les résultats */}
               <AnnouncementsList announcements={announcements} />
-              
+
               {hasNextPage && (
                 <div className="flex justify-center mt-4">
                   <Button
@@ -706,7 +713,9 @@ export function AdvancedSearch() {
                     disabled={isFetching}
                     variant="outline"
                   >
-                    {isFetching && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                    {isFetching && (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    )}
                     {t("loadMore")}
                   </Button>
                 </div>

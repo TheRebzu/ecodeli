@@ -17,23 +17,23 @@ export async function POST(request: NextRequest) {
 
     // Validate token
     const result = await validateVerificationToken(token);
-    
+
     if (!result.valid || !result.userId) {
       return NextResponse.json(
         { error: "Le lien de vérification est invalide ou a expiré" },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
     // Update user
     const user = await prisma.user.update({
       where: { id: result.userId },
-      data: { emailVerified: new Date() }
+      data: { emailVerified: new Date() },
     });
 
     // Delete the token after use
     await prisma.verificationToken.delete({
-      where: { token }
+      where: { token },
     });
 
     // Send welcome email
@@ -41,21 +41,21 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      message: "Votre adresse email a été vérifiée avec succès"
+      message: "Votre adresse email a été vérifiée avec succès",
     });
   } catch (error) {
     console.error("Email verification error:", error);
-    
+
     if (error instanceof z.ZodError) {
       return NextResponse.json(
         { error: "Données invalides", details: error.errors },
-        { status: 400 }
+        { status: 400 },
       );
     }
-    
+
     return NextResponse.json(
       { error: "Une erreur est survenue lors de la vérification de l'email" },
-      { status: 500 }
+      { status: 500 },
     );
   }
-} 
+}

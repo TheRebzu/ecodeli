@@ -12,7 +12,14 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getAuthErrorMessage } from "@/lib/auth-error";
 
@@ -27,13 +34,15 @@ type LoginFormValues = z.infer<typeof loginSchema>;
 export function LoginForm() {
   const router = useRouter();
   const t = useTranslations("auth");
-  const searchParams = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
+  const searchParams = new URLSearchParams(
+    typeof window !== "undefined" ? window.location.search : "",
+  );
   const callbackUrl = searchParams.get("callbackUrl") || "/";
   const error = searchParams.get("error");
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [authError, setAuthError] = useState<string | null>(
-    error ? getAuthErrorMessage(error) : null
+    error ? getAuthErrorMessage(error) : null,
   );
 
   const {
@@ -60,7 +69,9 @@ export function LoginForm() {
       });
 
       if (result?.error) {
-        setAuthError(getAuthErrorMessage(result.error) || t("login.errors.default"));
+        setAuthError(
+          getAuthErrorMessage(result.error) || t("login.errors.default"),
+        );
         setIsLoading(false);
         return;
       }
@@ -77,7 +88,9 @@ export function LoginForm() {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold text-center">{t("login.title")}</CardTitle>
+        <CardTitle className="text-2xl font-bold text-center">
+          {t("login.title")}
+        </CardTitle>
         <CardDescription className="text-center">
           {t("login.description")}
         </CardDescription>
@@ -89,7 +102,7 @@ export function LoginForm() {
               <AlertDescription>{authError}</AlertDescription>
             </Alert>
           )}
-          
+
           <div className="space-y-2">
             <Label htmlFor="email">{t("login.form.email.label")}</Label>
             <Input
@@ -104,7 +117,7 @@ export function LoginForm() {
               <p className="text-sm text-red-500">{errors.email.message}</p>
             )}
           </div>
-          
+
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="password">{t("login.form.password.label")}</Label>
@@ -127,11 +140,11 @@ export function LoginForm() {
               <p className="text-sm text-red-500">{errors.password.message}</p>
             )}
           </div>
-          
+
           <Button type="submit" className="w-full" disabled={isLoading}>
             {isLoading ? t("login.form.submitting") : t("login.form.submit")}
           </Button>
-          
+
           <div className="relative my-4">
             <div className="absolute inset-0 flex items-center">
               <span className="w-full border-t" />
@@ -142,7 +155,7 @@ export function LoginForm() {
               </span>
             </div>
           </div>
-          
+
           <Button
             type="button"
             variant="outline"

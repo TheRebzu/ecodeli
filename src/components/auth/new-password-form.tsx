@@ -59,23 +59,23 @@ export function NewPasswordForm({ token }: NewPasswordFormProps) {
   // Calculate password strength
   const getPasswordStrength = (password: string) => {
     if (!password) return 0;
-    
+
     let strength = 0;
-    
+
     // Length check
     if (password.length >= 8) strength += 1;
-    
+
     // Character type checks
     if (/[A-Z]/.test(password)) strength += 1;
     if (/[a-z]/.test(password)) strength += 1;
     if (/[0-9]/.test(password)) strength += 1;
     if (/[^A-Za-z0-9]/.test(password)) strength += 1;
-    
+
     return strength;
   };
 
   const passwordStrength = getPasswordStrength(password);
-  
+
   // Get strength label
   const getStrengthLabel = (strength: number) => {
     if (strength <= 1) return "Très faible";
@@ -101,10 +101,10 @@ export function NewPasswordForm({ token }: NewPasswordFormProps) {
     try {
       // Here would be the actual API call to reset the password
       console.log("Reset password with token:", token);
-      
+
       // Simulate API call
       await new Promise((resolve) => setTimeout(resolve, 1000));
-      
+
       // For demonstration, show success state
       setIsSuccess(true);
     } catch (error) {
@@ -119,28 +119,31 @@ export function NewPasswordForm({ token }: NewPasswordFormProps) {
     return (
       <div className="w-full max-w-md mx-auto px-4 text-center">
         <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            width="24" 
-            height="24" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2" 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
             className="text-green-600"
           >
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
             <polyline points="22 4 12 14.01 9 11.01"></polyline>
           </svg>
         </div>
-        <h2 className="text-2xl font-semibold mb-4">Mot de passe réinitialisé</h2>
+        <h2 className="text-2xl font-semibold mb-4">
+          Mot de passe réinitialisé
+        </h2>
         <p className="text-muted-foreground mb-6">
-          Votre mot de passe a été réinitialisé avec succès. Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.
+          Votre mot de passe a été réinitialisé avec succès. Vous pouvez
+          maintenant vous connecter avec votre nouveau mot de passe.
         </p>
-        <Link 
-          href="/login" 
+        <Link
+          href="/login"
           className="px-6 py-2 bg-primary text-primary-foreground rounded-md inline-block"
         >
           Se connecter
@@ -152,7 +155,9 @@ export function NewPasswordForm({ token }: NewPasswordFormProps) {
   return (
     <div className="w-full max-w-md mx-auto px-4">
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold mb-2">Créer un nouveau mot de passe</h1>
+        <h1 className="text-3xl font-bold mb-2">
+          Créer un nouveau mot de passe
+        </h1>
         <p className="text-muted-foreground">
           Veuillez créer un nouveau mot de passe pour votre compte.
         </p>
@@ -182,7 +187,9 @@ export function NewPasswordForm({ token }: NewPasswordFormProps) {
               {...register("password")}
             />
             {errors.password && (
-              <p className="text-sm text-destructive">{errors.password.message}</p>
+              <p className="text-sm text-destructive">
+                {errors.password.message}
+              </p>
             )}
 
             {password && (
@@ -231,11 +238,13 @@ export function NewPasswordForm({ token }: NewPasswordFormProps) {
             isSubmitting ? "opacity-70 cursor-not-allowed" : ""
           }`}
         >
-          {isSubmitting ? "Réinitialisation en cours..." : "Réinitialiser le mot de passe"}
+          {isSubmitting
+            ? "Réinitialisation en cours..."
+            : "Réinitialiser le mot de passe"}
         </button>
       </form>
     </div>
   );
 }
 
-export default NewPasswordForm; 
+export default NewPasswordForm;

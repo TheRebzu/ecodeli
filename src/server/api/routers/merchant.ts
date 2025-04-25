@@ -1,7 +1,12 @@
-import { z } from 'zod';
-import { router, protectedProcedure, merchantProcedure, adminProcedure } from '@/lib/trpc';
-import { TRPCError } from '@trpc/server';
-import { prisma } from '@/lib/prisma';
+import { z } from "zod";
+import {
+  router,
+  protectedProcedure,
+  merchantProcedure,
+  adminProcedure,
+} from "@/lib/trpc";
+import { TRPCError } from "@trpc/server";
+import { prisma } from "@/lib/prisma";
 
 export const merchantRouter = router({
   createStore: merchantProcedure
@@ -12,7 +17,7 @@ export const merchantRouter = router({
         address: z.string().min(5),
         phoneNumber: z.string().min(5),
         logoUrl: z.string().url().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const merchantId = ctx.session.user.id;
@@ -26,8 +31,8 @@ export const merchantRouter = router({
 
       if (existingStore) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'You already have a store',
+          code: "BAD_REQUEST",
+          message: "You already have a store",
         });
       }
 
@@ -36,7 +41,7 @@ export const merchantRouter = router({
         data: {
           ...input,
           merchantId,
-          status: 'PENDING',
+          status: "PENDING",
         },
       });
 
@@ -52,7 +57,7 @@ export const merchantRouter = router({
         address: z.string().min(5).optional(),
         phoneNumber: z.string().min(5).optional(),
         logoUrl: z.string().url().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const merchantId = ctx.session.user.id;
@@ -65,15 +70,15 @@ export const merchantRouter = router({
 
       if (!store) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Store not found',
+          code: "NOT_FOUND",
+          message: "Store not found",
         });
       }
 
       if (store.merchantId !== merchantId) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'You do not have permission to update this store',
+          code: "FORBIDDEN",
+          message: "You do not have permission to update this store",
         });
       }
 
@@ -105,8 +110,8 @@ export const merchantRouter = router({
 
       if (!store) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Store not found',
+          code: "NOT_FOUND",
+          message: "Store not found",
         });
       }
 
@@ -133,8 +138,8 @@ export const merchantRouter = router({
 
     if (!store) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'You do not have a store',
+        code: "NOT_FOUND",
+        message: "You do not have a store",
       });
     }
 
@@ -152,22 +157,22 @@ export const merchantRouter = router({
 
       if (!store) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Store not found',
+          code: "NOT_FOUND",
+          message: "Store not found",
         });
       }
 
-      if (store.status === 'APPROVED') {
+      if (store.status === "APPROVED") {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Store is already approved',
+          code: "BAD_REQUEST",
+          message: "Store is already approved",
         });
       }
 
       const updatedStore = await prisma.store.update({
         where: { id: storeId },
         data: {
-          status: 'APPROVED',
+          status: "APPROVED",
         },
       });
 
@@ -179,8 +184,8 @@ export const merchantRouter = router({
       z.object({
         limit: z.number().min(1).max(50).default(10),
         cursor: z.string().nullish(),
-        status: z.enum(['PENDING', 'APPROVED', 'REJECTED']).optional(),
-      })
+        status: z.enum(["PENDING", "APPROVED", "REJECTED"]).optional(),
+      }),
     )
     .query(async ({ input }) => {
       const { limit, cursor, status } = input;
@@ -189,7 +194,7 @@ export const merchantRouter = router({
         where: status ? { status } : undefined,
         cursor: cursor ? { id: cursor } : undefined,
         orderBy: {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
         include: {
           merchant: {
@@ -213,4 +218,4 @@ export const merchantRouter = router({
         nextCursor,
       };
     }),
-}); 
+});
