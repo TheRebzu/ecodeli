@@ -83,6 +83,49 @@
       "settings": "Paramètres"
     }
   },
+  "deliverer": {
+    "title": "Tableau de bord Livreur",
+    "description": "Gérez vos livraisons et documents",
+    "verification": {
+      "required": {
+        "title": "Vérification requise",
+        "description": "Votre compte nécessite une vérification. Veuillez télécharger les documents requis pour commencer à livrer.",
+        "action": "Télécharger mes documents"
+      }
+    },
+    "stats": {
+      "totalDeliveries": "Total des livraisons",
+      "completedDeliveries": "Livraisons terminées",
+      "failedDeliveries": "Livraisons échouées",
+      "averageRating": "Note moyenne"
+    },
+    "currentDeliveries": {
+      "title": "Livraisons en cours",
+      "description": "Vos livraisons actuellement en cours",
+      "empty": {
+        "title": "Aucune livraison en cours",
+        "description": "Vous n'avez pas de livraisons en cours pour le moment",
+        "action": "Rechercher des livraisons"
+      }
+    },
+    "deliveryHistory": {
+      "title": "Historique des livraisons",
+      "description": "Vos livraisons passées",
+      "empty": {
+        "title": "Aucun historique",
+        "description": "Vous n'avez pas encore effectué de livraisons"
+      }
+    },
+    "documents": {
+      "title": "Documents",
+      "description": "Gérez vos documents de vérification",
+      "empty": {
+        "title": "Aucun document",
+        "description": "Vous n'avez pas encore téléchargé de document",
+        "action": "Télécharger un document"
+      }
+    }
+  },
   "merchant": {
     "title": "Tableau de bord Commerçant",
     "description": "Gérez vos commerces, produits et commandes",

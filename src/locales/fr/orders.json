@@ -23,7 +23,7 @@
   "date": "Date",
   "store": "Boutique",
   "total": "Total",
-  "status": "Statut",
+  "statusLabel": "Statut",
   "actions": "Actions",
   "view": "Voir",
   "loadMore": "Charger plus",

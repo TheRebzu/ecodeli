@@ -6,13 +6,12 @@ const withNextIntl = createNextIntlPlugin('./i18n/request.ts');
 const nextConfig: NextConfig = {
   /* config options here */
   eslint: {
-    // Disable linting during build for now
-    ignoreDuringBuilds: true,
-    dirs: [], // Disable ESLint for all directories
+    // Enable linting during build
+    ignoreDuringBuilds: false,
   },
   typescript: {
-    // Disable type checking during build for now
-    ignoreBuildErrors: true,
+    // Enable type checking during build
+    ignoreBuildErrors: false,
   },
   onDemandEntries: {
     // Keep pages in memory for longer
@@ -26,7 +25,7 @@ const nextConfig: NextConfig = {
     // Options expérimentales disponibles
     appDocumentPreloading: false,
     serverActions: {
-      allowedOrigins: ['localhost:3000', 'ecodeli.com', '*.ecodeli.com'],
+      allowedOrigins: ['localhost:3000', 'ecodeli.me', '*.ecodeli.me'],
     }
   },
   // Note: unstable_allowDynamic has been removed as it's not supported in Next.js 15.3.1
