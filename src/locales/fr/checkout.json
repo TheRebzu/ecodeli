@@ -1,5 +1,6 @@
 {
   "checkout": "Paiement",
+  "description": "Finalisez votre commande",
   "shippingAddress": "Adresse de livraison",
   "billingAddress": "Adresse de facturation",
   "sameAsShipping": "Identique à l'adresse de livraison",
