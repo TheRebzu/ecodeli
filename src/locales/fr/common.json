@@ -1,0 +1,13 @@
+{
+  "signOut": "Déconnexion",
+  "loading": "Chargement...",
+  "error": {
+    "title": "Une erreur est survenue",
+    "description": "Impossible de charger les données. Veuillez réessayer.",
+    "retry": "Réessayer"
+  },
+  "empty": {
+    "title": "Aucune donnée disponible",
+    "description": "Il n'y a pas encore de données à afficher."
+  }
+} 

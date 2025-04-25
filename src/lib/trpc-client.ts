@@ -14,7 +14,6 @@ export const getBaseUrl = () => {
 
 // To use tRPC client directly (e.g., in server components, API routes)
 export const trpcClient = createTRPCProxyClient<AppRouter>({
-  transformer: superjson,
   links: [
     httpBatchLink({
       url: `${getBaseUrl()}/api/trpc`,
@@ -23,6 +22,7 @@ export const trpcClient = createTRPCProxyClient<AppRouter>({
           'x-trpc-source': 'client',
         };
       },
+      transformer: superjson
     }),
   ],
 });

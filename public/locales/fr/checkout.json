@@ -1,0 +1,94 @@
+{
+  "checkout": "Paiement",
+  "shippingAddress": "Adresse de livraison",
+  "billingAddress": "Adresse de facturation",
+  "sameAsShipping": "Identique à l'adresse de livraison",
+  "paymentMethod": "Méthode de paiement",
+  "cardInformation": "Informations de carte",
+  "cardNumber": "Numéro de carte",
+  "expiryDate": "Date d'expiration",
+  "cvv": "CVV",
+  "nameOnCard": "Nom sur la carte",
+  "orderSummary": "Récapitulatif de la commande",
+  "subtotal": "Sous-total",
+  "shipping": "Livraison",
+  "tax": "Taxes",
+  "total": "Total",
+  "placeOrder": "Passer la commande",
+  "backToCart": "Retour au panier",
+  "orderDetails": "Détails de la commande",
+  "orderNumber": "Numéro de commande",
+  "orderDate": "Date de commande",
+  "paymentStatus": "État du paiement",
+  "shippingMethod": "Méthode de livraison",
+  "standard": "Standard",
+  "express": "Express",
+  "estimatedDelivery": "Livraison estimée",
+  "processing": "Traitement en cours",
+  "confirmation": {
+    "title": "Commande confirmée!",
+    "message": "Votre commande a été confirmée et est en cours de traitement. Vous recevrez un email de confirmation sous peu.",
+    "orderDetails": "Voir les détails de la commande",
+    "continueShopping": "Continuer les achats"
+  },
+  "error": {
+    "title": "Erreur de paiement",
+    "message": "Une erreur s'est produite lors du traitement de votre paiement. Veuillez réessayer ou contacter le service client.",
+    "retry": "Réessayer",
+    "contact": "Contacter le support"
+  },
+  "addresses": {
+    "title": "Adresses",
+    "add": "Ajouter une adresse",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "primary": "Adresse principale",
+    "selectAddress": "Sélectionner une adresse"
+  },
+  "title": "Finaliser la commande",
+  "steps": {
+    "information": "Informations",
+    "shipping": "Livraison",
+    "payment": "Paiement",
+    "confirmation": "Confirmation"
+  },
+  "information": {
+    "title": "Informations de contact",
+    "email": "Email",
+    "phone": "Téléphone",
+    "continueToShipping": "Continuer vers la livraison"
+  },
+  "payment": {
+    "title": "Informations de paiement",
+    "cardNumber": "Numéro de carte",
+    "cardName": "Nom sur la carte",
+    "expiryDate": "Date d'expiration",
+    "cvv": "CVV",
+    "saveCard": "Enregistrer cette carte pour plus tard",
+    "savedCards": "Cartes enregistrées",
+    "selectCard": "Sélectionner une carte",
+    "placeOrder": "Passer la commande",
+    "returnToShipping": "Retourner à la livraison"
+  },
+  "summary": {
+    "title": "Récapitulatif de la commande",
+    "subtotal": "Sous-total",
+    "shipping": "Livraison",
+    "tax": "TVA",
+    "total": "Total"
+  },
+  "errors": {
+    "invalidEmail": "Email invalide",
+    "invalidPhone": "Téléphone invalide",
+    "invalidAddress": "Adresse invalide",
+    "invalidCity": "Ville invalide",
+    "invalidPostalCode": "Code postal invalide",
+    "invalidCardNumber": "Numéro de carte invalide",
+    "invalidCardName": "Nom sur la carte invalide",
+    "invalidExpiryDate": "Date d'expiration invalide",
+    "invalidCvv": "CVV invalide",
+    "paymentFailed": "Le paiement a échoué. Veuillez réessayer."
+  },
+  "unavailableProduct": "Produit non disponible",
+  "quantity": "Quantité"
+} 

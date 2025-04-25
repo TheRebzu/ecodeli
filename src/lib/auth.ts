@@ -52,6 +52,7 @@ export const authOptions: NextAuthOptions = {
     strategy: "jwt",
     maxAge: 30 * 24 * 60 * 60, // 30 jours
   },
+  secret: process.env.NEXT_AUTH_SECRET || process.env.NEXTAUTH_SECRET,
   pages: {
     signIn: "/login",
     signOut: "/",
@@ -60,12 +61,12 @@ export const authOptions: NextAuthOptions = {
     newUser: "/onboarding",
   },
   providers: [
-    // Authentification avec Google
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID || "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-      allowDangerousEmailAccountLinking: true,
-    }),
+    // Authentification avec Google - commenté pour le développement local
+    // GoogleProvider({
+    //   clientId: process.env.GOOGLE_CLIENT_ID || "",
+    //   clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+    //   allowDangerousEmailAccountLinking: true,
+    // }),
     // Authentification avec email/mot de passe
     CredentialsProvider({
       id: "credentials",
@@ -164,7 +165,7 @@ export const authOptions: NextAuthOptions = {
       }
     },
   },
-  debug: process.env.NODE_ENV === "development",
+  debug: process.env.NODE_ENV === "development" && process.env.DEBUG_NEXTAUTH === "true",
 };
 
 /**

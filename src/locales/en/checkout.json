@@ -1,0 +1,72 @@
+{
+  "checkout": "Checkout",
+  "title": "Checkout",
+  "steps": {
+    "information": "Information",
+    "shipping": "Shipping",
+    "payment": "Payment",
+    "confirmation": "Confirmation"
+  },
+  "information": {
+    "title": "Contact information",
+    "email": "Email",
+    "phone": "Phone",
+    "continueToShipping": "Continue to shipping"
+  },
+  "shipping": {
+    "title": "Shipping information",
+    "address": "Address",
+    "address2": "Apartment, suite, etc.",
+    "city": "City",
+    "postalCode": "Postal code",
+    "country": "Country",
+    "savedAddresses": "Saved addresses",
+    "selectAddress": "Select an address",
+    "continueToPayment": "Continue to payment",
+    "returnToInformation": "Return to information"
+  },
+  "payment": {
+    "title": "Payment information",
+    "cardNumber": "Card number",
+    "cardName": "Name on card",
+    "expiryDate": "Expiry date",
+    "cvv": "CVV",
+    "saveCard": "Save this card for later",
+    "savedCards": "Saved cards",
+    "selectCard": "Select a card",
+    "placeOrder": "Place order",
+    "returnToShipping": "Return to shipping"
+  },
+  "confirmation": {
+    "title": "Order confirmation",
+    "message": "Your order has been successfully placed",
+    "orderNumber": "Order number",
+    "viewOrder": "View order",
+    "continueShopping": "Continue shopping"
+  },
+  "summary": {
+    "title": "Order summary",
+    "subtotal": "Subtotal",
+    "shipping": "Shipping",
+    "tax": "Tax",
+    "total": "Total"
+  },
+  "errors": {
+    "invalidEmail": "Invalid email",
+    "invalidPhone": "Invalid phone number",
+    "invalidAddress": "Invalid address",
+    "invalidCity": "Invalid city",
+    "invalidPostalCode": "Invalid postal code",
+    "invalidCardNumber": "Invalid card number",
+    "invalidCardName": "Invalid name on card",
+    "invalidExpiryDate": "Invalid expiry date",
+    "invalidCvv": "Invalid CVV",
+    "paymentFailed": "Payment failed. Please try again."
+  },
+  "unavailableProduct": "Unavailable product",
+  "quantity": "Quantity",
+  "subtotal": "Subtotal",
+  "shipping": "Shipping",
+  "tax": "Tax",
+  "total": "Total"
+} 

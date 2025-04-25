@@ -56,8 +56,10 @@ export function AdvancedSearch() {
 
   // États pour les filtres
   const [searchTerm, setSearchTerm] = useState<string>("");
-  const [status, setStatus] = useState<AnnouncementStatus | "">("");
-  const [packageSize, setPackageSize] = useState<PackageSize | "">("");
+  const [searchHistory, setSearchHistory] = useState<string[]>([]);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [status, setStatus] = useState<AnnouncementStatus | "all">("all");
+  const [packageSize, setPackageSize] = useState<PackageSize | "all">("all");
   const [priceRange, setPriceRange] = useState<[number, number]>([0, 1000]);
   const [weightRange, setWeightRange] = useState<[number, number]>([0, 50]);
   const [requiresInsurance, setRequiresInsurance] = useState<
@@ -71,6 +73,7 @@ export function AdvancedSearch() {
   const [radius, setRadius] = useState<number>(10);
   const [sortBy, setSortBy] = useState<string>("createdAt");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
+  const [isLoading, setIsLoading] = useState(false);
 
   // État pour les suggestions de recherche
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -97,7 +100,7 @@ export function AdvancedSearch() {
   const saveSearchTerm = api.search.saveSearchTerm.useMutation();
 
   // Effectuer la recherche
-  const { data, isLoading, isFetching, fetchNextPage, hasNextPage } =
+  const { data, isLoading: dataLoading, isFetching, fetchNextPage, hasNextPage } =
     api.search.searchAnnouncements.useInfiniteQuery(
       {
         searchTerm: searchTerm || undefined,
@@ -168,8 +171,8 @@ export function AdvancedSearch() {
   // Réinitialiser tous les filtres
   const resetFilters = () => {
     setSearchTerm("");
-    setStatus("");
-    setPackageSize("");
+    setStatus("all");
+    setPackageSize("all");
     setPriceRange([0, 1000]);
     setWeightRange([0, 50]);
     setRequiresInsurance(undefined);
@@ -191,8 +194,8 @@ export function AdvancedSearch() {
   // Compter le nombre de filtres actifs
   const getActiveFiltersCount = () => {
     let count = 0;
-    if (status) count++;
-    if (packageSize) count++;
+    if (status !== "all") count++;
+    if (packageSize !== "all") count++;
     if (priceRange[0] > 0 || priceRange[1] < 1000) count++;
     if (weightRange[0] > 0 || weightRange[1] < 50) count++;
     if (requiresInsurance !== undefined) count++;
@@ -276,14 +279,14 @@ export function AdvancedSearch() {
                   <Select
                     value={status}
                     onValueChange={(value) =>
-                      setStatus(value as AnnouncementStatus | "")
+                      setStatus(value as AnnouncementStatus | "all")
                     }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder={t("allStatuses")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">{t("allStatuses")}</SelectItem>
+                      <SelectItem value="all">{t("allStatuses")}</SelectItem>
                       <SelectItem value={AnnouncementStatus.OPEN}>
                         {t("status.open")}
                       </SelectItem>
@@ -308,14 +311,14 @@ export function AdvancedSearch() {
                   <Select
                     value={packageSize}
                     onValueChange={(value) =>
-                      setPackageSize(value as PackageSize | "")
+                      setPackageSize(value as PackageSize | "all")
                     }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder={t("allSizes")} />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">{t("allSizes")}</SelectItem>
+                      <SelectItem value="all">{t("allSizes")}</SelectItem>
                       <SelectItem value={PackageSize.SMALL}>
                         {t("size.small")}
                       </SelectItem>
@@ -600,22 +603,22 @@ export function AdvancedSearch() {
         <div className="flex flex-wrap gap-2 items-center">
           <span className="text-sm font-medium">{t("activeFilters")}:</span>
 
-          {status && (
+          {status !== "all" && (
             <Badge variant="secondary" className="flex items-center gap-1">
               {t("status.label")}: {t(`status.${status.toLowerCase()}`)}
               <X
                 className="h-3 w-3 cursor-pointer"
-                onClick={() => setStatus("")}
+                onClick={() => setStatus("all")}
               />
             </Badge>
           )}
 
-          {packageSize && (
+          {packageSize !== "all" && (
             <Badge variant="secondary" className="flex items-center gap-1">
               {t("packageSize")}: {t(`size.${packageSize.toLowerCase()}`)}
               <X
                 className="h-3 w-3 cursor-pointer"
-                onClick={() => setPackageSize("")}
+                onClick={() => setPackageSize("all")}
               />
             </Badge>
           )}

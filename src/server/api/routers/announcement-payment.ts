@@ -14,7 +14,7 @@ export const announcementPaymentRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       // Récupérer l'annonce
-      const announcement = await ctx.db.announcement.findUnique({
+      const announcement = await ctx.prisma.announcement.findUnique({
         where: { id: input.announcementId },
         include: {
           client: true,
@@ -79,7 +79,7 @@ export const announcementPaymentRouter = createTRPCRouter({
       });
 
       // Enregistrer le paiement dans la base de données
-      await ctx.db.payment.create({
+      await ctx.prisma.payment.create({
         data: {
           amount: totalAmount,
           type: "ANNOUNCEMENT",
@@ -94,7 +94,7 @@ export const announcementPaymentRouter = createTRPCRouter({
       });
 
       // Mettre à jour le statut de paiement de l'annonce
-      await ctx.db.announcement.update({
+      await ctx.prisma.announcement.update({
         where: { id: announcement.id },
         data: {
           paymentStatus: PaymentStatus.PENDING,
@@ -113,7 +113,7 @@ export const announcementPaymentRouter = createTRPCRouter({
     )
     .query(async ({ ctx, input }) => {
       // Récupérer le paiement
-      const payment = await ctx.db.payment.findFirst({
+      const payment = await ctx.prisma.payment.findFirst({
         where: { externalId: input.sessionId },
         include: {
           announcement: true,
@@ -156,7 +156,7 @@ export const announcementPaymentRouter = createTRPCRouter({
       // Mais pour simplifier, nous la simulons ici
 
       // Récupérer le paiement
-      const payment = await ctx.db.payment.findFirst({
+      const payment = await ctx.prisma.payment.findFirst({
         where: { externalId: input.sessionId },
       });
 
@@ -176,14 +176,14 @@ export const announcementPaymentRouter = createTRPCRouter({
       }
 
       // Mettre à jour le statut du paiement
-      await ctx.db.payment.update({
+      await ctx.prisma.payment.update({
         where: { id: payment.id },
         data: { status: PaymentStatus.PAID },
       });
 
       // Si le paiement est lié à une annonce, mettre à jour son statut
       if (payment.announcementId) {
-        await ctx.db.announcement.update({
+        await ctx.prisma.announcement.update({
           where: { id: payment.announcementId },
           data: {
             paymentStatus: PaymentStatus.PAID,
@@ -204,7 +204,7 @@ export const announcementPaymentRouter = createTRPCRouter({
       }),
     )
     .query(async ({ ctx, input }) => {
-      const payments = await ctx.db.payment.findMany({
+      const payments = await ctx.prisma.payment.findMany({
         where: {
           announcement: {
             clientId: ctx.session.user.id,

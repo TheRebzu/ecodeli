@@ -62,21 +62,90 @@ const baseSchema = z
     path: ["confirmPassword"],
   });
 
+// Extract the base schema type to reuse
+type BaseSchemaType = z.infer<typeof baseSchema>;
+
 // Schéma pour l'inscription des clients
-const clientSchema = baseSchema.extend({
+const clientSchema = z.object({
+  firstName: z.string().min(2, "Le prénom doit contenir au moins 2 caractères"),
+  lastName: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
+  email: z.string().email("Veuillez saisir une adresse email valide"),
+  password: z
+    .string()
+    .min(8, "Le mot de passe doit contenir au moins 8 caractères")
+    .regex(
+      /[A-Z]/,
+      "Le mot de passe doit contenir au moins une lettre majuscule",
+    )
+    .regex(
+      /[a-z]/,
+      "Le mot de passe doit contenir au moins une lettre minuscule",
+    )
+    .regex(/[0-9]/, "Le mot de passe doit contenir au moins un chiffre"),
+  confirmPassword: z.string(),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  postalCode: z.string().optional(),
   role: z.literal("CLIENT"),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Les mots de passe ne correspondent pas",
+  path: ["confirmPassword"],
 });
 
 // Schéma pour l'inscription des livreurs
-const delivererSchema = baseSchema.extend({
+const delivererSchema = z.object({
+  firstName: z.string().min(2, "Le prénom doit contenir au moins 2 caractères"),
+  lastName: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
+  email: z.string().email("Veuillez saisir une adresse email valide"),
+  password: z
+    .string()
+    .min(8, "Le mot de passe doit contenir au moins 8 caractères")
+    .regex(
+      /[A-Z]/,
+      "Le mot de passe doit contenir au moins une lettre majuscule",
+    )
+    .regex(
+      /[a-z]/,
+      "Le mot de passe doit contenir au moins une lettre minuscule",
+    )
+    .regex(/[0-9]/, "Le mot de passe doit contenir au moins un chiffre"),
+  confirmPassword: z.string(),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  postalCode: z.string().optional(),
   role: z.literal("DELIVERER"),
   vehicleType: z.string().min(1, "Le type de véhicule est requis"),
   licenseNumber: z.string().optional(),
   idCardNumber: z.string().optional(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Les mots de passe ne correspondent pas",
+  path: ["confirmPassword"],
 });
 
 // Schéma pour l'inscription des commerçants
-const merchantSchema = baseSchema.extend({
+const merchantSchema = z.object({
+  firstName: z.string().min(2, "Le prénom doit contenir au moins 2 caractères"),
+  lastName: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
+  email: z.string().email("Veuillez saisir une adresse email valide"),
+  password: z
+    .string()
+    .min(8, "Le mot de passe doit contenir au moins 8 caractères")
+    .regex(
+      /[A-Z]/,
+      "Le mot de passe doit contenir au moins une lettre majuscule",
+    )
+    .regex(
+      /[a-z]/,
+      "Le mot de passe doit contenir au moins une lettre minuscule",
+    )
+    .regex(/[0-9]/, "Le mot de passe doit contenir au moins un chiffre"),
+  confirmPassword: z.string(),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  postalCode: z.string().optional(),
   role: z.literal("MERCHANT"),
   storeName: z
     .string()
@@ -86,10 +155,33 @@ const merchantSchema = baseSchema.extend({
     .string()
     .min(14, "Le numéro SIRET doit contenir 14 caractères")
     .max(14),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Les mots de passe ne correspondent pas",
+  path: ["confirmPassword"],
 });
 
 // Schéma pour l'inscription des prestataires
-const providerSchema = baseSchema.extend({
+const providerSchema = z.object({
+  firstName: z.string().min(2, "Le prénom doit contenir au moins 2 caractères"),
+  lastName: z.string().min(2, "Le nom doit contenir au moins 2 caractères"),
+  email: z.string().email("Veuillez saisir une adresse email valide"),
+  password: z
+    .string()
+    .min(8, "Le mot de passe doit contenir au moins 8 caractères")
+    .regex(
+      /[A-Z]/,
+      "Le mot de passe doit contenir au moins une lettre majuscule",
+    )
+    .regex(
+      /[a-z]/,
+      "Le mot de passe doit contenir au moins une lettre minuscule",
+    )
+    .regex(/[0-9]/, "Le mot de passe doit contenir au moins un chiffre"),
+  confirmPassword: z.string(),
+  phone: z.string().optional(),
+  address: z.string().optional(),
+  city: z.string().optional(),
+  postalCode: z.string().optional(),
   role: z.literal("PROVIDER"),
   serviceType: z.string().min(1, "Le type de service est requis"),
   experience: z.string().optional(),
@@ -97,6 +189,9 @@ const providerSchema = baseSchema.extend({
   serviceArea: z.number().optional(),
   description: z.string().optional(),
   siret: z.string().optional(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Les mots de passe ne correspondent pas",
+  path: ["confirmPassword"],
 });
 
 type ClientFormValues = z.infer<typeof clientSchema>;
@@ -358,9 +453,9 @@ export function RegisterForm() {
               <Button
                 type="submit"
                 className="w-full"
-                disabled={isLoading || registerMutation.isLoading}
+                disabled={isLoading || registerMutation.isPending}
               >
-                {isLoading || registerMutation.isLoading
+                {isLoading || registerMutation.isPending
                   ? t("register.form.submitting")
                   : t("register.form.submitClient")}
               </Button>

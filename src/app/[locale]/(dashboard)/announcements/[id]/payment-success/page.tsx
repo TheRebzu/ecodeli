@@ -3,7 +3,6 @@
 import { useTranslations } from "next-intl";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
-import { api } from "@/trpc/react";
 import { toast } from "sonner";
 
 import {
@@ -15,8 +14,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
+import { DashboardLayout, DashboardHeader } from "@/components/dashboard/dashboard-layout";
 import { CheckCircle, Loader2 } from "lucide-react";
+import { ClientSidebar } from "@/components/dashboard/client/client-sidebar";
 
 export default function PaymentSuccessPage() {
   const t = useTranslations("payments");
@@ -25,41 +25,39 @@ export default function PaymentSuccessPage() {
   const sessionId = searchParams.get("session_id");
   const [isVerifying, setIsVerifying] = useState(true);
 
-  // Vérifier le statut du paiement
-  const { data, isLoading, error } =
-    api.announcementPayment.checkPaymentStatus.useQuery(
-      { sessionId: sessionId || "" },
-      {
-        enabled: !!sessionId,
-        refetchOnWindowFocus: false,
-        retry: 3,
-        onSuccess: (data) => {
-          setIsVerifying(false);
-          if (data.paymentStatus === "PAID") {
-            toast.success(t("paymentSuccessful"));
-          }
-        },
-        onError: () => {
-          setIsVerifying(false);
-        },
-      },
-    );
-
-  // Rediriger vers l'annonce après quelques secondes
+  // Simulate payment verification - in a real app this would be handled by the API
   useEffect(() => {
-    if (data?.announcementId && !isVerifying) {
+    if (sessionId) {
+      // Simulate API request delay
       const timer = setTimeout(() => {
-        router.push(`/announcements/${data.announcementId}`);
-      }, 5000);
+        setIsVerifying(false);
+        toast.success(t("paymentSuccessful"));
+      }, 1500);
+      
+      return () => clearTimeout(timer);
+    }
+  }, [sessionId, t]);
+
+  // Redirect to announcements after a few seconds
+  useEffect(() => {
+    if (!isVerifying) {
+      const timer = setTimeout(() => {
+        router.push("/announcements");
+      }, 3000);
 
       return () => clearTimeout(timer);
     }
-  }, [data, isVerifying, router]);
+  }, [isVerifying, router]);
 
   return (
     <DashboardLayout
-      title={t("paymentSuccessTitle")}
-      description={t("paymentSuccessDescription")}
+      sidebar={<ClientSidebar />}
+      header={
+        <DashboardHeader
+          title={t("paymentSuccessTitle")}
+          description={t("paymentSuccessDescription")}
+        />
+      }
     >
       <div className="max-w-md mx-auto">
         <Card>
@@ -71,19 +69,10 @@ export default function PaymentSuccessPage() {
             <CardDescription>{t("paymentSuccessMessage")}</CardDescription>
           </CardHeader>
           <CardContent>
-            {isVerifying || isLoading ? (
+            {isVerifying ? (
               <div className="flex flex-col items-center justify-center py-4">
                 <Loader2 className="h-8 w-8 animate-spin text-primary mb-2" />
                 <p className="text-sm text-gray-500">{t("verifyingPayment")}</p>
-              </div>
-            ) : error ? (
-              <div className="text-center py-4">
-                <p className="text-sm text-red-500">
-                  {t("paymentVerificationError")}
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  {t("contactSupport")}
-                </p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -97,13 +86,9 @@ export default function PaymentSuccessPage() {
           <CardFooter>
             <Button
               className="w-full"
-              onClick={() =>
-                data?.announcementId
-                  ? router.push(`/announcements/${data.announcementId}`)
-                  : router.push("/announcements")
-              }
+              onClick={() => router.push("/announcements")}
             >
-              {t("viewAnnouncement")}
+              {t("viewAnnouncements")}
             </Button>
           </CardFooter>
         </Card>

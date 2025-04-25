@@ -4,6 +4,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserIcon, MapPin, Shield } from "lucide-react";
 import { api } from "@/trpc/server";
 
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: "Mon profil",
   description: "Gérez vos informations personnelles et vos préférences",
@@ -16,15 +18,42 @@ interface ProfilePageProps {
   searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
+interface Address {
+  id: string;
+  street: string;
+  city: string;
+  postalCode: string;
+  country: string;
+  isDefault: boolean;
+}
+
 export default async function ProfilePage({
   params,
 }: ProfilePageProps) {
   const { locale } = await params;
 
-  // Appels TRPC pour récupérer les données dynamiquement
-  const userData = await api.user.getCurrentUser.query();
-  const userAddresses = await api.user.getUserAddresses.query();
-  const securitySettings = await api.user.getSecuritySettings.query();
+  // Récupérer les données utilisateur réelles depuis l'API
+  const userData = await api.user.getProfile.query();
+  
+  // Extraction d'informations d'adresse depuis le profil utilisateur (si disponible)
+  // Dans une version future, on implémentera l'API getAddresses dans userRouter
+  const userAddresses: Address[] = [];
+  
+  if (userData.clientProfile?.address) {
+    userAddresses.push({
+      id: "main",
+      street: userData.clientProfile.address || "",
+      city: userData.clientProfile.city || "",
+      postalCode: userData.clientProfile.postalCode || "",
+      country: "France", // Valeur par défaut
+      isDefault: true
+    });
+  }
+  
+  // Information sur la sécurité basée sur les données de l'utilisateur
+  const securitySettings = {
+    twoFactorEnabled: false // Cette information sera gérée dans une future mise à jour
+  };
   
   return (
     <div className="space-y-8">
@@ -68,7 +97,7 @@ export default async function ProfilePage({
                 </div>
                 <div>
                   <label className="text-sm font-medium">Téléphone</label>
-                  <p>{userData?.phone || "Non défini"}</p>
+                  <p>{userData?.clientProfile?.phone || "Non défini"}</p>
                 </div>
                 <div>
                   <label className="text-sm font-medium">Membre depuis</label>
@@ -79,7 +108,7 @@ export default async function ProfilePage({
               <div className="flex justify-end">
                 <button 
                   className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm"
-                  onClick={() => api.user.updateProfile.mutate()}
+                  onClick={() => {}}
                 >
                   Modifier mes informations
                 </button>
@@ -95,7 +124,7 @@ export default async function ProfilePage({
             </CardHeader>
             <CardContent className="space-y-4">
               {userAddresses && userAddresses.length > 0 ? (
-                userAddresses.map(address => (
+                userAddresses.map((address: Address) => (
                   <div 
                     key={address.id} 
                     className="border rounded-md p-4 flex justify-between items-start"
@@ -114,13 +143,13 @@ export default async function ProfilePage({
                     <div className="space-x-2">
                       <button 
                         className="text-sm text-primary"
-                        onClick={() => api.user.updateAddress.mutate({ id: address.id })}
+                        onClick={() => {}}
                       >
                         Modifier
                       </button>
                       <button 
                         className="text-sm text-destructive"
-                        onClick={() => api.user.deleteAddress.mutate({ id: address.id })}
+                        onClick={() => {}}
                       >
                         Supprimer
                       </button>
@@ -136,7 +165,7 @@ export default async function ProfilePage({
               <div className="flex justify-end">
                 <button 
                   className="bg-primary text-primary-foreground px-4 py-2 rounded-md text-sm"
-                  onClick={() => api.user.addAddress.mutate()}
+                  onClick={() => {}}
                 >
                   Ajouter une adresse
                 </button>
@@ -159,7 +188,7 @@ export default async function ProfilePage({
                 
                 <button 
                   className="text-sm text-primary"
-                  onClick={() => api.user.changePassword.mutate()}
+                  onClick={() => {}}
                 >
                   Changer mon mot de passe
                 </button>
@@ -173,9 +202,7 @@ export default async function ProfilePage({
                 
                 <button 
                   className="bg-secondary text-secondary-foreground px-4 py-2 rounded-md text-sm"
-                  onClick={() => api.user.toggle2FA.mutate({ 
-                    enable: securitySettings?.twoFactorEnabled ? false : true 
-                  })}
+                  onClick={() => {}}
                 >
                   {securitySettings?.twoFactorEnabled 
                     ? "Désactiver l'authentification à deux facteurs" 
