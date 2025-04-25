@@ -8,32 +8,45 @@ import { loadStripe } from "@stripe/stripe-js";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { ClientSidebar } from "@/components/dashboard/client/client-sidebar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { 
-  CreditCard, 
-  ArrowLeft, 
-  CheckCircle, 
+import {
+  CreditCard,
+  ArrowLeft,
+  CheckCircle,
   XCircle,
   Loader2,
-  ShoppingBag
+  ShoppingBag,
 } from "lucide-react";
 import Link from "next/link";
 
 // Initialiser Stripe avec la clé publique
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_51O9JqzBVQeUXD3XDGQPKZQpKOjKlCIkUKXnOlwTcqXYWLqeGztDU9RNmfOi6Z1YdLWxPLHPzR5kFJQTwkpYQEMGZ00oBRzVmIm');
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY ||
+    "pk_test_51O9JqzBVQeUXD3XDGQPKZQpKOjKlCIkUKXnOlwTcqXYWLqeGztDU9RNmfOi6Z1YdLWxPLHPzR5kFJQTwkpYQEMGZ00oBRzVmIm",
+);
 
 export default function PaymentPage() {
   const t = useTranslations("payment");
   const router = useRouter();
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
-  
+
   const [isRedirecting, setIsRedirecting] = useState(false);
-  
+
   // Récupérer les détails de la commande
-  const { data: order, isLoading: isLoadingOrder, error } = api.order.getOrderById.useQuery(
+  const {
+    data: order,
+    isLoading: isLoadingOrder,
+    error,
+  } = api.order.getOrderById.useQuery(
     { id: orderId as string },
     {
       enabled: !!orderId,
@@ -42,14 +55,14 @@ export default function PaymentPage() {
         toast.error(error.message);
         router.push("/orders");
       },
-    }
+    },
   );
-  
+
   // Mutation pour créer une session de paiement Stripe
   const createCheckoutSession = api.payment.createCheckoutSession.useMutation({
     onSuccess: async (data) => {
       setIsRedirecting(true);
-      
+
       // Rediriger vers Stripe Checkout
       if (data.url) {
         window.location.href = data.url;
@@ -65,18 +78,18 @@ export default function PaymentPage() {
       setIsRedirecting(false);
     },
   });
-  
+
   // Gérer le paiement
   const handlePayment = () => {
     if (!orderId) {
       toast.error(t("orderIdMissing"));
       return;
     }
-    
+
     setIsRedirecting(true);
     createCheckoutSession.mutate({ orderId });
   };
-  
+
   // Rediriger si la commande est déjà payée
   useEffect(() => {
     if (order && order.paymentStatus === "COMPLETED") {
@@ -84,18 +97,22 @@ export default function PaymentPage() {
       router.push(`/orders/${orderId}`);
     }
   }, [order, orderId, router, t]);
-  
+
   return (
     <DashboardLayout sidebar={<ClientSidebar />}>
       <div className="container mx-auto py-6">
         <div className="flex items-center mb-6">
-          <Button variant="ghost" onClick={() => router.back()} className="mr-4">
+          <Button
+            variant="ghost"
+            onClick={() => router.back()}
+            className="mr-4"
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             {t("back")}
           </Button>
           <h1 className="text-3xl font-bold">{t("title")}</h1>
         </div>
-        
+
         {isLoadingOrder ? (
           <div className="space-y-6">
             <Skeleton className="h-40 w-full" />
@@ -106,7 +123,9 @@ export default function PaymentPage() {
             <CardContent className="flex flex-col items-center justify-center py-12">
               <XCircle className="h-16 w-16 text-destructive opacity-50 mb-4" />
               <h2 className="text-xl font-medium mb-2">{t("orderNotFound")}</h2>
-              <p className="text-muted-foreground mb-6">{t("orderNotFoundDescription")}</p>
+              <p className="text-muted-foreground mb-6">
+                {t("orderNotFoundDescription")}
+              </p>
               <Button asChild>
                 <Link href="/orders">{t("viewAllOrders")}</Link>
               </Button>
@@ -117,7 +136,9 @@ export default function PaymentPage() {
             <CardContent className="flex flex-col items-center justify-center py-12">
               <XCircle className="h-16 w-16 text-destructive opacity-50 mb-4" />
               <h2 className="text-xl font-medium mb-2">{t("invalidOrder")}</h2>
-              <p className="text-muted-foreground mb-6">{t("invalidOrderDescription")}</p>
+              <p className="text-muted-foreground mb-6">
+                {t("invalidOrderDescription")}
+              </p>
               <Button asChild>
                 <Link href="/orders">{t("viewAllOrders")}</Link>
               </Button>
@@ -142,7 +163,9 @@ export default function PaymentPage() {
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium">{t("date")}</span>
-                      <span>{new Date(order.createdAt).toLocaleDateString()}</span>
+                      <span>
+                        {new Date(order.createdAt).toLocaleDateString()}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium">{t("items")}</span>
@@ -150,7 +173,14 @@ export default function PaymentPage() {
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium">{t("subtotal")}</span>
-                      <span>{(order.totalAmount - order.shippingFee - order.tax).toFixed(2)} €</span>
+                      <span>
+                        {(
+                          order.totalAmount -
+                          order.shippingFee -
+                          order.tax
+                        ).toFixed(2)}{" "}
+                        €
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="font-medium">{t("shipping")}</span>
@@ -168,7 +198,7 @@ export default function PaymentPage() {
                 </CardContent>
               </Card>
             </div>
-            
+
             <div>
               <Card>
                 <CardHeader>
@@ -179,7 +209,7 @@ export default function PaymentPage() {
                     <CreditCard className="h-5 w-5" />
                     <span className="font-medium">{t("creditCard")}</span>
                   </div>
-                  
+
                   <div className="mt-4 p-4 bg-muted/50 rounded-md">
                     <p className="text-sm text-muted-foreground">
                       {t("securePaymentNotice")}
@@ -187,8 +217,8 @@ export default function PaymentPage() {
                   </div>
                 </CardContent>
                 <CardFooter>
-                  <Button 
-                    className="w-full" 
+                  <Button
+                    className="w-full"
                     size="lg"
                     onClick={handlePayment}
                     disabled={isRedirecting}
@@ -207,7 +237,7 @@ export default function PaymentPage() {
                   </Button>
                 </CardFooter>
               </Card>
-              
+
               <div className="mt-4">
                 <Button variant="outline" className="w-full" asChild>
                   <Link href={`/orders/${orderId}`}>

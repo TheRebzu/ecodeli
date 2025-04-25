@@ -1,2 +1,4 @@
 // Re-export tRPC client hooks for React components
-export { trpc } from '@/lib/trpc-client'; 
+import { api as apiClient } from "@/lib/trpc-client";
+
+export const api = apiClient;

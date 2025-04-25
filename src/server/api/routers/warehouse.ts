@@ -1,7 +1,12 @@
-import { z } from 'zod';
-import { router, protectedProcedure, adminProcedure, clientProcedure } from '@/lib/trpc';
-import { TRPCError } from '@trpc/server';
-import { prisma } from '@/lib/prisma';
+import { z } from "zod";
+import {
+  router,
+  protectedProcedure,
+  adminProcedure,
+  clientProcedure,
+} from "@/lib/trpc";
+import { TRPCError } from "@trpc/server";
+import { prisma } from "@/lib/prisma";
 
 export const warehouseRouter = router({
   // Get all warehouses
@@ -31,8 +36,8 @@ export const warehouseRouter = router({
 
       if (!warehouse) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Warehouse not found',
+          code: "NOT_FOUND",
+          message: "Warehouse not found",
         });
       }
 
@@ -49,7 +54,7 @@ export const warehouseRouter = router({
         postalCode: z.string().min(2),
         country: z.string().min(2),
         capacity: z.number().int().positive(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       return await prisma.warehouse.create({
@@ -68,7 +73,7 @@ export const warehouseRouter = router({
         postalCode: z.string().min(2).optional(),
         country: z.string().min(2).optional(),
         capacity: z.number().int().positive().optional(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const { id, ...data } = input;
@@ -87,7 +92,7 @@ export const warehouseRouter = router({
         code: z.string().min(2),
         size: z.number().positive(),
         price: z.number().positive(),
-      })
+      }),
     )
     .mutation(async ({ input }) => {
       const { warehouseId } = input;
@@ -99,8 +104,8 @@ export const warehouseRouter = router({
 
       if (!warehouse) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Warehouse not found',
+          code: "NOT_FOUND",
+          message: "Warehouse not found",
         });
       }
 
@@ -117,7 +122,7 @@ export const warehouseRouter = router({
         minSize: z.number().positive().optional(),
         maxSize: z.number().positive().optional(),
         maxPrice: z.number().positive().optional(),
-      })
+      }),
     )
     .query(async ({ input }) => {
       const { warehouseId, minSize, maxSize, maxPrice } = input;
@@ -125,7 +130,7 @@ export const warehouseRouter = router({
       return await prisma.storageUnit.findMany({
         where: {
           ...(warehouseId ? { warehouseId } : {}),
-          status: 'AVAILABLE',
+          status: "AVAILABLE",
           ...(minSize ? { size: { gte: minSize } } : {}),
           ...(maxSize ? { size: { lte: maxSize } } : {}),
           ...(maxPrice ? { price: { lte: maxPrice } } : {}),
@@ -150,7 +155,7 @@ export const warehouseRouter = router({
         storageUnitId: z.string(),
         startDate: z.date(),
         endDate: z.date().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
@@ -163,15 +168,15 @@ export const warehouseRouter = router({
 
       if (!storageUnit) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Storage unit not found',
+          code: "NOT_FOUND",
+          message: "Storage unit not found",
         });
       }
 
-      if (storageUnit.status !== 'AVAILABLE') {
+      if (storageUnit.status !== "AVAILABLE") {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Storage unit is not available',
+          code: "BAD_REQUEST",
+          message: "Storage unit is not available",
         });
       }
 
@@ -182,14 +187,14 @@ export const warehouseRouter = router({
           userId,
           startDate,
           endDate,
-          status: 'ACTIVE',
+          status: "ACTIVE",
         },
       });
 
       // Update storage unit status
       await prisma.storageUnit.update({
         where: { id: storageUnitId },
-        data: { status: 'OCCUPIED' },
+        data: { status: "OCCUPIED" },
       });
 
       return rental;
@@ -209,7 +214,7 @@ export const warehouseRouter = router({
         },
       },
       orderBy: {
-        createdAt: 'desc',
+        createdAt: "desc",
       },
     });
   }),
@@ -230,22 +235,22 @@ export const warehouseRouter = router({
 
       if (!rental) {
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Rental not found',
+          code: "NOT_FOUND",
+          message: "Rental not found",
         });
       }
 
       if (rental.userId !== userId) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'You do not have permission to end this rental',
+          code: "FORBIDDEN",
+          message: "You do not have permission to end this rental",
         });
       }
 
-      if (rental.status !== 'ACTIVE') {
+      if (rental.status !== "ACTIVE") {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'This rental is not active',
+          code: "BAD_REQUEST",
+          message: "This rental is not active",
         });
       }
 
@@ -253,7 +258,7 @@ export const warehouseRouter = router({
       const updatedRental = await prisma.storageRental.update({
         where: { id: rentalId },
         data: {
-          status: 'COMPLETED',
+          status: "COMPLETED",
           endDate: new Date(),
         },
       });
@@ -261,9 +266,9 @@ export const warehouseRouter = router({
       // Update storage unit status
       await prisma.storageUnit.update({
         where: { id: rental.storageUnitId },
-        data: { status: 'AVAILABLE' },
+        data: { status: "AVAILABLE" },
       });
 
       return updatedRental;
     }),
-}); 
+});

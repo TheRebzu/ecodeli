@@ -3,12 +3,14 @@
 ## Phase 1: Configuration initiale et structure du projet
 
 1. **Initialisation du projet**
+
    - [ ] Créer le dépôt Git et configurer GitHub
    - [ ] Initialiser le projet Next.js avec TypeScript
    - [ ] Configurer ESLint, Prettier et Husky
    - [ ] Mettre en place le workflow CI/CD avec GitHub Actions
 
 2. **Configuration de l'environnement de développement**
+
    - [ ] Configurer TailwindCSS et les composants UI
    - [ ] Mettre en place l'architecture de dossiers
    - [ ] Configurer les outils de test (Vitest, Playwright)
@@ -23,6 +25,7 @@
 ## Phase 2: Authentification et API
 
 4. **Système d'authentification**
+
    - [ ] Configurer NextAuth.js avec l'adaptateur Prisma
    - [ ] Créer les pages de connexion et d'inscription
    - [ ] Implémenter la gestion des rôles (client, livreur, commerçant, prestataire, admin)
@@ -38,24 +41,28 @@
 ## Phase 3: Développement des fonctionnalités principales
 
 6. **Espace client**
+
    - [ ] Créer le tableau de bord client
    - [ ] Développer l'interface de création d'annonces
    - [ ] Implémenter le suivi des livraisons et services
    - [ ] Créer l'interface de paiement et d'historique
 
 7. **Espace livreur**
+
    - [ ] Créer le tableau de bord livreur
    - [ ] Développer l'interface de recherche d'annonces
    - [ ] Implémenter la gestion des livraisons
    - [ ] Créer l'interface de planning et de revenus
 
 8. **Espace commerçant**
+
    - [ ] Créer le tableau de bord commerçant
    - [ ] Développer l'interface de gestion des contrats
    - [ ] Implémenter la création d'annonces commerciales
    - [ ] Créer l'interface de facturation et de paiement
 
 9. **Espace prestataire**
+
    - [ ] Créer le tableau de bord prestataire
    - [ ] Développer l'interface de gestion des services
    - [ ] Implémenter le planning et les disponibilités
@@ -70,18 +77,21 @@
 ## Phase 4: Fonctionnalités avancées
 
 11. **Système de livraison**
+
     - [ ] Implémenter la géolocalisation avec Google Maps
     - [ ] Développer le suivi en temps réel des livraisons
     - [ ] Créer le système de notification de statut
     - [ ] Implémenter la gestion des entrepôts et boxes
 
 12. **Services à la personne**
+
     - [ ] Développer le système de réservation de services
     - [ ] Implémenter la gestion des disponibilités
     - [ ] Créer le système d'évaluation des prestataires
     - [ ] Développer les notifications et rappels
 
 13. **Système de paiement**
+
     - [ ] Intégrer Stripe pour les paiements
     - [ ] Implémenter le système de commission
     - [ ] Développer la génération automatique de factures
@@ -96,18 +106,21 @@
 ## Phase 5: Optimisation et finalisation
 
 15. **Internationalisation**
+
     - [ ] Configurer next-intl
     - [ ] Créer les fichiers de traduction (français, anglais)
     - [ ] Implémenter le changement de langue
     - [ ] Adapter les formats de date, heure et devise
 
 16. **Optimisation des performances**
+
     - [ ] Optimiser le chargement des pages
     - [ ] Implémenter le lazy loading des composants
     - [ ] Optimiser les requêtes API
     - [ ] Mettre en place le caching
 
 17. **Tests**
+
     - [ ] Écrire les tests unitaires avec Vitest
     - [ ] Créer les tests d'intégration
     - [ ] Développer les tests end-to-end avec Playwright
@@ -122,6 +135,7 @@
 ## Phase 6: Documentation et formation
 
 19. **Documentation**
+
     - [ ] Créer la documentation technique
     - [ ] Développer la documentation utilisateur
     - [ ] Préparer les guides d'installation et de déploiement

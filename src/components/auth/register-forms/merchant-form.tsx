@@ -1,8 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { PersonalInfo, PersonalInfoData } from "@/components/auth/form-steps/personal-info";
-import { AccountDetails, AccountDetailsData } from "@/components/auth/form-steps/account-details";
+import {
+  PersonalInfo,
+  PersonalInfoData,
+} from "@/components/auth/form-steps/personal-info";
+import {
+  AccountDetails,
+  AccountDetailsData,
+} from "@/components/auth/form-steps/account-details";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -31,7 +37,11 @@ const storeInfoSchema = z.object({
 
 type StoreInfoData = z.infer<typeof storeInfoSchema>;
 
-type RegistrationStep = "personal-info" | "store-info" | "account-details" | "confirmation";
+type RegistrationStep =
+  | "personal-info"
+  | "store-info"
+  | "account-details"
+  | "confirmation";
 
 interface FormData {
   personalInfo?: PersonalInfoData;
@@ -40,7 +50,8 @@ interface FormData {
 }
 
 export function MerchantRegistrationForm() {
-  const [currentStep, setCurrentStep] = useState<RegistrationStep>("personal-info");
+  const [currentStep, setCurrentStep] =
+    useState<RegistrationStep>("personal-info");
   const [formData, setFormData] = useState<FormData>({});
   const [registrationComplete, setRegistrationComplete] = useState(false);
 
@@ -56,7 +67,7 @@ export function MerchantRegistrationForm() {
 
   const handleAccountDetailsSubmit = async (data: AccountDetailsData) => {
     setFormData((prev) => ({ ...prev, accountDetails: data }));
-    
+
     // Submit the complete form data to the server
     try {
       // Combine data
@@ -66,13 +77,13 @@ export function MerchantRegistrationForm() {
         password: data.password,
         role: "MERCHANT",
       };
-      
+
       // API call would go here
       console.log("Submitting merchant registration:", completeData);
-      
+
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
       // Show success state
       setCurrentStep("confirmation");
       setRegistrationComplete(true);
@@ -91,10 +102,14 @@ export function MerchantRegistrationForm() {
   };
 
   // Store Info Form Component
-  const StoreInfoForm = ({ onSubmit, onBack, defaultValues }: { 
-    onSubmit: (data: StoreInfoData) => void, 
-    onBack: () => void, 
-    defaultValues?: Partial<StoreInfoData> 
+  const StoreInfoForm = ({
+    onSubmit,
+    onBack,
+    defaultValues,
+  }: {
+    onSubmit: (data: StoreInfoData) => void;
+    onBack: () => void;
+    defaultValues?: Partial<StoreInfoData>;
   }) => {
     const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -131,7 +146,9 @@ export function MerchantRegistrationForm() {
       >
         <div className="space-y-4">
           <div>
-            <h2 className="text-2xl font-semibold mb-1">Informations du commerce</h2>
+            <h2 className="text-2xl font-semibold mb-1">
+              Informations du commerce
+            </h2>
             <p className="text-sm text-muted-foreground mb-6">
               Détails sur votre activité commerciale
             </p>
@@ -153,7 +170,9 @@ export function MerchantRegistrationForm() {
               {...register("storeName")}
             />
             {errors.storeName && (
-              <p className="text-sm text-destructive">{errors.storeName.message}</p>
+              <p className="text-sm text-destructive">
+                {errors.storeName.message}
+              </p>
             )}
           </div>
 
@@ -180,7 +199,9 @@ export function MerchantRegistrationForm() {
               <option value="other">Autre</option>
             </select>
             {errors.storeType && (
-              <p className="text-sm text-destructive">{errors.storeType.message}</p>
+              <p className="text-sm text-destructive">
+                {errors.storeType.message}
+              </p>
             )}
           </div>
 
@@ -200,7 +221,9 @@ export function MerchantRegistrationForm() {
               {...register("address")}
             />
             {errors.address && (
-              <p className="text-sm text-destructive">{errors.address.message}</p>
+              <p className="text-sm text-destructive">
+                {errors.address.message}
+              </p>
             )}
           </div>
 
@@ -221,7 +244,9 @@ export function MerchantRegistrationForm() {
                 {...register("city")}
               />
               {errors.city && (
-                <p className="text-sm text-destructive">{errors.city.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.city.message}
+                </p>
               )}
             </div>
 
@@ -241,16 +266,15 @@ export function MerchantRegistrationForm() {
                 {...register("postalCode")}
               />
               {errors.postalCode && (
-                <p className="text-sm text-destructive">{errors.postalCode.message}</p>
+                <p className="text-sm text-destructive">
+                  {errors.postalCode.message}
+                </p>
               )}
             </div>
           </div>
 
           <div className="space-y-2">
-            <label
-              htmlFor="siret"
-              className="text-sm font-medium leading-none"
-            >
+            <label htmlFor="siret" className="text-sm font-medium leading-none">
               Numéro SIRET <span className="text-destructive">*</span>
             </label>
             <input
@@ -293,7 +317,9 @@ export function MerchantRegistrationForm() {
   return (
     <div className="w-full max-w-3xl mx-auto px-4 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2 text-center">Inscription Commerçant</h1>
+        <h1 className="text-3xl font-bold mb-2 text-center">
+          Inscription Commerçant
+        </h1>
         <p className="text-center text-muted-foreground">
           Rejoignez EcoDeli pour proposer des livraisons à vos clients
         </p>
@@ -303,46 +329,57 @@ export function MerchantRegistrationForm() {
       <div className="w-full max-w-md mx-auto mb-10">
         <div className="relative flex items-center justify-between">
           <div className="absolute left-0 right-0 top-1/2 h-0.5 bg-border -translate-y-1/2" />
-          
+
           <div className="relative flex flex-col items-center">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 ${
-              currentStep === "personal-info" 
-                ? "bg-primary text-primary-foreground" 
-                : "bg-primary text-primary-foreground"
-            }`}>
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center z-10 ${
+                currentStep === "personal-info"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-primary text-primary-foreground"
+              }`}
+            >
               1
             </div>
             <span className="text-xs mt-1">Informations</span>
           </div>
-          
+
           <div className="relative flex flex-col items-center">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 ${
-              currentStep === "store-info" || currentStep === "account-details" || currentStep === "confirmation"
-                ? "bg-primary text-primary-foreground" 
-                : "bg-muted text-muted-foreground"
-            }`}>
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center z-10 ${
+                currentStep === "store-info" ||
+                currentStep === "account-details" ||
+                currentStep === "confirmation"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground"
+              }`}
+            >
               2
             </div>
             <span className="text-xs mt-1">Commerce</span>
           </div>
-          
+
           <div className="relative flex flex-col items-center">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 ${
-              currentStep === "account-details" || currentStep === "confirmation"
-                ? "bg-primary text-primary-foreground" 
-                : "bg-muted text-muted-foreground"
-            }`}>
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center z-10 ${
+                currentStep === "account-details" ||
+                currentStep === "confirmation"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground"
+              }`}
+            >
               3
             </div>
             <span className="text-xs mt-1">Compte</span>
           </div>
-          
+
           <div className="relative flex flex-col items-center">
-            <div className={`w-8 h-8 rounded-full flex items-center justify-center z-10 ${
-              currentStep === "confirmation" && registrationComplete
-                ? "bg-primary text-primary-foreground" 
-                : "bg-muted text-muted-foreground"
-            }`}>
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center z-10 ${
+                currentStep === "confirmation" && registrationComplete
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground"
+              }`}
+            >
               4
             </div>
             <span className="text-xs mt-1">Confirmation</span>
@@ -353,40 +390,40 @@ export function MerchantRegistrationForm() {
       {/* Form steps */}
       <div className="mt-8">
         {currentStep === "personal-info" && (
-          <PersonalInfo 
-            onSubmit={handlePersonalInfoSubmit} 
+          <PersonalInfo
+            onSubmit={handlePersonalInfoSubmit}
             defaultValues={formData.personalInfo}
           />
         )}
-        
+
         {currentStep === "store-info" && (
-          <StoreInfoForm 
-            onSubmit={handleStoreInfoSubmit} 
+          <StoreInfoForm
+            onSubmit={handleStoreInfoSubmit}
             onBack={handleBackToPersonalInfo}
             defaultValues={formData.storeInfo}
           />
         )}
-        
+
         {currentStep === "account-details" && (
-          <AccountDetails 
-            onSubmit={handleAccountDetailsSubmit} 
+          <AccountDetails
+            onSubmit={handleAccountDetailsSubmit}
             onBack={handleBackToStoreInfo}
           />
         )}
-        
+
         {currentStep === "confirmation" && registrationComplete && (
           <div className="text-center space-y-4 max-w-md mx-auto">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="32" 
-                height="32" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="32"
+                height="32"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
                 className="text-green-600"
               >
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
@@ -395,12 +432,17 @@ export function MerchantRegistrationForm() {
             </div>
             <h2 className="text-2xl font-semibold">Inscription réussie!</h2>
             <p className="text-muted-foreground">
-              Votre compte commerçant a été créé avec succès. Un email de confirmation a été envoyé à 
-              <span className="font-medium text-foreground"> {formData.personalInfo?.email}</span>.
+              Votre compte commerçant a été créé avec succès. Un email de
+              confirmation a été envoyé à
+              <span className="font-medium text-foreground">
+                {" "}
+                {formData.personalInfo?.email}
+              </span>
+              .
             </p>
             <div className="pt-4">
-              <a 
-                href="/login" 
+              <a
+                href="/login"
                 className="px-6 py-2 bg-primary text-primary-foreground rounded-md inline-block"
               >
                 Se connecter
@@ -413,4 +455,4 @@ export function MerchantRegistrationForm() {
   );
 }
 
-export default MerchantRegistrationForm; 
+export default MerchantRegistrationForm;

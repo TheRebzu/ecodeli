@@ -1,5 +1,9 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure, protectedProcedure } from "@/server/api/trpc";
+import {
+  createTRPCRouter,
+  publicProcedure,
+  protectedProcedure,
+} from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
 import { AnnouncementStatus, PackageSize } from "@prisma/client";
 import { calculateDistance } from "@/lib/geo-utils";
@@ -19,35 +23,66 @@ export const searchRouter = createTRPCRouter({
         requiresInsurance: z.boolean().optional(),
         fromDate: z.date().optional(),
         toDate: z.date().optional(),
-        location: z.object({
-          latitude: z.number(),
-          longitude: z.number(),
-        }).optional(),
+        location: z
+          .object({
+            latitude: z.number(),
+            longitude: z.number(),
+          })
+          .optional(),
         radius: z.number().optional(), // rayon en kilomètres
-        sortBy: z.enum(["price", "createdAt", "deadline", "distance"]).default("createdAt"),
+        sortBy: z
+          .enum(["price", "createdAt", "deadline", "distance"])
+          .default("createdAt"),
         sortOrder: z.enum(["asc", "desc"]).default("desc"),
         limit: z.number().min(1).max(100).default(10),
         cursor: z.string().nullish(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       // Construire les filtres de base
       const where = {
-        ...(input.searchTerm ? {
-          OR: [
-            { title: { contains: input.searchTerm, mode: "insensitive" } },
-            { description: { contains: input.searchTerm, mode: "insensitive" } },
-            { pickupAddress: { contains: input.searchTerm, mode: "insensitive" } },
-            { deliveryAddress: { contains: input.searchTerm, mode: "insensitive" } },
-          ],
-        } : {}),
+        ...(input.searchTerm
+          ? {
+              OR: [
+                { title: { contains: input.searchTerm, mode: "insensitive" } },
+                {
+                  description: {
+                    contains: input.searchTerm,
+                    mode: "insensitive",
+                  },
+                },
+                {
+                  pickupAddress: {
+                    contains: input.searchTerm,
+                    mode: "insensitive",
+                  },
+                },
+                {
+                  deliveryAddress: {
+                    contains: input.searchTerm,
+                    mode: "insensitive",
+                  },
+                },
+              ],
+            }
+          : {}),
         ...(input.status ? { status: input.status } : {}),
         ...(input.packageSize ? { packageSize: input.packageSize } : {}),
-        ...(input.minPrice !== undefined ? { price: { gte: input.minPrice } } : {}),
-        ...(input.maxPrice !== undefined ? { price: { lte: input.maxPrice } } : {}),
-        ...(input.minWeight !== undefined ? { packageWeight: { gte: input.minWeight } } : {}),
-        ...(input.maxWeight !== undefined ? { packageWeight: { lte: input.maxWeight } } : {}),
-        ...(input.requiresInsurance !== undefined ? { requiresInsurance: input.requiresInsurance } : {}),
+        ...(input.minPrice !== undefined
+          ? { price: { gte: input.minPrice } }
+          : {}),
+        ...(input.maxPrice !== undefined
+          ? { price: { lte: input.maxPrice } }
+          : {}),
+        ...(input.minWeight !== undefined
+          ? { packageWeight: { gte: input.minWeight } }
+          : {}),
+        ...(input.maxWeight !== undefined
+          ? { packageWeight: { lte: input.maxWeight } }
+          : {}),
+        ...(input.requiresInsurance !== undefined
+          ? { requiresInsurance: input.requiresInsurance }
+          : {}),
         ...(input.fromDate ? { deadline: { gte: input.fromDate } } : {}),
         ...(input.toDate ? { deadline: { lte: input.toDate } } : {}),
       };
@@ -91,7 +126,7 @@ export const searchRouter = createTRPCRouter({
       // Si une localisation est fournie, calculer la distance pour chaque annonce
       let announcementsWithDistance = announcements;
       if (input.location) {
-        announcementsWithDistance = announcements.map(announcement => {
+        announcementsWithDistance = announcements.map((announcement) => {
           // Extraire les coordonnées de l'adresse (dans un cas réel, il faudrait utiliser un service de géocodage)
           // Pour cet exemple, nous utilisons des coordonnées fictives
           const pickupCoords = {
@@ -103,7 +138,7 @@ export const searchRouter = createTRPCRouter({
             input.location.latitude,
             input.location.longitude,
             pickupCoords.latitude,
-            pickupCoords.longitude
+            pickupCoords.longitude,
           );
 
           return {
@@ -115,7 +150,7 @@ export const searchRouter = createTRPCRouter({
         // Filtrer par rayon si spécifié
         if (input.radius) {
           announcementsWithDistance = announcementsWithDistance.filter(
-            ann => (ann as any).distance <= input.radius
+            (ann) => (ann as any).distance <= input.radius,
           );
         }
 
@@ -141,7 +176,7 @@ export const searchRouter = createTRPCRouter({
       z.object({
         prefix: z.string().min(2),
         limit: z.number().min(1).max(10).default(5),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       // Rechercher dans les titres d'annonces
@@ -187,9 +222,9 @@ export const searchRouter = createTRPCRouter({
 
       // Combiner et dédupliquer les suggestions
       const suggestions = [
-        ...titleSuggestions.map(s => s.title),
-        ...addressSuggestions.map(s => s.pickupAddress),
-        ...addressSuggestions.map(s => s.deliveryAddress),
+        ...titleSuggestions.map((s) => s.title),
+        ...addressSuggestions.map((s) => s.pickupAddress),
+        ...addressSuggestions.map((s) => s.deliveryAddress),
       ]
         .filter(Boolean)
         .filter((value, index, self) => self.indexOf(value) === index)
@@ -199,51 +234,50 @@ export const searchRouter = createTRPCRouter({
     }),
 
   // Récupérer les statistiques de recherche pour l'utilisateur
-  getUserSearchStats: protectedProcedure
-    .query(async ({ ctx }) => {
-      // Récupérer l'historique de recherche de l'utilisateur
-      const searchHistory = await ctx.db.searchHistory.findMany({
-        where: {
-          userId: ctx.session.user.id,
-        },
-        orderBy: {
-          createdAt: "desc",
-        },
-        take: 10,
-      });
+  getUserSearchStats: protectedProcedure.query(async ({ ctx }) => {
+    // Récupérer l'historique de recherche de l'utilisateur
+    const searchHistory = await ctx.db.searchHistory.findMany({
+      where: {
+        userId: ctx.session.user.id,
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+      take: 10,
+    });
 
-      // Récupérer les termes de recherche les plus fréquents
-      const frequentSearches = await ctx.db.searchHistory.groupBy({
-        by: ["searchTerm"],
-        where: {
-          userId: ctx.session.user.id,
-        },
+    // Récupérer les termes de recherche les plus fréquents
+    const frequentSearches = await ctx.db.searchHistory.groupBy({
+      by: ["searchTerm"],
+      where: {
+        userId: ctx.session.user.id,
+      },
+      _count: {
+        searchTerm: true,
+      },
+      orderBy: {
         _count: {
-          searchTerm: true,
+          searchTerm: "desc",
         },
-        orderBy: {
-          _count: {
-            searchTerm: "desc",
-          },
-        },
-        take: 5,
-      });
+      },
+      take: 5,
+    });
 
-      return {
-        recentSearches: searchHistory.map(h => h.searchTerm),
-        frequentSearches: frequentSearches.map(f => ({
-          term: f.searchTerm,
-          count: f._count.searchTerm,
-        })),
-      };
-    }),
+    return {
+      recentSearches: searchHistory.map((h) => h.searchTerm),
+      frequentSearches: frequentSearches.map((f) => ({
+        term: f.searchTerm,
+        count: f._count.searchTerm,
+      })),
+    };
+  }),
 
   // Enregistrer un terme de recherche dans l'historique
   saveSearchTerm: protectedProcedure
     .input(
       z.object({
         searchTerm: z.string().min(1),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       await ctx.db.searchHistory.create({

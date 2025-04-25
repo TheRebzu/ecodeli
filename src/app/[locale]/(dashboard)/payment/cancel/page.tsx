@@ -6,14 +6,15 @@ import { api } from "@/trpc/react";
 import { DashboardLayout } from "@/components/dashboard/dashboard-layout";
 import { ClientSidebar } from "@/components/dashboard/client/client-sidebar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { toast } from "sonner";
-import { 
-  XCircle,
-  ArrowLeft,
-  ShoppingBag,
-  RefreshCcw
-} from "lucide-react";
+import { XCircle, ArrowLeft, ShoppingBag, RefreshCcw } from "lucide-react";
 import Link from "next/link";
 
 export default function PaymentCancelPage() {
@@ -21,7 +22,7 @@ export default function PaymentCancelPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const orderId = searchParams.get("orderId");
-  
+
   // Récupérer les détails de la commande si disponible
   const { data: order, isLoading } = api.order.getOrderById.useQuery(
     { id: orderId as string },
@@ -31,9 +32,9 @@ export default function PaymentCancelPage() {
       onError: () => {
         // Ignorer les erreurs ici
       },
-    }
+    },
   );
-  
+
   // Gérer la reprise du paiement
   const handleRetryPayment = () => {
     if (orderId) {
@@ -43,12 +44,12 @@ export default function PaymentCancelPage() {
       router.push("/orders");
     }
   };
-  
+
   return (
     <DashboardLayout sidebar={<ClientSidebar />}>
       <div className="container mx-auto py-6">
         <h1 className="text-3xl font-bold mb-6">{t("paymentCancelled")}</h1>
-        
+
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center text-destructive">
@@ -58,7 +59,7 @@ export default function PaymentCancelPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             <p>{t("paymentCancelledDescription")}</p>
-            
+
             {order && (
               <div className="bg-muted/30 p-4 rounded-md space-y-2">
                 <div className="flex justify-between">
@@ -75,10 +76,8 @@ export default function PaymentCancelPage() {
                 </div>
               </div>
             )}
-            
-            <p className="text-muted-foreground">
-              {t("paymentCancelledHelp")}
-            </p>
+
+            <p className="text-muted-foreground">{t("paymentCancelledHelp")}</p>
           </CardContent>
           <CardFooter className="flex justify-between">
             <Button variant="outline" asChild>
@@ -87,14 +86,14 @@ export default function PaymentCancelPage() {
                 {t("backToOrder")}
               </Link>
             </Button>
-            
+
             <Button onClick={handleRetryPayment}>
               <RefreshCcw className="mr-2 h-4 w-4" />
               {t("retryPayment")}
             </Button>
           </CardFooter>
         </Card>
-        
+
         <div className="mt-6 text-center">
           <Button variant="outline" asChild>
             <Link href="/stores">

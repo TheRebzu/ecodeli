@@ -6,28 +6,30 @@ import { prisma } from "@/lib/prisma";
  * @param userId ID de l'utilisateur pour lequel générer le token
  * @returns Le token généré
  */
-export async function generateVerificationToken(userId: string): Promise<string> {
+export async function generateVerificationToken(
+  userId: string,
+): Promise<string> {
   // Génération d'un token aléatoire
   const token = randomBytes(32).toString("hex");
-  
+
   // Date d'expiration (24 heures)
   const expires = new Date();
   expires.setHours(expires.getHours() + 24);
-  
+
   // Suppression des tokens existants pour cet utilisateur
   await prisma.verificationToken.deleteMany({
-    where: { userId }
+    where: { userId },
   });
-  
+
   // Création du nouveau token
   const verificationToken = await prisma.verificationToken.create({
     data: {
       token,
       expires,
-      userId
-    }
+      userId,
+    },
   });
-  
+
   return verificationToken.token;
 }
 
@@ -36,36 +38,38 @@ export async function generateVerificationToken(userId: string): Promise<string>
  * @param email Email de l'utilisateur
  * @returns Le token généré ou null si l'utilisateur n'existe pas
  */
-export async function generatePasswordResetToken(email: string): Promise<string | null> {
+export async function generatePasswordResetToken(
+  email: string,
+): Promise<string | null> {
   const user = await prisma.user.findUnique({
-    where: { email: email.toLowerCase() }
+    where: { email: email.toLowerCase() },
   });
-  
+
   if (!user) {
     return null;
   }
-  
+
   // Génération d'un token aléatoire
   const token = randomBytes(32).toString("hex");
-  
+
   // Date d'expiration (1 heure)
   const expires = new Date();
   expires.setHours(expires.getHours() + 1);
-  
+
   // Suppression des tokens existants pour cet utilisateur
   await prisma.passwordResetToken.deleteMany({
-    where: { userId: user.id }
+    where: { userId: user.id },
   });
-  
+
   // Création du nouveau token
   const resetToken = await prisma.passwordResetToken.create({
     data: {
       token,
       expires,
-      userId: user.id
-    }
+      userId: user.id,
+    },
   });
-  
+
   return resetToken.token;
 }
 
@@ -74,35 +78,37 @@ export async function generatePasswordResetToken(email: string): Promise<string 
  * @param token Token à vérifier
  * @returns L'ID de l'utilisateur si le token est valide, null sinon
  */
-export async function verifyVerificationToken(token: string): Promise<string | null> {
+export async function verifyVerificationToken(
+  token: string,
+): Promise<string | null> {
   const verificationToken = await prisma.verificationToken.findUnique({
-    where: { token }
+    where: { token },
   });
-  
+
   if (!verificationToken) {
     return null;
   }
-  
+
   // Vérification de l'expiration
   if (verificationToken.expires < new Date()) {
     // Suppression du token expiré
     await prisma.verificationToken.delete({
-      where: { id: verificationToken.id }
+      where: { id: verificationToken.id },
     });
     return null;
   }
-  
+
   // Mise à jour de l'utilisateur
   await prisma.user.update({
     where: { id: verificationToken.userId },
-    data: { emailVerified: new Date() }
+    data: { emailVerified: new Date() },
   });
-  
+
   // Suppression du token utilisé
   await prisma.verificationToken.delete({
-    where: { id: verificationToken.id }
+    where: { id: verificationToken.id },
   });
-  
+
   return verificationToken.userId;
 }
 
@@ -111,24 +117,26 @@ export async function verifyVerificationToken(token: string): Promise<string | n
  * @param token Token à vérifier
  * @returns L'ID de l'utilisateur si le token est valide, null sinon
  */
-export async function verifyPasswordResetToken(token: string): Promise<string | null> {
+export async function verifyPasswordResetToken(
+  token: string,
+): Promise<string | null> {
   const resetToken = await prisma.passwordResetToken.findUnique({
-    where: { token }
+    where: { token },
   });
-  
+
   if (!resetToken) {
     return null;
   }
-  
+
   // Vérification de l'expiration
   if (resetToken.expires < new Date()) {
     // Suppression du token expiré
     await prisma.passwordResetToken.delete({
-      where: { id: resetToken.id }
+      where: { id: resetToken.id },
     });
     return null;
   }
-  
+
   return resetToken.userId;
 }
 
@@ -137,19 +145,45 @@ export async function verifyPasswordResetToken(token: string): Promise<string | 
  * @param token Token à consommer
  * @returns true si le token a été consommé avec succès, false sinon
  */
-export async function consumePasswordResetToken(token: string): Promise<boolean> {
+export async function consumePasswordResetToken(
+  token: string,
+): Promise<boolean> {
   const resetToken = await prisma.passwordResetToken.findUnique({
-    where: { token }
+    where: { token },
   });
-  
+
   if (!resetToken) {
     return false;
   }
-  
+
   // Suppression du token utilisé
   await prisma.passwordResetToken.delete({
-    where: { id: resetToken.id }
+    where: { id: resetToken.id },
   });
-  
+
   return true;
+}
+
+/**
+ * Valide un token de réinitialisation de mot de passe
+ * @param token Token à valider
+ * @returns true si le token est valide, false sinon
+ */
+export async function validatePasswordResetToken(
+  token: string,
+): Promise<boolean> {
+  const userId = await verifyPasswordResetToken(token);
+  return userId !== null;
+}
+
+/**
+ * Valide un token de vérification d'email
+ * @param token Token à valider
+ * @returns true si le token est valide, false sinon
+ */
+export async function validateVerificationToken(
+  token: string,
+): Promise<boolean> {
+  const userId = await verifyVerificationToken(token);
+  return userId !== null;
 }

@@ -72,7 +72,9 @@ export function PersonalInfo({
     >
       <div className="space-y-4">
         <div>
-          <h2 className="text-2xl font-semibold mb-1">Informations personnelles</h2>
+          <h2 className="text-2xl font-semibold mb-1">
+            Informations personnelles
+          </h2>
           <p className="text-sm text-muted-foreground mb-6">
             Parlez-nous un peu de vous
           </p>
@@ -90,14 +92,14 @@ export function PersonalInfo({
               id="firstName"
               type="text"
               className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ${
-                errors.firstName
-                  ? "border-destructive"
-                  : "border-input"
+                errors.firstName ? "border-destructive" : "border-input"
               }`}
               {...register("firstName")}
             />
             {errors.firstName && (
-              <p className="text-sm text-destructive">{errors.firstName.message}</p>
+              <p className="text-sm text-destructive">
+                {errors.firstName.message}
+              </p>
             )}
           </div>
 
@@ -112,32 +114,27 @@ export function PersonalInfo({
               id="lastName"
               type="text"
               className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ${
-                errors.lastName
-                  ? "border-destructive"
-                  : "border-input"
+                errors.lastName ? "border-destructive" : "border-input"
               }`}
               {...register("lastName")}
             />
             {errors.lastName && (
-              <p className="text-sm text-destructive">{errors.lastName.message}</p>
+              <p className="text-sm text-destructive">
+                {errors.lastName.message}
+              </p>
             )}
           </div>
         </div>
 
         <div className="space-y-2">
-          <label
-            htmlFor="email"
-            className="text-sm font-medium leading-none"
-          >
+          <label htmlFor="email" className="text-sm font-medium leading-none">
             Email <span className="text-destructive">*</span>
           </label>
           <input
             id="email"
             type="email"
             className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ${
-              errors.email
-                ? "border-destructive"
-                : "border-input"
+              errors.email ? "border-destructive" : "border-input"
             }`}
             {...register("email")}
           />
@@ -147,10 +144,7 @@ export function PersonalInfo({
         </div>
 
         <div className="space-y-2">
-          <label
-            htmlFor="phone"
-            className="text-sm font-medium leading-none"
-          >
+          <label htmlFor="phone" className="text-sm font-medium leading-none">
             Téléphone
           </label>
           <input
@@ -158,9 +152,7 @@ export function PersonalInfo({
             type="tel"
             placeholder="+33612345678"
             className={`flex h-10 w-full rounded-md border px-3 py-2 text-sm ${
-              errors.phone
-                ? "border-destructive"
-                : "border-input"
+              errors.phone ? "border-destructive" : "border-input"
             }`}
             {...register("phone")}
           />
@@ -196,4 +188,4 @@ export function PersonalInfo({
   );
 }
 
-export default PersonalInfo; 
+export default PersonalInfo;

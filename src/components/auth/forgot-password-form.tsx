@@ -12,7 +12,14 @@ import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 // Schéma de validation pour le formulaire de mot de passe oublié
@@ -46,7 +53,7 @@ export function ForgotPasswordForm() {
         message: error.message,
       });
       setIsLoading(false);
-    }
+    },
   });
 
   const {
@@ -63,7 +70,7 @@ export function ForgotPasswordForm() {
   const onSubmit = async (data: ForgotPasswordFormValues) => {
     setIsLoading(true);
     setStatus(null);
-    
+
     try {
       forgotPasswordMutation.mutate({ email: data.email.toLowerCase() });
     } catch (error) {
@@ -79,7 +86,9 @@ export function ForgotPasswordForm() {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold text-center">{t("forgotPassword.title")}</CardTitle>
+        <CardTitle className="text-2xl font-bold text-center">
+          {t("forgotPassword.title")}
+        </CardTitle>
         <CardDescription className="text-center">
           {t("forgotPassword.description")}
         </CardDescription>
@@ -90,17 +99,16 @@ export function ForgotPasswordForm() {
             <Alert variant={status.success ? "default" : "destructive"}>
               <AlertDescription>{status.message}</AlertDescription>
             </Alert>
-            <Button
-              className="w-full"
-              onClick={() => router.push("/login")}
-            >
+            <Button className="w-full" onClick={() => router.push("/login")}>
               {t("forgotPassword.backToLogin")}
             </Button>
           </div>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="email">{t("forgotPassword.form.email.label")}</Label>
+              <Label htmlFor="email">
+                {t("forgotPassword.form.email.label")}
+              </Label>
               <Input
                 id="email"
                 type="email"
@@ -113,13 +121,18 @@ export function ForgotPasswordForm() {
                 <p className="text-sm text-red-500">{errors.email.message}</p>
               )}
             </div>
-            
+
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? t("forgotPassword.form.submitting") : t("forgotPassword.form.submit")}
+              {isLoading
+                ? t("forgotPassword.form.submitting")
+                : t("forgotPassword.form.submit")}
             </Button>
-            
+
             <div className="text-center">
-              <Link href="/login" className="text-sm text-primary hover:underline">
+              <Link
+                href="/login"
+                className="text-sm text-primary hover:underline"
+              >
                 {t("forgotPassword.backToLogin")}
               </Link>
             </div>

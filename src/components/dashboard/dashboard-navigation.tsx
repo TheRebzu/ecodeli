@@ -5,19 +5,19 @@ import { useSession } from "next-auth/react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
-import { 
-  Home, 
-  User, 
-  ShoppingBag, 
-  Truck, 
-  Store, 
-  Briefcase, 
-  Settings, 
-  LogOut, 
+import {
+  Home,
+  User,
+  ShoppingBag,
+  Truck,
+  Store,
+  Briefcase,
+  Settings,
+  LogOut,
   FileText,
   Bell,
   CreditCard,
-  HelpCircle
+  HelpCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -37,7 +37,7 @@ function SidebarNavItem({ href, icon, label, active }: SidebarNavItemProps) {
         variant={active ? "secondary" : "ghost"}
         className={cn(
           "w-full justify-start",
-          active ? "bg-secondary" : "hover:bg-secondary/50"
+          active ? "bg-secondary" : "hover:bg-secondary/50",
         )}
       >
         {icon}
@@ -54,7 +54,7 @@ interface DashboardNavigationProps {
 export function DashboardNavigation({ role }: DashboardNavigationProps) {
   const t = useTranslations("navigation");
   const pathname = usePathname();
-  
+
   // Déterminer les liens de navigation en fonction du rôle
   const getNavLinks = () => {
     const baseLinks = [
@@ -69,7 +69,7 @@ export function DashboardNavigation({ role }: DashboardNavigationProps) {
         label: t("profile"),
       },
     ];
-    
+
     const roleSpecificLinks = {
       CLIENT: [
         {
@@ -172,7 +172,7 @@ export function DashboardNavigation({ role }: DashboardNavigationProps) {
         },
       ],
     };
-    
+
     const commonLinks = [
       {
         href: `/settings`,
@@ -185,12 +185,12 @@ export function DashboardNavigation({ role }: DashboardNavigationProps) {
         label: t("help"),
       },
     ];
-    
+
     return [...baseLinks, ...(roleSpecificLinks[role] || []), ...commonLinks];
   };
-  
+
   const navLinks = getNavLinks();
-  
+
   return (
     <div className="flex flex-col gap-1">
       {navLinks.map((link) => (
@@ -209,11 +209,11 @@ export function DashboardNavigation({ role }: DashboardNavigationProps) {
 export function DashboardUserInfo() {
   const { data: session } = useSession();
   const t = useTranslations("common");
-  
+
   if (!session?.user) {
     return null;
   }
-  
+
   const { user } = session;
   const initials = user.name
     ? user.name
@@ -222,7 +222,7 @@ export function DashboardUserInfo() {
         .join("")
         .toUpperCase()
     : "?";
-  
+
   return (
     <div className="flex items-center gap-2 p-4">
       <Avatar>
@@ -239,11 +239,15 @@ export function DashboardUserInfo() {
 
 export function DashboardSidebarFooter() {
   const t = useTranslations("common");
-  
+
   return (
     <div className="mt-auto p-4">
       <form action="/api/auth/signout" method="POST">
-        <Button variant="outline" className="w-full justify-start" type="submit">
+        <Button
+          variant="outline"
+          className="w-full justify-start"
+          type="submit"
+        >
           <LogOut className="mr-2 h-4 w-4" />
           {t("signOut")}
         </Button>

@@ -1,13 +1,41 @@
 "use client";
 
-import { ArrowUp, Package, CreditCard, DollarSign, Calendar } from "lucide-react";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  ArrowUp,
+  Package,
+  CreditCard,
+  DollarSign,
+  Calendar,
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Progress } from "@/components/ui/progress";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 
@@ -19,14 +47,17 @@ export default function DashboardPage() {
       <div className="flex flex-col gap-2">
         <h1 className="text-3xl font-bold tracking-tight">Tableau de bord</h1>
         <p className="text-muted-foreground">
-          Bienvenue sur votre tableau de bord EcoDeli. Voici un aperçu de vos activités.
+          Bienvenue sur votre tableau de bord EcoDeli. Voici un aperçu de vos
+          activités.
         </p>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Livraisons totales</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Livraisons totales
+            </CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -54,7 +85,9 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Livraisons en cours</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Livraisons en cours
+            </CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -66,7 +99,9 @@ export default function DashboardPage() {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Solde disponible</CardTitle>
+            <CardTitle className="text-sm font-medium">
+              Solde disponible
+            </CardTitle>
             <CreditCard className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -81,7 +116,8 @@ export default function DashboardPage() {
                 <DialogHeader>
                   <DialogTitle>Retirer des fonds</DialogTitle>
                   <DialogDescription>
-                    Entrez le montant que vous souhaitez retirer vers votre compte bancaire.
+                    Entrez le montant que vous souhaitez retirer vers votre
+                    compte bancaire.
                   </DialogDescription>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
@@ -167,7 +203,9 @@ export default function DashboardPage() {
                     },
                   ].map((delivery) => (
                     <TableRow key={delivery.id}>
-                      <TableCell className="font-medium">{delivery.id}</TableCell>
+                      <TableCell className="font-medium">
+                        {delivery.id}
+                      </TableCell>
                       <TableCell>{delivery.address}</TableCell>
                       <TableCell>{delivery.date}</TableCell>
                       <TableCell>
@@ -176,14 +214,16 @@ export default function DashboardPage() {
                             delivery.status === "Livrée"
                               ? "default"
                               : delivery.status === "En cours"
-                              ? "outline"
-                              : "destructive"
+                                ? "outline"
+                                : "destructive"
                           }
                         >
                           {delivery.status}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right">{delivery.amount}</TableCell>
+                      <TableCell className="text-right">
+                        {delivery.amount}
+                      </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -199,13 +239,13 @@ export default function DashboardPage() {
           <Card>
             <CardHeader>
               <CardTitle>Revenus mensuels</CardTitle>
-              <CardDescription>
-                Vos gains des 6 derniers mois
-              </CardDescription>
+              <CardDescription>Vos gains des 6 derniers mois</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-[200px] w-full rounded-md border border-dashed flex items-center justify-center">
-                <p className="text-sm text-muted-foreground">Graphique des revenus (placeholder)</p>
+                <p className="text-sm text-muted-foreground">
+                  Graphique des revenus (placeholder)
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -214,9 +254,7 @@ export default function DashboardPage() {
           <Card>
             <CardHeader>
               <CardTitle>Mes annonces actives</CardTitle>
-              <CardDescription>
-                Vous avez 3 annonces actives
-              </CardDescription>
+              <CardDescription>Vous avez 3 annonces actives</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -242,7 +280,9 @@ export default function DashboardPage() {
                 ].map((announcement, index) => (
                   <Card key={index} className="border">
                     <CardHeader className="pb-2">
-                      <CardTitle className="text-base">{announcement.title}</CardTitle>
+                      <CardTitle className="text-base">
+                        {announcement.title}
+                      </CardTitle>
                       <CardDescription>
                         {announcement.date} · {announcement.views} vues
                       </CardDescription>
@@ -265,4 +305,4 @@ export default function DashboardPage() {
       </Tabs>
     </div>
   );
-} 
+}

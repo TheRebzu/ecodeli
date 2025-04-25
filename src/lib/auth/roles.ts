@@ -83,13 +83,13 @@ export const ROLE_PERMISSIONS = {
  */
 export function hasPermission(
   userRole: UserRole | undefined | null,
-  permission: string
+  permission: string,
 ): boolean {
   if (!userRole) return false;
-  
+
   const permissions = ROLE_PERMISSIONS[userRole];
   if (!permissions) return false;
-  
+
   return permissions.includes(permission);
 }
 
@@ -115,7 +115,7 @@ export function getRoleLabel(role: UserRole): string {
     PROVIDER: "Prestataire",
     ADMIN: "Administrateur",
   };
-  
+
   return roleLabels[role] || role;
 }
 
@@ -132,6 +132,6 @@ export function getDashboardPathForRole(role: UserRole): string {
     PROVIDER: "/provider/dashboard",
     ADMIN: "/admin/dashboard",
   };
-  
+
   return dashboardPaths[role] || "/";
 }

@@ -12,22 +12,37 @@ import { api } from "@/trpc/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
 // Schéma de validation pour le formulaire de réinitialisation de mot de passe
-const resetPasswordSchema = z.object({
-  password: z
-    .string()
-    .min(8, "Le mot de passe doit contenir au moins 8 caractères")
-    .regex(/[A-Z]/, "Le mot de passe doit contenir au moins une lettre majuscule")
-    .regex(/[a-z]/, "Le mot de passe doit contenir au moins une lettre minuscule")
-    .regex(/[0-9]/, "Le mot de passe doit contenir au moins un chiffre"),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Les mots de passe ne correspondent pas",
-  path: ["confirmPassword"],
-});
+const resetPasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, "Le mot de passe doit contenir au moins 8 caractères")
+      .regex(
+        /[A-Z]/,
+        "Le mot de passe doit contenir au moins une lettre majuscule",
+      )
+      .regex(
+        /[a-z]/,
+        "Le mot de passe doit contenir au moins une lettre minuscule",
+      )
+      .regex(/[0-9]/, "Le mot de passe doit contenir au moins un chiffre"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Les mots de passe ne correspondent pas",
+    path: ["confirmPassword"],
+  });
 
 type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
@@ -36,7 +51,7 @@ export function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   const t = useTranslations("auth");
-  
+
   const [isLoading, setIsLoading] = useState(false);
   const [status, setStatus] = useState<{
     success: boolean;
@@ -50,7 +65,7 @@ export function ResetPasswordForm() {
         success: true,
         message: t("resetPassword.success"),
       });
-      
+
       // Redirection vers la page de connexion après 3 secondes
       setTimeout(() => {
         router.push("/login");
@@ -62,7 +77,7 @@ export function ResetPasswordForm() {
         message: error.message || t("resetPassword.error"),
       });
       setIsLoading(false);
-    }
+    },
   });
 
   const {
@@ -85,10 +100,10 @@ export function ResetPasswordForm() {
       });
       return;
     }
-    
+
     setIsLoading(true);
     setStatus(null);
-    
+
     try {
       resetPasswordMutation.mutate({
         token,
@@ -109,16 +124,15 @@ export function ResetPasswordForm() {
     return (
       <Card className="w-full max-w-md mx-auto">
         <CardHeader>
-          <CardTitle className="text-2xl font-bold text-center">{t("resetPassword.title")}</CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">
+            {t("resetPassword.title")}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <Alert variant="destructive">
             <AlertDescription>{t("resetPassword.error")}</AlertDescription>
           </Alert>
-          <Button
-            className="w-full mt-4"
-            onClick={() => router.push("/login")}
-          >
+          <Button className="w-full mt-4" onClick={() => router.push("/login")}>
             {t("resetPassword.backToLogin")}
           </Button>
         </CardContent>
@@ -129,7 +143,9 @@ export function ResetPasswordForm() {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle className="text-2xl font-bold text-center">{t("resetPassword.title")}</CardTitle>
+        <CardTitle className="text-2xl font-bold text-center">
+          {t("resetPassword.title")}
+        </CardTitle>
         <CardDescription className="text-center">
           {t("resetPassword.description")}
         </CardDescription>
@@ -145,10 +161,7 @@ export function ResetPasswordForm() {
                 {t("resetPassword.redirecting")}
               </p>
             ) : (
-              <Button
-                className="w-full"
-                onClick={() => router.push("/login")}
-              >
+              <Button className="w-full" onClick={() => router.push("/login")}>
                 {t("resetPassword.backToLogin")}
               </Button>
             )}
@@ -156,7 +169,9 @@ export function ResetPasswordForm() {
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="password">{t("resetPassword.form.password")}</Label>
+              <Label htmlFor="password">
+                {t("resetPassword.form.password")}
+              </Label>
               <Input
                 id="password"
                 type="password"
@@ -166,12 +181,16 @@ export function ResetPasswordForm() {
                 {...register("password")}
               />
               {errors.password && (
-                <p className="text-sm text-red-500">{errors.password.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.password.message}
+                </p>
               )}
             </div>
-            
+
             <div className="space-y-2">
-              <Label htmlFor="confirmPassword">{t("resetPassword.form.confirmPassword")}</Label>
+              <Label htmlFor="confirmPassword">
+                {t("resetPassword.form.confirmPassword")}
+              </Label>
               <Input
                 id="confirmPassword"
                 type="password"
@@ -181,12 +200,16 @@ export function ResetPasswordForm() {
                 {...register("confirmPassword")}
               />
               {errors.confirmPassword && (
-                <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>
+                <p className="text-sm text-red-500">
+                  {errors.confirmPassword.message}
+                </p>
               )}
             </div>
-            
+
             <Button type="submit" className="w-full" disabled={isLoading}>
-              {isLoading ? t("resetPassword.form.submitting") : t("resetPassword.form.submit")}
+              {isLoading
+                ? t("resetPassword.form.submitting")
+                : t("resetPassword.form.submit")}
             </Button>
           </form>
         )}

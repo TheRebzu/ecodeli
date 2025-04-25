@@ -16,8 +16,17 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "EcoDeli - Livraison collaborative écologique",
-  description: "Plateforme de crowdshipping pour des livraisons économiques et écologiques",
-  keywords: ["livraison", "collaborative", "écologique", "économique", "crowdshipping", "service", "transport"],
+  description:
+    "Plateforme de crowdshipping pour des livraisons économiques et écologiques",
+  keywords: [
+    "livraison",
+    "collaborative",
+    "écologique",
+    "économique",
+    "crowdshipping",
+    "service",
+    "transport",
+  ],
 };
 
 export default function RootLayout({

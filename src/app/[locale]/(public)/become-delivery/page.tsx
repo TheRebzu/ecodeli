@@ -35,11 +35,14 @@ export default function BecomeDeliveryPage() {
                   Rejoignez la communauté des livreurs EcoDeli
                 </h1>
                 <p className="text-xl text-muted-foreground">
-                  Gagnez un revenu complémentaire tout en participant à une révolution écologique de la livraison
+                  Gagnez un revenu complémentaire tout en participant à une
+                  révolution écologique de la livraison
                 </p>
                 <div className="flex flex-col sm:flex-row gap-4 pt-4">
                   <Button size="lg" asChild>
-                    <Link href="/register?as=courier">S&apos;inscrire comme livreur</Link>
+                    <Link href="/register?as=courier">
+                      S&apos;inscrire comme livreur
+                    </Link>
                   </Button>
                   <Button size="lg" variant="outline" asChild>
                     <Link href="#avantages">Découvrir les avantages</Link>
@@ -49,8 +52,8 @@ export default function BecomeDeliveryPage() {
               <div className="md:w-1/2 relative">
                 <div className="aspect-square max-w-lg mx-auto">
                   <div className="absolute inset-0 rounded-xl overflow-hidden">
-                    <Image 
-                      src="/images/become-delivery/hero-courier.jpg" 
+                    <Image
+                      src="/images/become-delivery/hero-courier.jpg"
                       alt="Livreur EcoDeli à vélo"
                       className="object-cover"
                       width={600}
@@ -60,7 +63,9 @@ export default function BecomeDeliveryPage() {
                   <div className="absolute -bottom-6 -right-6 bg-background rounded-lg p-4 shadow-lg border">
                     <div className="flex items-center gap-2">
                       <Star className="h-5 w-5 text-yellow-500 fill-yellow-500" />
-                      <p className="text-sm font-medium">Rejoignez notre réseau de livreurs</p>
+                      <p className="text-sm font-medium">
+                        Rejoignez notre réseau de livreurs
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -78,7 +83,8 @@ export default function BecomeDeliveryPage() {
                 Pourquoi devenir livreur EcoDeli ?
               </h2>
               <p className="text-muted-foreground max-w-[700px]">
-                Profitez de nombreux avantages en rejoignant notre réseau de livreurs indépendants
+                Profitez de nombreux avantages en rejoignant notre réseau de
+                livreurs indépendants
               </p>
             </div>
 
@@ -121,14 +127,19 @@ export default function BecomeDeliveryPage() {
                     "Au-delà des colis, proposez des services comme le transport de personnes, les courses, ou même la garde d'animaux pendant que vous transportez le propriétaire.",
                 },
               ].map((advantage, index) => (
-                <Card key={index} className="flex flex-col p-6 border bg-background">
+                <Card
+                  key={index}
+                  className="flex flex-col p-6 border bg-background"
+                >
                   <div className="flex items-center space-x-4 mb-4">
                     <div className="bg-primary/10 p-3 rounded-lg">
                       <advantage.icon className="h-6 w-6 text-primary" />
                     </div>
                     <h3 className="text-xl font-semibold">{advantage.title}</h3>
                   </div>
-                  <p className="text-muted-foreground">{advantage.description}</p>
+                  <p className="text-muted-foreground">
+                    {advantage.description}
+                  </p>
                 </Card>
               ))}
             </div>
@@ -187,7 +198,9 @@ export default function BecomeDeliveryPage() {
 
             <div className="flex justify-center mt-12">
               <Button size="lg" asChild>
-                <Link href="/register?as=courier">Devenir livreur maintenant</Link>
+                <Link href="/register?as=courier">
+                  Devenir livreur maintenant
+                </Link>
               </Button>
             </div>
           </div>
@@ -202,7 +215,8 @@ export default function BecomeDeliveryPage() {
                 Des missions variées pour tous les profils
               </h2>
               <p className="text-muted-foreground max-w-[700px]">
-                En tant que livreur EcoDeli, vous pouvez proposer différents types de services
+                En tant que livreur EcoDeli, vous pouvez proposer différents
+                types de services
               </p>
             </div>
 
@@ -215,8 +229,8 @@ export default function BecomeDeliveryPage() {
                     "Prise en charge intégrale ou partielle du trajet",
                     "Livraison aux destinataires finaux",
                     "Suivi en temps réel",
-                    "Validation par code de confirmation"
-                  ]
+                    "Validation par code de confirmation",
+                  ],
                 },
                 {
                   title: "Services à la personne",
@@ -226,12 +240,14 @@ export default function BecomeDeliveryPage() {
                     "Courses et achats selon liste fournie",
                     "Achat de produits spécifiques, même à l'étranger",
                     "Garde d'animaux à domicile pendant un transport",
-                    "Petits travaux ménagers ou de jardinage"
-                  ]
+                    "Petits travaux ménagers ou de jardinage",
+                  ],
                 },
               ].map((service, index) => (
                 <Card key={index} className="p-6 border bg-background">
-                  <h3 className="text-xl font-semibold mb-4">{service.title}</h3>
+                  <h3 className="text-xl font-semibold mb-4">
+                    {service.title}
+                  </h3>
                   <ul className="space-y-2">
                     {service.features.map((feature, idx) => (
                       <li key={idx} className="flex items-start">
@@ -266,31 +282,49 @@ export default function BecomeDeliveryPage() {
                     <div className="bg-primary/10 p-2 rounded-full mr-4">
                       <span className="text-primary font-bold">1</span>
                     </div>
-                    <p>Vous vous mettez d'accord avec l'expéditeur sur le prix et la date de la livraison.</p>
+                    <p>
+                      Vous vous mettez d'accord avec l'expéditeur sur le prix et
+                      la date de la livraison.
+                    </p>
                   </div>
                   <div className="flex items-start">
                     <div className="bg-primary/10 p-2 rounded-full mr-4">
                       <span className="text-primary font-bold">2</span>
                     </div>
-                    <p>Le client paie sur EcoDeli. L'argent est conservé jusqu'à la livraison.</p>
+                    <p>
+                      Le client paie sur EcoDeli. L'argent est conservé jusqu'à
+                      la livraison.
+                    </p>
                   </div>
                   <div className="flex items-start">
                     <div className="bg-primary/10 p-2 rounded-full mr-4">
                       <span className="text-primary font-bold">3</span>
                     </div>
-                    <p>Le jour de la livraison, le destinataire communique un code. Vous validez la livraison en saisissant ce code sur la page de discussion ou l'annonceur confirme la livraison directement depuis son compte EcoDeli.</p>
+                    <p>
+                      Le jour de la livraison, le destinataire communique un
+                      code. Vous validez la livraison en saisissant ce code sur
+                      la page de discussion ou l'annonceur confirme la livraison
+                      directement depuis son compte EcoDeli.
+                    </p>
                   </div>
                   <div className="flex items-start">
                     <div className="bg-primary/10 p-2 rounded-full mr-4">
                       <span className="text-primary font-bold">4</span>
                     </div>
-                    <p>L'argent est immédiatement disponible dans votre portefeuille EcoDeli. Le paiement se trouve dans la rubrique "Mes paiements" de votre compte.</p>
+                    <p>
+                      L'argent est immédiatement disponible dans votre
+                      portefeuille EcoDeli. Le paiement se trouve dans la
+                      rubrique "Mes paiements" de votre compte.
+                    </p>
                   </div>
                   <div className="flex items-start">
                     <div className="bg-primary/10 p-2 rounded-full mr-4">
                       <span className="text-primary font-bold">5</span>
                     </div>
-                    <p>Vous pouvez demander un virement sur votre compte bancaire à tout moment.</p>
+                    <p>
+                      Vous pouvez demander un virement sur votre compte bancaire
+                      à tout moment.
+                    </p>
                   </div>
                 </div>
               </Card>
@@ -308,7 +342,9 @@ export default function BecomeDeliveryPage() {
                   Prêt à devenir livreur EcoDeli ?
                 </h2>
                 <p className="text-lg text-muted-foreground max-w-[700px]">
-                  Inscrivez-vous dès maintenant et commencez à gagner un revenu complémentaire tout en contribuant à un modèle de livraison plus durable
+                  Inscrivez-vous dès maintenant et commencez à gagner un revenu
+                  complémentaire tout en contribuant à un modèle de livraison
+                  plus durable
                 </p>
                 <div className="flex gap-3 pt-4">
                   <Button size="lg" asChild>
@@ -325,4 +361,4 @@ export default function BecomeDeliveryPage() {
       </main>
     </div>
   );
-} 
+}

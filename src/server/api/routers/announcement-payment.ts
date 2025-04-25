@@ -10,7 +10,7 @@ export const announcementPaymentRouter = createTRPCRouter({
     .input(
       z.object({
         announcementId: z.string(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Récupérer l'annonce
@@ -45,17 +45,20 @@ export const announcementPaymentRouter = createTRPCRouter({
       }
 
       // Calculer le montant à payer (prix de l'annonce + frais de service)
-      const serviceFee = announcement.price * 0.10; // 10% de frais de service
+      const serviceFee = announcement.price * 0.1; // 10% de frais de service
       const totalAmount = announcement.price + serviceFee;
 
       // Créer une session de paiement Stripe
-      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
-      
+      const baseUrl =
+        process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
       const { sessionId, url } = await createCheckoutSession({
         orderId: announcement.id,
         orderNumber: `ANN-${announcement.id.substring(0, 8)}`,
-        customerEmail: announcement.client.email || ctx.session.user.email || "",
-        customerName: announcement.client.name || ctx.session.user.name || "Client",
+        customerEmail:
+          announcement.client.email || ctx.session.user.email || "",
+        customerName:
+          announcement.client.name || ctx.session.user.name || "Client",
         amount: Math.round(totalAmount * 100), // Montant en centimes
         successUrl: `${baseUrl}/announcements/${announcement.id}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
         cancelUrl: `${baseUrl}/announcements/${announcement.id}/payment-cancel`,
@@ -106,7 +109,7 @@ export const announcementPaymentRouter = createTRPCRouter({
     .input(
       z.object({
         sessionId: z.string(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       // Récupérer le paiement
@@ -125,7 +128,10 @@ export const announcementPaymentRouter = createTRPCRouter({
       }
 
       // Vérifier que l'utilisateur est autorisé à voir ce paiement
-      if (payment.announcement?.clientId !== ctx.session.user.id && ctx.session.user.role !== "ADMIN") {
+      if (
+        payment.announcement?.clientId !== ctx.session.user.id &&
+        ctx.session.user.role !== "ADMIN"
+      ) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à voir ce paiement",
@@ -143,7 +149,7 @@ export const announcementPaymentRouter = createTRPCRouter({
     .input(
       z.object({
         sessionId: z.string(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Cette procédure serait normalement appelée par un webhook Stripe
@@ -195,7 +201,7 @@ export const announcementPaymentRouter = createTRPCRouter({
       z.object({
         limit: z.number().min(1).max(100).default(10),
         cursor: z.string().nullish(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const payments = await ctx.db.payment.findMany({

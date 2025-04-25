@@ -1,5 +1,10 @@
 import { redirect } from "next/navigation";
 
-export default function RootPage({ params }: { params: { locale: string } }) {
-  redirect(`/${params.locale}/home`);
+interface RootPageProps {
+  params: Promise<{ locale: string }>;
+}
+
+export default async function RootPage({ params }: RootPageProps) {
+  const { locale } = await params;
+  redirect(`/${locale}/home`);
 }

@@ -3,7 +3,8 @@ import MerchantRegistrationForm from "@/components/auth/register-forms/merchant-
 
 export const metadata: Metadata = {
   title: "Inscription Commerçant | EcoDeli",
-  description: "Inscrivez votre commerce sur EcoDeli et proposez des livraisons à vos clients.",
+  description:
+    "Inscrivez votre commerce sur EcoDeli et proposez des livraisons à vos clients.",
 };
 
 export default function MerchantRegistrationPage() {
@@ -12,4 +13,4 @@ export default function MerchantRegistrationPage() {
       <MerchantRegistrationForm />
     </div>
   );
-} 
+}

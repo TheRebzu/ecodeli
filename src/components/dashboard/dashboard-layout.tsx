@@ -25,7 +25,11 @@ export function DashboardLayout({
         </aside>
       )}
       <div className={cn("flex flex-1 flex-col", sidebar ? "lg:pl-64" : "")}>
-        {header && <header className="sticky top-0 z-20 border-b bg-background">{header}</header>}
+        {header && (
+          <header className="sticky top-0 z-20 border-b bg-background">
+            {header}
+          </header>
+        )}
         <main className="flex-1 p-4 md:p-6">{children}</main>
       </div>
     </div>
@@ -46,7 +50,12 @@ export function DashboardHeader({
   className = "",
 }: DashboardHeaderProps) {
   return (
-    <div className={cn("flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between", className)}>
+    <div
+      className={cn(
+        "flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:justify-between",
+        className,
+      )}
+    >
       <div>
         <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
         {description && <p className="text-muted-foreground">{description}</p>}
@@ -89,8 +98,12 @@ export function DashboardSection({
     <section className={cn("space-y-4", className)}>
       {(title || description) && (
         <div className="space-y-1">
-          {title && <h2 className="text-xl font-semibold tracking-tight">{title}</h2>}
-          {description && <p className="text-sm text-muted-foreground">{description}</p>}
+          {title && (
+            <h2 className="text-xl font-semibold tracking-tight">{title}</h2>
+          )}
+          {description && (
+            <p className="text-sm text-muted-foreground">{description}</p>
+          )}
         </div>
       )}
       <div>{children}</div>

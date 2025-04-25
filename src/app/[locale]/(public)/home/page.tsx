@@ -1,22 +1,29 @@
 import Link from "next/link";
-import { 
-  ArrowRight, 
-  BadgeCheck, 
-  Heart, 
-  Leaf, 
-  Package, 
-  PiggyBank, 
-  ShoppingBag, 
-  Truck, 
+import {
+  ArrowRight,
+  BadgeCheck,
+  Heart,
+  Leaf,
+  Package,
+  PiggyBank,
+  ShoppingBag,
+  Truck,
   Users,
   User,
   Sparkles,
   CheckCircle,
-  Clock
+  Clock,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -36,8 +43,11 @@ export default function HomePage() {
                 La livraison <span>collaborative</span> qui change tout
               </h1>
               <div className="text-xl text-muted-foreground max-w-lg mx-auto lg:mx-0">
-                EcoDeli connecte particuliers, commerçants et prestataires pour des livraisons 
-                <span className="mx-1 font-medium text-primary">plus écologiques</span>
+                EcoDeli connecte particuliers, commerçants et prestataires pour
+                des livraisons
+                <span className="mx-1 font-medium text-primary">
+                  plus écologiques
+                </span>
               </div>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                 <Link href="/register">
@@ -47,7 +57,11 @@ export default function HomePage() {
                   </Button>
                 </Link>
                 <Link href="/about">
-                  <Button size="lg" variant="outline" className="w-full sm:w-auto">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="w-full sm:w-auto"
+                  >
                     Découvrir EcoDeli
                   </Button>
                 </Link>
@@ -104,29 +118,36 @@ export default function HomePage() {
               {
                 step: "1",
                 title: "Publiez votre annonce",
-                description: "Décrivez votre besoin de livraison ou le service que vous proposez",
-                icon: Package
+                description:
+                  "Décrivez votre besoin de livraison ou le service que vous proposez",
+                icon: Package,
               },
               {
                 step: "2",
                 title: "Mettez-vous d'accord",
-                description: "Discutez des détails et du prix avec l'autre partie",
-                icon: User
+                description:
+                  "Discutez des détails et du prix avec l'autre partie",
+                icon: User,
               },
               {
                 step: "3",
                 title: "Suivez en temps réel",
-                description: "Suivez le parcours du colis ou du livreur et communiquez si besoin",
-                icon: Clock
+                description:
+                  "Suivez le parcours du colis ou du livreur et communiquez si besoin",
+                icon: Clock,
               },
               {
                 step: "4",
                 title: "Code de confirmation",
-                description: "Un code de confirmation valide la livraison et déclenche le paiement",
-                icon: CheckCircle
-              }
+                description:
+                  "Un code de confirmation valide la livraison et déclenche le paiement",
+                icon: CheckCircle,
+              },
             ].map((step, index) => (
-              <div key={index} className="w-full md:w-1/4 flex flex-col items-center text-center">
+              <div
+                key={index}
+                className="w-full md:w-1/4 flex flex-col items-center text-center"
+              >
                 <div className="mb-6 relative">
                   <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
                     <step.icon className="h-8 w-8 text-primary" />
@@ -139,12 +160,8 @@ export default function HomePage() {
                     </div>
                   )}
                 </div>
-                <h3 className="text-xl font-bold mb-2">
-                  {step.title}
-                </h3>
-                <p className="text-muted-foreground">
-                  {step.description}
-                </p>
+                <h3 className="text-xl font-bold mb-2">{step.title}</h3>
+                <p className="text-muted-foreground">{step.description}</p>
               </div>
             ))}
           </div>
@@ -152,7 +169,8 @@ export default function HomePage() {
           <div className="mt-12 text-center">
             <Link href="/faq">
               <Button variant="link" className="text-lg group">
-                En savoir plus sur le fonctionnement <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+                En savoir plus sur le fonctionnement{" "}
+                <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Button>
             </Link>
           </div>
@@ -177,47 +195,58 @@ export default function HomePage() {
               {
                 icon: PiggyBank,
                 title: "Économique",
-                description: "Réduisez vos coûts de livraison grâce à notre système d'annonces entre particuliers.",
-                color: "text-green-500"
+                description:
+                  "Réduisez vos coûts de livraison grâce à notre système d'annonces entre particuliers.",
+                color: "text-green-500",
               },
               {
                 icon: Leaf,
                 title: "Écologique",
-                description: "Diminuez l'impact environnemental en optimisant les trajets déjà existants.",
-                color: "text-primary"
+                description:
+                  "Diminuez l'impact environnemental en optimisant les trajets déjà existants.",
+                color: "text-primary",
               },
               {
                 icon: Heart,
                 title: "Social",
-                description: "Créez du lien social et luttez contre l'isolement grâce à nos services à la personne.",
-                color: "text-red-500"
+                description:
+                  "Créez du lien social et luttez contre l'isolement grâce à nos services à la personne.",
+                color: "text-red-500",
               },
               {
                 icon: Users,
                 title: "Collaboratif",
-                description: "Participez à l'économie du partage et générez des revenus complémentaires.",
-                color: "text-blue-500"
+                description:
+                  "Participez à l'économie du partage et générez des revenus complémentaires.",
+                color: "text-blue-500",
               },
               {
                 icon: BadgeCheck,
                 title: "Sécurisé",
-                description: "Bénéficiez d'une assurance sur vos colis et d'un système de code de confirmation.",
-                color: "text-amber-500"
+                description:
+                  "Bénéficiez d'une assurance sur vos colis et d'un système de code de confirmation.",
+                color: "text-amber-500",
               },
               {
                 icon: Truck,
                 title: "Flexible",
-                description: "Des solutions adaptées à tous types de services: transport de colis, personnes et plus.",
-                color: "text-purple-500"
+                description:
+                  "Des solutions adaptées à tous types de services: transport de colis, personnes et plus.",
+                color: "text-purple-500",
               },
             ].map((item, index) => (
-              <div key={index} className="flex gap-4 p-4 rounded-lg bg-background shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1">
+              <div
+                key={index}
+                className="flex gap-4 p-4 rounded-lg bg-background shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-1"
+              >
                 <div className={cn("mt-1 text-muted-foreground", item.color)}>
                   <item.icon className="w-6 h-6" />
                 </div>
                 <div>
                   <h3 className="font-medium mb-1">{item.title}</h3>
-                  <p className="text-muted-foreground text-sm">{item.description}</p>
+                  <p className="text-muted-foreground text-sm">
+                    {item.description}
+                  </p>
                 </div>
               </div>
             ))}
@@ -243,25 +272,32 @@ export default function HomePage() {
               {
                 icon: Package,
                 title: "Transport de colis",
-                description: "Livraison de colis de particuliers à particuliers avec prise en charge intégrale ou partielle du trajet."
+                description:
+                  "Livraison de colis de particuliers à particuliers avec prise en charge intégrale ou partielle du trajet.",
               },
               {
                 icon: User,
                 title: "Transport de personnes",
-                description: "Accompagnez des personnes à leurs rendez-vous médicaux, à la gare ou à l'aéroport."
+                description:
+                  "Accompagnez des personnes à leurs rendez-vous médicaux, à la gare ou à l'aéroport.",
               },
               {
                 icon: ShoppingBag,
                 title: "Services de courses",
-                description: "Faites réaliser vos courses selon une liste établie, même pour des produits spécifiques à l'étranger."
+                description:
+                  "Faites réaliser vos courses selon une liste établie, même pour des produits spécifiques à l'étranger.",
               },
               {
                 icon: Heart,
                 title: "Services écologiques",
-                description: "Garde d'animaux, travaux ménagers ou de jardinage et autres services à la personne."
-              }
+                description:
+                  "Garde d'animaux, travaux ménagers ou de jardinage et autres services à la personne.",
+              },
             ].map((service, index) => (
-              <Card key={index} className="bg-background h-full transition-all duration-300 hover:shadow-md">
+              <Card
+                key={index}
+                className="bg-background h-full transition-all duration-300 hover:shadow-md"
+              >
                 <CardHeader className="pb-3">
                   <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center mb-4">
                     <service.icon className="w-6 h-6 text-primary" />
@@ -269,12 +305,13 @@ export default function HomePage() {
                   <CardTitle>{service.title}</CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <p className="text-muted-foreground">
-                    {service.description}
-                  </p>
+                  <p className="text-muted-foreground">{service.description}</p>
                 </CardContent>
                 <CardFooter>
-                  <Link href="/services" className="text-primary hover:underline text-sm inline-flex items-center">
+                  <Link
+                    href="/services"
+                    className="text-primary hover:underline text-sm inline-flex items-center"
+                  >
                     En savoir plus <ArrowRight className="ml-1 h-3 w-3" />
                   </Link>
                 </CardFooter>
@@ -293,7 +330,8 @@ export default function HomePage() {
               Choisissez la formule adaptée à vos besoins
             </h2>
             <p className="text-lg text-muted-foreground">
-              Du compte gratuit à la formule premium, trouvez l'offre qui vous convient
+              Du compte gratuit à la formule premium, trouvez l'offre qui vous
+              convient
             </p>
           </div>
 
@@ -309,10 +347,10 @@ export default function HomePage() {
                   "Messagerie avec les utilisateurs",
                   "Système de paiement sécurisé",
                   "Commission standard sur les transactions",
-                  "Support client par email"
+                  "Support client par email",
                 ],
                 cta: "Commencer gratuitement",
-                popular: false
+                popular: false,
               },
               {
                 title: "Starter",
@@ -325,10 +363,10 @@ export default function HomePage() {
                   "Système de paiement sécurisé",
                   "Commission réduite sur les transactions",
                   "Support client prioritaire",
-                  "Mise en avant des annonces"
+                  "Mise en avant des annonces",
                 ],
                 cta: "Choisir Starter",
-                popular: true
+                popular: true,
               },
               {
                 title: "Premium",
@@ -341,16 +379,19 @@ export default function HomePage() {
                   "Outils d'analyse et de statistiques",
                   "Support client dédié",
                   "Doubles points de fidélité",
-                  "Accès anticipé aux nouvelles fonctionnalités"
+                  "Accès anticipé aux nouvelles fonctionnalités",
                 ],
                 cta: "Choisir Premium",
-                popular: false
-              }
+                popular: false,
+              },
             ].map((plan, index) => (
-              <Card key={index} className={cn(
-                "relative overflow-hidden",
-                plan.popular ? "border-primary shadow-lg" : ""
-              )}>
+              <Card
+                key={index}
+                className={cn(
+                  "relative overflow-hidden",
+                  plan.popular ? "border-primary shadow-lg" : "",
+                )}
+              >
                 {plan.popular && (
                   <div className="absolute top-0 right-0">
                     <div className="bg-primary text-primary-foreground text-xs px-3 py-1 font-medium rotate-[45deg] translate-x-[30%] translate-y-[-10%]">
@@ -364,7 +405,10 @@ export default function HomePage() {
                   </CardTitle>
                   <div className="mt-2">
                     <span className="text-3xl font-bold">{plan.price}</span>
-                    <span className="text-muted-foreground text-sm"> {plan.period}</span>
+                    <span className="text-muted-foreground text-sm">
+                      {" "}
+                      {plan.period}
+                    </span>
                   </div>
                   <CardDescription>{plan.description}</CardDescription>
                 </CardHeader>
@@ -379,7 +423,10 @@ export default function HomePage() {
                   </ul>
                 </CardContent>
                 <CardFooter>
-                  <Button variant={plan.popular ? "default" : "outline"} className="w-full">
+                  <Button
+                    variant={plan.popular ? "default" : "outline"}
+                    className="w-full"
+                  >
                     {plan.cta}
                   </Button>
                 </CardFooter>
@@ -407,20 +454,26 @@ export default function HomePage() {
               {
                 name: "Sophie M.",
                 role: "Utilisatrice",
-                comment: "J'utilise régulièrement EcoDeli pour envoyer des colis à ma famille. C'est économique et je sais que je contribue à réduire l'impact environnemental. Le système de code de confirmation est vraiment sécurisant."
+                comment:
+                  "J'utilise régulièrement EcoDeli pour envoyer des colis à ma famille. C'est économique et je sais que je contribue à réduire l'impact environnemental. Le système de code de confirmation est vraiment sécurisant.",
               },
               {
                 name: "Thomas R.",
                 role: "Livreur",
-                comment: "Je fais des livraisons sur mes trajets quotidiens et ça me permet de gagner un revenu complémentaire tout en rendant service. La plateforme est simple à utiliser et le paiement est rapide."
+                comment:
+                  "Je fais des livraisons sur mes trajets quotidiens et ça me permet de gagner un revenu complémentaire tout en rendant service. La plateforme est simple à utiliser et le paiement est rapide.",
               },
               {
                 name: "Marie L.",
                 role: "Commerçante",
-                comment: "En tant que petite commerçante, EcoDeli m'a permis de proposer un service de livraison à mes clients sans investir dans une flotte de véhicules. Le système de lâcher de chariot est parfait pour mon activité."
-              }
+                comment:
+                  "En tant que petite commerçante, EcoDeli m'a permis de proposer un service de livraison à mes clients sans investir dans une flotte de véhicules. Le système de lâcher de chariot est parfait pour mon activité.",
+              },
             ].map((testimonial, index) => (
-              <Card key={index} className="bg-background h-full transition-all duration-300 hover:shadow-md">
+              <Card
+                key={index}
+                className="bg-background h-full transition-all duration-300 hover:shadow-md"
+              >
                 <CardContent className="pt-6">
                   <div className="flex items-center mb-4">
                     <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mr-3">
@@ -428,10 +481,14 @@ export default function HomePage() {
                     </div>
                     <div>
                       <p className="font-medium">{testimonial.name}</p>
-                      <p className="text-sm text-muted-foreground">{testimonial.role}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {testimonial.role}
+                      </p>
                     </div>
                   </div>
-                  <p className="text-muted-foreground">"{testimonial.comment}"</p>
+                  <p className="text-muted-foreground">
+                    "{testimonial.comment}"
+                  </p>
                 </CardContent>
               </Card>
             ))}
@@ -449,7 +506,8 @@ export default function HomePage() {
                 Prêt à rejoindre la révolution du crowdshipping ?
               </h2>
               <p className="text-lg text-muted-foreground max-w-2xl">
-                Inscrivez-vous gratuitement et commencez à utiliser notre plateforme de livraison collaborative, économique et écologique.
+                Inscrivez-vous gratuitement et commencez à utiliser notre
+                plateforme de livraison collaborative, économique et écologique.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Link href="/register">
@@ -459,7 +517,11 @@ export default function HomePage() {
                   </Button>
                 </Link>
                 <Link href="/become-delivery">
-                  <Button size="lg" variant="outline" className="w-full sm:w-auto">
+                  <Button
+                    size="lg"
+                    variant="outline"
+                    className="w-full sm:w-auto"
+                  >
                     Devenir livreur
                   </Button>
                 </Link>
@@ -470,4 +532,4 @@ export default function HomePage() {
       </section>
     </div>
   );
-} 
+}

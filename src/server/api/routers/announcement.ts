@@ -1,13 +1,17 @@
 import { z } from "zod";
-import { createTRPCRouter, protectedProcedure, publicProcedure } from "@/server/api/trpc";
+import {
+  createTRPCRouter,
+  protectedProcedure,
+  publicProcedure,
+} from "@/server/api/trpc";
 import { TRPCError } from "@trpc/server";
-import { 
-  AnnouncementStatus, 
-  ApplicationStatus, 
-  LocationType, 
-  PackageSize, 
-  PaymentStatus, 
-  Prisma 
+import {
+  AnnouncementStatus,
+  ApplicationStatus,
+  LocationType,
+  PackageSize,
+  PaymentStatus,
+  Prisma,
 } from "@prisma/client";
 
 export const announcementRouter = createTRPCRouter({
@@ -29,7 +33,7 @@ export const announcementRouter = createTRPCRouter({
         pickupLongitude: z.number().optional(),
         deliveryLatitude: z.number().optional(),
         deliveryLongitude: z.number().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Vérifier que l'utilisateur a le rôle CLIENT
@@ -116,7 +120,7 @@ export const announcementRouter = createTRPCRouter({
         pickupLongitude: z.number().optional(),
         deliveryLatitude: z.number().optional(),
         deliveryLongitude: z.number().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Récupérer l'annonce
@@ -132,7 +136,10 @@ export const announcementRouter = createTRPCRouter({
       }
 
       // Vérifier que l'utilisateur est le propriétaire de l'annonce ou un admin
-      if (announcement.clientId !== ctx.session.user.id && ctx.session.user.role !== "ADMIN") {
+      if (
+        announcement.clientId !== ctx.session.user.id &&
+        ctx.session.user.role !== "ADMIN"
+      ) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à modifier cette annonce",
@@ -227,7 +234,10 @@ export const announcementRouter = createTRPCRouter({
       }
 
       // Vérifier que l'utilisateur est le propriétaire de l'annonce ou un admin
-      if (announcement.clientId !== ctx.session.user.id && ctx.session.user.role !== "ADMIN") {
+      if (
+        announcement.clientId !== ctx.session.user.id &&
+        ctx.session.user.role !== "ADMIN"
+      ) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à supprimer cette annonce",
@@ -331,7 +341,7 @@ export const announcementRouter = createTRPCRouter({
         maxDistance: z.number().optional(), // en kilomètres
         limit: z.number().min(1).max(100).default(10),
         cursor: z.string().nullish(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       // Construire les filtres
@@ -349,8 +359,15 @@ export const announcementRouter = createTRPCRouter({
         filters.OR = [
           { title: { contains: input.searchTerm, mode: "insensitive" } },
           { description: { contains: input.searchTerm, mode: "insensitive" } },
-          { pickupAddress: { contains: input.searchTerm, mode: "insensitive" } },
-          { deliveryAddress: { contains: input.searchTerm, mode: "insensitive" } },
+          {
+            pickupAddress: { contains: input.searchTerm, mode: "insensitive" },
+          },
+          {
+            deliveryAddress: {
+              contains: input.searchTerm,
+              mode: "insensitive",
+            },
+          },
         ];
       }
 
@@ -385,7 +402,7 @@ export const announcementRouter = createTRPCRouter({
         filteredAnnouncements = announcements.filter((announcement) => {
           // Chercher les coordonnées de ramassage
           const pickupLocation = announcement.locations.find(
-            (loc) => loc.locationType === LocationType.PICKUP
+            (loc) => loc.locationType === LocationType.PICKUP,
           );
 
           if (!pickupLocation) return false;
@@ -395,7 +412,7 @@ export const announcementRouter = createTRPCRouter({
             input.latitude!,
             input.longitude!,
             pickupLocation.latitude,
-            pickupLocation.longitude
+            pickupLocation.longitude,
           );
 
           return distance <= input.maxDistance!;
@@ -415,7 +432,7 @@ export const announcementRouter = createTRPCRouter({
         status: z.nativeEnum(AnnouncementStatus).optional(),
         limit: z.number().min(1).max(100).default(10),
         cursor: z.string().nullish(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       const announcements = await ctx.db.announcement.findMany({
@@ -469,11 +486,14 @@ export const announcementRouter = createTRPCRouter({
         status: z.nativeEnum(AnnouncementStatus).optional(),
         limit: z.number().min(1).max(100).default(10),
         cursor: z.string().nullish(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       // Vérifier que l'utilisateur a le rôle DELIVERER
-      if (ctx.session.user.role !== "DELIVERER" && ctx.session.user.role !== "ADMIN") {
+      if (
+        ctx.session.user.role !== "DELIVERER" &&
+        ctx.session.user.role !== "ADMIN"
+      ) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à accéder à ces annonces",
@@ -518,7 +538,7 @@ export const announcementRouter = createTRPCRouter({
       z.object({
         id: z.string(),
         status: z.nativeEnum(AnnouncementStatus),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Récupérer l'annonce
@@ -536,30 +556,50 @@ export const announcementRouter = createTRPCRouter({
       // Vérifier les autorisations selon le statut demandé
       if (input.status === AnnouncementStatus.CANCELLED) {
         // Seul le client ou un admin peut annuler
-        if (announcement.clientId !== ctx.session.user.id && ctx.session.user.role !== "ADMIN") {
+        if (
+          announcement.clientId !== ctx.session.user.id &&
+          ctx.session.user.role !== "ADMIN"
+        ) {
           throw new TRPCError({
             code: "FORBIDDEN",
             message: "Vous n'êtes pas autorisé à annuler cette annonce",
           });
         }
-      } else if (input.status === AnnouncementStatus.IN_TRANSIT || input.status === AnnouncementStatus.DELIVERED) {
+      } else if (
+        input.status === AnnouncementStatus.IN_TRANSIT ||
+        input.status === AnnouncementStatus.DELIVERED
+      ) {
         // Seul le livreur assigné ou un admin peut mettre à jour ces statuts
-        if (announcement.delivererId !== ctx.session.user.id && ctx.session.user.role !== "ADMIN") {
+        if (
+          announcement.delivererId !== ctx.session.user.id &&
+          ctx.session.user.role !== "ADMIN"
+        ) {
           throw new TRPCError({
             code: "FORBIDDEN",
-            message: "Vous n'êtes pas autorisé à mettre à jour le statut de cette annonce",
+            message:
+              "Vous n'êtes pas autorisé à mettre à jour le statut de cette annonce",
           });
         }
       }
 
       // Vérifier les transitions de statut valides
-      const validTransitions: Record<AnnouncementStatus, AnnouncementStatus[]> = {
-        [AnnouncementStatus.OPEN]: [AnnouncementStatus.ASSIGNED, AnnouncementStatus.CANCELLED],
-        [AnnouncementStatus.ASSIGNED]: [AnnouncementStatus.IN_TRANSIT, AnnouncementStatus.CANCELLED],
-        [AnnouncementStatus.IN_TRANSIT]: [AnnouncementStatus.DELIVERED, AnnouncementStatus.CANCELLED],
-        [AnnouncementStatus.DELIVERED]: [],
-        [AnnouncementStatus.CANCELLED]: [],
-      };
+      const validTransitions: Record<AnnouncementStatus, AnnouncementStatus[]> =
+        {
+          [AnnouncementStatus.OPEN]: [
+            AnnouncementStatus.ASSIGNED,
+            AnnouncementStatus.CANCELLED,
+          ],
+          [AnnouncementStatus.ASSIGNED]: [
+            AnnouncementStatus.IN_TRANSIT,
+            AnnouncementStatus.CANCELLED,
+          ],
+          [AnnouncementStatus.IN_TRANSIT]: [
+            AnnouncementStatus.DELIVERED,
+            AnnouncementStatus.CANCELLED,
+          ],
+          [AnnouncementStatus.DELIVERED]: [],
+          [AnnouncementStatus.CANCELLED]: [],
+        };
 
       if (!validTransitions[announcement.status].includes(input.status)) {
         throw new TRPCError({
@@ -584,7 +624,7 @@ export const announcementRouter = createTRPCRouter({
         announcementId: z.string(),
         message: z.string().optional(),
         price: z.number().positive().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Vérifier que l'utilisateur a le rôle DELIVERER
@@ -616,14 +656,15 @@ export const announcementRouter = createTRPCRouter({
       }
 
       // Vérifier que le livreur n'a pas déjà postulé
-      const existingApplication = await ctx.db.announcementApplication.findUnique({
-        where: {
-          announcementId_delivererId: {
-            announcementId: input.announcementId,
-            delivererId: ctx.session.user.id,
+      const existingApplication =
+        await ctx.db.announcementApplication.findUnique({
+          where: {
+            announcementId_delivererId: {
+              announcementId: input.announcementId,
+              delivererId: ctx.session.user.id,
+            },
           },
-        },
-      });
+        });
 
       if (existingApplication) {
         throw new TRPCError({
@@ -659,7 +700,7 @@ export const announcementRouter = createTRPCRouter({
     .input(
       z.object({
         applicationId: z.string(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Récupérer la candidature
@@ -678,7 +719,10 @@ export const announcementRouter = createTRPCRouter({
       }
 
       // Vérifier que l'utilisateur est le propriétaire de l'annonce
-      if (application.announcement.clientId !== ctx.session.user.id && ctx.session.user.role !== "ADMIN") {
+      if (
+        application.announcement.clientId !== ctx.session.user.id &&
+        ctx.session.user.role !== "ADMIN"
+      ) {
         throw new TRPCError({
           code: "FORBIDDEN",
           message: "Vous n'êtes pas autorisé à accepter cette candidature",
@@ -700,7 +744,7 @@ export const announcementRouter = createTRPCRouter({
           where: { id: input.applicationId },
           data: { status: ApplicationStatus.ACCEPTED },
         }),
-        
+
         // Mettre à jour l'annonce
         ctx.db.announcement.update({
           where: { id: application.announcementId },
@@ -710,7 +754,7 @@ export const announcementRouter = createTRPCRouter({
             price: application.price, // Utiliser le prix proposé par le livreur
           },
         }),
-        
+
         // Rejeter toutes les autres candidatures
         ctx.db.announcementApplication.updateMany({
           where: {
@@ -732,7 +776,7 @@ export const announcementRouter = createTRPCRouter({
         targetId: z.string(),
         rating: z.number().min(1).max(5),
         comment: z.string().optional(),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Récupérer l'annonce
@@ -757,9 +801,15 @@ export const announcementRouter = createTRPCRouter({
 
       // Déterminer le type d'évaluation
       let reviewType;
-      if (ctx.session.user.id === announcement.clientId && input.targetId === announcement.delivererId) {
+      if (
+        ctx.session.user.id === announcement.clientId &&
+        input.targetId === announcement.delivererId
+      ) {
         reviewType = "CLIENT_TO_DELIVERER";
-      } else if (ctx.session.user.id === announcement.delivererId && input.targetId === announcement.clientId) {
+      } else if (
+        ctx.session.user.id === announcement.delivererId &&
+        input.targetId === announcement.clientId
+      ) {
         reviewType = "DELIVERER_TO_CLIENT";
       } else {
         throw new TRPCError({
@@ -818,7 +868,7 @@ export const announcementRouter = createTRPCRouter({
         announcementId: z.string(),
         receiverId: z.string(),
         content: z.string().min(1),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Récupérer l'annonce
@@ -841,7 +891,8 @@ export const announcementRouter = createTRPCRouter({
       if (!isClient && !isDeliverer && !isAdmin) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Vous n'êtes pas autorisé à envoyer des messages pour cette annonce",
+          message:
+            "Vous n'êtes pas autorisé à envoyer des messages pour cette annonce",
         });
       }
 
@@ -888,7 +939,7 @@ export const announcementRouter = createTRPCRouter({
         announcementId: z.string(),
         limit: z.number().min(1).max(100).default(50),
         cursor: z.string().nullish(),
-      })
+      }),
     )
     .query(async ({ ctx, input }) => {
       // Récupérer l'annonce
@@ -911,7 +962,8 @@ export const announcementRouter = createTRPCRouter({
       if (!isClient && !isDeliverer && !isAdmin) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Vous n'êtes pas autorisé à voir les messages de cette annonce",
+          message:
+            "Vous n'êtes pas autorisé à voir les messages de cette annonce",
         });
       }
 
@@ -977,7 +1029,7 @@ export const announcementRouter = createTRPCRouter({
         announcementId: z.string(),
         defenderId: z.string(),
         reason: z.string().min(10),
-      })
+      }),
     )
     .mutation(async ({ ctx, input }) => {
       // Récupérer l'annonce
@@ -999,7 +1051,8 @@ export const announcementRouter = createTRPCRouter({
       if (!isClient && !isDeliverer) {
         throw new TRPCError({
           code: "FORBIDDEN",
-          message: "Vous n'êtes pas autorisé à créer un litige pour cette annonce",
+          message:
+            "Vous n'êtes pas autorisé à créer un litige pour cette annonce",
         });
       }
 
@@ -1050,14 +1103,21 @@ export const announcementRouter = createTRPCRouter({
 });
 
 // Fonction utilitaire pour calculer la distance entre deux points géographiques
-function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+function calculateDistance(
+  lat1: number,
+  lon1: number,
+  lat2: number,
+  lon2: number,
+): number {
   const R = 6371; // Rayon de la Terre en km
-  const dLat = (lat2 - lat1) * Math.PI / 180;
-  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLon = ((lon2 - lon1) * Math.PI) / 180;
   const a =
     Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const distance = R * c; // Distance en km
   return distance;

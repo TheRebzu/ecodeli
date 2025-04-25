@@ -41,26 +41,31 @@ Les API sont essentielles pour la communication entre le frontend et le backend.
 Chaque type d'utilisateur a besoin d'un tableau de bord spécifique.
 
 ### Espace Client
+
 - Créer le tableau de bord client
 - Développer l'interface de création d'annonces
 - Implémenter le suivi des livraisons et services
 
 ### Espace Livreur
+
 - Créer le tableau de bord livreur
 - Développer l'interface de recherche d'annonces
 - Implémenter la gestion des livraisons
 
 ### Espace Commerçant
+
 - Créer le tableau de bord commerçant
 - Développer l'interface de gestion des contrats
 - Implémenter la création d'annonces commerciales
 
 ### Espace Prestataire
+
 - Créer le tableau de bord prestataire
 - Développer l'interface de gestion des services
 - Implémenter le planning et les disponibilités
 
 ### Espace Administrateur
+
 - Créer le tableau de bord administrateur
 - Développer l'interface de gestion des utilisateurs
 - Implémenter la validation des documents

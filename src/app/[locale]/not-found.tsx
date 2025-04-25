@@ -9,14 +9,14 @@ export default function NotFound() {
         <div className="rounded-full bg-secondary p-5">
           <span className="text-5xl">🚚</span>
         </div>
-        
+
         <h1 className="text-4xl font-bold tracking-tight">Page introuvable</h1>
-        
+
         <p className="text-lg text-muted-foreground">
           Désolé, nous n&apos;avons pas pu trouver la page que vous recherchez.
           Elle a peut-être été déplacée ou supprimée.
         </p>
-        
+
         <div className="flex flex-col gap-3 sm:flex-row">
           <Button asChild>
             <Link href="/home">
@@ -24,11 +24,9 @@ export default function NotFound() {
               Retour à l&apos;accueil
             </Link>
           </Button>
-          
+
           <Button variant="outline" asChild>
-            <Link href="/contact">
-              Contactez-nous
-            </Link>
+            <Link href="/contact">Contactez-nous</Link>
           </Button>
         </div>
       </div>

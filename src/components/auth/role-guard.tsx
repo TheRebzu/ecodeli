@@ -13,23 +13,25 @@ interface RoleGuardProps {
 
 /**
  * Composant de garde pour protéger les routes en fonction du rôle de l'utilisateur
- * 
+ *
  * @param children Contenu à afficher si l'utilisateur a le rôle requis
  * @param allowedRoles Tableau des rôles autorisés à accéder au contenu
  * @param redirectTo Chemin de redirection si l'utilisateur n'a pas le rôle requis (par défaut: /login)
  */
-export function RoleGuard({ 
-  children, 
-  allowedRoles, 
-  redirectTo = "/login" 
+export function RoleGuard({
+  children,
+  allowedRoles,
+  redirectTo = "/login",
 }: RoleGuardProps) {
   const { data: session, status } = useSession();
-  
+
   // Si l'utilisateur n'est pas connecté, rediriger vers la page de connexion
   if (status === "unauthenticated") {
-    redirect(`${redirectTo}?callbackUrl=${encodeURIComponent(window.location.href)}`);
+    redirect(
+      `${redirectTo}?callbackUrl=${encodeURIComponent(window.location.href)}`,
+    );
   }
-  
+
   // Si la session est en cours de chargement, afficher un indicateur de chargement
   if (status === "loading") {
     return (
@@ -38,10 +40,10 @@ export function RoleGuard({
       </div>
     );
   }
-  
+
   // Vérifier si l'utilisateur a un rôle autorisé
   const userRole = session?.user?.role;
-  
+
   if (!userRole || !allowedRoles.includes(userRole as UserRole)) {
     // Rediriger vers le tableau de bord approprié en fonction du rôle de l'utilisateur
     const dashboardPaths: Record<UserRole, string> = {
@@ -51,10 +53,10 @@ export function RoleGuard({
       PROVIDER: "/provider/dashboard",
       ADMIN: "/admin/dashboard",
     };
-    
+
     redirect(userRole ? dashboardPaths[userRole as UserRole] : redirectTo);
   }
-  
+
   // L'utilisateur a un rôle autorisé, afficher le contenu
   return <>{children}</>;
 }

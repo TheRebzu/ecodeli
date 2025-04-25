@@ -16,28 +16,32 @@ const roleOptions: RoleOption[] = [
   {
     id: "client",
     title: "Client",
-    description: "Déposez des annonces pour envoyer des colis et réservez des services à la personne",
+    description:
+      "Déposez des annonces pour envoyer des colis et réservez des services à la personne",
     icon: "/images/roles/client.svg",
     path: "/register/client",
   },
   {
     id: "deliverer",
     title: "Livreur",
-    description: "Devenez livreur freelance et gagnez de l'argent en livrant des colis de particuliers",
+    description:
+      "Devenez livreur freelance et gagnez de l'argent en livrant des colis de particuliers",
     icon: "/images/roles/deliverer.svg",
     path: "/register/deliverer",
   },
   {
     id: "merchant",
     title: "Commerçant",
-    description: "Inscrivez votre commerce et proposez des livraisons à vos clients via notre plateforme",
+    description:
+      "Inscrivez votre commerce et proposez des livraisons à vos clients via notre plateforme",
     icon: "/images/roles/merchant.svg",
     path: "/register/merchant",
   },
   {
     id: "provider",
     title: "Prestataire de services",
-    description: "Proposez vos services à la personne et développez votre clientèle",
+    description:
+      "Proposez vos services à la personne et développez votre clientèle",
     icon: "/images/roles/provider.svg",
     path: "/register/provider",
   },
@@ -53,8 +57,10 @@ export function RoleSelector() {
 
   const handleContinue = () => {
     if (!selectedRole) return;
-    
-    const selectedOption = roleOptions.find(option => option.id === selectedRole);
+
+    const selectedOption = roleOptions.find(
+      (option) => option.id === selectedRole,
+    );
     if (selectedOption) {
       router.push(selectedOption.path);
     }
@@ -74,8 +80,8 @@ export function RoleSelector() {
           <div
             key={role.id}
             className={`border rounded-lg p-6 cursor-pointer transition-all ${
-              selectedRole === role.id 
-                ? "border-primary bg-primary/5 ring-2 ring-primary" 
+              selectedRole === role.id
+                ? "border-primary bg-primary/5 ring-2 ring-primary"
                 : "border-border hover:border-primary/50"
             }`}
             onClick={() => handleRoleSelection(role.id)}
@@ -120,4 +126,4 @@ export function RoleSelector() {
   );
 }
 
-export default RoleSelector; 
+export default RoleSelector;

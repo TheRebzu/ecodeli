@@ -41,7 +41,9 @@ export function useAuth(options: UseAuthOptions = {}) {
       user.role !== options.requiredRole &&
       user.role !== "ADMIN" // Always allow ADMIN to access any role-protected page
     ) {
-      setError("Vous n'avez pas les permissions nécessaires pour accéder à cette page");
+      setError(
+        "Vous n'avez pas les permissions nécessaires pour accéder à cette page",
+      );
       router.push(options.redirectTo || "/dashboard");
       return;
     }
@@ -64,11 +66,11 @@ export function useAuth(options: UseAuthOptions = {}) {
   const login = async (
     email: string,
     password: string,
-    callbackUrl?: string
+    callbackUrl?: string,
   ) => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       const result = await signIn("credentials", {
         redirect: false,
@@ -84,7 +86,7 @@ export function useAuth(options: UseAuthOptions = {}) {
       if (callbackUrl) {
         router.push(callbackUrl);
       }
-      
+
       return true;
     } catch (_err) {
       setError("Une erreur s'est produite lors de la connexion");
@@ -98,12 +100,12 @@ export function useAuth(options: UseAuthOptions = {}) {
   const socialLogin = async (provider: string, callbackUrl?: string) => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       await signIn(provider, {
         callbackUrl: callbackUrl || "/dashboard",
       });
-      
+
       return true;
     } catch (_err) {
       setError("Une erreur s'est produite lors de la connexion");
@@ -114,12 +116,12 @@ export function useAuth(options: UseAuthOptions = {}) {
   // Function to handle logout
   const logout = async (callbackUrl?: string) => {
     setIsLoading(true);
-    
+
     try {
       await signOut({
         redirect: false,
       });
-      
+
       router.push(callbackUrl || "/");
     } catch (_err) {
       setError("Une erreur s'est produite lors de la déconnexion");
@@ -137,4 +139,4 @@ export function useAuth(options: UseAuthOptions = {}) {
     socialLogin,
     logout,
   };
-} 
+}

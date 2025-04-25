@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Container } from "@/components/ui/container";
 import { useTranslations } from "next-intl";
@@ -15,7 +21,7 @@ export default function VerifyEmailPage() {
   const token = searchParams.get("token");
   const email = searchParams.get("email");
   const t = useTranslations("auth");
-  
+
   const [isVerifying, setIsVerifying] = useState(false);
   const [verificationStatus, setVerificationStatus] = useState<{
     success: boolean;
@@ -29,7 +35,7 @@ export default function VerifyEmailPage() {
         success: true,
         message: t("verifyEmail.success"),
       });
-      
+
       // Redirection vers la page de connexion après 3 secondes
       setTimeout(() => {
         router.push("/login");
@@ -41,7 +47,7 @@ export default function VerifyEmailPage() {
         message: error.message || t("verifyEmail.error"),
       });
       setIsVerifying(false);
-    }
+    },
   });
 
   useEffect(() => {
@@ -57,10 +63,12 @@ export default function VerifyEmailPage() {
       <div className="max-w-md mx-auto">
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl font-bold text-center">{t("verifyEmail.title")}</CardTitle>
+            <CardTitle className="text-2xl font-bold text-center">
+              {t("verifyEmail.title")}
+            </CardTitle>
             <CardDescription className="text-center">
-              {email 
-                ? t("verifyEmail.emailSent", { email }) 
+              {email
+                ? t("verifyEmail.emailSent", { email })
                 : t("verifyEmail.checkEmail")}
             </CardDescription>
           </CardHeader>
@@ -68,11 +76,15 @@ export default function VerifyEmailPage() {
             {isVerifying ? (
               <p className="text-center">{t("verifyEmail.verifying")}</p>
             ) : verificationStatus ? (
-              <Alert variant={verificationStatus.success ? "default" : "destructive"}>
-                <AlertDescription>{verificationStatus.message}</AlertDescription>
+              <Alert
+                variant={verificationStatus.success ? "default" : "destructive"}
+              >
+                <AlertDescription>
+                  {verificationStatus.message}
+                </AlertDescription>
                 {verificationStatus.success && (
-                  <Button 
-                    className="mt-4 w-full" 
+                  <Button
+                    className="mt-4 w-full"
                     onClick={() => router.push("/login")}
                   >
                     {t("login.title")}

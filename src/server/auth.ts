@@ -1,20 +1,20 @@
-import { PrismaAdapter } from '@auth/prisma-adapter';
-import { type GetServerSidePropsContext } from 'next';
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import { type GetServerSidePropsContext } from "next";
 import {
   getServerSession,
   type NextAuthOptions,
   type DefaultSession,
-} from 'next-auth';
-import CredentialsProvider from 'next-auth/providers/credentials';
-import { prisma } from './db';
-import { verify } from '@/lib/auth/password';
+} from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
+import { prisma } from "./db";
+import { verify } from "@/lib/auth/password";
 
-declare module 'next-auth' {
+declare module "next-auth" {
   interface Session extends DefaultSession {
     user: {
       id: string;
       role: string;
-    } & DefaultSession['user'];
+    } & DefaultSession["user"];
   }
 
   interface User {
@@ -37,10 +37,10 @@ export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(prisma),
   providers: [
     CredentialsProvider({
-      name: 'credentials',
+      name: "credentials",
       credentials: {
-        email: { label: 'Email', type: 'email' },
-        password: { label: 'Password', type: 'password' },
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
@@ -71,19 +71,19 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   pages: {
-    signIn: '/login',
-    error: '/login',
+    signIn: "/login",
+    error: "/login",
   },
-  debug: process.env.NODE_ENV === 'development',
+  debug: process.env.NODE_ENV === "development",
   session: {
-    strategy: 'jwt',
+    strategy: "jwt",
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
 
 export const getServerAuthSession = (ctx: {
-  req: GetServerSidePropsContext['req'];
-  res: GetServerSidePropsContext['res'];
+  req: GetServerSidePropsContext["req"];
+  res: GetServerSidePropsContext["res"];
 }) => {
   return getServerSession(ctx.req, ctx.res, authOptions);
 };

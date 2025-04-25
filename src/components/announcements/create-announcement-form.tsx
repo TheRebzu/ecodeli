@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -33,11 +35,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 
 const formSchema = z.object({
-  title: z.string().min(5, {
-    message: "Le titre doit contenir au moins 5 caractères",
-  }).max(100, {
-    message: "Le titre ne doit pas dépasser 100 caractères",
-  }),
+  title: z
+    .string()
+    .min(5, {
+      message: "Le titre doit contenir au moins 5 caractères",
+    })
+    .max(100, {
+      message: "Le titre ne doit pas dépasser 100 caractères",
+    }),
   description: z.string().min(10, {
     message: "La description doit contenir au moins 10 caractères",
   }),
@@ -56,11 +61,13 @@ const formSchema = z.object({
   packageValue: z.coerce.number().nonnegative({
     message: "La valeur doit être un nombre positif ou zéro",
   }),
-  deadline: z.date({
-    required_error: "Veuillez sélectionner une date limite",
-  }).min(new Date(), {
-    message: "La date limite doit être dans le futur",
-  }),
+  deadline: z
+    .date({
+      required_error: "Veuillez sélectionner une date limite",
+    })
+    .min(new Date(), {
+      message: "La date limite doit être dans le futur",
+    }),
   price: z.coerce.number().positive({
     message: "Le prix doit être un nombre positif",
   }),
@@ -131,10 +138,10 @@ export function CreateAnnouncementForm() {
                 <FormItem>
                   <FormLabel>{t("description")}</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder={t("descriptionPlaceholder")} 
+                    <Textarea
+                      placeholder={t("descriptionPlaceholder")}
                       className="min-h-32"
-                      {...field} 
+                      {...field}
                     />
                   </FormControl>
                   <FormMessage />
@@ -179,8 +186,8 @@ export function CreateAnnouncementForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{t("packageSize")}</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
+                    <Select
+                      onValueChange={field.onChange}
                       defaultValue={field.value}
                     >
                       <FormControl>
@@ -190,9 +197,13 @@ export function CreateAnnouncementForm() {
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="SMALL">{t("sizeSmall")}</SelectItem>
-                        <SelectItem value="MEDIUM">{t("sizeMedium")}</SelectItem>
+                        <SelectItem value="MEDIUM">
+                          {t("sizeMedium")}
+                        </SelectItem>
                         <SelectItem value="LARGE">{t("sizeLarge")}</SelectItem>
-                        <SelectItem value="EXTRA_LARGE">{t("sizeExtraLarge")}</SelectItem>
+                        <SelectItem value="EXTRA_LARGE">
+                          {t("sizeExtraLarge")}
+                        </SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -207,12 +218,12 @@ export function CreateAnnouncementForm() {
                   <FormItem>
                     <FormLabel>{t("packageWeight")} (kg)</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
+                      <Input
+                        type="number"
                         step="0.1"
                         min="0"
-                        placeholder="0.0" 
-                        {...field} 
+                        placeholder="0.0"
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
@@ -227,12 +238,12 @@ export function CreateAnnouncementForm() {
                   <FormItem>
                     <FormLabel>{t("packageValue")} (€)</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
+                      <Input
+                        type="number"
                         step="0.01"
                         min="0"
-                        placeholder="0.00" 
-                        {...field} 
+                        placeholder="0.00"
+                        {...field}
                       />
                     </FormControl>
                     <FormMessage />
@@ -265,17 +276,15 @@ export function CreateAnnouncementForm() {
                   <FormItem>
                     <FormLabel>{t("price")} (€)</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
+                      <Input
+                        type="number"
                         step="0.01"
                         min="0"
-                        placeholder="0.00" 
-                        {...field} 
+                        placeholder="0.00"
+                        {...field}
                       />
                     </FormControl>
-                    <FormDescription>
-                      {t("priceDescription")}
-                    </FormDescription>
+                    <FormDescription>{t("priceDescription")}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -294,9 +303,7 @@ export function CreateAnnouncementForm() {
                     />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>
-                      {t("requiresInsurance")}
-                    </FormLabel>
+                    <FormLabel>{t("requiresInsurance")}</FormLabel>
                     <FormDescription>
                       {t("insuranceDescription")}
                     </FormDescription>
@@ -305,12 +312,10 @@ export function CreateAnnouncementForm() {
               )}
             />
 
-            <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={isSubmitting}
-            >
-              {isSubmitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
               {t("createButton")}
             </Button>
           </form>

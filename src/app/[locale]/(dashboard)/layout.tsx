@@ -3,15 +3,15 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { 
-  LayoutDashboard, 
-  Package, 
-  Users, 
-  ShoppingBag, 
-  Settings, 
+import {
+  LayoutDashboard,
+  Package,
+  Users,
+  ShoppingBag,
+  Settings,
   LogOut,
   Menu,
-  X
+  X,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -19,13 +19,13 @@ import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuLabel, 
-  DropdownMenuSeparator, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
 const navItems = [
@@ -93,7 +93,7 @@ export default function DashboardLayout({
                       "flex items-center gap-3 rounded-lg px-3 py-2 transition-colors",
                       pathname === item.href
                         ? "bg-primary text-primary-foreground"
-                        : "hover:bg-muted"
+                        : "hover:bg-muted",
                     )}
                   >
                     <item.icon className="h-5 w-5" />
@@ -104,7 +104,10 @@ export default function DashboardLayout({
             </nav>
           </SheetContent>
         </Sheet>
-        <Link href="/" className="hidden items-center gap-2 font-semibold lg:flex">
+        <Link
+          href="/"
+          className="hidden items-center gap-2 font-semibold lg:flex"
+        >
           <Package className="h-6 w-6" />
           <span>EcoDeli</span>
         </Link>
@@ -117,7 +120,7 @@ export default function DashboardLayout({
                 "flex items-center gap-3 rounded-lg px-3 py-2 transition-colors",
                 pathname === item.href
                   ? "bg-primary/10 text-primary"
-                  : "hover:bg-muted"
+                  : "hover:bg-muted",
               )}
             >
               <item.icon className="h-5 w-5" />
@@ -153,11 +156,9 @@ export default function DashboardLayout({
           </DropdownMenu>
         </div>
       </header>
-      
+
       {/* Main content */}
-      <main className="flex-1 overflow-auto p-6">
-        {children}
-      </main>
+      <main className="flex-1 overflow-auto p-6">{children}</main>
     </div>
   );
-} 
+}

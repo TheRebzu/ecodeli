@@ -99,13 +99,13 @@ sequenceDiagram
     N->>L: Notifie les livreurs à proximité
     A->>F: Confirme la création de l'annonce
     F->>C: Affiche la confirmation
-    
+
     L->>F: Consulte les annonces disponibles
     F->>A: Demande les annonces
     A->>DB: Récupère les annonces
     A->>F: Retourne les annonces
     F->>L: Affiche les annonces
-    
+
     L->>F: Propose ses services pour une annonce
     F->>A: Envoie la proposition
     A->>DB: Enregistre la proposition
@@ -151,19 +151,19 @@ sequenceDiagram
     N->>L: Notifie le livreur
     A->>F: Confirme la sélection
     F->>C: Affiche la confirmation
-    
+
     L->>F: Met à jour le statut (en route)
     F->>A: Envoie la mise à jour
     A->>DB: Met à jour le statut
     A->>N: Déclenche une notification
     N->>C: Notifie le client/commerçant
-    
+
     L->>F: Met à jour le statut (livré)
     F->>A: Envoie la mise à jour
     A->>DB: Met à jour le statut
     A->>N: Déclenche une notification
     N->>C: Notifie le client/commerçant
-    
+
     C->>F: Confirme la réception
     F->>A: Envoie la confirmation
     A->>DB: Finalise la livraison
@@ -208,7 +208,7 @@ sequenceDiagram
     N->>P: Notifie les prestataires disponibles
     A->>F: Confirme l'enregistrement
     F->>C: Affiche la confirmation
-    
+
     P->>F: Accepte la demande
     F->>A: Envoie l'acceptation
     A->>DB: Met à jour la demande
@@ -216,7 +216,7 @@ sequenceDiagram
     N->>C: Notifie le client
     A->>F: Confirme l'acceptation
     F->>P: Affiche la confirmation
-    
+
     C->>F: Effectue le paiement
     F->>A: Envoie les données de paiement
     A->>S: Pré-autorise le paiement
@@ -224,13 +224,13 @@ sequenceDiagram
     A->>DB: Enregistre le paiement
     A->>F: Confirme le paiement
     F->>C: Affiche la confirmation
-    
+
     P->>F: Marque le service comme terminé
     F->>A: Envoie la mise à jour
     A->>DB: Met à jour le statut
     A->>N: Déclenche une notification
     N->>C: Notifie le client
-    
+
     C->>F: Confirme la réalisation
     F->>A: Envoie la confirmation
     A->>DB: Finalise le service
@@ -274,13 +274,13 @@ sequenceDiagram
     A->>DB: Réserve une box
     A->>F: Confirme la réservation
     F->>L: Affiche la confirmation
-    
+
     L->>F: Dépose le colis dans la box
     F->>A: Envoie la mise à jour
     A->>DB: Met à jour le statut
     A->>N: Déclenche une notification
     N->>C: Notifie le client
-    
+
     L->>F: Récupère le colis de la box
     F->>A: Envoie la mise à jour
     A->>DB: Met à jour le statut
@@ -315,13 +315,13 @@ sequenceDiagram
     API->>DB: Récupère les données
     API->>F: Retourne les données
     F->>A: Affiche le tableau de bord
-    
+
     A->>F: Vérifie les documents d'un livreur
     F->>API: Demande les documents
     API->>DB: Récupère les documents
     API->>F: Retourne les documents
     F->>A: Affiche les documents
-    
+
     A->>F: Valide les documents
     F->>API: Envoie la validation
     API->>DB: Met à jour le statut
@@ -329,7 +329,7 @@ sequenceDiagram
     API->>N: Déclenche une notification
     API->>F: Confirme la validation
     F->>A: Affiche la confirmation
-    
+
     A->>F: Consulte les statistiques
     F->>API: Demande les statistiques
     API->>DB: Récupère les données
@@ -368,26 +368,34 @@ Exemple de définition d'un routeur tRPC :
 // src/server/api/routers/delivery.ts
 export const deliveryRouter = createTRPCRouter({
   getAll: protectedProcedure
-    .input(z.object({
-      status: z.enum(['PENDING', 'ACCEPTED', 'PICKED_UP', 'IN_TRANSIT', 'DELIVERED', 'CANCELLED']).optional(),
-      limit: z.number().min(1).max(100).default(10),
-      cursor: z.string().nullish(),
-    }))
+    .input(
+      z.object({
+        status: z
+          .enum([
+            "PENDING",
+            "ACCEPTED",
+            "PICKED_UP",
+            "IN_TRANSIT",
+            "DELIVERED",
+            "CANCELLED",
+          ])
+          .optional(),
+        limit: z.number().min(1).max(100).default(10),
+        cursor: z.string().nullish(),
+      }),
+    )
     .query(async ({ ctx, input }) => {
       const { status, limit, cursor } = input;
       const userId = ctx.session.user.id;
-      
+
       const items = await ctx.prisma.delivery.findMany({
         where: {
-          OR: [
-            { clientId: userId },
-            { delivererId: userId },
-          ],
+          OR: [{ clientId: userId }, { delivererId: userId }],
           ...(status ? { status } : {}),
         },
         take: limit + 1,
         cursor: cursor ? { id: cursor } : undefined,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         include: {
           client: {
             include: {
@@ -413,54 +421,62 @@ export const deliveryRouter = createTRPCRouter({
           },
         },
       });
-      
+
       let nextCursor: typeof cursor | undefined = undefined;
       if (items.length > limit) {
         const nextItem = items.pop();
         nextCursor = nextItem?.id;
       }
-      
+
       return {
         items,
         nextCursor,
       };
     }),
-  
+
   create: protectedProcedure
-    .input(z.object({
-      pickupAddress: z.string(),
-      deliveryAddress: z.string(),
-      pickupDate: z.date(),
-      weight: z.number().optional(),
-      dimensions: z.string().optional(),
-      description: z.string().optional(),
-      price: z.number(),
-      type: z.enum(['PACKAGE', 'SHOPPING_CART', 'AIRPORT_TRANSFER', 'GROCERY', 'FOREIGN_PRODUCT']),
-    }))
+    .input(
+      z.object({
+        pickupAddress: z.string(),
+        deliveryAddress: z.string(),
+        pickupDate: z.date(),
+        weight: z.number().optional(),
+        dimensions: z.string().optional(),
+        description: z.string().optional(),
+        price: z.number(),
+        type: z.enum([
+          "PACKAGE",
+          "SHOPPING_CART",
+          "AIRPORT_TRANSFER",
+          "GROCERY",
+          "FOREIGN_PRODUCT",
+        ]),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
       const client = await ctx.prisma.client.findUnique({
         where: { userId },
       });
-      
+
       if (!client) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'You must be a client to create a delivery',
+          code: "BAD_REQUEST",
+          message: "You must be a client to create a delivery",
         });
       }
-      
+
       const delivery = await ctx.prisma.delivery.create({
         data: {
-          status: 'PENDING',
+          status: "PENDING",
           clientId: client.id,
           ...input,
         },
       });
-      
+
       return delivery;
     }),
-  
+
   // Autres procédures...
 });
 ```
@@ -486,61 +502,61 @@ export const PaymentService = {
     serviceId?: string;
   }) {
     const { amount, clientId, deliveryId, serviceId } = data;
-    
+
     // Créer un paiement dans Stripe
     const stripePayment = await stripe.paymentIntents.create({
       amount: Math.round(amount * 100), // Stripe utilise les centimes
-      currency: 'eur',
+      currency: "eur",
       metadata: {
         clientId,
-        deliveryId: deliveryId || '',
-        serviceId: serviceId || '',
+        deliveryId: deliveryId || "",
+        serviceId: serviceId || "",
       },
     });
-    
+
     // Enregistrer le paiement dans la base de données
     const payment = await prisma.payment.create({
       data: {
         amount,
-        status: 'PENDING',
+        status: "PENDING",
         stripePaymentId: stripePayment.id,
         client: { connect: { id: clientId } },
         ...(deliveryId ? { delivery: { connect: { id: deliveryId } } } : {}),
         ...(serviceId ? { service: { connect: { id: serviceId } } } : {}),
       },
     });
-    
+
     return {
       payment,
       clientSecret: stripePayment.client_secret,
     };
   },
-  
+
   async capturePayment(paymentId: string) {
     const payment = await prisma.payment.findUnique({
       where: { id: paymentId },
     });
-    
+
     if (!payment) {
-      throw new Error('Payment not found');
+      throw new Error("Payment not found");
     }
-    
-    if (payment.status !== 'PENDING') {
-      throw new Error('Payment cannot be captured');
+
+    if (payment.status !== "PENDING") {
+      throw new Error("Payment cannot be captured");
     }
-    
+
     // Capturer le paiement dans Stripe
     await stripe.paymentIntents.capture(payment.stripePaymentId!);
-    
+
     // Mettre à jour le statut du paiement
     const updatedPayment = await prisma.payment.update({
       where: { id: paymentId },
-      data: { status: 'COMPLETED' },
+      data: { status: "COMPLETED" },
     });
-    
+
     return updatedPayment;
   },
-  
+
   // Autres méthodes...
 };
 ```
@@ -559,17 +575,17 @@ export const NotificationService = {
     data?: Record<string, string>;
   }) {
     const { userId, title, message, data } = data;
-    
+
     // Récupérer les tokens de l'utilisateur
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { pushTokens: true },
     });
-    
+
     if (!user?.pushTokens?.length) {
       return;
     }
-    
+
     // Envoyer la notification via OneSignal
     await oneSignal.createNotification({
       include_player_ids: user.pushTokens,
@@ -578,35 +594,35 @@ export const NotificationService = {
       data,
     });
   },
-  
+
   async sendEmail(data: {
     to: string;
     subject: string;
-    template: 'WELCOME' | 'DELIVERY_CONFIRMATION' | 'PAYMENT_RECEIPT';
+    template: "WELCOME" | "DELIVERY_CONFIRMATION" | "PAYMENT_RECEIPT";
     props: Record<string, any>;
   }) {
     const { to, subject, template, props } = data;
-    
+
     // Sélectionner le template d'email
     let emailTemplate;
     switch (template) {
-      case 'WELCOME':
+      case "WELCOME":
         emailTemplate = WelcomeEmail;
         break;
-      case 'DELIVERY_CONFIRMATION':
+      case "DELIVERY_CONFIRMATION":
         emailTemplate = DeliveryConfirmationEmail;
         break;
-      case 'PAYMENT_RECEIPT':
+      case "PAYMENT_RECEIPT":
         emailTemplate = PaymentReceiptEmail;
         break;
     }
-    
+
     // Générer le HTML de l'email
     const html = render(React.createElement(emailTemplate, props));
-    
+
     // Envoyer l'email
     await nodemailer.sendMail({
-      from: 'contact@ecodeli.fr',
+      from: "contact@ecodeli.fr",
       to,
       subject,
       html,
@@ -628,26 +644,26 @@ export const StripeService = {
     metadata: Record<string, string>;
   }) {
     const { amount, currency, metadata } = data;
-    
+
     const paymentIntent = await stripe.paymentIntents.create({
       amount: Math.round(amount * 100), // Stripe utilise les centimes
       currency,
       metadata,
       automatic_payment_methods: { enabled: true },
     });
-    
+
     return paymentIntent;
   },
-  
+
   async createConnectedAccount(data: {
     email: string;
     country: string;
-    type: 'individual' | 'company';
+    type: "individual" | "company";
   }) {
     const { email, country, type } = data;
-    
+
     const account = await stripe.accounts.create({
-      type: 'express',
+      type: "express",
       email,
       country,
       business_type: type,
@@ -656,21 +672,25 @@ export const StripeService = {
         transfers: { requested: true },
       },
     });
-    
+
     return account;
   },
-  
-  async createAccountLink(accountId: string, refreshUrl: string, returnUrl: string) {
+
+  async createAccountLink(
+    accountId: string,
+    refreshUrl: string,
+    returnUrl: string,
+  ) {
     const accountLink = await stripe.accountLinks.create({
       account: accountId,
       refresh_url: refreshUrl,
       return_url: returnUrl,
-      type: 'account_onboarding',
+      type: "account_onboarding",
     });
-    
+
     return accountLink;
   },
-  
+
   // Autres méthodes...
 };
 ```
@@ -740,18 +760,21 @@ Exemple de middleware d'autorisation :
 // src/server/api/trpc.ts
 const isAdmin = t.middleware(async ({ ctx, next }) => {
   if (!ctx.session?.user) {
-    throw new TRPCError({ code: 'UNAUTHORIZED' });
+    throw new TRPCError({ code: "UNAUTHORIZED" });
   }
-  
+
   const user = await ctx.prisma.user.findUnique({
     where: { id: ctx.session.user.id },
     include: { admin: true },
   });
-  
+
   if (!user?.admin) {
-    throw new TRPCError({ code: 'FORBIDDEN', message: 'Admin access required' });
+    throw new TRPCError({
+      code: "FORBIDDEN",
+      message: "Admin access required",
+    });
   }
-  
+
   return next({
     ctx: {
       ...ctx,
@@ -775,19 +798,19 @@ Les tests sont réalisés avec Vitest pour les tests unitaires et d'intégration
 
 ```typescript
 // tests/unit/services/payment.service.test.ts
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { PaymentService } from '@/server/services/payment.service';
-import { prisma } from '@/server/db';
-import Stripe from 'stripe';
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { PaymentService } from "@/server/services/payment.service";
+import { prisma } from "@/server/db";
+import Stripe from "stripe";
 
 // Mock de Stripe
-vi.mock('stripe', () => {
+vi.mock("stripe", () => {
   return {
     default: vi.fn().mockImplementation(() => ({
       paymentIntents: {
         create: vi.fn().mockResolvedValue({
-          id: 'pi_123456',
-          client_secret: 'secret_123456',
+          id: "pi_123456",
+          client_secret: "secret_123456",
         }),
         capture: vi.fn().mockResolvedValue({}),
       },
@@ -796,81 +819,81 @@ vi.mock('stripe', () => {
 });
 
 // Mock de Prisma
-vi.mock('@/server/db', () => ({
+vi.mock("@/server/db", () => ({
   prisma: {
     payment: {
       create: vi.fn().mockResolvedValue({
-        id: 'payment_123',
+        id: "payment_123",
         amount: 100,
-        status: 'PENDING',
-        stripePaymentId: 'pi_123456',
+        status: "PENDING",
+        stripePaymentId: "pi_123456",
       }),
       findUnique: vi.fn().mockResolvedValue({
-        id: 'payment_123',
+        id: "payment_123",
         amount: 100,
-        status: 'PENDING',
-        stripePaymentId: 'pi_123456',
+        status: "PENDING",
+        stripePaymentId: "pi_123456",
       }),
       update: vi.fn().mockResolvedValue({
-        id: 'payment_123',
+        id: "payment_123",
         amount: 100,
-        status: 'COMPLETED',
-        stripePaymentId: 'pi_123456',
+        status: "COMPLETED",
+        stripePaymentId: "pi_123456",
       }),
     },
   },
 }));
 
-describe('PaymentService', () => {
+describe("PaymentService", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
-  
-  it('should create a payment', async () => {
+
+  it("should create a payment", async () => {
     const result = await PaymentService.createPayment({
       amount: 100,
-      clientId: 'client_123',
-      deliveryId: 'delivery_123',
+      clientId: "client_123",
+      deliveryId: "delivery_123",
     });
-    
+
     expect(prisma.payment.create).toHaveBeenCalledWith({
       data: {
         amount: 100,
-        status: 'PENDING',
-        stripePaymentId: 'pi_123456',
-        client: { connect: { id: 'client_123' } },
-        delivery: { connect: { id: 'delivery_123' } },
+        status: "PENDING",
+        stripePaymentId: "pi_123456",
+        client: { connect: { id: "client_123" } },
+        delivery: { connect: { id: "delivery_123" } },
       },
     });
-    
+
     expect(result).toEqual({
       payment: {
-        id: 'payment_123',
+        id: "payment_123",
         amount: 100,
-        status: 'PENDING',
-        stripePaymentId: 'pi_123456',
+        status: "PENDING",
+        stripePaymentId: "pi_123456",
       },
-      clientSecret: 'secret_123456',
+      clientSecret: "secret_123456",
     });
   });
-  
-  it('should capture a payment', async () => {
-    const result = await PaymentService.capturePayment('payment_123');
-    
+
+  it("should capture a payment", async () => {
+    const result = await PaymentService.capturePayment("payment_123");
+
     expect(prisma.payment.findUnique).toHaveBeenCalledWith({
-      where: { id: 'payment_123' },
+      where: { id: "payment_123" },
     });
-    
+
     expect(prisma.payment.update).toHaveBeenCalledWith({
-      where: { id: 'payment_123' },
-      data: { status: 'COMPLETED' },
+      where: { id: "payment_123" },
+      data: { status: "COMPLETED" },
     });
-    
+
     expect(result).toEqual({
-      id: 'payment_123',
+      id: "payment_123",
       amount: 100,
-      status: 'COMPLETED',
-      stripePaymentId: 'pi_123456',
+      status: "COMPLETED",
+      stripePaymentId: "pi_123456",
     });
   });
 });
@@ -893,23 +916,23 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
-      
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-      
+
       - name: Login to Docker Hub
         uses: docker/login-action@v2
         with:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_TOKEN }}
-      
+
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
           context: .
           push: true
           tags: ecodeli/app:latest
-      
+
       - name: Deploy to production
         uses: appleboy/ssh-action@master
         with:

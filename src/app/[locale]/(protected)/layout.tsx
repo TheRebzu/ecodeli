@@ -13,9 +13,9 @@ interface ProtectedLayoutProps {
  * Layout pour les pages qui nécessitent une authentification
  * Peut être utilisé avec des rôles spécifiques pour restreindre l'accès
  */
-export default function ProtectedLayout({ 
+export default function ProtectedLayout({
   children,
-  roles
+  roles,
 }: ProtectedLayoutProps) {
   return (
     <AuthGuard allowedRoles={roles} requireAuth={true}>

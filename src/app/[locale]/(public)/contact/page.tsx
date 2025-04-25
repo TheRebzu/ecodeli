@@ -39,7 +39,8 @@ export default function ContactPage() {
                 Contactez-nous
               </h1>
               <p className="text-xl text-muted-foreground max-w-[700px] mx-auto">
-                Notre équipe est à votre disposition pour répondre à toutes vos questions.
+                Notre équipe est à votre disposition pour répondre à toutes vos
+                questions.
               </p>
             </div>
           </div>
@@ -138,7 +139,11 @@ export default function ContactPage() {
                           <Clock className="h-4 w-4 text-primary mr-2" />
                           <span className="font-medium">{schedule.day}</span>
                         </div>
-                        <span className={schedule.hours === "Fermé" ? "text-gray-500" : ""}>
+                        <span
+                          className={
+                            schedule.hours === "Fermé" ? "text-gray-500" : ""
+                          }
+                        >
                           {schedule.hours}
                         </span>
                       </div>
@@ -159,7 +164,8 @@ export default function ContactPage() {
                 Envoyez-nous un message
               </h2>
               <p className="text-muted-foreground max-w-[700px]">
-                Remplissez le formulaire ci-dessous et nous vous répondrons dans les plus brefs délais
+                Remplissez le formulaire ci-dessous et nous vous répondrons dans
+                les plus brefs délais
               </p>
             </div>
 
@@ -169,7 +175,10 @@ export default function ContactPage() {
                   <form className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label htmlFor="firstName" className="text-sm font-medium">
+                        <label
+                          htmlFor="firstName"
+                          className="text-sm font-medium"
+                        >
                           Prénom
                         </label>
                         <input
@@ -179,7 +188,10 @@ export default function ContactPage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label htmlFor="lastName" className="text-sm font-medium">
+                        <label
+                          htmlFor="lastName"
+                          className="text-sm font-medium"
+                        >
                           Nom
                         </label>
                         <input
@@ -249,7 +261,8 @@ export default function ContactPage() {
                 Restez connectés
               </h2>
               <p className="text-muted-foreground max-w-[700px]">
-                Suivez-nous sur les réseaux sociaux pour les dernières nouvelles et mises à jour
+                Suivez-nous sur les réseaux sociaux pour les dernières nouvelles
+                et mises à jour
               </p>
             </div>
 
@@ -275,4 +288,4 @@ export default function ContactPage() {
       </main>
     </div>
   );
-} 
+}

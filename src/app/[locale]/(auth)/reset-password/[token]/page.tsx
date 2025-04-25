@@ -7,12 +7,19 @@ export const metadata: Metadata = {
 };
 
 interface ResetPasswordPageProps {
-  params: {
+  params: Promise<{
     token: string;
-  };
+    locale: string;
+  }>;
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-export default function ResetPasswordPage({ params }: ResetPasswordPageProps) {
+export default async function ResetPasswordPage({
+  params,
+}: ResetPasswordPageProps) {
+  // Get the token from params
+  const { token } = await params;
+
   return (
     <div className="container flex h-screen w-screen flex-col items-center justify-center">
       <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px]">
@@ -24,8 +31,8 @@ export default function ResetPasswordPage({ params }: ResetPasswordPageProps) {
             Créez un nouveau mot de passe sécurisé pour votre compte
           </p>
         </div>
-        <NewPasswordForm token={params.token} />
+        <NewPasswordForm token={token} />
       </div>
     </div>
   );
-} 
+}

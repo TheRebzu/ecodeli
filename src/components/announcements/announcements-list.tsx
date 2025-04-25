@@ -27,15 +27,15 @@ import { Input } from "@/components/ui/input";
 import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
-import { 
-  Package, 
-  MapPin, 
-  Calendar, 
-  DollarSign, 
-  Search, 
-  Filter, 
+import {
+  Package,
+  MapPin,
+  Calendar,
+  DollarSign,
+  Search,
+  Filter,
   ArrowUpDown,
-  Loader2
+  Loader2,
 } from "lucide-react";
 
 export function AnnouncementsList() {
@@ -58,7 +58,7 @@ export function AnnouncementsList() {
   const [cursor, setCursor] = useState<string | null>(null);
 
   // Requête pour récupérer les annonces
-  const { data, isLoading, isFetching, fetchNextPage, hasNextPage } = 
+  const { data, isLoading, isFetching, fetchNextPage, hasNextPage } =
     api.announcement.getAll.useInfiniteQuery(
       {
         status: status as AnnouncementStatus | undefined,
@@ -71,7 +71,7 @@ export function AnnouncementsList() {
       {
         getNextPageParam: (lastPage) => lastPage.nextCursor,
         keepPreviousData: true,
-      }
+      },
     );
 
   // Fonction pour appliquer les filtres
@@ -131,7 +131,7 @@ export function AnnouncementsList() {
     <div className="space-y-6">
       <div className="flex flex-col gap-4">
         <h1 className="text-2xl font-bold">{t("availableAnnouncements")}</h1>
-        
+
         {/* Filtres */}
         <Card>
           <CardHeader>
@@ -146,44 +146,70 @@ export function AnnouncementsList() {
                 <label className="text-sm font-medium">{t("status")}</label>
                 <Select
                   value={status}
-                  onValueChange={(value) => setStatus(value as AnnouncementStatus | "")}
+                  onValueChange={(value) =>
+                    setStatus(value as AnnouncementStatus | "")
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder={t("allStatuses")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">{t("allStatuses")}</SelectItem>
-                    <SelectItem value={AnnouncementStatus.OPEN}>{t("status.open")}</SelectItem>
-                    <SelectItem value={AnnouncementStatus.ASSIGNED}>{t("status.assigned")}</SelectItem>
-                    <SelectItem value={AnnouncementStatus.IN_TRANSIT}>{t("status.in_transit")}</SelectItem>
-                    <SelectItem value={AnnouncementStatus.DELIVERED}>{t("status.delivered")}</SelectItem>
-                    <SelectItem value={AnnouncementStatus.CANCELLED}>{t("status.cancelled")}</SelectItem>
+                    <SelectItem value={AnnouncementStatus.OPEN}>
+                      {t("status.open")}
+                    </SelectItem>
+                    <SelectItem value={AnnouncementStatus.ASSIGNED}>
+                      {t("status.assigned")}
+                    </SelectItem>
+                    <SelectItem value={AnnouncementStatus.IN_TRANSIT}>
+                      {t("status.in_transit")}
+                    </SelectItem>
+                    <SelectItem value={AnnouncementStatus.DELIVERED}>
+                      {t("status.delivered")}
+                    </SelectItem>
+                    <SelectItem value={AnnouncementStatus.CANCELLED}>
+                      {t("status.cancelled")}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="space-y-2">
-                <label className="text-sm font-medium">{t("packageSize")}</label>
+                <label className="text-sm font-medium">
+                  {t("packageSize")}
+                </label>
                 <Select
                   value={packageSize}
-                  onValueChange={(value) => setPackageSize(value as PackageSize | "")}
+                  onValueChange={(value) =>
+                    setPackageSize(value as PackageSize | "")
+                  }
                 >
                   <SelectTrigger>
                     <SelectValue placeholder={t("allSizes")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">{t("allSizes")}</SelectItem>
-                    <SelectItem value={PackageSize.SMALL}>{t("sizeSmall")}</SelectItem>
-                    <SelectItem value={PackageSize.MEDIUM}>{t("sizeMedium")}</SelectItem>
-                    <SelectItem value={PackageSize.LARGE}>{t("sizeLarge")}</SelectItem>
-                    <SelectItem value={PackageSize.EXTRA_LARGE}>{t("sizeExtraLarge")}</SelectItem>
+                    <SelectItem value={PackageSize.SMALL}>
+                      {t("sizeSmall")}
+                    </SelectItem>
+                    <SelectItem value={PackageSize.MEDIUM}>
+                      {t("sizeMedium")}
+                    </SelectItem>
+                    <SelectItem value={PackageSize.LARGE}>
+                      {t("sizeLarge")}
+                    </SelectItem>
+                    <SelectItem value={PackageSize.EXTRA_LARGE}>
+                      {t("sizeExtraLarge")}
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div className="space-y-2 col-span-1 md:col-span-2">
                 <div className="flex justify-between">
-                  <label className="text-sm font-medium">{t("priceRange")}</label>
+                  <label className="text-sm font-medium">
+                    {t("priceRange")}
+                  </label>
                   <span className="text-sm text-gray-500">
                     {minPrice}€ - {maxPrice}€
                   </span>
@@ -202,7 +228,7 @@ export function AnnouncementsList() {
                 </div>
               </div>
             </div>
-            
+
             <div className="mt-4">
               <label className="text-sm font-medium">{t("search")}</label>
               <div className="flex mt-1 gap-2">
@@ -215,9 +241,7 @@ export function AnnouncementsList() {
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
-                <Button onClick={applyFilters}>
-                  {t("applyFilters")}
-                </Button>
+                <Button onClick={applyFilters}>{t("applyFilters")}</Button>
                 <Button variant="outline" onClick={resetFilters}>
                   {t("resetFilters")}
                 </Button>
@@ -225,17 +249,14 @@ export function AnnouncementsList() {
             </div>
           </CardContent>
         </Card>
-        
+
         {/* Tri */}
         <div className="flex justify-between items-center">
           <p className="text-sm text-gray-500">
             {announcements.length} {t("announcementsFound")}
           </p>
           <div className="flex items-center gap-2">
-            <Select
-              value={sortBy}
-              onValueChange={setSortBy}
-            >
+            <Select value={sortBy} onValueChange={setSortBy}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder={t("sortBy")} />
               </SelectTrigger>
@@ -254,7 +275,7 @@ export function AnnouncementsList() {
             </Button>
           </div>
         </div>
-        
+
         {/* Liste des annonces */}
         {isLoading ? (
           <div className="space-y-4">
@@ -284,8 +305,8 @@ export function AnnouncementsList() {
         ) : (
           <div className="space-y-4">
             {announcements.map((announcement) => (
-              <Card 
-                key={announcement.id} 
+              <Card
+                key={announcement.id}
                 className="overflow-hidden hover:shadow-md transition-shadow cursor-pointer"
                 onClick={() => goToAnnouncementDetail(announcement.id)}
               >
@@ -294,7 +315,8 @@ export function AnnouncementsList() {
                     <div>
                       <CardTitle>{announcement.title}</CardTitle>
                       <CardDescription>
-                        {t("postedBy")} {announcement.client.name} • {formatDate(announcement.createdAt)}
+                        {t("postedBy")} {announcement.client.name} •{" "}
+                        {formatDate(announcement.createdAt)}
                       </CardDescription>
                     </div>
                     {renderStatusBadge(announcement.status)}
@@ -307,7 +329,8 @@ export function AnnouncementsList() {
                       <div>
                         <p className="text-sm font-medium">{t("route")}</p>
                         <p className="text-sm text-gray-500">
-                          {announcement.pickupAddress} → {announcement.deliveryAddress}
+                          {announcement.pickupAddress} →{" "}
+                          {announcement.deliveryAddress}
                         </p>
                       </div>
                     </div>
@@ -316,7 +339,8 @@ export function AnnouncementsList() {
                       <div>
                         <p className="text-sm font-medium">{t("package")}</p>
                         <p className="text-sm text-gray-500">
-                          {renderPackageSize(announcement.packageSize)} • {announcement.packageWeight} kg
+                          {renderPackageSize(announcement.packageSize)} •{" "}
+                          {announcement.packageWeight} kg
                         </p>
                       </div>
                     </div>
@@ -345,15 +369,15 @@ export function AnnouncementsList() {
                 </CardContent>
                 <CardFooter className="flex justify-between bg-gray-50">
                   <Badge variant="outline">
-                    {announcement.requiresInsurance ? t("insured") : t("notInsured")}
+                    {announcement.requiresInsurance
+                      ? t("insured")
+                      : t("notInsured")}
                   </Badge>
-                  <Button variant="secondary">
-                    {t("viewDetails")}
-                  </Button>
+                  <Button variant="secondary">{t("viewDetails")}</Button>
                 </CardFooter>
               </Card>
             ))}
-            
+
             {hasNextPage && (
               <div className="flex justify-center mt-4">
                 <Button
@@ -361,7 +385,9 @@ export function AnnouncementsList() {
                   disabled={isFetching}
                   variant="outline"
                 >
-                  {isFetching && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  {isFetching && (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  )}
                   {t("loadMore")}
                 </Button>
               </div>
