@@ -1,0 +1,1 @@
+import { create } from 'zustand';\n\ninterface DeliveryState {\n  // State et actions\n}\n\nexport const useDeliveryStore = create<DeliveryState>((set) => ({\n  // Implementation\n}));

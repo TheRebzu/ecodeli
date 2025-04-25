@@ -1,0 +1,1 @@
+import { Button } from '@/components/ui/button';\n\nexport function ExportReport({ type, data, format = 'pdf' }) {\n  const handleExport = () => {\n    // Logique d'exportation\n  };\n  \n  return (\n    <Button onClick={handleExport}>\n      Exporter en {format.toUpperCase()}\n    </Button>\n  );\n}

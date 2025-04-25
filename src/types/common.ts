@@ -1,0 +1,1 @@
+export type Status = 'idle' | 'loading' | 'success' | 'error';\n\nexport interface PaginatedResponse<T> {\n  items: T[];\n  total: number;\n  page: number;\n  limit: number;\n  hasMore: boolean;\n};

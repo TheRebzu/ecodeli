@@ -1,0 +1,1 @@
+import { z } from 'zod';\n\nexport const subscriptionSchema = z.object({\n  planId: z.string(),\n  paymentMethodId: z.string().optional(),\n});\n\nexport type SubscriptionSchemaType = z.infer<typeof subscriptionSchema>;

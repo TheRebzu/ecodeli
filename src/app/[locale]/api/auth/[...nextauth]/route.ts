@@ -1,0 +1,1 @@
+import NextAuth from 'next-auth';\n\nexport const GET = NextAuth({});\nexport const POST = NextAuth({});

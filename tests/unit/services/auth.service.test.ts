@@ -1,0 +1,1 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';\nimport { AuthService } from '@/server/services/auth.service';\n\ndescribe('AuthService', () => {\n  // Tests du service d'authentification\n});

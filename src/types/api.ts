@@ -1,0 +1,1 @@
+export interface ApiResponse<T> {\n  data: T;\n  success: boolean;\n  message?: string;\n  errors?: Record<string, string[]>;\n};

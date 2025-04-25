@@ -78,7 +78,7 @@
     "ecodeli": "link:C:/Users/Amine/WebstormProjects/ecodeli",
     "email-templates": "^12.0.2",
     "embla-carousel-react": "^8.6.0",
-    "framer-motion": "^12.9.1",
+    "framer-motion": "^12.9.2",
     "helmet": "^8.1.0",
     "input-otp": "^1.4.2",
     "jsonwebtoken": "^9.0.2",

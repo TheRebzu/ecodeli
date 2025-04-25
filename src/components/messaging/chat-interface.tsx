@@ -1,0 +1,1 @@
+export function ChatInterface({ conversationId }) {\n  return <div>Interface de chat</div>;\n}

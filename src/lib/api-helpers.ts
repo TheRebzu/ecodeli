@@ -1,0 +1,1 @@
+import { TRPCClientError } from '@trpc/client';\n\nexport function handleApiError(error: unknown): string {\n  if (error instanceof TRPCClientError) {\n    return error.message;\n  }\n  \n  if (error instanceof Error) {\n    return error.message;\n  }\n  \n  return 'Une erreur inconnue est survenue';\n};

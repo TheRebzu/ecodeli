@@ -1,0 +1,1 @@
+import { create } from 'zustand';\n\ninterface AnnouncementState {\n  // State et actions\n}\n\nexport const useAnnouncementStore = create<AnnouncementState>((set) => ({\n  // Implementation\n}));

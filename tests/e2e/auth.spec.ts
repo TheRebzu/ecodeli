@@ -1,0 +1,1 @@
+import { test, expect } from '@playwright/test';\n\ntest('user can login', async ({ page }) => {\n  // Test e2e ici\n});

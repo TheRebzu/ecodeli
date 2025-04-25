@@ -1,0 +1,1 @@
+export function MessageInput({ onSend }) {\n  return <div>Champ de saisie de message</div>;\n}
