@@ -1,1 +1,52 @@
-import { router, publicProcedure, protectedProcedure } from '../trpc';\nimport { z } from 'zod';\n\nexport const announcementRouter = router({\n  getAll: publicProcedure\n    .input(z.object({\n      type: z.enum(['DELIVERY_REQUEST', 'DELIVERY_OFFER', 'MERCHANT_OFFER']).optional(),\n      limit: z.number().min(1).max(100).default(10),\n      cursor: z.string().nullish(),\n    }))\n    .query(async ({ ctx, input }) => {\n      // Récupération des annonces\n    }),\n  \n  getById: publicProcedure\n    .input(z.object({ id: z.string() }))\n    .query(async ({ ctx, input }) => {\n      // Récupération d'une annonce par ID\n    }),\n  \n  create: protectedProcedure\n    .input(z.object({\n      title: z.string(),\n      description: z.string(),\n      type: z.enum(['DELIVERY_REQUEST', 'DELIVERY_OFFER', 'MERCHANT_OFFER']),\n      fromAddress: z.string().optional(),\n      toAddress: z.string().optional(),\n      date: z.date().optional(),\n      price: z.number().optional(),\n    }))\n    .mutation(async ({ ctx, input }) => {\n      // Création d'une annonce\n    }),\n  \n  update: protectedProcedure\n    .input(z.object({\n      id: z.string(),\n      title: z.string().optional(),\n      description: z.string().optional(),\n      price: z.number().optional(),\n      // Autres champs\n    }))\n    .mutation(async ({ ctx, input }) => {\n      // Mise à jour d'une annonce\n    }),\n  \n  delete: protectedProcedure\n    .input(z.object({ id: z.string() }))\n    .mutation(async ({ ctx, input }) => {\n      // Suppression d'une annonce\n    }),\n});
+import { router, publicProcedure, protectedProcedure } from '../trpc';
+import { z } from 'zod';
+
+export const announcementRouter = router({
+  getAll: publicProcedure
+    .input(z.object({
+      type: z.enum(['DELIVERY_REQUEST', 'DELIVERY_OFFER', 'MERCHANT_OFFER']).optional(),
+      limit: z.number().min(1).max(100).default(10),
+      cursor: z.string().nullish(),
+    }))
+    .query(async ({ ctx, input }) => {
+      // Récupération des annonces
+    }),
+  
+  getById: publicProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      // Récupération d'une annonce par ID
+    }),
+  
+  create: protectedProcedure
+    .input(z.object({
+      title: z.string(),
+      description: z.string(),
+      type: z.enum(['DELIVERY_REQUEST', 'DELIVERY_OFFER', 'MERCHANT_OFFER']),
+      fromAddress: z.string().optional(),
+      toAddress: z.string().optional(),
+      date: z.date().optional(),
+      price: z.number().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // Création d'une annonce
+    }),
+  
+  update: protectedProcedure
+    .input(z.object({
+      id: z.string(),
+      title: z.string().optional(),
+      description: z.string().optional(),
+      price: z.number().optional(),
+      // Autres champs
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // Mise à jour d'une annonce
+    }),
+  
+  delete: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // Suppression d'une annonce
+    }),
+});

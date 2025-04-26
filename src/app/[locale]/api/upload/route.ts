@@ -1,1 +1,0 @@
-export async function POST(req) {\n  // Upload de fichiers\n  return new Response('OK');\n}

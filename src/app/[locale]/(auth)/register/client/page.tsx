@@ -1,3 +1,64 @@
-export default function ClientRegisterPage() {
-  return <div>Inscription client</div>;
+import { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { getTranslations } from "next-intl/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/server/auth/next-auth";
+import ClientRegisterForm from "@/components/auth/register-forms/client-register-form";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { ChevronLeft } from "lucide-react";
+
+export async function generateMetadata(
+  { params }: { params: { locale: string } }
+): Promise<Metadata> {
+  const { locale } = params;
+
+  const t = await getTranslations({ locale, namespace: "auth.register" });
+
+  return {
+    title: t("client.pageTitle"),
+    description: t("client.pageDescription"),
+};
+}
+
+export default async function ClientRegisterPage(
+  { params }: { params: { locale: string } }
+) {
+  const { locale } = params;
+
+  // Vérifier si l'utilisateur est déjà connecté
+  const session = await getServerSession(authOptions);
+  if (session) {
+    redirect(`/${locale}/dashboard`);
+  }
+
+  const t = await getTranslations({ locale, namespace: "auth.register" });
+
+  return (
+    <div className="container flex h-screen flex-col items-center justify-center">
+      <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[450px]">
+        <Button
+          variant="ghost"
+          className="absolute left-4 top-4 md:left-8 md:top-8"
+          asChild
+        >
+          <Link href={`/${locale}/register`}>
+            <ChevronLeft className="mr-2 h-4 w-4" />
+            {t("back")}
+          </Link>
+        </Button>
+        
+        <div className="flex flex-col space-y-2 text-center">
+          <h1 className="text-2xl font-semibold tracking-tight">
+            {t("client.title")}
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            {t("client.instructions")}
+          </p>
+        </div>
+        
+        <ClientRegisterForm />
+      </div>
+    </div>
+  );
 }

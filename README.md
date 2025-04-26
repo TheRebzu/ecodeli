@@ -34,3 +34,50 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
 Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+## Fonctionnalités
+
+### Authentification
+
+L'application EcoDeli dispose d'un système d'authentification complet avec les fonctionnalités suivantes:
+
+#### Modèle de données
+- Utilisateurs avec différents rôles (Client, Marchand, Livreur, Prestataire, Admin)
+- Profils spécifiques par rôle 
+- Jetons de vérification d'email et de réinitialisation de mot de passe
+- Support pour l'authentification à deux facteurs (2FA)
+
+#### API et backend
+- Service d'authentification avec fonctions pour:
+  - Inscription utilisateur par rôle
+  - Connexion et déconnexion
+  - Vérification d'email
+  - Réinitialisation de mot de passe
+  - Gestion de l'authentification à deux facteurs
+
+- Router tRPC exposant toutes les fonctionnalités d'authentification
+- Validation des données avec Zod
+- Protection des routes par middleware
+
+#### Frontend
+- Hooks React pour la gestion de l'état d'authentification
+- Formulaires d'inscription spécifiques par type d'utilisateur
+- Composants pour la connexion, vérification d'email, réinitialisation de mot de passe
+- Interface pour la gestion de l'authentification à deux facteurs
+
+#### Tests
+- Tests unitaires pour les schémas de validation
+- Tests unitaires pour le service d'authentification
+- Tests d'intégration à venir
+
+#### Comment utiliser
+1. **Inscription**: Les utilisateurs peuvent s'inscrire en tant que client, marchand, livreur ou prestataire
+2. **Vérification**: Un email de vérification est envoyé pour confirmer l'adresse email
+3. **Connexion**: Les utilisateurs peuvent se connecter avec leur email et mot de passe
+4. **Sécurité**: Support pour l'authentification à deux facteurs via TOTP (Google Authenticator, etc.)
+5. **Récupération**: Possibilité de réinitialiser le mot de passe en cas d'oubli
+
+#### À venir
+- Support pour l'authentification via des fournisseurs sociaux (Google, Facebook, etc.)
+- Amélioration de la gestion des permissions par rôle
+- Journalisation des activités d'authentification

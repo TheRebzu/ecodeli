@@ -43,7 +43,7 @@ export default function Error({
             Réessayer
           </Button>
           <Button asChild>
-            <Link href="/">Retour à l&apos;accueil</Link>
+            <Link href="/fr/home">Retour à l&apos;accueil</Link>
           </Button>
         </div>
       </div>

@@ -1,1 +1,4 @@
-export default function ProviderMessageDetailPage({ params }) {\n  return <div>Conversation {params.id}</div>;\n}
+export default async function ProviderMessageDetailPage(props: { params: Promise<{ id: string }> }) {
+  const params = await props.params;
+  return <div>Conversation {params.id}</div>;
+}

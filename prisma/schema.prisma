@@ -11,7 +11,8 @@ datasource db {
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch"]
 }
 
 // -------- AUTH MODELS --------
@@ -25,23 +26,46 @@ enum UserRole {
 }
 
 enum UserStatus {
-  ACTIVE
-  INACTIVE
-  SUSPENDED
   PENDING_VERIFICATION
+  ACTIVE
+  SUSPENDED
+  INACTIVE
+}
+
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum DocumentType {
+  ID_CARD
+  DRIVING_LICENSE
+  VEHICLE_REGISTRATION
+  INSURANCE
+  QUALIFICATION_CERTIFICATE
+  OTHER
+}
+
+enum ContractStatus {
+  DRAFT
+  PENDING_SIGNATURE
+  ACTIVE
+  TERMINATED
+  EXPIRED
 }
 
 model User {
   id                String    @id @default(cuid())
-  name              String?
-  email             String?   @unique
+  name              String
+  email             String    @unique
   emailVerified     DateTime?
+  password          String
   image             String?
-  password          String?
-  role              UserRole  @default(CLIENT)
+  role              UserRole
   status            UserStatus @default(PENDING_VERIFICATION)
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
+  createdAt         DateTime   @default(now())
+  updatedAt         DateTime   @updatedAt
   
   // NextAuth.js relations
   accounts          Account[]
@@ -59,6 +83,13 @@ model User {
   lastLoginAt       DateTime?
   twoFactorEnabled  Boolean   @default(false)
   twoFactorSecret   String?
+  
+  documents         Document[]
+  verifications     Verification[] @relation("VerifierRelation")
+  submittedVerifications Verification[] @relation("SubmitterRelation")
+  
+  // Documents examinés par l'administrateur
+  reviewedDocuments Document[] @relation("DocumentReviewer")
   
   @@map("users")
 }
@@ -108,11 +139,13 @@ model VerificationToken {
 model Client {
   id              String    @id @default(cuid())
   userId          String    @unique
+  address         String?
+  phone           String?
+  preferences     Json?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
   
   // Client specific fields
-  address         String?
   city            String?
   state           String?
   postalCode      String?
@@ -127,16 +160,17 @@ model Client {
 model Deliverer {
   id                String    @id @default(cuid())
   userId            String    @unique
+  address           String?
+  phone             String
+  vehicleType       String?
+  licensePlate      String?
+  isVerified        Boolean   @default(false)
+  availableHours    Json?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   
   // Deliverer specific fields
-  isVerified        Boolean   @default(false)
   verificationDate  DateTime?
-  vehicleType       String?
-  licenseNumber     String?
-  availableFrom     DateTime?
-  availableTo       DateTime?
   maxCapacity       Float?
   currentLocation   String?
   isActive          Boolean   @default(false)
@@ -151,6 +185,11 @@ model Deliverer {
 model Merchant {
   id                String    @id @default(cuid())
   userId            String    @unique
+  companyName       String
+  address           String
+  phone             String
+  businessType      String?
+  vatNumber         String?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   
@@ -168,6 +207,7 @@ model Merchant {
   
   // Relations
   user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contracts         Contract[]
   
   @@map("merchants")
 }
@@ -175,35 +215,134 @@ model Merchant {
 model Provider {
   id                String    @id @default(cuid())
   userId            String    @unique
+  companyName       String?
+  address           String
+  phone             String
+  services          String[]
+  isVerified        Boolean   @default(false)
+  rating            Float?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
   
   // Provider specific fields
   serviceType       String?
   description       String?
-  isVerified        Boolean   @default(false)
-  verificationDate  DateTime?
   availability      String?   // JSON string of availability
-  rating            Float?
+  verificationDate  DateTime?
   
   // Relations
   user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skills            Skill[]
   
   @@map("providers")
 }
 
 model Admin {
-  id              String    @id @default(cuid())
-  userId          String    @unique
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id                String    @id @default(cuid())
+  userId            String    @unique
+  permissions       String[]
+  department        String?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
   
   // Admin specific fields
-  permissions     String?   // JSON string of permissions
-  adminLevel      Int       @default(1)
+  twoFactorEnabled  Boolean   @default(false)
+  twoFactorSecret   String?
   
   // Relations
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   
   @@map("admins")
+}
+
+model Document {
+  id                String          @id @default(cuid())
+  userId            String
+  type              DocumentType
+  filename          String
+  fileUrl           String
+  mimeType          String
+  fileSize          Int
+  uploadedAt        DateTime        @default(now())
+  expiryDate        DateTime?
+  isVerified        Boolean         @default(false)
+  notes             String?
+  
+  // Verification
+  verifiedBy        String?
+  verifiedAt        DateTime?
+  rejectionReason   String?
+  
+  // Relations
+  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Indique à quel rôle d'utilisateur ce document est associé
+  userRole          String  // CLIENT, DELIVERER, MERCHANT, PROVIDER
+  
+  // Relation avec l'administrateur qui a examiné le document
+  reviewer          User?           @relation("DocumentReviewer", fields: [verifiedBy], references: [id])
+  
+  verifications     Verification[]
+  
+  @@index([userId])
+  @@index([verifiedBy])
+  @@map("documents")
+}
+
+model Verification {
+  id                String            @id @default(cuid())
+  submitterId       String
+  verifierId        String?
+  documentId        String
+  status            VerificationStatus @default(PENDING)
+  requestedAt       DateTime          @default(now())
+  verifiedAt        DateTime?
+  notes             String?
+  
+  // Relations
+  submitter         User              @relation("SubmitterRelation", fields: [submitterId], references: [id], onDelete: Cascade)
+  verifier          User?             @relation("VerifierRelation", fields: [verifierId], references: [id])
+  document          Document          @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  
+  @@index([submitterId])
+  @@index([verifierId])
+  @@index([documentId])
+  @@index([status])
+  @@map("verifications")
+}
+
+model Contract {
+  id                String          @id @default(cuid())
+  merchantId        String
+  title             String
+  content           String          @db.Text
+  status            ContractStatus  @default(DRAFT)
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  signedAt          DateTime?
+  expiresAt         DateTime?
+  fileUrl           String?
+  
+  // Relations
+  merchant          Merchant        @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  
+  @@index([merchantId])
+  @@index([status])
+  @@map("contracts")
+}
+
+model Skill {
+  id                String    @id @default(cuid())
+  providerId        String
+  name              String
+  description       String?
+  isVerified        Boolean   @default(false)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  // Relations
+  provider          Provider    @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  
+  @@index([providerId])
+  @@map("skills")
 }

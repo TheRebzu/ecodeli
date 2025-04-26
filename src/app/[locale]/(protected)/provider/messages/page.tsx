@@ -1,1 +1,3 @@
-export default function ProviderMessagesPage() {\n  return <div>Messages prestataire</div>;\n}
+export default function ProviderMessagesPage() {
+  return <div>Messages prestataire</div>;
+}

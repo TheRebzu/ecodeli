@@ -13,69 +13,44 @@ export enum UserRole {
  * Schéma de base pour l'enregistrement d'un utilisateur
  * Contient les champs communs à tous les types d'utilisateurs
  */
-export const registerBaseSchema = z.object({
-  email: z
-    .string({ required_error: 'Email requis' })
-    .email('Format d\'email invalide')
-    .toLowerCase()
-    .trim(),
-  
+export const registerBaseFields = {
+  email: z.string().email({ message: "Email invalide" }),
   password: z
-    .string({ required_error: 'Mot de passe requis' })
-    .min(8, 'Le mot de passe doit contenir au moins 8 caractères')
-    .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-      'Le mot de passe doit contenir au moins une lettre majuscule, une lettre minuscule, un chiffre et un caractère spécial'
-    ),
-  
-  confirmPassword: z
-    .string({ required_error: 'Confirmation du mot de passe requise' }),
-  
-  name: z
-    .string({ required_error: 'Nom requis' })
-    .min(2, 'Le nom doit contenir au moins 2 caractères')
-    .trim(),
-  
-  phoneNumber: z
     .string()
-    .optional()
-    .refine(val => !val || /^(\+\d{1,3})?[\s.-]?\(?\d{3}\)?[\s.-]?\d{3}[\s.-]?\d{4}$/.test(val), {
-      message: 'Numéro de téléphone invalide',
-    }),
-  
-  role: z.nativeEnum(UserRole, {
-    required_error: 'Rôle requis',
-    invalid_type_error: 'Rôle invalide',
-  }),
-});
+    .min(8, { message: "Le mot de passe doit contenir au moins 8 caractères" })
+    .regex(/[a-z]/, { message: "Le mot de passe doit contenir au moins une lettre minuscule" })
+    .regex(/[A-Z]/, { message: "Le mot de passe doit contenir au moins une lettre majuscule" })
+    .regex(/[0-9]/, { message: "Le mot de passe doit contenir au moins un chiffre" }),
+  confirmPassword: z.string(),
+  name: z.string().min(2, { message: "Le nom doit contenir au moins 2 caractères" }),
+  phoneNumber: z.string().optional(),
+};
 
-// Séparation de la validation de confirmation du mot de passe
-export const registerSchema = registerBaseSchema.superRefine((data, ctx) => {
-  if (data.password !== data.confirmPassword) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'Les mots de passe ne correspondent pas',
-      path: ['confirmPassword'],
-    });
-  }
-});
+// Schéma de base
+export const registerBaseSchema = z.object(registerBaseFields)
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Les mots de passe ne correspondent pas",
+    path: ["confirmPassword"],
+  });
 
-export type RegisterSchemaType = z.infer<typeof registerSchema>;
-
-/**
- * Schéma pour la création d'un utilisateur par un admin
- */
+// Schéma pour la création d'un utilisateur par un admin
 export const adminCreateUserSchema = z.object({
-  ...registerBaseSchema.shape,
+  ...registerBaseFields,
   status: z.enum(['ACTIVE', 'INACTIVE', 'SUSPENDED', 'PENDING_VERIFICATION']).default('ACTIVE'),
-}).superRefine((data, ctx) => {
-  if (data.password !== data.confirmPassword) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'Les mots de passe ne correspondent pas',
-      path: ['confirmPassword'],
-    });
-  }
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Les mots de passe ne correspondent pas",
+  path: ["confirmPassword"],
 });
 
 export type AdminCreateUserSchemaType = z.infer<typeof adminCreateUserSchema>;
+
+// Schéma pour l'adresse
+export const addressFields = {
+  address: z.string().min(5, { message: "L'adresse doit contenir au moins 5 caractères" }),
+  city: z.string().min(2, { message: "La ville doit contenir au moins 2 caractères" }),
+  state: z.string().min(2, { message: "La région doit contenir au moins 2 caractères" }),
+  postalCode: z.string().min(3, { message: "Le code postal doit contenir au moins 3 caractères" }),
+  country: z.string().min(2, { message: "Le pays doit contenir au moins 2 caractères" }),
+};
+
+export const addressSchema = z.object(addressFields);

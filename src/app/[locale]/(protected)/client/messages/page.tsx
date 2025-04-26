@@ -1,1 +1,3 @@
-export default function ClientMessagesPage() {\n  return <div>Messages client</div>;\n}
+export default function ClientMessagesPage() {
+  return <div>Messages client</div>;
+}

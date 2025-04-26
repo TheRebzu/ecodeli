@@ -1,3 +1,4 @@
+import { Metadata } from "next";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -26,9 +27,19 @@ import {
 } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-export default function HomePage() {
+export function generateMetadata(): Metadata {
+  return {
+    title: "Accueil | EcoDeli",
+    description: "Service de livraison collaboratif écologique",
+  };
+}
+
+export default async function HomePage({ params }: { params: { locale: string } }) {
+  // Handle params safely
+  const [safeParams] = await Promise.all([params]);
+  const locale = safeParams.locale;
+  
   return (
     <div className="flex flex-col gap-20 pb-20 mx-auto max-w-screen-2xl scroll-smooth">
       {/* Section Hero */}
@@ -50,13 +61,13 @@ export default function HomePage() {
                 </span>
               </div>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Link href="/register">
+                <Link href={`/${locale}/register`}>
                   <Button size="lg" className="w-full sm:w-auto group">
                     S&apos;inscrire gratuitement
                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Button>
                 </Link>
-                <Link href="/about">
+                <Link href={`/${locale}/about`}>
                   <Button
                     size="lg"
                     variant="outline"
@@ -167,7 +178,7 @@ export default function HomePage() {
           </div>
 
           <div className="mt-12 text-center">
-            <Link href="/faq">
+            <Link href={`/${locale}/faq`}>
               <Button variant="link" className="text-lg group">
                 En savoir plus sur le fonctionnement{" "}
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -309,7 +320,7 @@ export default function HomePage() {
                 </CardContent>
                 <CardFooter>
                   <Link
-                    href="/services"
+                    href={`/${locale}/services`}
                     className="text-primary hover:underline text-sm inline-flex items-center"
                   >
                     En savoir plus <ArrowRight className="ml-1 h-3 w-3" />
@@ -330,7 +341,7 @@ export default function HomePage() {
               Choisissez la formule adaptée à vos besoins
             </h2>
             <p className="text-lg text-muted-foreground">
-              Du compte gratuit à la formule premium, trouvez l'offre qui vous
+              Du compte gratuit à la formule premium, trouvez l&apos;offre qui vous
               convient
             </p>
           </div>
@@ -487,7 +498,7 @@ export default function HomePage() {
                     </div>
                   </div>
                   <p className="text-muted-foreground">
-                    "{testimonial.comment}"
+                    &quot;{testimonial.comment}&quot;
                   </p>
                 </CardContent>
               </Card>
@@ -510,13 +521,13 @@ export default function HomePage() {
                 plateforme de livraison collaborative, économique et écologique.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link href="/register">
+                <Link href={`/${locale}/register`}>
                   <Button size="lg" className="w-full sm:w-auto group">
                     S&apos;inscrire gratuitement
                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Button>
                 </Link>
-                <Link href="/become-delivery">
+                <Link href={`/${locale}/become-delivery`}>
                   <Button
                     size="lg"
                     variant="outline"

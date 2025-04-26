@@ -1,34 +1,37 @@
 import { z } from 'zod';
-import { registerBaseSchema, UserRole } from './register.schema';
+import { UserRole } from './register.schema';
 
 /**
  * Schéma d'inscription pour les commerçants
  * Étend le schéma de base avec des champs spécifiques aux commerçants
  */
 export const merchantRegisterSchema = z.object({
-  ...registerBaseSchema.shape,
-  // Champs spécifiques au commerçant
-  businessName: z.string().min(2, 'Le nom de l\'entreprise est requis'),
-  businessAddress: z.string().min(5, 'L\'adresse de l\'entreprise est requise'),
-  businessCity: z.string().min(2, 'La ville est requise'),
-  businessState: z.string().optional(),
-  businessPostal: z.string().min(3, 'Le code postal est requis'),
-  businessCountry: z.string().min(2, 'Le pays est requis'),
-  
-  // Informations fiscales
-  taxId: z.string().min(5, 'Le numéro d\'identification fiscale est requis'),
-  websiteUrl: z.string().url('URL du site web invalide').optional(),
-  
-  // Assignation fixe du rôle MERCHANT
+  // Informations de base
+  email: z.string().email({ message: "Adresse email invalide" }),
+  password: z.string().min(8, { message: "Le mot de passe doit contenir au moins 8 caractères" }),
+  confirmPassword: z.string(),
+  name: z.string().min(2, { message: "Le nom doit contenir au moins 2 caractères" }),
+  phoneNumber: z.string().min(10, { message: "Numéro de téléphone invalide" }),
   role: z.literal(UserRole.MERCHANT),
-}).superRefine((data, ctx) => {
-  if (data.password !== data.confirmPassword) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: 'Les mots de passe ne correspondent pas',
-      path: ['confirmPassword'],
-    });
-  }
+  
+  // Informations professionnelles
+  businessName: z.string().min(2, { message: "Le nom de l'entreprise doit contenir au moins 2 caractères" }),
+  taxId: z.string().min(5, { message: "Numéro de TVA invalide" }),
+  siret: z.string().min(14, { message: "Numéro SIRET invalide" }).max(14),
+  
+  // Adresse professionnelle
+  businessAddress: z.string().min(5, { message: "L'adresse doit contenir au moins 5 caractères" }),
+  businessCity: z.string().min(2, { message: "La ville doit contenir au moins 2 caractères" }),
+  businessState: z.string().optional(),
+  businessPostal: z.string().min(3, { message: "Code postal invalide" }),
+  businessCountry: z.string().min(2, { message: "Le pays doit contenir au moins 2 caractères" }),
+  
+  // Informations additionnelles (optionnelles)
+  businessDescription: z.string().optional(),
+  websiteUrl: z.string().url({ message: "URL invalide" }).optional(),
+}).refine(data => data.password === data.confirmPassword, {
+  message: "Les mots de passe ne correspondent pas",
+  path: ["confirmPassword"],
 });
 
 export type MerchantRegisterSchemaType = z.infer<typeof merchantRegisterSchema>;
