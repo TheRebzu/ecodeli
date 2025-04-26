@@ -1,1 +1,3 @@
-export default function MerchantMessagesPage() {\n  return <div>Messages commerçant</div>;\n}
+export default function MerchantMessagesPage() {
+  return <div>Messages commerçant</div>;
+}

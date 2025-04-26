@@ -1,1 +1,3 @@
-export default function DelivererMessagesPage() {\n  return <div>Messages livreur</div>;\n}
+export default function DelivererMessagesPage() {
+  return <div>Messages livreur</div>;
+}

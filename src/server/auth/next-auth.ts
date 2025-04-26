@@ -1,1 +1,101 @@
-import { PrismaAdapter } from '@auth/prisma-adapter';\nimport { UserRole } from '@prisma/client';\nimport { type NextAuthOptions } from 'next-auth';\nimport CredentialsProvider from 'next-auth/providers/credentials';\nimport { db } from '../db';\nimport { compare } from 'bcryptjs';\n\nexport const authOptions: NextAuthOptions = {\n  adapter: PrismaAdapter(db),\n  session: {\n    strategy: 'jwt',\n    maxAge: 30 * 24 * 60 * 60, // 30 jours\n  },\n  pages: {\n    signIn: '/login',\n    error: '/login',\n    newUser: '/register',\n  },\n  providers: [\n    CredentialsProvider({\n      name: 'Credentials',\n      credentials: {\n        email: { label: 'Email', type: 'email' },\n        password: { label: 'Password', type: 'password' },\n      },\n      async authorize(credentials) {\n        if (!credentials?.email || !credentials?.password) {\n          return null;\n        }\n        \n        const user = await db.user.findUnique({\n          where: { email: credentials.email },\n          include: {\n            client: true,\n            deliverer: true,\n            merchant: true,\n            provider: true,\n            admin: true,\n          },\n        });\n        \n        if (!user || !user.passwordHash || !await compare(credentials.password, user.passwordHash)) {\n          return null;\n        }\n        \n        // Vérification email et compte\n        if (user.role !== UserRole.ADMIN && !user.emailVerified) {\n          throw new Error('EMAIL_NOT_VERIFIED');\n        }\n        \n        if (\n          (user.role === UserRole.DELIVERER && user.deliverer && !user.deliverer.isVerified) ||\n          (user.role === UserRole.PROVIDER && user.provider && !user.provider.isVerified)\n        ) {\n          throw new Error('ACCOUNT_NOT_VERIFIED');\n        }\n        \n        return {\n          id: user.id,\n          email: user.email,\n          name: user.name,\n          role: user.role,\n          profileId: \n            user.client?.id || \n            user.deliverer?.id || \n            user.merchant?.id || \n            user.provider?.id ||\n            user.admin?.id\n        };\n      },\n    }),\n  ],\n  callbacks: {\n    jwt: async ({ token, user }) => {\n      if (user) {\n        token.id = user.id;\n        token.role = user.role;\n        token.profileId = user.profileId;\n      }\n      return token;\n    },\n    session: ({ session, token }) => {\n      if (token && session.user) {\n        session.user.id = token.id as string;\n        session.user.role = token.role as UserRole;\n        session.user.profileId = token.profileId as string;\n      }\n      return session;\n    },\n  },\n};
+import { NextAuthOptions } from "next-auth";
+import { PrismaAdapter } from "@auth/prisma-adapter";
+import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
+import { compare } from "bcryptjs";
+import { db } from "../db";
+
+export const authOptions: NextAuthOptions = {
+  // Le type générique pour l'adaptateur prisma est différent de ce que NextAuth attend
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  adapter: PrismaAdapter(db) as any,
+  secret: process.env.NEXTAUTH_SECRET,
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 jours
+  },
+  pages: {
+    signIn: "/login",
+    error: "/login",
+    verifyRequest: "/verify-email",
+    newUser: "/welcome",
+  },
+  providers: [
+    CredentialsProvider({
+      name: "Credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Mot de passe", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Email et mot de passe requis");
+        }
+
+        // Rechercher l'utilisateur par email
+        const user = await db.user.findUnique({
+          where: { email: credentials.email },
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            password: true,
+            emailVerified: true,
+            role: true,
+            status: true,
+            image: true,
+          },
+        });
+
+        if (!user) {
+          throw new Error("Utilisateur non trouvé");
+        }
+
+        // Vérifier si l'email est vérifié
+        if (!user.emailVerified) {
+          throw new Error("Veuillez vérifier votre email avant de vous connecter");
+        }
+
+        // Vérifier si l'utilisateur est actif
+        if (user.status !== "ACTIVE") {
+          throw new Error("Votre compte est " + user.status.toLowerCase());
+        }
+
+        // Vérifier le mot de passe
+        const isPasswordValid = await compare(credentials.password, user.password);
+        if (!isPasswordValid) {
+          throw new Error("Mot de passe incorrect");
+        }
+
+        return {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          role: user.role,
+          image: user.image,
+        };
+      },
+    }),
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID as string,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      allowDangerousEmailAccountLinking: true,
+    }),
+  ],
+  callbacks: {
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
+      }
+      return token;
+    },
+    async session({ session, token }) {
+      if (token) {
+        session.user.id = token.id as string;
+        session.user.role = token.role as string;
+      }
+      return session;
+    },
+  },
+};

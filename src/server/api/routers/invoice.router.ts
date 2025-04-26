@@ -1,1 +1,55 @@
-import { router, protectedProcedure } from '../trpc';\nimport { z } from 'zod';\n\nexport const invoiceRouter = router({\n  getAll: protectedProcedure\n    .input(z.object({\n      status: z.enum(['PENDING', 'PAID', 'OVERDUE', 'CANCELLED']).optional(),\n      limit: z.number().min(1).max(100).default(10),\n      cursor: z.string().nullish(),\n    }))\n    .query(async ({ ctx, input }) => {\n      // Récupération des factures\n    }),\n  \n  getById: protectedProcedure\n    .input(z.object({ id: z.string() }))\n    .query(async ({ ctx, input }) => {\n      // Récupération d'une facture par ID\n    }),\n  \n  generateInvoice: protectedProcedure\n    .input(z.object({\n      deliveryId: z.string().optional(),\n      serviceId: z.string().optional(),\n      dueDate: z.date().optional(),\n    }))\n    .mutation(async ({ ctx, input }) => {\n      // Génération d'une facture\n    }),\n  \n  markAsPaid: protectedProcedure\n    .input(z.object({ id: z.string() }))\n    .mutation(async ({ ctx, input }) => {\n      // Marquer une facture comme payée\n    }),\n});
+import { router, protectedProcedure } from '../trpc';
+import { z } from 'zod';
+
+export const invoiceRouter = router({
+  getAll: protectedProcedure
+    .input(z.object({
+      status: z.enum(['PENDING', 'PAID', 'OVERDUE', 'CANCELLED']).optional(),
+      limit: z.number().min(1).max(100).default(10),
+      cursor: z.string().nullish(),
+    }))
+    .query(async ({ ctx, input }) => {
+      // Récupération des factures
+      return {
+        items: [],
+        nextCursor: null
+      };
+    }),
+  
+  getById: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      // Récupération d'une facture par ID
+      return {
+        id: input.id,
+        status: 'PENDING',
+        // Autres champs fictifs
+      };
+    }),
+  
+  generateInvoice: protectedProcedure
+    .input(z.object({
+      deliveryId: z.string().optional(),
+      serviceId: z.string().optional(),
+      dueDate: z.date().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // Génération d'une facture
+      return {
+        id: 'new-invoice-id',
+        status: 'PENDING',
+        // Autres champs fictifs
+      };
+    }),
+  
+  markAsPaid: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      // Marquer une facture comme payée
+      return {
+        id: input.id,
+        status: 'PAID',
+        // Autres champs fictifs
+      };
+    }),
+});

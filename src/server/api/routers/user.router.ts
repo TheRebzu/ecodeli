@@ -1,1 +1,32 @@
-import { router, protectedProcedure } from '../trpc';\nimport { z } from 'zod';\n\nexport const userRouter = router({\n  getProfile: protectedProcedure\n    .query(async ({ ctx }) => {\n      // Récupération du profil utilisateur\n    }),\n  \n  updateProfile: protectedProcedure\n    .input(z.object({\n      name: z.string().optional(),\n      phone: z.string().optional(),\n      address: z.string().optional(),\n      // Autres champs de profil\n    }))\n    .mutation(async ({ ctx, input }) => {\n      // Mise à jour du profil\n    }),\n});
+import { router, protectedProcedure } from '../trpc';
+import { z } from 'zod';
+
+export const userRouter = router({
+  getProfile: protectedProcedure
+    .query(async ({ ctx }) => {
+      // Récupération du profil utilisateur
+      return {
+        id: ctx.session.user.id,
+        name: ctx.session.user.name,
+        email: ctx.session.user.email,
+        role: ctx.session.user.role,
+        // Autres champs fictifs
+      };
+    }),
+  
+  updateProfile: protectedProcedure
+    .input(z.object({
+      name: z.string().optional(),
+      phone: z.string().optional(),
+      address: z.string().optional(),
+      // Autres champs de profil
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // Mise à jour du profil
+      return {
+        id: ctx.session.user.id,
+        ...input,
+        // Autres champs fictifs
+      };
+    }),
+});

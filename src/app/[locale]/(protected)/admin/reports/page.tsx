@@ -1,1 +1,3 @@
-export default function AdminReportsPage() {\n  return <div>Rapports et statistiques admin</div>;\n}
+export default function AdminReportsPage() {
+  return <div>Rapports et statistiques admin</div>;
+}

@@ -1,0 +1,238 @@
+{
+  "auth": {
+    "common": {
+      "emailLabel": "Email address",
+      "passwordLabel": "Password",
+      "confirmPasswordLabel": "Confirm password",
+      "submitButton": "Submit",
+      "loadingButton": "Loading..."
+    },
+    "login": {
+      "title": "Sign in",
+      "description": "Sign in to your account",
+      "emailLabel": "Email address",
+      "passwordLabel": "Password",
+      "totpLabel": "Authentication code",
+      "submit": "Sign in",
+      "submitting": "Signing in...",
+      "forgotPassword": "Forgot password?",
+      "noAccount": "Don't have an account?",
+      "register": "Sign up",
+      "error": {
+        "generic": "Sign in error. Please try again.",
+        "invalidCredentials": "Invalid email or password.",
+        "emailNotVerified": "Please verify your email to activate your account.",
+        "accountSuspended": "Your account has been suspended."
+      },
+      "pageTitle": "Sign in - EcoDeli",
+      "pageDescription": "Sign in to your EcoDeli account",
+      "email": "Email address",
+      "emailPlaceholder": "Enter your email address",
+      "password": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "login": "Sign in",
+      "loading": "Signing in...",
+      "welcome": "Welcome to EcoDeli",
+      "instructions": "Please sign in to access your account"
+    },
+    "register": {
+      "title": "Sign up",
+      "description": "Create your account",
+      "nameLabel": "Full name",
+      "emailLabel": "Email address",
+      "passwordLabel": "Password",
+      "confirmPasswordLabel": "Confirm password",
+      "phoneNumberLabel": "Phone number",
+      "submit": "Sign up",
+      "submitting": "Signing up...",
+      "alreadyHaveAccount": "Already have an account?",
+      "login": "Sign in",
+      "error": {
+        "generic": "Sign up error. Please try again.",
+        "emailAlreadyExists": "This email address is already in use."
+      },
+      "success": "Sign up successful! Please check your email.",
+      "pageTitle": "Sign up - EcoDeli",
+      "pageDescription": "Create your EcoDeli account",
+      "chooseRole": "Choose your role",
+      "chooseRoleDescription": "Select the type of account you want to create",
+      "select": "Select",
+      "hasAccount": "Already have an account?",
+      "back": "Back",
+      "roles": {
+        "client": {
+          "title": "Client",
+          "description": "Create an account to order deliveries and access our services"
+        },
+        "deliverer": {
+          "title": "Deliverer",
+          "description": "Join our network of deliverers and receive delivery orders"
+        },
+        "merchant": {
+          "title": "Merchant",
+          "description": "Create an account to offer your products and services for delivery"
+        },
+        "provider": {
+          "title": "Provider",
+          "description": "Offer your professional services to our community"
+        }
+      },
+      "client": {
+        "title": "Client Registration",
+        "instructions": "Please fill out the form to create your client account",
+        "pageTitle": "Client Registration - EcoDeli",
+        "pageDescription": "Create your EcoDeli client account"
+      },
+      "deliverer": {
+        "title": "Deliverer Registration",
+        "instructions": "Please fill out the form to join our team of deliverers",
+        "pageTitle": "Deliverer Registration - EcoDeli",
+        "pageDescription": "Join our EcoDeli deliverers network"
+      },
+      "merchant": {
+        "title": "Merchant Registration",
+        "instructions": "Please fill out the form to create your merchant account",
+        "pageTitle": "Merchant Registration - EcoDeli",
+        "pageDescription": "Create your EcoDeli merchant account"
+      },
+      "provider": {
+        "title": "Provider Registration",
+        "instructions": "Please fill out the form to offer your services",
+        "pageTitle": "Provider Registration - EcoDeli",
+        "pageDescription": "Offer your services on EcoDeli"
+      },
+      "fields": {
+        "name": "Full name",
+        "email": "Email address",
+        "password": "Password",
+        "confirmPassword": "Confirm password",
+        "address": "Address",
+        "phone": "Phone number",
+        "vehicleType": "Vehicle type",
+        "licensePlate": "License plate",
+        "companyName": "Company name",
+        "businessType": "Business type",
+        "vatNumber": "VAT number",
+        "services": "Services offered"
+      }
+    },
+    "forgotPassword": {
+      "title": "Forgot password",
+      "description": "We'll send you a link to reset your password",
+      "emailLabel": "Email address",
+      "submit": "Send link",
+      "submitting": "Sending...",
+      "backToLogin": "Back to login",
+      "error": {
+        "generic": "Error sending link. Please try again."
+      },
+      "success": "If an account exists with this email address, a reset link has been sent."
+    },
+    "resetPassword": {
+      "title": "Reset password",
+      "description": "Please enter your new password",
+      "passwordLabel": "New password",
+      "confirmPasswordLabel": "Confirm new password",
+      "submit": "Reset",
+      "submitting": "Resetting...",
+      "error": {
+        "generic": "Error resetting password. Please try again.",
+        "invalidToken": "The reset link is invalid or has expired."
+      },
+      "success": "Password reset successful. You can now sign in."
+    },
+    "verifyEmail": {
+      "title": "Email verification",
+      "verifying": "Verifying...",
+      "success": "Email verified successfully!",
+      "error": {
+        "generic": "Error verifying email. Please try again.",
+        "invalidToken": "The verification link is invalid or has expired."
+      },
+      "loginNow": "Sign in now"
+    }
+  },
+  "common": {
+    "backToHome": "Back to home",
+    "loading": "Loading...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "actions": "Actions",
+    "search": "Search",
+    "filter": "Filter",
+    "noResults": "No results found",
+    "error": "An error occurred",
+    "required": "Required",
+    "validation": {
+      "required": "This field is required",
+      "email": "Invalid email address",
+      "minLength": "Must contain at least {min} characters",
+      "maxLength": "Cannot exceed {max} characters",
+      "passwordMismatch": "Passwords do not match",
+      "invalidFormat": "Invalid format"
+    }
+  },
+  "navigation": {
+    "home": "Home",
+    "profile": "Profile",
+    "dashboard": "Dashboard",
+    "settings": "Settings",
+    "logout": "Sign out"
+  },
+  "profile": {
+    "title": "Profile",
+    "personalInfo": "Personal information",
+    "updateProfile": "Update profile",
+    "changePassword": "Change password",
+    "twoFactorAuth": "Two-factor authentication",
+    "enable2FA": "Enable two-factor authentication",
+    "disable2FA": "Disable two-factor authentication"
+  },
+  "documents": {
+    "title": "Documents",
+    "upload": "Upload document",
+    "uploadNew": "Upload new document",
+    "documentType": "Document type",
+    "status": "Status",
+    "uploadedAt": "Uploaded on",
+    "verifiedAt": "Verified on",
+    "noDocuments": "No documents found",
+    "dragAndDrop": "Drag and drop your file here, or click to select",
+    "fileSelected": "File selected: {filename}",
+    "statuses": {
+      "pending": "Pending",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "types": {
+      "idCard": "ID card",
+      "driverLicense": "Driver's license",
+      "vehicleRegistration": "Vehicle registration",
+      "insurance": "Insurance certificate",
+      "criminalRecord": "Criminal record",
+      "professionalCertification": "Professional certification",
+      "other": "Other"
+    },
+    "verification": {
+      "approve": "Approve",
+      "reject": "Reject",
+      "rejectionReason": "Rejection reason",
+      "confirmApproval": "Are you sure you want to approve this document?",
+      "confirmRejection": "Are you sure you want to reject this document?",
+      "notesPlaceholder": "Add notes or comments (optional)"
+    }
+  },
+  "home": {
+    "pageTitle": "Home | EcoDeli",
+    "pageDescription": "Ecological collaborative delivery service",
+    "hero": {
+      "title": "The collaborative delivery that changes everything",
+      "subtitle": "EcoDeli connects individuals, merchants and service providers for more eco-friendly deliveries",
+      "signup": "Sign up for free",
+      "discover": "Discover EcoDeli"
+    }
+  }
+} 
