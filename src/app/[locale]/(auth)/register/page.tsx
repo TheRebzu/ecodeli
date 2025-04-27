@@ -52,7 +52,7 @@ export default async function RegisterPage({ params }: Props) {
         <p className="text-muted-foreground">{t('enterDetails')}</p>
       </div>
 
-      <RegisterForm locale={locale} />
+      <RegisterForm />
     </div>
   );
 }

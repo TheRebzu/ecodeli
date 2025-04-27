@@ -30,6 +30,22 @@
       "settings": "Paramètres",
       "logout": "Déconnexion"
     },
+    "footer": {
+      "description": "EcoDeli est une plateforme de livraison écologique et collaborative qui connecte les clients, les livreurs, les commerçants et les prestataires de services.",
+      "newsletter": "Newsletter",
+      "emailPlaceholder": "Votre adresse email",
+      "subscribe": "S'abonner",
+      "legal": "Mentions légales",
+      "terms": "Conditions d'utilisation",
+      "privacy": "Politique de confidentialité",
+      "cookies": "Gestion des cookies",
+      "resources": "Ressources",
+      "faq": "FAQ",
+      "help": "Aide",
+      "shipping": "Livraison",
+      "becomeDeliverer": "Devenir livreur",
+      "allRightsReserved": "Tous droits réservés."
+    },
     "buttons": {
       "submit": "Soumettre",
       "cancel": "Annuler",
@@ -56,12 +72,24 @@
       "or": "ou",
       "continueWithGoogle": "Continuer avec Google",
       "continueWithGithub": "Continuer avec GitHub",
-      "loginSuccess": "Connexion réussie"
+      "loginSuccess": "Connexion réussie",
+      "rememberMe": "Se souvenir de moi",
+      "2fa": {
+        "title": "Authentification à deux facteurs",
+        "description": "Entrez le code à 6 chiffres généré par votre application d'authentification",
+        "codeLabel": "Code d'authentification",
+        "codePlaceholder": "123456",
+        "verifyButton": "Vérifier",
+        "enterCode": "Entrez le code à 6 chiffres généré par votre application d'authentification"
+      },
+      "continueWith": "Ou continuer avec"
     },
     "register": {
       "pageTitle": "Inscription | EcoDeli",
       "pageDescription": "Créez votre compte EcoDeli",
       "title": "Inscription",
+      "createAccount": "Créer un compte",
+      "enterDetails": "Veuillez entrer vos informations pour vous inscrire",
       "email": "Adresse e-mail",
       "password": "Mot de passe",
       "passwordConfirm": "Confirmer le mot de passe",
@@ -72,43 +100,66 @@
       "continueWithGoogle": "Continuer avec Google",
       "continueWithGithub": "Continuer avec GitHub",
       "registerSuccess": "Inscription réussie",
-      "chooseRole": "Choisissez votre type de compte",
-      "chooseRoleDescription": "Sélectionnez le type de compte qui correspond à vos besoins",
-      "select": "Sélectionner",
-      "hasAccount": "Vous avez déjà un compte ?",
+      "selectRole": "Sélectionnez votre profil",
+      "roleDescription": "Choisissez le profil qui correspond le mieux à vos besoins",
+      "back": "Retour",
+      "submitting": "Inscription en cours...",
+      "register": "S'inscrire",
+      "comingSoon": "Bientôt disponible",
       "roles": {
-        "client": {
-          "title": "Client",
-          "description": "Utilisez nos services de livraison écologique pour recevoir vos colis et produits"
-        },
-        "deliverer": {
-          "title": "Livreur",
-          "description": "Rejoignez notre équipe de livreurs et contribuez à notre vision écologique"
-        },
-        "merchant": {
-          "title": "Commerçant",
-          "description": "Expédiez vos produits à vos clients via notre réseau de livraison durable"
-        },
-        "provider": {
-          "title": "Prestataire",
-          "description": "Proposez vos services au sein de notre écosystème de livraison écologique"
-        }
+        "client": "Client",
+        "deliverer": "Livreur",
+        "merchant": "Commerçant",
+        "provider": "Prestataire"
       },
       "client": {
         "pageTitle": "Inscription Client | EcoDeli",
-        "pageDescription": "Inscrivez-vous en tant que client sur EcoDeli"
-      },
-      "merchant": {
-        "pageTitle": "Inscription Commerçant | EcoDeli",
-        "pageDescription": "Inscrivez-vous en tant que commerçant sur EcoDeli"
-      },
-      "provider": {
-        "pageTitle": "Inscription Prestataire | EcoDeli",
-        "pageDescription": "Inscrivez-vous en tant que prestataire sur EcoDeli"
+        "pageDescription": "Inscrivez-vous en tant que client sur EcoDeli",
+        "title": "Inscription Client",
+        "instructions": "Complétez les informations ci-dessous pour créer votre compte client"
       },
       "deliverer": {
         "pageTitle": "Inscription Livreur | EcoDeli",
-        "pageDescription": "Inscrivez-vous en tant que livreur sur EcoDeli"
+        "pageDescription": "Inscrivez-vous en tant que livreur sur EcoDeli",
+        "title": "Inscription Livreur",
+        "instructions": "Complétez les informations ci-dessous pour rejoindre notre équipe de livreurs"
+      },
+      "merchant": {
+        "pageTitle": "Inscription Commerçant | EcoDeli",
+        "pageDescription": "Inscrivez-vous en tant que commerçant sur EcoDeli",
+        "title": "Inscription Commerçant",
+        "instructions": "Complétez les informations ci-dessous pour créer votre compte commerçant"
+      },
+      "provider": {
+        "pageTitle": "Inscription Prestataire | EcoDeli",
+        "pageDescription": "Inscrivez-vous en tant que prestataire sur EcoDeli",
+        "title": "Inscription Prestataire",
+        "instructions": "Complétez les informations ci-dessous pour devenir prestataire de services"
+      },
+      "fields": {
+        "name": "Nom complet",
+        "email": "Adresse e-mail",
+        "phoneNumber": "Numéro de téléphone",
+        "password": "Mot de passe",
+        "confirmPassword": "Confirmer le mot de passe",
+        "address": "Adresse",
+        "city": "Ville",
+        "postalCode": "Code postal",
+        "state": "Région",
+        "country": "Pays",
+        "newsletter": "Je souhaite recevoir les actualités et offres par e-mail"
+      },
+      "placeholders": {
+        "name": "John Doe",
+        "email": "john.doe@example.com",
+        "phoneNumber": "+33 6 12 34 56 78",
+        "password": "••••••••",
+        "confirmPassword": "••••••••",
+        "address": "123 rue de la Paix",
+        "city": "Paris",
+        "postalCode": "75000",
+        "state": "Île-de-France",
+        "country": "France"
       }
     },
     "forgotPassword": {
@@ -131,6 +182,274 @@
       "role": "Rôle",
       "userType": "Type d'utilisateur",
       "logout": "Déconnexion"
+    },
+    "errors": {
+      "default": "Une erreur d'authentification s'est produite",
+      "OAuthSignin": "Erreur lors de la connexion avec le fournisseur d'authentification",
+      "OAuthCallback": "Erreur lors du retour du fournisseur d'authentification",
+      "OAuthCreateAccount": "Erreur lors de la création du compte avec le fournisseur d'authentification",
+      "EmailCreateAccount": "Erreur lors de la création du compte. Cet email est peut-être déjà utilisé",
+      "Callback": "Erreur lors du processus d'authentification",
+      "OAuthAccountNotLinked": "Cet email est déjà associé à un compte utilisant un autre fournisseur d'authentification",
+      "EmailSignin": "Erreur lors de l'envoi de l'email de connexion",
+      "CredentialsSignin": "Les identifiants fournis sont incorrects",
+      "SessionRequired": "Vous devez être connecté pour accéder à cette page",
+      "InvalidToken": "Le jeton de vérification est invalide ou a expiré",
+      "ExpiredToken": "Le jeton de vérification a expiré. Veuillez demander un nouveau lien",
+      "TwoFactorRequired": "Une authentification à deux facteurs est requise pour vous connecter",
+      "UserNotFound": "Utilisateur non trouvé",
+      "EmailNotVerified": "Veuillez vérifier votre email avant de vous connecter",
+      "InvalidCredentials": "Identifiants invalides",
+      "AccountSuspended": "Votre compte est suspendu",
+      "AccountInactive": "Votre compte est inactif",
+      "PasswordMismatch": "Les mots de passe ne correspondent pas",
+      "WeakPassword": "Le mot de passe est trop faible",
+      "EmailAlreadyInUse": "Cette adresse email est déjà utilisée"
+    },
+    "notifications": {
+      "verificationRequired": "Vérification requise",
+      "verificationRequiredDescription": "Vous devez compléter votre vérification avant de pouvoir accéder à toutes les fonctionnalités",
+      "accessDenied": "Accès refusé",
+      "accessDeniedDescription": "Vous n'avez pas les autorisations nécessaires pour accéder à cette page",
+      "loginRequired": "Connexion requise",
+      "loginRequiredDescription": "Vous devez être connecté pour accéder à cette page",
+      "emailVerificationSent": "Email de vérification envoyé",
+      "emailVerificationSentDescription": "Un email de vérification a été envoyé à votre adresse email",
+      "passwordResetSent": "Email de réinitialisation envoyé",
+      "passwordResetSentDescription": "Un email avec les instructions de réinitialisation a été envoyé",
+      "passwordResetSuccess": "Mot de passe réinitialisé",
+      "passwordResetSuccessDescription": "Votre mot de passe a été réinitialisé avec succès",
+      "emailVerified": "Email vérifié",
+      "emailVerifiedDescription": "Votre adresse email a été vérifiée avec succès"
+    },
+    "emails": {
+      "welcome": {
+        "subject": "Bienvenue sur EcoDeli",
+        "title": "Bienvenue",
+        "greeting": "Bonjour",
+        "message": "Merci de vous être inscrit sur EcoDeli. Nous sommes ravis de vous compter parmi notre communauté.",
+        "cta": "Accéder à mon compte"
+      },
+      "verification": {
+        "subject": "Vérifiez votre adresse email - EcoDeli",
+        "title": "Vérification de votre adresse email",
+        "greeting": "Bonjour",
+        "message": "Merci de vous être inscrit sur EcoDeli. Pour vérifier votre adresse email, veuillez cliquer sur le lien ci-dessous :",
+        "cta": "Vérifier mon email",
+        "expiry": "Ce lien est valable pendant 24 heures."
+      },
+      "passwordReset": {
+        "subject": "Réinitialisation de mot de passe - EcoDeli",
+        "title": "Réinitialisation de votre mot de passe",
+        "greeting": "Bonjour",
+        "message": "Vous avez demandé la réinitialisation de votre mot de passe. Pour définir un nouveau mot de passe, veuillez cliquer sur le lien ci-dessous :",
+        "cta": "Réinitialiser mon mot de passe",
+        "expiry": "Ce lien est valable pendant 1 heure.",
+        "ignoreMessage": "Si vous n'avez pas demandé cette réinitialisation, veuillez ignorer cet email."
+      },
+      "documentStatus": {
+        "approved": {
+          "subject": "Document approuvé - EcoDeli",
+          "title": "Document approuvé",
+          "message": "Votre document a été approuvé. Vous pouvez désormais accéder à toutes les fonctionnalités de votre compte.",
+          "cta": "Voir mes documents"
+        },
+        "rejected": {
+          "subject": "Document rejeté - EcoDeli",
+          "title": "Document rejeté",
+          "message": "Votre document a été rejeté pour la raison suivante :",
+          "instruction": "Veuillez télécharger un nouveau document pour continuer le processus de vérification.",
+          "cta": "Télécharger un nouveau document"
+        }
+      }
+    },
+    "userStatus": {
+      "ACTIVE": "Actif",
+      "INACTIVE": "Inactif",
+      "SUSPENDED": "Suspendu",
+      "PENDING_VERIFICATION": "En attente de vérification"
+    },
+    "verification": {
+      "status": {
+        "PENDING": "En attente",
+        "APPROVED": "Approuvé",
+        "REJECTED": "Rejeté"
+      },
+      "title": "Vérification de compte",
+      "description": "Pour accéder à toutes les fonctionnalités, vous devez vérifier votre compte en téléchargeant les documents requis.",
+      "documentUpload": "Télécharger un document",
+      "documentList": "Documents téléchargés",
+      "requiredDocuments": "Documents requis",
+      "missingDocuments": "Documents manquants",
+      "completionMessage": "Tous les documents ont été téléchargés. Votre compte est en cours de vérification."
+    },
+    "signOut": "Se déconnecter",
+    "createAccount": "Créer un compte",
+    "name": "Nom",
+    "role": {
+      "client": "Client",
+      "deliverer": "Livreur",
+      "merchant": "Commerçant",
+      "provider": "Prestataire de service",
+      "admin": "Administrateur"
+    },
+    "verifyEmail": "Vérifier l'email",
+    "verificationCodeSent": "Un code de vérification a été envoyé à votre email",
+    "enterVerificationCode": "Entrez le code de vérification",
+    "resendCode": "Renvoyer le code",
+    "validationErrors": {
+      "required": "Ce champ est obligatoire",
+      "invalidEmail": "Adresse email invalide",
+      "passwordTooShort": "Le mot de passe doit contenir au moins 8 caractères",
+      "passwordsDoNotMatch": "Les mots de passe ne correspondent pas",
+      "invalidCode": "Code de vérification invalide"
     }
-  }
+  },
+  "navigation": {
+    "home": "Accueil",
+    "dashboard": "Tableau de bord",
+    "profile": "Profil",
+    "settings": "Paramètres",
+    "admin": "Administration",
+    "logout": "Déconnexion"
+  },
+  "documents": {
+    "title": "Documents",
+    "upload": "Téléverser un document",
+    "view": "Voir le document",
+    "delete": "Supprimer le document",
+    "types": {
+      "id_card": "Carte d'identité",
+      "driving_license": "Permis de conduire",
+      "vehicle_registration": "Carte grise",
+      "insurance": "Attestation d'assurance",
+      "qualification_certificate": "Certification professionnelle",
+      "business_registration": "Extrait KBIS",
+      "proof_of_address": "Justificatif de domicile",
+      "other": "Autre document"
+    },
+    "verification": {
+      "title": "Vérification des documents",
+      "pending": "En attente de vérification",
+      "approved": "Documents approuvés",
+      "rejected": "Documents rejetés",
+      "status": "Statut de vérification"
+    }
+  },
+  "status": {
+    "pending": "En attente",
+    "approved": "Approuvé",
+    "rejected": "Rejeté",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "suspended": "Suspendu"
+  },
+  "actions": {
+    "submit": "Soumettre",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "save": "Enregistrer",
+    "edit": "Modifier",
+    "delete": "Supprimer",
+    "upload": "Téléverser",
+    "view": "Voir",
+    "approve": "Approuver",
+    "reject": "Rejeter",
+    "verify": "Vérifier"
+  },
+  "errors": {
+    "general": "Une erreur est survenue",
+    "auth": {
+      "general": "Une erreur d'authentification est survenue",
+      "credentials": "Identifiants invalides",
+      "verification": "La vérification de l'email est requise",
+      "unauthorized": "Vous n'êtes pas autorisé à accéder à cette ressource",
+      "accountInactive": "Ce compte est inactif",
+      "emailAlreadyInUse": "Cet email est déjà utilisé",
+      "passwordMismatch": "Les mots de passe ne correspondent pas",
+      "weakPassword": "Le mot de passe est trop faible",
+      "accountSuspended": "Ce compte a été suspendu"
+    },
+    "server": "Une erreur de serveur est survenue",
+    "network": "Une erreur de réseau est survenue",
+    "notFound": "Ressource non trouvée",
+    "validation": "Erreur de validation",
+    "permission": "Permission refusée",
+    "reason_required": "La raison est obligatoire"
+  },
+  "notifications": {
+    "verification_required": "Vérification requise : Veuillez vérifier votre compte pour accéder à toutes les fonctionnalités.",
+    "access_denied": "Accès refusé : Vous n'avez pas la permission d'accéder à cette ressource.",
+    "email_verified": "Email vérifié : Votre email a été vérifié avec succès.",
+    "document_approved": "Document approuvé : Votre document a été approuvé.",
+    "document_rejected": "Document rejeté : Votre document a été rejeté.",
+    "verification_approved": "Vérification approuvée : Votre compte a été vérifié.",
+    "verification_rejected": "Vérification rejetée : La vérification de votre compte a été refusée.",
+    "title": "Notifications",
+    "description": "Gérez vos notifications",
+    "empty": "Aucune notification",
+    "noNotifications": "Vous n'avez aucune notification",
+    "notificationsWillAppearHere": "Vos notifications apparaîtront ici",
+    "markAllAsRead": "Tout marquer comme lu",
+    "allMarkedAsRead": "Toutes les notifications ont été marquées comme lues",
+    "deleteAll": "Tout supprimer",
+    "delete": "Supprimer",
+    "notificationDeleted": "Notification supprimée",
+    "allNotificationsDeleted": "Toutes les notifications ont été supprimées",
+    "viewAll": "Voir toutes les notifications",
+    "unread": "Non lu",
+    "allNotifications": "Toutes les notifications",
+    "unreadOnly": "Non lues uniquement",
+    "document": {
+      "approved": "Document approuvé",
+      "approvedMessage": "Votre document {documentType} a été approuvé",
+      "rejected": "Document rejeté",
+      "rejectedMessage": "Votre document {documentType} a été rejeté : {reason}",
+      "uploaded": "Document téléchargé",
+      "uploadedMessage": "Vous avez téléchargé un nouveau document : {documentType}"
+    },
+    "verification": {
+      "approved": "Vérification approuvée",
+      "approvedMessage": "Votre vérification a été approuvée. Vous avez maintenant un accès complet à la plateforme",
+      "rejected": "Vérification rejetée",
+      "rejectedMessage": "Votre vérification a été rejetée : {reason}",
+      "pending": "Vérification en attente",
+      "pendingMessage": "Votre vérification est en cours d'examen",
+      "missingDocuments": "Documents manquants",
+      "missingDocumentsMessage": "Vous devez télécharger les documents suivants : {documents}"
+    }
+  },
+  "verification": {
+    "title": "Vérification des documents",
+    "pending_documents": "Documents en attente",
+    "processed_documents": "Documents traités",
+    "no_pending_documents": "Aucun document en attente",
+    "no_processed_documents": "Aucun document traité",
+    "filter_by_status": "Filtrer par statut",
+    "required_documents": "Documents requis",
+    "missing_documents": "Documents manquants",
+    "document_approved": "Document approuvé avec succès",
+    "document_rejected": "Document rejeté avec succès",
+    "approval_notes": "Notes d'approbation",
+    "rejection_reason": "Motif de rejet",
+    "upload_required_documents": "Veuillez téléverser les documents requis pour compléter votre vérification"
+  },
+  "uploaded_by": "Téléversé par",
+  "uploaded": "Téléversé",
+  "uploaded_at": "Téléversé le",
+  "view_document": "Voir le document",
+  "preview_not_available": "Aperçu non disponible pour ce type de fichier",
+  "download_document": "Télécharger le document",
+  "approve": "Approuver",
+  "reject": "Rejeter",
+  "approving": "Approbation en cours...",
+  "rejecting": "Rejet en cours...",
+  "approve_document": "Approuver le document",
+  "reject_document": "Rejeter le document",
+  "approve_document_description": "Êtes-vous sûr de vouloir approuver ce document ?",
+  "reject_document_description": "Veuillez fournir une raison pour rejeter ce document",
+  "enter_approval_notes": "Ajouter des notes d'approbation (optionnel)",
+  "enter_rejection_reason": "Entrez la raison du rejet",
+  "notes_optional": "Les notes sont optionnelles",
+  "cancel": "Annuler"
 }

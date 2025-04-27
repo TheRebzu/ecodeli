@@ -1,8 +1,7 @@
-import { UserRole } from '@/schemas/auth/register.schema';
-import { ClientRegisterSchemaType } from '@/schemas/auth/client-register.schema';
-import { DelivererRegisterSchemaType } from '@/schemas/auth/deliverer-register.schema';
-import { MerchantRegisterSchemaType } from '@/schemas/auth/merchant-register.schema';
-import { ProviderRegisterSchemaType } from '@/schemas/auth/provider-register.schema';
+import type { ClientRegisterSchemaType } from '@/schemas/auth/client-register.schema';
+import type { DelivererRegisterSchemaType } from '@/schemas/auth/deliverer-register.schema';
+import type { MerchantRegisterSchemaType } from '@/schemas/auth/merchant-register.schema';
+import type { ProviderRegisterSchemaType } from '@/schemas/auth/provider-register.schema';
 
 export interface AuthResponse {
   success: boolean;
@@ -60,3 +59,11 @@ export interface AuthService {
    */
   verifyEmail: (token: string) => Promise<AuthResponse>;
 }
+
+// Export the imported types for convenience
+export type {
+  ClientRegisterSchemaType,
+  DelivererRegisterSchemaType,
+  MerchantRegisterSchemaType,
+  ProviderRegisterSchemaType,
+};

@@ -1,178 +1,287 @@
 'use client';
 
-import { useDocuments } from '@/hooks/use-documents';
+import { useState } from 'react';
+import { useTranslations } from 'next-intl';
+import { api } from '@/trpc/react';
 import { DocumentStatus, DocumentType } from '@prisma/client';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { formatDistanceToNow } from 'date-fns';
+import { fr, enUS } from 'date-fns/locale';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
-import { FileIcon, Trash2, CheckCircle, XCircle, AlertCircle, Eye } from 'lucide-react';
-import { useTranslations } from 'next-intl';
-import { formatDistanceToNow } from 'date-fns';
-import { fr } from 'date-fns/locale';
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Skeleton } from '@/components/ui/skeleton';
+import { AlertCircle, CheckCircle, Clock, Eye, FileText, X } from 'lucide-react';
 
-export function DocumentList() {
-  const t = useTranslations('Documents.List');
-  const { userDocuments, isLoadingUserDocs, deleteDocument, isDeleting } = useDocuments();
+export default function DocumentList() {
+  const t = useTranslations('documents');
+  const [selectedDocument, setSelectedDocument] = useState<any | null>(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const locale = 'fr'; // Set this based on your app's locale state
 
-  const handleDelete = async (id: string) => {
-    await deleteDocument(id);
+  const { data: documents, isLoading, isError, refetch } = api.auth.getUserDocuments.useQuery();
+
+  if (isLoading) {
+    return <DocumentListSkeleton />;
+  }
+
+  if (isError) {
+    return (
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle>{t('list.title')}</CardTitle>
+          <CardDescription>{t('list.description')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center p-6 text-center">
+            <div>
+              <AlertCircle className="mx-auto h-10 w-10 text-destructive" />
+              <h3 className="mt-2 text-lg font-semibold">{t('list.errorTitle')}</h3>
+              <p className="text-sm text-muted-foreground">{t('list.errorDescription')}</p>
+              <Button onClick={() => refetch()} className="mt-4">
+                {t('list.retry')}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!documents || documents.length === 0) {
+    return (
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle>{t('list.title')}</CardTitle>
+          <CardDescription>{t('list.description')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center p-6 text-center">
+            <div>
+              <FileText className="mx-auto h-10 w-10 text-muted-foreground" />
+              <h3 className="mt-2 text-lg font-semibold">{t('list.emptyTitle')}</h3>
+              <p className="text-sm text-muted-foreground">{t('list.emptyDescription')}</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const handleViewDocument = (document: any) => {
+    setSelectedDocument(document);
+    setPreviewOpen(true);
   };
 
-  if (isLoadingUserDocs) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('title')}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex justify-center items-center h-40">
-            <div className="animate-pulse text-muted-foreground">{t('loading')}</div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (userDocuments.length === 0) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>{t('title')}</CardTitle>
-          <CardDescription>{t('description')}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-col items-center justify-center h-40 text-center">
-            <FileIcon className="h-12 w-12 text-muted-foreground mb-2" />
-            <p className="text-muted-foreground">{t('empty')}</p>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  const getStatusBadge = (status: DocumentStatus) => {
+  const getStatusBadgeProps = (status: DocumentStatus) => {
     switch (status) {
-      case DocumentStatus.PENDING:
-        return (
-          <Badge variant="outline" className="bg-yellow-50 text-yellow-800 border-yellow-200">
-            <AlertCircle className="h-3 w-3 mr-1" />
-            {t('status.pending')}
-          </Badge>
-        );
-      case DocumentStatus.APPROVED:
-        return (
-          <Badge variant="outline" className="bg-green-50 text-green-800 border-green-200">
-            <CheckCircle className="h-3 w-3 mr-1" />
-            {t('status.approved')}
-          </Badge>
-        );
-      case DocumentStatus.REJECTED:
-        return (
-          <Badge variant="outline" className="bg-red-50 text-red-800 border-red-200">
-            <XCircle className="h-3 w-3 mr-1" />
-            {t('status.rejected')}
-          </Badge>
-        );
+      case 'PENDING':
+        return { variant: 'outline' as const, icon: <Clock className="mr-1 h-3 w-3" /> };
+      case 'APPROVED':
+        return { variant: 'success' as const, icon: <CheckCircle className="mr-1 h-3 w-3" /> };
+      case 'REJECTED':
+        return { variant: 'destructive' as const, icon: <X className="mr-1 h-3 w-3" /> };
+      case 'EXPIRED':
+        return { variant: 'warning' as const, icon: <AlertCircle className="mr-1 h-3 w-3" /> };
+      default:
+        return { variant: 'outline' as const, icon: null };
     }
   };
 
-  const getDocumentTypeName = (type: DocumentType) => {
-    return t(`types.${type.toLowerCase()}`);
+  const formatDate = (date: Date | null | undefined) => {
+    if (!date) return '-';
+    return formatDistanceToNow(new Date(date), {
+      addSuffix: true,
+      locale: locale === 'fr' ? fr : enUS,
+    });
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t('title')}</CardTitle>
-        <CardDescription>{t('description')}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {userDocuments.map(doc => (
-            <div key={doc.id} className="flex items-center justify-between p-4 border rounded-md">
-              <div className="flex items-center space-x-4">
-                <FileIcon className="h-8 w-8 text-primary" />
-                <div>
-                  <h4 className="font-medium">{doc.name}</h4>
-                  <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                    <span>{getDocumentTypeName(doc.type)}</span>
-                    <span>•</span>
-                    <span>
-                      {formatDistanceToNow(new Date(doc.uploadedAt), {
-                        addSuffix: true,
-                        locale: fr,
-                      })}
-                    </span>
-                  </div>
-                  <div className="mt-1">
-                    {getStatusBadge(doc.status)}
-
-                    {doc.status === DocumentStatus.REJECTED && doc.rejectionReason && (
+    <>
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle>{t('list.title')}</CardTitle>
+          <CardDescription>{t('list.description')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t('list.columns.type')}</TableHead>
+                <TableHead>{t('list.columns.status')}</TableHead>
+                <TableHead>{t('list.columns.submitted')}</TableHead>
+                <TableHead>{t('list.columns.expires')}</TableHead>
+                <TableHead className="text-right">{t('list.columns.actions')}</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {documents.map(doc => {
+                const { variant, icon } = getStatusBadgeProps(doc.status as DocumentStatus);
+                return (
+                  <TableRow key={doc.id}>
+                    <TableCell className="font-medium">{t(`documentTypes.${doc.type}`)}</TableCell>
+                    <TableCell>
+                      <Badge variant={variant} className="flex w-fit items-center">
+                        {icon}
+                        {t(`status.${doc.status}`)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{formatDate(doc.createdAt)}</TableCell>
+                    <TableCell>
+                      {doc.expiryDate ? (
+                        formatDate(doc.expiryDate)
+                      ) : (
+                        <span className="text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
                       <TooltipProvider>
                         <Tooltip>
-                          <TooltipTrigger>
-                            <span className="ml-2 text-xs underline cursor-help">
-                              {t('rejectionReason')}
-                            </span>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleViewDocument(doc)}
+                            >
+                              <Eye className="h-4 w-4" />
+                              <span className="sr-only">{t('list.view')}</span>
+                            </Button>
                           </TooltipTrigger>
-                          <TooltipContent>
-                            <p>{doc.rejectionReason}</p>
-                          </TooltipContent>
+                          <TooltipContent>{t('list.view')}</TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
-                    )}
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
+            </TableBody>
+          </Table>
+        </CardContent>
+        <CardFooter className="border-t bg-muted/50 px-6 py-3">
+          <p className="text-xs text-muted-foreground">
+            {t('list.totalDocuments', { count: documents.length })}
+          </p>
+        </CardFooter>
+      </Card>
+
+      {/* Document Preview Dialog */}
+      {selectedDocument && (
+        <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>{t(`documentTypes.${selectedDocument.type}`)}</DialogTitle>
+              <DialogDescription>
+                {selectedDocument.status === 'REJECTED' && selectedDocument.rejectionReason && (
+                  <div className="mt-2 rounded-md bg-destructive/10 p-3 text-sm">
+                    <p className="font-semibold text-destructive">
+                      {t('preview.rejectionReason')}:
+                    </p>
+                    <p>{selectedDocument.rejectionReason}</p>
                   </div>
+                )}
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-4">
+              <div className="rounded-md border">
+                {selectedDocument.mimeType?.startsWith('image/') ? (
+                  <img
+                    src={`/api/documents/${selectedDocument.id}`}
+                    alt={t(`documentTypes.${selectedDocument.type}`)}
+                    className="h-auto w-full"
+                  />
+                ) : (
+                  <div className="flex h-40 items-center justify-center bg-muted">
+                    <a
+                      href={`/api/documents/${selectedDocument.id}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-primary-foreground"
+                    >
+                      <FileText className="h-5 w-5" />
+                      {t('preview.viewDocument')}
+                    </a>
+                  </div>
+                )}
+              </div>
+
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="font-semibold text-muted-foreground">{t('preview.status')}</p>
+                  <p>{t(`status.${selectedDocument.status}`)}</p>
+                </div>
+                <div>
+                  <p className="font-semibold text-muted-foreground">{t('preview.submitted')}</p>
+                  <p>{formatDate(selectedDocument.createdAt)}</p>
+                </div>
+                <div>
+                  <p className="font-semibold text-muted-foreground">{t('preview.expires')}</p>
+                  <p>
+                    {selectedDocument.expiryDate ? formatDate(selectedDocument.expiryDate) : '-'}
+                  </p>
+                </div>
+                <div>
+                  <p className="font-semibold text-muted-foreground">{t('preview.fileName')}</p>
+                  <p>{selectedDocument.originalName || '-'}</p>
                 </div>
               </div>
 
-              <div className="flex items-center space-x-2">
-                <Button variant="outline" size="sm" asChild>
-                  <a href={`/api/documents/${doc.id}`} target="_blank" rel="noopener noreferrer">
-                    <Eye className="h-4 w-4" />
-                    <span className="sr-only">{t('view')}</span>
-                  </a>
-                </Button>
-
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button variant="outline" size="sm">
-                      <Trash2 className="h-4 w-4 text-red-500" />
-                      <span className="sr-only">{t('delete')}</span>
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>{t('deleteDialog.title')}</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        {t('deleteDialog.description')}
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>{t('deleteDialog.cancel')}</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={() => handleDelete(doc.id)}
-                        disabled={isDeleting}
-                        className="bg-red-500 hover:bg-red-600"
-                      >
-                        {t('deleteDialog.confirm')}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
+              {selectedDocument.description && (
+                <div>
+                  <p className="font-semibold text-muted-foreground">{t('preview.description')}</p>
+                  <p className="mt-1 text-sm">{selectedDocument.description}</p>
+                </div>
+              )}
             </div>
+
+            <DialogFooter className="sm:justify-end">
+              <Button variant="secondary" onClick={() => setPreviewOpen(false)}>
+                {t('preview.close')}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      )}
+    </>
+  );
+}
+
+// Loading skeleton for document list
+function DocumentListSkeleton() {
+  return (
+    <Card className="w-full">
+      <CardHeader>
+        <Skeleton className="h-8 w-1/3" />
+        <Skeleton className="h-4 w-1/2" />
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          <Skeleton className="h-10 w-full" />
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-16 w-full" />
           ))}
         </div>
       </CardContent>

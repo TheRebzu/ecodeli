@@ -25,18 +25,13 @@ export default async function LocaleLayout({ children, params }: LayoutProps) {
   const messages = await getMessages();
 
   return (
-    <html lang={locale}>
-      {/* suppressHydrationWarning pour éviter les erreurs de mismatch */}
-      <body suppressHydrationWarning>
-        <ThemeProvider>
-          {/* Composant qui initialise le thème côté client uniquement */}
-          <ThemeInitializer />
-          <NextIntlClientProvider locale={locale} messages={messages}>
-            <TRPCProvider>{children}</TRPCProvider>
-          </NextIntlClientProvider>
-        </ThemeProvider>
-      </body>
-    </html>
+    <ThemeProvider>
+      {/* Composant qui initialise le thème côté client uniquement */}
+      <ThemeInitializer />
+      <NextIntlClientProvider locale={locale} messages={messages}>
+        <TRPCProvider>{children}</TRPCProvider>
+      </NextIntlClientProvider>
+    </ThemeProvider>
   );
 }
 

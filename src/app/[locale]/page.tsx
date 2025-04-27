@@ -1,4 +1,4 @@
-import HomePage from './(public)/home/page';
+import { redirect } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
 
 export default async function RootPage({ params }: { params: Promise<{ locale: string }> }) {
@@ -8,8 +8,8 @@ export default async function RootPage({ params }: { params: Promise<{ locale: s
   // Activer le rendu statique
   setRequestLocale(locale);
 
-  // Rendre directement HomePage au lieu de rediriger
-  return <HomePage params={{ locale }} />;
+  // Rediriger explicitement vers /{locale}/home
+  redirect(`/${locale}/home`);
 }
 
 export function generateStaticParams() {

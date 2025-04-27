@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/server/auth/next-auth';
 
 import SessionCheckRedirect from '@/components/auth/SessionCheckRedirect';
-import AuthNavbar from '@/components/layout/AuthNavbar';
+import AuthNavbar from '@/components/layout/auth-navbar';
 import ThemeProvider from '@/components/providers/theme-provider';
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';

@@ -13,7 +13,9 @@ export async function generateMetadata({
 }: {
   params: { locale: string };
 }): Promise<Metadata> {
-  const { locale } = params;
+  // Attendre la résolution des paramètres
+  const resolvedParams = await params;
+  const locale = resolvedParams.locale;
 
   const t = await getTranslations({ locale, namespace: 'auth.register' });
 

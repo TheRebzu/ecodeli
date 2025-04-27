@@ -1,6 +1,7 @@
 import { fetchRequestHandler } from '@trpc/server/adapters/fetch';
 import { appRouter } from '@/server/api/root';
 import { createTRPCContext } from '@/server/api/trpc';
+import { createNextApiHandler } from '@trpc/server/adapters/next';
 
 export const POST = async (req: Request) => {
   try {
@@ -44,3 +45,8 @@ export const GET = async (req: Request) => {
     });
   }
 };
+
+export default createNextApiHandler({
+  router: appRouter,
+  createContext: createTRPCContext,
+});

@@ -5,10 +5,9 @@ import GoogleProvider from 'next-auth/providers/google';
 import { compare } from 'bcryptjs';
 import { db } from '../db';
 import { UserRole, UserStatus } from '../db/enums';
+import { authenticator } from 'otplib';
 
 export const authOptions: NextAuthOptions = {
-  // Le type générique pour l'adaptateur prisma est différent de ce que NextAuth attend
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   adapter: PrismaAdapter(db) as any,
   secret: process.env.NEXTAUTH_SECRET,
   session: {
@@ -82,42 +81,46 @@ export const authOptions: NextAuthOptions = {
             throw new Error("Code d'authentification à deux facteurs requis");
           }
 
-          // Vérification du code TOTP - à implémenter avec une bibliothèque comme otplib
-          // const isValidTotp = authenticator.verify({
-          //   token: credentials.totp,
-          //   secret: user.twoFactorSecret || '',
-          // });
+          // Vérification du code TOTP avec otplib
+          const isValidTotp = authenticator.verify({
+            token: credentials.totp,
+            secret: user.twoFactorSecret || '',
+          });
 
-          // if (!isValidTotp) {
-          //   throw new Error("Code d'authentification incorrect");
-          // }
+          if (!isValidTotp) {
+            throw new Error("Code d'authentification incorrect");
+          }
         }
 
-        // Obtenir l'ID du profil spécifique au rôle
-        let profileId = null;
-        let isVerified = false;
+        // Déterminer si l'utilisateur est vérifié selon son rôle
+        let isVerified = true; // Par défaut, les comptes sont considérés comme vérifiés
+        const status = user.status;
 
-        switch (user.role) {
-          case UserRole.CLIENT:
-            profileId = user.client?.id;
-            isVerified = true; // Les clients n'ont pas besoin de vérification spécifique
-            break;
-          case UserRole.DELIVERER:
-            profileId = user.deliverer?.id;
-            isVerified = user.deliverer?.isVerified || false;
-            break;
-          case UserRole.MERCHANT:
-            profileId = user.merchant?.id;
-            isVerified = user.merchant?.isVerified || false;
-            break;
-          case UserRole.PROVIDER:
-            profileId = user.provider?.id;
-            isVerified = user.provider?.isVerified || false;
-            break;
-          case UserRole.ADMIN:
-            profileId = user.admin?.id;
-            isVerified = true; // Les admins sont considérés comme vérifiés par défaut
-            break;
+        // Déterminer le profileId en fonction du rôle
+        let profileId: string | undefined;
+
+        // Pour les livreurs, vérifier s'ils sont vérifiés
+        if (user.role === UserRole.DELIVERER && user.deliverer) {
+          isVerified = user.deliverer.isVerified;
+          profileId = user.deliverer.id;
+        }
+        // Pour les commerçants, vérifier s'ils sont vérifiés
+        else if (user.role === UserRole.MERCHANT && user.merchant) {
+          isVerified = user.merchant.isVerified;
+          profileId = user.merchant.id;
+        }
+        // Pour les prestataires, vérifier s'ils sont vérifiés
+        else if (user.role === UserRole.PROVIDER && user.provider) {
+          isVerified = user.provider.isVerified;
+          profileId = user.provider.id;
+        }
+        // Pour les clients, pas de vérification nécessaire
+        else if (user.role === UserRole.CLIENT && user.client) {
+          profileId = user.client.id;
+        }
+        // Pour les admins, pas de vérification nécessaire
+        else if (user.role === UserRole.ADMIN && user.admin) {
+          profileId = user.admin.id;
         }
 
         // Mise à jour de la date de dernière connexion
@@ -134,6 +137,7 @@ export const authOptions: NextAuthOptions = {
           image: user.image,
           profileId,
           isVerified,
+          status,
         };
       },
     }),
@@ -143,36 +147,35 @@ export const authOptions: NextAuthOptions = {
       allowDangerousEmailAccountLinking: true,
       profile(profile) {
         return {
-          id: profile.sub,
+          id: profile.id,
           name: profile.name,
           email: profile.email,
           image: profile.picture,
-          role: UserRole.CLIENT, // Par défaut, les utilisateurs Google sont des clients
+          role: UserRole.CLIENT,
           status: UserStatus.ACTIVE,
+          isVerified: true,
         };
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user, account }) {
-      // Initial sign in
-      if (account && user) {
-        return {
-          ...token,
-          id: user.id,
-          role: user.role,
-          profileId: user.profileId,
-          isVerified: user.isVerified,
-        };
+    async jwt({ token, user }) {
+      if (user) {
+        token.id = user.id;
+        token.role = user.role;
+        token.profileId = user.profileId;
+        token.isVerified = user.isVerified;
+        token.status = user.status;
       }
       return token;
     },
     async session({ session, token }) {
       if (token) {
-        session.user.id = token.id as string;
-        session.user.role = token.role as UserRole;
-        session.user.profileId = token.profileId as string | undefined;
-        session.user.isVerified = token.isVerified as boolean | undefined;
+        session.user.id = token.id;
+        session.user.role = token.role;
+        session.user.profileId = token.profileId;
+        session.user.isVerified = token.isVerified as boolean;
+        session.user.status = token.status;
       }
       return session;
     },

@@ -37,3 +37,10 @@ export * from './user.schema';
 
 // Export des types utilisés par les schémas
 // L'export de UserRole est déjà fait plus haut
+
+// Export all auth schemas from this file
+export * from './user.schema';
+export * from './login.schema';
+export * from './document.schema';
+export * from './verification.schema';
+export * from './admin.schema';

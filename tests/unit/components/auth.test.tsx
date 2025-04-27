@@ -3,7 +3,7 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { LoginForm } from '@/components/auth/login-form';
 import { ClientRegistrationForm } from '@/components/auth/register-forms/client-form';
-import { PasswordResetForm } from '@/components/auth/password-reset';
+import { PasswordResetForm } from '@/components/auth/register-forms/password-reset';
 
 // Mock hooks
 vi.mock('@/hooks/use-auth', () => ({
