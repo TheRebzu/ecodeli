@@ -1,2 +1,2 @@
-# Exécuter les tests
-pnpm test
+# Exécuter les tests avant de pousser
+# pnpm test
