@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { DocumentStatus, DocumentType, Document } from '@/types/document';
+import { DocumentStatus, DocumentType, Document } from '../types/document';
 import { api } from '@/lib/api';
 import { useToast } from '~/components/ui/use-toast';
 import { uploadDocumentSchema, updateDocumentSchema } from '~/schemas/auth/document.schema';

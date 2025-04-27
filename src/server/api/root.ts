@@ -14,6 +14,7 @@ import { invoiceRouter } from './routers/invoice.router';
 import { warehouseRouter } from './routers/warehouse.router';
 import { documentRouter } from './routers/document.router';
 import { verificationRouter } from './routers/verification.router';
+import { userPreferencesRouter } from '@/server/api/routers/user-preferences.router';
 
 // Exporter explicitement cette fonction
 export const createTRPCContext = async (opts: { req?: Request }) => {
@@ -60,6 +61,7 @@ export const adminProcedure = t.procedure.use(isAuthenticated).use(isAdmin);
 export const appRouter = router({
   auth: authRouter,
   user: userRouter,
+  userPreferences: userPreferencesRouter,
   announcement: announcementRouter,
   delivery: deliveryRouter,
   service: serviceRouter,

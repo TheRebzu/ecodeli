@@ -26,7 +26,7 @@ import {
 } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertTriangle, KeyRound } from 'lucide-react';
-import Link from 'next/link';
+import AppLink from '@/components/shared/app-link';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -145,12 +145,13 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
                       </FormItem>
                     )}
                   />
-                  <Link
-                    href={`/${locale}/forgot-password`}
+                  <AppLink
+                    href="/forgot-password"
+                    locale={locale}
                     className="text-sm font-medium text-primary hover:underline"
                   >
                     Mot de passe oublié?
-                  </Link>
+                  </AppLink>
                 </div>
               </>
             ) : (
@@ -260,9 +261,13 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
         </div>
         <div className="text-center text-sm">
           <span className="text-muted-foreground">Pas encore de compte ?</span>{' '}
-          <Link href={`/${locale}/register`} className="font-medium text-primary hover:underline">
+          <AppLink
+            href="/register"
+            locale={locale}
+            className="font-medium text-primary hover:underline"
+          >
             Créer un compte
-          </Link>
+          </AppLink>
         </div>
       </CardFooter>
     </Card>

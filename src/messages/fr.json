@@ -1,0 +1,136 @@
+{
+  "HomePage": {
+    "title": "Bienvenue sur EcoDeli",
+    "subtitle": "Votre plateforme de livraison écologique",
+    "about": "À propos"
+  },
+  "common": {
+    "languageName": "Français",
+    "switchLanguage": "Changer de langue",
+    "currentLanguage": "Langue actuelle",
+    "languages": {
+      "fr": "Français",
+      "en": "Anglais"
+    },
+    "lightMode": "Clair",
+    "darkMode": "Sombre",
+    "systemMode": "Système",
+    "toggleTheme": "Changer de thème",
+    "language": "Langue",
+    "navigation": {
+      "home": "Accueil",
+      "about": "À propos",
+      "services": "Services",
+      "pricing": "Tarifs",
+      "contact": "Contact",
+      "login": "Connexion",
+      "register": "Inscription",
+      "dashboard": "Tableau de bord",
+      "profile": "Profil",
+      "settings": "Paramètres",
+      "logout": "Déconnexion"
+    },
+    "buttons": {
+      "submit": "Soumettre",
+      "cancel": "Annuler",
+      "save": "Enregistrer",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "back": "Retour",
+      "next": "Suivant"
+    }
+  },
+  "auth": {
+    "login": {
+      "pageTitle": "Connexion | EcoDeli",
+      "pageDescription": "Connectez-vous à votre compte EcoDeli",
+      "title": "Connexion",
+      "welcome": "Bienvenue sur EcoDeli",
+      "connectToAccount": "Connectez-vous pour accéder à votre compte",
+      "email": "Adresse e-mail",
+      "password": "Mot de passe",
+      "forgotPassword": "Mot de passe oublié ?",
+      "signIn": "Se connecter",
+      "noAccount": "Vous n'avez pas de compte ?",
+      "register": "S'inscrire",
+      "or": "ou",
+      "continueWithGoogle": "Continuer avec Google",
+      "continueWithGithub": "Continuer avec GitHub",
+      "loginSuccess": "Connexion réussie"
+    },
+    "register": {
+      "pageTitle": "Inscription | EcoDeli",
+      "pageDescription": "Créez votre compte EcoDeli",
+      "title": "Inscription",
+      "email": "Adresse e-mail",
+      "password": "Mot de passe",
+      "passwordConfirm": "Confirmer le mot de passe",
+      "signUp": "S'inscrire",
+      "alreadyHaveAccount": "Vous avez déjà un compte ?",
+      "login": "Se connecter",
+      "or": "ou",
+      "continueWithGoogle": "Continuer avec Google",
+      "continueWithGithub": "Continuer avec GitHub",
+      "registerSuccess": "Inscription réussie",
+      "chooseRole": "Choisissez votre type de compte",
+      "chooseRoleDescription": "Sélectionnez le type de compte qui correspond à vos besoins",
+      "select": "Sélectionner",
+      "hasAccount": "Vous avez déjà un compte ?",
+      "roles": {
+        "client": {
+          "title": "Client",
+          "description": "Utilisez nos services de livraison écologique pour recevoir vos colis et produits"
+        },
+        "deliverer": {
+          "title": "Livreur",
+          "description": "Rejoignez notre équipe de livreurs et contribuez à notre vision écologique"
+        },
+        "merchant": {
+          "title": "Commerçant",
+          "description": "Expédiez vos produits à vos clients via notre réseau de livraison durable"
+        },
+        "provider": {
+          "title": "Prestataire",
+          "description": "Proposez vos services au sein de notre écosystème de livraison écologique"
+        }
+      },
+      "client": {
+        "pageTitle": "Inscription Client | EcoDeli",
+        "pageDescription": "Inscrivez-vous en tant que client sur EcoDeli"
+      },
+      "merchant": {
+        "pageTitle": "Inscription Commerçant | EcoDeli",
+        "pageDescription": "Inscrivez-vous en tant que commerçant sur EcoDeli"
+      },
+      "provider": {
+        "pageTitle": "Inscription Prestataire | EcoDeli",
+        "pageDescription": "Inscrivez-vous en tant que prestataire sur EcoDeli"
+      },
+      "deliverer": {
+        "pageTitle": "Inscription Livreur | EcoDeli",
+        "pageDescription": "Inscrivez-vous en tant que livreur sur EcoDeli"
+      }
+    },
+    "forgotPassword": {
+      "pageTitle": "Mot de passe oublié | EcoDeli",
+      "pageDescription": "Réinitialisez votre mot de passe EcoDeli",
+      "title": "Mot de passe oublié",
+      "email": "Adresse e-mail",
+      "resetPassword": "Réinitialiser le mot de passe",
+      "backToLogin": "Retour à la connexion"
+    },
+    "common": {
+      "name": "Nom",
+      "firstName": "Prénom",
+      "lastName": "Nom de famille",
+      "phoneNumber": "Numéro de téléphone",
+      "address": "Adresse",
+      "city": "Ville",
+      "zipCode": "Code postal",
+      "country": "Pays",
+      "role": "Rôle",
+      "userType": "Type d'utilisateur",
+      "logout": "Déconnexion"
+    }
+  }
+}

@@ -1,28 +1,45 @@
-import { locales } from '../i18n/request';
-import { AuthProvider } from '@/components/auth/auth-provider';
+import { NextIntlClientProvider, hasLocale } from 'next-intl';
+import { notFound } from 'next/navigation';
+import { getMessages, setRequestLocale } from 'next-intl/server';
+import { routing } from '@/i18n/routing';
+import { TRPCProvider } from '@/components/providers/trpc-provider';
+import ThemeProvider from '@/components/providers/theme-provider';
+import { ThemeInitializer } from '@/components/providers/theme-initializer';
 
 interface LayoutProps {
   children: React.ReactNode;
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }
 
 export default async function LocaleLayout({ children, params }: LayoutProps) {
-  // Safely extract locale using Promise.all
-  const [safeParams] = await Promise.all([params]);
-  const locale = safeParams.locale;
+  // Vérifiez que la locale entrante est valide
+  const { locale } = await params;
 
-  // Validate that the locale is supported, mais continuer même en cas d'erreur
-  try {
-    if (!locales.includes(locale)) {
-      console.warn(
-        `Locale non supporté: ${locale}, devrait être l'un des suivants: ${locales.join(', ')}`
-      );
-      // Ne pas rediriger pour éviter les boucles - laisser not-found se déclencher naturellement si nécessaire
-    }
-  } catch (error) {
-    console.error('Erreur lors de la validation du locale:', error);
-    // Continuer malgré l'erreur
+  if (!hasLocale(routing.locales, locale)) {
+    notFound();
   }
 
-  return <AuthProvider>{children}</AuthProvider>;
+  // Activer le rendu statique
+  setRequestLocale(locale);
+
+  const messages = await getMessages();
+
+  return (
+    <html lang={locale}>
+      {/* suppressHydrationWarning pour éviter les erreurs de mismatch */}
+      <body suppressHydrationWarning>
+        <ThemeProvider>
+          {/* Composant qui initialise le thème côté client uniquement */}
+          <ThemeInitializer />
+          <NextIntlClientProvider locale={locale} messages={messages}>
+            <TRPCProvider>{children}</TRPCProvider>
+          </NextIntlClientProvider>
+        </ThemeProvider>
+      </body>
+    </html>
+  );
+}
+
+export function generateStaticParams() {
+  return routing.locales.map(locale => ({ locale }));
 }

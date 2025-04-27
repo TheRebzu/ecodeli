@@ -1,46 +1,62 @@
 'use client';
 
+import { useRouter, usePathname } from '@/i18n/navigation';
+import { useTranslations } from 'next-intl';
+import { useParams } from 'next/navigation';
+import { routing } from '@/i18n/routing';
+import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Button } from '@/components/ui/button';
-import { Globe } from 'lucide-react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { ChevronDown, Globe } from 'lucide-react';
 
 interface LanguageSwitcherProps {
   locale: string;
 }
 
+/**
+ * Component for switching between available languages
+ */
 export function LanguageSwitcher({ locale }: LanguageSwitcherProps) {
+  const t = useTranslations('common');
+  const router = useRouter();
   const pathname = usePathname();
-  const pathnameWithoutLocale = pathname.replace(`/${locale}`, '');
+  const params = useParams();
 
-  const languages = [
-    { code: 'fr', name: 'Français' },
-    { code: 'en', name: 'English' },
-  ];
+  const handleLocaleChange = (newLocale: string) => {
+    if (newLocale === locale) return;
+
+    // The useRouter from i18n Navigation allows us to
+    // change the locale while preserving the current route
+    router.replace(
+      // TypeScript will validate that only known params are used with pathname
+      // Since they'll always match for the current route, we can skip runtime checks
+      // @ts-expect-error - Type checking limitation with dynamic params
+      { pathname, params },
+      { locale: newLocale }
+    );
+  };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" title="Changer de langue">
-          <Globe className="h-[1.2rem] w-[1.2rem]" />
-          <span className="sr-only">Changer de langue</span>
+        <Button variant="outline" size="sm" className="h-8 gap-1">
+          <Globe className="h-4 w-4" />
+          <span className="hidden md:inline-block">{t('languageName')}</span>
+          <ChevronDown className="h-4 w-4 opacity-50" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {languages.map(lang => (
-          <DropdownMenuItem key={lang.code} asChild>
-            <Link
-              href={`/${lang.code}${pathnameWithoutLocale}`}
-              className="flex w-full cursor-pointer items-center"
-            >
-              {lang.name}
-            </Link>
+        {routing.locales.map(localeOption => (
+          <DropdownMenuItem
+            key={localeOption}
+            onClick={() => handleLocaleChange(localeOption)}
+            className={locale === localeOption ? 'bg-accent font-medium' : ''}
+          >
+            {t(`languages.${localeOption}`)}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
