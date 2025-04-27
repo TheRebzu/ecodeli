@@ -1,6 +1,5 @@
 import { z } from 'zod';
-import { UserRole } from './register.schema';
-import { registerBaseFields, addressFields } from './register.schema';
+import { UserRole, registerBaseFields, addressFields } from './register.schema';
 
 // Types de services proposés par les prestataires
 export enum ServiceType {
@@ -14,24 +13,31 @@ export enum ServiceType {
 
 /**
  * Schéma d'inscription pour les prestataires de services
- * Étend le schéma de base avec des champs spécifiques aux prestataires
  */
 export const providerRegisterSchema = z.object({
   ...registerBaseFields,
   ...addressFields,
   
-  // Champs spécifiques aux prestataires
+  // Informations professionnelles
+  companyName: z.string().optional(),
+  address: z.string().min(5, "L'adresse est requise"),
+  phone: z.string().min(5, "Le numéro de téléphone est requis"),
+  
+  // Services proposés
+  services: z.array(z.string()).min(1, "Sélectionnez au moins un service"),
   serviceType: z.nativeEnum(ServiceType, {
-    required_error: "Le type de service est requis",
     invalid_type_error: "Type de service invalide"
-  }),
-  description: z.string().min(10, { message: "Une description détaillée est requise (minimum 10 caractères)" }),
+  }).optional(),
+  description: z.string().optional(),
+  
+  // Disponibilité
+  availability: z.string().optional(),
   
   // Champs optionnels
   websiteUrl: z.string().url({ message: "URL de site web invalide" }).optional(),
   
-  // Rôle fixe PROVIDER
-  role: z.literal(UserRole.PROVIDER).default(UserRole.PROVIDER),
+  // Le rôle est forcément PROVIDER pour ce schéma
+  role: z.literal(UserRole.PROVIDER),
 }).refine((data) => data.password === data.confirmPassword, {
   message: "Les mots de passe ne correspondent pas",
   path: ["confirmPassword"],

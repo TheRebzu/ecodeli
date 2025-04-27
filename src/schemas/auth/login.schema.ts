@@ -1,12 +1,13 @@
-import { z } from 'zod';
+import * as z from "zod";
 
 /**
  * Schéma de validation pour la connexion
  */
 export const loginSchema = z.object({
   email: z.string().email({ message: "Email invalide" }),
-  password: z.string().min(1, "Le mot de passe est requis"),
-  totp: z.string().optional(), // Pour l'authentification à deux facteurs
+  password: z.string().min(1, { message: "Mot de passe requis" }),
+  totp: z.string().optional(),
+  rememberMe: z.boolean().default(false),
 });
 
 export type LoginSchemaType = z.infer<typeof loginSchema>;

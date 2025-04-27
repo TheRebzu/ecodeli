@@ -1,8 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { AuthService } from "~/server/services/auth.service";
 import { PrismaClient, UserRole, UserStatus } from "@prisma/client";
 import { TRPCError } from "@trpc/server";
 import { hash } from "bcryptjs";
+import { db } from "@/server/db";
 
 // Mock du client Prisma
 vi.mock("~/server/db", () => {
@@ -136,6 +137,10 @@ describe("AuthService", () => {
     });
   });
 
+  afterEach(() => {
+    vi.resetAllMocks();
+  });
+
   describe("userExists", () => {
     it("devrait retourner true si l'utilisateur existe", async () => {
       const result = await authService.userExists("test@example.com");
@@ -260,6 +265,156 @@ describe("AuthService", () => {
       mockPrisma.verificationToken.findUnique.mockResolvedValue(null);
 
       await expect(authService.resetPassword("invalid-token", "NewPassword123")).rejects.toThrow(TRPCError);
+    });
+  });
+
+  describe("registerUser", () => {
+    it("devrait créer un utilisateur et générer un token de vérification", async () => {
+      // Arrange
+      const userData = {
+        email: "test@example.com",
+        password: "Password123!",
+        name: "Test User",
+        role: "CLIENT"
+      };
+      
+      vi.mocked(db.user.findUnique).mockResolvedValueOnce(null);
+      vi.mocked(db.user.create).mockResolvedValueOnce({
+        id: "user123",
+        ...userData,
+        emailVerified: null,
+        image: null,
+        status: "PENDING_VERIFICATION",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        password: "hashed_password",
+      });
+      
+      vi.mocked(db.verificationToken.create).mockResolvedValueOnce({
+        identifier: "test@example.com",
+        token: "verification_token",
+        expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        type: "EMAIL_VERIFICATION",
+        used: false,
+      });
+
+      // Act
+      const result = await authService.registerUser(userData);
+
+      // Assert
+      expect(db.user.findUnique).toHaveBeenCalledWith({
+        where: { email: userData.email }
+      });
+      expect(hash).toHaveBeenCalledWith(userData.password, 10);
+      expect(db.user.create).toHaveBeenCalled();
+      expect(db.verificationToken.create).toHaveBeenCalled();
+      expect(result).toEqual({
+        user: expect.objectContaining({ id: "user123" }),
+        verificationToken: "verification_token",
+      });
+    });
+
+    it("devrait lancer une erreur si l'email existe déjà", async () => {
+      // Arrange
+      const userData = {
+        email: "existing@example.com",
+        password: "Password123!",
+        name: "Existing User",
+        role: "CLIENT"
+      };
+      
+      vi.mocked(db.user.findUnique).mockResolvedValueOnce({
+        id: "existing123",
+        email: userData.email,
+        password: "hashed_password",
+        name: userData.name,
+        role: "CLIENT",
+        emailVerified: null,
+        image: null,
+        status: "PENDING_VERIFICATION",
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      });
+
+      // Act & Assert
+      await expect(authService.registerUser(userData)).rejects.toThrow(TRPCError);
+      expect(db.user.create).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("verifyEmail", () => {
+    it("devrait vérifier l'email avec un token valide", async () => {
+      // Arrange
+      const token = "valid_token";
+      const now = new Date();
+      const futureDate = new Date(now.getTime() + 3600000);
+      
+      vi.mocked(db.verificationToken.findFirst).mockResolvedValueOnce({
+        identifier: "test@example.com",
+        token,
+        expires: futureDate,
+        type: "EMAIL_VERIFICATION",
+        used: false,
+      });
+      
+      vi.mocked(db.user.findFirst).mockResolvedValueOnce({
+        id: "user123",
+        email: "test@example.com",
+        password: "hashed_password",
+        name: "Test User",
+        role: "CLIENT",
+        emailVerified: null,
+        image: null,
+        status: "PENDING_VERIFICATION",
+        createdAt: now,
+        updatedAt: now,
+      });
+      
+      vi.mocked(db.user.update).mockResolvedValueOnce({
+        id: "user123",
+        email: "test@example.com",
+        password: "hashed_password",
+        name: "Test User",
+        role: "CLIENT",
+        emailVerified: now,
+        image: null,
+        status: "ACTIVE",
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      // Act
+      const result = await authService.verifyEmail(token);
+
+      // Assert
+      expect(db.verificationToken.findFirst).toHaveBeenCalledWith({
+        where: { token, type: "EMAIL_VERIFICATION", used: false }
+      });
+      expect(db.user.update).toHaveBeenCalled();
+      expect(db.verificationToken.update).toHaveBeenCalled();
+      expect(result).toEqual(expect.objectContaining({
+        emailVerified: expect.any(Date),
+        status: "ACTIVE"
+      }));
+    });
+
+    it("devrait rejeter un token expiré", async () => {
+      // Arrange
+      const token = "expired_token";
+      const now = new Date();
+      const pastDate = new Date(now.getTime() - 3600000);
+      
+      vi.mocked(db.verificationToken.findFirst).mockResolvedValueOnce({
+        identifier: "test@example.com",
+        token,
+        expires: pastDate,
+        type: "EMAIL_VERIFICATION",
+        used: false,
+      });
+
+      // Act & Assert
+      await expect(authService.verifyEmail(token)).rejects.toThrow(TRPCError);
+      expect(db.user.update).not.toHaveBeenCalled();
     });
   });
 });

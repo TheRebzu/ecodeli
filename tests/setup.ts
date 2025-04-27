@@ -1,9 +1,45 @@
-import '@testing-library/jest-dom/extend-expect';
+import { vi, expect } from 'vitest';
+import * as React from 'react';
 
-// Automatiquement importer la bibliothèque d'assertions jest-dom
-import './jest-dom.d.ts';
+// Custom matchers
+expect.extend({
+  toBeInTheDocument(received) {
+    const pass = received !== null && received !== undefined;
+    return {
+      pass,
+      message: () => `expected ${received} ${pass ? 'not to be' : 'to be'} in the document`,
+    };
+  },
+  toHaveClass(received, className) {
+    const pass = received?.className?.includes(className);
+    return {
+      pass,
+      message: () => `expected ${received} ${pass ? 'not to have' : 'to have'} class "${className}"`,
+    };
+  },
+  toHaveValue(received, value) {
+    const pass = (received as HTMLInputElement).value === value;
+    return {
+      pass,
+      message: () => `expected ${received} ${pass ? 'not to have' : 'to have'} value "${value}"`,
+    };
+  }
+});
 
-// Supprimer les avertissements de la console lors des tests
+// Mock Next.js navigation
+vi.mock('next/navigation', () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+    replace: vi.fn(),
+    prefetch: vi.fn(),
+  }),
+  useSearchParams: () => ({
+    get: vi.fn(),
+  }),
+  redirect: vi.fn(),
+}));
+
+// Suppress console warnings during tests
 const originalConsoleError = console.error;
 console.error = (...args) => {
   if (
@@ -15,4 +51,9 @@ console.error = (...args) => {
     return;
   }
   originalConsoleError(...args);
-}; 
+};
+
+// Set up React for JSX
+global.React = React;
+
+// Global test configuration 

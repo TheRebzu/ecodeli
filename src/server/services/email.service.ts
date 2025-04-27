@@ -1,6 +1,7 @@
 import { EmailService as EmailServiceInterface } from '@/types/email';
 import nodemailer from 'nodemailer';
 import { DocumentType } from '../db/enums';
+import { TRPCError } from "@trpc/server";
 
 /**
  * Service de gestion des emails
@@ -136,7 +137,10 @@ export class EmailService implements EmailServiceInterface {
       await this.transporter.sendMail(mailOptions);
     } catch (error) {
       console.error('Erreur lors de l\'envoi de l\'email:', error);
-      throw new Error('Erreur lors de l\'envoi de l\'email');
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de l'envoi de l'email",
+      });
     }
   }
 
@@ -193,6 +197,68 @@ export class EmailService implements EmailServiceInterface {
           contentType: 'application/pdf'
         }
       ]
+    });
+  }
+
+  /**
+   * Envoie un email de notification pour la vérification d'un document
+   */
+  async sendDocumentVerificationNotification(
+    email: string,
+    documentType: string,
+    status: "APPROVED" | "REJECTED",
+    notes?: string
+  ): Promise<void> {
+    const statusText = status === "APPROVED" ? "approuvé" : "rejeté";
+    const statusColor = status === "APPROVED" ? "#22C55E" : "#EF4444";
+
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h1>Notification de vérification de document</h1>
+        <p>Votre document <strong>${documentType}</strong> a été <span style="color: ${statusColor}; font-weight: bold;">${statusText}</span>.</p>
+        ${notes ? `<p><strong>Notes :</strong> ${notes}</p>` : ""}
+        <p>
+          <a 
+            href="${process.env.NEXT_PUBLIC_APP_URL}/documents" 
+            style="display: inline-block; background-color: #4F46E5; color: white; text-decoration: none; padding: 10px 20px; border-radius: 5px;"
+          >
+            Voir mes documents
+          </a>
+        </p>
+      </div>
+    `;
+
+    await this.sendEmail({
+      to: email,
+      subject: `Document ${statusText} - EcoDeli`,
+      html,
+    });
+  }
+
+  /**
+   * Envoie un email de notification pour l'activation du compte
+   */
+  async sendAccountActivationNotification(email: string): Promise<void> {
+    const html = `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+        <h1>Votre compte est maintenant actif !</h1>
+        <p>Félicitations ! Votre compte EcoDeli a été vérifié et est maintenant actif.</p>
+        <p>Vous pouvez maintenant vous connecter et commencer à utiliser la plateforme.</p>
+        <p>
+          <a 
+            href="${process.env.NEXT_PUBLIC_APP_URL}/login" 
+            style="display: inline-block; background-color: #4F46E5; color: white; text-decoration: none; padding: 10px 20px; border-radius: 5px;"
+          >
+            Se connecter
+          </a>
+        </p>
+      </div>
+    `;
+
+    await this.sendEmail({
+      to: email,
+      subject: "Votre compte est activé - EcoDeli",
+      html,
     });
   }
 }

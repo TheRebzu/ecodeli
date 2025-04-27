@@ -1,226 +1,245 @@
+import { useSession, signIn, signOut } from "next-auth/react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signIn, signOut, useSession } from "next-auth/react";
-import { api } from "~/lib/api";
-import {
-  clientRegisterSchema,
-  delivererRegisterSchema,
-  merchantRegisterSchema,
-  providerRegisterSchema,
-  type loginSchema,
-  type verifyEmailSchema,
-  type forgotPasswordSchema,
-  type resetPasswordSchema,
-} from "~/schemas/auth/user.schema";
-import { z } from "zod";
-
-type LoginInput = z.infer<typeof loginSchema>;
-type ClientRegisterInput = z.infer<typeof clientRegisterSchema>;
-type DelivererRegisterInput = z.infer<typeof delivererRegisterSchema>;
-type MerchantRegisterInput = z.infer<typeof merchantRegisterSchema>;
-type ProviderRegisterInput = z.infer<typeof providerRegisterSchema>;
-type VerifyEmailInput = z.infer<typeof verifyEmailSchema>;
-type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
-type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
+import { LoginSchemaType } from "@/schemas/auth/login.schema";
+import { api } from "./use-trpc";
+import { useToast } from "@/components/ui/use-toast";
+import type { UserRole } from "@prisma/client";
+import type { 
+  ClientRegisterSchemaType,
+  DelivererRegisterSchemaType,
+  MerchantRegisterSchemaType,
+  ProviderRegisterSchemaType
+} from "@/schemas/auth";
 
 export function useAuth() {
-  const router = useRouter();
-  const { data: session, status } = useSession();
+  const { data: session, status, update } = useSession();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+  const { toast } = useToast();
 
-  // Clients tRPC pour les mutations d'authentification
-  const registerClientMutation = api.auth.registerClient.useMutation();
-  const registerDelivererMutation = api.auth.registerDeliverer.useMutation();
-  const registerMerchantMutation = api.auth.registerMerchant.useMutation();
-  const registerProviderMutation = api.auth.registerProvider.useMutation();
-  const verifyEmailMutation = api.auth.verifyEmail.useMutation();
-  const forgotPasswordMutation = api.auth.forgotPassword.useMutation();
-  const resetPasswordMutation = api.auth.resetPassword.useMutation();
+  // Mutations tRPC pour l'authentification
+  const registerClient = api.auth.registerClient.useMutation();
+  const registerDeliverer = api.auth.registerDeliverer.useMutation();
+  const registerMerchant = api.auth.registerMerchant.useMutation();
+  const registerProvider = api.auth.registerProvider.useMutation();
+  const verifyEmail = api.auth.verifyEmail.useMutation();
+  const forgotPassword = api.auth.forgotPassword.useMutation();
+  const resetPassword = api.auth.resetPassword.useMutation();
+  const getSession = api.auth.getSession.useQuery(undefined, { 
+    enabled: status === "authenticated",
+    refetchOnWindowFocus: false,
+  });
 
-  // Fonction de connexion
-  const login = async (credentials: LoginInput, callbackUrl?: string) => {
-    setIsLoading(true);
-    setError(null);
-
+  const login = async (data: LoginSchemaType, callbackUrl = "/") => {
     try {
+      setIsLoading(true);
+      setError(null);
+
       const response = await signIn("credentials", {
+        email: data.email,
+        password: data.password,
+        totp: data.totp,
         redirect: false,
-        email: credentials.email,
-        password: credentials.password,
       });
 
       if (response?.error) {
         setError(response.error);
+        setIsLoading(false);
         return false;
       }
 
-      if (response?.ok) {
-        // Redirection après connexion réussie
-        if (callbackUrl) {
-          router.push(callbackUrl);
-        } else {
-          router.push("/dashboard");
-        }
-        return true;
-      }
+      // Rediriger vers la bonne page en fonction du rôle
+      const dashboard = await getDashboardPath();
+      router.push(dashboard || callbackUrl);
+      router.refresh();
+      return true;
+    } catch (_) {
+      setError("Une erreur est survenue lors de la connexion");
+      setIsLoading(false);
+      return false;
+    }
+  };
 
-      return false;
-    } catch (err) {
-      setError("Une erreur s'est produite lors de la connexion");
-      return false;
+  const logout = async () => {
+    try {
+      setIsLoading(true);
+      await signOut({ redirect: false });
+      router.push("/");
+      router.refresh();
+    } catch (_) {
+      setError("Une erreur est survenue lors de la déconnexion");
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Fonction de déconnexion
-  const logout = async (callbackUrl?: string) => {
+  const refreshSession = async () => {
+    await update();
+  };
+
+  // Récupérer le chemin du dashboard en fonction du rôle
+  const getDashboardPath = async () => {
+    try {
+      if (!session?.user) return null;
+      
+      const role = session.user.role as UserRole;
+      switch (role) {
+        case "CLIENT":
+          return "/client";
+        case "DELIVERER":
+          return "/deliverer";
+        case "MERCHANT":
+          return "/merchant";
+        case "PROVIDER":
+          return "/provider";
+        case "ADMIN":
+          return "/admin";
+        default:
+          return "/";
+      }
+    } catch (error) {
+      console.error("Erreur lors de la récupération du dashboard", error);
+      return null;
+    }
+  };
+
+  // S'inscrire en fonction du rôle
+  const register = async (
+    data: ClientRegisterSchemaType | DelivererRegisterSchemaType | MerchantRegisterSchemaType | ProviderRegisterSchemaType, 
+    role: UserRole
+  ) => {
     setIsLoading(true);
+    setError(null);
     
     try {
-      await signOut({ redirect: false });
+      let result;
       
-      if (callbackUrl) {
-        router.push(callbackUrl);
-      } else {
-        router.push("/");
+      switch (role) {
+        case "CLIENT":
+          result = await registerClient.mutateAsync(data as ClientRegisterSchemaType);
+          break;
+        case "DELIVERER":
+          result = await registerDeliverer.mutateAsync(data as DelivererRegisterSchemaType);
+          break;
+        case "MERCHANT":
+          result = await registerMerchant.mutateAsync(data as MerchantRegisterSchemaType);
+          break;
+        case "PROVIDER":
+          result = await registerProvider.mutateAsync(data as ProviderRegisterSchemaType);
+          break;
+        default:
+          throw new Error("Rôle non supporté");
       }
       
-      return true;
-    } catch (err) {
-      setError("Une erreur s'est produite lors de la déconnexion");
-      return false;
+      toast({
+        title: "Inscription réussie",
+        description: "Veuillez vérifier votre email pour activer votre compte.",
+      });
+      
+      router.push("/login");
+      return result;
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Une erreur est survenue lors de l'inscription";
+      setError(errorMessage);
+      toast({
+        title: "Erreur",
+        description: errorMessage,
+        variant: "destructive",
+      });
+      return null;
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Fonction d'inscription client
-  const registerClient = async (data: ClientRegisterInput) => {
-    setIsLoading(true);
-    setError(null);
-
+  // Vérifier un email avec le token
+  const verifyUserEmail = async (token: string) => {
     try {
-      await registerClientMutation.mutateAsync(data);
-      return true;
-    } catch (err: any) {
-      setError(err?.message || "Une erreur s'est produite lors de l'inscription");
-      return false;
+      setIsLoading(true);
+      const result = await verifyEmail.mutateAsync({ token });
+      toast({
+        title: "Email vérifié",
+        description: "Votre compte a été activé. Vous pouvez maintenant vous connecter.",
+      });
+      return result;
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Erreur lors de la vérification de l'email";
+      setError(errorMessage);
+      toast({
+        title: "Erreur",
+        description: errorMessage || "Lien de vérification invalide ou expiré",
+        variant: "destructive",
+      });
+      return null;
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Fonction d'inscription livreur
-  const registerDeliverer = async (data: DelivererRegisterInput) => {
-    setIsLoading(true);
-    setError(null);
-
+  // Demander un reset du mot de passe
+  const requestPasswordReset = async (email: string) => {
     try {
-      await registerDelivererMutation.mutateAsync(data);
-      return true;
-    } catch (err: any) {
-      setError(err?.message || "Une erreur s'est produite lors de l'inscription");
-      return false;
+      setIsLoading(true);
+      const result = await forgotPassword.mutateAsync({ email });
+      toast({
+        title: "Email envoyé",
+        description: "Si un compte existe avec cet email, un lien de réinitialisation a été envoyé.",
+      });
+      return result;
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Erreur lors de l'envoi de l'email";
+      setError(errorMessage);
+      return null;
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Fonction d'inscription commerçant
-  const registerMerchant = async (data: MerchantRegisterInput) => {
-    setIsLoading(true);
-    setError(null);
-
+  // Réinitialiser le mot de passe avec le token
+  const resetUserPassword = async (token: string, password: string) => {
     try {
-      await registerMerchantMutation.mutateAsync(data);
-      return true;
-    } catch (err: any) {
-      setError(err?.message || "Une erreur s'est produite lors de l'inscription");
-      return false;
+      setIsLoading(true);
+      const result = await resetPassword.mutateAsync({ token, password, confirmPassword: password });
+      toast({
+        title: "Mot de passe réinitialisé",
+        description: "Votre mot de passe a été réinitialisé avec succès.",
+      });
+      return result;
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : "Erreur lors de la réinitialisation du mot de passe";
+      setError(errorMessage);
+      toast({
+        title: "Erreur",
+        description: errorMessage || "Lien de réinitialisation invalide ou expiré",
+        variant: "destructive",
+      });
+      return null;
     } finally {
       setIsLoading(false);
     }
   };
 
-  // Fonction d'inscription prestataire
-  const registerProvider = async (data: ProviderRegisterInput) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      await registerProviderMutation.mutateAsync(data);
-      return true;
-    } catch (err: any) {
-      setError(err?.message || "Une erreur s'est produite lors de l'inscription");
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Fonction de vérification d'email
-  const verifyEmail = async (data: VerifyEmailInput) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      await verifyEmailMutation.mutateAsync(data);
-      return true;
-    } catch (err: any) {
-      setError(err?.message || "Une erreur s'est produite lors de la vérification de l'email");
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Fonction de demande de réinitialisation de mot de passe
-  const forgotPassword = async (data: ForgotPasswordInput) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      await forgotPasswordMutation.mutateAsync(data);
-      return true;
-    } catch (err: any) {
-      setError(err?.message || "Une erreur s'est produite lors de la demande de réinitialisation");
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Fonction de réinitialisation de mot de passe
-  const resetPassword = async (data: ResetPasswordInput) => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      await resetPasswordMutation.mutateAsync(data);
-      return true;
-    } catch (err: any) {
-      setError(err?.message || "Une erreur s'est produite lors de la réinitialisation du mot de passe");
-      return false;
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // Étendre les données de session avec les données complètes de l'utilisateur
+  const extendedUser = getSession.data || session?.user;
+  const role = extendedUser?.role as UserRole | undefined;
 
   return {
-    user: session?.user,
-    isAuthenticated: !!session?.user,
-    isLoading: status === "loading" || isLoading,
+    session,
+    user: extendedUser,
+    role,
+    status,
+    isLoading: isLoading || getSession.isLoading,
+    isAuthenticated: status === "authenticated",
+    isUnauthenticated: status === "unauthenticated",
     error,
     login,
     logout,
-    registerClient,
-    registerDeliverer,
-    registerMerchant,
-    registerProvider,
-    verifyEmail,
-    forgotPassword,
-    resetPassword,
+    register,
+    verifyEmail: verifyUserEmail,
+    requestPasswordReset,
+    resetPassword: resetUserPassword,
+    refreshSession,
   };
 }

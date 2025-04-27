@@ -1,4 +1,4 @@
-import { PrismaClient, DocumentType, VerificationStatus } from "@prisma/client";
+import { PrismaClient, DocumentType, VerificationStatus, UserRole } from "@prisma/client";
 import { EmailService } from './email.service';
 import { DocumentStatus } from '../db/enums';
 import fs from 'fs/promises';
@@ -6,6 +6,7 @@ import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { TRPCError } from '@trpc/server';
 import { db } from '../db';
+import crypto from "crypto";
 
 // Interface Document pour typer les retours
 interface Document {
@@ -44,15 +45,6 @@ interface DocumentCreateInput {
 }
 
 // Types pour les enums
-enum DocumentType {
-  ID_CARD = "ID_CARD",
-  DRIVING_LICENSE = "DRIVING_LICENSE",
-  VEHICLE_REGISTRATION = "VEHICLE_REGISTRATION",
-  INSURANCE = "INSURANCE",
-  QUALIFICATION_CERTIFICATE = "QUALIFICATION_CERTIFICATE",
-  OTHER = "OTHER"
-}
-
 enum VerificationStatus {
   PENDING = "PENDING",
   APPROVED = "APPROVED",
@@ -89,57 +81,146 @@ type UpdateVerificationParams = {
   notes?: string;
 };
 
+type UploadFileResult = {
+  filename: string;
+  fileUrl: string;
+  mimeType: string;
+  fileSize: number;
+};
+
 /**
  * Service pour la gestion des documents et vérifications
  */
 export class DocumentService {
   private prisma: PrismaClient;
+  private uploadDir: string;
   
   constructor(prisma = db) {
     this.prisma = prisma;
+    // Le dossier d'uploads est relatif à la racine du projet
+    this.uploadDir = path.join(process.cwd(), "public", "uploads");
   }
 
   /**
-   * Télécharge un nouveau document pour un utilisateur
+   * Sauvegarde un fichier sur le serveur et retourne son URL
+   * Dans un environnement de production, utilisez plutôt un service de stockage comme S3
    */
-  async uploadDocument(data: UploadDocumentParams) {
+  private async saveFile(
+    file: { buffer: Buffer; filename: string; mimetype: string },
+    userId: string
+  ): Promise<UploadFileResult> {
+    try {
+      // S'assurer que le dossier d'uploads existe
+      await fs.mkdir(this.uploadDir, { recursive: true });
+
+      // Créer un nom de fichier unique avec un timestamp et un hash
+      const fileExt = path.extname(file.filename);
+      const fileNameBase = path.basename(file.filename, fileExt);
+      const uniqueSuffix = `${Date.now()}-${crypto
+        .randomBytes(8)
+        .toString("hex")}`;
+      const safeFileName = `${fileNameBase.replace(
+        /[^a-z0-9]/gi,
+        "-"
+      )}-${uniqueSuffix}${fileExt}`;
+
+      // Créer un sous-dossier par utilisateur
+      const userDir = path.join(this.uploadDir, userId);
+      await fs.mkdir(userDir, { recursive: true });
+
+      // Chemin complet du fichier
+      const filePath = path.join(userDir, safeFileName);
+
+      // Écrire le fichier
+      await fs.writeFile(filePath, file.buffer);
+
+      // URL relative pour le client
+      const fileUrl = `/uploads/${userId}/${safeFileName}`;
+
+      return {
+        filename: safeFileName,
+        fileUrl,
+        mimeType: file.mimetype,
+        fileSize: file.buffer.length,
+      };
+    } catch (error) {
+      console.error("Erreur lors de la sauvegarde du fichier:", error);
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Erreur lors de l'upload du fichier",
+      });
+    }
+  }
+
+  /**
+   * Télécharge un document pour un utilisateur
+   */
+  async uploadDocument(
+    userId: string,
+    documentType: DocumentType,
+    file: { buffer: Buffer; filename: string; mimetype: string },
+    expiryDate?: Date
+  ) {
     // Vérifier si l'utilisateur existe
     const user = await this.prisma.user.findUnique({
-      where: { id: data.userId },
+      where: { id: userId },
     });
 
     if (!user) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Utilisateur non trouvé',
+        code: "NOT_FOUND",
+        message: "Utilisateur non trouvé",
       });
     }
 
-    // Créer le document
+    // Sauvegarder le fichier
+    const fileResult = await this.saveFile(file, userId);
+
+    // Déterminer le type d'utilisateur
+    let userRole: UserRole;
+    switch (user.role) {
+      case "CLIENT":
+        userRole = UserRole.CLIENT;
+        break;
+      case "DELIVERER":
+        userRole = UserRole.DELIVERER;
+        break;
+      case "MERCHANT":
+        userRole = UserRole.MERCHANT;
+        break;
+      case "PROVIDER":
+        userRole = UserRole.PROVIDER;
+        break;
+      default:
+        userRole = UserRole.CLIENT;
+    }
+
+    // Créer l'entrée de document
     const document = await this.prisma.document.create({
       data: {
-        userId: data.userId,
-        type: data.type as unknown as Prisma.EnumDocumentTypeFieldUpdateOperationsInput,
-        filename: data.filename,
-        fileUrl: data.fileUrl,
-        mimeType: data.mimeType,
-        fileSize: data.fileSize,
-        notes: data.notes,
-        expiryDate: data.expiryDate,
+        userId: userId,
+        type: documentType,
+        filename: fileResult.filename,
+        fileUrl: fileResult.fileUrl,
+        mimeType: fileResult.mimeType,
+        fileSize: fileResult.fileSize,
+        uploadedAt: new Date(),
+        expiryDate,
+        userRole: userRole.toString(),
       },
     });
 
-    // Créer automatiquement une demande de vérification
-    const verification = await this.prisma.verification.create({
+    // Créer une demande de vérification
+    await this.prisma.verification.create({
       data: {
-        submitterId: data.userId,
+        submitterId: userId,
         documentId: document.id,
-        status: VerificationStatus.PENDING as unknown as Prisma.EnumVerificationStatusFieldUpdateOperationsInput,
-        notes: data.notes,
+        status: "PENDING",
+        requestedAt: new Date(),
       },
     });
-    
-    return { document, verification };
+
+    return document;
   }
 
   /**
@@ -173,9 +254,9 @@ export class DocumentService {
   /**
    * Obtient un document par son ID
    */
-  async getDocumentById(documentId: string) {
+  async getDocumentById(id: string, userId: string | null = null) {
     const document = await this.prisma.document.findUnique({
-      where: { id: documentId },
+      where: { id },
       include: {
         user: {
           select: {
@@ -187,18 +268,11 @@ export class DocumentService {
         },
         verifications: {
           include: {
-            submitter: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
             verifier: {
               select: {
                 id: true,
                 name: true,
-                email: true,
+                role: true,
               },
             },
           },
@@ -208,9 +282,25 @@ export class DocumentService {
 
     if (!document) {
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Document non trouvé',
+        code: "NOT_FOUND",
+        message: "Document non trouvé",
       });
+    }
+
+    // Vérifier les permissions si userId est fourni
+    if (userId && document.userId !== userId) {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { role: true },
+      });
+
+      // Seuls les admins peuvent voir les documents d'autres utilisateurs
+      if (!user || user.role !== "ADMIN") {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Vous n'avez pas accès à ce document",
+        });
+      }
     }
 
     return document;
@@ -220,41 +310,41 @@ export class DocumentService {
    * Obtient tous les documents d'un utilisateur
    */
   async getUserDocuments(userId: string) {
-    const documents = await this.prisma.document.findMany({
+    return await this.prisma.document.findMany({
       where: { userId },
+      orderBy: { uploadedAt: "desc" },
       include: {
         verifications: {
-          include: {
-            verifier: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
+          select: {
+            id: true,
+            status: true,
+            verifiedAt: true,
+            notes: true,
           },
         },
       },
-      orderBy: {
-        uploadedAt: 'desc',
-      },
     });
-    
-    return documents;
   }
 
   /**
    * Obtient tous les documents en attente de vérification
    */
-  async getPendingVerificationDocuments() {
-    const documents = await this.prisma.document.findMany({
-      where: {
-        verifications: {
-          some: {
-            status: VerificationStatus.PENDING as unknown as string,
-          },
+  async getPendingDocuments(userRole?: UserRole) {
+    const where: any = {
+      verifications: {
+        some: {
+          status: "PENDING",
         },
       },
+    };
+
+    if (userRole) {
+      where.userRole = userRole.toString();
+    }
+
+    return await this.prisma.document.findMany({
+      where,
+      orderBy: { uploadedAt: "desc" },
       include: {
         user: {
           select: {
@@ -265,26 +355,11 @@ export class DocumentService {
           },
         },
         verifications: {
-          where: {
-            status: VerificationStatus.PENDING as unknown as string,
-          },
-          include: {
-            submitter: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-          },
+          where: { status: "PENDING" },
+          take: 1,
         },
       },
-      orderBy: {
-        uploadedAt: 'desc',
-      },
     });
-
-    return documents;
   }
 
   /**
@@ -450,42 +525,55 @@ export class DocumentService {
     return document as unknown as Document;
   }
   
-  async deleteDocument(id: string): Promise<void> {
+  async deleteDocument(id: string, userId: string) {
     const document = await this.prisma.document.findUnique({
-      where: { id }
+      where: { id },
     });
     
     if (!document) {
-      throw new Error('Document non trouvé');
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Document non trouvé",
+      });
+    }
+    
+    // Vérifier si l'utilisateur est le propriétaire ou un admin
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true },
+    });
+
+    if (document.userId !== userId && (!user || user.role !== "ADMIN")) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Vous n'êtes pas autorisé à supprimer ce document",
+      });
     }
     
     // Supprimer le fichier physique
-    await fs.unlink(path.join(process.cwd(), document.path));
+    try {
+      // Extraire le chemin du fichier à partir de l'URL
+      const filePath = path.join(
+        this.uploadDir,
+        document.fileUrl.replace("/uploads/", "")
+      );
+      await fs.unlink(filePath);
+    } catch (error) {
+      console.error("Erreur lors de la suppression du fichier:", error);
+      // On continue même si le fichier ne peut pas être supprimé
+    }
     
-    // Supprimer l'entrée dans la base de données
-    await this.prisma.document.delete({
-      where: { id }
+    // Supprimer les vérifications associées
+    await this.prisma.verification.deleteMany({
+      where: { documentId: id },
+    });
+    
+    // Supprimer le document de la base de données
+    return await this.prisma.document.delete({
+      where: { id },
     });
   }
   
-  async getPendingDocuments(userRole?: string): Promise<Document[]> {
-    // Construire la requête avec ou sans le filtre de rôle
-    const where: Record<string, any> = { status: DocumentStatus.PENDING };
-    
-    // Si un rôle est spécifié, filtrer par ce rôle
-    if (userRole) {
-      where.user = { role: userRole };
-    }
-    
-    const documents = await this.prisma.document.findMany({
-      where,
-      orderBy: { uploadedAt: 'asc' },
-      include: { user: true }
-    });
-    
-    return documents as unknown as Document[];
-  }
-
   /**
    * Récupère tous les documents d'un utilisateur
    */

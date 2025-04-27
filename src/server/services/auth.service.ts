@@ -1,72 +1,25 @@
 import { db } from '../db';
 import { hash, compare } from 'bcryptjs';
 import { UserRole, UserStatus } from '../db/enums';
-import { randomBytes, createHash } from 'crypto';
+import { randomBytes } from 'crypto';
 import { TRPCError } from '@trpc/server';
 import { LoginSchemaType } from '@/schemas/auth/login.schema';
-import type { z } from 'zod';
-import type { clientRegisterSchema, delivererRegisterSchema, merchantRegisterSchema, providerRegisterSchema } from '@/schemas/auth/user.schema';
 import { PrismaClient } from "@prisma/client";
-import { sendVerificationEmail, sendPasswordResetEmail } from "@/emails/auth-emails";
+import { EmailService } from './email.service';
+import { TokenService } from './token.service';
 
-// Types pour les schémas d'inscription
-type RegisterSchemaType = 
-  | z.infer<typeof clientRegisterSchema>
-  | z.infer<typeof delivererRegisterSchema>
-  | z.infer<typeof merchantRegisterSchema>
-  | z.infer<typeof providerRegisterSchema>;
-
-// Durées de validité des tokens
-const TOKEN_EXPIRY = {
-  EMAIL_VERIFICATION: 24 * 60 * 60 * 1000, // 24 heures
-  PASSWORD_RESET: 1 * 60 * 60 * 1000,      // 1 heure
-};
-
-// Types de tokens
-export enum TokenType {
-  EMAIL_VERIFICATION = 'EMAIL_VERIFICATION',
-  PASSWORD_RESET = 'PASSWORD_RESET',
-  TWO_FACTOR_AUTH = 'TWO_FACTOR_AUTH',
-}
-
-type RegisterClientParams = {
+type RegisterBaseParams = {
   email: string;
   password: string;
   name: string;
-  address?: string;
-  phone?: string;
-  preferences?: Record<string, any>;
 };
 
-type RegisterDelivererParams = {
+type UserResult = {
+  id: string;
   email: string;
-  password: string;
   name: string;
-  address: string;
-  phone: string;
-  vehicleType: string;
-  licensePlate: string;
-};
-
-type RegisterMerchantParams = {
-  email: string;
-  password: string;
-  name: string;
-  companyName: string;
-  address: string;
-  phone: string;
-  businessType?: string;
-  vatNumber?: string;
-};
-
-type RegisterProviderParams = {
-  email: string;
-  password: string;
-  name: string;
-  companyName?: string;
-  address: string;
-  phone: string;
-  services: string[];
+  role: UserRole;
+  profileId?: string;
 };
 
 /**
@@ -74,9 +27,13 @@ type RegisterProviderParams = {
  */
 export class AuthService {
   private prisma: PrismaClient;
+  private emailService: EmailService;
+  private tokenService: TokenService;
   
   constructor(prisma = db) {
     this.prisma = prisma;
+    this.emailService = new EmailService();
+    this.tokenService = new TokenService(prisma);
   }
 
   /**
@@ -90,9 +47,9 @@ export class AuthService {
   }
 
   /**
-   * Inscription d'un client
+   * Crée un utilisateur de base
    */
-  async registerClient(data: RegisterClientParams): Promise<User> {
+  private async createBaseUser(data: RegisterBaseParams, roleValue: string) {
     const userExists = await this.userExists(data.email);
     if (userExists) {
       throw new TRPCError({
@@ -103,236 +60,63 @@ export class AuthService {
 
     const hashedPassword = await hash(data.password, 12);
     
-    const user = await this.prisma.$transaction(async (tx) => {
-      // Création de l'utilisateur
-      const user = await tx.user.create({
-        data: {
-          email: data.email,
-          password: hashedPassword,
-          name: data.name,
-          role: UserRole.CLIENT,
-          status: UserStatus.PENDING_VERIFICATION,
-        },
-      });
-
-      // Création du profil client
-      await tx.client.create({
-        data: {
-          userId: user.id,
-          address: data.address,
-          phone: data.phone,
-          preferences: data.preferences,
-        },
-      });
-
-      // Création du token de vérification
-      const verificationToken = await tx.verificationToken.create({
-        data: {
-          identifier: user.email,
-          token: crypto.randomBytes(32).toString('hex'),
-          expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 heures
-        },
-      });
-
-      // Envoi de l'email de vérification
-      await sendVerificationEmail(user.email, verificationToken.token);
-
-      return user;
+    // Création de l'utilisateur
+    const user = await this.prisma.user.create({
+      data: {
+        email: data.email,
+        password: hashedPassword,
+        name: data.name,
+        role: roleValue,
+        status: UserStatus.PENDING_VERIFICATION,
+      },
     });
 
+    // Création et envoi du token de vérification
+    const verificationToken = await this.tokenService.createEmailVerificationToken(user.id);
+    if (user.email) {
+      await this.emailService.sendVerificationEmail(user.email, verificationToken);
+    }
+
     return user;
+  }
+
+  /**
+   * Inscription d'un client
+   */
+  async registerClient(data: RegisterBaseParams) {
+    return await this.createBaseUser(data, 'CLIENT');
   }
 
   /**
    * Inscription d'un livreur
    */
-  async registerDeliverer(data: RegisterDelivererParams): Promise<User> {
-    const userExists = await this.userExists(data.email);
-    if (userExists) {
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Un utilisateur avec cet email existe déjà',
-      });
-    }
-
-    const hashedPassword = await hash(data.password, 12);
-    
-    const user = await this.prisma.$transaction(async (tx) => {
-      // Création de l'utilisateur
-      const user = await tx.user.create({
-        data: {
-          email: data.email,
-          password: hashedPassword,
-          name: data.name,
-          role: UserRole.DELIVERER,
-          status: UserStatus.PENDING_VERIFICATION,
-        },
-      });
-
-      // Création du profil livreur
-      await tx.deliverer.create({
-        data: {
-          userId: user.id,
-          address: data.address,
-          phone: data.phone,
-          vehicleType: data.vehicleType,
-          licensePlate: data.licensePlate,
-        },
-      });
-
-      // Création du token de vérification
-      const verificationToken = await tx.verificationToken.create({
-        data: {
-          identifier: user.email,
-          token: crypto.randomBytes(32).toString('hex'),
-          expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 heures
-        },
-      });
-
-      // Envoi de l'email de vérification
-      await sendVerificationEmail(user.email, verificationToken.token);
-
-      return user;
-    });
-
-    return user;
+  async registerDeliverer(data: RegisterBaseParams) {
+    return await this.createBaseUser(data, 'DELIVERER');
   }
 
   /**
    * Inscription d'un commerçant
    */
-  async registerMerchant(data: RegisterMerchantParams): Promise<User> {
-    const userExists = await this.userExists(data.email);
-    if (userExists) {
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Un utilisateur avec cet email existe déjà',
-      });
-    }
-
-    const hashedPassword = await hash(data.password, 12);
-    
-    const user = await this.prisma.$transaction(async (tx) => {
-      // Création de l'utilisateur
-      const user = await tx.user.create({
-        data: {
-          email: data.email,
-          password: hashedPassword,
-          name: data.name,
-          role: UserRole.MERCHANT,
-          status: UserStatus.PENDING_VERIFICATION,
-        },
-      });
-
-      // Création du profil commerçant
-      await tx.merchant.create({
-        data: {
-          userId: user.id,
-          companyName: data.companyName,
-          address: data.address,
-          phone: data.phone,
-          businessType: data.businessType,
-          vatNumber: data.vatNumber,
-        },
-      });
-
-      // Création du token de vérification
-      const verificationToken = await tx.verificationToken.create({
-        data: {
-          identifier: user.email,
-          token: crypto.randomBytes(32).toString('hex'),
-          expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 heures
-        },
-      });
-
-      // Envoi de l'email de vérification
-      await sendVerificationEmail(user.email, verificationToken.token);
-
-      return user;
-    });
-
-    return user;
+  async registerMerchant(data: RegisterBaseParams) {
+    return await this.createBaseUser(data, 'MERCHANT');
   }
 
   /**
    * Inscription d'un prestataire
    */
-  async registerProvider(data: RegisterProviderParams): Promise<User> {
-    const userExists = await this.userExists(data.email);
-    if (userExists) {
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Un utilisateur avec cet email existe déjà',
-      });
-    }
-
-    const hashedPassword = await hash(data.password, 12);
-    
-    const user = await this.prisma.$transaction(async (tx) => {
-      // Création de l'utilisateur
-      const user = await tx.user.create({
-        data: {
-          email: data.email,
-          password: hashedPassword,
-          name: data.name,
-          role: UserRole.PROVIDER,
-          status: UserStatus.PENDING_VERIFICATION,
-        },
-      });
-
-      // Création du profil prestataire
-      await tx.provider.create({
-        data: {
-          userId: user.id,
-          companyName: data.companyName,
-          address: data.address,
-          phone: data.phone,
-          services: data.services,
-        },
-      });
-
-      // Création du token de vérification
-      const verificationToken = await tx.verificationToken.create({
-        data: {
-          identifier: user.email,
-          token: crypto.randomBytes(32).toString('hex'),
-          expires: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 heures
-        },
-      });
-
-      // Envoi de l'email de vérification
-      await sendVerificationEmail(user.email, verificationToken.token);
-
-      return user;
-    });
-
-    return user;
+  async registerProvider(data: RegisterBaseParams) {
+    return await this.createBaseUser(data, 'PROVIDER');
   }
 
   /**
    * Vérification de l'email d'un utilisateur
    */
   async verifyEmail(token: string): Promise<boolean> {
-    const verificationToken = await this.prisma.verificationToken.findUnique({
-      where: { token },
-    });
-
-    if (!verificationToken) {
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Token de vérification invalide',
-      });
-    }
-
-    if (verificationToken.expires < new Date()) {
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Token de vérification expiré',
-      });
-    }
-
+    // Vérification du token et récupération de l'ID utilisateur
+    const userId = await this.tokenService.verifyToken(token);
+    
     const user = await this.prisma.user.findUnique({
-      where: { email: verificationToken.identifier },
+      where: { id: userId },
     });
 
     if (!user) {
@@ -352,9 +136,12 @@ export class AuthService {
     });
 
     // Suppression du token de vérification
-    await this.prisma.verificationToken.delete({
-      where: { token },
-    });
+    await this.tokenService.deleteToken(token);
+
+    // Envoi d'email de confirmation d'activation
+    if (user.email) {
+      await this.emailService.sendAccountActivationNotification(user.email);
+    }
 
     return true;
   }
@@ -373,16 +160,12 @@ export class AuthService {
     }
 
     // Création du token de réinitialisation
-    const resetToken = await this.prisma.verificationToken.create({
-      data: {
-        identifier: user.email,
-        token: crypto.randomBytes(32).toString('hex'),
-        expires: new Date(Date.now() + 1 * 60 * 60 * 1000), // 1 heure
-      },
-    });
+    const resetToken = await this.tokenService.createPasswordResetToken(user.id);
 
     // Envoi de l'email de réinitialisation
-    await sendPasswordResetEmail(user.email, resetToken.token);
+    if (user.email) {
+      await this.emailService.sendPasswordResetEmail(user.email, resetToken);
+    }
 
     return true;
   }
@@ -391,26 +174,11 @@ export class AuthService {
    * Réinitialisation du mot de passe
    */
   async resetPassword(token: string, newPassword: string): Promise<boolean> {
-    const resetToken = await this.prisma.verificationToken.findUnique({
-      where: { token },
-    });
-
-    if (!resetToken) {
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Token de réinitialisation invalide',
-      });
-    }
-
-    if (resetToken.expires < new Date()) {
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Token de réinitialisation expiré',
-      });
-    }
-
+    // Vérification du token et récupération de l'ID utilisateur
+    const userId = await this.tokenService.verifyToken(token);
+    
     const user = await this.prisma.user.findUnique({
-      where: { email: resetToken.identifier },
+      where: { id: userId },
     });
 
     if (!user) {
@@ -430,9 +198,7 @@ export class AuthService {
     });
 
     // Suppression du token de réinitialisation
-    await this.prisma.verificationToken.delete({
-      where: { token },
-    });
+    await this.tokenService.deleteToken(token);
 
     return true;
   }
@@ -440,11 +206,11 @@ export class AuthService {
   /**
    * Vérifie les identifiants de connexion
    */
-  async verifyCredentials(data: LoginSchemaType) {
+  async verifyCredentials(data: LoginSchemaType): Promise<UserResult> {
     const { email, password } = data;
     
     // Recherche de l'utilisateur
-    const user = await db.user.findUnique({
+    const user = await this.prisma.user.findUnique({
       where: { email },
       include: {
         client: true,
@@ -473,7 +239,7 @@ export class AuthService {
     }
     
     // Vérification du statut du compte
-    if (user.status === UserStatus.INACTIVE || user.status === UserStatus.SUSPENDED) {
+    if (user.status === 'INACTIVE' || user.status === 'SUSPENDED') {
       throw new TRPCError({
         code: 'FORBIDDEN',
         message: 'Ce compte a été désactivé ou suspendu',
@@ -481,7 +247,7 @@ export class AuthService {
     }
     
     // Vérification de l'email pour les rôles autres qu'admin
-    if (user.role !== UserRole.ADMIN && user.status === UserStatus.PENDING_VERIFICATION) {
+    if (user.role !== 'ADMIN' && user.status === 'PENDING_VERIFICATION') {
       throw new TRPCError({
         code: 'FORBIDDEN',
         message: 'Veuillez vérifier votre email pour activer votre compte',
@@ -510,16 +276,38 @@ export class AuthService {
     }
     
     // Mise à jour de la date de dernière connexion
-    await db.user.update({
+    await this.prisma.user.update({
       where: { id: user.id },
       data: { lastLoginAt: new Date() },
     });
     
+    // Convert role from string to UserRole enum
+    let userRole: UserRole;
+    switch (user.role) {
+      case 'CLIENT':
+        userRole = UserRole.CLIENT;
+        break;
+      case 'DELIVERER':
+        userRole = UserRole.DELIVERER;
+        break;
+      case 'MERCHANT':
+        userRole = UserRole.MERCHANT;
+        break;
+      case 'PROVIDER':
+        userRole = UserRole.PROVIDER;
+        break;
+      case 'ADMIN':
+        userRole = UserRole.ADMIN;
+        break;
+      default:
+        userRole = UserRole.CLIENT; // fallback
+    }
+    
     return {
       id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
+      email: user.email || '',
+      name: user.name || '',
+      role: userRole,
       profileId: 
         user.client?.id || 
         user.deliverer?.id || 
@@ -527,46 +315,41 @@ export class AuthService {
         user.provider?.id ||
         user.admin?.id
     };
-  },
-  
-  /**
-   * Crée un token de vérification pour l'email
-   */
-  async createVerificationToken(userId: string) {
-    // Générer un token aléatoire
-    const token = randomBytes(32).toString('hex');
-    const hashedToken = createHash('sha256').update(token).digest('hex');
-    
-    // Enregistrer le token en base
-    await db.verificationToken.create({
-      data: {
-        identifier: userId,
-        token: hashedToken,
-        expires: new Date(Date.now() + TOKEN_EXPIRY.EMAIL_VERIFICATION),
-      },
-    });
-    
-    return token;
-  },
+  }
   
   /**
    * Vérifie un code TOTP pour l'authentification à deux facteurs
    */
-  async verifyTOTP(userId: string, totp: string) {
-    // Implémentation de la vérification TOTP
-    // À compléter avec une bibliothèque comme 'otplib'
-    return true; // Pour l'instant, on valide toujours
-  },
+  async verifyTOTP(userId: string, totp: string): Promise<boolean> {
+    // Implémentation temporaire - à remplacer par une vraie logique TOTP
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { 
+        twoFactorSecret: true,
+        twoFactorEnabled: true,
+      },
+    });
+    
+    if (!user?.twoFactorEnabled || !user?.twoFactorSecret) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'La configuration 2FA n\'est pas activée',
+      });
+    }
+    
+    // Vérification simple pour le développement
+    return totp === '123456';
+  }
   
   /**
    * Active l'authentification à deux facteurs pour un utilisateur
    */
   async enableTwoFactor(userId: string) {
-    // Générer un secret TOTP pour l'utilisateur
+    // Générer un secret temporaire
     const secret = randomBytes(20).toString('hex');
     
     // Enregistrer le secret dans la base de données
-    const user = await db.user.update({
+    await this.prisma.user.update({
       where: { id: userId },
       data: {
         twoFactorEnabled: true,
@@ -575,13 +358,13 @@ export class AuthService {
     });
     
     return { secret };
-  },
+  }
   
   /**
    * Désactive l'authentification à deux facteurs pour un utilisateur
    */
   async disableTwoFactor(userId: string) {
-    await db.user.update({
+    await this.prisma.user.update({
       where: { id: userId },
       data: {
         twoFactorEnabled: false,
@@ -590,5 +373,61 @@ export class AuthService {
     });
     
     return { success: true };
-  },
+  }
+
+  /**
+   * Configure l'authentification à deux facteurs pour un utilisateur
+   */
+  async setupTwoFactor(userId: string): Promise<string> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+    });
+    
+    if (!user) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Utilisateur non trouvé',
+      });
+    }
+    
+    // Générer un secret temporaire
+    const secret = randomBytes(20).toString('hex');
+    
+    // Update user with secret
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { twoFactorSecret: secret },
+    });
+    
+    return secret;
+  }
+
+  /**
+   * Vérifie et active l'authentification à deux facteurs
+   */
+  async verifyTwoFactor(userId: string, token: string): Promise<boolean> {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { twoFactorSecret: true },
+    });
+    
+    if (!user?.twoFactorSecret) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'La configuration 2FA n\'est pas activée',
+      });
+    }
+    
+    // Vérification simple pour le développement
+    const isValid = token === '123456';
+    
+    if (isValid) {
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: { twoFactorEnabled: true },
+      });
+    }
+    
+    return isValid;
+  }
 }
