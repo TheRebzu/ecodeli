@@ -7,6 +7,8 @@ import { v4 as uuidv4 } from 'uuid';
 import { TRPCError } from '@trpc/server';
 import { db } from '../db';
 import crypto from 'crypto';
+import { notificationService } from './notification.service';
+import { getUserPreferredLocale } from '@/lib/user-locale';
 
 // Interface Document pour typer les retours
 interface Document {
@@ -850,5 +852,234 @@ export class DocumentService {
     };
 
     return documentTypeNames[type] || 'Document';
+  }
+
+  // Create a new document
+  async createDocument(data: DocumentCreateInput): Promise<Document> {
+    try {
+      return await this.prisma.document.create({
+        data: {
+          userId: data.userId,
+          type: data.type,
+          filePath: data.filePath,
+          fileName: data.fileName,
+          fileSize: data.fileSize,
+          mimeType: data.mimeType,
+          userRole: data.userRole,
+          status: 'PENDING',
+        },
+      });
+    } catch (error) {
+      console.error('Error creating document:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to create document',
+      });
+    }
+  }
+
+  // Get a document by ID
+  async getDocumentById(id: string): Promise<Document | null> {
+    return await this.prisma.document.findUnique({
+      where: { id },
+    });
+  }
+
+  // Get documents by user ID
+  async getDocumentsByUserId(userId: string): Promise<Document[]> {
+    return await this.prisma.document.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  // Get the most recent document of a specific type for a user
+  async getMostRecentDocumentByType(userId: string, type: DocumentType): Promise<Document | null> {
+    return await this.prisma.document.findFirst({
+      where: { userId, type },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  // Update a document
+  async updateDocument(id: string, data: UpdateDocumentInput): Promise<Document> {
+    const document = await this.getDocumentById(id);
+
+    if (!document) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Document not found',
+      });
+    }
+
+    // If verification status is changing to APPROVED or REJECTED, fetch user details for notification
+    const shouldNotify =
+      data.verificationStatus &&
+      document.verificationStatus !== data.verificationStatus &&
+      (data.verificationStatus === VerificationStatus.APPROVED ||
+        data.verificationStatus === VerificationStatus.REJECTED);
+
+    let userWithDocument = null;
+    if (shouldNotify) {
+      userWithDocument = await this.prisma.document.findUnique({
+        where: { id },
+        include: { user: true },
+      });
+
+      if (!userWithDocument) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Document with user not found',
+        });
+      }
+    }
+
+    try {
+      const updatedDocument = await this.prisma.document.update({
+        where: { id },
+        data,
+      });
+
+      // Send notifications and emails if the verification status changed to APPROVED or REJECTED
+      if (shouldNotify && userWithDocument) {
+        const locale = getUserPreferredLocale(userWithDocument.user);
+
+        if (data.verificationStatus === VerificationStatus.APPROVED) {
+          // Send approval notification
+          await notificationService.sendDocumentApprovedNotification(userWithDocument, locale);
+
+          // Send approval email
+          await this.emailService.sendDocumentApprovedEmail(
+            userWithDocument.user.email,
+            userWithDocument.user.name || '',
+            userWithDocument.type,
+            locale
+          );
+        }
+
+        if (data.verificationStatus === VerificationStatus.REJECTED) {
+          // Send rejection notification
+          await notificationService.sendDocumentRejectedNotification(
+            userWithDocument,
+            data.rejectionReason || 'Document invalide',
+            locale
+          );
+
+          // Send rejection email
+          await this.emailService.sendDocumentRejectedEmail(
+            userWithDocument.user.email,
+            userWithDocument.user.name || '',
+            userWithDocument.type,
+            data.rejectionReason || 'Document invalide',
+            locale
+          );
+        }
+      }
+
+      return updatedDocument;
+    } catch (error) {
+      console.error('Error updating document:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to update document',
+      });
+    }
+  }
+
+  // Delete a document
+  async deleteDocument(id: string): Promise<Document> {
+    const document = await this.getDocumentById(id);
+
+    if (!document) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Document not found',
+      });
+    }
+
+    try {
+      return await this.prisma.document.delete({
+        where: { id },
+      });
+    } catch (error) {
+      console.error('Error deleting document:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to delete document',
+      });
+    }
+  }
+
+  // Check if user has provided all required documents
+  async hasRequiredDocuments(userId: string, requiredTypes: DocumentType[]): Promise<boolean> {
+    const documents = await this.getDocumentsByUserId(userId);
+    const verifiedDocumentTypes = documents.filter(doc => doc.isVerified).map(doc => doc.type);
+
+    return requiredTypes.every(type => verifiedDocumentTypes.includes(type));
+  }
+
+  // Get missing required documents
+  async getMissingRequiredDocuments(
+    userId: string,
+    requiredTypes: DocumentType[]
+  ): Promise<DocumentType[]> {
+    const documents = await this.getDocumentsByUserId(userId);
+    const verifiedDocumentTypes = documents.filter(doc => doc.isVerified).map(doc => doc.type);
+
+    return requiredTypes.filter(type => !verifiedDocumentTypes.includes(type));
+  }
+
+  // Check if any documents are about to expire
+  async getExpiringDocuments(userId: string, daysUntilExpiry: number): Promise<Document[]> {
+    const expiryThreshold = new Date();
+    expiryThreshold.setDate(expiryThreshold.getDate() + daysUntilExpiry);
+
+    return await this.prisma.document.findMany({
+      where: {
+        userId,
+        expiryDate: {
+          not: null,
+          lte: expiryThreshold,
+        },
+      },
+    });
+  }
+
+  // Get required document types by user role
+  getRequiredDocumentTypesByRole(role: string): DocumentType[] {
+    switch (role) {
+      case 'deliverer':
+        return [
+          DocumentType.ID_CARD,
+          DocumentType.DRIVING_LICENSE,
+          DocumentType.VEHICLE_REGISTRATION,
+          DocumentType.INSURANCE_CERTIFICATE,
+        ];
+      case 'merchant':
+        return [
+          DocumentType.ID_CARD,
+          DocumentType.BUSINESS_REGISTRATION,
+          DocumentType.PROOF_OF_ADDRESS,
+        ];
+      case 'provider':
+        return [
+          DocumentType.ID_CARD,
+          DocumentType.PROFESSIONAL_CERTIFICATION,
+          DocumentType.PROOF_OF_ADDRESS,
+        ];
+      default:
+        return [DocumentType.ID_CARD];
+    }
+  }
+
+  // Send reminders for missing documents
+  async sendMissingDocumentsReminders(user: User): Promise<void> {
+    const requiredDocuments = this.getRequiredDocumentTypesByRole(user.role);
+    const missingDocuments = await this.getMissingRequiredDocuments(user.id, requiredDocuments);
+
+    if (missingDocuments.length > 0) {
+      const locale = getUserPreferredLocale(user);
+      await notificationService.sendMissingDocumentsReminder(user, missingDocuments, locale);
+    }
   }
 }

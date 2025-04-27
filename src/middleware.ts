@@ -1,134 +1,332 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import createMiddleware from 'next-intl/middleware';
-import { routing } from './i18n/routing';
+import { UserRole, UserStatus } from '@prisma/client';
 
-// Définition des rôles utilisateur
-enum UserRole {
-  CLIENT = 'CLIENT',
-  DELIVERER = 'DELIVERER',
-  MERCHANT = 'MERCHANT',
-  PROVIDER = 'PROVIDER',
-  ADMIN = 'ADMIN',
-}
+// Comment out Upstash imports until environment variables are configured
+// import { Ratelimit } from '@upstash/ratelimit';
+// import { Redis } from '@upstash/redis';
 
-// Groupes de routes dans l'application
-const routeGroups = {
-  public: [
-    'about',
-    'contact',
-    'faq',
-    'pricing',
-    'services',
-    'terms',
-    'privacy',
-    'shipping',
-    'become-delivery',
-  ],
-  auth: [
-    'login',
-    'register',
-    'register/client',
-    'register/provider',
-    'register/merchant',
-    'register/deliverer',
-    'forgot-password',
-    'reset-password',
-    'verify-email',
-  ],
-};
+// Locales supportées par l'application
+const VALID_LOCALES = ['fr', 'en'];
+const DEFAULT_LOCALE = 'fr';
 
-// Liste complète des chemins publics
+// Définir les chemins publics qui ne nécessitent pas d'authentification
 const publicPaths = [
-  'home',
-  '', // route racine du locale
-  ...routeGroups.public,
-  ...routeGroups.auth,
+  '/',
+  '/about',
+  '/contact',
+  '/login',
+  '/register',
+  '/forgot-password',
+  '/reset-password',
+  '/verify-email',
+  '/pricing',
+  '/faq',
+  '/terms',
+  '/privacy',
+  '/services',
+  '/become-delivery',
+  '/shipping',
+  '/home',
+  // Add debug paths for development
+  '/debug',
+  '/test',
 ];
 
-// Créer le middleware next-intl
-const intlMiddleware = createMiddleware(routing);
+// Définir les chemins accessibles en fonction du rôle
+const roleBasedPaths: Record<UserRole, string[]> = {
+  CLIENT: ['/client'],
+  DELIVERER: ['/deliverer'],
+  MERCHANT: ['/merchant'],
+  PROVIDER: ['/provider'],
+  ADMIN: ['/admin'],
+};
+
+// Chemins autorisés même pour les utilisateurs non vérifiés
+const allowedNonVerifiedPaths: Record<UserRole, string[]> = {
+  DELIVERER: ['/deliverer/documents', '/deliverer/profile', '/deliverer/settings'],
+  MERCHANT: ['/merchant/contract', '/merchant/profile', '/merchant/settings'],
+  PROVIDER: ['/provider/documents', '/provider/profile', '/provider/settings'],
+  CLIENT: [], // Les clients n'ont pas besoin de vérification
+  ADMIN: [], // Les admins n'ont pas besoin de vérification
+};
+
+// Temporarily disable rate limiting until environment variables are configured
+/*
+// Configuration pour le rate limiting
+let authLimiter: Ratelimit | null = null;
+let apiLimiter: Ratelimit | null = null;
+
+// Créer les limiteurs de taux seulement si les variables d'environnement sont disponibles
+if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
+  try {
+    const redis = new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN,
+    });
+
+    // Configuration des limiteurs de taux différents selon le type de route
+    authLimiter = new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(10, '5 m'),  // 10 requêtes par 5 minutes
+      analytics: true,
+      prefix: 'ratelimit:auth',
+    });
+
+    apiLimiter = new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(60, '1 m'),  // 60 requêtes par minute
+      analytics: true,
+      prefix: 'ratelimit:api',
+    });
+  } catch (error) {
+    console.error('Failed to initialize Upstash Redis for rate limiting:', error);
+    // Continue without rate limiting
+  }
+}
+*/
 
 export async function middleware(request: NextRequest) {
-  // Vérifier d'abord si le chemin est ignoré pour l'internationalisation
-  const pathname = request.nextUrl.pathname;
+  try {
+    const { pathname } = request.nextUrl;
 
-  // Ignorer les API routes
-  if (
-    pathname.startsWith('/api/') ||
-    pathname.startsWith('/trpc/') ||
-    pathname.startsWith('/_next/') ||
-    pathname.includes('.')
-  ) {
+    // Ignorer les fichiers statiques, API routes, et les ressources Next.js
+    if (
+      pathname.startsWith('/_next') ||
+      pathname.startsWith('/api') ||
+      pathname.startsWith('/static') ||
+      pathname.includes('.') // fichiers avec extensions
+    ) {
+      return NextResponse.next();
+    }
+
+    // Vérifier si le chemin est exactement /{locale}
+    const isLocaleRoot = VALID_LOCALES.some(locale => pathname === `/${locale}`);
+
+    // Si c'est la racine d'une locale, rediriger vers /{locale}/home
+    if (isLocaleRoot) {
+      const locale = pathname.slice(1); // Enlever le '/' initial
+      return NextResponse.redirect(new URL(`/${locale}/home`, request.url));
+    }
+
+    // Vérifier si le chemin contient une locale valide
+    const pathnameHasValidLocale = VALID_LOCALES.some(
+      locale => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`)
+    );
+
+    // Si le chemin n'a pas de locale valide et n'est pas la racine, rediriger vers la locale par défaut
+    if (!pathnameHasValidLocale && pathname !== '/') {
+      // Extraire le premier segment du chemin (potentiellement une locale invalide)
+      const segments = pathname.split('/').filter(Boolean);
+      const firstSegment = segments[0];
+
+      // Construire le nouveau chemin avec la locale par défaut
+      // Si le premier segment est une "fausse locale" (comme 'login'), le réutiliser comme partie du chemin
+      const newPathname = firstSegment
+        ? `/${DEFAULT_LOCALE}/${segments.join('/')}`
+        : `/${DEFAULT_LOCALE}${pathname}`;
+
+      return NextResponse.redirect(new URL(newPathname, request.url));
+    }
+
+    // A ce stade, soit pathname contient une locale valide, soit c'est '/'
+    // Si c'est '/', le comportement existant de la page.tsx gérera la redirection
+
+    // Extraire la locale du chemin ou utiliser la locale par défaut
+    const locale =
+      VALID_LOCALES.find(
+        locale => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`)
+      ) || DEFAULT_LOCALE;
+
+    // Supprimer la locale du chemin pour les vérifications suivantes
+    const pathWithoutLocale = pathname.replace(`/${locale}`, '').replace(/^\/\//, '/') || '/';
+
+    // Vérifier si le chemin est public (accessible sans authentification)
+    const isPublicPath = publicPaths.some(
+      publicPath =>
+        pathWithoutLocale === publicPath || pathWithoutLocale.startsWith(`${publicPath}/`)
+    );
+
+    // Pour les chemins publics, autoriser l'accès sans vérification
+    if (isPublicPath) {
+      return NextResponse.next();
+    }
+
+    // Récupérer le token pour vérifier l'authentification
+    const token = await getToken({
+      req: request,
+      secret: process.env.NEXTAUTH_SECRET,
+    });
+
+    // Si l'utilisateur n'est pas connecté, rediriger vers la page de connexion
+    if (!token) {
+      const redirectUrl = new URL(`/${locale}/login`, request.url);
+      redirectUrl.searchParams.set('callbackUrl', encodeURI(request.url));
+      return NextResponse.redirect(redirectUrl);
+    }
+
+    // Récupérer les informations du token avec des valeurs par défaut pour éviter les erreurs
+    const userRole = (token.role as UserRole) || UserRole.CLIENT;
+    const isVerified = !!token.isVerified;
+    const userStatus = (token.status as UserStatus) || UserStatus.ACTIVE;
+
+    // Vérifier si l'utilisateur a accès au chemin demandé en fonction de son rôle
+    const hasRoleAccess = Object.entries(roleBasedPaths).some(([role, paths]) => {
+      return (
+        role === userRole &&
+        paths.some(path => pathWithoutLocale === path || pathWithoutLocale.startsWith(`${path}/`))
+      );
+    });
+
+    // Si l'utilisateur n'a pas accès à ce chemin, rediriger vers son dashboard
+    if (!hasRoleAccess) {
+      const dashboardPath = getDashboardPathForRole(userRole, locale);
+      return NextResponse.redirect(new URL(dashboardPath, request.url));
+    }
+
+    // Vérification du statut de l'utilisateur
+    if (userStatus === UserStatus.SUSPENDED) {
+      // Rediriger vers une page expliquant que le compte est suspendu
+      return NextResponse.redirect(new URL(`/${locale}/account-suspended`, request.url));
+    }
+
+    if (userStatus === UserStatus.INACTIVE) {
+      // Rediriger vers une page expliquant que le compte est inactif
+      return NextResponse.redirect(new URL(`/${locale}/account-inactive`, request.url));
+    }
+
+    // Pour les utilisateurs non vérifiés (hors clients et admins)
+    if (
+      userRole !== UserRole.CLIENT &&
+      userRole !== UserRole.ADMIN &&
+      !isVerified &&
+      userStatus === UserStatus.PENDING_VERIFICATION
+    ) {
+      // Vérifier si le chemin actuel est autorisé pour les utilisateurs non vérifiés
+      const isAllowedPath = allowedNonVerifiedPaths[userRole].some(
+        path => pathWithoutLocale === path || pathWithoutLocale.startsWith(`${path}/`)
+      );
+
+      if (!isAllowedPath) {
+        // Rediriger vers la page de vérification appropriée en fonction du rôle
+        let verificationPath;
+        switch (userRole) {
+          case UserRole.DELIVERER:
+            verificationPath = `/${locale}/deliverer/documents`;
+            break;
+          case UserRole.MERCHANT:
+            verificationPath = `/${locale}/merchant/contract`;
+            break;
+          case UserRole.PROVIDER:
+            verificationPath = `/${locale}/provider/documents`;
+            break;
+          default:
+            verificationPath = `/${locale}/login`;
+        }
+
+        // Ajouter un message indiquant que la vérification est nécessaire
+        const redirectUrl = new URL(verificationPath, request.url);
+        redirectUrl.searchParams.set('verification_required', 'true');
+
+        return NextResponse.redirect(redirectUrl);
+      }
+    }
+
+    // Temporarily disabled rate limiting until environment variables are configured
+    /*
+    // Si les limiteurs de taux ne sont pas configurés, passer à la suite
+    if (!authLimiter || !apiLimiter) {
+      return NextResponse.next();
+    }
+
+    // Récupérer l'adresse IP ou utiliser un fallback
+    const ip = request.headers.get('x-forwarded-for') || 
+               request.headers.get('x-real-ip') || 
+               'anonymous';
+    
+    try {
+      // Vérifier s'il s'agit d'une route d'authentification
+      if (pathWithoutLocale.startsWith('/api/auth') || pathWithoutLocale.startsWith('/login') || pathWithoutLocale.startsWith('/register')) {
+        const { success, limit, remaining, reset } = await authLimiter.limit(ip);
+        
+        if (!success) {
+          return new NextResponse(
+            JSON.stringify({
+              error: 'Too many requests',
+              limit,
+              remaining,
+              reset: reset - Date.now(),
+            }),
+            {
+              status: 429,
+              headers: {
+                'Content-Type': 'application/json',
+                'X-RateLimit-Limit': limit.toString(),
+                'X-RateLimit-Remaining': remaining.toString(),
+                'X-RateLimit-Reset': reset.toString(),
+              },
+            }
+          );
+        }
+      } 
+      // Vérifier s'il s'agit d'une route API (mais pas d'authentification)
+      else if (pathWithoutLocale.startsWith('/api/')) {
+        const { success, limit, remaining, reset } = await apiLimiter.limit(ip);
+        
+        if (!success) {
+          return new NextResponse(
+            JSON.stringify({
+              error: 'Too many requests',
+              limit,
+              remaining,
+              reset: reset - Date.now(),
+            }),
+            {
+              status: 429,
+              headers: {
+                'Content-Type': 'application/json',
+                'X-RateLimit-Limit': limit.toString(),
+                'X-RateLimit-Remaining': remaining.toString(),
+                'X-RateLimit-Reset': reset.toString(),
+              },
+            }
+          );
+        }
+      }
+    } catch (error) {
+      console.error('Error in rate limiting middleware:', error);
+      // En cas d'erreur, permettre la requête
+    }
+    */
+
+    // Si toutes les vérifications sont passées, autoriser la requête
     return NextResponse.next();
+  } catch (error) {
+    console.error('Error in middleware:', error);
+    // En cas d'erreur, rediriger vers la page d'accueil
+    return NextResponse.redirect(new URL('/', request.url));
   }
-
-  // Appliquer le middleware d'internationalisation
-  const response = intlMiddleware(request);
-
-  // Si la réponse est une redirection, la retourner directement
-  if (response instanceof NextResponse && response.headers.get('Location')) {
-    return response;
-  }
-
-  // Extraction de la locale et du reste du chemin
-  const localeMatch = pathname.match(/^\/([^\/]+)(\/.*)?$/);
-  if (!localeMatch) {
-    return NextResponse.next();
-  }
-
-  const locale = localeMatch[1];
-  const restOfPath = localeMatch[2] || '/';
-
-  // Vérification pour la route home
-  if (pathname.endsWith('/home') || pathname.includes('/home/')) {
-    return NextResponse.next();
-  }
-
-  // Vérifier si le chemin est une route publique
-  const isPublicPath = publicPaths.some(
-    p => restOfPath === '/' + p || restOfPath.startsWith('/' + p + '/')
-  );
-
-  if (isPublicPath) {
-    return NextResponse.next();
-  }
-
-  // Vérification d'authentification pour les routes protégées
-  const token = await getToken({ req: request });
-  if (!token) {
-    const loginUrl = new URL(`/${locale}/login`, request.url);
-    loginUrl.searchParams.set('callbackUrl', encodeURI(request.url));
-    return NextResponse.redirect(loginUrl);
-  }
-
-  // Vérifications des autorisations basées sur les rôles
-  const role = token.role as UserRole;
-
-  if (pathname.includes('/admin') && role !== UserRole.ADMIN) {
-    return NextResponse.redirect(new URL(`/${locale}`, request.url));
-  }
-
-  if (pathname.includes('/client') && role !== UserRole.CLIENT && role !== UserRole.ADMIN) {
-    return NextResponse.redirect(new URL(`/${locale}`, request.url));
-  }
-
-  if (pathname.includes('/deliverer') && role !== UserRole.DELIVERER && role !== UserRole.ADMIN) {
-    return NextResponse.redirect(new URL(`/${locale}`, request.url));
-  }
-
-  if (pathname.includes('/merchant') && role !== UserRole.MERCHANT && role !== UserRole.ADMIN) {
-    return NextResponse.redirect(new URL(`/${locale}`, request.url));
-  }
-
-  if (pathname.includes('/provider') && role !== UserRole.PROVIDER && role !== UserRole.ADMIN) {
-    return NextResponse.redirect(new URL(`/${locale}`, request.url));
-  }
-
-  return NextResponse.next();
 }
 
+// Fonction pour récupérer le chemin de tableau de bord en fonction du rôle
+function getDashboardPathForRole(role: UserRole, locale: string = 'fr'): string {
+  switch (role) {
+    case UserRole.CLIENT:
+      return `/${locale}/client`;
+    case UserRole.DELIVERER:
+      return `/${locale}/deliverer`;
+    case UserRole.MERCHANT:
+      return `/${locale}/merchant`;
+    case UserRole.PROVIDER:
+      return `/${locale}/provider`;
+    case UserRole.ADMIN:
+      return `/${locale}/admin`;
+    default:
+      return `/${locale}/login`;
+  }
+}
+
+// Configuration du middleware pour qu'il s'exécute sur toutes les routes
 export const config = {
-  matcher: ['/((?!api|trpc|_next|_vercel|.*\\..*).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 };

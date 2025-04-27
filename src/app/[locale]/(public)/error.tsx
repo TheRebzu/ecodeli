@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import Link from 'next/link';
-import { getAuthErrorMessage } from '@/lib/auth-error';
+import { getAuthErrorMessage } from '@/lib/auth/auth-error';
 import { Button } from '@/components/ui/button';
 import { RefreshCcw } from 'lucide-react';
 

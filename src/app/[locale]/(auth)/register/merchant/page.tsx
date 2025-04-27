@@ -1,15 +1,71 @@
-import { MerchantRegistrationForm } from '@/components/auth/register-forms/merchant-form';
 import { Metadata } from 'next';
+import { redirect } from 'next/navigation';
+import { getTranslations } from 'next-intl/server';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/server/auth/next-auth';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { ChevronLeft } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertTriangle } from 'lucide-react';
 
-export const metadata: Metadata = {
-  title: 'Inscription Commerçant | EcoDeli',
-  description: 'Inscrivez-vous en tant que commerçant sur EcoDeli',
-};
+export async function generateMetadata({
+  params,
+}: {
+  params: { locale: string };
+}): Promise<Metadata> {
+  // Attendre la résolution des paramètres
+  const resolvedParams = await params;
+  const locale = resolvedParams.locale;
 
-export default function MerchantRegisterPage() {
+  const t = await getTranslations({ locale, namespace: 'auth.register' });
+
+  return {
+    title: t('merchant.pageTitle'),
+    description: t('merchant.pageDescription'),
+  };
+}
+
+export default async function MerchantRegisterPage({ params }: { params: { locale: string } }) {
+  // Attendre que les paramètres soient résolus
+  const resolvedParams = await params;
+  const locale = resolvedParams.locale;
+
+  // Vérifier si l'utilisateur est déjà connecté
+  const session = await getServerSession(authOptions);
+  if (session) {
+    redirect(`/${locale}/dashboard`);
+  }
+
+  const t = await getTranslations({ locale, namespace: 'auth.register' });
+
   return (
-    <div className="container flex items-center justify-center min-h-screen py-12">
-      <MerchantRegistrationForm />
+    <div className="container flex h-screen flex-col items-center justify-center">
+      <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[450px]">
+        <Button variant="ghost" className="absolute left-4 top-4 md:left-8 md:top-8" asChild>
+          <Link href={`/${locale}/register`}>
+            <ChevronLeft className="mr-2 h-4 w-4" />
+            {t('back')}
+          </Link>
+        </Button>
+
+        <div className="flex flex-col space-y-2 text-center">
+          <h1 className="text-2xl font-semibold tracking-tight">{t('merchant.title')}</h1>
+          <p className="text-sm text-muted-foreground">{t('merchant.instructions')}</p>
+        </div>
+
+        <Alert className="my-8">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>{t('merchant.title')}</AlertTitle>
+          <AlertDescription>{t('comingSoon')}</AlertDescription>
+        </Alert>
+
+        <div className="text-center">
+          <Button asChild>
+            <Link href={`/${locale}/register`}>{t('back')}</Link>
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

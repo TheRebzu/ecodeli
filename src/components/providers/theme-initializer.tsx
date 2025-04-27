@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTheme } from 'next-themes';
 
 /**
@@ -10,14 +10,20 @@ import { useTheme } from 'next-themes';
  */
 export function ThemeInitializer() {
   const { setTheme, theme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    // Indiquer que le composant est monté (côté client uniquement)
+    setMounted(true);
+  }, []);
 
   useEffect(() => {
     // Force l'application du thème après le premier rendu
     // ce qui évite les problèmes d'hydratation
-    if (theme) {
+    if (mounted && theme) {
       setTheme(theme);
     }
-  }, [theme, setTheme]);
+  }, [theme, setTheme, mounted]);
 
   return null; // Ce composant ne rend rien visuellement
 }

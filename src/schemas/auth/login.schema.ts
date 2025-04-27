@@ -4,10 +4,18 @@ import * as z from 'zod';
  * Schéma de validation pour la connexion
  */
 export const loginSchema = z.object({
-  email: z.string().email({ message: 'Email invalide' }),
-  password: z.string().min(1, { message: 'Mot de passe requis' }),
-  totp: z.string().optional(),
-  rememberMe: z.boolean().default(false),
+  email: z
+    .string()
+    .min(1, { message: 'Email is required' })
+    .email({ message: 'Invalid email address' }),
+  password: z.string().min(1, { message: 'Password is required' }),
+  totp: z
+    .string()
+    .max(6)
+    .optional()
+    .transform(val => (val === '' ? undefined : val)), // Convert empty string to undefined
+  remember: z.boolean().default(false).optional(),
+  callbackUrl: z.string().optional(),
 });
 
 export type LoginSchemaType = z.infer<typeof loginSchema>;
@@ -59,3 +67,15 @@ export const verifyEmailSchema = z.object({
 });
 
 export type VerifyEmailSchemaType = z.infer<typeof verifyEmailSchema>;
+
+// Schema for 2FA challenge when required after initial login
+export const totpChallengeSchema = z.object({
+  totp: z
+    .string()
+    .min(6, { message: 'Authentication code must be 6 digits' })
+    .max(6, { message: 'Authentication code must be 6 digits' })
+    .regex(/^\d+$/, { message: 'Authentication code must contain only digits' }),
+  remember: z.boolean().default(false).optional(),
+});
+
+export type TotpChallengeSchemaType = z.infer<typeof totpChallengeSchema>;

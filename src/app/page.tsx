@@ -1,7 +1,7 @@
 import { redirect } from 'next/navigation';
-import { defaultLocale } from './i18n/request';
+import { routing } from '../i18n/routing';
 
 export default function RootPage() {
-  // Rediriger vers la page d'accueil avec le locale par défaut
-  redirect(`/${defaultLocale}`);
+  // Rediriger vers la page d'accueil /fr/home
+  redirect(`/${routing.defaultLocale}/home`);
 }

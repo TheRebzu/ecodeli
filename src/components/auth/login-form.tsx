@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useSearchParams } from 'next/navigation';
 import { loginSchema, type LoginSchemaType } from '@/schemas/auth';
@@ -29,6 +29,8 @@ import { Loader2, AlertTriangle, KeyRound } from 'lucide-react';
 import AppLink from '@/components/shared/app-link';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/components/ui/use-toast';
+import { useTranslations } from 'next-intl';
+import { getAuthErrorMessage } from '@/lib/auth/auth-error';
 
 export function LoginForm({ locale = 'fr' }: { locale?: string }) {
   const searchParams = useSearchParams();
@@ -36,9 +38,13 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
   const [showTwoFactor, setShowTwoFactor] = useState(false);
   const { login, error: authError, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
+  const tAuth = useTranslations('auth');
 
+  // @ts-ignore: Le cast en 'any' est nécessaire en raison d'incompatibilités
+  // de types entre Zod, react-hook-form et les props attendues.
+  // Voir: https://github.com/react-hook-form/resolvers/issues/271
   const form = useForm<LoginSchemaType>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(loginSchema) as any,
     defaultValues: {
       email: '',
       password: '',
@@ -47,7 +53,7 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
     },
   });
 
-  const onSubmit = async (values: LoginSchemaType) => {
+  const onSubmit: SubmitHandler<LoginSchemaType> = async values => {
     try {
       const result = await login(values, callbackUrl);
 
@@ -60,8 +66,8 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
         ) {
           setShowTwoFactor(true);
           toast({
-            title: 'Code de vérification requis',
-            description: 'Veuillez entrer le code d&apos;authentification à deux facteurs',
+            title: tAuth('notifications.twoFactorRequired'),
+            variant: 'default',
           });
           return;
         }
@@ -74,14 +80,14 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold">Connexion</CardTitle>
-        <CardDescription>Entrez vos identifiants pour accéder à votre compte</CardDescription>
+        <CardTitle className="text-2xl font-bold">{tAuth('login.title')}</CardTitle>
+        <CardDescription>{tAuth('login.connectToAccount')}</CardDescription>
       </CardHeader>
       <CardContent>
         {authError && (
           <Alert variant="destructive" className="mb-4">
             <AlertTriangle className="h-4 w-4" />
-            <AlertDescription>{authError}</AlertDescription>
+            <AlertDescription>{getAuthErrorMessage(authError, key => tAuth(key))}</AlertDescription>
           </Alert>
         )}
         <Form {...form}>
@@ -93,10 +99,10 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>{tAuth('login.email')}</FormLabel>
                       <FormControl>
                         <Input
-                          placeholder="votre@email.com"
+                          placeholder="your@email.com"
                           type="email"
                           autoComplete="email"
                           disabled={authLoading}
@@ -112,7 +118,7 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
                   name="password"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Mot de passe</FormLabel>
+                      <FormLabel>{tAuth('login.password')}</FormLabel>
                       <FormControl>
                         <Input
                           placeholder="••••••••"
@@ -140,7 +146,7 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
                           />
                         </FormControl>
                         <FormLabel className="text-sm font-medium cursor-pointer">
-                          Se souvenir de moi
+                          {tAuth('login.rememberMe')}
                         </FormLabel>
                       </FormItem>
                     )}
@@ -150,7 +156,7 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
                     locale={locale}
                     className="text-sm font-medium text-primary hover:underline"
                   >
-                    Mot de passe oublié?
+                    {tAuth('login.forgotPassword')}
                   </AppLink>
                 </div>
               </>
@@ -160,12 +166,12 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
                 name="totp"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Code d&apos;authentification</FormLabel>
+                    <FormLabel>{tAuth('login.2fa.codeLabel')}</FormLabel>
                     <FormControl>
                       <div className="flex items-center">
                         <KeyRound className="mr-2 h-4 w-4 text-muted-foreground" />
                         <Input
-                          placeholder="123456"
+                          placeholder={tAuth('login.2fa.codePlaceholder')}
                           type="text"
                           inputMode="numeric"
                           autoComplete="one-time-code"
@@ -176,8 +182,7 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
                     </FormControl>
                     <FormMessage />
                     <p className="text-sm text-muted-foreground mt-2">
-                      Entrez le code à 6 chiffres généré par votre application
-                      d&apos;authentification
+                      {tAuth('login.2fa.enterCode')}
                     </p>
                   </FormItem>
                 )}
@@ -185,7 +190,7 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
             )}
             <Button type="submit" className="w-full" disabled={authLoading}>
               {authLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {showTwoFactor ? 'Vérifier' : 'Connexion'}
+              {showTwoFactor ? tAuth('login.2fa.verifyButton') : tAuth('login.signIn')}
             </Button>
           </form>
         </Form>
@@ -196,7 +201,9 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
             <div className="w-full border-t"></div>
           </div>
           <div className="relative flex justify-center text-xs">
-            <span className="bg-card px-2 text-muted-foreground">Ou continuer avec</span>
+            <span className="bg-card px-2 text-muted-foreground">
+              {tAuth('login.continueWith')}
+            </span>
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4 w-full">
@@ -251,7 +258,7 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
             ) : (
               <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
                 <path
-                  d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"
+                  d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
                   fill="currentColor"
                 />
               </svg>
@@ -259,16 +266,16 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
             GitHub
           </Button>
         </div>
-        <div className="text-center text-sm">
-          <span className="text-muted-foreground">Pas encore de compte ?</span>{' '}
+        <p className="text-center mt-4 text-sm">
+          {tAuth('login.noAccount')}{' '}
           <AppLink
             href="/register"
             locale={locale}
             className="font-medium text-primary hover:underline"
           >
-            Créer un compte
+            {tAuth('login.register')}
           </AppLink>
-        </div>
+        </p>
       </CardFooter>
     </Card>
   );

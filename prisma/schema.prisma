@@ -4,7 +4,6 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -44,6 +43,8 @@ enum DocumentType {
   VEHICLE_REGISTRATION
   INSURANCE
   QUALIFICATION_CERTIFICATE
+  PROOF_OF_ADDRESS
+  BUSINESS_REGISTRATION
   OTHER
 }
 
@@ -61,48 +62,59 @@ enum TokenType {
   TWO_FACTOR_AUTH
 }
 
+enum DocumentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
 model User {
-  id                String    @id @default(cuid())
-  name              String
-  email             String    @unique
-  emailVerified     DateTime?
-  password          String
-  image             String?
-  role              UserRole
-  status            UserStatus @default(PENDING_VERIFICATION)
-  createdAt         DateTime   @default(now())
-  updatedAt         DateTime   @updatedAt
-  
+  id            String     @id @default(cuid())
+  name          String
+  email         String     @unique
+  emailVerified DateTime?
+  password      String
+  image         String?
+  role          UserRole
+  status        UserStatus @default(PENDING_VERIFICATION)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
   // NextAuth.js relations
-  accounts          Account[]
-  sessions          Session[]
-  
+  accounts Account[]
+  sessions Session[]
+
   // Role specific relations
-  client            Client?
-  deliverer         Deliverer?
-  merchant          Merchant?
-  provider          Provider?
-  admin             Admin?
-  
+  client    Client?
+  deliverer Deliverer?
+  merchant  Merchant?
+  provider  Provider?
+  admin     Admin?
+
   // Additional fields
-  phoneNumber       String?
-  lastLoginAt       DateTime?
-  twoFactorEnabled  Boolean   @default(false)
-  twoFactorSecret   String?
-  
+  phoneNumber      String?
+  lastLoginAt      DateTime?
+  twoFactorEnabled Boolean   @default(false)
+  twoFactorSecret  String?
+
+  // Document relations
   documents         Document[]
-  verifications     Verification[] @relation("VerifierRelation")
-  submittedVerifications Verification[] @relation("SubmitterRelation")
-  
-  // Documents examinés par l'administrateur
   reviewedDocuments Document[] @relation("DocumentReviewer")
-  
+
+  // Verification relations
+  verifications          Verification[] @relation("VerifierRelation")
+  submittedVerifications Verification[] @relation("SubmitterRelation")
+
+  // Notification relations
+  notifications Notification[]
+
   // Locale préférée de l'utilisateur
-  locale          String?
-  
+  locale String?
+
   // Préférences utilisateur (stockées en JSON)
-  preferences     Json?
-  
+  preferences Json?
+
   @@map("users")
 }
 
@@ -119,9 +131,9 @@ model Account {
   scope             String?
   id_token          String? @db.Text
   session_state     String?
-  
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([provider, providerAccountId])
   @@map("accounts")
 }
@@ -131,19 +143,19 @@ model Session {
   sessionToken String   @unique
   userId       String
   expires      DateTime
-  
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@map("sessions")
 }
 
 model VerificationToken {
   identifier String
-  token      String   @unique
+  token      String    @unique
   expires    DateTime
   type       TokenType @default(EMAIL_VERIFICATION)
   used       Boolean   @default(false)
-  
+
   @@unique([identifier, token])
   @@map("verification_tokens")
 }
@@ -151,212 +163,225 @@ model VerificationToken {
 // -------- ROLE SPECIFIC MODELS --------
 
 model Client {
-  id              String    @id @default(cuid())
-  userId          String    @unique
-  address         String?
-  phone           String?
-  preferences     Json?
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  address     String?
+  phone       String?
+  preferences Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
   // Client specific fields
-  city            String?
-  state           String?
-  postalCode      String?
-  country         String?
-  
+  city       String?
+  state      String?
+  postalCode String?
+  country    String?
+
   // Relations
-  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@map("clients")
 }
 
 model Deliverer {
-  id                String    @id @default(cuid())
-  userId            String    @unique
-  address           String?
-  phone             String
-  vehicleType       String?
-  licensePlate      String?
-  isVerified        Boolean   @default(false)
-  availableHours    Json?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  
+  id             String   @id @default(cuid())
+  userId         String   @unique
+  address        String?
+  phone          String
+  vehicleType    String?
+  licensePlate   String?
+  isVerified     Boolean  @default(false)
+  availableHours Json?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
   // Deliverer specific fields
-  verificationDate  DateTime?
-  maxCapacity       Float?
-  currentLocation   String?
-  isActive          Boolean   @default(false)
-  rating            Float?
-  
+  verificationDate DateTime?
+  maxCapacity      Float?
+  currentLocation  String?
+  isActive         Boolean   @default(false)
+  rating           Float?
+
   // Relations
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@map("deliverers")
 }
 
 model Merchant {
-  id                String    @id @default(cuid())
-  userId            String    @unique
-  companyName       String
-  address           String
-  phone             String
-  businessType      String?
-  vatNumber         String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  companyName  String
+  address      String
+  phone        String
+  businessType String?
+  vatNumber    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
   // Merchant specific fields
-  businessName      String?
-  businessAddress   String?
-  businessCity      String?
-  businessState     String?
-  businessPostal    String?
-  businessCountry   String?
-  taxId             String?
-  websiteUrl        String?
-  isVerified        Boolean   @default(false)
-  verificationDate  DateTime?
-  
+  businessName     String?
+  businessAddress  String?
+  businessCity     String?
+  businessState    String?
+  businessPostal   String?
+  businessCountry  String?
+  taxId            String?
+  websiteUrl       String?
+  isVerified       Boolean   @default(false)
+  verificationDate DateTime?
+
   // Relations
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  contracts         Contract[]
-  
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contracts Contract[]
+
   @@map("merchants")
 }
 
 model Provider {
-  id                String    @id @default(cuid())
-  userId            String    @unique
-  companyName       String?
-  address           String
-  phone             String
-  services          String[]
-  isVerified        Boolean   @default(false)
-  rating            Float?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  companyName String?
+  address     String
+  phone       String
+  services    String[]
+  isVerified  Boolean  @default(false)
+  rating      Float?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
   // Provider specific fields
-  serviceType       String?
-  description       String?
-  availability      String?   // JSON string of availability
-  verificationDate  DateTime?
-  
+  serviceType      String?
+  description      String?
+  availability     String? // JSON string of availability
+  verificationDate DateTime?
+
   // Relations
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  skills            Skill[]
-  
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skills Skill[]
+
   @@map("providers")
 }
 
 model Admin {
-  id                String    @id @default(cuid())
-  userId            String    @unique
-  permissions       String[]
-  department        String?
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  permissions String[]
+  department  String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
   // Admin specific fields
-  twoFactorEnabled  Boolean   @default(false)
-  twoFactorSecret   String?
-  
+  twoFactorEnabled Boolean @default(false)
+  twoFactorSecret  String?
+
   // Relations
-  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@map("admins")
 }
 
 model Document {
-  id                String          @id @default(cuid())
-  userId            String
-  type              DocumentType
-  filename          String
-  fileUrl           String
-  mimeType          String
-  fileSize          Int
-  uploadedAt        DateTime        @default(now())
-  expiryDate        DateTime?
-  isVerified        Boolean         @default(false)
-  notes             String?
-  
-  // Verification
-  verifiedBy        String?
-  verifiedAt        DateTime?
-  rejectionReason   String?
-  
+  id                 String             @id @default(cuid())
+  type               DocumentType
+  userId             String
+  filename           String
+  fileUrl            String
+  mimeType           String
+  fileSize           Int
+  uploadedAt         DateTime           @default(now())
+  expiryDate         DateTime?
+  notes              String?
+  isVerified         Boolean            @default(false)
+  verificationStatus VerificationStatus @default(PENDING)
+  rejectionReason    String?
+
   // Relations
-  user              User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  // Indique à quel rôle d'utilisateur ce document est associé
-  userRole          String  // CLIENT, DELIVERER, MERCHANT, PROVIDER
-  
-  // Relation avec l'administrateur qui a examiné le document
-  reviewer          User?           @relation("DocumentReviewer", fields: [verifiedBy], references: [id])
-  
-  verifications     Verification[]
-  
+  verifications Verification[]
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  reviewer      User?          @relation("DocumentReviewer", fields: [reviewerId], references: [id])
+  reviewerId    String?
+
   @@index([userId])
-  @@index([verifiedBy])
+  @@index([type])
+  @@index([verificationStatus])
   @@map("documents")
 }
 
 model Verification {
-  id                String            @id @default(cuid())
-  submitterId       String
-  verifierId        String?
-  documentId        String
-  status            VerificationStatus @default(PENDING)
-  requestedAt       DateTime          @default(now())
-  verifiedAt        DateTime?
-  notes             String?
-  
+  id              String             @id @default(cuid())
+  status          VerificationStatus @default(PENDING)
+  requestedAt     DateTime           @default(now())
+  verifiedAt      DateTime?
+  documentId      String
+  submitterId     String
+  verifierId      String?
+  notes           String?
+  rejectionReason String?
+
   // Relations
-  submitter         User              @relation("SubmitterRelation", fields: [submitterId], references: [id], onDelete: Cascade)
-  verifier          User?             @relation("VerifierRelation", fields: [verifierId], references: [id])
-  document          Document          @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  
+  document  Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  submitter User     @relation("SubmitterRelation", fields: [submitterId], references: [id])
+  verifier  User?    @relation("VerifierRelation", fields: [verifierId], references: [id])
+
+  @@index([documentId])
   @@index([submitterId])
   @@index([verifierId])
-  @@index([documentId])
   @@index([status])
   @@map("verifications")
 }
 
 model Contract {
-  id                String          @id @default(cuid())
-  merchantId        String
-  title             String
-  content           String          @db.Text
-  status            ContractStatus  @default(DRAFT)
-  createdAt         DateTime        @default(now())
-  updatedAt         DateTime        @updatedAt
-  signedAt          DateTime?
-  expiresAt         DateTime?
-  fileUrl           String?
-  
+  id         String         @id @default(cuid())
+  merchantId String
+  title      String
+  content    String         @db.Text
+  status     ContractStatus @default(DRAFT)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  signedAt   DateTime?
+  expiresAt  DateTime?
+  fileUrl    String?
+
   // Relations
-  merchant          Merchant        @relation(fields: [merchantId], references: [id], onDelete: Cascade)
-  
+  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
   @@index([merchantId])
   @@index([status])
   @@map("contracts")
 }
 
 model Skill {
-  id                String    @id @default(cuid())
-  providerId        String
-  name              String
-  description       String?
-  isVerified        Boolean   @default(false)
-  createdAt         DateTime  @default(now())
-  updatedAt         DateTime  @updatedAt
-  
+  id          String   @id @default(cuid())
+  providerId  String
+  name        String
+  description String?
+  isVerified  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
   // Relations
-  provider          Provider    @relation(fields: [providerId], references: [id], onDelete: Cascade)
-  
+  provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
   @@index([providerId])
   @@map("skills")
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      String
+  link      String?
+  data      String?
+  read      Boolean   @default(false)
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([read])
 }

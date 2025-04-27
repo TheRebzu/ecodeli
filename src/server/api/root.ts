@@ -15,12 +15,15 @@ import { warehouseRouter } from './routers/warehouse.router';
 import { documentRouter } from './routers/document.router';
 import { verificationRouter } from './routers/verification.router';
 import { userPreferencesRouter } from '@/server/api/routers/user-preferences.router';
+import { notificationRouter } from './routers/notification.router';
+import { adminUserRouter } from './routers/admin-user.router';
 
 // Exporter explicitement cette fonction
 export const createTRPCContext = async (opts: { req?: Request }) => {
   const session = await getServerSession(authOptions);
   return {
     db,
+    prisma: db,
     session,
   };
 };
@@ -70,7 +73,9 @@ export const appRouter = router({
   warehouse: warehouseRouter,
   document: documentRouter,
   verification: verificationRouter,
+  notification: notificationRouter,
+  adminUser: adminUserRouter,
 });
 
-// Exporter le type pour être utilisé côté client
+// Type d'inférence pour le client
 export type AppRouter = typeof appRouter;

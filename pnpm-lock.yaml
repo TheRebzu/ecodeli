@@ -149,6 +149,12 @@ importers:
       '@types/uuid':
         specifier: ^10.0.0
         version: 10.0.0
+      '@upstash/ratelimit':
+        specifier: ^2.0.5
+        version: 2.0.5(@upstash/redis@1.34.8)
+      '@upstash/redis':
+        specifier: ^1.34.8
+        version: 1.34.8
       axios:
         specifier: ^1.9.0
         version: 1.9.0
@@ -224,6 +230,9 @@ importers:
       nuqs:
         specifier: ^2.4.3
         version: 2.4.3(next@15.3.1(@babel/core@7.26.10)(@opentelemetry/api@1.9.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)
+      otplib:
+        specifier: ^12.0.1
+        version: 12.0.1
       pdfmake:
         specifier: ^0.2.18
         version: 0.2.18
@@ -1796,6 +1805,21 @@ packages:
     peerDependencies:
       '@opentelemetry/api': ^1.1.0
 
+  '@otplib/core@12.0.1':
+    resolution: {integrity: sha512-4sGntwbA/AC+SbPhbsziRiD+jNDdIzsZ3JUyfZwjtKyc/wufl1pnSIaG4Uqx8ymPagujub0o92kgBnB89cuAMA==}
+
+  '@otplib/plugin-crypto@12.0.1':
+    resolution: {integrity: sha512-qPuhN3QrT7ZZLcLCyKOSNhuijUi9G5guMRVrxq63r9YNOxxQjPm59gVxLM+7xGnHnM6cimY57tuKsjK7y9LM1g==}
+
+  '@otplib/plugin-thirty-two@12.0.1':
+    resolution: {integrity: sha512-MtT+uqRso909UkbrrYpJ6XFjj9D+x2Py7KjTO9JDPhL0bJUYVu5kFP4TFZW4NFAywrAtFRxOVY261u0qwb93gA==}
+
+  '@otplib/preset-default@12.0.1':
+    resolution: {integrity: sha512-xf1v9oOJRyXfluBhMdpOkr+bsE+Irt+0D5uHtvg6x1eosfmHCsCC6ej/m7FXiWqdo0+ZUI6xSKDhJwc8yfiOPQ==}
+
+  '@otplib/preset-v11@12.0.1':
+    resolution: {integrity: sha512-9hSetMI7ECqbFiKICrNa4w70deTUfArtwXykPUvSHWOdzOlfa9ajglu7mNCntlvxycTiOAXkQGwjQCzzDEMRMg==}
+
   '@panva/hkdf@1.2.1':
     resolution: {integrity: sha512-6oclG6Y3PiDFcoyk8srjLfVKyMfVCKJ27JwNPViuXziFpmdz+MZnZN/aKY0JGXgYuO/VghU0jcOAZgWXZ1Dmrw==}
 
@@ -3278,6 +3302,18 @@ packages:
     resolution: {integrity: sha512-Jf14pKofg58DIwcZv4Wt9AyVVe7bSJP8ODz+EP9nG/rho08FQzan0VOJk1g6/BNE1RkoYd+lRTWK+/BgH12qoQ==}
     cpu: [x64]
     os: [win32]
+
+  '@upstash/core-analytics@0.0.10':
+    resolution: {integrity: sha512-7qJHGxpQgQr9/vmeS1PktEwvNAF7TI4iJDi8Pu2CFZ9YUGHZH4fOP5TfYlZ4aVxfopnELiE4BS4FBjyK7V1/xQ==}
+    engines: {node: '>=16.0.0'}
+
+  '@upstash/ratelimit@2.0.5':
+    resolution: {integrity: sha512-1FRv0cs3ZlBjCNOCpCmKYmt9BYGIJf0J0R3pucOPE88R21rL7jNjXG+I+rN/BVOvYJhI9niRAS/JaSNjiSICxA==}
+    peerDependencies:
+      '@upstash/redis': ^1.34.3
+
+  '@upstash/redis@1.34.8':
+    resolution: {integrity: sha512-eGJgOKc+2Uq4AdSM0lNx+WvFFhQeyhJ32SGNuSniLPg4lNb6m5h2AQ77qL+TgWiMZO8HCQ82Zsc/RlVBevCWTg==}
 
   '@vitest/expect@3.1.2':
     resolution: {integrity: sha512-O8hJgr+zREopCAqWl3uCVaOdqJwZ9qaDwUP7vy3Xigad0phZe9APxKhPcDNqYYi0rX5oMvwJMSCAXY2afqeTSA==}
@@ -5891,6 +5927,9 @@ packages:
     resolution: {integrity: sha512-5b6Y85tPxZZ7QytO+BQzysW31HJku27cRIlkbAXaNx+BdcVi+LlRFmVXzeF6a7JCwJpyw5c4b+YSVImQIrBpuQ==}
     engines: {node: '>=10'}
 
+  otplib@12.0.1:
+    resolution: {integrity: sha512-xDGvUOQjop7RDgxTQ+o4pOol0/3xSZzawTiPKRrHnQWAy0WjhNs/5HdIDJCrqC4MBynmjXgULc6YfioaxZeFgg==}
+
   outvariant@1.4.3:
     resolution: {integrity: sha512-+Sl2UErvtsoajRDKCE5/dBz4DIvHXQQnAxtQTF04OJxY0+DyZXSo5P5Bb7XYWOh81syohlYL24hbDwxedPUJCA==}
 
@@ -6835,6 +6874,10 @@ packages:
 
   text-hex@1.0.0:
     resolution: {integrity: sha512-uuVGNWzgJ4yhRaNSiubPY7OjISw4sw4E5Uv0wbjp+OzcbmVU/rsT8ujgcXJhn9ypzsgr5vlzpPqP+MBBKcGvbg==}
+
+  thirty-two@1.0.2:
+    resolution: {integrity: sha512-OEI0IWCe+Dw46019YLl6V10Us5bi574EvlJEOcAkB29IzQ/mYD1A6RyNHLjZPiHCmuodxvgF6U+vZO1L15lxVA==}
+    engines: {node: '>=0.2.6'}
 
   timespan@2.3.0:
     resolution: {integrity: sha512-0Jq9+58T2wbOyLth0EU+AUb6JMGCLaTWIykJFa7hyAybjVH9gpVMTfUAwo5fWAvtFt2Tjh/Elg8JtgNpnMnM8g==}
@@ -8604,6 +8647,29 @@ snapshots:
       '@opentelemetry/api': 1.9.0
       '@opentelemetry/core': 1.30.1(@opentelemetry/api@1.9.0)
 
+  '@otplib/core@12.0.1': {}
+
+  '@otplib/plugin-crypto@12.0.1':
+    dependencies:
+      '@otplib/core': 12.0.1
+
+  '@otplib/plugin-thirty-two@12.0.1':
+    dependencies:
+      '@otplib/core': 12.0.1
+      thirty-two: 1.0.2
+
+  '@otplib/preset-default@12.0.1':
+    dependencies:
+      '@otplib/core': 12.0.1
+      '@otplib/plugin-crypto': 12.0.1
+      '@otplib/plugin-thirty-two': 12.0.1
+
+  '@otplib/preset-v11@12.0.1':
+    dependencies:
+      '@otplib/core': 12.0.1
+      '@otplib/plugin-crypto': 12.0.1
+      '@otplib/plugin-thirty-two': 12.0.1
+
   '@panva/hkdf@1.2.1': {}
 
   '@pkgjs/parseargs@0.11.0':
@@ -10089,6 +10155,19 @@ snapshots:
 
   '@unrs/resolver-binding-win32-x64-msvc@1.7.0':
     optional: true
+
+  '@upstash/core-analytics@0.0.10':
+    dependencies:
+      '@upstash/redis': 1.34.8
+
+  '@upstash/ratelimit@2.0.5(@upstash/redis@1.34.8)':
+    dependencies:
+      '@upstash/core-analytics': 0.0.10
+      '@upstash/redis': 1.34.8
+
+  '@upstash/redis@1.34.8':
+    dependencies:
+      crypto-js: 4.2.0
 
   '@vitest/expect@3.1.2':
     dependencies:
@@ -13101,6 +13180,12 @@ snapshots:
       strip-ansi: 6.0.1
       wcwidth: 1.0.1
 
+  otplib@12.0.1:
+    dependencies:
+      '@otplib/core': 12.0.1
+      '@otplib/preset-default': 12.0.1
+      '@otplib/preset-v11': 12.0.1
+
   outvariant@1.4.3: {}
 
   own-keys@1.0.1:
@@ -14263,6 +14348,8 @@ snapshots:
       source-map-support: 0.5.21
 
   text-hex@1.0.0: {}
+
+  thirty-two@1.0.2: {}
 
   timespan@2.3.0: {}
 
