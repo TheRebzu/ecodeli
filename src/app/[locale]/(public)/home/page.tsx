@@ -1,5 +1,6 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
+import { setRequestLocale } from 'next-intl/server';
 import {
   ArrowRight,
   BadgeCheck,
@@ -36,9 +37,11 @@ export function generateMetadata(): Metadata {
 }
 
 export default async function HomePage({ params }: { params: { locale: string } }) {
-  // Handle params safely
-  const [safeParams] = await Promise.all([params]);
-  const locale = safeParams.locale;
+  // Activer le rendu statique
+  setRequestLocale(params.locale);
+
+  // Log pour débogage
+  console.log('PublicHomePage rendering in (public) group, locale:', params.locale);
 
   return (
     <div className="flex flex-col gap-20 pb-20 mx-auto max-w-screen-2xl scroll-smooth">
@@ -58,13 +61,13 @@ export default async function HomePage({ params }: { params: { locale: string } 
                 <span className="mx-1 font-medium text-primary">plus écologiques</span>
               </div>
               <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Link href={`/${locale}/register`}>
+                <Link href={`/${params.locale}/register`}>
                   <Button size="lg" className="w-full sm:w-auto group">
                     S&apos;inscrire gratuitement
                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Button>
                 </Link>
-                <Link href={`/${locale}/about`}>
+                <Link href={`/${params.locale}/about`}>
                   <Button size="lg" variant="outline" className="w-full sm:w-auto">
                     Découvrir EcoDeli
                   </Button>
@@ -164,7 +167,7 @@ export default async function HomePage({ params }: { params: { locale: string } 
           </div>
 
           <div className="mt-12 text-center">
-            <Link href={`/${locale}/faq`}>
+            <Link href={`/${params.locale}/faq`}>
               <Button variant="link" className="text-lg group">
                 En savoir plus sur le fonctionnement{' '}
                 <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -304,7 +307,7 @@ export default async function HomePage({ params }: { params: { locale: string } 
                 </CardContent>
                 <CardFooter>
                   <Link
-                    href={`/${locale}/services`}
+                    href={`/${params.locale}/services`}
                     className="text-primary hover:underline text-sm inline-flex items-center"
                   >
                     En savoir plus <ArrowRight className="ml-1 h-3 w-3" />
@@ -492,13 +495,13 @@ export default async function HomePage({ params }: { params: { locale: string } 
                 collaborative, économique et écologique.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <Link href={`/${locale}/register`}>
+                <Link href={`/${params.locale}/register`}>
                   <Button size="lg" className="w-full sm:w-auto group">
                     S&apos;inscrire gratuitement
                     <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </Button>
                 </Link>
-                <Link href={`/${locale}/become-delivery`}>
+                <Link href={`/${params.locale}/become-delivery`}>
                   <Button size="lg" variant="outline" className="w-full sm:w-auto">
                     Devenir livreur
                   </Button>

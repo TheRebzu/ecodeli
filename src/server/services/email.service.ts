@@ -1,4 +1,4 @@
-import { EmailService as EmailServiceInterface } from '@/types/email';
+import { EmailService as EmailServiceInterface } from '../../types/email';
 import nodemailer from 'nodemailer';
 import { DocumentType } from '../db/enums';
 import { TRPCError } from '@trpc/server';

@@ -1,32 +1,29 @@
-import { ReactNode, useState } from 'react';
+'use client';
+
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { api, getBaseUrl } from '@/hooks/use-trpc';
 import { httpBatchLink } from '@trpc/client';
-import superjson from 'superjson';
+import { useState, ReactNode } from 'react';
+import { trpc } from '@/trpc/client';
 
-export function TRPCProvider({ children }: { children: ReactNode }) {
+interface TRPCProviderProps {
+  children: ReactNode;
+}
+
+export function TRPCProvider({ children }: TRPCProviderProps) {
   const [queryClient] = useState(() => new QueryClient());
-
-  // Créer le client tRPC dans le composant pour éviter les problèmes de build
   const [trpcClient] = useState(() =>
-    api.createClient({
+    trpc.createClient({
       links: [
         httpBatchLink({
-          url: `${getBaseUrl()}/api/trpc`,
-          headers: () => {
-            return {
-              'Content-Type': 'application/json',
-            };
-          },
-          transformer: superjson,
+          url: '/api/trpc',
         }),
       ],
     })
   );
 
   return (
-    <api.Provider client={trpcClient} queryClient={queryClient}>
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
-    </api.Provider>
+    </trpc.Provider>
   );
 }

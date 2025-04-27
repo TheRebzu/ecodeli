@@ -36,4 +36,4 @@ export * from './provider-register.schema';
 export * from './user.schema';
 
 // Export des types utilisés par les schémas
-export { UserRole } from './register.schema';
+// L'export de UserRole est déjà fait plus haut

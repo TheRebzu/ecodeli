@@ -6,7 +6,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 export default function Page() {
   useEffect(() => {
     // Initialisation du composant
-    console.log('Page chargée');
   }, []);
 
   return (

@@ -97,6 +97,12 @@ model User {
   // Documents examinés par l'administrateur
   reviewedDocuments Document[] @relation("DocumentReviewer")
   
+  // Locale préférée de l'utilisateur
+  locale          String?
+  
+  // Préférences utilisateur (stockées en JSON)
+  preferences     Json?
+  
   @@map("users")
 }
 

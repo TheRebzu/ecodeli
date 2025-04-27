@@ -1,0 +1,136 @@
+{
+  "HomePage": {
+    "title": "Welcome to EcoDeli",
+    "subtitle": "Your eco-friendly delivery platform",
+    "about": "About"
+  },
+  "common": {
+    "languageName": "English",
+    "switchLanguage": "Switch language",
+    "currentLanguage": "Current language",
+    "languages": {
+      "fr": "French",
+      "en": "English"
+    },
+    "lightMode": "Light",
+    "darkMode": "Dark",
+    "systemMode": "System",
+    "toggleTheme": "Toggle theme",
+    "language": "Language",
+    "navigation": {
+      "home": "Home",
+      "about": "About",
+      "services": "Services",
+      "pricing": "Pricing",
+      "contact": "Contact",
+      "login": "Login",
+      "register": "Register",
+      "dashboard": "Dashboard",
+      "profile": "Profile",
+      "settings": "Settings",
+      "logout": "Logout"
+    },
+    "buttons": {
+      "submit": "Submit",
+      "cancel": "Cancel",
+      "save": "Save",
+      "edit": "Edit",
+      "delete": "Delete",
+      "back": "Back",
+      "next": "Next"
+    }
+  },
+  "auth": {
+    "login": {
+      "pageTitle": "Login | EcoDeli",
+      "pageDescription": "Sign in to your EcoDeli account",
+      "title": "Login",
+      "welcome": "Welcome to EcoDeli",
+      "connectToAccount": "Sign in to access your account",
+      "email": "Email address",
+      "password": "Password",
+      "forgotPassword": "Forgot password?",
+      "signIn": "Sign in",
+      "noAccount": "Don't have an account?",
+      "register": "Sign up",
+      "or": "or",
+      "continueWithGoogle": "Continue with Google",
+      "continueWithGithub": "Continue with GitHub",
+      "loginSuccess": "Login successful"
+    },
+    "register": {
+      "pageTitle": "Register | EcoDeli",
+      "pageDescription": "Create your EcoDeli account",
+      "title": "Register",
+      "email": "Email address",
+      "password": "Password",
+      "passwordConfirm": "Confirm password",
+      "signUp": "Sign up",
+      "alreadyHaveAccount": "Already have an account?",
+      "login": "Sign in",
+      "or": "or",
+      "continueWithGoogle": "Continue with Google",
+      "continueWithGithub": "Continue with GitHub",
+      "registerSuccess": "Registration successful",
+      "chooseRole": "Choose your account type",
+      "chooseRoleDescription": "Select the account type that suits your needs",
+      "select": "Select",
+      "hasAccount": "Already have an account?",
+      "roles": {
+        "client": {
+          "title": "Client",
+          "description": "Use our eco-friendly delivery services to receive your packages and products"
+        },
+        "deliverer": {
+          "title": "Deliverer",
+          "description": "Join our team of deliverers and contribute to our ecological vision"
+        },
+        "merchant": {
+          "title": "Merchant",
+          "description": "Ship your products to your customers through our sustainable delivery network"
+        },
+        "provider": {
+          "title": "Service Provider",
+          "description": "Offer your services within our eco-friendly delivery ecosystem"
+        }
+      },
+      "client": {
+        "pageTitle": "Client Registration | EcoDeli",
+        "pageDescription": "Register as a client on EcoDeli"
+      },
+      "merchant": {
+        "pageTitle": "Merchant Registration | EcoDeli",
+        "pageDescription": "Register as a merchant on EcoDeli"
+      },
+      "provider": {
+        "pageTitle": "Service Provider Registration | EcoDeli",
+        "pageDescription": "Register as a service provider on EcoDeli"
+      },
+      "deliverer": {
+        "pageTitle": "Deliverer Registration | EcoDeli",
+        "pageDescription": "Register as a deliverer on EcoDeli"
+      }
+    },
+    "forgotPassword": {
+      "pageTitle": "Forgot Password | EcoDeli",
+      "pageDescription": "Reset your EcoDeli password",
+      "title": "Forgot Password",
+      "email": "Email address",
+      "resetPassword": "Reset password",
+      "backToLogin": "Back to login"
+    },
+    "common": {
+      "name": "Name",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "phoneNumber": "Phone number",
+      "address": "Address",
+      "city": "City",
+      "zipCode": "Zip code",
+      "country": "Country",
+      "role": "Role",
+      "userType": "User type",
+      "logout": "Logout"
+    }
+  }
+}

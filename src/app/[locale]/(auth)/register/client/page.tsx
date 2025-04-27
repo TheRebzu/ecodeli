@@ -24,7 +24,9 @@ export async function generateMetadata({
 }
 
 export default async function ClientRegisterPage({ params }: { params: { locale: string } }) {
-  const { locale } = params;
+  // Attendre que les paramètres soient résolus
+  const resolvedParams = await params;
+  const locale = resolvedParams.locale;
 
   // Vérifier si l'utilisateur est déjà connecté
   const session = await getServerSession(authOptions);

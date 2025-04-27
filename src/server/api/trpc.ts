@@ -18,7 +18,7 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
 });
 
 export const router = t.router;
-export const publicProcedure = t.procedure;
+export const procedure = t.procedure;
 
 const isAuthenticated = t.middleware(({ ctx, next }) => {
   if (!ctx.session || !ctx.session.user) {

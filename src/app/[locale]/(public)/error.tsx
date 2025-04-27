@@ -14,8 +14,7 @@ export default function Error({
   reset: () => void;
 }) {
   useEffect(() => {
-    // Journalisation de l'erreur pour le débogage
-    console.error('Erreur dans la section publique:', error);
+    // Surveillance des erreurs
   }, [error]);
 
   const errorMessage =
