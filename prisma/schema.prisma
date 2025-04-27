@@ -55,6 +55,12 @@ enum ContractStatus {
   EXPIRED
 }
 
+enum TokenType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+  TWO_FACTOR_AUTH
+}
+
 model User {
   id                String    @id @default(cuid())
   name              String
@@ -129,6 +135,8 @@ model VerificationToken {
   identifier String
   token      String   @unique
   expires    DateTime
+  type       TokenType @default(EMAIL_VERIFICATION)
+  used       Boolean   @default(false)
   
   @@unique([identifier, token])
   @@map("verification_tokens")

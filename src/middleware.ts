@@ -11,6 +11,9 @@ enum UserRole {
   ADMIN = 'ADMIN'
 }
 
+// Définir les locales supportés
+const locales = ['fr', 'en'];
+
 /**
  * Middleware pour protéger les routes de l'application
  * Vérifie l'authentification et les autorisations d'accès aux routes protégées
@@ -21,45 +24,64 @@ export async function middleware(request: NextRequest) {
   
   // Chemin de la requête
   const path = request.nextUrl.pathname;
+
+  // Gestion spéciale pour les URLs contenant des segments entre parenthèses
+  // Pas besoin de rediriger, mais s'assurer que ces URLs soient accessibles 
+  if (path.includes('/(public)/')) {
+    return NextResponse.next();
+  }
+  
+  // Vérifier si la route contient un locale valide
+  const patternWithLocale = /^\/([^\/]+)(\/.*)?$/;
+  const matches = path.match(patternWithLocale);
+  
+  if (!matches) {
+    // Si on est à la racine, NextJS s'occupera de la redirection vers le locale par défaut
+    return NextResponse.next();
+  }
+  
+  const locale = matches[1];
+  const restOfPath = matches[2] || '/';
+  
+  // Si le locale n'est pas valide, laisser passer et NextJS enverra un 404
+  if (!locales.includes(locale)) {
+    return NextResponse.next();
+  }
   
   // Accès public (routes publiques)
   const publicPaths = [
-    '/login',
-    '/register',
-    '/fr/register',
-    '/en/register',
-    '/register/client',
-    '/register/provider',
-    '/register/merchant',
-    '/register/deliverer',
-    '/forgot-password',
-    '/reset-password',
-    '/verify-email',
-    '/about',
-    '/contact',
-    '/pricing',
-    '/services',
-    '/terms',
-    '/privacy',
-    '/faq',
-    '/shipping',
-    '/become-delivery',
-    '/',
-    '/home',
-    '/api/auth',
-    '/api/trpc',
+    'login',
+    'register',
+    'register/client',
+    'register/provider',
+    'register/merchant',
+    'register/deliverer',
+    'forgot-password',
+    'reset-password',
+    'verify-email',
+    'about',
+    'contact',
+    'pricing',
+    'services',
+    'terms',
+    'privacy',
+    'faq',
+    'shipping',
+    'become-delivery',
+    '', // route racine du locale
+    'home',
+    'api/auth',
+    'api/trpc',
   ];
   
   // Vérification des routes publiques
-  for (const publicPath of publicPaths) {
-    if (path.startsWith(publicPath) || path.match(/^\/(fr|en)\/[^/]*(\/.*)?$/)) {
-      return NextResponse.next();
-    }
+  if (publicPaths.some(p => restOfPath === '/' + p || restOfPath.startsWith('/' + p + '/'))) {
+    return NextResponse.next();
   }
   
   // Si l'utilisateur n'est pas authentifié, redirection vers la page de connexion
   if (!token) {
-    const loginUrl = new URL('/login', request.url);
+    const loginUrl = new URL(`/${locale}/login`, request.url);
     loginUrl.searchParams.set('callbackUrl', encodeURI(request.url));
     return NextResponse.redirect(loginUrl);
   }
@@ -71,23 +93,23 @@ export async function middleware(request: NextRequest) {
   
   // Vérifier les autorisations
   if (path.includes('/admin') && role !== UserRole.ADMIN) {
-    return NextResponse.redirect(new URL('/', request.url));
+    return NextResponse.redirect(new URL(`/${locale}`, request.url));
   }
   
   if (path.includes('/client') && role !== UserRole.CLIENT && role !== UserRole.ADMIN) {
-    return NextResponse.redirect(new URL('/', request.url));
+    return NextResponse.redirect(new URL(`/${locale}`, request.url));
   }
   
   if (path.includes('/deliverer') && role !== UserRole.DELIVERER && role !== UserRole.ADMIN) {
-    return NextResponse.redirect(new URL('/', request.url));
+    return NextResponse.redirect(new URL(`/${locale}`, request.url));
   }
   
   if (path.includes('/merchant') && role !== UserRole.MERCHANT && role !== UserRole.ADMIN) {
-    return NextResponse.redirect(new URL('/', request.url));
+    return NextResponse.redirect(new URL(`/${locale}`, request.url));
   }
   
   if (path.includes('/provider') && role !== UserRole.PROVIDER && role !== UserRole.ADMIN) {
-    return NextResponse.redirect(new URL('/', request.url));
+    return NextResponse.redirect(new URL(`/${locale}`, request.url));
   }
   
   // Si tout est en ordre, on laisse passer la requête

@@ -1,1 +1,76 @@
-import { useEffect } from 'react';\nimport { useRouter } from 'next/navigation';\nimport { UserRole } from '@prisma/client';\nimport { useAuth } from './use-auth';\n\nexport function useRoleProtection(allowedRoles: UserRole[] = []) {\n  const { role, isLoading } = useAuth();\n  const router = useRouter();\n  \n  useEffect(() => {\n    if (isLoading) return;\n    \n    if (!role || (allowedRoles.length > 0 && !allowedRoles.includes(role))) {\n      if (!role) {\n        router.push(/login?callbackUrl=);\n      } else {\n        const dashboardPath = getDashboardByRole(role);\n        router.push(dashboardPath);\n      }\n    }\n  }, [role, isLoading, allowedRoles, router]);\n  \n  return { role, isLoading };\n}\n\nfunction getDashboardByRole(role: UserRole): string {\n  switch (role) {\n    case 'CLIENT':\n      return '/client';\n    case 'DELIVERER':\n      return '/deliverer';\n    case 'MERCHANT':\n      return '/merchant';\n    case 'PROVIDER':\n      return '/provider';\n    case 'ADMIN':\n      return '/admin';\n    default:\n      return '/';\n  }\n}
+import { useEffect } from 'react';
+import { useRouter, usePathname } from 'next/navigation';
+import type { UserRole } from '@prisma/client';
+import { useAuth } from './use-auth';
+import { useToast } from "@/components/ui/use-toast";
+
+/**
+ * Hook pour protéger les routes basées sur les rôles d'utilisateur
+ * @param allowedRoles Tableau des rôles autorisés à accéder à la route
+ * @param redirectTo Chemin de redirection en cas d'accès non autorisé (par défaut: / ou dashboard approprié)
+ */
+export function useRoleProtection(allowedRoles: UserRole[] = [], redirectTo?: string) {
+  const { user, role, status, isLoading } = useAuth();
+  const router = useRouter();
+  const pathname = usePathname();
+  const { toast } = useToast();
+  
+  useEffect(() => {
+    // Ne rien faire pendant le chargement
+    if (isLoading || status === 'loading') return;
+    
+    // Si l'utilisateur n'est pas authentifié, rediriger vers la page de connexion
+    if (status === 'unauthenticated') {
+      router.push(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
+      return;
+    }
+    
+    // Si des rôles sont spécifiés mais que l'utilisateur n'a pas le bon rôle
+    if (allowedRoles.length > 0 && role && !allowedRoles.includes(role)) {
+      // Afficher une notification
+      toast({
+        title: "Accès refusé",
+        description: "Vous n'avez pas les autorisations nécessaires pour accéder à cette page.",
+        variant: "destructive",
+      });
+      
+      // Rediriger vers la page spécifiée ou le dashboard approprié
+      if (redirectTo) {
+        router.push(redirectTo);
+      } else if (role) {
+        const dashboardPath = getDashboardByRole(role);
+        router.push(dashboardPath);
+      } else {
+        router.push('/');
+      }
+    }
+  }, [role, isLoading, status, allowedRoles, router, pathname, redirectTo, toast]);
+  
+  // Retourner les informations utiles au composant
+  return { 
+    role, 
+    isLoading,
+    isAuthorized: !role || allowedRoles.length === 0 || allowedRoles.includes(role),
+    user
+  };
+}
+
+/**
+ * Récupère le chemin du dashboard en fonction du rôle
+ */
+function getDashboardByRole(role: UserRole): string {
+  switch (role) {
+    case 'CLIENT':
+      return '/client';
+    case 'DELIVERER':
+      return '/deliverer';
+    case 'MERCHANT':
+      return '/merchant';
+    case 'PROVIDER':
+      return '/provider';
+    case 'ADMIN':
+      return '/admin';
+    default:
+      return '/';
+  }
+}

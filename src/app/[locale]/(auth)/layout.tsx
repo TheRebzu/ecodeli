@@ -14,8 +14,9 @@ type Props = {
 };
 
 export default async function AuthLayout({ children, params }: Props) {
-  // Extract locale from params
-  const { locale } = params;
+  // Attendre les paramètres avant de les utiliser
+  const [safeParams] = await Promise.all([params]);
+  const locale = safeParams.locale;
   
   // Load messages for client components
   const messages = await getMessages({ locale });

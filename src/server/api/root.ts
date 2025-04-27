@@ -13,6 +13,7 @@ import { paymentRouter } from './routers/payment.router';
 import { invoiceRouter } from './routers/invoice.router';
 import { warehouseRouter } from './routers/warehouse.router';
 import { documentRouter } from './routers/document.router';
+import { verificationRouter } from './routers/verification.router';
 
 // Exporter explicitement cette fonction
 export const createTRPCContext = async (opts: { req?: Request }) => {
@@ -66,6 +67,7 @@ export const appRouter = router({
   invoice: invoiceRouter,
   warehouse: warehouseRouter,
   document: documentRouter,
+  verification: verificationRouter,
 });
 
 // Exporter le type pour être utilisé côté client

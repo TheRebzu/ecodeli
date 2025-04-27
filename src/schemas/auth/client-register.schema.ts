@@ -10,6 +10,7 @@ export const clientRegisterSchema = z.object({
   
   // Préférences
   newsletter: z.boolean().default(false),
+  preferences: z.record(z.any()).optional(),
   
   // Le rôle est forcément CLIENT pour ce schéma
   role: z.literal(UserRole.CLIENT),

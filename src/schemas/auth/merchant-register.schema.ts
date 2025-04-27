@@ -1,35 +1,35 @@
 import { z } from 'zod';
-import { UserRole } from './register.schema';
+import { UserRole, registerBaseFields } from './register.schema';
 
 /**
  * Schéma d'inscription pour les commerçants
- * Étend le schéma de base avec des champs spécifiques aux commerçants
  */
 export const merchantRegisterSchema = z.object({
-  // Informations de base
-  email: z.string().email({ message: "Adresse email invalide" }),
-  password: z.string().min(8, { message: "Le mot de passe doit contenir au moins 8 caractères" }),
-  confirmPassword: z.string(),
-  name: z.string().min(2, { message: "Le nom doit contenir au moins 2 caractères" }),
-  phoneNumber: z.string().min(10, { message: "Numéro de téléphone invalide" }),
-  role: z.literal(UserRole.MERCHANT),
+  ...registerBaseFields,
   
-  // Informations professionnelles
-  businessName: z.string().min(2, { message: "Le nom de l'entreprise doit contenir au moins 2 caractères" }),
-  taxId: z.string().min(5, { message: "Numéro de TVA invalide" }),
-  siret: z.string().min(14, { message: "Numéro SIRET invalide" }).max(14),
+  // Informations de l'entreprise
+  companyName: z.string().min(2, "Le nom de l'entreprise est requis"),
+  address: z.string().min(5, "L'adresse est requise"),
+  phone: z.string().min(5, "Le numéro de téléphone est requis"),
   
-  // Adresse professionnelle
-  businessAddress: z.string().min(5, { message: "L'adresse doit contenir au moins 5 caractères" }),
-  businessCity: z.string().min(2, { message: "La ville doit contenir au moins 2 caractères" }),
+  // Informations commerciales
+  businessType: z.string().optional(),
+  vatNumber: z.string().optional(),
+  
+  // Adresse de l'entreprise
+  businessAddress: z.string().optional(),
+  businessCity: z.string().optional(),
   businessState: z.string().optional(),
-  businessPostal: z.string().min(3, { message: "Code postal invalide" }),
-  businessCountry: z.string().min(2, { message: "Le pays doit contenir au moins 2 caractères" }),
+  businessPostal: z.string().optional(),
+  businessCountry: z.string().optional(),
   
-  // Informations additionnelles (optionnelles)
-  businessDescription: z.string().optional(),
-  websiteUrl: z.string().url({ message: "URL invalide" }).optional(),
-}).refine(data => data.password === data.confirmPassword, {
+  // Informations supplémentaires
+  taxId: z.string().optional(),
+  websiteUrl: z.string().url().optional(),
+  
+  // Le rôle est forcément MERCHANT pour ce schéma
+  role: z.literal(UserRole.MERCHANT),
+}).refine((data) => data.password === data.confirmPassword, {
   message: "Les mots de passe ne correspondent pas",
   path: ["confirmPassword"],
 });

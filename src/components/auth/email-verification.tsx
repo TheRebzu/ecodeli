@@ -1,144 +1,93 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
-import { useAuth } from "@/hooks/use-auth";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { useRouter, useSearchParams } from "next/navigation";
+import { trpc } from "@/app/_trpc/client";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, CheckCircle, XCircle } from "lucide-react";
-import Link from "next/link";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { useTranslations } from "next-intl";
 
-export function EmailVerification() {
+export function EmailVerification({ locale }: { locale: string }) {
   const t = useTranslations('Auth.EmailVerification');
   const searchParams = useSearchParams();
-  const token = searchParams?.get("token");
-  const email = searchParams?.get("email");
-  const { verifyEmail } = useAuth();
+  const token = searchParams.get("token");
+  const router = useRouter();
+  const [status, setStatus] = useState<"verifying" | "success" | "error">("verifying");
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
+  const verifyEmail = trpc.auth.verifyEmail.useMutation({
+    onSuccess: () => {
+      setStatus("success");
+      // Redirect after short delay
+      setTimeout(() => {
+        router.push(`/${locale}/login`);
+      }, 3000);
+    },
+    onError: (error) => {
+      setStatus("error");
+      setErrorMessage(error.message);
+    },
+  });
+  
   useEffect(() => {
-    // Si un token est présent, lancer la vérification
     if (token) {
-      verifyEmailToken(token);
+      verifyEmail.mutate({ token });
+    } else {
+      setStatus("error");
+      setErrorMessage("Token de vérification manquant");
     }
   }, [token]);
-
-  const verifyEmailToken = async (token: string) => {
-    setIsVerifying(true);
-    setError(null);
-
-    try {
-      const result = await verifyEmail(token);
-      setIsSuccess(result.success);
-      
-      if (!result.success && result.error) {
-        setError(result.error as string);
-      }
-    } catch (err) {
-      setError(t('error.generic'));
-      console.error(err);
-    } finally {
-      setIsVerifying(false);
-    }
-  };
-
-  // Si aucun token n'est fourni, afficher le message d'attente de vérification
-  if (!token) {
-    return (
-      <Card className="w-full max-w-md mx-auto">
-        <CardHeader>
-          <CardTitle>{t('pending.title')}</CardTitle>
-          <CardDescription>{t('pending.description')}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Alert className="bg-blue-50 border-blue-200">
-            <AlertDescription>
-              {email 
-                ? t('pending.message').replace('{email}', email) 
-                : t('pending.generic')}
-            </AlertDescription>
-          </Alert>
-        </CardContent>
-        <CardFooter className="flex justify-center">
-          <div className="text-sm">
-            <Link href="/login" className="text-primary hover:underline">
-              {t('backToLogin')}
-            </Link>
-          </div>
-        </CardFooter>
-      </Card>
-    );
-  }
-
-  // Affichage pendant la vérification
-  if (isVerifying) {
-    return (
-      <Card className="w-full max-w-md mx-auto">
-        <CardHeader>
-          <CardTitle>{t('verifying.title')}</CardTitle>
-          <CardDescription>{t('verifying.description')}</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center justify-center py-8">
-          <Loader2 className="h-16 w-16 animate-spin text-primary" />
-          <p className="mt-4 text-center">{t('verifying.message')}</p>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  // Affichage en cas de succès
-  if (isSuccess) {
-    return (
-      <Card className="w-full max-w-md mx-auto">
-        <CardHeader>
-          <CardTitle>{t('success.title')}</CardTitle>
-          <CardDescription>{t('success.description')}</CardDescription>
-        </CardHeader>
-        <CardContent className="flex flex-col items-center justify-center py-4">
-          <CheckCircle className="h-16 w-16 text-green-500" />
-          <p className="mt-4 text-center">{t('success.message')}</p>
-        </CardContent>
-        <CardFooter className="flex justify-center">
-          <Link 
-            href="/login" 
-            className="bg-primary text-white px-4 py-2 rounded-md hover:bg-primary/90"
-          >
-            {t('success.login')}
-          </Link>
-        </CardFooter>
-      </Card>
-    );
-  }
-
-  // Affichage en cas d'erreur
+  
   return (
     <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle>{t('error.title')}</CardTitle>
-        <CardDescription>{t('error.description')}</CardDescription>
+      <CardHeader className="space-y-1">
+        <CardTitle className="text-2xl">Vérification d'email</CardTitle>
+        <CardDescription>
+          Validation de votre adresse email
+        </CardDescription>
       </CardHeader>
-      <CardContent className="flex flex-col items-center justify-center py-4">
-        <XCircle className="h-16 w-16 text-red-500" />
-        <p className="mt-4 text-center">{error || t('error.generic')}</p>
+      <CardContent className="flex flex-col items-center justify-center space-y-4 p-6">
+        {status === "verifying" && (
+          <>
+            <Loader2 className="h-16 w-16 animate-spin text-primary" />
+            <p className="text-center">Vérification de votre email en cours...</p>
+          </>
+        )}
+        
+        {status === "success" && (
+          <>
+            <CheckCircle2 className="h-16 w-16 text-success" />
+            <Alert variant="success">
+              <AlertDescription>
+                Votre email a été vérifié avec succès. Vous allez être redirigé vers la page de connexion.
+              </AlertDescription>
+            </Alert>
+            <Button
+              onClick={() => router.push(`/${locale}/login`)}
+            >
+              Aller à la connexion
+            </Button>
+          </>
+        )}
+        
+        {status === "error" && (
+          <>
+            <AlertCircle className="h-16 w-16 text-destructive" />
+            <Alert variant="destructive">
+              <AlertDescription>
+                {errorMessage || "Une erreur est survenue lors de la vérification de votre email."}
+              </AlertDescription>
+            </Alert>
+            <Button
+              onClick={() => router.push(`/${locale}/login`)}
+            >
+              Retour à la connexion
+            </Button>
+          </>
+        )}
       </CardContent>
-      <CardFooter className="flex justify-center space-x-4">
-        <Link 
-          href="/login" 
-          className="text-primary hover:underline"
-        >
-          {t('error.login')}
-        </Link>
-        <Link 
-          href="/register" 
-          className="text-primary hover:underline"
-        >
-          {t('error.register')}
-        </Link>
-      </CardFooter>
     </Card>
   );
 }

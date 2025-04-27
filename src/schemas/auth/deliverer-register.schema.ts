@@ -9,12 +9,9 @@ export const delivererRegisterSchema = z.object({
   ...addressFields,
   
   // Informations spécifiques au livreur
-  licenseNumber: z.string().min(1, "Le numéro de permis est requis"),
+  phone: z.string().min(1, "Le numéro de téléphone est requis"),
   vehicleType: z.enum(['BICYCLE', 'SCOOTER', 'CAR', 'VAN', 'TRUCK']),
-  vehicleMake: z.string().optional(),
-  vehicleModel: z.string().optional(),
-  vehicleYear: z.number().optional(),
-  vehiclePlate: z.string().optional(),
+  licensePlate: z.string().min(1, "La plaque d'immatriculation est requise"),
   
   // Disponibilité
   availableWeekends: z.boolean().default(false),
