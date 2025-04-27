@@ -17,7 +17,10 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:migrate:prod": "prisma migrate deploy",
     "prisma:seed": "npx tsx prisma/seed.ts",
-    "db:reset": "prisma migrate reset --force"
+    "db:reset": "prisma migrate reset --force",
+    "format": "prettier --write .",
+    "prepare": "husky",
+    "lint-staged": "lint-staged"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.9.0",
@@ -139,10 +142,13 @@
     "dotenv-cli": "^8.0.0",
     "eslint": "^9.25.1",
     "eslint-config-next": "15.3.1",
+    "husky": "^9.1.7",
     "jsdom": "^26.1.0",
+    "lint-staged": "^15.5.1",
     "msw": "^2.7.5",
     "next-themes": "^0.4.6",
     "playwright": "^1.52.0",
+    "prettier": "^3.5.3",
     "sharp": "^0.34.1",
     "tailwind-merge": "^3.2.0",
     "tailwindcss": "^4.1.4",

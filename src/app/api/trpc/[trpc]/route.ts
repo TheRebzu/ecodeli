@@ -16,10 +16,10 @@ export const POST = async (req: Request) => {
     });
   } catch (error) {
     console.error('Erreur dans le handler tRPC:', error);
-    return new Response(
-      JSON.stringify({ message: 'Erreur interne du serveur' }),
-      { status: 500, headers: { 'content-type': 'application/json' } }
-    );
+    return new Response(JSON.stringify({ message: 'Erreur interne du serveur' }), {
+      status: 500,
+      headers: { 'content-type': 'application/json' },
+    });
   }
 };
 
@@ -38,9 +38,9 @@ export const GET = async (req: Request) => {
     });
   } catch (error) {
     console.error('Erreur dans le handler tRPC:', error);
-    return new Response(
-      JSON.stringify({ message: 'Erreur interne du serveur' }),
-      { status: 500, headers: { 'content-type': 'application/json' } }
-    );
+    return new Response(JSON.stringify({ message: 'Erreur interne du serveur' }), {
+      status: 500,
+      headers: { 'content-type': 'application/json' },
+    });
   }
-}; 
+};

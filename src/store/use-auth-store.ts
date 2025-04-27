@@ -31,7 +31,7 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  
+
   // Actions
   setSession: (session: Session | null) => void;
   setUser: (user: ExtendedUser | null) => void;
@@ -39,7 +39,7 @@ interface AuthState {
   setIsLoading: (isLoading: boolean) => void;
   setError: (error: string | null) => void;
   logout: () => void;
-  
+
   // Utilisateur actuel
   getCurrentUser: () => ExtendedUser | null;
   hasRole: (roles: UserRole | UserRole[]) => boolean;
@@ -58,40 +58,40 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
       error: null,
-      
+
       // Définir la session
-      setSession: (session) => {
+      setSession: session => {
         set({
           session,
           isAuthenticated: !!session,
-          user: session?.user as ExtendedUser || null,
-          role: session?.user?.role as UserRole || null,
+          user: (session?.user as ExtendedUser) || null,
+          role: (session?.user?.role as UserRole) || null,
         });
       },
-      
+
       // Définir l'utilisateur
-      setUser: (user) => {
+      setUser: user => {
         set({
           user,
-          role: user?.role as UserRole || null,
+          role: (user?.role as UserRole) || null,
         });
       },
-      
+
       // Définir l'état d'authentification
-      setIsAuthenticated: (isAuthenticated) => {
+      setIsAuthenticated: isAuthenticated => {
         set({ isAuthenticated });
       },
-      
+
       // Définir l'état de chargement
-      setIsLoading: (isLoading) => {
+      setIsLoading: isLoading => {
         set({ isLoading });
       },
-      
+
       // Définir l'erreur
-      setError: (error) => {
+      setError: error => {
         set({ error });
       },
-      
+
       // Déconnexion
       logout: () => {
         set({
@@ -102,38 +102,40 @@ export const useAuthStore = create<AuthState>()(
           error: null,
         });
       },
-      
+
       // Récupérer l'utilisateur actuel
       getCurrentUser: () => {
         return get().user;
       },
-      
+
       // Vérifier si l'utilisateur a un des rôles spécifiés
-      hasRole: (roles) => {
+      hasRole: roles => {
         const userRole = get().role;
         if (!userRole) return false;
-        
+
         if (Array.isArray(roles)) {
           return roles.includes(userRole);
         }
-        
+
         return roles === userRole;
       },
     }),
     {
       name: 'ecodeli-auth-storage',
-      partialize: (state) => ({
+      partialize: state => ({
         // Ne persistez pas les données sensibles comme le mot de passe
-        user: state.user ? {
-          id: state.user.id,
-          email: state.user.email,
-          name: state.user.name,
-          role: state.user.role,
-          image: state.user.image,
-        } : null,
+        user: state.user
+          ? {
+              id: state.user.id,
+              email: state.user.email,
+              name: state.user.name,
+              role: state.user.role,
+              image: state.user.image,
+            }
+          : null,
         role: state.role,
         isAuthenticated: state.isAuthenticated,
       }),
     }
   )
-); 
+);

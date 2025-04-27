@@ -16,7 +16,7 @@ const transporter = nodemailer.createTransport({
  */
 export async function sendVerificationEmail(email: string, token: string): Promise<void> {
   const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${token}`;
-  
+
   await transporter.sendMail({
     to: email,
     subject: 'Vérifiez votre adresse email - EcoDeli',
@@ -39,7 +39,7 @@ export async function sendVerificationEmail(email: string, token: string): Promi
  */
 export async function sendPasswordResetEmail(email: string, token: string): Promise<void> {
   const resetUrl = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;
-  
+
   await transporter.sendMail({
     to: email,
     subject: 'Réinitialisation de votre mot de passe - EcoDeli',
@@ -74,4 +74,4 @@ export async function sendWelcomeEmail(email: string, name: string): Promise<voi
       </div>
     `,
   });
-} 
+}

@@ -1,8 +1,8 @@
-import { router, protectedProcedure, adminProcedure } from "../trpc";
-import { z } from "zod";
-import { UserRole, DocumentType } from "@prisma/client";
-import { TRPCError } from "@trpc/server";
-import { VerificationService } from "../../services/verification.service";
+import { router, protectedProcedure, adminProcedure } from '../trpc';
+import { z } from 'zod';
+import { UserRole, DocumentType } from '@prisma/client';
+import { TRPCError } from '@trpc/server';
+import { VerificationService } from '../../services/verification.service';
 
 const verificationService = new VerificationService();
 
@@ -23,17 +23,12 @@ export const verificationRouter = router({
       // For the demo, we'll use a placeholder for the file. In a real implementation,
       // this would be handled by a file upload middleware
       const fileData = {
-        name: "document.pdf",
-        type: "application/pdf",
+        name: 'document.pdf',
+        type: 'application/pdf',
         size: 1024000,
       } as File;
 
-      return await verificationService.uploadDocument(
-        userId,
-        input.type,
-        fileData,
-        userRole
-      );
+      return await verificationService.uploadDocument(userId, input.type, fileData, userRole);
     }),
 
   // Review a document (admin only)
@@ -41,7 +36,7 @@ export const verificationRouter = router({
     .input(
       z.object({
         documentId: z.string(),
-        status: z.enum(["APPROVED", "REJECTED"]),
+        status: z.enum(['APPROVED', 'REJECTED']),
         notes: z.string().optional(),
       })
     )
@@ -68,62 +63,57 @@ export const verificationRouter = router({
     }),
 
   // Get verification history for the current user
-  getUserVerifications: protectedProcedure
-    .query(async ({ ctx }) => {
-      const userId = ctx.session.user.id;
-      return await verificationService.getUserVerifications(userId);
-    }),
+  getUserVerifications: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+    return await verificationService.getUserVerifications(userId);
+  }),
 
   // Get verification status for the current user
-  getVerificationStatus: protectedProcedure
-    .query(async ({ ctx }) => {
-      const user = ctx.session.user;
-      
-      if (!user.profileId) {
-        throw new TRPCError({
-          code: "BAD_REQUEST",
-          message: "Profil utilisateur non trouvé",
-        });
-      }
+  getVerificationStatus: protectedProcedure.query(async ({ ctx }) => {
+    const user = ctx.session.user;
 
-      // Return different verification status based on user role
-      switch (user.role) {
-        case "DELIVERER":
-          return {
-            role: user.role,
-            isVerified: user.isVerified || false,
-            requiredDocuments: [
-              DocumentType.ID_CARD,
-              DocumentType.DRIVING_LICENSE,
-              DocumentType.VEHICLE_REGISTRATION,
-              DocumentType.INSURANCE,
-            ],
-          };
-        case "PROVIDER":
-          return {
-            role: user.role,
-            isVerified: user.isVerified || false,
-            requiredDocuments: [
-              DocumentType.ID_CARD,
-              DocumentType.QUALIFICATION_CERTIFICATE,
-              DocumentType.INSURANCE,
-            ],
-          };
-        case "MERCHANT":
-          return {
-            role: user.role,
-            isVerified: user.isVerified || false,
-            requiredDocuments: [
-              DocumentType.ID_CARD,
-              DocumentType.OTHER,
-            ],
-          };
-        default:
-          return {
-            role: user.role,
-            isVerified: true,
-            requiredDocuments: [],
-          };
-      }
-    }),
-}); 
+    if (!user.profileId) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'Profil utilisateur non trouvé',
+      });
+    }
+
+    // Return different verification status based on user role
+    switch (user.role) {
+      case 'DELIVERER':
+        return {
+          role: user.role,
+          isVerified: user.isVerified || false,
+          requiredDocuments: [
+            DocumentType.ID_CARD,
+            DocumentType.DRIVING_LICENSE,
+            DocumentType.VEHICLE_REGISTRATION,
+            DocumentType.INSURANCE,
+          ],
+        };
+      case 'PROVIDER':
+        return {
+          role: user.role,
+          isVerified: user.isVerified || false,
+          requiredDocuments: [
+            DocumentType.ID_CARD,
+            DocumentType.QUALIFICATION_CERTIFICATE,
+            DocumentType.INSURANCE,
+          ],
+        };
+      case 'MERCHANT':
+        return {
+          role: user.role,
+          isVerified: user.isVerified || false,
+          requiredDocuments: [DocumentType.ID_CARD, DocumentType.OTHER],
+        };
+      default:
+        return {
+          role: user.role,
+          isVerified: true,
+          requiredDocuments: [],
+        };
+    }
+  }),
+});

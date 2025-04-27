@@ -1,16 +1,16 @@
-"use client";
+'use client';
 
-import Link from "next/link";
-import { useTranslations } from "next-intl";
-import { ModeToggle } from "@/components/ui/mode-toggle";
-import { LanguageSwitcher } from "@/components/ui/language-switcher";
+import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import { ModeToggle } from '@/components/ui/mode-toggle';
+import { LanguageSwitcher } from '@/components/ui/language-switcher';
 
 interface AuthNavbarProps {
   locale: string;
 }
 
 export default function AuthNavbar({ locale }: AuthNavbarProps) {
-  const t = useTranslations("common");
+  const t = useTranslations('common');
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
@@ -36,13 +36,13 @@ export default function AuthNavbar({ locale }: AuthNavbarProps) {
               href={`/${locale}/login`}
               className="text-sm font-medium transition-colors hover:text-primary"
             >
-              {t("login")}
+              {t('login')}
             </Link>
             <Link
               href={`/${locale}/register`}
               className="text-sm font-medium transition-colors hover:text-primary"
             >
-              {t("register")}
+              {t('register')}
             </Link>
           </nav>
           <div className="flex items-center space-x-2">
@@ -53,4 +53,4 @@ export default function AuthNavbar({ locale }: AuthNavbarProps) {
       </div>
     </header>
   );
-} 
+}

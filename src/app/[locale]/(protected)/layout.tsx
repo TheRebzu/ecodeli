@@ -13,13 +13,9 @@ interface LayoutProps {
 export default async function ProtectedLayout(props: LayoutProps) {
   const params = await props.params;
 
-  const {
-    locale
-  } = params;
+  const { locale } = params;
 
-  const {
-    children
-  } = props;
+  const { children } = props;
 
   // Vérifier si l'utilisateur est authentifié
   const session = await getServerSession(authOptions);
@@ -50,4 +46,4 @@ export default async function ProtectedLayout(props: LayoutProps) {
       </div>
     </NextIntlClientProvider>
   );
-} 
+}

@@ -14,7 +14,8 @@ expect.extend({
     const pass = received?.className?.includes(className);
     return {
       pass,
-      message: () => `expected ${received} ${pass ? 'not to have' : 'to have'} class "${className}"`,
+      message: () =>
+        `expected ${received} ${pass ? 'not to have' : 'to have'} class "${className}"`,
     };
   },
   toHaveValue(received, value) {
@@ -23,7 +24,7 @@ expect.extend({
       pass,
       message: () => `expected ${received} ${pass ? 'not to have' : 'to have'} value "${value}"`,
     };
-  }
+  },
 });
 
 // Mock Next.js navigation
@@ -43,10 +44,10 @@ vi.mock('next/navigation', () => ({
 const originalConsoleError = console.error;
 console.error = (...args) => {
   if (
-    typeof args[0] === 'string' && 
+    typeof args[0] === 'string' &&
     (args[0].includes('Warning: ReactDOM.render is no longer supported') ||
-     args[0].includes('Warning: React.createFactory is deprecated') ||
-     args[0].includes('Warning: Using UNSAFE_'))
+      args[0].includes('Warning: React.createFactory is deprecated') ||
+      args[0].includes('Warning: Using UNSAFE_'))
   ) {
     return;
   }
@@ -56,4 +57,4 @@ console.error = (...args) => {
 // Set up React for JSX
 global.React = React;
 
-// Global test configuration 
+// Global test configuration

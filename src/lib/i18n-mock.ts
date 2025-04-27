@@ -18,11 +18,9 @@ export function useTranslations(_namespace: string): TranslationFunction {
     // Extraire le dernier segment de la clé pour avoir un texte plus lisible
     const segments = key.split('.');
     const lastSegment = segments[segments.length - 1];
-    
+
     // Convertir camelCase vers des espaces
-    return lastSegment
-      .replace(/([A-Z])/g, ' $1')
-      .replace(/^./, (str) => str.toUpperCase());
+    return lastSegment.replace(/([A-Z])/g, ' $1').replace(/^./, str => str.toUpperCase());
   };
 }
 
@@ -31,4 +29,4 @@ export function useTranslations(_namespace: string): TranslationFunction {
  */
 export function useLocale(): string {
   return 'fr';
-} 
+}

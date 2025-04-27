@@ -1,5 +1,5 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -7,11 +7,11 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { cn } from "@/lib/utils";
-import { ArrowRight, BadgeCheck, CheckCircle, XCircle } from "lucide-react";
-import Link from "next/link";
+} from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
+import { ArrowRight, BadgeCheck, CheckCircle, XCircle } from 'lucide-react';
+import Link from 'next/link';
 
 export default function PricingPage() {
   return (
@@ -25,8 +25,7 @@ export default function PricingPage() {
               Des formules simples pour tous les besoins
             </h1>
             <p className="text-xl text-muted-foreground">
-              Choisissez la formule qui vous convient et profitez pleinement des
-              services EcoDeli
+              Choisissez la formule qui vous convient et profitez pleinement des services EcoDeli
             </p>
           </div>
         </div>
@@ -42,72 +41,69 @@ export default function PricingPage() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 {[
                   {
-                    name: "Gratuit",
-                    price: "0€",
-                    period: "pour toujours",
-                    description: "Découvrez EcoDeli sans engagement",
+                    name: 'Gratuit',
+                    price: '0€',
+                    period: 'pour toujours',
+                    description: 'Découvrez EcoDeli sans engagement',
                     features: [
                       "Publication d'annonces (max 5)",
-                      "Accès aux annonces disponibles",
-                      "Messagerie avec les utilisateurs",
-                      "Possibilité de devenir livreur",
-                      "Assurance de base",
-                      "Support par email",
+                      'Accès aux annonces disponibles',
+                      'Messagerie avec les utilisateurs',
+                      'Possibilité de devenir livreur',
+                      'Assurance de base',
+                      'Support par email',
                     ],
                     notIncluded: [
-                      "Annonces prioritaires",
-                      "Code de livraison illimité",
-                      "Support client prioritaire",
+                      'Annonces prioritaires',
+                      'Code de livraison illimité',
+                      'Support client prioritaire',
                       "Système d'évaluation avancé",
                     ],
-                    cta: "Commencer gratuitement",
-                    href: "/register",
+                    cta: 'Commencer gratuitement',
+                    href: '/register',
                     popular: false,
-                    color: "",
+                    color: '',
                   },
                   {
-                    name: "Starter",
-                    price: "4,99€",
-                    period: "par mois",
-                    description: "Pour les utilisateurs réguliers",
+                    name: 'Starter',
+                    price: '4,99€',
+                    period: 'par mois',
+                    description: 'Pour les utilisateurs réguliers',
                     features: [
                       "Publications d'annonces illimitées",
-                      "Priorité dans les résultats de recherche",
-                      "Assurance intermédiaire",
-                      "Codes de livraison (10 par mois)",
-                      "Support client prioritaire",
+                      'Priorité dans les résultats de recherche',
+                      'Assurance intermédiaire',
+                      'Codes de livraison (10 par mois)',
+                      'Support client prioritaire',
                       "Système d'évaluation avancé",
-                      "Annonces prioritaires",
+                      'Annonces prioritaires',
                     ],
-                    notIncluded: [
-                      "Codes de livraison illimités",
-                      "Assistance dédiée",
-                    ],
+                    notIncluded: ['Codes de livraison illimités', 'Assistance dédiée'],
                     cta: "S'abonner",
-                    href: "/register?plan=starter",
+                    href: '/register?plan=starter',
                     popular: true,
-                    color: "border-primary",
+                    color: 'border-primary',
                   },
                   {
-                    name: "Premium",
-                    price: "9,99€",
-                    period: "par mois",
-                    description: "Pour une utilisation intensive",
+                    name: 'Premium',
+                    price: '9,99€',
+                    period: 'par mois',
+                    description: 'Pour une utilisation intensive',
                     features: [
                       "Publications d'annonces illimitées",
-                      "Priorité maximum dans les résultats",
-                      "Assurance premium",
-                      "Codes de livraison illimités",
-                      "Support téléphonique",
-                      "Assistance dédiée",
-                      "Statistiques avancées",
+                      'Priorité maximum dans les résultats',
+                      'Assurance premium',
+                      'Codes de livraison illimités',
+                      'Support téléphonique',
+                      'Assistance dédiée',
+                      'Statistiques avancées',
                       "Système d'évaluation complet",
                     ],
                     notIncluded: [],
                     cta: "S'abonner",
-                    href: "/register?plan=premium",
+                    href: '/register?plan=premium',
                     popular: false,
-                    color: "",
+                    color: '',
                   },
                 ].map((plan, index) => (
                   <PricingCard key={index} plan={plan} />
@@ -135,9 +131,7 @@ export default function PricingPage() {
             <table className="w-full max-w-5xl mx-auto bg-background rounded-xl shadow-sm border">
               <thead>
                 <tr className="text-sm text-muted-foreground">
-                  <th className="py-4 px-6 text-left font-medium w-1/3">
-                    Fonctionnalités
-                  </th>
+                  <th className="py-4 px-6 text-left font-medium w-1/3">Fonctionnalités</th>
                   <th className="py-4 px-4 text-center font-medium">Gratuit</th>
                   <th className="py-4 px-4 text-center font-medium bg-primary/5 border-y-2 border-primary">
                     Starter
@@ -148,51 +142,33 @@ export default function PricingPage() {
               <tbody className="divide-y">
                 <FeatureRow
                   feature="Publications d'annonces"
-                  values={["5 maximum", "Illimitées", "Illimitées"]}
+                  values={['5 maximum', 'Illimitées', 'Illimitées']}
                 />
                 <FeatureRow
                   feature="Priorité dans les recherches"
-                  values={["Standard", "Élevée", "Maximum"]}
+                  values={['Standard', 'Élevée', 'Maximum']}
                 />
-                <FeatureRow
-                  feature="Assurance"
-                  values={["De base", "Intermédiaire", "Premium"]}
-                />
+                <FeatureRow feature="Assurance" values={['De base', 'Intermédiaire', 'Premium']} />
                 <FeatureRow
                   feature="Codes de livraison"
-                  values={["5 par mois", "10 par mois", "Illimités"]}
+                  values={['5 par mois', '10 par mois', 'Illimités']}
                 />
                 <FeatureRow
                   feature="Support client"
-                  values={["Email", "Prioritaire", "Téléphonique"]}
+                  values={['Email', 'Prioritaire', 'Téléphonique']}
                 />
                 <FeatureRow
                   feature="Système d'évaluation"
-                  values={["Basique", "Avancé", "Complet"]}
+                  values={['Basique', 'Avancé', 'Complet']}
                 />
-                <FeatureRow
-                  feature="Transport de colis"
-                  values={[true, true, true]}
-                />
-                <FeatureRow
-                  feature="Transport de personnes"
-                  values={[true, true, true]}
-                />
-                <FeatureRow
-                  feature="Services de courses"
-                  values={[true, true, true]}
-                />
-                <FeatureRow
-                  feature="Services écologiques"
-                  values={[true, true, true]}
-                />
-                <FeatureRow
-                  feature="Suivi en temps réel"
-                  values={[true, true, true]}
-                />
+                <FeatureRow feature="Transport de colis" values={[true, true, true]} />
+                <FeatureRow feature="Transport de personnes" values={[true, true, true]} />
+                <FeatureRow feature="Services de courses" values={[true, true, true]} />
+                <FeatureRow feature="Services écologiques" values={[true, true, true]} />
+                <FeatureRow feature="Suivi en temps réel" values={[true, true, true]} />
                 <FeatureRow
                   feature="Statistiques personnelles"
-                  values={["Basiques", "Avancées", "Complètes"]}
+                  values={['Basiques', 'Avancées', 'Complètes']}
                 />
               </tbody>
             </table>
@@ -209,20 +185,19 @@ export default function PricingPage() {
               Tout ce que vous devez savoir sur nos formules
             </h2>
             <p className="text-lg text-muted-foreground">
-              Les réponses aux questions les plus courantes concernant nos
-              tarifs et abonnements
+              Les réponses aux questions les plus courantes concernant nos tarifs et abonnements
             </p>
           </div>
 
           <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8">
             {[
               {
-                question: "Puis-je changer de formule à tout moment ?",
+                question: 'Puis-je changer de formule à tout moment ?',
                 answer:
-                  "Oui, vous pouvez changer de formule à tout moment depuis votre espace personnel. Le changement prendra effet à la prochaine période de facturation.",
+                  'Oui, vous pouvez changer de formule à tout moment depuis votre espace personnel. Le changement prendra effet à la prochaine période de facturation.',
               },
               {
-                question: "Comment fonctionne la formule gratuite ?",
+                question: 'Comment fonctionne la formule gratuite ?',
                 answer:
                   "La formule gratuite vous permet de publier jusqu'à 5 annonces par mois et d'accéder aux services de base d'EcoDeli sans aucun engagement ni frais cachés.",
               },
@@ -232,18 +207,17 @@ export default function PricingPage() {
                   "Les codes de livraison sont utilisés pour valider la réception d'un colis ou l'achèvement d'un service. Le destinataire doit confirmer en saisissant ce code, déclenchant ainsi le paiement du livreur.",
               },
               {
-                question:
-                  "Les formules incluent-elles tous les types de services ?",
+                question: 'Les formules incluent-elles tous les types de services ?',
                 answer:
                   "Oui, toutes les formules donnent accès à l'ensemble des services proposés sur EcoDeli : transport de colis, transport de personnes, services de courses et services écologiques.",
               },
               {
                 question: "Comment fonctionne l'assurance ?",
                 answer:
-                  "Chaque formule inclut une assurance qui couvre les colis ou services en cas de problème. Le niveau de couverture varie selon la formule choisie, avec une protection plus complète pour les formules supérieures.",
+                  'Chaque formule inclut une assurance qui couvre les colis ou services en cas de problème. Le niveau de couverture varie selon la formule choisie, avec une protection plus complète pour les formules supérieures.',
               },
               {
-                question: "Y a-t-il un engagement minimum ?",
+                question: 'Y a-t-il un engagement minimum ?',
                 answer:
                   "Non, il n'y a aucun engagement minimum. Vous pouvez résilier votre abonnement à tout moment, la résiliation prendra effet à la fin de la période de facturation en cours.",
               },
@@ -266,9 +240,8 @@ export default function PricingPage() {
               Rejoignez la communauté EcoDeli dès aujourd&apos;hui
             </h2>
             <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-8">
-              Que vous souhaitiez utiliser nos services ou devenir livreur,
-              créez votre compte gratuitement et découvrez tous les avantages
-              d&apos;EcoDeli.
+              Que vous souhaitiez utiliser nos services ou devenir livreur, créez votre compte
+              gratuitement et découvrez tous les avantages d&apos;EcoDeli.
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Button size="lg" asChild>
@@ -292,10 +265,10 @@ function PricingCard({ plan }: { plan: any }) {
   return (
     <Card
       className={cn(
-        "relative flex flex-col border-2 transition-all",
+        'relative flex flex-col border-2 transition-all',
         plan.popular
-          ? "border-primary shadow-lg scale-[1.02]"
-          : "hover:border-primary/50 hover:shadow-md",
+          ? 'border-primary shadow-lg scale-[1.02]'
+          : 'hover:border-primary/50 hover:shadow-md'
       )}
     >
       {plan.popular && (
@@ -307,9 +280,7 @@ function PricingCard({ plan }: { plan: any }) {
         <CardTitle>{plan.name}</CardTitle>
         <div className="mt-2">
           <span className="text-3xl font-bold">{plan.price}</span>
-          {plan.period && (
-            <span className="text-muted-foreground ml-1">{plan.period}</span>
-          )}
+          {plan.period && <span className="text-muted-foreground ml-1">{plan.period}</span>}
         </div>
         <CardDescription className="mt-2">{plan.description}</CardDescription>
       </CardHeader>
@@ -326,10 +297,7 @@ function PricingCard({ plan }: { plan: any }) {
           {plan.notIncluded && plan.notIncluded.length > 0 && (
             <div className="space-y-2">
               {plan.notIncluded.map((feature: string, index: number) => (
-                <div
-                  key={index}
-                  className="flex items-start text-muted-foreground"
-                >
+                <div key={index} className="flex items-start text-muted-foreground">
                   <XCircle className="h-5 w-5 text-muted-foreground/70 shrink-0 mr-2" />
                   <span>{feature}</span>
                 </div>
@@ -339,11 +307,7 @@ function PricingCard({ plan }: { plan: any }) {
         </div>
       </CardContent>
       <CardFooter className="pt-4">
-        <Button
-          asChild
-          className="w-full group"
-          variant={plan.popular ? "default" : "outline"}
-        >
+        <Button asChild className="w-full group" variant={plan.popular ? 'default' : 'outline'}>
           <Link href={plan.href}>
             {plan.cta}
             <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -365,14 +329,8 @@ function FeatureRow({
     <tr className="text-sm">
       <td className="py-4 px-6 font-medium">{feature}</td>
       {values.map((value, index) => (
-        <td
-          key={index}
-          className={cn(
-            "py-4 px-4 text-center",
-            index === 1 ? "bg-primary/5" : "",
-          )}
-        >
-          {typeof value === "boolean" ? (
+        <td key={index} className={cn('py-4 px-4 text-center', index === 1 ? 'bg-primary/5' : '')}>
+          {typeof value === 'boolean' ? (
             value ? (
               <CheckCircle className="h-5 w-5 text-primary mx-auto" />
             ) : (

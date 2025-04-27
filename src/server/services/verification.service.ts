@@ -1,6 +1,12 @@
-import { db } from "../db";
-import { PrismaClient, DocumentType, UserRole, VerificationStatus, UserStatus } from "@prisma/client";
-import { TRPCError } from "@trpc/server";
+import { db } from '../db';
+import {
+  PrismaClient,
+  DocumentType,
+  UserRole,
+  VerificationStatus,
+  UserStatus,
+} from '@prisma/client';
+import { TRPCError } from '@trpc/server';
 
 type UploadResult = {
   fileUrl: string;
@@ -22,12 +28,7 @@ export class VerificationService {
   /**
    * Télécharge un document pour vérification
    */
-  async uploadDocument(
-    userId: string,
-    type: DocumentType,
-    file: File,
-    userRole: UserRole
-  ) {
+  async uploadDocument(userId: string, type: DocumentType, file: File, userRole: UserRole) {
     // Vérifier si l'utilisateur existe
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -35,15 +36,15 @@ export class VerificationService {
 
     if (!user) {
       throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Utilisateur non trouvé",
+        code: 'NOT_FOUND',
+        message: 'Utilisateur non trouvé',
       });
     }
 
     // Vérifier si le rôle de l'utilisateur correspond
     if (user.role !== userRole) {
       throw new TRPCError({
-        code: "BAD_REQUEST",
+        code: 'BAD_REQUEST',
         message: "Type d'utilisateur incorrect",
       });
     }
@@ -105,8 +106,8 @@ export class VerificationService {
 
     if (!verifier || verifier.role !== UserRole.ADMIN) {
       throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Seuls les administrateurs peuvent vérifier les documents",
+        code: 'FORBIDDEN',
+        message: 'Seuls les administrateurs peuvent vérifier les documents',
       });
     }
 
@@ -117,8 +118,8 @@ export class VerificationService {
 
     if (!verification) {
       throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Demande de vérification non trouvée",
+        code: 'NOT_FOUND',
+        message: 'Demande de vérification non trouvée',
       });
     }
 
@@ -288,7 +289,7 @@ export class VerificationService {
         },
       },
       orderBy: {
-        requestedAt: "desc",
+        requestedAt: 'desc',
       },
     });
   }
@@ -311,8 +312,8 @@ export class VerificationService {
         },
       },
       orderBy: {
-        requestedAt: "desc",
+        requestedAt: 'desc',
       },
     });
   }
-} 
+}

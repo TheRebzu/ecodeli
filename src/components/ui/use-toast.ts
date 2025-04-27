@@ -6,8 +6,8 @@ import {
   ToastProvider,
   ToastTitle,
   ToastViewport,
-} from "@/components/ui/toast"
-import { useToast as useToastOriginal } from "@/components/ui/toast"
+} from '@/components/ui/toast';
+import { useToast as useToastOriginal } from '@/components/ui/toast';
 
-export { ToastProvider, ToastViewport, Toast, ToastTitle, ToastDescription, ToastClose }
-export { useToastOriginal as useToast } 
+export { ToastProvider, ToastViewport, Toast, ToastTitle, ToastDescription, ToastClose };
+export { useToastOriginal as useToast };

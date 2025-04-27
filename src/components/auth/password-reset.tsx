@@ -1,25 +1,32 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter, useSearchParams } from "next/navigation";
-import { resetPasswordSchema, ResetPasswordSchemaType } from "@/schemas/auth/login.schema";
-import { useAuth } from "@/hooks/use-auth";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2 } from "lucide-react";
-import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { resetPasswordSchema, ResetPasswordSchemaType } from '@/schemas/auth/login.schema';
+import { useAuth } from '@/hooks/use-auth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2 } from 'lucide-react';
+import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
 export function PasswordResetForm() {
   const t = useTranslations('Auth.ResetPassword');
   const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams?.get("token") || "";
+  const token = searchParams?.get('token') || '';
   const { resetPassword } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,8 +40,8 @@ export function PasswordResetForm() {
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
       token,
-      password: "",
-      confirmPassword: "",
+      password: '',
+      confirmPassword: '',
     },
   });
 
@@ -49,10 +56,10 @@ export function PasswordResetForm() {
         setSuccess(true);
         // Rediriger vers la page de connexion après 2 secondes
         setTimeout(() => {
-          router.push("/login");
+          router.push('/login');
         }, 2000);
       } else {
-        setError(result.error as string || t('error.generic'));
+        setError((result.error as string) || t('error.generic'));
       }
     } catch (err) {
       setError(t('error.generic'));
@@ -71,9 +78,7 @@ export function PasswordResetForm() {
         </CardHeader>
         <CardContent>
           <Alert className="bg-green-50 border-green-200">
-            <AlertDescription>
-              {t('success.message')}
-            </AlertDescription>
+            <AlertDescription>{t('success.message')}</AlertDescription>
           </Alert>
         </CardContent>
       </Card>
@@ -95,41 +100,35 @@ export function PasswordResetForm() {
           )}
 
           {/* Champ caché pour le token */}
-          <input type="hidden" {...register("token")} />
+          <input type="hidden" {...register('token')} />
 
           <div className="space-y-2">
             <Label htmlFor="password">{t('passwordLabel')}</Label>
-            <Input 
+            <Input
               id="password"
               type="password"
               autoComplete="new-password"
               disabled={isSubmitting}
-              {...register("password")}
+              {...register('password')}
             />
-            {errors.password && (
-              <p className="text-sm text-red-500">{errors.password.message}</p>
-            )}
+            {errors.password && <p className="text-sm text-red-500">{errors.password.message}</p>}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="confirmPassword">{t('confirmPasswordLabel')}</Label>
-            <Input 
+            <Input
               id="confirmPassword"
               type="password"
               autoComplete="new-password"
               disabled={isSubmitting}
-              {...register("confirmPassword")}
+              {...register('confirmPassword')}
             />
             {errors.confirmPassword && (
               <p className="text-sm text-red-500">{errors.confirmPassword.message}</p>
             )}
           </div>
 
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={isSubmitting}
-          >
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

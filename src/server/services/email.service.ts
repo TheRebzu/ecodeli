@@ -1,7 +1,7 @@
 import { EmailService as EmailServiceInterface } from '@/types/email';
 import nodemailer from 'nodemailer';
 import { DocumentType } from '../db/enums';
-import { TRPCError } from "@trpc/server";
+import { TRPCError } from '@trpc/server';
 
 /**
  * Service de gestion des emails
@@ -85,7 +85,11 @@ export class EmailService implements EmailServiceInterface {
   /**
    * Envoie une notification d'approbation de document
    */
-  async sendDocumentApprovedEmail(email: string, documentName: string, documentType: string): Promise<void> {
+  async sendDocumentApprovedEmail(
+    email: string,
+    documentName: string,
+    documentType: string
+  ): Promise<void> {
     await this.sendEmail({
       to: email,
       subject: 'Document approuvé - EcoDeli',
@@ -100,7 +104,12 @@ export class EmailService implements EmailServiceInterface {
   /**
    * Envoie une notification de rejet de document
    */
-  async sendDocumentRejectedEmail(email: string, documentName: string, documentType: string, reason: string): Promise<void> {
+  async sendDocumentRejectedEmail(
+    email: string,
+    documentName: string,
+    documentType: string,
+    reason: string
+  ): Promise<void> {
     await this.sendEmail({
       to: email,
       subject: 'Document rejeté - EcoDeli',
@@ -130,15 +139,15 @@ export class EmailService implements EmailServiceInterface {
     const mailOptions = {
       from: this.fromEmail,
       ...options,
-      text: options.text || options.html.replace(/<[^>]*>/g, '')
+      text: options.text || options.html.replace(/<[^>]*>/g, ''),
     };
 
     try {
       await this.transporter.sendMail(mailOptions);
     } catch (error) {
-      console.error('Erreur lors de l\'envoi de l\'email:', error);
+      console.error("Erreur lors de l'envoi de l'email:", error);
       throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
+        code: 'INTERNAL_SERVER_ERROR',
         message: "Erreur lors de l'envoi de l'email",
       });
     }
@@ -147,15 +156,15 @@ export class EmailService implements EmailServiceInterface {
   private getDocumentTypeName(type: DocumentType): string {
     const documentTypeNames: Record<DocumentType, string> = {
       [DocumentType.ID_CARD]: "Carte d'identité",
-      [DocumentType.DRIVER_LICENSE]: "Permis de conduire",
-      [DocumentType.VEHICLE_REGISTRATION]: "Carte grise",
+      [DocumentType.DRIVER_LICENSE]: 'Permis de conduire',
+      [DocumentType.VEHICLE_REGISTRATION]: 'Carte grise',
       [DocumentType.INSURANCE]: "Attestation d'assurance",
-      [DocumentType.CRIMINAL_RECORD]: "Casier judiciaire",
-      [DocumentType.PROFESSIONAL_CERTIFICATION]: "Certification professionnelle",
-      [DocumentType.OTHER]: "Autre document"
+      [DocumentType.CRIMINAL_RECORD]: 'Casier judiciaire',
+      [DocumentType.PROFESSIONAL_CERTIFICATION]: 'Certification professionnelle',
+      [DocumentType.OTHER]: 'Autre document',
     };
-    
-    return documentTypeNames[type] || "Document";
+
+    return documentTypeNames[type] || 'Document';
   }
 
   /**
@@ -163,7 +172,7 @@ export class EmailService implements EmailServiceInterface {
    */
   async sendDeliveryConfirmation(to: string, deliveryId: string): Promise<void> {
     const trackingUrl = `${this.frontendUrl}/deliveries/${deliveryId}`;
-    
+
     await this.sendEmail({
       to,
       subject: 'Confirmation de livraison - EcoDeli',
@@ -194,9 +203,9 @@ export class EmailService implements EmailServiceInterface {
         {
           filename: `facture-${invoiceId}.pdf`,
           content: pdfBuffer,
-          contentType: 'application/pdf'
-        }
-      ]
+          contentType: 'application/pdf',
+        },
+      ],
     });
   }
 
@@ -206,17 +215,17 @@ export class EmailService implements EmailServiceInterface {
   async sendDocumentVerificationNotification(
     email: string,
     documentType: string,
-    status: "APPROVED" | "REJECTED",
+    status: 'APPROVED' | 'REJECTED',
     notes?: string
   ): Promise<void> {
-    const statusText = status === "APPROVED" ? "approuvé" : "rejeté";
-    const statusColor = status === "APPROVED" ? "#22C55E" : "#EF4444";
+    const statusText = status === 'APPROVED' ? 'approuvé' : 'rejeté';
+    const statusColor = status === 'APPROVED' ? '#22C55E' : '#EF4444';
 
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h1>Notification de vérification de document</h1>
         <p>Votre document <strong>${documentType}</strong> a été <span style="color: ${statusColor}; font-weight: bold;">${statusText}</span>.</p>
-        ${notes ? `<p><strong>Notes :</strong> ${notes}</p>` : ""}
+        ${notes ? `<p><strong>Notes :</strong> ${notes}</p>` : ''}
         <p>
           <a 
             href="${process.env.NEXT_PUBLIC_APP_URL}/documents" 
@@ -257,7 +266,7 @@ export class EmailService implements EmailServiceInterface {
 
     await this.sendEmail({
       to: email,
-      subject: "Votre compte est activé - EcoDeli",
+      subject: 'Votre compte est activé - EcoDeli',
       html,
     });
   }

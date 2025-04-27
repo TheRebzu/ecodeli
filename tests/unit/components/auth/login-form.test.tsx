@@ -23,7 +23,7 @@ vi.mock('@/components/ui/use-toast', () => ({
 
 describe('LoginForm', () => {
   const mockLogin = vi.fn();
-  
+
   beforeEach(() => {
     vi.mocked(useAuth).mockReturnValue({
       login: mockLogin,
@@ -35,7 +35,7 @@ describe('LoginForm', () => {
   it('devrait rendre le formulaire de connexion', () => {
     // Arrange & Act
     render(<LoginForm />);
-    
+
     // Assert
     expect(screen.getByText('Connexion')).toBeInTheDocument();
     expect(screen.getByLabelText('Email')).toBeInTheDocument();
@@ -47,13 +47,13 @@ describe('LoginForm', () => {
     // Arrange
     render(<LoginForm />);
     const user = userEvent.setup();
-    
+
     // Act
     await user.click(screen.getByRole('button', { name: 'Connexion' }));
-    
+
     // Assert
     await waitFor(() => {
-      expect(screen.getByText('L\'email est requis')).toBeInTheDocument();
+      expect(screen.getByText("L'email est requis")).toBeInTheDocument();
       expect(screen.getByText('Le mot de passe est requis')).toBeInTheDocument();
     });
   });
@@ -63,24 +63,27 @@ describe('LoginForm', () => {
     mockLogin.mockResolvedValueOnce(true);
     render(<LoginForm />);
     const user = userEvent.setup();
-    
+
     // Act
     await user.type(screen.getByLabelText('Email'), 'test@example.com');
     await user.type(screen.getByLabelText('Mot de passe'), 'Password123!');
     await user.click(screen.getByRole('button', { name: 'Connexion' }));
-    
+
     // Assert
     await waitFor(() => {
-      expect(mockLogin).toHaveBeenCalledWith({
-        email: 'test@example.com',
-        password: 'Password123!',
-        rememberMe: false,
-        totp: '',
-      }, '/');
+      expect(mockLogin).toHaveBeenCalledWith(
+        {
+          email: 'test@example.com',
+          password: 'Password123!',
+          rememberMe: false,
+          totp: '',
+        },
+        '/'
+      );
     });
   });
 
-  it('devrait afficher l\'interface 2FA si nécessaire', async () => {
+  it("devrait afficher l'interface 2FA si nécessaire", async () => {
     // Arrange
     mockLogin.mockResolvedValueOnce(false);
     vi.mocked(useAuth).mockReturnValue({
@@ -88,18 +91,18 @@ describe('LoginForm', () => {
       error: 'Vérification 2FA requise',
       isLoading: false,
     });
-    
+
     render(<LoginForm />);
     const user = userEvent.setup();
-    
+
     // Act
     await user.type(screen.getByLabelText('Email'), 'test@example.com');
     await user.type(screen.getByLabelText('Mot de passe'), 'Password123!');
     await user.click(screen.getByRole('button', { name: 'Connexion' }));
-    
+
     // Assert
     await waitFor(() => {
-      expect(screen.getByLabelText('Code d\'authentification')).toBeInTheDocument();
+      expect(screen.getByLabelText("Code d'authentification")).toBeInTheDocument();
       expect(screen.getByRole('button', { name: 'Vérifier' })).toBeInTheDocument();
     });
   });

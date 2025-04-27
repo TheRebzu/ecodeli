@@ -4,4 +4,4 @@ import type { AppRouter } from '@/server/api/root';
 /**
  * Client-side TRPC Instance for React components
  */
-export const trpc = createTRPCReact<AppRouter>(); 
+export const trpc = createTRPCReact<AppRouter>();

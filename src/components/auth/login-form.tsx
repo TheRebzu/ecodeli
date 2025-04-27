@@ -1,41 +1,48 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useSearchParams } from "next/navigation";
-import { loginSchema, type LoginSchemaType } from "@/schemas/auth";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
-import { 
-  Form, 
-  FormControl, 
-  FormField, 
-  FormItem, 
-  FormLabel, 
-  FormMessage 
-} from "@/components/ui/form";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2, AlertTriangle, KeyRound } from "lucide-react";
-import Link from "next/link";
-import { useAuth } from "@/hooks/use-auth";
-import { useToast } from "@/components/ui/use-toast";
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useSearchParams } from 'next/navigation';
+import { loginSchema, type LoginSchemaType } from '@/schemas/auth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2, AlertTriangle, KeyRound } from 'lucide-react';
+import Link from 'next/link';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/components/ui/use-toast';
 
-export function LoginForm({ locale = "fr" }: { locale?: string }) {
+export function LoginForm({ locale = 'fr' }: { locale?: string }) {
   const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const callbackUrl = searchParams.get('callbackUrl') || '/';
   const [showTwoFactor, setShowTwoFactor] = useState(false);
   const { login, error: authError, isLoading: authLoading } = useAuth();
   const { toast } = useToast();
-  
+
   const form = useForm<LoginSchemaType>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      email: "",
-      password: "",
-      totp: "",
+      email: '',
+      password: '',
+      totp: '',
       rememberMe: false,
     },
   });
@@ -43,20 +50,24 @@ export function LoginForm({ locale = "fr" }: { locale?: string }) {
   const onSubmit = async (values: LoginSchemaType) => {
     try {
       const result = await login(values, callbackUrl);
-      
+
       if (!result) {
         // Si la connexion échoue mais nécessite 2FA
-        if (authError?.includes("2FA") || authError?.includes("TOTP") || authError?.includes("facteur")) {
+        if (
+          authError?.includes('2FA') ||
+          authError?.includes('TOTP') ||
+          authError?.includes('facteur')
+        ) {
           setShowTwoFactor(true);
           toast({
-            title: "Code de vérification requis",
-            description: "Veuillez entrer le code d&apos;authentification à deux facteurs",
+            title: 'Code de vérification requis',
+            description: 'Veuillez entrer le code d&apos;authentification à deux facteurs',
           });
           return;
         }
       }
     } catch (error) {
-      console.error("Erreur de connexion:", error);
+      console.error('Erreur de connexion:', error);
     }
   };
 
@@ -64,9 +75,7 @@ export function LoginForm({ locale = "fr" }: { locale?: string }) {
     <Card className="w-full max-w-md mx-auto">
       <CardHeader className="space-y-1">
         <CardTitle className="text-2xl font-bold">Connexion</CardTitle>
-        <CardDescription>
-          Entrez vos identifiants pour accéder à votre compte
-        </CardDescription>
+        <CardDescription>Entrez vos identifiants pour accéder à votre compte</CardDescription>
       </CardHeader>
       <CardContent>
         {authError && (
@@ -86,12 +95,12 @@ export function LoginForm({ locale = "fr" }: { locale?: string }) {
                     <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="votre@email.com" 
-                          type="email" 
+                        <Input
+                          placeholder="votre@email.com"
+                          type="email"
                           autoComplete="email"
-                          disabled={authLoading} 
-                          {...field} 
+                          disabled={authLoading}
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
@@ -105,12 +114,12 @@ export function LoginForm({ locale = "fr" }: { locale?: string }) {
                     <FormItem>
                       <FormLabel>Mot de passe</FormLabel>
                       <FormControl>
-                        <Input 
-                          placeholder="••••••••" 
-                          type="password" 
+                        <Input
+                          placeholder="••••••••"
+                          type="password"
                           autoComplete="current-password"
-                          disabled={authLoading} 
-                          {...field} 
+                          disabled={authLoading}
+                          {...field}
                         />
                       </FormControl>
                       <FormMessage />
@@ -124,8 +133,8 @@ export function LoginForm({ locale = "fr" }: { locale?: string }) {
                     render={({ field }) => (
                       <FormItem className="flex items-center space-x-2 space-y-0">
                         <FormControl>
-                          <Checkbox 
-                            checked={field.value} 
+                          <Checkbox
+                            checked={field.value}
                             onCheckedChange={field.onChange}
                             disabled={authLoading}
                           />
@@ -136,8 +145,8 @@ export function LoginForm({ locale = "fr" }: { locale?: string }) {
                       </FormItem>
                     )}
                   />
-                  <Link 
-                    href={`/${locale}/forgot-password`} 
+                  <Link
+                    href={`/${locale}/forgot-password`}
                     className="text-sm font-medium text-primary hover:underline"
                   >
                     Mot de passe oublié?
@@ -154,31 +163,28 @@ export function LoginForm({ locale = "fr" }: { locale?: string }) {
                     <FormControl>
                       <div className="flex items-center">
                         <KeyRound className="mr-2 h-4 w-4 text-muted-foreground" />
-                        <Input 
-                          placeholder="123456" 
+                        <Input
+                          placeholder="123456"
                           type="text"
-                          inputMode="numeric" 
+                          inputMode="numeric"
                           autoComplete="one-time-code"
-                          disabled={authLoading} 
-                          {...field} 
+                          disabled={authLoading}
+                          {...field}
                         />
                       </div>
                     </FormControl>
                     <FormMessage />
                     <p className="text-sm text-muted-foreground mt-2">
-                      Entrez le code à 6 chiffres généré par votre application d&apos;authentification
+                      Entrez le code à 6 chiffres généré par votre application
+                      d&apos;authentification
                     </p>
                   </FormItem>
                 )}
               />
             )}
-            <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={authLoading}
-            >
+            <Button type="submit" className="w-full" disabled={authLoading}>
               {authLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {showTwoFactor ? "Vérifier" : "Connexion"}
+              {showTwoFactor ? 'Vérifier' : 'Connexion'}
             </Button>
           </form>
         </Form>
@@ -193,12 +199,12 @@ export function LoginForm({ locale = "fr" }: { locale?: string }) {
           </div>
         </div>
         <div className="grid grid-cols-2 gap-4 w-full">
-          <Button 
-            variant="outline" 
-            className="w-full" 
-            type="button" 
+          <Button
+            variant="outline"
+            className="w-full"
+            type="button"
             onClick={() => {
-              const googleCallbackUrl = callbackUrl || "/";
+              const googleCallbackUrl = callbackUrl || '/';
               const origin = window.location.origin;
               window.location.href = `${origin}/api/auth/signin/google?callbackUrl=${encodeURIComponent(googleCallbackUrl)}`;
             }}
@@ -229,13 +235,13 @@ export function LoginForm({ locale = "fr" }: { locale?: string }) {
             )}
             Google
           </Button>
-          <Button 
-            variant="outline" 
-            className="w-full" 
-            type="button" 
+          <Button
+            variant="outline"
+            className="w-full"
+            type="button"
             onClick={() => {
               const origin = window.location.origin;
-              window.location.href = `${origin}/api/auth/signin/github?callbackUrl=${encodeURIComponent(callbackUrl || "/")}`;
+              window.location.href = `${origin}/api/auth/signin/github?callbackUrl=${encodeURIComponent(callbackUrl || '/')}`;
             }}
             disabled={authLoading}
           >
@@ -253,11 +259,8 @@ export function LoginForm({ locale = "fr" }: { locale?: string }) {
           </Button>
         </div>
         <div className="text-center text-sm">
-          <span className="text-muted-foreground">Pas encore de compte ?</span>{" "}
-          <Link 
-            href={`/${locale}/register`} 
-            className="font-medium text-primary hover:underline"
-          >
+          <span className="text-muted-foreground">Pas encore de compte ?</span>{' '}
+          <Link href={`/${locale}/register`} className="font-medium text-primary hover:underline">
             Créer un compte
           </Link>
         </div>

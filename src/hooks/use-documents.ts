@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { DocumentStatus, DocumentType, Document } from '@/types/document';
 import { api } from '@/lib/api';
-import { useToast } from "~/components/ui/use-toast";
-import { uploadDocumentSchema, updateDocumentSchema } from "~/schemas/auth/document.schema";
-import { z } from "zod";
-import type { Verification } from "@prisma/client";
+import { useToast } from '~/components/ui/use-toast';
+import { uploadDocumentSchema, updateDocumentSchema } from '~/schemas/auth/document.schema';
+import { z } from 'zod';
+import type { Verification } from '@prisma/client';
 
 type UploadDocumentInput = z.infer<typeof uploadDocumentSchema>;
 type UpdateDocumentInput = z.infer<typeof updateDocumentSchema>;
@@ -18,12 +18,12 @@ const apiMock = {
   useContext: () => ({
     document: {
       getUserDocuments: {
-        invalidate: () => Promise.resolve()
+        invalidate: () => Promise.resolve(),
       },
       getPendingDocuments: {
-        invalidate: () => Promise.resolve()
-      }
-    }
+        invalidate: () => Promise.resolve(),
+      },
+    },
   }),
   document: {
     uploadDocument: {
@@ -31,39 +31,39 @@ const apiMock = {
         mutateAsync: async () => {
           onSuccess?.();
           return { success: true };
-        }
-      })
+        },
+      }),
     },
     deleteDocument: {
       useMutation: ({ onSuccess }: { onSuccess?: () => void }) => ({
         mutateAsync: async () => {
           onSuccess?.();
           return { success: true };
-        }
-      })
+        },
+      }),
     },
     verifyDocument: {
       useMutation: ({ onSuccess }: { onSuccess?: () => void }) => ({
         mutateAsync: async () => {
           onSuccess?.();
           return { success: true };
-        }
-      })
+        },
+      }),
     },
     getUserDocuments: {
       useQuery: () => ({
         data: { documents: [] },
-        isLoading: false
-      })
+        isLoading: false,
+      }),
     },
     getPendingDocuments: {
       useQuery: () => ({
         data: { documents: [] },
         isLoading: false,
-        refetch: async () => ({ data: { documents: [] } })
-      })
-    }
-  }
+        refetch: async () => ({ data: { documents: [] } }),
+      }),
+    },
+  },
 };
 
 // Utiliser le mock à la place de l'API réelle
@@ -76,35 +76,38 @@ export function useDocuments() {
   const [userDocuments, setUserDocuments] = useState<Document[]>([]);
   const [pendingDocuments, setPendingDocuments] = useState<Document[]>([]);
   const { toast } = useToast();
-  
+
   const utils = api.useContext();
-  
+
   // Mutations
   const uploadMutation = api.document.uploadDocument.useMutation({
     onSuccess: () => {
       utils.document.getUserDocuments.invalidate();
-    }
+    },
   });
-  
+
   const deleteMutation = api.document.deleteDocument.useMutation({
     onSuccess: () => {
       utils.document.getUserDocuments.invalidate();
-    }
+    },
   });
-  
+
   const verifyMutation = api.document.verifyDocument.useMutation({
     onSuccess: () => {
       utils.document.getPendingDocuments.invalidate();
-    }
+    },
   });
-  
+
   // Queries
-  const { data: userDocumentsData, isLoading: isLoadingUserDocs } = 
+  const { data: userDocumentsData, isLoading: isLoadingUserDocs } =
     api.document.getUserDocuments.useQuery();
-  
-  const { data: pendingDocumentsData, isLoading: isLoadingPendingDocs, refetch: refetchPendingDocs } = 
-    api.document.getPendingDocuments.useQuery();
-  
+
+  const {
+    data: pendingDocumentsData,
+    isLoading: isLoadingPendingDocs,
+    refetch: refetchPendingDocs,
+  } = api.document.getPendingDocuments.useQuery();
+
   // Fonctions
   const uploadDocument = async (file: File, documentType: DocumentType) => {
     if (!file) return null;
@@ -125,7 +128,7 @@ export function useDocuments() {
       }
 
       const data = await response.json();
-      
+
       // Mettre à jour la liste des documents de l'utilisateur
       await loadUserDocuments();
 
@@ -137,16 +140,16 @@ export function useDocuments() {
       setIsUploading(false);
     }
   };
-  
+
   const deleteDocument = async (documentId: string) => {
     setIsDeleting(true);
-    
+
     try {
       await deleteMutation.mutateAsync({ documentId });
-      
+
       // Mettre à jour la liste des documents de l'utilisateur
       await loadUserDocuments();
-      
+
       return true;
     } catch (error) {
       console.error('Erreur lors de la suppression du document:', error);
@@ -155,26 +158,30 @@ export function useDocuments() {
       setIsDeleting(false);
     }
   };
-  
-  const verifyDocument = async (documentId: string, status: DocumentStatus, rejectionReason?: string) => {
+
+  const verifyDocument = async (
+    documentId: string,
+    status: DocumentStatus,
+    rejectionReason?: string
+  ) => {
     try {
       await verifyMutation.mutateAsync({
         documentId,
         status,
-        rejectionReason
+        rejectionReason,
       });
-      
+
       return { success: true };
     } catch (error) {
       console.error('Erreur lors de la vérification du document:', error);
       return { success: false, error };
     }
   };
-  
+
   // Charger les documents en attente, optionnellement filtrés par rôle
   const loadPendingDocuments = async (role?: string) => {
     setIsLoading(true);
-    
+
     try {
       const documents = await refetchPendingDocs({ userRole: role });
       setPendingDocuments(documents);
@@ -192,7 +199,7 @@ export function useDocuments() {
    */
   const loadUserDocuments = async () => {
     setIsLoading(true);
-    
+
     try {
       const documents = await api.document.getUserDocuments.query();
       setUserDocuments(documents);
@@ -212,11 +219,11 @@ export function useDocuments() {
     try {
       await verifyMutation.mutateAsync({
         documentId,
-        status: DocumentStatus.APPROVED
+        status: DocumentStatus.APPROVED,
       });
       return true;
     } catch (error) {
-      console.error('Erreur lors de l\'approbation du document:', error);
+      console.error("Erreur lors de l'approbation du document:", error);
       throw error;
     }
   };
@@ -229,7 +236,7 @@ export function useDocuments() {
       await verifyMutation.mutateAsync({
         documentId,
         status: DocumentStatus.REJECTED,
-        rejectionReason: reason
+        rejectionReason: reason,
       });
       return true;
     } catch (error) {
@@ -278,11 +285,11 @@ export function useDocuments() {
     try {
       // 1. Préparer le fichier pour l'upload
       const formData = new FormData();
-      formData.append("file", file);
+      formData.append('file', file);
 
       // 2. Uploader le fichier sur le serveur
-      const uploadResponse = await fetch("/api/upload", {
-        method: "POST",
+      const uploadResponse = await fetch('/api/upload', {
+        method: 'POST',
         body: formData,
       });
 
@@ -304,17 +311,17 @@ export function useDocuments() {
       });
 
       toast({
-        title: "Document téléchargé",
-        description: "Votre document a été téléchargé avec succès.",
+        title: 'Document téléchargé',
+        description: 'Votre document a été téléchargé avec succès.',
       });
 
       return true;
     } catch (error) {
-      console.error("Erreur:", error);
+      console.error('Erreur:', error);
       toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors du téléchargement du document.",
-        variant: "destructive",
+        title: 'Erreur',
+        description: 'Une erreur est survenue lors du téléchargement du document.',
+        variant: 'destructive',
       });
       return false;
     } finally {
@@ -330,17 +337,17 @@ export function useDocuments() {
       await updateDocumentMutation.mutateAsync(data);
 
       toast({
-        title: "Document mis à jour",
-        description: "Le document a été mis à jour avec succès.",
+        title: 'Document mis à jour',
+        description: 'Le document a été mis à jour avec succès.',
       });
 
       return true;
     } catch (error) {
-      console.error("Erreur:", error);
+      console.error('Erreur:', error);
       toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de la mise à jour du document.",
-        variant: "destructive",
+        title: 'Erreur',
+        description: 'Une erreur est survenue lors de la mise à jour du document.',
+        variant: 'destructive',
       });
       return false;
     } finally {
@@ -359,17 +366,17 @@ export function useDocuments() {
       });
 
       toast({
-        title: "Demande envoyée",
-        description: "Votre demande de vérification a été envoyée avec succès.",
+        title: 'Demande envoyée',
+        description: 'Votre demande de vérification a été envoyée avec succès.',
       });
 
       return true;
     } catch (error) {
-      console.error("Erreur:", error);
+      console.error('Erreur:', error);
       toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de la demande de vérification.",
-        variant: "destructive",
+        title: 'Erreur',
+        description: 'Une erreur est survenue lors de la demande de vérification.',
+        variant: 'destructive',
       });
       return false;
     } finally {
@@ -378,7 +385,11 @@ export function useDocuments() {
   };
 
   // Admin: Mise à jour d'une vérification
-  const updateVerification = async (verificationId: string, status: "APPROVED" | "REJECTED", notes?: string) => {
+  const updateVerification = async (
+    verificationId: string,
+    status: 'APPROVED' | 'REJECTED',
+    notes?: string
+  ) => {
     setIsLoading(true);
 
     try {
@@ -389,17 +400,17 @@ export function useDocuments() {
       });
 
       toast({
-        title: "Vérification mise à jour",
-        description: `La vérification a été ${status === "APPROVED" ? "approuvée" : "rejetée"} avec succès.`,
+        title: 'Vérification mise à jour',
+        description: `La vérification a été ${status === 'APPROVED' ? 'approuvée' : 'rejetée'} avec succès.`,
       });
 
       return true;
     } catch (error) {
-      console.error("Erreur:", error);
+      console.error('Erreur:', error);
       toast({
-        title: "Erreur",
-        description: "Une erreur est survenue lors de la mise à jour de la vérification.",
-        variant: "destructive",
+        title: 'Erreur',
+        description: 'Une erreur est survenue lors de la mise à jour de la vérification.',
+        variant: 'destructive',
       });
       return false;
     } finally {
@@ -421,7 +432,7 @@ export function useDocuments() {
     pendingDocuments,
     isLoadingUserDocs,
     isLoadingPendingDocs,
-    
+
     // Fonctions
     uploadDocument,
     deleteDocument,
@@ -430,7 +441,7 @@ export function useDocuments() {
     loadUserDocuments,
     approveDocument,
     rejectDocument,
-    
+
     // Refresh
     refreshUserDocuments: () => utils.document.getUserDocuments.invalidate(),
     refreshPendingDocuments: () => utils.document.getPendingDocuments.invalidate(),
