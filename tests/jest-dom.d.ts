@@ -9,4 +9,4 @@ declare namespace Vi {
     toStrictEqual(expected: unknown): T;
     toEqual(expected: unknown): T;
   }
-} 
+}

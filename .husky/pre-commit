@@ -1,0 +1,5 @@
+# Exécuter lint-staged pour formater et linter les fichiers modifiés
+pnpm lint-staged
+
+# Vérifier les types TypeScript (temporairement désactivé)
+# pnpm typecheck

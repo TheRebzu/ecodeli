@@ -1,8 +1,8 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { trpc } from "@/app/_trpc/client";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
+import { trpc } from '@/app/_trpc/client';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -10,7 +10,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -19,12 +19,12 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Loader2, CheckCircle, XCircle, FileText } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
-import { format } from "date-fns";
-import Image from "next/image";
+} from '@/components/ui/dialog';
+import { Textarea } from '@/components/ui/textarea';
+import { Loader2, CheckCircle, XCircle, FileText } from 'lucide-react';
+import { useToast } from '@/components/ui/use-toast';
+import { format } from 'date-fns';
+import Image from 'next/image';
 
 type DocumentVerificationProps = {
   document: {
@@ -46,23 +46,23 @@ type DocumentVerificationProps = {
 
 export function DocumentVerification({ document, onVerify }: DocumentVerificationProps) {
   const [isReviewDialogOpen, setIsReviewDialogOpen] = useState(false);
-  const [notes, setNotes] = useState("");
+  const [notes, setNotes] = useState('');
   const { toast } = useToast();
 
   const reviewDocument = trpc.verification.reviewDocument.useMutation({
     onSuccess: () => {
       toast({
-        title: "Document traité",
-        description: "Le document a été vérifié avec succès",
+        title: 'Document traité',
+        description: 'Le document a été vérifié avec succès',
       });
       setIsReviewDialogOpen(false);
       onVerify();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
-        variant: "destructive",
-        title: "Erreur",
-        description: error.message || "Une erreur est survenue lors de la vérification",
+        variant: 'destructive',
+        title: 'Erreur',
+        description: error.message || 'Une erreur est survenue lors de la vérification',
       });
     },
   });
@@ -70,7 +70,7 @@ export function DocumentVerification({ document, onVerify }: DocumentVerificatio
   const handleApprove = () => {
     reviewDocument.mutate({
       documentId: document.id,
-      status: "APPROVED",
+      status: 'APPROVED',
       notes,
     });
   };
@@ -78,35 +78,33 @@ export function DocumentVerification({ document, onVerify }: DocumentVerificatio
   const handleReject = () => {
     if (!notes) {
       toast({
-        variant: "destructive",
-        title: "Notes requises",
-        description: "Veuillez indiquer la raison du rejet",
+        variant: 'destructive',
+        title: 'Notes requises',
+        description: 'Veuillez indiquer la raison du rejet',
       });
       return;
     }
 
     reviewDocument.mutate({
       documentId: document.id,
-      status: "REJECTED",
+      status: 'REJECTED',
       notes,
     });
   };
 
   const isLoading = reviewDocument.isLoading;
-  const isImage = document.mimeType.startsWith("image/");
+  const isImage = document.mimeType.startsWith('image/');
 
   return (
     <Card className="mb-6">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
-          <span>{document.type.replace("_", " ")}</span>
-          {document.isVerified && (
-            <CheckCircle className="text-green-500" size={20} />
-          )}
+          <span>{document.type.replace('_', ' ')}</span>
+          {document.isVerified && <CheckCircle className="text-green-500" size={20} />}
         </CardTitle>
         <CardDescription>
-          Soumis par {document.submitter.name} le{" "}
-          {format(new Date(document.uploadedAt), "dd/MM/yyyy à HH:mm")}
+          Soumis par {document.submitter.name} le{' '}
+          {format(new Date(document.uploadedAt), 'dd/MM/yyyy à HH:mm')}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -134,7 +132,7 @@ export function DocumentVerification({ document, onVerify }: DocumentVerificatio
                     src={document.fileUrl}
                     alt={document.filename}
                     fill
-                    style={{ objectFit: "contain" }}
+                    style={{ objectFit: 'contain' }}
                   />
                 </div>
               ) : (
@@ -171,7 +169,7 @@ export function DocumentVerification({ document, onVerify }: DocumentVerificatio
               <Textarea
                 placeholder="Ajoutez des notes concernant la vérification..."
                 value={notes}
-                onChange={(e) => setNotes(e.target.value)}
+                onChange={e => setNotes(e.target.value)}
                 className="min-h-[100px]"
               />
             </div>
@@ -189,12 +187,7 @@ export function DocumentVerification({ document, onVerify }: DocumentVerificatio
                 )}
                 Rejeter
               </Button>
-              <Button
-                type="button"
-                variant="default"
-                onClick={handleApprove}
-                disabled={isLoading}
-              >
+              <Button type="button" variant="default" onClick={handleApprove} disabled={isLoading}>
                 {isLoading ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 ) : (

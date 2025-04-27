@@ -42,13 +42,16 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 L'application EcoDeli dispose d'un système d'authentification complet avec les fonctionnalités suivantes:
 
 #### Modèle de données
+
 - Utilisateurs avec différents rôles (Client, Marchand, Livreur, Prestataire, Admin)
-- Profils spécifiques par rôle 
+- Profils spécifiques par rôle
 - Jetons de vérification d'email et de réinitialisation de mot de passe
 - Support pour l'authentification à deux facteurs (2FA)
 
 #### API et backend
+
 - Service d'authentification avec fonctions pour:
+
   - Inscription utilisateur par rôle
   - Connexion et déconnexion
   - Vérification d'email
@@ -60,17 +63,20 @@ L'application EcoDeli dispose d'un système d'authentification complet avec les 
 - Protection des routes par middleware
 
 #### Frontend
+
 - Hooks React pour la gestion de l'état d'authentification
 - Formulaires d'inscription spécifiques par type d'utilisateur
 - Composants pour la connexion, vérification d'email, réinitialisation de mot de passe
 - Interface pour la gestion de l'authentification à deux facteurs
 
 #### Tests
+
 - Tests unitaires pour les schémas de validation
 - Tests unitaires pour le service d'authentification
 - Tests d'intégration à venir
 
 #### Comment utiliser
+
 1. **Inscription**: Les utilisateurs peuvent s'inscrire en tant que client, marchand, livreur ou prestataire
 2. **Vérification**: Un email de vérification est envoyé pour confirmer l'adresse email
 3. **Connexion**: Les utilisateurs peuvent se connecter avec leur email et mot de passe
@@ -78,6 +84,7 @@ L'application EcoDeli dispose d'un système d'authentification complet avec les 
 5. **Récupération**: Possibilité de réinitialiser le mot de passe en cas d'oubli
 
 #### À venir
+
 - Support pour l'authentification via des fournisseurs sociaux (Google, Facebook, etc.)
 - Amélioration de la gestion des permissions par rôle
 - Journalisation des activités d'authentification

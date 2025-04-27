@@ -1,16 +1,16 @@
-import { useSession, signIn, signOut } from "next-auth/react";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { LoginSchemaType } from "@/schemas/auth/login.schema";
-import { api } from "./use-trpc";
-import { useToast } from "@/components/ui/use-toast";
-import type { UserRole } from "@prisma/client";
-import type { 
+import { useSession, signIn, signOut } from 'next-auth/react';
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { LoginSchemaType } from '@/schemas/auth/login.schema';
+import { api } from './use-trpc';
+import { useToast } from '@/components/ui/use-toast';
+import type { UserRole } from '@prisma/client';
+import type {
   ClientRegisterSchemaType,
   DelivererRegisterSchemaType,
   MerchantRegisterSchemaType,
-  ProviderRegisterSchemaType
-} from "@/schemas/auth";
+  ProviderRegisterSchemaType,
+} from '@/schemas/auth';
 
 export function useAuth() {
   const { data: session, status, update } = useSession();
@@ -27,17 +27,17 @@ export function useAuth() {
   const verifyEmail = api.auth.verifyEmail.useMutation();
   const forgotPassword = api.auth.forgotPassword.useMutation();
   const resetPassword = api.auth.resetPassword.useMutation();
-  const getSession = api.auth.getSession.useQuery(undefined, { 
-    enabled: status === "authenticated",
+  const getSession = api.auth.getSession.useQuery(undefined, {
+    enabled: status === 'authenticated',
     refetchOnWindowFocus: false,
   });
 
-  const login = async (data: LoginSchemaType, callbackUrl = "/") => {
+  const login = async (data: LoginSchemaType, callbackUrl = '/') => {
     try {
       setIsLoading(true);
       setError(null);
 
-      const response = await signIn("credentials", {
+      const response = await signIn('credentials', {
         email: data.email,
         password: data.password,
         totp: data.totp,
@@ -56,7 +56,7 @@ export function useAuth() {
       router.refresh();
       return true;
     } catch (_) {
-      setError("Une erreur est survenue lors de la connexion");
+      setError('Une erreur est survenue lors de la connexion');
       setIsLoading(false);
       return false;
     }
@@ -66,10 +66,10 @@ export function useAuth() {
     try {
       setIsLoading(true);
       await signOut({ redirect: false });
-      router.push("/");
+      router.push('/');
       router.refresh();
     } catch (_) {
-      setError("Une erreur est survenue lors de la déconnexion");
+      setError('Une erreur est survenue lors de la déconnexion');
     } finally {
       setIsLoading(false);
     }
@@ -83,70 +83,75 @@ export function useAuth() {
   const getDashboardPath = async () => {
     try {
       if (!session?.user) return null;
-      
+
       const role = session.user.role as UserRole;
       switch (role) {
-        case "CLIENT":
-          return "/client";
-        case "DELIVERER":
-          return "/deliverer";
-        case "MERCHANT":
-          return "/merchant";
-        case "PROVIDER":
-          return "/provider";
-        case "ADMIN":
-          return "/admin";
+        case 'CLIENT':
+          return '/client';
+        case 'DELIVERER':
+          return '/deliverer';
+        case 'MERCHANT':
+          return '/merchant';
+        case 'PROVIDER':
+          return '/provider';
+        case 'ADMIN':
+          return '/admin';
         default:
-          return "/";
+          return '/';
       }
     } catch (error) {
-      console.error("Erreur lors de la récupération du dashboard", error);
+      console.error('Erreur lors de la récupération du dashboard', error);
       return null;
     }
   };
 
   // S'inscrire en fonction du rôle
   const register = async (
-    data: ClientRegisterSchemaType | DelivererRegisterSchemaType | MerchantRegisterSchemaType | ProviderRegisterSchemaType, 
+    data:
+      | ClientRegisterSchemaType
+      | DelivererRegisterSchemaType
+      | MerchantRegisterSchemaType
+      | ProviderRegisterSchemaType,
     role: UserRole
   ) => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       let result;
-      
+
       switch (role) {
-        case "CLIENT":
+        case 'CLIENT':
           result = await registerClient.mutateAsync(data as ClientRegisterSchemaType);
           break;
-        case "DELIVERER":
+        case 'DELIVERER':
           result = await registerDeliverer.mutateAsync(data as DelivererRegisterSchemaType);
           break;
-        case "MERCHANT":
+        case 'MERCHANT':
           result = await registerMerchant.mutateAsync(data as MerchantRegisterSchemaType);
           break;
-        case "PROVIDER":
+        case 'PROVIDER':
           result = await registerProvider.mutateAsync(data as ProviderRegisterSchemaType);
           break;
         default:
-          throw new Error("Rôle non supporté");
+          throw new Error('Rôle non supporté');
       }
-      
+
       toast({
-        title: "Inscription réussie",
-        description: "Veuillez vérifier votre email pour activer votre compte.",
+        title: 'Inscription réussie',
+        description: 'Veuillez vérifier votre email pour activer votre compte.',
       });
-      
-      router.push("/login");
+
+      router.push('/login');
       return result;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Une erreur est survenue lors de l'inscription";
+      const errorMessage =
+        error instanceof Error ? error.message : "Une erreur est survenue lors de l'inscription";
       setError(errorMessage);
       toast({
-        title: "Erreur",
+        title: 'Erreur',
         description: errorMessage,
-        variant: "destructive",
+        variant: 'destructive',
       });
       return null;
     } finally {
@@ -160,17 +165,18 @@ export function useAuth() {
       setIsLoading(true);
       const result = await verifyEmail.mutateAsync({ token });
       toast({
-        title: "Email vérifié",
-        description: "Votre compte a été activé. Vous pouvez maintenant vous connecter.",
+        title: 'Email vérifié',
+        description: 'Votre compte a été activé. Vous pouvez maintenant vous connecter.',
       });
       return result;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Erreur lors de la vérification de l'email";
+      const errorMessage =
+        error instanceof Error ? error.message : "Erreur lors de la vérification de l'email";
       setError(errorMessage);
       toast({
-        title: "Erreur",
-        description: errorMessage || "Lien de vérification invalide ou expiré",
-        variant: "destructive",
+        title: 'Erreur',
+        description: errorMessage || 'Lien de vérification invalide ou expiré',
+        variant: 'destructive',
       });
       return null;
     } finally {
@@ -184,12 +190,14 @@ export function useAuth() {
       setIsLoading(true);
       const result = await forgotPassword.mutateAsync({ email });
       toast({
-        title: "Email envoyé",
-        description: "Si un compte existe avec cet email, un lien de réinitialisation a été envoyé.",
+        title: 'Email envoyé',
+        description:
+          'Si un compte existe avec cet email, un lien de réinitialisation a été envoyé.',
       });
       return result;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Erreur lors de l'envoi de l'email";
+      const errorMessage =
+        error instanceof Error ? error.message : "Erreur lors de l'envoi de l'email";
       setError(errorMessage);
       return null;
     } finally {
@@ -201,19 +209,26 @@ export function useAuth() {
   const resetUserPassword = async (token: string, password: string) => {
     try {
       setIsLoading(true);
-      const result = await resetPassword.mutateAsync({ token, password, confirmPassword: password });
+      const result = await resetPassword.mutateAsync({
+        token,
+        password,
+        confirmPassword: password,
+      });
       toast({
-        title: "Mot de passe réinitialisé",
-        description: "Votre mot de passe a été réinitialisé avec succès.",
+        title: 'Mot de passe réinitialisé',
+        description: 'Votre mot de passe a été réinitialisé avec succès.',
       });
       return result;
     } catch (error: unknown) {
-      const errorMessage = error instanceof Error ? error.message : "Erreur lors de la réinitialisation du mot de passe";
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : 'Erreur lors de la réinitialisation du mot de passe';
       setError(errorMessage);
       toast({
-        title: "Erreur",
-        description: errorMessage || "Lien de réinitialisation invalide ou expiré",
-        variant: "destructive",
+        title: 'Erreur',
+        description: errorMessage || 'Lien de réinitialisation invalide ou expiré',
+        variant: 'destructive',
       });
       return null;
     } finally {
@@ -231,8 +246,8 @@ export function useAuth() {
     role,
     status,
     isLoading: isLoading || getSession.isLoading,
-    isAuthenticated: status === "authenticated",
-    isUnauthenticated: status === "unauthenticated",
+    isAuthenticated: status === 'authenticated',
+    isUnauthenticated: status === 'unauthenticated',
     error,
     login,
     logout,

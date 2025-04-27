@@ -10,10 +10,10 @@ export default getRequestConfig(async ({ locale }) => {
   if (!locales.includes(locale as string)) {
     notFound();
   }
-  
+
   // Importer dynamiquement les messages pour la locale demandée
   return {
     locale: locale as string,
-    messages: (await import(`../../messages/${locale}.json`)).default
+    messages: (await import(`../../messages/${locale}.json`)).default,
   };
-}); 
+});

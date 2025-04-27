@@ -1,15 +1,15 @@
-"use client";
+'use client';
 
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
-import { Globe } from "lucide-react";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+} from '@/components/ui/dropdown-menu';
+import { Button } from '@/components/ui/button';
+import { Globe } from 'lucide-react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 interface LanguageSwitcherProps {
   locale: string;
@@ -17,11 +17,11 @@ interface LanguageSwitcherProps {
 
 export function LanguageSwitcher({ locale }: LanguageSwitcherProps) {
   const pathname = usePathname();
-  const pathnameWithoutLocale = pathname.replace(`/${locale}`, "");
+  const pathnameWithoutLocale = pathname.replace(`/${locale}`, '');
 
   const languages = [
-    { code: "fr", name: "Français" },
-    { code: "en", name: "English" },
+    { code: 'fr', name: 'Français' },
+    { code: 'en', name: 'English' },
   ];
 
   return (
@@ -33,7 +33,7 @@ export function LanguageSwitcher({ locale }: LanguageSwitcherProps) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {languages.map((lang) => (
+        {languages.map(lang => (
           <DropdownMenuItem key={lang.code} asChild>
             <Link
               href={`/${lang.code}${pathnameWithoutLocale}`}
@@ -46,4 +46,4 @@ export function LanguageSwitcher({ locale }: LanguageSwitcherProps) {
       </DropdownMenuContent>
     </DropdownMenu>
   );
-} 
+}

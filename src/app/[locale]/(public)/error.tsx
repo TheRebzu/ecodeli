@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useEffect } from "react";
-import Link from "next/link";
-import { getAuthErrorMessage } from "@/lib/auth-error";
-import { Button } from "@/components/ui/button";
-import { RefreshCcw } from "lucide-react";
+import { useEffect } from 'react';
+import Link from 'next/link';
+import { getAuthErrorMessage } from '@/lib/auth-error';
+import { Button } from '@/components/ui/button';
+import { RefreshCcw } from 'lucide-react';
 
 export default function Error({
   error,
@@ -15,12 +15,11 @@ export default function Error({
 }) {
   useEffect(() => {
     // Journalisation de l'erreur pour le débogage
-    console.error("Erreur dans la section publique:", error);
+    console.error('Erreur dans la section publique:', error);
   }, [error]);
 
   const errorMessage =
-    getAuthErrorMessage(error.message) ||
-    "Une erreur inattendue s&apos;est produite.";
+    getAuthErrorMessage(error.message) || 'Une erreur inattendue s&apos;est produite.';
 
   return (
     <div className="container flex flex-col items-center justify-center min-h-[70vh] py-10">
@@ -31,9 +30,7 @@ export default function Error({
           </h2>
           <p className="text-muted-foreground">{errorMessage}</p>
           {error.digest && (
-            <p className="text-xs text-muted-foreground mt-2">
-              ID Erreur: {error.digest}
-            </p>
+            <p className="text-xs text-muted-foreground mt-2">ID Erreur: {error.digest}</p>
           )}
         </div>
 

@@ -1,33 +1,49 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useSearchParams } from "next/navigation";
-import Link from "next/link";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Lock, Loader2, CheckCircle } from "lucide-react";
-import { useAuth } from "@/hooks/use-auth";
-import { useToast } from "@/components/ui/use-toast";
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
+import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Lock, Loader2, CheckCircle } from 'lucide-react';
+import { useAuth } from '@/hooks/use-auth';
+import { useToast } from '@/components/ui/use-toast';
 
 // Schéma de validation
-const resetPasswordSchema = z.object({
-  password: z
-    .string()
-    .min(8, "Le mot de passe doit contenir au moins 8 caractères")
-    .regex(
-      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
-      "Le mot de passe doit contenir au moins une lettre majuscule, une lettre minuscule, un chiffre et un caractère spécial"
-    ),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Les mots de passe ne correspondent pas",
-  path: ["confirmPassword"],
-});
+const resetPasswordSchema = z
+  .object({
+    password: z
+      .string()
+      .min(8, 'Le mot de passe doit contenir au moins 8 caractères')
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/,
+        'Le mot de passe doit contenir au moins une lettre majuscule, une lettre minuscule, un chiffre et un caractère spécial'
+      ),
+    confirmPassword: z.string(),
+  })
+  .refine(data => data.password === data.confirmPassword, {
+    message: 'Les mots de passe ne correspondent pas',
+    path: ['confirmPassword'],
+  });
 
 type ResetPasswordFormValues = z.infer<typeof resetPasswordSchema>;
 
@@ -38,51 +54,54 @@ export function PasswordReset() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  const token = searchParams.get("token");
-  
+
+  const token = searchParams.get('token');
+
   const form = useForm<ResetPasswordFormValues>({
     resolver: zodResolver(resetPasswordSchema),
     defaultValues: {
-      password: "",
-      confirmPassword: "",
+      password: '',
+      confirmPassword: '',
     },
   });
-  
+
   const onSubmit = async (data: ResetPasswordFormValues) => {
     if (!token) {
-      setError("Token manquant. Veuillez utiliser le lien fourni dans l&apos;email de réinitialisation ou demander un nouveau lien.");
+      setError(
+        'Token manquant. Veuillez utiliser le lien fourni dans l&apos;email de réinitialisation ou demander un nouveau lien.'
+      );
       return;
     }
-    
+
     setIsSubmitting(true);
     setError(null);
-    
+
     try {
       await resetPassword(token, data.password);
       setIsSuccess(true);
       toast({
-        title: "Succès",
-        description: "Votre mot de passe a été réinitialisé avec succès.",
-        variant: "default",
+        title: 'Succès',
+        description: 'Votre mot de passe a été réinitialisé avec succès.',
+        variant: 'default',
       });
     } catch (err) {
-      console.error("Erreur lors de la réinitialisation du mot de passe:", err);
+      console.error('Erreur lors de la réinitialisation du mot de passe:', err);
       setError(
-        err instanceof Error 
-          ? err.message 
-          : "Une erreur s&apos;est produite lors de la réinitialisation de votre mot de passe. Veuillez réessayer."
+        err instanceof Error
+          ? err.message
+          : 'Une erreur s&apos;est produite lors de la réinitialisation de votre mot de passe. Veuillez réessayer.'
       );
       toast({
-        title: "Erreur",
-        description: "Une erreur s&apos;est produite lors de la réinitialisation de votre mot de passe.",
-        variant: "destructive",
+        title: 'Erreur',
+        description:
+          'Une erreur s&apos;est produite lors de la réinitialisation de votre mot de passe.',
+        variant: 'destructive',
       });
     } finally {
       setIsSubmitting(false);
     }
   };
-  
+
   if (!token) {
     return (
       <Card className="w-full max-w-md mx-auto">
@@ -92,13 +111,14 @@ export function PasswordReset() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="bg-destructive/15 text-destructive p-3 rounded-md text-sm">
-            Token manquant. Veuillez utiliser le lien fourni dans l&apos;email de réinitialisation ou demander un nouveau lien.
+            Token manquant. Veuillez utiliser le lien fourni dans l&apos;email de réinitialisation
+            ou demander un nouveau lien.
           </div>
         </CardContent>
       </Card>
     );
   }
-  
+
   if (isSuccess) {
     return (
       <Card className="w-full max-w-md mx-auto">
@@ -120,7 +140,7 @@ export function PasswordReset() {
       </Card>
     );
   }
-  
+
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
@@ -133,7 +153,7 @@ export function PasswordReset() {
             {error}
           </div>
         )}
-        
+
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
@@ -145,19 +165,14 @@ export function PasswordReset() {
                   <FormControl>
                     <div className="relative">
                       <Lock className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input 
-                        type="password" 
-                        className="pl-8" 
-                        placeholder="••••••••" 
-                        {...field} 
-                      />
+                      <Input type="password" className="pl-8" placeholder="••••••••" {...field} />
                     </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="confirmPassword"
@@ -167,19 +182,14 @@ export function PasswordReset() {
                   <FormControl>
                     <div className="relative">
                       <Lock className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input 
-                        type="password" 
-                        className="pl-8" 
-                        placeholder="••••••••" 
-                        {...field} 
-                      />
+                      <Input type="password" className="pl-8" placeholder="••••••••" {...field} />
                     </div>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             <div className="text-xs">
               <p className="font-medium mb-1">Le mot de passe doit contenir au moins :</p>
               <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
@@ -190,7 +200,7 @@ export function PasswordReset() {
                 <li>Un caractère spécial (@$!%*?&)</li>
               </ul>
             </div>
-            
+
             <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
@@ -198,7 +208,7 @@ export function PasswordReset() {
                   Réinitialisation en cours...
                 </>
               ) : (
-                "Réinitialiser le mot de passe"
+                'Réinitialiser le mot de passe'
               )}
             </Button>
           </form>
@@ -206,4 +216,4 @@ export function PasswordReset() {
       </CardContent>
     </Card>
   );
-} 
+}

@@ -1,9 +1,9 @@
-import { PasswordResetForm } from "@/components/auth/password-reset";
-import { Metadata } from "next";
+import { PasswordResetForm } from '@/components/auth/password-reset';
+import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "Réinitialisation de mot de passe | EcoDeli",
-  description: "Définissez un nouveau mot de passe pour votre compte EcoDeli",
+  title: 'Réinitialisation de mot de passe | EcoDeli',
+  description: 'Définissez un nouveau mot de passe pour votre compte EcoDeli',
 };
 
 export default function ResetPasswordPage() {

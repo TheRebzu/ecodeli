@@ -1,9 +1,9 @@
-import { DelivererRegisterForm } from "@/components/auth/register-forms/deliverer-form";
-import { Metadata } from "next";
+import { DelivererRegisterForm } from '@/components/auth/register-forms/deliverer-form';
+import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "Inscription Livreur | EcoDeli",
-  description: "Inscrivez-vous en tant que livreur sur EcoDeli",
+  title: 'Inscription Livreur | EcoDeli',
+  description: 'Inscrivez-vous en tant que livreur sur EcoDeli',
 };
 
 export default function DelivererRegisterPage() {

@@ -1,0 +1,38 @@
+# Build outputs
+.next/
+build/
+dist/
+out/
+
+# Package manager files
+node_modules/
+pnpm-lock.yaml
+package-lock.json
+yarn.lock
+
+# Cache
+.cache/
+.eslintcache
+.npm/
+
+# Coverage outputs
+coverage/
+
+# Misc
+.DS_Store
+*.pem
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# Local env files
+.env
+.env.*
+!.env.example
+
+# Typescript
+*.tsbuildinfo
+next-env.d.ts 

@@ -4,7 +4,7 @@ import { UserRole, UserStatus } from '../db/enums';
 import { randomBytes } from 'crypto';
 import { TRPCError } from '@trpc/server';
 import { LoginSchemaType } from '@/schemas/auth/login.schema';
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from '@prisma/client';
 import { EmailService } from './email.service';
 import { TokenService } from './token.service';
 
@@ -29,7 +29,7 @@ export class AuthService {
   private prisma: PrismaClient;
   private emailService: EmailService;
   private tokenService: TokenService;
-  
+
   constructor(prisma = db) {
     this.prisma = prisma;
     this.emailService = new EmailService();
@@ -41,7 +41,7 @@ export class AuthService {
    */
   async userExists(email: string): Promise<boolean> {
     const user = await this.prisma.user.findUnique({
-      where: { email }
+      where: { email },
     });
     return !!user;
   }
@@ -59,7 +59,7 @@ export class AuthService {
     }
 
     const hashedPassword = await hash(data.password, 12);
-    
+
     // Création de l'utilisateur
     const user = await this.prisma.user.create({
       data: {
@@ -114,7 +114,7 @@ export class AuthService {
   async verifyEmail(token: string): Promise<boolean> {
     // Vérification du token et récupération de l'ID utilisateur
     const userId = await this.tokenService.verifyToken(token);
-    
+
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -176,7 +176,7 @@ export class AuthService {
   async resetPassword(token: string, newPassword: string): Promise<boolean> {
     // Vérification du token et récupération de l'ID utilisateur
     const userId = await this.tokenService.verifyToken(token);
-    
+
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -208,7 +208,7 @@ export class AuthService {
    */
   async verifyCredentials(data: LoginSchemaType): Promise<UserResult> {
     const { email, password } = data;
-    
+
     // Recherche de l'utilisateur
     const user = await this.prisma.user.findUnique({
       where: { email },
@@ -220,24 +220,24 @@ export class AuthService {
         admin: true,
       },
     });
-    
+
     if (!user || !user.password) {
       throw new TRPCError({
         code: 'UNAUTHORIZED',
         message: 'Identifiants invalides',
       });
     }
-    
+
     // Vérification du mot de passe
     const isValidPassword = await compare(password, user.password);
-    
+
     if (!isValidPassword) {
       throw new TRPCError({
         code: 'UNAUTHORIZED',
         message: 'Identifiants invalides',
       });
     }
-    
+
     // Vérification du statut du compte
     if (user.status === 'INACTIVE' || user.status === 'SUSPENDED') {
       throw new TRPCError({
@@ -245,7 +245,7 @@ export class AuthService {
         message: 'Ce compte a été désactivé ou suspendu',
       });
     }
-    
+
     // Vérification de l'email pour les rôles autres qu'admin
     if (user.role !== 'ADMIN' && user.status === 'PENDING_VERIFICATION') {
       throw new TRPCError({
@@ -253,7 +253,7 @@ export class AuthService {
         message: 'Veuillez vérifier votre email pour activer votre compte',
       });
     }
-    
+
     // Vérification de la 2FA si activée
     if (user.twoFactorEnabled && !data.totp) {
       throw new TRPCError({
@@ -262,25 +262,25 @@ export class AuthService {
         cause: 'REQUIRES_2FA',
       });
     }
-    
+
     // Logique de vérification du code TOTP si présent
     if (user.twoFactorEnabled && data.totp) {
       const isValidTotp = await this.verifyTOTP(user.id, data.totp);
-      
+
       if (!isValidTotp) {
         throw new TRPCError({
           code: 'UNAUTHORIZED',
-          message: 'Code d\'authentification à deux facteurs invalide',
+          message: "Code d'authentification à deux facteurs invalide",
         });
       }
     }
-    
+
     // Mise à jour de la date de dernière connexion
     await this.prisma.user.update({
       where: { id: user.id },
       data: { lastLoginAt: new Date() },
     });
-    
+
     // Convert role from string to UserRole enum
     let userRole: UserRole;
     switch (user.role) {
@@ -302,21 +302,21 @@ export class AuthService {
       default:
         userRole = UserRole.CLIENT; // fallback
     }
-    
+
     return {
       id: user.id,
       email: user.email || '',
       name: user.name || '',
       role: userRole,
-      profileId: 
-        user.client?.id || 
-        user.deliverer?.id || 
-        user.merchant?.id || 
+      profileId:
+        user.client?.id ||
+        user.deliverer?.id ||
+        user.merchant?.id ||
         user.provider?.id ||
-        user.admin?.id
+        user.admin?.id,
     };
   }
-  
+
   /**
    * Vérifie un code TOTP pour l'authentification à deux facteurs
    */
@@ -324,30 +324,30 @@ export class AuthService {
     // Implémentation temporaire - à remplacer par une vraie logique TOTP
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { 
+      select: {
         twoFactorSecret: true,
         twoFactorEnabled: true,
       },
     });
-    
+
     if (!user?.twoFactorEnabled || !user?.twoFactorSecret) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
-        message: 'La configuration 2FA n\'est pas activée',
+        message: "La configuration 2FA n'est pas activée",
       });
     }
-    
+
     // Vérification simple pour le développement
     return totp === '123456';
   }
-  
+
   /**
    * Active l'authentification à deux facteurs pour un utilisateur
    */
   async enableTwoFactor(userId: string) {
     // Générer un secret temporaire
     const secret = randomBytes(20).toString('hex');
-    
+
     // Enregistrer le secret dans la base de données
     await this.prisma.user.update({
       where: { id: userId },
@@ -356,10 +356,10 @@ export class AuthService {
         twoFactorSecret: secret,
       },
     });
-    
+
     return { secret };
   }
-  
+
   /**
    * Désactive l'authentification à deux facteurs pour un utilisateur
    */
@@ -371,7 +371,7 @@ export class AuthService {
         twoFactorSecret: null,
       },
     });
-    
+
     return { success: true };
   }
 
@@ -382,23 +382,23 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
-    
+
     if (!user) {
       throw new TRPCError({
         code: 'NOT_FOUND',
         message: 'Utilisateur non trouvé',
       });
     }
-    
+
     // Générer un secret temporaire
     const secret = randomBytes(20).toString('hex');
-    
+
     // Update user with secret
     await this.prisma.user.update({
       where: { id: userId },
       data: { twoFactorSecret: secret },
     });
-    
+
     return secret;
   }
 
@@ -410,24 +410,24 @@ export class AuthService {
       where: { id: userId },
       select: { twoFactorSecret: true },
     });
-    
+
     if (!user?.twoFactorSecret) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
-        message: 'La configuration 2FA n\'est pas activée',
+        message: "La configuration 2FA n'est pas activée",
       });
     }
-    
+
     // Vérification simple pour le développement
     const isValid = token === '123456';
-    
+
     if (isValid) {
       await this.prisma.user.update({
         where: { id: userId },
         data: { twoFactorEnabled: true },
       });
     }
-    
+
     return isValid;
   }
 }

@@ -11,8 +11,19 @@ export { clientRegisterSchema } from './client-register.schema';
 export { delivererRegisterSchema } from './deliverer-register.schema';
 export { merchantRegisterSchema } from './merchant-register.schema';
 export { providerRegisterSchema } from './provider-register.schema';
-export { loginSchema, verifyEmailSchema, forgotPasswordSchema, resetPasswordSchema } from './login.schema';
-export { registerBaseSchema, passwordSchema, addressFields, registerBaseFields, UserRole } from './register.schema';
+export {
+  loginSchema,
+  verifyEmailSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
+} from './login.schema';
+export {
+  registerBaseSchema,
+  passwordSchema,
+  addressFields,
+  registerBaseFields,
+  UserRole,
+} from './register.schema';
 export { userRoleSchema, userStatusSchema } from './user.schema';
 
 // Export des schémas d'authentification
@@ -25,4 +36,4 @@ export * from './provider-register.schema';
 export * from './user.schema';
 
 // Export des types utilisés par les schémas
-export { UserRole } from './register.schema'; 
+export { UserRole } from './register.schema';

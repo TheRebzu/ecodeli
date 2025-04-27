@@ -1,19 +1,15 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 export const documentTypeSchema = z.enum([
-  "ID_CARD",
-  "DRIVING_LICENSE",
-  "VEHICLE_REGISTRATION",
-  "INSURANCE",
-  "QUALIFICATION_CERTIFICATE",
-  "OTHER",
+  'ID_CARD',
+  'DRIVING_LICENSE',
+  'VEHICLE_REGISTRATION',
+  'INSURANCE',
+  'QUALIFICATION_CERTIFICATE',
+  'OTHER',
 ]);
 
-export const verificationStatusSchema = z.enum([
-  "PENDING",
-  "APPROVED",
-  "REJECTED",
-]);
+export const verificationStatusSchema = z.enum(['PENDING', 'APPROVED', 'REJECTED']);
 
 // Schéma pour le téléchargement d'un document
 export const uploadDocumentSchema = z.object({
@@ -40,4 +36,4 @@ export const updateVerificationSchema = z.object({
   verificationId: z.string(),
   status: verificationStatusSchema,
   notes: z.string().optional(),
-}); 
+});

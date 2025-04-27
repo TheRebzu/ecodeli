@@ -7,14 +7,11 @@ interface PublicLayoutProps {
   params: { locale: string };
 }
 
-export default async function PublicLayout({ 
-  children,
-  params 
-}: PublicLayoutProps) {
+export default async function PublicLayout({ children, params }: PublicLayoutProps) {
   // Safely extract locale using Promise.all
   const [safeParams] = await Promise.all([params]);
   const locale = safeParams.locale;
-  
+
   // Load messages for client components
   const messages = await getMessages({ locale });
 
@@ -24,9 +21,7 @@ export default async function PublicLayout({
         <div className="flex min-h-screen flex-col">
           <header className="border-b">
             <div className="container py-4">
-              <nav>
-                {/* Navbar content will go here */}
-              </nav>
+              <nav>{/* Navbar content will go here */}</nav>
             </div>
           </header>
           <main className="flex-1">{children}</main>

@@ -1,21 +1,24 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/use-auth";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2 } from "lucide-react";
-import Link from "next/link";
-import { useTranslations } from "next-intl";
-import { MerchantRegisterSchemaType, merchantRegisterSchema } from "@/schemas/auth/merchant-register.schema";
-import { UserRole } from "@/schemas/auth/register.schema";
-import { Textarea } from "@/components/ui/textarea";
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/use-auth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2 } from 'lucide-react';
+import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import {
+  MerchantRegisterSchemaType,
+  merchantRegisterSchema,
+} from '@/schemas/auth/merchant-register.schema';
+import { UserRole } from '@/schemas/auth/register.schema';
+import { Textarea } from '@/components/ui/textarea';
 
 export function MerchantRegistrationForm() {
   const t = useTranslations('Auth.Register.Merchant');
@@ -32,20 +35,20 @@ export function MerchantRegistrationForm() {
   } = useForm<MerchantRegisterSchemaType>({
     resolver: zodResolver(merchantRegisterSchema),
     defaultValues: {
-      email: "",
-      password: "",
-      confirmPassword: "",
-      name: "",
-      phoneNumber: "",
-      businessName: "",
-      siret: "",
-      taxId: "",
-      businessAddress: "",
-      businessCity: "",
-      businessState: "",
-      businessPostal: "",
-      businessCountry: "",
-      businessDescription: "",
+      email: '',
+      password: '',
+      confirmPassword: '',
+      name: '',
+      phoneNumber: '',
+      businessName: '',
+      siret: '',
+      taxId: '',
+      businessAddress: '',
+      businessCity: '',
+      businessState: '',
+      businessPostal: '',
+      businessCountry: '',
+      businessDescription: '',
       role: UserRole.MERCHANT,
     },
   });
@@ -61,10 +64,10 @@ export function MerchantRegistrationForm() {
         setSuccess(true);
         // Rediriger vers la page de vérification d'email
         setTimeout(() => {
-          router.push("/fr/verify-email?email=" + encodeURIComponent(data.email));
+          router.push('/fr/verify-email?email=' + encodeURIComponent(data.email));
         }, 2000);
       } else {
-        setError(result.error as string || t('error.generic'));
+        setError((result.error as string) || t('error.generic'));
       }
     } catch (err) {
       setError(t('error.generic'));
@@ -83,9 +86,7 @@ export function MerchantRegistrationForm() {
         </CardHeader>
         <CardContent>
           <Alert className="bg-green-50 border-green-200">
-            <AlertDescription>
-              {t('success.message')}
-            </AlertDescription>
+            <AlertDescription>{t('success.message')}</AlertDescription>
           </Alert>
         </CardContent>
       </Card>
@@ -114,12 +115,12 @@ export function MerchantRegistrationForm() {
 
             <div className="space-y-2">
               <Label htmlFor="name">{t('nameLabel')}</Label>
-              <Input 
+              <Input
                 id="name"
                 type="text"
                 autoComplete="name"
                 disabled={isSubmitting}
-                {...register("name")}
+                {...register('name')}
               />
               {errors.name && (
                 <p className="text-sm text-red-500">{errors.name.message?.toString()}</p>
@@ -128,12 +129,12 @@ export function MerchantRegistrationForm() {
 
             <div className="space-y-2">
               <Label htmlFor="email">{t('emailLabel')}</Label>
-              <Input 
+              <Input
                 id="email"
                 type="email"
                 autoComplete="email"
                 disabled={isSubmitting}
-                {...register("email")}
+                {...register('email')}
               />
               {errors.email && (
                 <p className="text-sm text-red-500">{errors.email.message?.toString()}</p>
@@ -142,12 +143,12 @@ export function MerchantRegistrationForm() {
 
             <div className="space-y-2">
               <Label htmlFor="password">{t('passwordLabel')}</Label>
-              <Input 
+              <Input
                 id="password"
                 type="password"
                 autoComplete="new-password"
                 disabled={isSubmitting}
-                {...register("password")}
+                {...register('password')}
               />
               {errors.password && (
                 <p className="text-sm text-red-500">{errors.password.message?.toString()}</p>
@@ -156,12 +157,12 @@ export function MerchantRegistrationForm() {
 
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">{t('confirmPasswordLabel')}</Label>
-              <Input 
+              <Input
                 id="confirmPassword"
                 type="password"
                 autoComplete="new-password"
                 disabled={isSubmitting}
-                {...register("confirmPassword")}
+                {...register('confirmPassword')}
               />
               {errors.confirmPassword && (
                 <p className="text-sm text-red-500">{errors.confirmPassword.message?.toString()}</p>
@@ -170,12 +171,12 @@ export function MerchantRegistrationForm() {
 
             <div className="space-y-2">
               <Label htmlFor="phoneNumber">{t('phoneLabel')}</Label>
-              <Input 
+              <Input
                 id="phoneNumber"
                 type="tel"
                 autoComplete="tel"
                 disabled={isSubmitting}
-                {...register("phoneNumber")}
+                {...register('phoneNumber')}
               />
               {errors.phoneNumber && (
                 <p className="text-sm text-red-500">{errors.phoneNumber.message?.toString()}</p>
@@ -189,12 +190,12 @@ export function MerchantRegistrationForm() {
 
             <div className="space-y-2">
               <Label htmlFor="businessName">{t('businessNameLabel')}</Label>
-              <Input 
+              <Input
                 id="businessName"
                 type="text"
                 autoComplete="organization"
                 disabled={isSubmitting}
-                {...register("businessName")}
+                {...register('businessName')}
               />
               {errors.businessName && (
                 <p className="text-sm text-red-500">{errors.businessName.message?.toString()}</p>
@@ -203,12 +204,7 @@ export function MerchantRegistrationForm() {
 
             <div className="space-y-2">
               <Label htmlFor="siret">{t('siretLabel')}</Label>
-              <Input 
-                id="siret"
-                type="text"
-                disabled={isSubmitting}
-                {...register("siret")}
-              />
+              <Input id="siret" type="text" disabled={isSubmitting} {...register('siret')} />
               {errors.siret && (
                 <p className="text-sm text-red-500">{errors.siret.message?.toString()}</p>
               )}
@@ -216,12 +212,7 @@ export function MerchantRegistrationForm() {
 
             <div className="space-y-2">
               <Label htmlFor="taxId">{t('taxIdLabel')}</Label>
-              <Input 
-                id="taxId"
-                type="text"
-                disabled={isSubmitting}
-                {...register("taxId")}
-              />
+              <Input id="taxId" type="text" disabled={isSubmitting} {...register('taxId')} />
               {errors.taxId && (
                 <p className="text-sm text-red-500">{errors.taxId.message?.toString()}</p>
               )}
@@ -234,12 +225,12 @@ export function MerchantRegistrationForm() {
 
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="businessAddress">{t('businessAddressLabel')}</Label>
-              <Input 
+              <Input
                 id="businessAddress"
                 type="text"
                 autoComplete="street-address"
                 disabled={isSubmitting}
-                {...register("businessAddress")}
+                {...register('businessAddress')}
               />
               {errors.businessAddress && (
                 <p className="text-sm text-red-500">{errors.businessAddress.message?.toString()}</p>
@@ -248,12 +239,12 @@ export function MerchantRegistrationForm() {
 
             <div className="space-y-2">
               <Label htmlFor="businessCity">{t('businessCityLabel')}</Label>
-              <Input 
+              <Input
                 id="businessCity"
                 type="text"
                 autoComplete="address-level2"
                 disabled={isSubmitting}
-                {...register("businessCity")}
+                {...register('businessCity')}
               />
               {errors.businessCity && (
                 <p className="text-sm text-red-500">{errors.businessCity.message?.toString()}</p>
@@ -262,12 +253,12 @@ export function MerchantRegistrationForm() {
 
             <div className="space-y-2">
               <Label htmlFor="businessState">{t('businessStateLabel')}</Label>
-              <Input 
+              <Input
                 id="businessState"
                 type="text"
                 autoComplete="address-level1"
                 disabled={isSubmitting}
-                {...register("businessState")}
+                {...register('businessState')}
               />
               {errors.businessState && (
                 <p className="text-sm text-red-500">{errors.businessState.message?.toString()}</p>
@@ -276,12 +267,12 @@ export function MerchantRegistrationForm() {
 
             <div className="space-y-2">
               <Label htmlFor="businessPostal">{t('businessPostalLabel')}</Label>
-              <Input 
+              <Input
                 id="businessPostal"
                 type="text"
                 autoComplete="postal-code"
                 disabled={isSubmitting}
-                {...register("businessPostal")}
+                {...register('businessPostal')}
               />
               {errors.businessPostal && (
                 <p className="text-sm text-red-500">{errors.businessPostal.message?.toString()}</p>
@@ -290,12 +281,12 @@ export function MerchantRegistrationForm() {
 
             <div className="space-y-2">
               <Label htmlFor="businessCountry">{t('businessCountryLabel')}</Label>
-              <Input 
+              <Input
                 id="businessCountry"
                 type="text"
                 autoComplete="country-name"
                 disabled={isSubmitting}
-                {...register("businessCountry")}
+                {...register('businessCountry')}
               />
               {errors.businessCountry && (
                 <p className="text-sm text-red-500">{errors.businessCountry.message?.toString()}</p>
@@ -305,25 +296,27 @@ export function MerchantRegistrationForm() {
             {/* Description de l'entreprise */}
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="businessDescription">{t('businessDescriptionLabel')}</Label>
-              <Textarea 
+              <Textarea
                 id="businessDescription"
                 disabled={isSubmitting}
-                {...register("businessDescription")}
+                {...register('businessDescription')}
                 rows={4}
               />
               {errors.businessDescription && (
-                <p className="text-sm text-red-500">{errors.businessDescription.message?.toString()}</p>
+                <p className="text-sm text-red-500">
+                  {errors.businessDescription.message?.toString()}
+                </p>
               )}
             </div>
 
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="websiteUrl">{t('websiteUrlLabel')}</Label>
-              <Input 
+              <Input
                 id="websiteUrl"
                 type="url"
                 autoComplete="url"
                 disabled={isSubmitting}
-                {...register("websiteUrl")}
+                {...register('websiteUrl')}
               />
               {errors.websiteUrl && (
                 <p className="text-sm text-red-500">{errors.websiteUrl.message?.toString()}</p>
@@ -332,11 +325,7 @@ export function MerchantRegistrationForm() {
           </div>
 
           <div className="pt-4">
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isSubmitting}
-            >
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

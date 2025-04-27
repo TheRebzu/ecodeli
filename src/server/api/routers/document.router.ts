@@ -7,8 +7,8 @@ import {
   uploadDocumentSchema,
   updateDocumentSchema,
   createVerificationSchema,
-  updateVerificationSchema
-} from "../../../schemas/auth/document.schema";
+  updateVerificationSchema,
+} from '../../../schemas/auth/document.schema';
 
 const documentService = new DocumentService();
 
@@ -16,27 +16,30 @@ export const documentRouter = router({
   /**
    * Obtenir les documents d'un utilisateur
    */
-  getUserDocuments: protectedProcedure
-    .query(async ({ ctx }) => {
-      try {
-        const documents = await DocumentService.getUserDocuments(ctx.session.user.id);
-        return { documents };
-      } catch (error: any) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la récupération des documents',
-          cause: error
-        });
-      }
-    }),
-  
+  getUserDocuments: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      const documents = await DocumentService.getUserDocuments(ctx.session.user.id);
+      return { documents };
+    } catch (error: any) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la récupération des documents',
+        cause: error,
+      });
+    }
+  }),
+
   /**
    * Obtenir les documents en attente de vérification (admin)
    */
   getPendingDocuments: adminProcedure
-    .input(z.object({
-      userRole: z.enum(['DELIVERER', 'PROVIDER']).optional(),
-    }).optional())
+    .input(
+      z
+        .object({
+          userRole: z.enum(['DELIVERER', 'PROVIDER']).optional(),
+        })
+        .optional()
+    )
     .query(async ({ input }) => {
       try {
         const userRole = input?.userRole;
@@ -46,45 +49,47 @@ export const documentRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Erreur lors de la récupération des documents en attente',
-          cause: error
+          cause: error,
         });
       }
     }),
-    
+
   /**
    * Approuver ou rejeter un document (admin)
    */
   updateDocumentStatus: adminProcedure
-    .input(z.object({
-      documentId: z.string(),
-      status: z.enum(['APPROVED', 'REJECTED']),
-      rejectionReason: z.string().optional(),
-    }))
+    .input(
+      z.object({
+        documentId: z.string(),
+        status: z.enum(['APPROVED', 'REJECTED']),
+        rejectionReason: z.string().optional(),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       try {
         const { documentId, status, rejectionReason } = input;
         const adminId = ctx.session.user.id;
-        
+
         const document = await DocumentService.updateDocumentStatus(
-          documentId, 
-          status as DocumentStatus, 
-          adminId, 
+          documentId,
+          status as DocumentStatus,
+          adminId,
           rejectionReason
         );
-        
+
         return {
           success: true,
-          document
+          document,
         };
       } catch (error: any) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Erreur lors de la mise à jour du statut du document',
-          cause: error
+          cause: error,
         });
       }
     }),
-    
+
   /**
    * Téléverser un document
    */
@@ -92,50 +97,52 @@ export const documentRouter = router({
     .input(uploadDocumentSchema)
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
-      
+
       return await documentService.uploadDocument({
         userId,
         type: input.type,
         filename: input.file.name,
-        fileUrl: "temp-url", // Sera mise à jour après upload sur le service de stockage
+        fileUrl: 'temp-url', // Sera mise à jour après upload sur le service de stockage
         mimeType: input.file.type,
         fileSize: input.file.size,
         notes: input.notes,
       });
     }),
-    
+
   /**
    * Supprimer un document
    */
   deleteDocument: protectedProcedure
-    .input(z.object({
-      documentId: z.string(),
-    }))
+    .input(
+      z.object({
+        documentId: z.string(),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       try {
         const userId = ctx.session.user.id;
         const deleted = await DocumentService.deleteDocument(input.documentId, userId);
-        
+
         if (!deleted) {
           throw new TRPCError({
             code: 'FORBIDDEN',
-            message: 'Vous n\'êtes pas autorisé à supprimer ce document'
+            message: "Vous n'êtes pas autorisé à supprimer ce document",
           });
         }
-        
+
         return {
           success: true,
-          documentId: input.documentId
+          documentId: input.documentId,
         };
       } catch (error: any) {
         if (error instanceof TRPCError) {
           throw error;
         }
-        
+
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Erreur lors de la suppression du document',
-          cause: error
+          cause: error,
         });
       }
     }),
@@ -151,14 +158,14 @@ export const documentRouter = router({
 
       if (!document) {
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Document non trouvé",
+          code: 'NOT_FOUND',
+          message: 'Document non trouvé',
         });
       }
 
-      if (document.userId !== ctx.session.user.id && ctx.session.user.role !== "ADMIN") {
+      if (document.userId !== ctx.session.user.id && ctx.session.user.role !== 'ADMIN') {
         throw new TRPCError({
-          code: "FORBIDDEN",
+          code: 'FORBIDDEN',
           message: "Vous n'êtes pas autorisé à modifier ce document",
         });
       }
@@ -173,12 +180,9 @@ export const documentRouter = router({
       const document = await documentService.getDocumentById(input.documentId);
 
       // Vérifier que l'utilisateur a le droit de voir ce document
-      if (
-        document.userId !== ctx.session.user.id &&
-        ctx.session.user.role !== "ADMIN"
-      ) {
+      if (document.userId !== ctx.session.user.id && ctx.session.user.role !== 'ADMIN') {
         throw new TRPCError({
-          code: "FORBIDDEN",
+          code: 'FORBIDDEN',
           message: "Vous n'êtes pas autorisé à accéder à ce document",
         });
       }
@@ -189,10 +193,10 @@ export const documentRouter = router({
   // Admin: Obtenir tous les documents en attente de vérification
   getPendingVerifications: protectedProcedure.query(async ({ ctx }) => {
     // Vérifier que l'utilisateur est admin
-    if (ctx.session.user.role !== "ADMIN") {
+    if (ctx.session.user.role !== 'ADMIN') {
       throw new TRPCError({
-        code: "FORBIDDEN",
-        message: "Accès refusé",
+        code: 'FORBIDDEN',
+        message: 'Accès refusé',
       });
     }
 
@@ -212,14 +216,14 @@ export const documentRouter = router({
 
       if (!document) {
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Document non trouvé",
+          code: 'NOT_FOUND',
+          message: 'Document non trouvé',
         });
       }
 
       if (document.userId !== userId) {
         throw new TRPCError({
-          code: "FORBIDDEN",
+          code: 'FORBIDDEN',
           message: "Vous n'êtes pas autorisé à demander une vérification pour ce document",
         });
       }
@@ -236,10 +240,10 @@ export const documentRouter = router({
     .input(updateVerificationSchema)
     .mutation(async ({ ctx, input }) => {
       // Vérifier que l'utilisateur est admin
-      if (ctx.session.user.role !== "ADMIN") {
+      if (ctx.session.user.role !== 'ADMIN') {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Accès refusé",
+          code: 'FORBIDDEN',
+          message: 'Accès refusé',
         });
       }
 
@@ -262,14 +266,14 @@ export const documentRouter = router({
 
       if (!document) {
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Document non trouvé",
+          code: 'NOT_FOUND',
+          message: 'Document non trouvé',
         });
       }
 
-      if (document.userId !== ctx.session.user.id && ctx.session.user.role !== "ADMIN") {
+      if (document.userId !== ctx.session.user.id && ctx.session.user.role !== 'ADMIN') {
         throw new TRPCError({
-          code: "FORBIDDEN",
+          code: 'FORBIDDEN',
           message: "Vous n'êtes pas autorisé à accéder aux vérifications de ce document",
         });
       }

@@ -7,10 +7,10 @@ import { db } from '@/server/db';
 
 // Tests qui vérifient l'intégration des différentes parties du système d'authentification
 
-describe('Flux d\'authentification', () => {
+describe("Flux d'authentification", () => {
   // Setup pour les tests d'intégration
   let client: ReturnType<typeof createTRPCProxyClient<AppRouter>>;
-  
+
   beforeAll(() => {
     // Configurez une base de données de test ou un mock pour les tests d'intégration
     client = createTRPCProxyClient<AppRouter>({
@@ -26,7 +26,7 @@ describe('Flux d\'authentification', () => {
     // Nettoyage des ressources après les tests
     await db.$disconnect();
   });
-  
+
   beforeEach(async () => {
     // Préparation avant chaque test
     await db.user.deleteMany({
@@ -36,7 +36,7 @@ describe('Flux d\'authentification', () => {
         },
       },
     });
-    
+
     await db.verificationToken.deleteMany({
       where: {
         identifier: {
@@ -58,26 +58,26 @@ describe('Flux d\'authentification', () => {
       city: 'Test City',
       postalCode: '12345',
     });
-    
+
     expect(registerResult.user).toBeDefined();
     expect(registerResult.user.email).toBe('test.client@example.com');
     expect(registerResult.verificationToken).toBeDefined();
-    
+
     // 2. Utiliser le token pour vérifier l'email
     const verifyResult = await client.auth.verifyEmail.mutate({
       token: registerResult.verificationToken,
     });
-    
+
     expect(verifyResult.success).toBe(true);
     expect(verifyResult.user.emailVerified).not.toBeNull();
     expect(verifyResult.user.status).toBe('ACTIVE');
-    
+
     // 3. Essayer de se connecter
     const loginResult = await client.auth.login.mutate({
       email: 'test.client@example.com',
       password: 'Password123!',
     });
-    
+
     expect(loginResult.success).toBe(true);
     expect(loginResult.user.email).toBe('test.client@example.com');
   });
@@ -94,14 +94,14 @@ describe('Flux d\'authentification', () => {
       city: 'Test City',
       postalCode: '12345',
     });
-    
+
     // 2. Demander une réinitialisation de mot de passe
     const forgotResult = await client.auth.forgotPassword.mutate({
       email: 'test.reset@example.com',
     });
-    
+
     expect(forgotResult.success).toBe(true);
-    
+
     // 3. Récupérer le token depuis la base de données (pour les tests)
     const resetToken = await db.verificationToken.findFirst({
       where: {
@@ -109,23 +109,23 @@ describe('Flux d\'authentification', () => {
         type: 'PASSWORD_RESET',
       },
     });
-    
+
     expect(resetToken).not.toBeNull();
-    
+
     // 4. Réinitialiser le mot de passe
     const resetResult = await client.auth.resetPassword.mutate({
       token: resetToken!.token,
       password: 'NewPassword123!',
     });
-    
+
     expect(resetResult.success).toBe(true);
-    
+
     // 5. Se connecter avec le nouveau mot de passe
     const loginResult = await client.auth.login.mutate({
       email: 'test.reset@example.com',
       password: 'NewPassword123!',
     });
-    
+
     expect(loginResult.success).toBe(true);
   });
 });

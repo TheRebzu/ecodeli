@@ -49,10 +49,14 @@ export interface AuthService {
   /**
    * Réinitialisation de mot de passe
    */
-  resetPassword: (token: string, password: string, confirmPassword: string) => Promise<AuthResponse>;
+  resetPassword: (
+    token: string,
+    password: string,
+    confirmPassword: string
+  ) => Promise<AuthResponse>;
 
   /**
    * Vérification d'email
    */
   verifyEmail: (token: string) => Promise<AuthResponse>;
-} 
+}

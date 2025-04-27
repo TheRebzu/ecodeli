@@ -1,12 +1,12 @@
-import { redirect } from "next/navigation";
-import { getServerSession } from "next-auth";
-import { authOptions } from "@/server/auth/next-auth";
+import { redirect } from 'next/navigation';
+import { getServerSession } from 'next-auth';
+import { authOptions } from '@/server/auth/next-auth';
 
-import SessionCheckRedirect from "@/components/auth/SessionCheckRedirect";
-import AuthNavbar from "@/components/layout/AuthNavbar";
-import ThemeProvider from "@/components/providers/theme-provider";
-import { NextIntlClientProvider } from "next-intl";
-import { getMessages } from "next-intl/server";
+import SessionCheckRedirect from '@/components/auth/SessionCheckRedirect';
+import AuthNavbar from '@/components/layout/AuthNavbar';
+import ThemeProvider from '@/components/providers/theme-provider';
+import { NextIntlClientProvider } from 'next-intl';
+import { getMessages } from 'next-intl/server';
 
 type Props = {
   children: React.ReactNode;
@@ -17,10 +17,10 @@ export default async function AuthLayout({ children, params }: Props) {
   // Attendre les paramètres avant de les utiliser
   const [safeParams] = await Promise.all([params]);
   const locale = safeParams.locale;
-  
+
   // Load messages for client components
   const messages = await getMessages({ locale });
-  
+
   // Vérifier si l'utilisateur est déjà connecté
   const session = await getServerSession(authOptions);
   if (session) {
@@ -55,7 +55,9 @@ export default async function AuthLayout({ children, params }: Props) {
                   <div className="relative z-20 mt-auto">
                     <blockquote className="space-y-2">
                       <p className="text-lg">
-                        &ldquo;EcoDeli m&apos;a permis de réduire mes émissions de carbone tout en optimisant mes livraisons. Un service incontournable pour toute entreprise soucieuse de l&apos;environnement.&rdquo;
+                        &ldquo;EcoDeli m&apos;a permis de réduire mes émissions de carbone tout en
+                        optimisant mes livraisons. Un service incontournable pour toute entreprise
+                        soucieuse de l&apos;environnement.&rdquo;
                       </p>
                       <footer className="text-sm">Sofia Dubois</footer>
                     </blockquote>

@@ -1,18 +1,25 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { forgotPasswordSchema, ForgotPasswordSchemaType } from "@/schemas/auth/login.schema";
-import { useAuth } from "@/hooks/use-auth";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2 } from "lucide-react";
-import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { forgotPasswordSchema, ForgotPasswordSchemaType } from '@/schemas/auth/login.schema';
+import { useAuth } from '@/hooks/use-auth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2 } from 'lucide-react';
+import Link from 'next/link';
+import { useTranslations } from 'next-intl';
 
 export function ForgotPasswordForm() {
   const t = useTranslations('Auth.ForgotPassword');
@@ -20,7 +27,7 @@ export function ForgotPasswordForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
-  const [email, setEmail] = useState("");
+  const [email, setEmail] = useState('');
 
   const {
     register,
@@ -29,7 +36,7 @@ export function ForgotPasswordForm() {
   } = useForm<ForgotPasswordSchemaType>({
     resolver: zodResolver(forgotPasswordSchema),
     defaultValues: {
-      email: "",
+      email: '',
     },
   });
 
@@ -44,7 +51,7 @@ export function ForgotPasswordForm() {
         setSuccess(true);
         setEmail(data.email);
       } else {
-        setError(result.error as string || t('error.generic'));
+        setError((result.error as string) || t('error.generic'));
       }
     } catch (err) {
       setError(t('error.generic'));
@@ -63,9 +70,7 @@ export function ForgotPasswordForm() {
         </CardHeader>
         <CardContent>
           <Alert className="bg-green-50 border-green-200">
-            <AlertDescription>
-              {t('success.message').replace('{email}', email)}
-            </AlertDescription>
+            <AlertDescription>{t('success.message').replace('{email}', email)}</AlertDescription>
           </Alert>
         </CardContent>
         <CardFooter className="flex justify-center">
@@ -95,23 +100,17 @@ export function ForgotPasswordForm() {
 
           <div className="space-y-2">
             <Label htmlFor="email">{t('emailLabel')}</Label>
-            <Input 
+            <Input
               id="email"
               type="email"
               autoComplete="email"
               disabled={isSubmitting}
-              {...register("email")}
+              {...register('email')}
             />
-            {errors.email && (
-              <p className="text-sm text-red-500">{errors.email.message}</p>
-            )}
+            {errors.email && <p className="text-sm text-red-500">{errors.email.message}</p>}
           </div>
 
-          <Button
-            type="submit"
-            className="w-full"
-            disabled={isSubmitting}
-          >
+          <Button type="submit" className="w-full" disabled={isSubmitting}>
             {isSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -132,4 +131,4 @@ export function ForgotPasswordForm() {
       </CardFooter>
     </Card>
   );
-} 
+}

@@ -1,4 +1,4 @@
-import { PrismaClient, DocumentType, VerificationStatus, UserRole } from "@prisma/client";
+import { PrismaClient, DocumentType, VerificationStatus, UserRole } from '@prisma/client';
 import { EmailService } from './email.service';
 import { DocumentStatus } from '../db/enums';
 import fs from 'fs/promises';
@@ -6,7 +6,7 @@ import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { TRPCError } from '@trpc/server';
 import { db } from '../db';
-import crypto from "crypto";
+import crypto from 'crypto';
 
 // Interface Document pour typer les retours
 interface Document {
@@ -46,9 +46,9 @@ interface DocumentCreateInput {
 
 // Types pour les enums
 enum VerificationStatus {
-  PENDING = "PENDING",
-  APPROVED = "APPROVED",
-  REJECTED = "REJECTED"
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
 }
 
 type UploadDocumentParams = {
@@ -94,11 +94,11 @@ type UploadFileResult = {
 export class DocumentService {
   private prisma: PrismaClient;
   private uploadDir: string;
-  
+
   constructor(prisma = db) {
     this.prisma = prisma;
     // Le dossier d'uploads est relatif à la racine du projet
-    this.uploadDir = path.join(process.cwd(), "public", "uploads");
+    this.uploadDir = path.join(process.cwd(), 'public', 'uploads');
   }
 
   /**
@@ -116,13 +116,8 @@ export class DocumentService {
       // Créer un nom de fichier unique avec un timestamp et un hash
       const fileExt = path.extname(file.filename);
       const fileNameBase = path.basename(file.filename, fileExt);
-      const uniqueSuffix = `${Date.now()}-${crypto
-        .randomBytes(8)
-        .toString("hex")}`;
-      const safeFileName = `${fileNameBase.replace(
-        /[^a-z0-9]/gi,
-        "-"
-      )}-${uniqueSuffix}${fileExt}`;
+      const uniqueSuffix = `${Date.now()}-${crypto.randomBytes(8).toString('hex')}`;
+      const safeFileName = `${fileNameBase.replace(/[^a-z0-9]/gi, '-')}-${uniqueSuffix}${fileExt}`;
 
       // Créer un sous-dossier par utilisateur
       const userDir = path.join(this.uploadDir, userId);
@@ -144,9 +139,9 @@ export class DocumentService {
         fileSize: file.buffer.length,
       };
     } catch (error) {
-      console.error("Erreur lors de la sauvegarde du fichier:", error);
+      console.error('Erreur lors de la sauvegarde du fichier:', error);
       throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
+        code: 'INTERNAL_SERVER_ERROR',
         message: "Erreur lors de l'upload du fichier",
       });
     }
@@ -168,8 +163,8 @@ export class DocumentService {
 
     if (!user) {
       throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Utilisateur non trouvé",
+        code: 'NOT_FOUND',
+        message: 'Utilisateur non trouvé',
       });
     }
 
@@ -179,16 +174,16 @@ export class DocumentService {
     // Déterminer le type d'utilisateur
     let userRole: UserRole;
     switch (user.role) {
-      case "CLIENT":
+      case 'CLIENT':
         userRole = UserRole.CLIENT;
         break;
-      case "DELIVERER":
+      case 'DELIVERER':
         userRole = UserRole.DELIVERER;
         break;
-      case "MERCHANT":
+      case 'MERCHANT':
         userRole = UserRole.MERCHANT;
         break;
-      case "PROVIDER":
+      case 'PROVIDER':
         userRole = UserRole.PROVIDER;
         break;
       default:
@@ -215,7 +210,7 @@ export class DocumentService {
       data: {
         submitterId: userId,
         documentId: document.id,
-        status: "PENDING",
+        status: 'PENDING',
         requestedAt: new Date(),
       },
     });
@@ -237,8 +232,8 @@ export class DocumentService {
         code: 'NOT_FOUND',
         message: 'Document non trouvé',
       });
-  }
-  
+    }
+
     // Mettre à jour le document
     const updatedDocument = await this.prisma.document.update({
       where: { id: data.documentId },
@@ -282,8 +277,8 @@ export class DocumentService {
 
     if (!document) {
       throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Document non trouvé",
+        code: 'NOT_FOUND',
+        message: 'Document non trouvé',
       });
     }
 
@@ -295,9 +290,9 @@ export class DocumentService {
       });
 
       // Seuls les admins peuvent voir les documents d'autres utilisateurs
-      if (!user || user.role !== "ADMIN") {
+      if (!user || user.role !== 'ADMIN') {
         throw new TRPCError({
-          code: "FORBIDDEN",
+          code: 'FORBIDDEN',
           message: "Vous n'avez pas accès à ce document",
         });
       }
@@ -312,7 +307,7 @@ export class DocumentService {
   async getUserDocuments(userId: string) {
     return await this.prisma.document.findMany({
       where: { userId },
-      orderBy: { uploadedAt: "desc" },
+      orderBy: { uploadedAt: 'desc' },
       include: {
         verifications: {
           select: {
@@ -333,7 +328,7 @@ export class DocumentService {
     const where: any = {
       verifications: {
         some: {
-          status: "PENDING",
+          status: 'PENDING',
         },
       },
     };
@@ -344,7 +339,7 @@ export class DocumentService {
 
     return await this.prisma.document.findMany({
       where,
-      orderBy: { uploadedAt: "desc" },
+      orderBy: { uploadedAt: 'desc' },
       include: {
         user: {
           select: {
@@ -355,7 +350,7 @@ export class DocumentService {
           },
         },
         verifications: {
-          where: { status: "PENDING" },
+          where: { status: 'PENDING' },
           take: 1,
         },
       },
@@ -383,7 +378,8 @@ export class DocumentService {
       data: {
         submitterId: data.submitterId,
         documentId: data.documentId,
-        status: VerificationStatus.PENDING as unknown as Prisma.EnumVerificationStatusFieldUpdateOperationsInput,
+        status:
+          VerificationStatus.PENDING as unknown as Prisma.EnumVerificationStatusFieldUpdateOperationsInput,
         notes: data.notes,
       },
     });
@@ -486,7 +482,7 @@ export class DocumentService {
 
     return verifications;
   }
-  
+
   async verifyDocument(data: {
     documentId: string;
     status: DocumentStatus;
@@ -494,18 +490,18 @@ export class DocumentService {
     rejectionReason?: string;
   }): Promise<Document> {
     const { documentId, status, adminId, rejectionReason } = data;
-    
+
     const document = await this.prisma.document.update({
       where: { id: documentId },
       data: {
         status,
         verifiedBy: adminId,
         verifiedAt: new Date(),
-        rejectionReason: status === DocumentStatus.REJECTED ? rejectionReason : null
+        rejectionReason: status === DocumentStatus.REJECTED ? rejectionReason : null,
       },
-      include: { user: true }
+      include: { user: true },
     });
-    
+
     // Notification par email
     if (status === DocumentStatus.APPROVED) {
       await this.emailService.sendDocumentApprovedEmail(
@@ -521,59 +517,56 @@ export class DocumentService {
         rejectionReason || 'Aucune raison spécifiée'
       );
     }
-    
+
     return document as unknown as Document;
   }
-  
+
   async deleteDocument(id: string, userId: string) {
     const document = await this.prisma.document.findUnique({
       where: { id },
     });
-    
+
     if (!document) {
       throw new TRPCError({
-        code: "NOT_FOUND",
-        message: "Document non trouvé",
+        code: 'NOT_FOUND',
+        message: 'Document non trouvé',
       });
     }
-    
+
     // Vérifier si l'utilisateur est le propriétaire ou un admin
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { role: true },
     });
 
-    if (document.userId !== userId && (!user || user.role !== "ADMIN")) {
+    if (document.userId !== userId && (!user || user.role !== 'ADMIN')) {
       throw new TRPCError({
-        code: "FORBIDDEN",
+        code: 'FORBIDDEN',
         message: "Vous n'êtes pas autorisé à supprimer ce document",
       });
     }
-    
+
     // Supprimer le fichier physique
     try {
       // Extraire le chemin du fichier à partir de l'URL
-      const filePath = path.join(
-        this.uploadDir,
-        document.fileUrl.replace("/uploads/", "")
-      );
+      const filePath = path.join(this.uploadDir, document.fileUrl.replace('/uploads/', ''));
       await fs.unlink(filePath);
     } catch (error) {
-      console.error("Erreur lors de la suppression du fichier:", error);
+      console.error('Erreur lors de la suppression du fichier:', error);
       // On continue même si le fichier ne peut pas être supprimé
     }
-    
+
     // Supprimer les vérifications associées
     await this.prisma.verification.deleteMany({
       where: { documentId: id },
     });
-    
+
     // Supprimer le document de la base de données
     return await this.prisma.document.delete({
       where: { id },
     });
   }
-  
+
   /**
    * Récupère tous les documents d'un utilisateur
    */
@@ -581,28 +574,28 @@ export class DocumentService {
     try {
       const documents = await db.document.findMany({
         where: { userId },
-        orderBy: { uploadDate: 'desc' }
+        orderBy: { uploadDate: 'desc' },
       });
-      
+
       return documents;
     } catch (error) {
       console.error('Erreur lors de la récupération des documents:', error);
       throw new Error('Impossible de récupérer les documents');
     }
   }
-  
+
   /**
    * Récupère tous les documents en attente de vérification
    */
   static async getPendingDocuments(userRole?: string): Promise<Document[]> {
     try {
       const where: any = { status: 'PENDING' };
-      
+
       // Si un rôle d'utilisateur est spécifié, filtrer par ce rôle
       if (userRole) {
         where.userRole = userRole;
       }
-      
+
       const documents = await db.document.findMany({
         where,
         orderBy: { uploadDate: 'asc' },
@@ -612,24 +605,24 @@ export class DocumentService {
               id: true,
               name: true,
               email: true,
-            }
-          }
-        }
+            },
+          },
+        },
       });
-      
+
       return documents;
     } catch (error) {
       console.error('Erreur lors de la récupération des documents en attente:', error);
       throw new Error('Impossible de récupérer les documents en attente');
     }
   }
-  
+
   /**
    * Met à jour le statut d'un document
    */
   static async updateDocumentStatus(
-    documentId: string, 
-    status: DocumentStatus, 
+    documentId: string,
+    status: DocumentStatus,
     adminId: string,
     rejectionReason?: string
   ): Promise<Document> {
@@ -639,21 +632,21 @@ export class DocumentService {
         where: { id: documentId },
         include: { user: true },
       });
-      
+
       if (!existingDocument) {
         throw new TRPCError({
           code: 'NOT_FOUND',
-          message: 'Document non trouvé'
+          message: 'Document non trouvé',
         });
       }
-      
+
       if (existingDocument.status !== 'PENDING') {
         throw new TRPCError({
           code: 'BAD_REQUEST',
-          message: 'Ce document a déjà été traité'
+          message: 'Ce document a déjà été traité',
         });
       }
-      
+
       // Mise à jour du document
       const updatedDocument = await db.document.update({
         where: { id: documentId },
@@ -661,14 +654,14 @@ export class DocumentService {
           status,
           rejectionReason: status === 'REJECTED' ? rejectionReason : null,
           reviewedBy: adminId,
-          reviewedAt: new Date()
-        }
+          reviewedAt: new Date(),
+        },
       });
-      
+
       // Envoyer une notification à l'utilisateur
       const emailService = new EmailService();
       const userEmail = existingDocument.user.email;
-      
+
       if (userEmail) {
         if (status === 'APPROVED') {
           await emailService.sendDocumentApprovedEmail(
@@ -685,23 +678,23 @@ export class DocumentService {
           );
         }
       }
-      
+
       // Mettre à jour le statut de vérification de l'utilisateur si nécessaire
       if (status === 'APPROVED') {
         await this.updateUserVerificationStatus(existingDocument.userId, existingDocument.userRole);
       }
-      
+
       return updatedDocument;
     } catch (error) {
       if (error instanceof TRPCError) {
         throw error;
       }
-      
+
       console.error('Erreur lors de la mise à jour du statut du document:', error);
       throw new Error('Impossible de mettre à jour le statut du document');
     }
   }
-  
+
   /**
    * Crée un nouveau document
    */
@@ -717,16 +710,16 @@ export class DocumentService {
           userId: input.userId,
           userRole: input.userRole,
           status: 'PENDING',
-        }
+        },
       });
-      
+
       return document;
     } catch (error) {
       console.error('Erreur lors de la création du document:', error);
       throw new Error('Impossible de créer le document');
     }
   }
-  
+
   /**
    * Supprime un document
    */
@@ -734,20 +727,20 @@ export class DocumentService {
     try {
       // Vérifier que le document appartient à l'utilisateur
       const document = await db.document.findUnique({
-        where: { id: documentId }
+        where: { id: documentId },
       });
-      
+
       if (!document) {
         throw new TRPCError({
           code: 'NOT_FOUND',
-          message: 'Document non trouvé'
+          message: 'Document non trouvé',
         });
       }
-      
+
       if (document.userId !== userId) {
         return false;
       }
-      
+
       // Supprimer le fichier physique
       if (document.filePath) {
         try {
@@ -757,74 +750,82 @@ export class DocumentService {
           // On continue même si la suppression du fichier échoue
         }
       }
-      
+
       // Supprimer l'entrée dans la base de données
       await db.document.delete({
-        where: { id: documentId }
+        where: { id: documentId },
       });
-      
+
       return true;
     } catch (error) {
       if (error instanceof TRPCError) {
         throw error;
       }
-      
+
       console.error('Erreur lors de la suppression du document:', error);
       throw new Error('Impossible de supprimer le document');
     }
   }
-  
+
   /**
    * Vérifie si un utilisateur a tous les documents requis approuvés
    */
-  private static async updateUserVerificationStatus(userId: string, userRole: string): Promise<void> {
+  private static async updateUserVerificationStatus(
+    userId: string,
+    userRole: string
+  ): Promise<void> {
     try {
       if (userRole === 'DELIVERER') {
-        const requiredDocumentTypes = ['ID_CARD', 'DRIVER_LICENSE', 'VEHICLE_REGISTRATION', 'INSURANCE'];
-        
+        const requiredDocumentTypes = [
+          'ID_CARD',
+          'DRIVER_LICENSE',
+          'VEHICLE_REGISTRATION',
+          'INSURANCE',
+        ];
+
         // Vérifier si tous les documents requis sont approuvés
         const approvedDocuments = await db.document.findMany({
           where: {
             userId,
             status: 'APPROVED',
-            type: { in: requiredDocumentTypes }
-          }
+            type: { in: requiredDocumentTypes },
+          },
         });
-        
+
         // Si tous les documents requis sont approuvés, mettre à jour le statut de vérification
         if (approvedDocuments.length === requiredDocumentTypes.length) {
           await db.deliverer.update({
             where: { userId },
-            data: { isVerified: true }
+            data: { isVerified: true },
           });
-          
+
           // Mise à jour du statut utilisateur
           await db.user.update({
             where: { id: userId },
-            data: { status: 'ACTIVE' }
+            data: { status: 'ACTIVE' },
           });
         }
       } else if (userRole === 'PROVIDER') {
         // Logique similaire pour les prestataires
         const requiredDocumentTypes = ['ID_CARD', 'PROFESSIONAL_CERTIFICATION'];
-        
+
         const approvedDocuments = await db.document.findMany({
           where: {
             userId,
             status: 'APPROVED',
-            type: { in: requiredDocumentTypes }
-          }
+            type: { in: requiredDocumentTypes },
+          },
         });
-        
+
         if (approvedDocuments.length === requiredDocumentTypes.length) {
           await db.provider.update({
             where: { userId },
-            data: { isVerified: true }
+            data: { isVerified: true },
           });
-          
+
           await db.user.update({
             where: { id: userId },
-            data: { status: 'ACTIVE' }
+            data: { status: 'ACTIVE' },
           });
         }
       }
@@ -833,21 +834,21 @@ export class DocumentService {
       // Ne pas propager l'erreur pour éviter de bloquer la vérification du document
     }
   }
-  
+
   /**
    * Récupère le nom lisible d'un type de document
    */
   private static getDocumentTypeName(type: DocumentType): string {
     const documentTypeNames: Record<DocumentType, string> = {
       [DocumentType.ID_CARD]: "Carte d'identité",
-      [DocumentType.DRIVER_LICENSE]: "Permis de conduire",
-      [DocumentType.VEHICLE_REGISTRATION]: "Carte grise",
+      [DocumentType.DRIVER_LICENSE]: 'Permis de conduire',
+      [DocumentType.VEHICLE_REGISTRATION]: 'Carte grise',
       [DocumentType.INSURANCE]: "Attestation d'assurance",
-      [DocumentType.CRIMINAL_RECORD]: "Casier judiciaire",
-      [DocumentType.PROFESSIONAL_CERTIFICATION]: "Certification professionnelle",
-      [DocumentType.OTHER]: "Autre document"
+      [DocumentType.CRIMINAL_RECORD]: 'Casier judiciaire',
+      [DocumentType.PROFESSIONAL_CERTIFICATION]: 'Certification professionnelle',
+      [DocumentType.OTHER]: 'Autre document',
     };
-    
-    return documentTypeNames[type] || "Document";
+
+    return documentTypeNames[type] || 'Document';
   }
 }

@@ -1,5 +1,5 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import {
   Card,
   CardContent,
@@ -7,17 +7,8 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
-import {
-  AtSign,
-  Clock,
-  Facebook,
-  Instagram,
-  Linkedin,
-  MapPin,
-  Phone,
-  Twitter,
-} from "lucide-react";
+} from '@/components/ui/card';
+import { AtSign, Clock, Facebook, Instagram, Linkedin, MapPin, Phone, Twitter } from 'lucide-react';
 
 export default function ContactPage() {
   return (
@@ -28,19 +19,16 @@ export default function ContactPage() {
           <div
             className="absolute inset-0 bg-cover bg-center z-0"
             style={{
-              backgroundImage: "url(/images/contact/contact-bg.jpg)",
+              backgroundImage: 'url(/images/contact/contact-bg.jpg)',
               opacity: 0.05,
             }}
           ></div>
           <div className="container mx-auto px-4 md:px-6 relative z-10">
             <div className="flex flex-col items-center text-center space-y-4">
               <Badge className="mb-2">Contact</Badge>
-              <h1 className="text-4xl md:text-5xl font-bold tracking-tighter">
-                Contactez-nous
-              </h1>
+              <h1 className="text-4xl md:text-5xl font-bold tracking-tighter">Contactez-nous</h1>
               <p className="text-xl text-muted-foreground max-w-[700px] mx-auto">
-                Notre équipe est à votre disposition pour répondre à toutes vos
-                questions.
+                Notre équipe est à votre disposition pour répondre à toutes vos questions.
               </p>
             </div>
           </div>
@@ -95,9 +83,7 @@ export default function ContactPage() {
                   <CardDescription>Venez nous rencontrer</CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <p className="font-medium">
-                    123 Rue de l&apos;Innovation, 75012 Paris, France
-                  </p>
+                  <p className="font-medium">123 Rue de l&apos;Innovation, 75012 Paris, France</p>
                 </CardContent>
                 <CardFooter>
                   <Button variant="outline" size="sm" className="w-full">
@@ -127,9 +113,9 @@ export default function ContactPage() {
                 <CardContent className="p-6">
                   <div className="space-y-4">
                     {[
-                      { day: "Lundi - Vendredi", hours: "9:00 - 18:00" },
-                      { day: "Samedi", hours: "10:00 - 16:00" },
-                      { day: "Dimanche", hours: "Fermé" },
+                      { day: 'Lundi - Vendredi', hours: '9:00 - 18:00' },
+                      { day: 'Samedi', hours: '10:00 - 16:00' },
+                      { day: 'Dimanche', hours: 'Fermé' },
                     ].map((schedule, index) => (
                       <div
                         key={index}
@@ -139,11 +125,7 @@ export default function ContactPage() {
                           <Clock className="h-4 w-4 text-primary mr-2" />
                           <span className="font-medium">{schedule.day}</span>
                         </div>
-                        <span
-                          className={
-                            schedule.hours === "Fermé" ? "text-gray-500" : ""
-                          }
-                        >
+                        <span className={schedule.hours === 'Fermé' ? 'text-gray-500' : ''}>
                           {schedule.hours}
                         </span>
                       </div>
@@ -164,8 +146,8 @@ export default function ContactPage() {
                 Envoyez-nous un message
               </h2>
               <p className="text-muted-foreground max-w-[700px]">
-                Remplissez le formulaire ci-dessous et nous vous répondrons dans
-                les plus brefs délais
+                Remplissez le formulaire ci-dessous et nous vous répondrons dans les plus brefs
+                délais
               </p>
             </div>
 
@@ -175,10 +157,7 @@ export default function ContactPage() {
                   <form className="space-y-4">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label
-                          htmlFor="firstName"
-                          className="text-sm font-medium"
-                        >
+                        <label htmlFor="firstName" className="text-sm font-medium">
                           Prénom
                         </label>
                         <input
@@ -188,10 +167,7 @@ export default function ContactPage() {
                         />
                       </div>
                       <div className="space-y-2">
-                        <label
-                          htmlFor="lastName"
-                          className="text-sm font-medium"
-                        >
+                        <label htmlFor="lastName" className="text-sm font-medium">
                           Nom
                         </label>
                         <input
@@ -257,21 +233,18 @@ export default function ContactPage() {
           <div className="container mx-auto px-4 md:px-6">
             <div className="flex flex-col items-center text-center space-y-4 mb-8">
               <Badge>Suivez-nous</Badge>
-              <h2 className="text-3xl md:text-4xl font-bold tracking-tighter">
-                Restez connectés
-              </h2>
+              <h2 className="text-3xl md:text-4xl font-bold tracking-tighter">Restez connectés</h2>
               <p className="text-muted-foreground max-w-[700px]">
-                Suivez-nous sur les réseaux sociaux pour les dernières nouvelles
-                et mises à jour
+                Suivez-nous sur les réseaux sociaux pour les dernières nouvelles et mises à jour
               </p>
             </div>
 
             <div className="flex justify-center space-x-6 mt-6">
               {[
-                { icon: Facebook, name: "Facebook", href: "#" },
-                { icon: Twitter, name: "Twitter", href: "#" },
-                { icon: Instagram, name: "Instagram", href: "#" },
-                { icon: Linkedin, name: "LinkedIn", href: "#" },
+                { icon: Facebook, name: 'Facebook', href: '#' },
+                { icon: Twitter, name: 'Twitter', href: '#' },
+                { icon: Instagram, name: 'Instagram', href: '#' },
+                { icon: Linkedin, name: 'LinkedIn', href: '#' },
               ].map((social, index) => (
                 <a
                   key={index}

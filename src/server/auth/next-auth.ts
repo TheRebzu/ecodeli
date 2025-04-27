@@ -1,10 +1,10 @@
-import { NextAuthOptions } from "next-auth";
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import CredentialsProvider from "next-auth/providers/credentials";
-import GoogleProvider from "next-auth/providers/google";
-import { compare } from "bcryptjs";
-import { db } from "../db";
-import { UserRole, UserStatus } from "../db/enums";
+import { NextAuthOptions } from 'next-auth';
+import { PrismaAdapter } from '@auth/prisma-adapter';
+import CredentialsProvider from 'next-auth/providers/credentials';
+import GoogleProvider from 'next-auth/providers/google';
+import { compare } from 'bcryptjs';
+import { db } from '../db';
+import { UserRole, UserStatus } from '../db/enums';
 
 export const authOptions: NextAuthOptions = {
   // Le type générique pour l'adaptateur prisma est différent de ce que NextAuth attend
@@ -12,26 +12,26 @@ export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db) as any,
   secret: process.env.NEXTAUTH_SECRET,
   session: {
-    strategy: "jwt",
+    strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 jours
   },
   pages: {
-    signIn: "/login",
-    error: "/login",
-    verifyRequest: "/verify-email",
-    newUser: "/welcome",
+    signIn: '/login',
+    error: '/login',
+    verifyRequest: '/verify-email',
+    newUser: '/welcome',
   },
   providers: [
     CredentialsProvider({
-      name: "Credentials",
+      name: 'Credentials',
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Mot de passe", type: "password" },
-        totp: { label: "Code d'authentification", type: "text" },
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Mot de passe', type: 'password' },
+        totp: { label: "Code d'authentification", type: 'text' },
       },
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error("Email et mot de passe requis");
+          throw new Error('Email et mot de passe requis');
         }
 
         // Rechercher l'utilisateur par email
@@ -57,23 +57,23 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!user) {
-          throw new Error("Utilisateur non trouvé");
+          throw new Error('Utilisateur non trouvé');
         }
 
         // Vérifier si l'email est vérifié
         if (!user.emailVerified) {
-          throw new Error("Veuillez vérifier votre email avant de vous connecter");
+          throw new Error('Veuillez vérifier votre email avant de vous connecter');
         }
 
         // Vérifier si l'utilisateur est actif
         if (user.status !== UserStatus.ACTIVE) {
-          throw new Error("Votre compte est " + user.status.toLowerCase());
+          throw new Error('Votre compte est ' + user.status.toLowerCase());
         }
 
         // Vérifier le mot de passe
         const isPasswordValid = await compare(credentials.password, user.password);
         if (!isPasswordValid) {
-          throw new Error("Mot de passe incorrect");
+          throw new Error('Mot de passe incorrect');
         }
 
         // Vérifier la 2FA si activée
@@ -81,13 +81,13 @@ export const authOptions: NextAuthOptions = {
           if (!credentials.totp) {
             throw new Error("Code d'authentification à deux facteurs requis");
           }
-          
+
           // Vérification du code TOTP - à implémenter avec une bibliothèque comme otplib
           // const isValidTotp = authenticator.verify({
           //   token: credentials.totp,
           //   secret: user.twoFactorSecret || '',
           // });
-          
+
           // if (!isValidTotp) {
           //   throw new Error("Code d'authentification incorrect");
           // }

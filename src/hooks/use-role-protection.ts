@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import type { UserRole } from '@prisma/client';
 import { useAuth } from './use-auth';
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from '@/components/ui/use-toast';
 
 /**
  * Hook pour protéger les routes basées sur les rôles d'utilisateur
@@ -14,26 +14,26 @@ export function useRoleProtection(allowedRoles: UserRole[] = [], redirectTo?: st
   const router = useRouter();
   const pathname = usePathname();
   const { toast } = useToast();
-  
+
   useEffect(() => {
     // Ne rien faire pendant le chargement
     if (isLoading || status === 'loading') return;
-    
+
     // Si l'utilisateur n'est pas authentifié, rediriger vers la page de connexion
     if (status === 'unauthenticated') {
       router.push(`/login?callbackUrl=${encodeURIComponent(pathname)}`);
       return;
     }
-    
+
     // Si des rôles sont spécifiés mais que l'utilisateur n'a pas le bon rôle
     if (allowedRoles.length > 0 && role && !allowedRoles.includes(role)) {
       // Afficher une notification
       toast({
-        title: "Accès refusé",
+        title: 'Accès refusé',
         description: "Vous n'avez pas les autorisations nécessaires pour accéder à cette page.",
-        variant: "destructive",
+        variant: 'destructive',
       });
-      
+
       // Rediriger vers la page spécifiée ou le dashboard approprié
       if (redirectTo) {
         router.push(redirectTo);
@@ -45,13 +45,13 @@ export function useRoleProtection(allowedRoles: UserRole[] = [], redirectTo?: st
       }
     }
   }, [role, isLoading, status, allowedRoles, router, pathname, redirectTo, toast]);
-  
+
   // Retourner les informations utiles au composant
-  return { 
-    role, 
+  return {
+    role,
     isLoading,
     isAuthorized: !role || allowedRoles.length === 0 || allowedRoles.includes(role),
-    user
+    user,
   };
 }
 

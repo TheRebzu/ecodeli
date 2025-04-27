@@ -1,9 +1,9 @@
-import { ProviderRegisterForm } from "@/components/auth/register-forms/provider-form";
-import { Metadata } from "next";
+import { ProviderRegisterForm } from '@/components/auth/register-forms/provider-form';
+import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "Inscription Prestataire | EcoDeli",
-  description: "Inscrivez-vous en tant que prestataire de service sur EcoDeli",
+  title: 'Inscription Prestataire | EcoDeli',
+  description: 'Inscrivez-vous en tant que prestataire de service sur EcoDeli',
 };
 
 export default function ProviderRegisterPage() {

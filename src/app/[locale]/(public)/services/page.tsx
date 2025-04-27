@@ -1,8 +1,8 @@
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { cn } from "@/lib/utils";
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { cn } from '@/lib/utils';
 import {
   ArrowRight,
   Bike,
@@ -28,15 +28,11 @@ import {
   User,
   Shield,
   Leaf,
-} from "lucide-react";
-import Image from "next/image";
-import Link from "next/link";
-import { Accordion } from "@/components/ui/accordion";
-import {
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+} from 'lucide-react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { Accordion } from '@/components/ui/accordion';
+import { AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 
 export default function ServicesPage() {
   return (
@@ -51,8 +47,8 @@ export default function ServicesPage() {
                 Des solutions pour tous vos besoins
               </h1>
               <p className="max-w-[700px] text-muted-foreground md:text-xl/relaxed lg:text-base/relaxed xl:text-xl/relaxed">
-                EcoDeli propose une gamme complète de services de crowdshipping
-                pour particuliers et professionnels
+                EcoDeli propose une gamme complète de services de crowdshipping pour particuliers et
+                professionnels
               </p>
             </div>
           </div>
@@ -68,17 +64,17 @@ export default function ServicesPage() {
                   Transport de colis
                 </h2>
                 <p className="text-muted-foreground md:text-xl mb-6">
-                  Notre service principal de crowdshipping vous permet de faire
-                  acheminer vos colis de manière économique et écologique
+                  Notre service principal de crowdshipping vous permet de faire acheminer vos colis
+                  de manière économique et écologique
                 </p>
                 <ul className="grid gap-4">
                   {[
-                    "Livraison de colis de particuliers à particuliers",
-                    "Prise en charge intégrale ou partielle du trajet",
-                    "Livraison aux destinataires finaux",
-                    "Suivi des colis en temps réel",
-                    "Assurance incluse",
-                    "Code de confirmation pour validation de livraison",
+                    'Livraison de colis de particuliers à particuliers',
+                    'Prise en charge intégrale ou partielle du trajet',
+                    'Livraison aux destinataires finaux',
+                    'Suivi des colis en temps réel',
+                    'Assurance incluse',
+                    'Code de confirmation pour validation de livraison',
                   ].map((feature, index) => (
                     <li key={index} className="flex items-center gap-2">
                       <CheckCircle className="h-5 w-5 text-primary flex-shrink-0" />
@@ -116,53 +112,49 @@ export default function ServicesPage() {
                 Services à la personne
               </h2>
               <p className="max-w-[700px] text-muted-foreground md:text-xl">
-                Au-delà du transport de colis, nous proposons plusieurs services
-                complémentaires
+                Au-delà du transport de colis, nous proposons plusieurs services complémentaires
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-12">
               {[
                 {
                   icon: User,
-                  title: "Transport de personnes",
+                  title: 'Transport de personnes',
                   description:
-                    "Transport quotidien pour rendez-vous médicaux, gare, aéroport, travail et autres déplacements.",
+                    'Transport quotidien pour rendez-vous médicaux, gare, aéroport, travail et autres déplacements.',
                   features: [
-                    "Transferts aéroport",
-                    "Accompagnement à des rendez-vous",
-                    "Transports réguliers",
-                    "Service ponctuel ou récurrent",
+                    'Transferts aéroport',
+                    'Accompagnement à des rendez-vous',
+                    'Transports réguliers',
+                    'Service ponctuel ou récurrent',
                   ],
                 },
                 {
                   icon: ShoppingBag,
-                  title: "Services de courses",
+                  title: 'Services de courses',
                   description:
-                    "Nous effectuons vos courses selon vos besoins, même pour des produits spécifiques difficiles à trouver.",
+                    'Nous effectuons vos courses selon vos besoins, même pour des produits spécifiques difficiles à trouver.',
                   features: [
-                    "Courses selon liste fournie",
+                    'Courses selon liste fournie',
                     "Achats à l'étranger",
-                    "Produits spécifiques",
-                    "Livraison à domicile",
+                    'Produits spécifiques',
+                    'Livraison à domicile',
                   ],
                 },
                 {
                   icon: Heart,
-                  title: "Services écologiques",
+                  title: 'Services écologiques',
                   description:
-                    "Des services complémentaires pour répondre à tous vos besoins quotidiens.",
+                    'Des services complémentaires pour répondre à tous vos besoins quotidiens.',
                   features: [
                     "Garde d'animaux à domicile",
-                    "Petits travaux ménagers",
-                    "Services de jardinage",
-                    "Autres services personnalisés",
+                    'Petits travaux ménagers',
+                    'Services de jardinage',
+                    'Autres services personnalisés',
                   ],
                 },
               ].map((service, index) => (
-                <Card
-                  key={index}
-                  className="h-full transition-all duration-300 hover:shadow-md"
-                >
+                <Card key={index} className="h-full transition-all duration-300 hover:shadow-md">
                   <CardHeader className="pb-2">
                     <div className="mb-4 w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
                       <service.icon className="h-5 w-5 text-primary" />
@@ -170,9 +162,7 @@ export default function ServicesPage() {
                     <CardTitle className="text-2xl">{service.title}</CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <p className="text-muted-foreground">
-                      {service.description}
-                    </p>
+                    <p className="text-muted-foreground">{service.description}</p>
                     <ul className="space-y-2">
                       {service.features.map((feature, i) => (
                         <li key={i} className="flex items-center text-sm">
@@ -203,38 +193,31 @@ export default function ServicesPage() {
             <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
               {[
                 {
-                  step: "01",
-                  title: "Publiez votre annonce",
-                  description:
-                    "Décrivez votre besoin de service ou le service que vous proposez",
+                  step: '01',
+                  title: 'Publiez votre annonce',
+                  description: 'Décrivez votre besoin de service ou le service que vous proposez',
                   icon: Package,
                 },
                 {
-                  step: "02",
+                  step: '02',
                   title: "Mettez-vous d'accord",
-                  description:
-                    "Discutez des détails et du prix avec l'autre partie",
+                  description: "Discutez des détails et du prix avec l'autre partie",
                   icon: User,
                 },
                 {
-                  step: "03",
-                  title: "Suivez en temps réel",
-                  description:
-                    "Suivez le service en temps réel et communiquez si besoin",
+                  step: '03',
+                  title: 'Suivez en temps réel',
+                  description: 'Suivez le service en temps réel et communiquez si besoin',
                   icon: Clock,
                 },
                 {
-                  step: "04",
-                  title: "Code de confirmation",
-                  description:
-                    "Un code de confirmation valide le service et déclenche le paiement",
+                  step: '04',
+                  title: 'Code de confirmation',
+                  description: 'Un code de confirmation valide le service et déclenche le paiement',
                   icon: CheckCircle,
                 },
               ].map((step, index) => (
-                <div
-                  key={index}
-                  className="flex flex-col items-center text-center p-6 rounded-lg"
-                >
+                <div key={index} className="flex flex-col items-center text-center p-6 rounded-lg">
                   <div className="mb-4 relative">
                     <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
                       <step.icon className="h-8 w-8 text-primary" />
@@ -267,25 +250,24 @@ export default function ServicesPage() {
               {[
                 {
                   icon: Leaf,
-                  title: "Écologique",
+                  title: 'Écologique',
                   description:
                     "Réduction de l'empreinte carbone grâce à l'optimisation des trajets existants.",
                 },
                 {
                   icon: Shield,
-                  title: "Sécurisé",
+                  title: 'Sécurisé',
                   description:
-                    "Transactions sécurisées, assurance incluse et système de code de confirmation.",
+                    'Transactions sécurisées, assurance incluse et système de code de confirmation.',
                 },
                 {
                   icon: Clock,
-                  title: "Flexible",
-                  description:
-                    "Des services adaptés à vos besoins, quand vous en avez besoin.",
+                  title: 'Flexible',
+                  description: 'Des services adaptés à vos besoins, quand vous en avez besoin.',
                 },
                 {
                   icon: MapPin,
-                  title: "Local",
+                  title: 'Local',
                   description:
                     "Soutien à l'économie locale et création de liens dans votre communauté.",
                 },
@@ -316,8 +298,8 @@ export default function ServicesPage() {
                   Prêt à essayer EcoDeli ?
                 </h2>
                 <p className="mt-3 text-muted-foreground">
-                  Rejoignez notre plateforme de crowdshipping et découvrez une
-                  nouvelle façon de livrer et recevoir des services.
+                  Rejoignez notre plateforme de crowdshipping et découvrez une nouvelle façon de
+                  livrer et recevoir des services.
                 </p>
               </div>
               <div className="flex flex-col gap-4 sm:flex-row">

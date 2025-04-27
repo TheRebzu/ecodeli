@@ -1,25 +1,46 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { DocumentType } from "@prisma/client";
-import { useDocuments } from "@/hooks/use-documents";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
-import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { DocumentType } from '@prisma/client';
+import { useDocuments } from '@/hooks/use-documents';
+import { Button } from '@/components/ui/button';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 // Définir le schéma de validation pour le formulaire
 const formSchema = z.object({
   documentType: z.string({
-    required_error: "Veuillez sélectionner un type de document",
+    required_error: 'Veuillez sélectionner un type de document',
   }),
   file: z.instanceof(File, {
-    message: "Veuillez sélectionner un fichier",
+    message: 'Veuillez sélectionner un fichier',
   }),
 });
 
@@ -48,7 +69,7 @@ export function DocumentUpload({ userRole }: DocumentUploadProps) {
       setIsSuccess(true);
       form.reset();
     } catch (err) {
-      setError("Une erreur est survenue lors du téléchargement du document.");
+      setError('Une erreur est survenue lors du téléchargement du document.');
       console.error(err);
     }
   }
@@ -57,7 +78,7 @@ export function DocumentUpload({ userRole }: DocumentUploadProps) {
   function handleFileChange(event: React.ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0];
     if (file) {
-      form.setValue("file", file);
+      form.setValue('file', file);
     }
   }
 
@@ -65,28 +86,28 @@ export function DocumentUpload({ userRole }: DocumentUploadProps) {
     // Options de base pour tous les utilisateurs
     const baseOptions = [
       { value: DocumentType.ID_CARD, label: "Carte d'identité" },
-      { value: DocumentType.OTHER, label: "Autre document" },
+      { value: DocumentType.OTHER, label: 'Autre document' },
     ];
-    
+
     // Options spécifiques aux livreurs
     const delivererOptions = [
-      { value: DocumentType.DRIVER_LICENSE, label: "Permis de conduire" },
-      { value: DocumentType.VEHICLE_REGISTRATION, label: "Carte grise" },
-      { value: DocumentType.INSURANCE, label: "Assurance" },
+      { value: DocumentType.DRIVER_LICENSE, label: 'Permis de conduire' },
+      { value: DocumentType.VEHICLE_REGISTRATION, label: 'Carte grise' },
+      { value: DocumentType.INSURANCE, label: 'Assurance' },
     ];
-    
+
     // Options spécifiques aux prestataires
     const providerOptions = [
-      { value: DocumentType.PROFESSIONAL_CERTIFICATION, label: "Certification professionnelle" },
-      { value: DocumentType.CRIMINAL_RECORD, label: "Extrait de casier judiciaire" },
+      { value: DocumentType.PROFESSIONAL_CERTIFICATION, label: 'Certification professionnelle' },
+      { value: DocumentType.CRIMINAL_RECORD, label: 'Extrait de casier judiciaire' },
     ];
-    
-    if (userRole === "DELIVERER") {
+
+    if (userRole === 'DELIVERER') {
       return [...baseOptions, ...delivererOptions];
-    } else if (userRole === "PROVIDER") {
+    } else if (userRole === 'PROVIDER') {
       return [...baseOptions, ...providerOptions];
     }
-    
+
     return baseOptions;
   };
 
@@ -108,21 +129,21 @@ export function DocumentUpload({ userRole }: DocumentUploadProps) {
                 </AlertDescription>
               </Alert>
             )}
-            
+
             {error && (
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            
+
             <FormField
               control={form.control}
               name="documentType"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Type de document</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
+                  <Select
+                    onValueChange={field.onChange}
                     defaultValue={field.value}
                     disabled={isUploading}
                   >
@@ -132,7 +153,7 @@ export function DocumentUpload({ userRole }: DocumentUploadProps) {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {getDocumentTypeOptions().map((option) => (
+                      {getDocumentTypeOptions().map(option => (
                         <SelectItem key={option.value} value={option.value}>
                           {option.label}
                         </SelectItem>
@@ -146,7 +167,7 @@ export function DocumentUpload({ userRole }: DocumentUploadProps) {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="file"
@@ -168,13 +189,9 @@ export function DocumentUpload({ userRole }: DocumentUploadProps) {
                 </FormItem>
               )}
             />
-            
-            <Button 
-              type="submit" 
-              disabled={isUploading}
-              className="w-full"
-            >
-              {isUploading ? "Téléchargement en cours..." : "Télécharger"}
+
+            <Button type="submit" disabled={isUploading} className="w-full">
+              {isUploading ? 'Téléchargement en cours...' : 'Télécharger'}
             </Button>
           </form>
         </Form>

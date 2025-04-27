@@ -6,9 +6,9 @@ import superjson from 'superjson';
 
 export function TRPCProvider({ children }: { children: ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
-  
+
   // Créer le client tRPC dans le composant pour éviter les problèmes de build
-  const [trpcClient] = useState(() => 
+  const [trpcClient] = useState(() =>
     api.createClient({
       links: [
         httpBatchLink({
@@ -26,9 +26,7 @@ export function TRPCProvider({ children }: { children: ReactNode }) {
 
   return (
     <api.Provider client={trpcClient} queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>
-        {children}
-      </QueryClientProvider>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
     </api.Provider>
   );
 }

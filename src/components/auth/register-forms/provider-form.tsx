@@ -1,28 +1,31 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/hooks/use-auth";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Loader2 } from "lucide-react";
-import Link from "next/link";
-import { useTranslations } from "next-intl";
-import { ProviderRegisterSchemaType, providerRegisterSchema } from "@/schemas/auth/provider-register.schema";
-import { UserRole } from "@/schemas/auth/register.schema";
-import { Textarea } from "@/components/ui/textarea";
-import { 
+import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useRouter } from 'next/navigation';
+import { useAuth } from '@/hooks/use-auth';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2 } from 'lucide-react';
+import Link from 'next/link';
+import { useTranslations } from 'next-intl';
+import {
+  ProviderRegisterSchemaType,
+  providerRegisterSchema,
+} from '@/schemas/auth/provider-register.schema';
+import { UserRole } from '@/schemas/auth/register.schema';
+import { Textarea } from '@/components/ui/textarea';
+import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue
-} from "@/components/ui/select";
+  SelectValue,
+} from '@/components/ui/select';
 
 export function ProviderRegisterForm() {
   const t = useTranslations('Auth.Register.Provider');
@@ -40,18 +43,18 @@ export function ProviderRegisterForm() {
   } = useForm<ProviderRegisterSchemaType>({
     resolver: zodResolver(providerRegisterSchema),
     defaultValues: {
-      email: "",
-      password: "",
-      confirmPassword: "",
-      name: "",
-      phoneNumber: "",
-      address: "",
-      city: "",
-      state: "",
-      postalCode: "",
-      country: "",
-      serviceType: "",
-      description: "",
+      email: '',
+      password: '',
+      confirmPassword: '',
+      name: '',
+      phoneNumber: '',
+      address: '',
+      city: '',
+      state: '',
+      postalCode: '',
+      country: '',
+      serviceType: '',
+      description: '',
       role: UserRole.PROVIDER,
     },
   });
@@ -67,10 +70,10 @@ export function ProviderRegisterForm() {
         setSuccess(true);
         // Rediriger vers la page de vérification d'email
         setTimeout(() => {
-          router.push("/fr/verify-email?email=" + encodeURIComponent(data.email));
+          router.push('/fr/verify-email?email=' + encodeURIComponent(data.email));
         }, 2000);
       } else {
-        setError(result.error as string || t('error.generic'));
+        setError((result.error as string) || t('error.generic'));
       }
     } catch (err) {
       setError(t('error.generic'));
@@ -89,9 +92,7 @@ export function ProviderRegisterForm() {
         </CardHeader>
         <CardContent>
           <Alert className="bg-green-50 border-green-200">
-            <AlertDescription>
-              {t('success.message')}
-            </AlertDescription>
+            <AlertDescription>{t('success.message')}</AlertDescription>
           </Alert>
         </CardContent>
       </Card>
@@ -120,12 +121,12 @@ export function ProviderRegisterForm() {
 
             <div className="space-y-2">
               <Label htmlFor="name">{t('nameLabel')}</Label>
-              <Input 
+              <Input
                 id="name"
                 type="text"
                 autoComplete="name"
                 disabled={isSubmitting}
-                {...register("name")}
+                {...register('name')}
               />
               {errors.name && (
                 <p className="text-sm text-red-500">{errors.name.message?.toString()}</p>
@@ -134,12 +135,12 @@ export function ProviderRegisterForm() {
 
             <div className="space-y-2">
               <Label htmlFor="email">{t('emailLabel')}</Label>
-              <Input 
+              <Input
                 id="email"
                 type="email"
                 autoComplete="email"
                 disabled={isSubmitting}
-                {...register("email")}
+                {...register('email')}
               />
               {errors.email && (
                 <p className="text-sm text-red-500">{errors.email.message?.toString()}</p>
@@ -148,12 +149,12 @@ export function ProviderRegisterForm() {
 
             <div className="space-y-2">
               <Label htmlFor="password">{t('passwordLabel')}</Label>
-              <Input 
+              <Input
                 id="password"
                 type="password"
                 autoComplete="new-password"
                 disabled={isSubmitting}
-                {...register("password")}
+                {...register('password')}
               />
               {errors.password && (
                 <p className="text-sm text-red-500">{errors.password.message?.toString()}</p>
@@ -162,12 +163,12 @@ export function ProviderRegisterForm() {
 
             <div className="space-y-2">
               <Label htmlFor="confirmPassword">{t('confirmPasswordLabel')}</Label>
-              <Input 
+              <Input
                 id="confirmPassword"
                 type="password"
                 autoComplete="new-password"
                 disabled={isSubmitting}
-                {...register("confirmPassword")}
+                {...register('confirmPassword')}
               />
               {errors.confirmPassword && (
                 <p className="text-sm text-red-500">{errors.confirmPassword.message?.toString()}</p>
@@ -176,12 +177,12 @@ export function ProviderRegisterForm() {
 
             <div className="space-y-2">
               <Label htmlFor="phoneNumber">{t('phoneLabel')}</Label>
-              <Input 
+              <Input
                 id="phoneNumber"
                 type="tel"
                 autoComplete="tel"
                 disabled={isSubmitting}
-                {...register("phoneNumber")}
+                {...register('phoneNumber')}
               />
               {errors.phoneNumber && (
                 <p className="text-sm text-red-500">{errors.phoneNumber.message?.toString()}</p>
@@ -195,12 +196,12 @@ export function ProviderRegisterForm() {
 
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="address">{t('addressLabel')}</Label>
-              <Input 
+              <Input
                 id="address"
                 type="text"
                 autoComplete="street-address"
                 disabled={isSubmitting}
-                {...register("address")}
+                {...register('address')}
               />
               {errors.address && (
                 <p className="text-sm text-red-500">{errors.address.message?.toString()}</p>
@@ -209,12 +210,12 @@ export function ProviderRegisterForm() {
 
             <div className="space-y-2">
               <Label htmlFor="city">{t('cityLabel')}</Label>
-              <Input 
+              <Input
                 id="city"
                 type="text"
                 autoComplete="address-level2"
                 disabled={isSubmitting}
-                {...register("city")}
+                {...register('city')}
               />
               {errors.city && (
                 <p className="text-sm text-red-500">{errors.city.message?.toString()}</p>
@@ -223,12 +224,12 @@ export function ProviderRegisterForm() {
 
             <div className="space-y-2">
               <Label htmlFor="state">{t('stateLabel')}</Label>
-              <Input 
+              <Input
                 id="state"
                 type="text"
                 autoComplete="address-level1"
                 disabled={isSubmitting}
-                {...register("state")}
+                {...register('state')}
               />
               {errors.state && (
                 <p className="text-sm text-red-500">{errors.state.message?.toString()}</p>
@@ -237,12 +238,12 @@ export function ProviderRegisterForm() {
 
             <div className="space-y-2">
               <Label htmlFor="postalCode">{t('postalCodeLabel')}</Label>
-              <Input 
+              <Input
                 id="postalCode"
                 type="text"
                 autoComplete="postal-code"
                 disabled={isSubmitting}
-                {...register("postalCode")}
+                {...register('postalCode')}
               />
               {errors.postalCode && (
                 <p className="text-sm text-red-500">{errors.postalCode.message?.toString()}</p>
@@ -251,12 +252,12 @@ export function ProviderRegisterForm() {
 
             <div className="space-y-2">
               <Label htmlFor="country">{t('countryLabel')}</Label>
-              <Input 
+              <Input
                 id="country"
                 type="text"
                 autoComplete="country-name"
                 disabled={isSubmitting}
-                {...register("country")}
+                {...register('country')}
               />
               {errors.country && (
                 <p className="text-sm text-red-500">{errors.country.message?.toString()}</p>
@@ -270,8 +271,8 @@ export function ProviderRegisterForm() {
 
             <div className="space-y-2">
               <Label htmlFor="serviceType">{t('serviceTypeLabel')}</Label>
-              <Select 
-                onValueChange={(value) => setValue("serviceType", value)}
+              <Select
+                onValueChange={value => setValue('serviceType', value)}
                 disabled={isSubmitting}
               >
                 <SelectTrigger id="serviceType">
@@ -293,11 +294,11 @@ export function ProviderRegisterForm() {
 
             <div className="space-y-2 md:col-span-2">
               <Label htmlFor="description">{t('descriptionLabel')}</Label>
-              <Textarea 
+              <Textarea
                 id="description"
                 rows={4}
                 disabled={isSubmitting}
-                {...register("description")}
+                {...register('description')}
               />
               {errors.description && (
                 <p className="text-sm text-red-500">{errors.description.message?.toString()}</p>
@@ -306,17 +307,11 @@ export function ProviderRegisterForm() {
           </div>
 
           <div className="md:col-span-2 mt-4">
-            <p className="text-sm text-muted-foreground mb-4">
-              {t('certificationsInfo')}
-            </p>
+            <p className="text-sm text-muted-foreground mb-4">{t('certificationsInfo')}</p>
           </div>
 
           <div className="pt-4">
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={isSubmitting}
-            >
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
               {isSubmitting ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

@@ -1,7 +1,7 @@
 export enum DocumentStatus {
   PENDING = 'PENDING',
   APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED'
+  REJECTED = 'REJECTED',
 }
 
 export enum DocumentType {
@@ -11,7 +11,7 @@ export enum DocumentType {
   INSURANCE = 'INSURANCE',
   CRIMINAL_RECORD = 'CRIMINAL_RECORD',
   PROFESSIONAL_CERTIFICATION = 'PROFESSIONAL_CERTIFICATION',
-  OTHER = 'OTHER'
+  OTHER = 'OTHER',
 }
 
 export interface Document {
@@ -31,4 +31,4 @@ export interface Document {
   userName?: string;
   userEmail?: string;
   userRole?: string;
-} 
+}
