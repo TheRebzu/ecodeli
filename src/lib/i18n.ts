@@ -15,6 +15,27 @@ export const i18n = {
   localePrefix: 'always',
 };
 
+/**
+ * Normalise une locale pour s'assurer qu'elle est supportée
+ * @param locale Locale à normaliser
+ * @returns Locale normalisée (ou locale par défaut si non supportée)
+ */
+export function normalizeLocale(locale: string): string {
+  // Si la locale est vide, utiliser la locale par défaut
+  if (!locale) return defaultLocale;
+
+  // Si la locale contient un tiret (fr-FR), prendre la première partie
+  const baseLang = locale.split('-')[0].toLowerCase();
+
+  // Vérifier si la locale est supportée
+  if (locales.includes(baseLang)) {
+    return baseLang;
+  }
+
+  // Retourner la locale par défaut si non supportée
+  return defaultLocale;
+}
+
 export default getRequestConfig(async ({ locale }) => {
   // Vérifier si la locale est supportée
   if (!locales.includes(locale as string)) {
@@ -24,7 +45,7 @@ export default getRequestConfig(async ({ locale }) => {
 
   // Importer dynamiquement les messages pour la locale demandée
   try {
-    const messages = (await import(`../../messages/${locale}.json`)).default;
+    const messages = (await import(`../messages/${locale}.json`)).default;
     return {
       locale: locale as string,
       messages,
@@ -71,3 +92,30 @@ export default getRequestConfig(async ({ locale }) => {
     };
   }
 });
+
+/**
+ * Charge les messages de traduction pour une locale donnée
+ * @param locale Locale à charger
+ * @returns Objet contenant la locale et les messages traduits
+ */
+export async function getMessages(locale: string = defaultLocale) {
+  // Normaliser la locale pour s'assurer qu'elle est supportée
+  locale = normalizeLocale(locale);
+
+  // Importer dynamiquement les messages pour la locale demandée
+  try {
+    const messages = (await import(`../messages/${locale}.json`)).default;
+    return {
+      locale: locale as string,
+      messages,
+    };
+  } catch (error) {
+    console.error(`Failed to load messages for locale ${locale}`, error);
+    // Fallback sur la locale par défaut si la locale demandée échoue
+    const defaultMessages = (await import(`../messages/${defaultLocale}.json`)).default;
+    return {
+      locale: defaultLocale,
+      messages: defaultMessages,
+    };
+  }
+}

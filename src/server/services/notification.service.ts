@@ -649,3 +649,6 @@ function getDocumentsPageLink(role: string, locale: SupportedLanguage): string {
       return `${basePath}/${locale}/profile`;
   }
 }
+
+// Instancier et exporter le service
+export const notificationService = new NotificationService();

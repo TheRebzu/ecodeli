@@ -2,13 +2,12 @@
 
 import { useState } from 'react';
 import { trpc } from '@/app/_trpc/client';
-import { DocumentVerification } from '@/components/admin/document-verification';
+import { DocumentVerification } from '@/components/admin/verification/document-verification';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Loader2 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { DocumentType, UserRole } from '@prisma/client';
+import { UserRole } from '@prisma/client';
 
 type Verification = {
   id: string;

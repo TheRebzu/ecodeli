@@ -1,1 +1,77 @@
-import { router, protectedProcedure } from '../trpc';\nimport { z } from 'zod';\n\nexport const serviceRouter = router({\n  getAll: protectedProcedure\n    .input(z.object({\n      type: z.enum(['TRANSPORT', 'AIRPORT_TRANSFER', 'PET_SITTING', 'HOUSEKEEPING', 'GARDENING']).optional(),\n      limit: z.number().min(1).max(100).default(10),\n      cursor: z.string().nullish(),\n    }))\n    .query(async ({ ctx, input }) => {\n      // Récupération des services\n    }),\n  \n  getById: protectedProcedure\n    .input(z.object({ id: z.string() }))\n    .query(async ({ ctx, input }) => {\n      // Récupération d'un service par ID\n    }),\n  \n  create: protectedProcedure\n    .input(z.object({\n      type: z.enum(['TRANSPORT', 'AIRPORT_TRANSFER', 'PET_SITTING', 'HOUSEKEEPING', 'GARDENING']),\n      description: z.string(),\n      date: z.date(),\n      duration: z.number(), // en minutes\n      address: z.string(),\n      price: z.number(),\n    }))\n    .mutation(async ({ ctx, input }) => {\n      // Création d'un service\n    }),\n  \n  book: protectedProcedure\n    .input(z.object({\n      serviceId: z.string(),\n      date: z.date(),\n    }))\n    .mutation(async ({ ctx, input }) => {\n      // Réservation d'un service\n    }),\n  \n  updateStatus: protectedProcedure\n    .input(z.object({\n      id: z.string(),\n      status: z.enum(['PENDING', 'ACCEPTED', 'COMPLETED', 'CANCELLED']),\n    }))\n    .mutation(async ({ ctx, input }) => {\n      // Mise à jour du statut d'un service\n    }),\n  \n  addRating: protectedProcedure\n    .input(z.object({\n      id: z.string(),\n      rating: z.number().min(1).max(5),\n      comment: z.string().optional(),\n    }))\n    .mutation(async ({ ctx, input }) => {\n      // Ajout d'une évaluation\n    }),\n});
+import { router, protectedProcedure } from '../trpc';
+import { z } from 'zod';
+
+export const serviceRouter = router({
+  getAll: protectedProcedure
+    .input(
+      z.object({
+        type: z
+          .enum(['TRANSPORT', 'AIRPORT_TRANSFER', 'PET_SITTING', 'HOUSEKEEPING', 'GARDENING'])
+          .optional(),
+        limit: z.number().min(1).max(100).default(10),
+        cursor: z.string().nullish(),
+      })
+    )
+    .query(async () => {
+      // Récupération des services
+      return [];
+    }),
+
+  getById: protectedProcedure.input(z.object({ id: z.string() })).query(async () => {
+    // Récupération d'un service par ID
+    return null;
+  }),
+
+  create: protectedProcedure
+    .input(
+      z.object({
+        type: z.enum(['TRANSPORT', 'AIRPORT_TRANSFER', 'PET_SITTING', 'HOUSEKEEPING', 'GARDENING']),
+        description: z.string(),
+        date: z.date(),
+        duration: z.number(), // en minutes
+        address: z.string(),
+        price: z.number(),
+      })
+    )
+    .mutation(async () => {
+      // Création d'un service
+      return { id: 'mock-service-id', success: true };
+    }),
+
+  book: protectedProcedure
+    .input(
+      z.object({
+        serviceId: z.string(),
+        date: z.date(),
+      })
+    )
+    .mutation(async () => {
+      // Réservation d'un service
+      return { success: true, bookingId: 'mock-booking-id' };
+    }),
+
+  updateStatus: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        status: z.enum(['PENDING', 'ACCEPTED', 'COMPLETED', 'CANCELLED']),
+      })
+    )
+    .mutation(async () => {
+      // Mise à jour du statut d'un service
+      return { success: true };
+    }),
+
+  addRating: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        rating: z.number().min(1).max(5),
+        comment: z.string().optional(),
+      })
+    )
+    .mutation(async () => {
+      // Ajout d'une évaluation
+      return { success: true };
+    }),
+});

@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { TRPCError } from '@trpc/server';
 import { db } from '../db';
 import crypto from 'crypto';
-import { notificationService } from './notification.service';
+import { NotificationService } from './notification.service';
 import { getUserPreferredLocale } from '@/lib/user-locale';
 
 // Interface Document pour typer les retours
@@ -96,11 +96,13 @@ type UploadFileResult = {
 export class DocumentService {
   private prisma: PrismaClient;
   private uploadDir: string;
+  private notificationService: NotificationService;
 
   constructor(prisma = db) {
     this.prisma = prisma;
     // Le dossier d'uploads est relatif à la racine du projet
     this.uploadDir = path.join(process.cwd(), 'public', 'uploads');
+    this.notificationService = new NotificationService();
   }
 
   /**
@@ -946,7 +948,7 @@ export class DocumentService {
 
         if (data.verificationStatus === VerificationStatus.APPROVED) {
           // Send approval notification
-          await notificationService.sendDocumentApprovedNotification(userWithDocument, locale);
+          await this.notificationService.sendDocumentApprovedNotification(userWithDocument, locale);
 
           // Send approval email
           await this.emailService.sendDocumentApprovedEmail(
@@ -959,7 +961,7 @@ export class DocumentService {
 
         if (data.verificationStatus === VerificationStatus.REJECTED) {
           // Send rejection notification
-          await notificationService.sendDocumentRejectedNotification(
+          await this.notificationService.sendDocumentRejectedNotification(
             userWithDocument,
             data.rejectionReason || 'Document invalide',
             locale
@@ -1079,7 +1081,10 @@ export class DocumentService {
 
     if (missingDocuments.length > 0) {
       const locale = getUserPreferredLocale(user);
-      await notificationService.sendMissingDocumentsReminder(user, missingDocuments, locale);
+      await this.notificationService.sendMissingDocumentsReminder(user, missingDocuments, locale);
     }
   }
 }
+
+// Exporter une instance du service
+export const documentService = new DocumentService();

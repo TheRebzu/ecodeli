@@ -1,9 +1,6 @@
 import { initTRPC, TRPCError } from '@trpc/server';
 import superjson from 'superjson';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '../auth/next-auth';
-import { db } from '../db';
-import { router } from './trpc';
+import { router, createTRPCContext } from './trpc';
 import { authRouter } from './routers/auth.router';
 import { userRouter } from './routers/user.router';
 import { announcementRouter } from './routers/announcement.router';
@@ -17,22 +14,15 @@ import { verificationRouter } from './routers/verification.router';
 import { userPreferencesRouter } from '@/server/api/routers/user-preferences.router';
 import { notificationRouter } from './routers/notification.router';
 import { adminUserRouter } from './routers/admin-user.router';
+import { adminDashboardRouter } from './routers/admin-dashboard.router';
+import { warehouseRouter as adminWarehouseRouter } from './routers/admin/warehouse.router';
 
-// Exporter explicitement cette fonction
-export const createTRPCContext = async (opts: { req?: Request }) => {
-  const session = await getServerSession(authOptions);
-  return {
-    db,
-    prisma: db,
-    session,
-  };
-};
+// Re-export createTRPCContext from trpc.ts
+export { createTRPCContext };
 
 const t = initTRPC.context<typeof createTRPCContext>().create({
   transformer: superjson,
 });
-
-export const publicProcedure = t.procedure;
 
 const isAuthenticated = t.middleware(({ ctx, next }) => {
   if (!ctx.session || !ctx.session.user) {
@@ -60,22 +50,23 @@ const isAdmin = t.middleware(({ ctx, next }) => {
 
 export const adminProcedure = t.procedure.use(isAuthenticated).use(isAdmin);
 
-// L'application router principal qui combine tous les routeurs
+// Export the full router
 export const appRouter = router({
   auth: authRouter,
   user: userRouter,
-  userPreferences: userPreferencesRouter,
   announcement: announcementRouter,
   delivery: deliveryRouter,
   service: serviceRouter,
   payment: paymentRouter,
   invoice: invoiceRouter,
   warehouse: warehouseRouter,
+  adminWarehouse: adminWarehouseRouter,
   document: documentRouter,
   verification: verificationRouter,
+  userPreferences: userPreferencesRouter,
   notification: notificationRouter,
   adminUser: adminUserRouter,
+  adminDashboard: adminDashboardRouter,
 });
 
-// Type d'inférence pour le client
 export type AppRouter = typeof appRouter;

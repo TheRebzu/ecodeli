@@ -1,90 +1,64 @@
 'use client';
 
 import { useState } from 'react';
-import { trpc } from '@/app/_trpc/client';
-import { DocumentVerification } from '@/components/admin/document-verification';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Loader2 } from 'lucide-react';
-import { UserRole } from '@prisma/client';
+import { FileText } from 'lucide-react';
+import { VerificationStatus } from '@prisma/client';
 
 type Verification = {
   id: string;
-  status: string;
-  requestedAt: Date;
-  verifiedAt: Date | null;
+  status: VerificationStatus;
   document: {
     id: string;
     type: string;
     filename: string;
-    fileUrl: string;
-    mimeType: string;
-    uploadedAt: Date;
-    isVerified: boolean;
   };
   submitter: {
     id: string;
     name: string;
     email: string;
-    provider: {
-      id: string;
-      isVerified: boolean;
-    } | null;
   };
 };
 
-export function ProviderVerificationList({
-  verifications = [],
-}: {
-  verifications?: Verification[];
-}) {
+type ProviderVerificationListProps = {
+  verifications: Verification[];
+};
+
+export function ProviderVerificationList({ verifications }: ProviderVerificationListProps) {
   const [activeTab, setActiveTab] = useState('pending');
 
-  const {
-    data: pendingVerifications,
-    isLoading,
-    refetch,
-  } = trpc.verification.getPendingVerifications.useQuery(
-    { userRole: 'PROVIDER' as UserRole },
-    {
-      initialData: activeTab === 'pending' ? verifications : undefined,
-      enabled: activeTab === 'pending',
-    }
+  const pendingVerifications = verifications.filter(
+    verification => verification.status === 'PENDING'
   );
 
-  const handleVerificationComplete = async () => {
-    await refetch();
-  };
-
   const renderPendingVerifications = () => {
-    if (isLoading) {
-      return (
-        <div className="flex justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-primary" />
-        </div>
-      );
-    }
-
     if (!pendingVerifications || pendingVerifications.length === 0) {
       return (
         <Card>
           <CardContent className="py-8">
-            <p className="text-center text-muted-foreground">Aucune vérification en attente</p>
+            <div className="flex flex-col items-center justify-center">
+              <FileText className="h-12 w-12 text-muted-foreground mb-4" />
+              <p className="text-center text-muted-foreground">Aucune vérification en attente</p>
+            </div>
           </CardContent>
         </Card>
       );
     }
 
     return pendingVerifications.map(verification => (
-      <DocumentVerification
-        key={verification.id}
-        document={{
-          ...verification.document,
-          submitter: verification.submitter,
-        }}
-        onVerify={handleVerificationComplete}
-      />
+      <Card key={verification.id} className="mb-4">
+        <CardContent className="py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-medium">{verification.submitter.name}</h3>
+              <p className="text-sm text-muted-foreground">{verification.document.type}</p>
+            </div>
+            <Badge>En attente</Badge>
+          </div>
+        </CardContent>
+      </Card>
     ));
   };
 

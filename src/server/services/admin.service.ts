@@ -1,71 +1,198 @@
-import { PrismaClient, User, UserRole, UserStatus, Prisma } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
-import { UserFilters, UserListItem, UserSortOptions } from '../../types/admin';
+import { PrismaClient, UserRole, UserStatus, Prisma } from '@prisma/client';
+import { db } from '../db';
+import { sendEmailNotification } from '@/lib/email';
+import { getUserPreferredLocale } from '@/lib/user-locale';
+import { UserFilters, ActivityType } from '@/types/admin/admin';
 
+/**
+ * Options de tri pour les utilisateurs
+ */
+interface SortOptions {
+  field: string;
+  direction: 'asc' | 'desc';
+}
+
+/**
+ * Service d'administration pour la gestion des utilisateurs
+ */
 export class AdminService {
-  constructor(private prisma: PrismaClient) {}
+  private prisma: PrismaClient;
+
+  constructor(prismaClient: PrismaClient) {
+    this.prisma = prismaClient || db;
+  }
 
   /**
-   * Get a paginated list of users with filters and sorting
+   * Récupère une liste paginée d'utilisateurs avec filtres
    */
   async getUsers(
-    filters: UserFilters & { page: number; limit: number },
-    sortOptions: UserSortOptions
-  ): Promise<{ users: UserListItem[]; total: number }> {
-    const { role, status, isVerified, search, dateFrom, dateTo, page, limit } = filters;
-    const { field, direction } = sortOptions;
+    filters: UserFilters & { page?: number; limit?: number } = {},
+    sort: SortOptions = { field: 'createdAt', direction: 'desc' }
+  ) {
+    try {
+      const {
+        page = 1,
+        limit = 10,
+        search,
+        role,
+        status,
+        isVerified,
+        dateFrom,
+        dateTo,
+        hasDocuments,
+        hasPendingVerifications,
+        country,
+        city,
+      } = filters;
 
-    const where: Prisma.UserWhereInput = {};
+      const skip = (page - 1) * limit;
 
-    // Apply filters
-    if (role) where.role = role;
-    if (status) where.status = status;
-    if (search) {
-      where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { email: { contains: search, mode: 'insensitive' } },
-      ];
-    }
-    if (dateFrom || dateTo) {
-      where.createdAt = {};
-      if (dateFrom) where.createdAt.gte = dateFrom;
-      if (dateTo) where.createdAt.lte = dateTo;
-    }
+      // Construct where conditions
+      const where: Prisma.UserWhereInput = {};
 
-    // Count total matching users
-    const total = await this.prisma.user.count({ where });
-
-    // Fetch users with pagination and sorting
-    const users = await this.prisma.user.findMany({
-      where,
-      include: {
-        client: { select: { id: true } },
-        deliverer: { select: { id: true, isVerified: true } },
-        merchant: { select: { id: true, isVerified: true } },
-        provider: { select: { id: true, isVerified: true } },
-        admin: { select: { id: true, permissions: true } },
-      },
-      skip: (page - 1) * limit,
-      take: limit,
-      orderBy: { [field]: direction },
-    });
-
-    // Map to the required format and determine verified status
-    const mappedUsers = users.map(user => {
-      let isVerifiedStatus = false;
-
-      if (user.role === UserRole.DELIVERER && user.deliverer) {
-        isVerifiedStatus = user.deliverer.isVerified;
-      } else if (user.role === UserRole.MERCHANT && user.merchant) {
-        isVerifiedStatus = user.merchant.isVerified;
-      } else if (user.role === UserRole.PROVIDER && user.provider) {
-        isVerifiedStatus = user.provider.isVerified;
-      } else if (user.role === UserRole.CLIENT || user.role === UserRole.ADMIN) {
-        // Clients and admins don't need verification
-        isVerifiedStatus = true;
+      // Search by name or email
+      if (search) {
+        where.OR = [
+          { name: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+          { phoneNumber: { contains: search, mode: 'insensitive' } },
+        ];
       }
 
-      return {
+      // Filter by role
+      if (role) {
+        where.role = role;
+      }
+
+      // Filter by status
+      if (status) {
+        where.status = status;
+      }
+
+      // Filter by verification status
+      if (isVerified !== undefined) {
+        where.isVerified = isVerified;
+      }
+
+      // Filter by creation date range
+      if (dateFrom || dateTo) {
+        where.createdAt = {};
+        if (dateFrom) where.createdAt.gte = dateFrom;
+        if (dateTo) where.createdAt.lte = dateTo;
+      }
+
+      // Filter by having documents
+      if (hasDocuments) {
+        where.documents = {
+          some: {},
+        };
+      }
+
+      // Filter by having pending verifications
+      if (hasPendingVerifications) {
+        where.submittedVerifications = {
+          some: {
+            status: 'PENDING',
+          },
+        };
+      }
+
+      // Filter by location (via role-specific models)
+      if (country || city) {
+        const locationFilter: Prisma.UserWhereInput = {
+          OR: [],
+        };
+
+        if (country) {
+          locationFilter.OR?.push({
+            client: { country },
+          });
+          locationFilter.OR?.push({
+            merchant: { businessCountry: country },
+          });
+        }
+
+        if (city) {
+          locationFilter.OR?.push({
+            client: { city },
+          });
+          locationFilter.OR?.push({
+            merchant: { businessCity: city },
+          });
+        }
+
+        if (locationFilter.OR?.length) {
+          where.OR = where.OR || [];
+          where.OR.push(...(locationFilter.OR as any[]));
+        }
+      }
+
+      // Determine sort field mapping
+      let orderBy: any = {};
+      switch (sort.field) {
+        case 'name':
+        case 'email':
+        case 'role':
+        case 'status':
+        case 'createdAt':
+        case 'lastLoginAt':
+          orderBy[sort.field] = sort.direction;
+          break;
+        case 'lastActivityAt':
+          // Sort by the most recent activity log
+          orderBy = {
+            activityLogs: {
+              _max: {
+                createdAt: sort.direction,
+              },
+            },
+          };
+          break;
+        default:
+          orderBy.createdAt = 'desc';
+      }
+
+      // Execute count query
+      const totalUsers = await this.prisma.user.count({ where });
+
+      // Execute main query
+      const users = await this.prisma.user.findMany({
+        where,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          status: true,
+          createdAt: true,
+          lastLoginAt: true,
+          isVerified: true,
+          phoneNumber: true,
+          _count: {
+            select: {
+              documents: true,
+              submittedVerifications: {
+                where: {
+                  status: 'PENDING',
+                },
+              },
+            },
+          },
+          activityLogs: {
+            orderBy: {
+              createdAt: 'desc',
+            },
+            take: 1,
+          },
+        },
+        orderBy,
+        skip,
+        take: limit,
+      });
+
+      // Transform data for client
+      const transformedUsers = users.map(user => ({
         id: user.id,
         name: user.name,
         email: user.email,
@@ -73,225 +200,587 @@ export class AdminService {
         status: user.status,
         createdAt: user.createdAt,
         lastLoginAt: user.lastLoginAt,
-        isVerified: isVerifiedStatus,
+        isVerified: user.isVerified,
+        phoneNumber: user.phoneNumber,
+        documentsCount: user._count.documents,
+        pendingVerificationsCount: user._count.submittedVerifications,
+        lastActivityAt: user.activityLogs[0]?.createdAt,
+      }));
+
+      return {
+        users: transformedUsers,
+        total: totalUsers,
+        page,
+        limit,
+        totalPages: Math.ceil(totalUsers / limit),
       };
-    });
-
-    // Filter by verification status if requested
-    const filteredUsers =
-      isVerified !== undefined
-        ? mappedUsers.filter(user => user.isVerified === isVerified)
-        : mappedUsers;
-
-    return {
-      users: filteredUsers,
-      total: isVerified !== undefined ? filteredUsers.length : total,
-    };
+    } catch (error) {
+      console.error('Error retrieving users:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Error retrieving users',
+      });
+    }
   }
 
   /**
-   * Get detailed information about a specific user
+   * Récupère les détails complets d'un utilisateur
    */
-  async getUserDetail(userId: string): Promise<
-    User & {
-      client: Prisma.ClientGetPayload<{}> | null;
-      deliverer: Prisma.DelivererGetPayload<{}> | null;
-      merchant: Prisma.MerchantGetPayload<{}> | null;
-      provider: Prisma.ProviderGetPayload<{}> | null;
-      admin: Prisma.AdminGetPayload<{}> | null;
+  async getUserDetail(
+    userId: string,
+    options = {
+      includeDocuments: true,
+      includeVerificationHistory: true,
+      includeActivityLogs: false,
     }
-  > {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      include: {
-        client: true,
-        deliverer: true,
-        merchant: true,
-        provider: true,
-        admin: true,
-      },
-    });
-
-    if (!user) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'User not found',
-      });
-    }
-
-    return user;
-  }
-
-  /**
-   * Update a user's status (activate, suspend, etc.)
-   */
-  async updateUserStatus(userId: string, status: UserStatus): Promise<User> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!user) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'User not found',
-      });
-    }
-
-    // Update user status
-    return this.prisma.user.update({
-      where: { id: userId },
-      data: { status },
-    });
-
-    // Future improvement: add activity logging
-  }
-
-  /**
-   * Update a user's role
-   */
-  async updateUserRole(userId: string, role: UserRole): Promise<User> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!user) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'User not found',
-      });
-    }
-
-    // Cannot change role if already has profile data for current role
-    // This would require a more complex migration process
-    if (role !== user.role) {
-      const hasExistingProfile = await this.checkExistingProfile(userId, user.role);
-      if (hasExistingProfile) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Cannot change role: user already has profile data for current role',
-        });
-      }
-    }
-
-    // Create the new role-specific record if needed
-    await this.createRoleProfile(userId, role);
-
-    // Update user role
-    return this.prisma.user.update({
-      where: { id: userId },
-      data: { role },
-    });
-
-    // Future improvement: add activity logging
-  }
-
-  /**
-   * Update admin permissions
-   */
-  async updateAdminPermissions(userId: string, permissions: string[]): Promise<User> {
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      include: { admin: true },
-    });
-
-    if (!user) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'User not found',
-      });
-    }
-
-    if (user.role !== UserRole.ADMIN) {
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'User is not an admin',
-      });
-    }
-
-    if (!user.admin) {
-      // Create admin record if it doesn't exist
-      await this.prisma.admin.create({
-        data: {
-          userId,
-          permissions,
+  ) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        include: {
+          client: options.includeVerificationHistory,
+          deliverer: options.includeVerificationHistory,
+          merchant: options.includeVerificationHistory,
+          provider: options.includeVerificationHistory,
+          admin: true,
+          documents: options.includeDocuments
+            ? {
+                select: {
+                  id: true,
+                  type: true,
+                  status: true,
+                  createdAt: true,
+                  updatedAt: true,
+                  fileUrl: true,
+                },
+                orderBy: {
+                  createdAt: 'desc',
+                },
+              }
+            : false,
+          verificationHistory: options.includeVerificationHistory
+            ? {
+                select: {
+                  id: true,
+                  status: true,
+                  timestamp: true,
+                  reason: true,
+                  verifiedBy: {
+                    select: {
+                      id: true,
+                      name: true,
+                    },
+                  },
+                },
+                orderBy: {
+                  timestamp: 'desc',
+                },
+              }
+            : false,
+          activityLogs: options.includeActivityLogs
+            ? {
+                select: {
+                  id: true,
+                  activityType: true,
+                  details: true,
+                  ipAddress: true,
+                  createdAt: true,
+                },
+                orderBy: {
+                  createdAt: 'desc',
+                },
+                take: 50,
+              }
+            : false,
         },
       });
-    } else {
-      // Update existing admin record
-      await this.prisma.admin.update({
-        where: { userId },
-        data: { permissions },
+
+      if (!user) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'User not found',
+        });
+      }
+
+      return user;
+    } catch (error) {
+      if (error instanceof TRPCError) throw error;
+
+      console.error('Error retrieving user details:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Error retrieving user details',
       });
     }
-
-    return this.prisma.user.findUnique({
-      where: { id: userId },
-    }) as Promise<User>;
   }
 
-  // Helper methods
-  private async checkExistingProfile(userId: string, role: UserRole): Promise<boolean> {
-    switch (role) {
-      case UserRole.CLIENT:
-        return !!(await this.prisma.client.findUnique({ where: { userId } }));
-      case UserRole.DELIVERER:
-        return !!(await this.prisma.deliverer.findUnique({ where: { userId } }));
-      case UserRole.MERCHANT:
-        return !!(await this.prisma.merchant.findUnique({ where: { userId } }));
-      case UserRole.PROVIDER:
-        return !!(await this.prisma.provider.findUnique({ where: { userId } }));
-      case UserRole.ADMIN:
-        return !!(await this.prisma.admin.findUnique({ where: { userId } }));
-      default:
-        return false;
+  /**
+   * Met à jour le statut d'un utilisateur
+   */
+  async updateUserStatus(
+    userId: string,
+    status: UserStatus,
+    options: { reason?: string; notifyUser?: boolean } = {}
+  ) {
+    const { reason, notifyUser = true } = options;
+
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { email: true, name: true, role: true, status: true },
+      });
+
+      if (!user) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'User not found',
+        });
+      }
+
+      // Don't allow updates if status is the same
+      if (user.status === status) {
+        return { success: true, message: 'User status is already set to ' + status };
+      }
+
+      // Update user in a transaction to include audit trail
+      const updatedUser = await this.prisma.$transaction(async tx => {
+        // Update user status
+        const updated = await tx.user.update({
+          where: { id: userId },
+          data: { status },
+        });
+
+        // We'll implement activity logging later when schema is updated
+        // For now, just return the updated user
+        return updated;
+      });
+
+      // Send email notification if enabled
+      if (notifyUser) {
+        const locale = getUserPreferredLocale(user);
+        await sendEmailNotification({
+          to: user.email,
+          subject: locale === 'fr' ? 'Modification de votre statut' : 'Status update',
+          templateName: 'user-status-update',
+          data: {
+            name: user.name || '',
+            status,
+            reason: reason || '',
+          },
+          locale,
+        });
+      }
+
+      return updatedUser;
+    } catch (error) {
+      if (error instanceof TRPCError) throw error;
+
+      console.error('Error updating user status:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Error updating user status',
+      });
     }
   }
 
-  private async createRoleProfile(userId: string, role: UserRole): Promise<void> {
-    switch (role) {
-      case UserRole.CLIENT:
-        await this.prisma.client.create({
-          data: { userId },
+  /**
+   * Met à jour le rôle d'un utilisateur
+   */
+  async updateUserRole(
+    userId: string,
+    role: UserRole,
+    options: { reason?: string; createRoleSpecificProfile?: boolean } = {}
+  ) {
+    const { reason, createRoleSpecificProfile = true } = options;
+
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        include: {
+          client: true,
+          deliverer: true,
+          merchant: true,
+          provider: true,
+          admin: true,
+        },
+      });
+
+      if (!user) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'User not found',
         });
-        break;
-      case UserRole.DELIVERER:
-        await this.prisma.deliverer.create({
+      }
+
+      // Check if role change is allowed
+      if (user.role === 'ADMIN' && role !== 'ADMIN') {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Cannot remove admin role directly',
+        });
+      }
+
+      // Don't allow updates if role is the same
+      if (user.role === role) {
+        return { success: true, message: 'User role is already set to ' + role };
+      }
+
+      // Update user in a transaction
+      const updatedUser = await this.prisma.$transaction(async tx => {
+        // Update user role
+        const updated = await tx.user.update({
+          where: { id: userId },
+          data: { role },
+        });
+
+        // Create role-specific profile if it doesn't exist
+        if (createRoleSpecificProfile) {
+          switch (role) {
+            case 'CLIENT':
+              if (!user.client) {
+                await tx.client.create({
+                  data: {
+                    userId,
+                  },
+                });
+              }
+              break;
+            case 'DELIVERER':
+              if (!user.deliverer) {
+                await tx.deliverer.create({
+                  data: {
+                    userId,
+                    phone: user.phoneNumber || '',
+                  },
+                });
+              }
+              break;
+            case 'MERCHANT':
+              if (!user.merchant) {
+                await tx.merchant.create({
+                  data: {
+                    userId,
+                    companyName: user.name,
+                    address: '',
+                    phone: user.phoneNumber || '',
+                  },
+                });
+              }
+              break;
+            case 'PROVIDER':
+              if (!user.provider) {
+                await tx.provider.create({
+                  data: {
+                    userId,
+                  },
+                });
+              }
+              break;
+            case 'ADMIN':
+              if (!user.admin) {
+                await tx.admin.create({
+                  data: {
+                    userId,
+                    permissions: ['users.view'],
+                  },
+                });
+              }
+              break;
+          }
+        }
+
+        // Record the activity
+        await tx.userActivityLog.create({
           data: {
             userId,
-            phone: '', // Required field
+            activityType: ActivityType.ROLE_CHANGE,
+            details: `Role changed from ${user.role} to ${role}${reason ? `: ${reason}` : ''}`,
           },
         });
-        break;
-      case UserRole.MERCHANT:
-        await this.prisma.merchant.create({
-          data: {
-            userId,
-            companyName: '',
-            address: '',
-            phone: '',
-          },
+
+        return updated;
+      });
+
+      return updatedUser;
+    } catch (error) {
+      if (error instanceof TRPCError) throw error;
+
+      console.error('Error updating user role:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Error updating user role',
+      });
+    }
+  }
+
+  /**
+   * Met à jour les permissions d'un administrateur
+   */
+  async updateAdminPermissions(userId: string, permissions: string[]) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        include: {
+          admin: true,
+        },
+      });
+
+      if (!user) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'User not found',
         });
-        break;
-      case UserRole.PROVIDER:
-        await this.prisma.provider.create({
-          data: {
-            userId,
-            address: '',
-            phone: '',
-            services: [],
-          },
+      }
+
+      if (user.role !== 'ADMIN') {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Only administrators can have admin permissions',
         });
-        break;
-      case UserRole.ADMIN:
+      }
+
+      // Create or update admin profile with permissions
+      if (!user.admin) {
         await this.prisma.admin.create({
           data: {
             userId,
-            permissions: ['users.view'],
+            permissions,
           },
         });
-        break;
-      default:
-        break;
+      } else {
+        await this.prisma.admin.update({
+          where: { userId },
+          data: { permissions },
+        });
+      }
+
+      // Log the activity
+      await this.prisma.userActivityLog.create({
+        data: {
+          userId,
+          activityType: ActivityType.PROFILE_UPDATE,
+          details: `Admin permissions updated: ${permissions.join(', ')}`,
+        },
+      });
+
+      return { success: true, permissions };
+    } catch (error) {
+      if (error instanceof TRPCError) throw error;
+
+      console.error('Error updating admin permissions:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Error updating admin permissions',
+      });
+    }
+  }
+
+  /**
+   * Ajoute une note à un utilisateur
+   */
+  async addUserNote(userId: string, note: string) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'User not found',
+        });
+      }
+
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          notes: user.notes
+            ? `${user.notes}\n\n${new Date().toISOString()}: ${note}`
+            : `${new Date().toISOString()}: ${note}`,
+        },
+      });
+
+      return { success: true };
+    } catch (error) {
+      if (error instanceof TRPCError) throw error;
+
+      console.error('Error adding user note:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Error adding user note',
+      });
+    }
+  }
+
+  /**
+   * Récupère les logs d'activité d'un utilisateur
+   */
+  async getUserActivityLogs(
+    userId: string,
+    options: {
+      types?: ActivityType[];
+      dateFrom?: Date;
+      dateTo?: Date;
+      page?: number;
+      limit?: number;
+    } = {}
+  ) {
+    try {
+      const { types, dateFrom, dateTo, page = 1, limit = 10 } = options;
+      const skip = (page - 1) * limit;
+
+      // Construct where conditions
+      const where: Prisma.UserActivityLogWhereInput = { userId };
+
+      if (types?.length) {
+        where.activityType = { in: types };
+      }
+
+      if (dateFrom || dateTo) {
+        where.createdAt = {};
+        if (dateFrom) where.createdAt.gte = dateFrom;
+        if (dateTo) where.createdAt.lte = dateTo;
+      }
+
+      // Get total count
+      const total = await this.prisma.userActivityLog.count({ where });
+
+      // Get activity logs
+      const logs = await this.prisma.userActivityLog.findMany({
+        where,
+        select: {
+          id: true,
+          activityType: true,
+          details: true,
+          ipAddress: true,
+          createdAt: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        skip,
+        take: limit,
+      });
+
+      return {
+        logs,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      };
+    } catch (error) {
+      console.error('Error retrieving user activity logs:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Error retrieving user activity logs',
+      });
+    }
+  }
+
+  /**
+   * Ajoute manuellement un log d'activité pour un utilisateur
+   */
+  async addUserActivityLog(data: {
+    userId: string;
+    activityType: ActivityType;
+    details?: string;
+    ipAddress?: string;
+    userAgent?: string;
+  }) {
+    try {
+      const { userId, activityType, details, ipAddress, userAgent } = data;
+
+      // Check if user exists
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'User not found',
+        });
+      }
+
+      // Create activity log
+      const log = await this.prisma.userActivityLog.create({
+        data: {
+          userId,
+          activityType,
+          details,
+          ipAddress,
+          userAgent,
+        },
+      });
+
+      return log;
+    } catch (error) {
+      if (error instanceof TRPCError) throw error;
+
+      console.error('Error adding user activity log:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Error adding user activity log',
+      });
+    }
+  }
+
+  /**
+   * Exporte les utilisateurs selon des filtres
+   */
+  async exportUsers(format: 'csv' | 'excel' | 'pdf', fields: string[], filters: UserFilters = {}) {
+    try {
+      // Get filtered users with no pagination
+      const result = await this.getUsers(filters, { field: 'name', direction: 'asc' });
+      const users = result.users;
+
+      // This would connect to an export service
+      // For now, return mock data or CSV string
+      if (format === 'csv') {
+        // Create CSV header
+        const header = fields.join(',');
+
+        // Create CSV rows
+        const rows = users.map(user => {
+          return fields
+            .map(field => {
+              // @ts-ignore
+              const value = user[field];
+              if (value instanceof Date) {
+                return value.toISOString();
+              }
+              if (typeof value === 'object') {
+                return JSON.stringify(value);
+              }
+              return value?.toString() || '';
+            })
+            .join(',');
+        });
+
+        // Combine header and rows
+        return {
+          data: [header, ...rows].join('\n'),
+          filename: `users_export_${new Date().toISOString().slice(0, 10)}.csv`,
+          mimeType: 'text/csv',
+        };
+      }
+
+      // Mock for other formats
+      return {
+        data: 'Export data would go here',
+        filename: `users_export_${new Date().toISOString().slice(0, 10)}.${format}`,
+        mimeType:
+          format === 'excel'
+            ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            : 'application/pdf',
+      };
+    } catch (error) {
+      console.error('Error exporting users:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Error exporting users',
+      });
     }
   }
 }

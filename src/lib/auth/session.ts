@@ -1,4 +1,4 @@
-import { getServerSession } from 'next-auth/next';
+import { getServerSession } from 'next-auth';
 import { authOptions } from '@/server/auth/next-auth';
 import { UserRole } from '@prisma/client';
 

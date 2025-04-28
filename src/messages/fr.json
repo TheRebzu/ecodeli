@@ -451,5 +451,471 @@
   "enter_approval_notes": "Ajouter des notes d'approbation (optionnel)",
   "enter_rejection_reason": "Entrez la raison du rejet",
   "notes_optional": "Les notes sont optionnelles",
-  "cancel": "Annuler"
+  "cancel": "Annuler",
+  "admin": {
+    "verification": {
+      "metadata": {
+        "title": "Vérifications | EcoDeli Admin",
+        "description": "Gérez les demandes de vérification des utilisateurs"
+      },
+      "title": "Vérifications",
+      "description": "Gérez les demandes de vérification des utilisateurs",
+      "provider": {
+        "title": "Vérification des prestataires",
+        "description": "Gérez les demandes de vérification des prestataires de services"
+      },
+      "deliverer": {
+        "title": "Vérification des livreurs",
+        "description": "Gérez les demandes de vérification des livreurs"
+      },
+      "merchant": {
+        "title": "Vérification des commerçants",
+        "description": "Gérez les demandes de vérification des commerçants"
+      },
+      "stats": {
+        "pending": "En attente",
+        "approved": "Approuvées",
+        "rejected": "Rejetées",
+        "total": "Total"
+      },
+      "tabs": {
+        "pending": "En attente",
+        "approved": "Approuvées",
+        "rejected": "Rejetées"
+      },
+      "status": {
+        "PENDING": "En attente",
+        "APPROVED": "Approuvé",
+        "REJECTED": "Rejeté",
+        "EXPIRED": "Expiré"
+      },
+      "table": {
+        "user": "Utilisateur",
+        "role": "Rôle",
+        "documentType": "Type de document",
+        "submitted": "Soumis le",
+        "status": "Statut",
+        "processedAt": "Traité le",
+        "expires": "Expire le",
+        "actions": "Actions"
+      },
+      "actions": {
+        "view": "Voir",
+        "approve": "Approuver",
+        "reject": "Rejeter",
+        "back": "Retour"
+      },
+      "roles": {
+        "admin": "Administrateur",
+        "client": "Client",
+        "deliverer": "Livreur",
+        "merchant": "Commerçant",
+        "provider": "Prestataire"
+      },
+      "documentTypes": {
+        "ID_CARD": "Carte d'identité",
+        "PASSPORT": "Passeport",
+        "DRIVER_LICENSE": "Permis de conduire",
+        "BUSINESS_LICENSE": "Licence commerciale",
+        "PROOF_OF_ADDRESS": "Justificatif de domicile",
+        "OTHER": "Autre document"
+      },
+      "footer": {
+        "updatedAt": "Mis à jour le {date}"
+      },
+      "pending": {
+        "empty": {
+          "title": "Aucune vérification en attente",
+          "description": "Toutes les demandes de vérification ont été traitées"
+        }
+      },
+      "processed": {
+        "empty": {
+          "title": "Aucune vérification traitée",
+          "description": "Aucune demande de vérification n'a encore été traitée"
+        }
+      },
+      "error": {
+        "title": "Erreur",
+        "description": "Impossible de charger les demandes de vérification",
+        "notFound": "Demande de vérification introuvable"
+      },
+      "filters": {
+        "role": "Rôle",
+        "search": "Rechercher",
+        "dateFrom": "Date de début",
+        "dateTo": "Date de fin",
+        "allRoles": "Tous les rôles",
+        "searchPlaceholder": "Nom ou email...",
+        "selectDate": "Sélectionner une date",
+        "filter": "Filtrer",
+        "reset": "Réinitialiser",
+        "sortBy": "Trier par",
+        "sortDirection": "Ordre",
+        "roles": {
+          "deliverer": "Livreur",
+          "merchant": "Commerçant",
+          "provider": "Prestataire"
+        }
+      },
+      "detail": {
+        "metadata": {
+          "title": "Détails de vérification | EcoDeli Admin",
+          "description": "Vérifiez et approuvez ou rejetez une demande de vérification"
+        },
+        "title": "Détails de la vérification",
+        "error": {
+          "title": "Erreur",
+          "description": "Impossible de charger les détails de la vérification",
+          "notFound": "Demande de vérification introuvable"
+        },
+        "document": {
+          "title": "Document",
+          "uploadedAt": "Uploadé le {date}",
+          "download": "Télécharger",
+          "preview": {
+            "unsupported": "Prévisualisation non disponible pour ce type de fichier",
+            "open": "Ouvrir dans un nouvel onglet"
+          }
+        },
+        "history": {
+          "title": "Historique",
+          "description": "Suivi de l'évolution de la demande",
+          "submitted": {
+            "title": "Document soumis",
+            "description": "Le {date} par {user}"
+          },
+          "approved": {
+            "title": "Vérification approuvée",
+            "description": "Le {date} par {user}"
+          },
+          "rejected": {
+            "title": "Vérification rejetée",
+            "description": "Le {date} par {user}"
+          }
+        },
+        "user": {
+          "title": "Informations utilisateur",
+          "description": "Détails du demandeur",
+          "role": "Rôle",
+          "accountCreated": "Compte créé le",
+          "phone": "Téléphone"
+        },
+        "documentInfo": {
+          "title": "Informations sur le document",
+          "description": "Détails techniques du document",
+          "type": "Type de fichier",
+          "size": "Taille",
+          "uploadedAt": "Date d'envoi",
+          "status": "Statut"
+        },
+        "actions": {
+          "title": "Actions",
+          "description": "Approuver ou rejeter cette demande",
+          "approve": "Approuver la demande",
+          "reject": "Rejeter la demande",
+          "back": "Retour à la liste"
+        },
+        "approval": {
+          "dialog": {
+            "title": "Approuver la vérification",
+            "description": "Êtes-vous sûr de vouloir approuver cette vérification ?",
+            "notes": {
+              "label": "Notes (facultatif)",
+              "placeholder": "Ajoutez des notes concernant cette approbation...",
+              "help": "Ces notes seront enregistrées dans l'historique de vérification"
+            },
+            "actions": {
+              "confirm": "Approuver",
+              "cancel": "Annuler",
+              "loading": "Approbation en cours..."
+            }
+          },
+          "success": {
+            "title": "Vérification approuvée",
+            "description": "La vérification a été approuvée avec succès"
+          },
+          "error": {
+            "title": "Erreur d'approbation",
+            "description": "Une erreur est survenue lors de l'approbation de la vérification"
+          }
+        },
+        "rejection": {
+          "dialog": {
+            "title": "Rejeter la vérification",
+            "description": "Êtes-vous sûr de vouloir rejeter cette vérification ?",
+            "reason": {
+              "label": "Motif de rejet",
+              "placeholder": "Veuillez indiquer le motif du rejet...",
+              "help": "Le motif sera visible par l'utilisateur pour qu'il puisse effectuer les corrections nécessaires"
+            },
+            "actions": {
+              "confirm": "Rejeter",
+              "cancel": "Annuler",
+              "loading": "Rejet en cours..."
+            }
+          },
+          "success": {
+            "title": "Vérification rejetée",
+            "description": "La vérification a été rejetée avec succès"
+          },
+          "error": {
+            "title": "Erreur de rejet",
+            "description": "Une erreur est survenue lors du rejet de la vérification"
+          },
+          "validation": {
+            "title": "Motif requis",
+            "description": "Veuillez fournir un motif de rejet"
+          }
+        }
+      },
+      "contracts": {
+        "title": "Gestion des contrats",
+        "description": "Créer et gérer les contrats commerciaux",
+        "createContract": "Créer un contrat",
+        "editContract": "Modifier le contrat",
+        "selectTemplate": "Sélectionner un modèle",
+        "selectTemplateDescription": "Choisissez un modèle pour créer un nouveau contrat",
+        "allContracts": "Tous les contrats",
+        "contractName": "Nom du contrat",
+        "merchant": "Commerçant",
+        "status": "Statut",
+        "createdAt": "Créé le",
+        "expiresAt": "Expire le",
+        "signedAt": "Signé le",
+        "actions": "Actions",
+        "view": "Voir",
+        "edit": "Modifier",
+        "delete": "Supprimer",
+        "cancel": "Annuler",
+        "save": "Enregistrer",
+        "noContracts": "Aucun contrat trouvé",
+        "noContractsDescription": "Aucun contrat ne correspond à vos critères de recherche ou aucun contrat n'a été créé.",
+        "searchPlaceholder": "Rechercher un contrat...",
+        "status": {
+          "draft": "Brouillon",
+          "pendingSignature": "En attente de signature",
+          "active": "Actif",
+          "terminated": "Résilié",
+          "expired": "Expiré"
+        },
+        "details": {
+          "title": "Détails du contrat",
+          "general": "Informations générales",
+          "documents": "Documents",
+          "history": "Historique",
+          "merchantInfo": "Informations commerçant",
+          "contractTerms": "Conditions du contrat",
+          "signatureStatus": "État de la signature",
+          "paymentTerms": "Conditions de paiement",
+          "renewalInfo": "Informations de renouvellement",
+          "downloadPdf": "Télécharger le PDF",
+          "sendReminder": "Envoyer un rappel",
+          "renew": "Renouveler",
+          "terminate": "Résilier"
+        },
+        "templates": {
+          "title": "Modèles de contrat",
+          "description": "Gérer les modèles de contrat",
+          "createTemplate": "Créer un modèle",
+          "editTemplate": "Modifier le modèle",
+          "deleteTemplate": "Supprimer le modèle",
+          "templateName": "Nom du modèle",
+          "templateDescription": "Description",
+          "lastUpdated": "Dernière mise à jour",
+          "usageCount": "Nombre d'utilisations",
+          "preview": "Aperçu",
+          "noTemplates": "Aucun modèle trouvé",
+          "noTemplatesDescription": "Créez un nouveau modèle pour commencer."
+        }
+      },
+      "warehouses": {
+        "meta": {
+          "title": "Entrepôts",
+          "description": "Gérer les entrepôts et les box de stockage pour la plateforme"
+        },
+        "title": "Entrepôts",
+        "subtitle": "Gérer les entrepôts et les unités de stockage",
+        "create": "Ajouter un entrepôt",
+        "search": "Rechercher des entrepôts...",
+        "searchButton": "Rechercher",
+        "name": "Nom",
+        "location": "Emplacement",
+        "capacity": "Capacité",
+        "occupied": "Occupé",
+        "status": "Statut",
+        "active": "Actif",
+        "inactive": "Inactif",
+        "actions": "Actions",
+        "view": "Voir",
+        "edit": "Modifier",
+        "loading": "Chargement des entrepôts...",
+        "noWarehouses": "Aucun entrepôt trouvé",
+        "showing": "Affichage de",
+        "of": "sur",
+        "warehouses": "entrepôts",
+        "deleteTitle": "Supprimer l'entrepôt",
+        "deleteDescription": "Êtes-vous sûr de vouloir supprimer cet entrepôt ? Cette action ne peut pas être annulée et supprimera définitivement l'entrepôt et toutes ses données.",
+        "cancel": "Annuler",
+        "confirm": "Supprimer",
+        "deleteSuccess": "Entrepôt supprimé avec succès",
+        "deleteError": "Erreur lors de la suppression de l'entrepôt",
+
+        "form": {
+          "meta": {
+            "createTitle": "Créer un entrepôt",
+            "createDescription": "Ajouter un nouvel entrepôt au système",
+            "editTitle": "Modifier l'entrepôt",
+            "editDescription": "Modifier les détails de l'entrepôt"
+          },
+          "createTitle": "Créer un entrepôt",
+          "editTitle": "Modifier l'entrepôt",
+          "createDescription": "Ajouter un nouvel entrepôt au système",
+          "editDescription": "Modifier les détails de l'entrepôt",
+          "name": "Nom",
+          "nameDescription": "Le nom de l'entrepôt",
+          "location": "Emplacement",
+          "locationDescription": "Ville ou zone où se trouve l'entrepôt",
+          "address": "Adresse",
+          "addressDescription": "Adresse complète de l'entrepôt",
+          "capacity": "Capacité",
+          "capacityDescription": "Nombre maximum d'unités de stockage",
+          "description": "Description",
+          "descriptionHint": "Détails supplémentaires sur l'entrepôt",
+          "status": "Statut actif",
+          "statusDescription": "Activer ou désactiver cet entrepôt",
+          "cancel": "Annuler",
+          "create": "Créer l'entrepôt",
+          "update": "Mettre à jour l'entrepôt",
+          "saving": "Enregistrement...",
+          "createSuccess": "Entrepôt créé avec succès",
+          "createError": "Erreur lors de la création de l'entrepôt",
+          "updateSuccess": "Entrepôt mis à jour avec succès",
+          "updateError": "Erreur lors de la mise à jour de l'entrepôt"
+        },
+
+        "details": {
+          "meta": {
+            "title": "Détails de l'entrepôt",
+            "description": "Consulter et gérer les détails de l'entrepôt et des box"
+          },
+          "warehouseDetails": "Détails de l'entrepôt",
+          "backToList": "Retour à la liste",
+          "edit": "Modifier l'entrepôt",
+          "basicInfo": "Informations de base",
+          "location": "Emplacement",
+          "address": "Adresse",
+          "status": "Statut",
+          "active": "Actif",
+          "inactive": "Inactif",
+          "capacityInfo": "Informations sur la capacité",
+          "totalCapacity": "Capacité totale",
+          "occupiedSpace": "Espace occupé",
+          "totalBoxes": "Total des box",
+          "additionalInfo": "Informations supplémentaires",
+          "description": "Description",
+          "noDescription": "Aucune description fournie",
+          "createdAt": "Créé le",
+          "updatedAt": "Mis à jour le",
+          "boxes": "Box",
+          "statistics": "Statistiques",
+          "boxesDescription": "Box de stockage dans cet entrepôt",
+          "statisticsDescription": "Statistiques d'utilisation de l'entrepôt",
+          "comingSoon": "Statistiques à venir",
+          "createBox": "Ajouter une box",
+          "searchBox": "Rechercher des box...",
+          "searchButton": "Rechercher",
+          "boxName": "Nom de la box",
+          "size": "Taille",
+          "pricePerDay": "Prix/jour",
+          "occupation": "Statut",
+          "occupied": "Occupée",
+          "available": "Disponible",
+          "client": "Client",
+          "view": "Voir",
+          "loading": "Chargement des données de l'entrepôt...",
+          "loadingBoxes": "Chargement des box...",
+          "noBoxes": "Aucune box trouvée",
+          "showing": "Affichage de",
+          "of": "sur",
+          "boxesTotal": "box",
+          "deleteBoxTitle": "Supprimer la box",
+          "deleteBoxDescription": "Êtes-vous sûr de vouloir supprimer cette box ? Cette action ne peut pas être annulée.",
+          "cancel": "Annuler",
+          "confirm": "Supprimer",
+          "deleteBoxSuccess": "Box supprimée avec succès",
+          "deleteBoxError": "Erreur lors de la suppression de la box",
+          "actions": "Actions"
+        },
+
+        "boxes": {
+          "meta": {
+            "title": "Box de stockage",
+            "description": "Gérer les box de stockage dans l'entrepôt",
+            "createTitle": "Ajouter une box",
+            "createDescription": "Ajouter une nouvelle box de stockage à l'entrepôt",
+            "editTitle": "Modifier la box",
+            "editDescription": "Modifier les détails de la box de stockage"
+          },
+          "title": "Box de stockage",
+          "subtitle": "Gérer les box de stockage dans l'entrepôt",
+          "createTitle": "Ajouter une box de stockage",
+          "editTitle": "Modifier la box de stockage",
+          "createDescription": "Ajouter une nouvelle box de stockage à l'entrepôt",
+          "editDescription": "Modifier les détails de la box de stockage",
+          "name": "Nom de la box",
+          "nameDescription": "Nom ou identifiant de la box",
+          "size": "Taille (m³)",
+          "sizeDescription": "Taille de la box en mètres cubes",
+          "pricePerDay": "Prix par jour (€)",
+          "priceDescription": "Prix de location par jour pour cette box",
+          "description": "Description",
+          "descriptionHint": "Détails supplémentaires sur la box",
+          "cancel": "Annuler",
+          "create": "Créer la box",
+          "update": "Mettre à jour la box",
+          "saving": "Enregistrement...",
+          "createSuccess": "Box créée avec succès",
+          "createError": "Erreur lors de la création de la box",
+          "updateSuccess": "Box mise à jour avec succès",
+          "updateError": "Erreur lors de la mise à jour de la box"
+        },
+
+        "reservations": {
+          "meta": {
+            "title": "Réservations de box",
+            "description": "Gérer les réservations pour les box de stockage",
+            "createTitle": "Créer une réservation",
+            "createDescription": "Créer une nouvelle réservation pour une box de stockage",
+            "editTitle": "Modifier la réservation",
+            "editDescription": "Modifier les détails de la réservation"
+          },
+          "title": "Réservations de box",
+          "createTitle": "Créer une réservation",
+          "editTitle": "Modifier la réservation",
+          "boxName": "Box",
+          "client": "Client",
+          "startDate": "Date de début",
+          "endDate": "Date de fin",
+          "status": "Statut",
+          "pending": "En attente",
+          "active": "Active",
+          "completed": "Terminée",
+          "cancelled": "Annulée",
+          "totalPrice": "Prix total",
+          "actions": "Actions",
+          "cancel": "Annuler",
+          "create": "Créer la réservation",
+          "update": "Mettre à jour la réservation",
+          "saving": "Enregistrement...",
+          "createSuccess": "Réservation créée avec succès",
+          "createError": "Erreur lors de la création de la réservation",
+          "updateSuccess": "Réservation mise à jour avec succès",
+          "updateError": "Erreur lors de la mise à jour de la réservation",
+          "cancelSuccess": "Réservation annulée avec succès",
+          "cancelError": "Erreur lors de l'annulation de la réservation"
+        }
+      }
+    }
+  }
 }

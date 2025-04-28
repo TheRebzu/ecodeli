@@ -1,17 +1,36 @@
 import { initTRPC, TRPCError } from '@trpc/server';
-import { type CreateNextContextOptions } from '@trpc/server/adapters/next';
 import superjson from 'superjson';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '../auth/next-auth';
 import { db } from '../db';
+import { headers as getHeaders, type ReadonlyHeaders } from 'next/headers';
 
-export const createTRPCContext = async (opts: CreateNextContextOptions) => {
-  const { req, res } = opts;
-  const session = await getServerSession(req, res, authOptions);
-  return {
-    db,
-    session,
-  };
+// Define the type for context options
+type ContextOptions = {
+  headers?: ReadonlyHeaders | Headers;
+};
+
+// Updated for App Router compatibility
+export const createTRPCContext = async (opts: ContextOptions = {}) => {
+  try {
+    // Get headers from opts or try to get them from the current request
+    const headers = opts.headers || getHeaders();
+    // For App Router compatibility
+    const session = await getServerSession(authOptions);
+
+    return {
+      db,
+      session,
+      headers,
+    };
+  } catch {
+    // Fallback for when headers are not available (outside request context)
+    console.warn('Creating tRPC context without headers - some features may not work');
+    return {
+      db,
+      session: null,
+    };
+  }
 };
 
 const t = initTRPC.context<typeof createTRPCContext>().create({

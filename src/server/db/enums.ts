@@ -14,6 +14,13 @@ export enum UserStatus {
   PENDING_VERIFICATION = 'PENDING_VERIFICATION',
 }
 
+// Enum pour la gestion des vérifications
+export enum VerificationStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+}
+
 // Enums pour la gestion des documents
 export enum DocumentStatus {
   PENDING = 'PENDING',

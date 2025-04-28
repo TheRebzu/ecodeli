@@ -29,7 +29,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { UserListItem } from '@/types/admin';
+import { UserListItem } from '@/types/admin/admin';
 import { EllipsisVertical, Eye, UserCheck, UserX } from 'lucide-react';
 
 interface UserTableProps {
