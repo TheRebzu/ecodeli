@@ -19,26 +19,3 @@ export async function hashPassword(password: string): Promise<string> {
 export async function verifyPassword(password: string, hashedPassword: string): Promise<boolean> {
   return bcrypt.compare(password, hashedPassword);
 }
-
-fetch('/api/auth/register', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  body: JSON.stringify(userData),
-})
-  .then(response => {
-    // First check if response is ok
-    if (!response.ok) {
-      // For debugging, see what's actually in the response
-      return response.text().then(text => {
-        console.log('Error response body:', text);
-        throw new Error(`HTTP error ${response.status}: ${text}`);
-      });
-    }
-    return response.json();
-  })
-  .then(data => {
-    // Handle success
-  })
-  .catch(error => console.error('Registration error:', error));

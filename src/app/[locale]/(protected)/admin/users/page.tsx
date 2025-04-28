@@ -13,7 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useAdminUsers } from '@/hooks/use-admin-users';
 import { UserTable } from '@/components/admin/users/user-table';
 import { UserFiltersForm } from '@/components/admin/users/user-filters';
-import { UserFilters } from '@/types/admin';
+import { UserFilters } from '@/types/admin/admin';
 
 export default function AdminUsersPage() {
   const [activeTab, setActiveTab] = useState<string>('all');

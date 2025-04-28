@@ -1,4 +1,4 @@
-import { prisma } from '@/server/db';
+import { db } from '@/server/db';
 import { UserPreferences, UpdateUserPreferences } from '@/schemas/user-preferences.schema';
 import { defaultLocale } from '@/lib/i18n';
 
@@ -7,7 +7,7 @@ export const userPreferencesService = {
    * Récupère les préférences utilisateur
    */
   async getUserPreferences(userId: string): Promise<UserPreferences> {
-    const user = await prisma.user.findUnique({
+    const user = await db.user.findUnique({
       where: { id: userId },
       select: {
         locale: true,
@@ -42,7 +42,7 @@ export const userPreferencesService = {
   ): Promise<UserPreferences> {
     const { locale, ...otherPreferences } = data;
 
-    const updatedUser = await prisma.user.update({
+    const updatedUser = await db.user.update({
       where: { id: userId },
       data: {
         ...(locale && { locale }),

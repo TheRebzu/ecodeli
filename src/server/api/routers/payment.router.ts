@@ -1,1 +1,58 @@
-import { router, protectedProcedure } from '../trpc';\nimport { z } from 'zod';\n\nexport const paymentRouter = router({\n  getPayments: protectedProcedure\n    .input(z.object({\n      limit: z.number().min(1).max(100).default(10),\n      cursor: z.string().nullish(),\n    }))\n    .query(async ({ ctx, input }) => {\n      // Récupération des paiements\n    }),\n  \n  getById: protectedProcedure\n    .input(z.object({ id: z.string() }))\n    .query(async ({ ctx, input }) => {\n      // Récupération d'un paiement par ID\n    }),\n  \n  createPaymentIntent: protectedProcedure\n    .input(z.object({\n      amount: z.number(),\n      currency: z.string().default('eur'),\n      deliveryId: z.string().optional(),\n      serviceId: z.string().optional(),\n    }))\n    .mutation(async ({ ctx, input }) => {\n      // Création d'un intent de paiement Stripe\n    }),\n  \n  confirmPayment: protectedProcedure\n    .input(z.object({\n      paymentIntentId: z.string(),\n    }))\n    .mutation(async ({ ctx, input }) => {\n      // Confirmation d'un paiement\n    }),\n  \n  requestWithdrawal: protectedProcedure\n    .input(z.object({\n      amount: z.number(),\n      bankAccount: z.string(),\n    }))\n    .mutation(async ({ ctx, input }) => {\n      // Demande de retrait\n    }),\n});
+import { router, protectedProcedure } from '../trpc';
+import { z } from 'zod';
+
+export const paymentRouter = router({
+  getPayments: protectedProcedure
+    .input(
+      z.object({
+        limit: z.number().min(1).max(100).default(10),
+        cursor: z.string().nullish(),
+      })
+    )
+    .query(async () => {
+      // Récupération des paiements
+      return [];
+    }),
+
+  getById: protectedProcedure.input(z.object({ id: z.string() })).query(async () => {
+    // Récupération d'un paiement par ID
+    return null;
+  }),
+
+  createPaymentIntent: protectedProcedure
+    .input(
+      z.object({
+        amount: z.number(),
+        currency: z.string().default('eur'),
+        deliveryId: z.string().optional(),
+        serviceId: z.string().optional(),
+      })
+    )
+    .mutation(async () => {
+      // Création d'un intent de paiement Stripe
+      return { success: true, clientSecret: 'mock_secret' };
+    }),
+
+  confirmPayment: protectedProcedure
+    .input(
+      z.object({
+        paymentIntentId: z.string(),
+      })
+    )
+    .mutation(async () => {
+      // Confirmation d'un paiement
+      return { success: true };
+    }),
+
+  requestWithdrawal: protectedProcedure
+    .input(
+      z.object({
+        amount: z.number(),
+        bankAccount: z.string(),
+      })
+    )
+    .mutation(async () => {
+      // Demande de retrait
+      return { success: true, status: 'pending' };
+    }),
+});

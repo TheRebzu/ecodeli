@@ -18,6 +18,28 @@ export function generateToken(): string {
 }
 
 /**
+ * Génère un token de vérification d'email
+ * @returns Le token et sa date d'expiration
+ */
+export function generateVerificationToken(): { token: string; expiresAt: Date } {
+  return {
+    token: generateToken(),
+    expiresAt: getTokenExpiration(TokenType.EMAIL_VERIFICATION),
+  };
+}
+
+/**
+ * Génère un token de réinitialisation de mot de passe
+ * @returns Le token et sa date d'expiration
+ */
+export function generatePasswordResetToken(): { token: string; expiresAt: Date } {
+  return {
+    token: generateToken(),
+    expiresAt: getTokenExpiration(TokenType.PASSWORD_RESET),
+  };
+}
+
+/**
  * Calcule la date d'expiration d'un token
  * @param type Type de token
  * @returns La date d'expiration

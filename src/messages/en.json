@@ -6,7 +6,7 @@
   },
   "common": {
     "languageName": "English",
-    "switchLanguage": "Switch language",
+    "switchLanguage": "Change language",
     "currentLanguage": "Current language",
     "languages": {
       "fr": "French",
@@ -28,29 +28,27 @@
       "dashboard": "Dashboard",
       "profile": "Profile",
       "settings": "Settings",
-      "admin": "Admin",
       "logout": "Logout"
     },
     "footer": {
-      "description": "EcoDeli is an eco-friendly and collaborative delivery platform connecting customers, deliverers, merchants, and service providers.",
+      "description": "EcoDeli is an eco-friendly and collaborative delivery platform that connects clients, deliverers, merchants, and service providers.",
       "newsletter": "Newsletter",
       "emailPlaceholder": "Your email address",
       "subscribe": "Subscribe",
       "legal": "Legal",
-      "terms": "Terms of Service",
+      "terms": "Terms of Use",
       "privacy": "Privacy Policy",
-      "cookies": "Cookie Policy",
+      "cookies": "Cookie Management",
       "resources": "Resources",
       "faq": "FAQ",
-      "help": "Help Center",
+      "help": "Help",
       "shipping": "Shipping",
-      "becomeDeliverer": "Become a Deliverer",
+      "becomeDeliverer": "Become a deliverer",
       "allRightsReserved": "All rights reserved."
     },
     "buttons": {
       "submit": "Submit",
       "cancel": "Cancel",
-      "confirm": "Confirm",
       "save": "Save",
       "edit": "Edit",
       "delete": "Delete",
@@ -326,7 +324,6 @@
     "dashboard": "Dashboard",
     "profile": "Profile",
     "settings": "Settings",
-    "admin": "Admin",
     "logout": "Logout"
   },
   "documents": {
@@ -467,5 +464,347 @@
   "enter_approval_notes": "Add any approval notes (optional)",
   "enter_rejection_reason": "Enter reason for rejection",
   "notes_optional": "Notes are optional",
-  "cancel": "Cancel"
+  "cancel": "Cancel",
+  "admin": {
+    "verification": {
+      "metadata": {
+        "title": "Verifications | EcoDeli Admin",
+        "description": "Manage user verification requests"
+      },
+      "title": "Verifications",
+      "description": "Manage user verification requests",
+      "stats": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected",
+        "total": "Total"
+      },
+      "tabs": {
+        "pending": "Pending",
+        "approved": "Approved",
+        "rejected": "Rejected"
+      },
+      "status": {
+        "PENDING": "Pending",
+        "APPROVED": "Approved",
+        "REJECTED": "Rejected",
+        "EXPIRED": "Expired"
+      },
+      "table": {
+        "user": "User",
+        "role": "Role",
+        "documentType": "Document Type",
+        "submitted": "Submitted",
+        "status": "Status",
+        "processedAt": "Processed At",
+        "expires": "Expires",
+        "actions": "Actions"
+      },
+      "actions": {
+        "view": "View",
+        "approve": "Approve",
+        "reject": "Reject",
+        "back": "Back"
+      },
+      "roles": {
+        "admin": "Administrator",
+        "client": "Client",
+        "deliverer": "Deliverer",
+        "merchant": "Merchant",
+        "provider": "Service Provider"
+      },
+      "documentTypes": {
+        "ID_CARD": "ID Card",
+        "PASSPORT": "Passport",
+        "DRIVER_LICENSE": "Driver's License",
+        "BUSINESS_LICENSE": "Business License",
+        "PROOF_OF_ADDRESS": "Proof of Address",
+        "OTHER": "Other Document"
+      },
+      "footer": {
+        "updatedAt": "Updated on {date}"
+      },
+      "pending": {
+        "empty": {
+          "title": "No pending verifications",
+          "description": "All verification requests have been processed"
+        }
+      },
+      "processed": {
+        "empty": {
+          "title": "No processed verifications",
+          "description": "No verification requests have been processed yet"
+        }
+      },
+      "error": {
+        "title": "Error",
+        "description": "Failed to load verification requests",
+        "notFound": "Verification request not found"
+      },
+      "filters": {
+        "role": "Role",
+        "search": "Search",
+        "dateFrom": "From Date",
+        "dateTo": "To Date",
+        "allRoles": "All Roles",
+        "searchPlaceholder": "Name or email...",
+        "selectDate": "Select a date",
+        "filter": "Filter",
+        "reset": "Reset",
+        "sortBy": "Sort by",
+        "sortDirection": "Order",
+        "roles": {
+          "deliverer": "Deliverer",
+          "merchant": "Merchant",
+          "provider": "Service Provider"
+        }
+      },
+      "detail": {
+        "metadata": {
+          "title": "Verification Details | EcoDeli Admin",
+          "description": "Verify and approve or reject a verification request"
+        },
+        "title": "Verification Details",
+        "error": {
+          "title": "Error",
+          "description": "Failed to load verification details",
+          "notFound": "Verification request not found"
+        },
+        "document": {
+          "title": "Document",
+          "uploadedAt": "Uploaded on {date}",
+          "download": "Download",
+          "preview": {
+            "unsupported": "Preview not available for this file type",
+            "open": "Open in new tab"
+          }
+        },
+        "history": {
+          "title": "History",
+          "description": "Request progress tracking",
+          "submitted": {
+            "title": "Document submitted",
+            "description": "On {date} by {user}"
+          },
+          "approved": {
+            "title": "Verification approved",
+            "description": "On {date} by {user}"
+          },
+          "rejected": {
+            "title": "Verification rejected",
+            "description": "On {date} by {user}"
+          }
+        },
+        "user": {
+          "title": "User Information",
+          "description": "Requester details",
+          "role": "Role",
+          "accountCreated": "Account created on",
+          "phone": "Phone"
+        },
+        "documentInfo": {
+          "title": "Document Information",
+          "description": "Technical details of the document",
+          "type": "File type",
+          "size": "Size",
+          "uploadedAt": "Upload date",
+          "status": "Status"
+        },
+        "actions": {
+          "title": "Actions",
+          "description": "Approve or reject this request",
+          "approve": "Approve request",
+          "reject": "Reject request",
+          "back": "Back to list"
+        }
+      }
+    },
+    "warehouses": {
+      "meta": {
+        "title": "Warehouses",
+        "description": "Manage warehouses and storage boxes for the platform"
+      },
+      "title": "Warehouses",
+      "subtitle": "Manage warehouses and storage units",
+      "create": "Add Warehouse",
+      "search": "Search warehouses...",
+      "searchButton": "Search",
+      "name": "Name",
+      "location": "Location",
+      "capacity": "Capacity",
+      "occupied": "Occupied",
+      "status": "Status",
+      "active": "Active",
+      "inactive": "Inactive",
+      "actions": "Actions",
+      "view": "View",
+      "edit": "Edit",
+      "loading": "Loading warehouses...",
+      "noWarehouses": "No warehouses found",
+      "showing": "Showing",
+      "of": "of",
+      "warehouses": "warehouses",
+      "deleteTitle": "Delete Warehouse",
+      "deleteDescription": "Are you sure you want to delete this warehouse? This action cannot be undone and will permanently delete the warehouse and all its data.",
+      "cancel": "Cancel",
+      "confirm": "Delete",
+      "deleteSuccess": "Warehouse deleted successfully",
+      "deleteError": "Error deleting warehouse",
+
+      "form": {
+        "meta": {
+          "createTitle": "Create Warehouse",
+          "createDescription": "Add a new warehouse to the system",
+          "editTitle": "Edit Warehouse",
+          "editDescription": "Modify the warehouse details"
+        },
+        "createTitle": "Create Warehouse",
+        "editTitle": "Edit Warehouse",
+        "createDescription": "Add a new warehouse to the system",
+        "editDescription": "Modify the warehouse details",
+        "name": "Name",
+        "nameDescription": "The name of the warehouse",
+        "location": "Location",
+        "locationDescription": "City or area where the warehouse is located",
+        "address": "Address",
+        "addressDescription": "Full address of the warehouse",
+        "capacity": "Capacity",
+        "capacityDescription": "Maximum number of storage units",
+        "description": "Description",
+        "descriptionHint": "Additional details about the warehouse",
+        "status": "Active Status",
+        "statusDescription": "Enable or disable this warehouse",
+        "cancel": "Cancel",
+        "create": "Create Warehouse",
+        "update": "Update Warehouse",
+        "saving": "Saving...",
+        "createSuccess": "Warehouse created successfully",
+        "createError": "Error creating warehouse",
+        "updateSuccess": "Warehouse updated successfully",
+        "updateError": "Error updating warehouse"
+      },
+
+      "details": {
+        "meta": {
+          "title": "Warehouse Details",
+          "description": "View and manage warehouse details and boxes"
+        },
+        "warehouseDetails": "Warehouse Details",
+        "backToList": "Back to List",
+        "edit": "Edit Warehouse",
+        "basicInfo": "Basic Information",
+        "location": "Location",
+        "address": "Address",
+        "status": "Status",
+        "active": "Active",
+        "inactive": "Inactive",
+        "capacityInfo": "Capacity Information",
+        "totalCapacity": "Total Capacity",
+        "occupiedSpace": "Occupied Space",
+        "totalBoxes": "Total Boxes",
+        "additionalInfo": "Additional Information",
+        "description": "Description",
+        "noDescription": "No description provided",
+        "createdAt": "Created At",
+        "updatedAt": "Updated At",
+        "boxes": "Boxes",
+        "statistics": "Statistics",
+        "boxesDescription": "Storage boxes in this warehouse",
+        "statisticsDescription": "Warehouse usage statistics",
+        "comingSoon": "Statistics coming soon",
+        "createBox": "Add Box",
+        "searchBox": "Search boxes...",
+        "searchButton": "Search",
+        "boxName": "Box Name",
+        "size": "Size",
+        "pricePerDay": "Price/Day",
+        "occupation": "Status",
+        "occupied": "Occupied",
+        "available": "Available",
+        "client": "Client",
+        "view": "View",
+        "loading": "Loading warehouse data...",
+        "loadingBoxes": "Loading boxes...",
+        "noBoxes": "No boxes found",
+        "showing": "Showing",
+        "of": "of",
+        "boxesTotal": "boxes",
+        "deleteBoxTitle": "Delete Box",
+        "deleteBoxDescription": "Are you sure you want to delete this box? This action cannot be undone.",
+        "cancel": "Cancel",
+        "confirm": "Delete",
+        "deleteBoxSuccess": "Box deleted successfully",
+        "deleteBoxError": "Error deleting box",
+        "actions": "Actions"
+      },
+
+      "boxes": {
+        "meta": {
+          "title": "Storage Boxes",
+          "description": "Manage storage boxes in the warehouse",
+          "createTitle": "Add Box",
+          "createDescription": "Add a new storage box to the warehouse",
+          "editTitle": "Edit Box",
+          "editDescription": "Modify the storage box details"
+        },
+        "title": "Storage Boxes",
+        "subtitle": "Manage storage boxes in the warehouse",
+        "createTitle": "Add Storage Box",
+        "editTitle": "Edit Storage Box",
+        "createDescription": "Add a new storage box to the warehouse",
+        "editDescription": "Modify storage box details",
+        "name": "Box Name",
+        "nameDescription": "Name or identifier for the box",
+        "size": "Size (m³)",
+        "sizeDescription": "Size of the box in cubic meters",
+        "pricePerDay": "Price per Day (€)",
+        "priceDescription": "Rental price per day for this box",
+        "description": "Description",
+        "descriptionHint": "Additional details about the box",
+        "cancel": "Cancel",
+        "create": "Create Box",
+        "update": "Update Box",
+        "saving": "Saving...",
+        "createSuccess": "Box created successfully",
+        "createError": "Error creating box",
+        "updateSuccess": "Box updated successfully",
+        "updateError": "Error updating box"
+      },
+
+      "reservations": {
+        "meta": {
+          "title": "Box Reservations",
+          "description": "Manage reservations for storage boxes",
+          "createTitle": "Create Reservation",
+          "createDescription": "Create a new reservation for a storage box",
+          "editTitle": "Edit Reservation",
+          "editDescription": "Modify the reservation details"
+        },
+        "title": "Box Reservations",
+        "createTitle": "Create Reservation",
+        "editTitle": "Edit Reservation",
+        "boxName": "Box",
+        "client": "Client",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "status": "Status",
+        "pending": "Pending",
+        "active": "Active",
+        "completed": "Completed",
+        "cancelled": "Cancelled",
+        "totalPrice": "Total Price",
+        "actions": "Actions",
+        "cancel": "Cancel",
+        "create": "Create Reservation",
+        "update": "Update Reservation",
+        "saving": "Saving...",
+        "createSuccess": "Reservation created successfully",
+        "createError": "Error creating reservation",
+        "updateSuccess": "Reservation updated successfully",
+        "updateError": "Error updating reservation",
+        "cancelSuccess": "Reservation cancelled successfully",
+        "cancelError": "Error cancelling reservation"
+      }
+    }
+  }
 }

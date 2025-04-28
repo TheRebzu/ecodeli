@@ -15,7 +15,7 @@ export const metadata: Metadata = {
  */
 export default async function ProviderVerificationsPage() {
   const session = await getServerSession(authOptions);
-  const t = await getTranslations('admin.verifications');
+  const t = await getTranslations('admin.verification');
 
   if (!session || session.user.role !== 'ADMIN') {
     return null;
@@ -25,8 +25,8 @@ export default async function ProviderVerificationsPage() {
   const pendingVerifications = await db.verification.findMany({
     where: {
       status: 'PENDING',
-      document: {
-        userRole: 'PROVIDER',
+      submitter: {
+        role: 'PROVIDER',
       },
     },
     include: {

@@ -3,7 +3,7 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { UserRole, UserStatus } from '@prisma/client';
 import { api } from '@/trpc/react';
-import { UserFilters, UserSortOptions } from '@/types/admin';
+import { UserFilters, UserSortOptions, ActivityType } from '@/types/admin/admin';
 
 export function useAdminUsers() {
   const router = useRouter();
@@ -29,20 +29,43 @@ export function useAdminUsers() {
     },
     {
       keepPreviousData: true,
-      onError: (error: Error) => {
+      onError: error => {
         toast.error(`Error loading users: ${error.message}`);
       },
     }
   );
 
+  // Query for user statistics
+  const { data: userStats, isLoading: isLoadingStats } = api.adminUser.getUserStats.useQuery(
+    undefined,
+    {
+      onError: error => {
+        toast.error(`Error loading user statistics: ${error.message}`);
+      },
+    }
+  );
+
   // Query to fetch a specific user
-  const getUserDetail = (userId: string) => {
+  const getUserDetail = (userId: string, options = { includeActivityLogs: false }) => {
     return api.adminUser.getUserDetail.useQuery(
-      { userId },
+      { userId, ...options },
       {
         enabled: !!userId,
-        onError: (error: Error) => {
+        onError: error => {
           toast.error(`Error loading user details: ${error.message}`);
+        },
+      }
+    );
+  };
+
+  // Query to fetch user activity logs
+  const getUserActivityLogs = (userId: string, options = {}) => {
+    return api.adminUser.getUserActivityLogs.useQuery(
+      { userId, ...options },
+      {
+        enabled: !!userId,
+        onError: error => {
+          toast.error(`Error loading activity logs: ${error.message}`);
         },
       }
     );
@@ -54,7 +77,7 @@ export function useAdminUsers() {
       toast.success('User status updated successfully');
       refetchUsers();
     },
-    onError: (error: Error) => {
+    onError: error => {
       toast.error(`Error updating user status: ${error.message}`);
     },
   });
@@ -65,7 +88,7 @@ export function useAdminUsers() {
       toast.success('User role updated successfully');
       refetchUsers();
     },
-    onError: (error: Error) => {
+    onError: error => {
       toast.error(`Error updating user role: ${error.message}`);
     },
   });
@@ -76,8 +99,49 @@ export function useAdminUsers() {
       toast.success('Admin permissions updated successfully');
       refetchUsers();
     },
-    onError: (error: Error) => {
+    onError: error => {
       toast.error(`Error updating admin permissions: ${error.message}`);
+    },
+  });
+
+  // Mutation to add a note to a user
+  const addUserNoteMutation = api.adminUser.addUserNote.useMutation({
+    onSuccess: () => {
+      toast.success('Note added successfully');
+    },
+    onError: error => {
+      toast.error(`Error adding note: ${error.message}`);
+    },
+  });
+
+  // Mutation to add activity log
+  const addActivityLogMutation = api.adminUser.addUserActivityLog.useMutation({
+    onSuccess: () => {
+      toast.success('Activity log added successfully');
+    },
+    onError: error => {
+      toast.error(`Error adding activity log: ${error.message}`);
+    },
+  });
+
+  // Mutation to export users
+  const exportUsersMutation = api.adminUser.exportUsers.useMutation({
+    onSuccess: data => {
+      // Create download link for exported data
+      const blob = new Blob([data.data], { type: data.mimeType });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = data.filename;
+      document.body.appendChild(a);
+      a.click();
+      URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast.success('Users exported successfully');
+    },
+    onError: error => {
+      toast.error(`Error exporting users: ${error.message}`);
     },
   });
 
@@ -105,18 +169,51 @@ export function useAdminUsers() {
   };
 
   // Function to update user status
-  const updateUserStatus = (userId: string, status: UserStatus) => {
-    updateUserStatusMutation.mutate({ userId, status });
+  const updateUserStatus = (
+    userId: string,
+    status: UserStatus,
+    reason?: string,
+    notifyUser = true
+  ) => {
+    updateUserStatusMutation.mutate({ userId, status, reason, notifyUser });
   };
 
   // Function to update user role
-  const updateUserRole = (userId: string, role: UserRole) => {
-    updateUserRoleMutation.mutate({ userId, role });
+  const updateUserRole = (
+    userId: string,
+    role: UserRole,
+    reason?: string,
+    createRoleSpecificProfile = true
+  ) => {
+    updateUserRoleMutation.mutate({ userId, role, reason, createRoleSpecificProfile });
   };
 
   // Function to update admin permissions
   const updateAdminPermissions = (userId: string, permissions: string[]) => {
     updateAdminPermissionsMutation.mutate({ userId, permissions });
+  };
+
+  // Function to add a note to a user
+  const addUserNote = (userId: string, note: string) => {
+    addUserNoteMutation.mutate({ userId, note });
+  };
+
+  // Function to add activity log
+  const addActivityLog = (userId: string, activityType: ActivityType, details?: string) => {
+    addActivityLogMutation.mutate({ userId, activityType, details });
+  };
+
+  // Function to export users
+  const exportUsers = (
+    format: 'csv' | 'excel' | 'pdf',
+    fields: string[],
+    exportFilters?: UserFilters
+  ) => {
+    exportUsersMutation.mutate({
+      format,
+      fields,
+      filters: exportFilters || filters,
+    });
   };
 
   // Function to view user detail
@@ -130,10 +227,15 @@ export function useAdminUsers() {
     totalUsers: usersData?.total || 0,
     filters,
     sortOptions,
+    userStats,
     isLoadingUsers,
+    isLoadingStats,
     isUpdatingStatus: updateUserStatusMutation.isLoading,
     isUpdatingRole: updateUserRoleMutation.isLoading,
     isUpdatingPermissions: updateAdminPermissionsMutation.isLoading,
+    isAddingNote: addUserNoteMutation.isLoading,
+    isAddingActivityLog: addActivityLogMutation.isLoading,
+    isExportingUsers: exportUsersMutation.isLoading,
 
     // Actions
     handlePageChange,
@@ -143,8 +245,12 @@ export function useAdminUsers() {
     updateUserStatus,
     updateUserRole,
     updateAdminPermissions,
+    addUserNote,
+    addActivityLog,
+    exportUsers,
     viewUserDetail,
     getUserDetail,
+    getUserActivityLogs,
     refetchUsers,
   };
 }

@@ -1,1 +1,32 @@
-import { router, protectedProcedure } from '../trpc';\nimport { z } from 'zod';\n\nexport const warehouseRouter = router({\n  getWarehouses: protectedProcedure\n    .query(async ({ ctx }) => {\n      // Récupération des entrepôts\n    }),\n  \n  getBoxes: protectedProcedure\n    .input(z.object({ warehouseId: z.string() }))\n    .query(async ({ ctx, input }) => {\n      // Récupération des boxes d'un entrepôt\n    }),\n  \n  reserveBox: protectedProcedure\n    .input(z.object({\n      boxId: z.string(),\n      startDate: z.date(),\n      endDate: z.date(),\n    }))\n    .mutation(async ({ ctx, input }) => {\n      // Réservation d'une box\n    }),\n  \n  releaseBox: protectedProcedure\n    .input(z.object({ boxId: z.string() }))\n    .mutation(async ({ ctx, input }) => {\n      // Libération d'une box\n    }),\n});
+import { router, protectedProcedure } from '../trpc';
+import { z } from 'zod';
+
+export const warehouseRouter = router({
+  getWarehouses: protectedProcedure.query(async () => {
+    // Récupération des entrepôts
+    return [];
+  }),
+
+  getBoxes: protectedProcedure.input(z.object({ warehouseId: z.string() })).query(async () => {
+    // Récupération des boxes d'un entrepôt
+    return [];
+  }),
+
+  reserveBox: protectedProcedure
+    .input(
+      z.object({
+        boxId: z.string(),
+        startDate: z.date(),
+        endDate: z.date(),
+      })
+    )
+    .mutation(async () => {
+      // Réservation d'une box
+      return { success: true, reservationId: 'mock-reservation-id' };
+    }),
+
+  releaseBox: protectedProcedure.input(z.object({ boxId: z.string() })).mutation(async () => {
+    // Libération d'une box
+    return { success: true };
+  }),
+});

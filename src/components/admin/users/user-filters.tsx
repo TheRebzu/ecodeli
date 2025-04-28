@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { UserFilters } from '@/types/admin';
+import { UserFilters } from '@/types/admin/admin';
 
 const filterSchema = z.object({
   search: z.string().optional(),
@@ -118,15 +118,20 @@ export function UserFiltersForm({
             render={({ field }) => (
               <FormItem className="w-[180px]">
                 <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  value={field.value}
+                  onValueChange={value => {
+                    if (value === 'all') {
+                      field.onChange(undefined);
+                    } else {
+                      field.onChange(value as UserRole);
+                    }
+                  }}
+                  value={field.value || 'all'}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Role" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={undefined}>All Roles</SelectItem>
+                    <SelectItem value="all">All Roles</SelectItem>
                     {Object.values(UserRole).map(role => (
                       <SelectItem key={role} value={role}>
                         {role}
@@ -145,15 +150,20 @@ export function UserFiltersForm({
             render={({ field }) => (
               <FormItem className="w-[180px]">
                 <Select
-                  onValueChange={field.onChange}
-                  defaultValue={field.value}
-                  value={field.value}
+                  onValueChange={value => {
+                    if (value === 'all') {
+                      field.onChange(undefined);
+                    } else {
+                      field.onChange(value as UserStatus);
+                    }
+                  }}
+                  value={field.value || 'all'}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value={undefined}>All Statuses</SelectItem>
+                    <SelectItem value="all">All Statuses</SelectItem>
                     {Object.values(UserStatus).map(status => (
                       <SelectItem key={status} value={status}>
                         {status.replace('_', ' ')}
@@ -173,19 +183,19 @@ export function UserFiltersForm({
               <FormItem className="w-[180px]">
                 <Select
                   onValueChange={value => {
-                    if (value === '') {
+                    if (value === 'all') {
                       field.onChange(undefined);
                     } else {
                       field.onChange(value === 'true');
                     }
                   }}
-                  value={field.value === undefined ? '' : field.value.toString()}
+                  value={field.value === undefined ? 'all' : field.value.toString()}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Verification" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All</SelectItem>
+                    <SelectItem value="all">All</SelectItem>
                     <SelectItem value="true">Verified</SelectItem>
                     <SelectItem value="false">Unverified</SelectItem>
                   </SelectContent>
