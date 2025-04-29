@@ -1,20 +1,453 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearchPostgres"]
+}
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider        = "prisma-client-js"
-  previewFeatures = ["fullTextSearch"]
+model User {
+  id                     String                @id @default(cuid())
+  name                   String
+  email                  String                @unique
+  emailVerified          DateTime?
+  password               String
+  image                  String?
+  role                   UserRole
+  status                 UserStatus            @default(PENDING_VERIFICATION)
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+  phoneNumber            String?
+  lastLoginAt            DateTime?
+  twoFactorEnabled       Boolean               @default(false)
+  twoFactorSecret        String?
+  locale                 String?
+  preferences            Json?
+  isVerified             Boolean               @default(false)
+  lastPasswordChange     DateTime?
+  lockedUntil            DateTime?
+  loginAttempts          Int                   @default(0)
+  notes                  String?
+  notifications          Notification[]
+  accounts               Account[]
+  admin                  Admin?
+  announcements          Announcement[]
+  deliveryAnnouncements  Announcement[]        @relation("AnnouncementDeliverer")
+  performedAuditLogs     AuditLog[]            @relation("AuditLogPerformer")
+  boxes                  Box[]
+  client                 Client?
+  deliverer              Deliverer?
+  deliveryApplications   DeliveryApplication[]
+  reviewedDocuments      Document[]            @relation("DocumentReviewer")
+  documents              Document[]
+  merchant               Merchant?
+  provider               Provider?
+  reservations           Reservation[]
+  sessions               Session[]
+  activityLogs           UserActivityLog[]
+  verificationHistory    VerificationHistory[]
+  verifiedHistories      VerificationHistory[] @relation("VerifierRelation")
+  submittedVerifications Verification[]        @relation("SubmitterRelation")
+  verifications          Verification[]        @relation("VerifierRelation")
+
+  @@map("users")
 }
 
-// -------- AUTH MODELS --------
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String    @unique
+  expires    DateTime
+  type       TokenType @default(EMAIL_VERIFICATION)
+  used       Boolean   @default(false)
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model Client {
+  id          String   @id @default(cuid())
+  userId      String   @unique
+  address     String?
+  phone       String?
+  preferences Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  city        String?
+  state       String?
+  postalCode  String?
+  country     String?
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("clients")
+}
+
+model Deliverer {
+  id               String    @id @default(cuid())
+  userId           String    @unique
+  address          String?
+  phone            String
+  vehicleType      String?
+  licensePlate     String?
+  isVerified       Boolean   @default(false)
+  availableHours   Json?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  verificationDate DateTime?
+  maxCapacity      Float?
+  currentLocation  String?
+  isActive         Boolean   @default(false)
+  rating           Float?
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("deliverers")
+}
+
+model Merchant {
+  id               String     @id @default(cuid())
+  userId           String     @unique
+  companyName      String
+  address          String
+  phone            String
+  businessType     String?
+  vatNumber        String?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  businessName     String?
+  businessAddress  String?
+  businessCity     String?
+  businessState    String?
+  businessPostal   String?
+  businessCountry  String?
+  taxId            String?
+  websiteUrl       String?
+  isVerified       Boolean    @default(false)
+  verificationDate DateTime?
+  contracts        Contract[]
+  user             User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("merchants")
+}
+
+model Provider {
+  id               String    @id @default(cuid())
+  userId           String    @unique
+  companyName      String?
+  address          String
+  phone            String
+  services         String[]
+  isVerified       Boolean   @default(false)
+  rating           Float?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  serviceType      String?
+  description      String?
+  availability     String?
+  verificationDate DateTime?
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skills           Skill[]
+
+  @@map("providers")
+}
+
+model Admin {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  permissions      String[]
+  department       String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  twoFactorEnabled Boolean  @default(false)
+  twoFactorSecret  String?
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("admins")
+}
+
+model Document {
+  id                  String                @id @default(cuid())
+  type                DocumentType
+  userId              String
+  filename            String
+  fileUrl             String
+  mimeType            String
+  fileSize            Int
+  uploadedAt          DateTime              @default(now())
+  expiryDate          DateTime?
+  notes               String?
+  isVerified          Boolean               @default(false)
+  verificationStatus  VerificationStatus    @default(PENDING)
+  rejectionReason     String?
+  reviewerId          String?
+  reviewer            User?                 @relation("DocumentReviewer", fields: [reviewerId], references: [id])
+  user                User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verificationHistory VerificationHistory[]
+  verifications       Verification[]
+
+  @@index([userId])
+  @@index([type])
+  @@index([verificationStatus])
+  @@map("documents")
+}
+
+model Verification {
+  id              String             @id @default(cuid())
+  status          VerificationStatus @default(PENDING)
+  requestedAt     DateTime           @default(now())
+  verifiedAt      DateTime?
+  documentId      String
+  submitterId     String
+  verifierId      String?
+  notes           String?
+  rejectionReason String?
+  document        Document           @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  submitter       User               @relation("SubmitterRelation", fields: [submitterId], references: [id])
+  verifier        User?              @relation("VerifierRelation", fields: [verifierId], references: [id])
+
+  @@index([documentId])
+  @@index([submitterId])
+  @@index([verifierId])
+  @@index([status])
+  @@map("verifications")
+}
+
+model Contract {
+  id         String         @id @default(cuid())
+  merchantId String
+  title      String
+  content    String
+  status     ContractStatus @default(DRAFT)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  signedAt   DateTime?
+  expiresAt  DateTime?
+  fileUrl    String?
+  merchant   Merchant       @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@index([merchantId])
+  @@index([status])
+  @@map("contracts")
+}
+
+model Skill {
+  id          String   @id @default(cuid())
+  providerId  String
+  name        String
+  description String?
+  isVerified  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  provider    Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId])
+  @@map("skills")
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      String
+  link      String?
+  data      String?
+  read      Boolean   @default(false)
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([read])
+}
+
+model VerificationHistory {
+  id            String             @id @default(cuid())
+  status        VerificationStatus
+  comment       String?
+  createdAt     DateTime           @default(now())
+  documentId    String?
+  userId        String
+  verifiedById  String
+  reason        String?
+  internalNotes String?
+  document      Document?          @relation(fields: [documentId], references: [id])
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verifiedBy    User               @relation("VerifierRelation", fields: [verifiedById], references: [id])
+
+  @@index([documentId])
+  @@index([userId])
+  @@index([verifiedById])
+  @@map("verification_history")
+}
+
+model Warehouse {
+  id          String   @id @default(cuid())
+  name        String
+  location    String
+  address     String
+  capacity    Float
+  occupied    Float    @default(0)
+  description String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  boxes       Box[]
+
+  @@map("warehouses")
+}
+
+model Box {
+  id           String        @id @default(cuid())
+  warehouseId  String
+  name         String
+  size         Float
+  isOccupied   Boolean       @default(false)
+  clientId     String?
+  pricePerDay  Float
+  description  String?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  client       User?         @relation(fields: [clientId], references: [id])
+  warehouse    Warehouse     @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  reservations Reservation[]
+
+  @@index([warehouseId])
+  @@index([clientId])
+  @@map("boxes")
+}
+
+model Reservation {
+  id         String   @id @default(cuid())
+  boxId      String
+  clientId   String
+  startDate  DateTime
+  endDate    DateTime
+  status     String   @default("ACTIVE")
+  totalPrice Float
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  box        Box      @relation(fields: [boxId], references: [id], onDelete: Cascade)
+  client     User     @relation(fields: [clientId], references: [id])
+
+  @@index([boxId])
+  @@index([clientId])
+  @@map("reservations")
+}
+
+model UserActivityLog {
+  id           String       @id @default(cuid())
+  userId       String
+  activityType ActivityType
+  details      String?
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime     @default(now())
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_activity_logs")
+}
+
+model AuditLog {
+  id            String   @id @default(cuid())
+  entityType    String
+  entityId      String
+  action        String
+  performedById String
+  changes       Json?
+  createdAt     DateTime @default(now())
+  performedBy   User     @relation("AuditLogPerformer", fields: [performedById], references: [id])
+
+  @@map("audit_logs")
+}
+
+model Announcement {
+  id                 String                @id @default(cuid())
+  title              String
+  description        String
+  type               AnnouncementType
+  status             AnnouncementStatus    @default(PENDING)
+  priority           AnnouncementPriority  @default(MEDIUM)
+  pickupAddress      String
+  pickupLongitude    Float?
+  pickupLatitude     Float?
+  deliveryAddress    String
+  deliveryLongitude  Float?
+  deliveryLatitude   Float?
+  weight             Float?
+  width              Float?
+  height             Float?
+  length             Float?
+  isFragile          Boolean               @default(false)
+  needsCooling       Boolean               @default(false)
+  pickupDate         DateTime?
+  pickupTimeWindow   String?
+  deliveryDate       DateTime?
+  deliveryTimeWindow String?
+  isFlexible         Boolean               @default(false)
+  suggestedPrice     Float?
+  finalPrice         Float?
+  isNegotiable       Boolean               @default(true)
+  paymentStatus      String?
+  clientId           String
+  delivererId        String?
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  viewCount          Int                   @default(0)
+  applicationsCount  Int                   @default(0)
+  cancelReason       String?
+  notes              String?
+  tags               String[]
+  client             User                  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  deliverer          User?                 @relation("AnnouncementDeliverer", fields: [delivererId], references: [id])
+  applications       DeliveryApplication[]
+
+  @@map("announcements")
+}
+
+model DeliveryApplication {
+  id             String       @id @default(cuid())
+  announcementId String
+  delivererId    String
+  proposedPrice  Float?
+  message        String?
+  status         String       @default("PENDING")
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  deliverer      User         @relation(fields: [delivererId], references: [id], onDelete: Cascade)
+
+  @@map("delivery_applications")
+}
 
 enum UserRole {
   CLIENT
@@ -69,8 +502,6 @@ enum DocumentStatus {
   EXPIRED
 }
 
-// -------- USER ACTIVITY & AUDIT MODELS --------
-
 enum ActivityType {
   LOGIN
   LOGOUT
@@ -85,451 +516,28 @@ enum ActivityType {
   OTHER
 }
 
-model User {
-  id            String     @id @default(cuid())
-  name          String
-  email         String     @unique
-  emailVerified DateTime?
-  password      String
-  image         String?
-  role          UserRole
-  status        UserStatus @default(PENDING_VERIFICATION)
-  createdAt     DateTime   @default(now())
-  updatedAt     DateTime   @updatedAt
-
-  // NextAuth.js relations
-  accounts Account[]
-  sessions Session[]
-
-  // Role specific relations
-  client    Client?
-  deliverer Deliverer?
-  merchant  Merchant?
-  provider  Provider?
-  admin     Admin?
-
-  // Additional fields
-  phoneNumber      String?
-  lastLoginAt      DateTime?
-  twoFactorEnabled Boolean   @default(false)
-  twoFactorSecret  String?
-
-  // Document relations
-  documents         Document[]
-  reviewedDocuments Document[] @relation("DocumentReviewer")
-
-  // Verification relations
-  verifications          Verification[] @relation("VerifierRelation")
-  submittedVerifications Verification[] @relation("SubmitterRelation")
-
-  // Notification relations
-  notifications Notification[]
-
-  // Locale préférée de l'utilisateur
-  locale String?
-
-  // Préférences utilisateur (stockées en JSON)
-  preferences Json?
-
-  // Verification history
-  verificationHistory VerificationHistory[]
-
-  // Verification status
-  isVerified Boolean   @default(false)
-
-  // Add new relations
-  activityLogs UserActivityLog[]
-  performedAuditLogs AuditLog[] @relation("AuditLogPerformer")
-  
-  // Add new fields
-  lastPasswordChange DateTime?
-  loginAttempts      Int        @default(0)
-  lockedUntil        DateTime?
-  notes              String?    @db.Text
-
-  @@map("users")
+enum AnnouncementStatus {
+  DRAFT
+  PENDING
+  PUBLISHED
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
 }
 
-model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String? @db.Text
-  access_token      String? @db.Text
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String? @db.Text
-  session_state     String?
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([provider, providerAccountId])
-  @@map("accounts")
+enum AnnouncementType {
+  PACKAGE
+  GROCERIES
+  DOCUMENTS
+  MEAL
+  FURNITURE
+  OTHER
 }
 
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("sessions")
-}
-
-model VerificationToken {
-  identifier String
-  token      String    @unique
-  expires    DateTime
-  type       TokenType @default(EMAIL_VERIFICATION)
-  used       Boolean   @default(false)
-
-  @@unique([identifier, token])
-  @@map("verification_tokens")
-}
-
-// -------- ROLE SPECIFIC MODELS --------
-
-model Client {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  address     String?
-  phone       String?
-  preferences Json?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Client specific fields
-  city       String?
-  state      String?
-  postalCode String?
-  country    String?
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("clients")
-}
-
-model Deliverer {
-  id             String   @id @default(cuid())
-  userId         String   @unique
-  address        String?
-  phone          String
-  vehicleType    String?
-  licensePlate   String?
-  isVerified     Boolean  @default(false)
-  availableHours Json?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-
-  // Deliverer specific fields
-  verificationDate DateTime?
-  maxCapacity      Float?
-  currentLocation  String?
-  isActive         Boolean   @default(false)
-  rating           Float?
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("deliverers")
-}
-
-model Merchant {
-  id           String   @id @default(cuid())
-  userId       String   @unique
-  companyName  String
-  address      String
-  phone        String
-  businessType String?
-  vatNumber    String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  // Merchant specific fields
-  businessName     String?
-  businessAddress  String?
-  businessCity     String?
-  businessState    String?
-  businessPostal   String?
-  businessCountry  String?
-  taxId            String?
-  websiteUrl       String?
-  isVerified       Boolean   @default(false)
-  verificationDate DateTime?
-
-  // Relations
-  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  contracts Contract[]
-
-  @@map("merchants")
-}
-
-model Provider {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  companyName String?
-  address     String
-  phone       String
-  services    String[]
-  isVerified  Boolean  @default(false)
-  rating      Float?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Provider specific fields
-  serviceType      String?
-  description      String?
-  availability     String? // JSON string of availability
-  verificationDate DateTime?
-
-  // Relations
-  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
-  skills Skill[]
-
-  @@map("providers")
-}
-
-model Admin {
-  id          String   @id @default(cuid())
-  userId      String   @unique
-  permissions String[]
-  department  String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Admin specific fields
-  twoFactorEnabled Boolean @default(false)
-  twoFactorSecret  String?
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("admins")
-}
-
-model Document {
-  id                 String             @id @default(cuid())
-  type               DocumentType
-  userId             String
-  filename           String
-  fileUrl            String
-  mimeType           String
-  fileSize           Int
-  uploadedAt         DateTime           @default(now())
-  expiryDate         DateTime?
-  notes              String?
-  isVerified         Boolean            @default(false)
-  verificationStatus VerificationStatus @default(PENDING)
-  rejectionReason    String?
-
-  // Relations
-  verifications      Verification[]
-  verificationHistory VerificationHistory[]
-  user               User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  reviewer           User?          @relation("DocumentReviewer", fields: [reviewerId], references: [id])
-  reviewerId         String?
-
-  @@index([userId])
-  @@index([type])
-  @@index([verificationStatus])
-  @@map("documents")
-}
-
-model Verification {
-  id              String             @id @default(cuid())
-  status          VerificationStatus @default(PENDING)
-  requestedAt     DateTime           @default(now())
-  verifiedAt      DateTime?
-  documentId      String
-  submitterId     String
-  verifierId      String?
-  notes           String?
-  rejectionReason String?
-
-  // Relations
-  document  Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  submitter User     @relation("SubmitterRelation", fields: [submitterId], references: [id])
-  verifier  User?    @relation("VerifierRelation", fields: [verifierId], references: [id])
-
-  @@index([documentId])
-  @@index([submitterId])
-  @@index([verifierId])
-  @@index([status])
-  @@map("verifications")
-}
-
-model Contract {
-  id         String         @id @default(cuid())
-  merchantId String
-  title      String
-  content    String         @db.Text
-  status     ContractStatus @default(DRAFT)
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
-  signedAt   DateTime?
-  expiresAt  DateTime?
-  fileUrl    String?
-
-  // Relations
-  merchant Merchant @relation(fields: [merchantId], references: [id], onDelete: Cascade)
-
-  @@index([merchantId])
-  @@index([status])
-  @@map("contracts")
-}
-
-model Skill {
-  id          String   @id @default(cuid())
-  providerId  String
-  name        String
-  description String?
-  isVerified  Boolean  @default(false)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
-  provider Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
-
-  @@index([providerId])
-  @@map("skills")
-}
-
-model Notification {
-  id        String    @id @default(cuid())
-  userId    String
-  title     String
-  message   String
-  type      String
-  link      String?
-  data      String?
-  read      Boolean   @default(false)
-  readAt    DateTime?
-  createdAt DateTime  @default(now())
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@index([read])
-}
-
-model VerificationHistory {
-  id              String             @id @default(cuid())
-  status          VerificationStatus
-  comment         String?
-  createdAt       DateTime           @default(now())
-  
-  // Relations
-  documentId      String?
-  document        Document?          @relation(fields: [documentId], references: [id], onDelete: SetNull)
-  userId          String
-  user            User               @relation(fields: [userId], references: [id], onDelete: Cascade)
-  verifiedById    String
-  verifiedBy      User               @relation("VerifierRelation", fields: [verifiedById], references: [id])
-
-  // Add new fields
-  reason        String?
-  internalNotes String?
-
-  @@index([documentId])
-  @@index([userId])
-  @@index([verifiedById])
-  @@map("verification_history")
-}
-
-// Warehouse Management Models
-model Warehouse {
-  id           String    @id @default(cuid())
-  name         String
-  location     String
-  address      String
-  capacity     Float
-  occupied     Float     @default(0)
-  description  String?
-  isActive     Boolean   @default(true)
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  
-  // Relations
-  boxes        Box[]
-
-  @@map("warehouses")
-}
-
-model Box {
-  id           String    @id @default(cuid())
-  warehouseId  String
-  name         String
-  size         Float
-  isOccupied   Boolean   @default(false)
-  clientId     String?
-  pricePerDay  Float
-  description  String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  
-  // Relations
-  warehouse    Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
-  client       User?     @relation(fields: [clientId], references: [id])
-  reservations Reservation[]
-
-  @@index([warehouseId])
-  @@index([clientId])
-  @@map("boxes")
-}
-
-model Reservation {
-  id           String    @id @default(cuid())
-  boxId        String
-  clientId     String
-  startDate    DateTime
-  endDate      DateTime
-  status       String    @default("ACTIVE") // ACTIVE, CANCELLED, COMPLETED
-  totalPrice   Float
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  
-  // Relations
-  box          Box       @relation(fields: [boxId], references: [id], onDelete: Cascade)
-  client       User      @relation(fields: [clientId], references: [id])
-
-  @@index([boxId])
-  @@index([clientId])
-  @@map("reservations")
-}
-
-model UserActivityLog {
-  id          String       @id @default(cuid())
-  userId      String
-  activityType ActivityType
-  details     String?
-  ipAddress   String?
-  userAgent   String?
-  createdAt   DateTime     @default(now())
-  
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@map("user_activity_logs")
-}
-
-model AuditLog {
-  id            String   @id @default(cuid())
-  entityType    String   // "User", "Document", "Verification", etc.
-  entityId      String
-  action        String   // "update", "create", "delete"
-  performedById String
-  changes       Json?
-  createdAt     DateTime @default(now())
-  
-  // Relations
-  performedBy User @relation(fields: [performedById], references: [id])
-  
-  @@map("audit_logs")
+enum AnnouncementPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
 }

@@ -13,8 +13,8 @@ import { documentRouter } from './routers/document.router';
 import { verificationRouter } from './routers/verification.router';
 import { userPreferencesRouter } from '@/server/api/routers/user-preferences.router';
 import { notificationRouter } from './routers/notification.router';
-import { adminUserRouter } from './routers/admin-user.router';
-import { adminDashboardRouter } from './routers/admin-dashboard.router';
+import { adminUserRouter } from './routers/admin/admin-user.router';
+import { adminDashboardRouter } from './routers/admin/admin-dashboard.router';
 import { warehouseRouter as adminWarehouseRouter } from './routers/admin/warehouse.router';
 
 // Re-export createTRPCContext from trpc.ts

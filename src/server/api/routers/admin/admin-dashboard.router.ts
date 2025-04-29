@@ -1,4 +1,4 @@
-import { router, adminProcedure } from '../trpc';
+import { router, adminProcedure } from '../../trpc';
 import { dashboardService } from '@/server/services/admin/dashboard.service';
 import { z } from 'zod';
 
