@@ -9,9 +9,9 @@ import {
   userNoteSchema,
   addUserActivityLogSchema,
   exportUsersSchema,
-} from '../../../schemas/admin/user-management.schema';
-import { router, adminProcedure } from '../trpc';
-import { AdminService } from '../../../server/services/admin.service';
+} from '../../../../schemas/admin/user-management.schema';
+import { router, adminProcedure } from '../../trpc';
+import { AdminService } from '../../../services/admin.service';
 
 export const adminUserRouter = router({
   /**
