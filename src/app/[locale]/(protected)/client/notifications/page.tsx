@@ -7,16 +7,18 @@ export const metadata: Metadata = {
 };
 
 interface ClientNotificationsPageProps {
-  params: {
+  params: Promise<{
     locale: string;
-  };
+  }>;
 }
 
-export default function ClientNotificationsPage({ params }: ClientNotificationsPageProps) {
+export default async function ClientNotificationsPage({ params }: ClientNotificationsPageProps) {
+  const { locale } = await params;
+
   return (
     <div className="container py-6 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">Notifications</h1>
-      <NotificationCenter locale={params.locale} />
+      <NotificationCenter locale={locale} />
     </div>
   );
 }

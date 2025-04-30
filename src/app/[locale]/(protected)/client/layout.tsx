@@ -4,13 +4,13 @@ import { ClientSidebar } from '@/components/layout/sidebars/client-sidebar';
 
 interface ClientLayoutProps {
   children: React.ReactNode;
-  params: {
+  params: Promise<{
     locale: string;
-  };
+  }>;
 }
 
-export default function ClientLayout({ children, params }: ClientLayoutProps) {
-  const { locale } = params;
+export default async function ClientLayout({ children, params }: ClientLayoutProps) {
+  const { locale } = await params;
 
   return (
     <div className="min-h-screen flex flex-col">

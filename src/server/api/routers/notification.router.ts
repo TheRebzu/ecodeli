@@ -30,6 +30,20 @@ export const notificationRouter = router({
       }
     }),
 
+  // Get unread notifications
+  getUnreadNotifications: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      const notificationService = new NotificationService(ctx.db);
+      return await notificationService.getUnreadNotifications(ctx.session.user.id);
+    } catch (error) {
+      console.error('Error fetching unread notifications:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to fetch unread notifications',
+      });
+    }
+  }),
+
   // Get unread notification count
   getUnreadCount: protectedProcedure.query(async ({ ctx }) => {
     try {

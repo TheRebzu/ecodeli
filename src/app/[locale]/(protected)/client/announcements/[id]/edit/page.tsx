@@ -10,19 +10,20 @@ import Link from 'next/link';
 import { AnnouncementStatus } from '@/types/announcement';
 
 interface EditAnnouncementPageProps {
-  params: {
+  params: Promise<{
     id: string;
     locale: string;
-  };
+  }>;
 }
 
 export async function generateMetadata({ params }: EditAnnouncementPageProps): Promise<Metadata> {
-  const t = await getTranslations({ locale: params.locale, namespace: 'announcements' });
+  const { locale, id } = await params;
+  const t = await getTranslations({ locale, namespace: 'announcements' });
 
   // Récupérer les détails de l'annonce
   try {
     const announcement = await db.announcement.findUnique({
-      where: { id: params.id },
+      where: { id },
       select: { title: true },
     });
 
@@ -46,11 +47,12 @@ export async function generateMetadata({ params }: EditAnnouncementPageProps): P
 }
 
 export default async function EditAnnouncementPage({ params }: EditAnnouncementPageProps) {
+  const { locale, id } = await params;
   const t = await getTranslations('announcements');
 
   // Récupérer les détails de l'annonce
   const announcement = await db.announcement.findUnique({
-    where: { id: params.id },
+    where: { id },
   });
 
   if (!announcement) {
@@ -72,7 +74,7 @@ export default async function EditAnnouncementPage({ params }: EditAnnouncementP
 
         <div className="flex justify-center">
           <Button asChild>
-            <Link href={`/client/announcements/${announcement.id}`}>
+            <Link href={`/${locale}/client/announcements/${announcement.id}`}>
               <ChevronLeft className="mr-2 h-4 w-4" />
               {t('backToAnnouncement')}
             </Link>
@@ -86,7 +88,7 @@ export default async function EditAnnouncementPage({ params }: EditAnnouncementP
     <div className="container py-6 space-y-6">
       <PageHeader heading={t('editAnnouncement')} description={t('editAnnouncementDescription')}>
         <Button variant="outline" size="sm" asChild>
-          <Link href={`/client/announcements/${announcement.id}`}>
+          <Link href={`/${locale}/client/announcements/${announcement.id}`}>
             <ChevronLeft className="mr-2 h-4 w-4" />
             {t('back')}
           </Link>

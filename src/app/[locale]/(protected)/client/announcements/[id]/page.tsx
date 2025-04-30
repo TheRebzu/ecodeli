@@ -114,230 +114,244 @@ export default async function AnnouncementDetailPage({ params }: AnnouncementDet
   const { locale, id } = await params;
   const t = await getTranslations({ locale, namespace: 'announcements' });
 
-  // Récupérer les détails de l'annonce
-  const announcementData = await db.$queryRaw<RawAnnouncementData[]>`
-    SELECT 
-      a.*,
-      JSON_OBJECT(
-        'id', c.id,
-        'name', c.name,
-        'email', c.email,
-        'image', c.image
-      ) as client,
-      JSON_ARRAYAGG(
-        JSON_OBJECT(
-          'id', da.id,
-          'announcementId', da.announcementId,
-          'delivererId', da.delivererId,
-          'proposedPrice', da.proposedPrice,
-          'message', da.message,
-          'status', da.status,
-          'createdAt', da.createdAt,
-          'updatedAt', da.updatedAt,
-          'deliverer', JSON_OBJECT(
+  try {
+    // Récupérer d'abord les détails de l'annonce et l'information du client
+    const announcementData = await db.$queryRaw<RawAnnouncementData[]>`
+      SELECT 
+        a.*,
+        (
+          SELECT json_build_object(
+            'id', c.id,
+            'name', c.name,
+            'email', c.email,
+            'image', c.image
+          )
+          FROM users c
+          WHERE c.id = a."clientId"
+        ) as client
+      FROM announcements a
+      WHERE a.id = ${id}
+    `;
+
+    if (!announcementData || announcementData.length === 0) {
+      notFound();
+    }
+
+    const rawAnnouncement = announcementData[0];
+
+    // Récupérer séparément les applications de livraison
+    const applications = await db.$queryRaw<DeliveryApplication[]>`
+      SELECT 
+        da.*,
+        (
+          SELECT json_build_object(
             'id', d.id,
             'name', d.name,
             'email', d.email,
             'image', d.image
           )
-        )
-      ) as applications
-    FROM announcements a
-    LEFT JOIN users c ON a.clientId = c.id
-    LEFT JOIN delivery_applications da ON a.id = da.announcementId
-    LEFT JOIN users d ON da.delivererId = d.id
-    WHERE a.id = ${id}
-    GROUP BY a.id
-  `;
+          FROM users d
+          WHERE d.id = da."delivererId"
+        ) as deliverer
+      FROM delivery_applications da
+      WHERE da."announcementId" = ${id}
+    `;
 
-  if (!announcementData || announcementData.length === 0) {
-    notFound();
-  }
+    // Ajouter les applications à l'annonce
+    rawAnnouncement.applications = applications.length > 0 ? applications : null;
 
-  const rawAnnouncement = announcementData[0];
+    // Corriger les applications si null (aucune application)
+    let appDeliveryApplications: AppDeliveryApplication[] = [];
+    if (Array.isArray(rawAnnouncement.applications) && rawAnnouncement.applications.length > 0) {
+      appDeliveryApplications = rawAnnouncement.applications.map(app => ({
+        id: app.id,
+        announcementId: app.announcementId,
+        delivererId: app.delivererId,
+        proposedPrice: app.proposedPrice !== null ? app.proposedPrice : undefined,
+        message: app.message !== null ? app.message : undefined,
+        status: app.status,
+        createdAt: new Date(app.createdAt),
+        updatedAt: new Date(app.updatedAt),
+        deliverer: app.deliverer,
+      }));
+    }
 
-  // Corriger les applications si null (aucune application)
-  let applications: AppDeliveryApplication[] = [];
-  if (Array.isArray(rawAnnouncement.applications) && rawAnnouncement.applications[0]?.id !== null) {
-    applications = rawAnnouncement.applications.map(app => ({
-      id: app.id,
-      announcementId: app.announcementId,
-      delivererId: app.delivererId,
-      proposedPrice: app.proposedPrice !== null ? app.proposedPrice : undefined,
-      message: app.message !== null ? app.message : undefined,
-      status: app.status,
-      createdAt: new Date(app.createdAt),
-      updatedAt: new Date(app.updatedAt),
-      deliverer: app.deliverer,
-    }));
-  }
+    // Convertir en objet Announcement compatible avec les composants
+    const announcement: Announcement = {
+      id: rawAnnouncement.id,
+      title: rawAnnouncement.title,
+      description: rawAnnouncement.description,
+      type: rawAnnouncement.type as AnnouncementType,
+      status: rawAnnouncement.status as AnnouncementStatus,
+      priority: rawAnnouncement.priority as AnnouncementPriority,
+      pickupAddress: rawAnnouncement.pickupAddress,
+      pickupLongitude:
+        rawAnnouncement.pickupLongitude !== null ? rawAnnouncement.pickupLongitude : undefined,
+      pickupLatitude:
+        rawAnnouncement.pickupLatitude !== null ? rawAnnouncement.pickupLatitude : undefined,
+      deliveryAddress: rawAnnouncement.deliveryAddress,
+      deliveryLongitude:
+        rawAnnouncement.deliveryLongitude !== null ? rawAnnouncement.deliveryLongitude : undefined,
+      deliveryLatitude:
+        rawAnnouncement.deliveryLatitude !== null ? rawAnnouncement.deliveryLatitude : undefined,
+      weight: rawAnnouncement.weight !== null ? rawAnnouncement.weight : undefined,
+      width: rawAnnouncement.width !== null ? rawAnnouncement.width : undefined,
+      height: rawAnnouncement.height !== null ? rawAnnouncement.height : undefined,
+      length: rawAnnouncement.length !== null ? rawAnnouncement.length : undefined,
+      isFragile: Boolean(rawAnnouncement.isFragile),
+      needsCooling: Boolean(rawAnnouncement.needsCooling),
+      pickupDate: rawAnnouncement.pickupDate ? new Date(rawAnnouncement.pickupDate) : undefined,
+      pickupTimeWindow:
+        rawAnnouncement.pickupTimeWindow !== null ? rawAnnouncement.pickupTimeWindow : undefined,
+      deliveryDate: rawAnnouncement.deliveryDate
+        ? new Date(rawAnnouncement.deliveryDate)
+        : undefined,
+      deliveryTimeWindow:
+        rawAnnouncement.deliveryTimeWindow !== null
+          ? rawAnnouncement.deliveryTimeWindow
+          : undefined,
+      isFlexible: Boolean(rawAnnouncement.isFlexible),
+      suggestedPrice:
+        rawAnnouncement.suggestedPrice !== null ? rawAnnouncement.suggestedPrice : undefined,
+      finalPrice: rawAnnouncement.finalPrice !== null ? rawAnnouncement.finalPrice : undefined,
+      isNegotiable: Boolean(rawAnnouncement.isNegotiable),
+      paymentStatus:
+        rawAnnouncement.paymentStatus !== null ? rawAnnouncement.paymentStatus : undefined,
+      clientId: rawAnnouncement.clientId,
+      client: rawAnnouncement.client,
+      delivererId: rawAnnouncement.delivererId !== null ? rawAnnouncement.delivererId : undefined,
+      deliverer: undefined,
+      createdAt: new Date(rawAnnouncement.createdAt),
+      updatedAt: new Date(rawAnnouncement.updatedAt),
+      viewCount: rawAnnouncement.viewCount,
+      applicationsCount: rawAnnouncement.applicationsCount,
+      cancelReason:
+        rawAnnouncement.cancelReason !== null ? rawAnnouncement.cancelReason : undefined,
+      notes: rawAnnouncement.notes !== null ? rawAnnouncement.notes : undefined,
+      tags: Array.isArray(rawAnnouncement.tags)
+        ? rawAnnouncement.tags
+        : typeof rawAnnouncement.tags === 'string'
+          ? JSON.parse(rawAnnouncement.tags)
+          : [],
+      applications: appDeliveryApplications,
+    };
 
-  // Convertir en objet Announcement compatible avec les composants
-  const announcement: Announcement = {
-    id: rawAnnouncement.id,
-    title: rawAnnouncement.title,
-    description: rawAnnouncement.description,
-    type: rawAnnouncement.type as AnnouncementType,
-    status: rawAnnouncement.status as AnnouncementStatus,
-    priority: rawAnnouncement.priority as AnnouncementPriority,
-    pickupAddress: rawAnnouncement.pickupAddress,
-    pickupLongitude:
-      rawAnnouncement.pickupLongitude !== null ? rawAnnouncement.pickupLongitude : undefined,
-    pickupLatitude:
-      rawAnnouncement.pickupLatitude !== null ? rawAnnouncement.pickupLatitude : undefined,
-    deliveryAddress: rawAnnouncement.deliveryAddress,
-    deliveryLongitude:
-      rawAnnouncement.deliveryLongitude !== null ? rawAnnouncement.deliveryLongitude : undefined,
-    deliveryLatitude:
-      rawAnnouncement.deliveryLatitude !== null ? rawAnnouncement.deliveryLatitude : undefined,
-    weight: rawAnnouncement.weight !== null ? rawAnnouncement.weight : undefined,
-    width: rawAnnouncement.width !== null ? rawAnnouncement.width : undefined,
-    height: rawAnnouncement.height !== null ? rawAnnouncement.height : undefined,
-    length: rawAnnouncement.length !== null ? rawAnnouncement.length : undefined,
-    isFragile: Boolean(rawAnnouncement.isFragile),
-    needsCooling: Boolean(rawAnnouncement.needsCooling),
-    pickupDate: rawAnnouncement.pickupDate ? new Date(rawAnnouncement.pickupDate) : undefined,
-    pickupTimeWindow:
-      rawAnnouncement.pickupTimeWindow !== null ? rawAnnouncement.pickupTimeWindow : undefined,
-    deliveryDate: rawAnnouncement.deliveryDate ? new Date(rawAnnouncement.deliveryDate) : undefined,
-    deliveryTimeWindow:
-      rawAnnouncement.deliveryTimeWindow !== null ? rawAnnouncement.deliveryTimeWindow : undefined,
-    isFlexible: Boolean(rawAnnouncement.isFlexible),
-    suggestedPrice:
-      rawAnnouncement.suggestedPrice !== null ? rawAnnouncement.suggestedPrice : undefined,
-    finalPrice: rawAnnouncement.finalPrice !== null ? rawAnnouncement.finalPrice : undefined,
-    isNegotiable: Boolean(rawAnnouncement.isNegotiable),
-    paymentStatus:
-      rawAnnouncement.paymentStatus !== null ? rawAnnouncement.paymentStatus : undefined,
-    clientId: rawAnnouncement.clientId,
-    client: rawAnnouncement.client,
-    delivererId: rawAnnouncement.delivererId !== null ? rawAnnouncement.delivererId : undefined,
-    deliverer: undefined,
-    createdAt: new Date(rawAnnouncement.createdAt),
-    updatedAt: new Date(rawAnnouncement.updatedAt),
-    viewCount: rawAnnouncement.viewCount,
-    applicationsCount: rawAnnouncement.applicationsCount,
-    cancelReason: rawAnnouncement.cancelReason !== null ? rawAnnouncement.cancelReason : undefined,
-    notes: rawAnnouncement.notes !== null ? rawAnnouncement.notes : undefined,
-    tags: Array.isArray(rawAnnouncement.tags)
-      ? rawAnnouncement.tags
-      : typeof rawAnnouncement.tags === 'string'
-        ? JSON.parse(rawAnnouncement.tags)
-        : [],
-    applications: applications,
-  };
+    // Vérifier si l'annonce peut être modifiée
+    const isEditable =
+      announcement.status === AnnouncementStatus.DRAFT ||
+      announcement.status === AnnouncementStatus.PENDING;
 
-  // Vérifier si l'annonce peut être modifiée
-  const isEditable =
-    announcement.status === AnnouncementStatus.DRAFT ||
-    announcement.status === AnnouncementStatus.PENDING;
+    // Vérifier si l'annonce peut être supprimée
+    const isDeletable =
+      announcement.status === AnnouncementStatus.DRAFT ||
+      announcement.status === AnnouncementStatus.PENDING ||
+      announcement.status === AnnouncementStatus.PUBLISHED;
 
-  // Vérifier si l'annonce peut être supprimée
-  const isDeletable =
-    announcement.status === AnnouncementStatus.DRAFT ||
-    announcement.status === AnnouncementStatus.PENDING ||
-    announcement.status === AnnouncementStatus.PUBLISHED;
-
-  return (
-    <div className="container py-6 space-y-6">
-      <PageHeader heading={announcement.title} description={t('announcementDetailsDescription')}>
-        <Button variant="outline" size="sm" asChild>
-          <Link href={`/${locale}/client/announcements`}>
-            <ChevronLeft className="mr-2 h-4 w-4" />
-            {t('back')}
-          </Link>
-        </Button>
-
-        {isEditable && (
+    return (
+      <div className="container py-6 space-y-6">
+        <PageHeader heading={announcement.title} description={t('announcementDetailsDescription')}>
           <Button variant="outline" size="sm" asChild>
-            <Link href={`/${locale}/client/announcements/${announcement.id}/edit`}>
-              <Edit className="mr-2 h-4 w-4" />
-              {t('edit')}
+            <Link href={`/${locale}/client/announcements`}>
+              <ChevronLeft className="mr-2 h-4 w-4" />
+              {t('back')}
             </Link>
           </Button>
+
+          {isEditable && (
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/${locale}/client/announcements/${announcement.id}/edit`}>
+                <Edit className="mr-2 h-4 w-4" />
+                {t('edit')}
+              </Link>
+            </Button>
+          )}
+
+          {isDeletable && (
+            <Button variant="destructive" size="sm">
+              <Trash2 className="mr-2 h-4 w-4" />
+              {t('delete')}
+            </Button>
+          )}
+        </PageHeader>
+
+        {announcement.status === AnnouncementStatus.DRAFT && (
+          <Alert>
+            <AlertTitle>{t('draftAnnouncementTitle')}</AlertTitle>
+            <AlertDescription>{t('draftAnnouncementDescription')}</AlertDescription>
+          </Alert>
         )}
 
-        {isDeletable && (
-          <Button variant="destructive" size="sm">
-            <Trash2 className="mr-2 h-4 w-4" />
-            {t('delete')}
-          </Button>
-        )}
-      </PageHeader>
+        <Tabs defaultValue="details" className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="details">{t('details')}</TabsTrigger>
+            <TabsTrigger value="map">{t('mapView')}</TabsTrigger>
+            <TabsTrigger value="applications">
+              {t('applications')} (
+              {announcement.applications ? announcement.applications.length : 0})
+            </TabsTrigger>
+          </TabsList>
 
-      {announcement.status === AnnouncementStatus.DRAFT && (
-        <Alert>
-          <AlertTitle>{t('draftAnnouncementTitle')}</AlertTitle>
-          <AlertDescription>{t('draftAnnouncementDescription')}</AlertDescription>
-        </Alert>
-      )}
+          <TabsContent value="details" className="space-y-4">
+            <AnnouncementCard announcement={announcement} isClientView={true} isDetailed={true} />
+          </TabsContent>
 
-      <Tabs defaultValue="details" className="w-full">
-        <TabsList className="mb-4">
-          <TabsTrigger value="details">{t('details')}</TabsTrigger>
-          <TabsTrigger value="map">{t('mapView')}</TabsTrigger>
-          <TabsTrigger value="applications">
-            {t('applications')} ({announcement.applications ? announcement.applications.length : 0})
-          </TabsTrigger>
-        </TabsList>
+          <TabsContent value="map">
+            <AnnouncementMap
+              announcements={[announcement]}
+              selectedAnnouncement={announcement}
+              height="500px"
+            />
+          </TabsContent>
 
-        <TabsContent value="details" className="space-y-4">
-          <AnnouncementCard announcement={announcement} isClientView={true} isDetailed={true} />
-        </TabsContent>
-
-        <TabsContent value="map">
-          <AnnouncementMap
-            announcements={[announcement]}
-            selectedAnnouncement={announcement}
-            height="500px"
-          />
-        </TabsContent>
-
-        <TabsContent value="applications">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('delivererApplications')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {announcement.applications && announcement.applications.length > 0 ? (
-                <div className="space-y-4">
-                  {announcement.applications.map(application => (
-                    <div key={application.id} className="border p-4 rounded-lg">
-                      <div className="flex justify-between">
-                        <div>
-                          <div className="font-semibold">{application.deliverer?.name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {t('proposedPrice')}:{' '}
-                            {application.proposedPrice
-                              ? `${application.proposedPrice} €`
-                              : t('notSpecified')}
-                          </div>
-                          {application.message && (
-                            <div className="mt-2 text-sm">
-                              <div className="font-medium">{t('message')}:</div>
-                              <p className="text-muted-foreground">{application.message}</p>
+          <TabsContent value="applications">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('delivererApplications')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {announcement.applications && announcement.applications.length > 0 ? (
+                  <div className="space-y-4">
+                    {announcement.applications.map(application => (
+                      <div key={application.id} className="border p-4 rounded-lg">
+                        <div className="flex justify-between">
+                          <div>
+                            <div className="font-semibold">{application.deliverer?.name}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {t('proposedPrice')}:{' '}
+                              {application.proposedPrice
+                                ? `${application.proposedPrice} €`
+                                : t('notSpecified')}
                             </div>
-                          )}
-                        </div>
-                        <div className="flex gap-2">
-                          <Button size="sm" variant="outline">
-                            {t('viewProfile')}
-                          </Button>
-                          <Button size="sm">{t('acceptOffer')}</Button>
+                            {application.message && (
+                              <div className="mt-2 text-sm">
+                                <div className="font-medium">{t('message')}:</div>
+                                <p className="text-muted-foreground">{application.message}</p>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline">
+                              {t('viewProfile')}
+                            </Button>
+                            <Button size="sm">{t('acceptOffer')}</Button>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-muted-foreground">{t('noApplicationsYet')}</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">{t('noApplicationsYet')}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    );
+  } catch (error) {
+    console.error("Erreur lors de la récupération des détails de l'annonce:", error);
+    notFound();
+  }
 }
