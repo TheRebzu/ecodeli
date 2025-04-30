@@ -107,3 +107,20 @@ export function generateId(prefix: string = ''): string {
 export function sleep(ms: number): Promise<void> {
   return new Promise(resolve => setTimeout(resolve, ms));
 }
+
+/**
+ * Génère une chaîne aléatoire de caractères alphanumériques
+ * @param length - Longueur de la chaîne à générer
+ * @returns Une chaîne aléatoire
+ */
+export function generateRandomString(length: number): string {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  const charactersLength = characters.length;
+
+  for (let i = 0; i < length; i++) {
+    result += characters.charAt(Math.floor(Math.random() * charactersLength));
+  }
+
+  return result;
+}

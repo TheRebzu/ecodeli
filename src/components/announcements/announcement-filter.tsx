@@ -158,7 +158,7 @@ export function AnnouncementFilter() {
               }
             >
               <SelectTrigger className="w-auto h-9 min-w-[140px]">
-                <SelectValue placeholder={t('status')} />
+                <SelectValue placeholder={t('statusLabel')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{t('allStatuses')}</SelectItem>
@@ -180,7 +180,7 @@ export function AnnouncementFilter() {
               }
             >
               <SelectTrigger className="w-auto h-9 min-w-[140px]">
-                <SelectValue placeholder={t('type')} />
+                <SelectValue placeholder={t('typeLabel')} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">{t('allTypes')}</SelectItem>
@@ -221,7 +221,7 @@ export function AnnouncementFilter() {
                       name="type"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('type')}</FormLabel>
+                          <FormLabel>{t('typeLabel')}</FormLabel>
                           <Select
                             value={field.value?.toString() || ''}
                             onValueChange={value =>
@@ -254,7 +254,7 @@ export function AnnouncementFilter() {
                       name="status"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel>{t('status')}</FormLabel>
+                          <FormLabel>{t('statusLabel')}</FormLabel>
                           <Select
                             value={field.value?.toString() || ''}
                             onValueChange={value =>

@@ -51,6 +51,21 @@ model User {
   verifiedHistories      VerificationHistory[] @relation("VerifierRelation")
   submittedVerifications Verification[]        @relation("SubmitterRelation")
   verifications          Verification[]        @relation("VerifierRelation")
+  providedServices       Service[]
+  providerAvailability   ProviderAvailability[]
+  clientBookings         ServiceBooking[]      @relation("ClientBookings")
+  providerBookings       ServiceBooking[]      @relation("ProviderBookings")
+  isProvider             Boolean               @default(false)
+  providerBio            String?
+  providerLocationLat    Float?
+  providerLocationLng    Float?
+  providerAddress        String?
+  providerZipCode        String?
+  providerCity           String?
+  providerVerified       Boolean               @default(false)
+  favorites              DelivererFavorite[]   // Relation avec les favoris
+  clientDeliveries       Delivery[]            @relation("ClientDeliveries")
+  delivererDeliveries    Delivery[]            @relation("DelivererDeliveries")
 
   @@map("users")
 }
@@ -427,26 +442,140 @@ model Announcement {
   cancelReason       String?
   notes              String?
   tags               String[]
+  photos             String[]              @default([])
+  estimatedDistance  Float?                // Distance estimée en km
+  estimatedDuration  Int?                  // Durée estimée en minutes
+  requiresSignature  Boolean               @default(false)
+  requiresId         Boolean               @default(false)
+  specialInstructions String?              // Instructions spéciales pour le livreur
+  isFavorite         Boolean               @default(false) // Pour marquer comme favoris par les livreurs
   client             User                  @relation(fields: [clientId], references: [id], onDelete: Cascade)
   deliverer          User?                 @relation("AnnouncementDeliverer", fields: [delivererId], references: [id])
   applications       DeliveryApplication[]
+  favorites          DelivererFavorite[]   // Relation avec les favoris
 
   @@map("announcements")
 }
 
 model DeliveryApplication {
-  id             String       @id @default(cuid())
-  announcementId String
+  id                String       @id @default(cuid())
+  announcementId    String
+  delivererId       String
+  proposedPrice     Float?
+  message           String?
+  status            String       @default("PENDING")
+  createdAt         DateTime     @default(now())
+  updatedAt         DateTime     @updatedAt
+  estimatedPickupTime DateTime?  // Heure estimée de ramassage
+  estimatedDeliveryTime DateTime? // Heure estimée de livraison
+  isPreferred       Boolean      @default(false) // Marqué comme préféré par le client
+  notes             String?      // Notes supplémentaires
+  announcement      Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  deliverer         User         @relation(fields: [delivererId], references: [id], onDelete: Cascade)
+
+  @@map("delivery_applications")
+}
+
+model Service {
+  id          String   @id @default(cuid())
+  name        String
+  description String
+  price       Decimal
+  duration    Int      // Durée en minutes
+  categoryId  String
+  category    ServiceCategory @relation(fields: [categoryId], references: [id])
+  providerId  String
+  provider    User     @relation(fields: [providerId], references: [id])
+  bookings    ServiceBooking[]
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([providerId])
+  @@index([categoryId])
+}
+
+model ServiceCategory {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  services    Service[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ProviderAvailability {
+  id         String   @id @default(cuid())
+  providerId String
+  provider   User     @relation(fields: [providerId], references: [id])
+  dayOfWeek  Int      // 0-6 pour lundi-dimanche
+  startTime  DateTime // Heure de début
+  endTime    DateTime // Heure de fin
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([providerId])
+}
+
+model ServiceBooking {
+  id          String   @id @default(cuid())
+  clientId    String
+  client      User     @relation("ClientBookings", fields: [clientId], references: [id])
+  providerId  String
+  provider    User     @relation("ProviderBookings", fields: [providerId], references: [id])
+  serviceId   String
+  service     Service  @relation(fields: [serviceId], references: [id])
+  startTime   DateTime
+  endTime     DateTime
+  status      BookingStatus @default(PENDING)
+  totalPrice  Decimal
+  paymentId   String?
+  payment     Payment? @relation(fields: [paymentId], references: [id])
+  notes       String?
+  review      ServiceReview?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([clientId])
+  @@index([providerId])
+  @@index([serviceId])
+  @@index([paymentId])
+}
+
+model ServiceReview {
+  id         String   @id @default(cuid())
+  bookingId  String   @unique
+  booking    ServiceBooking @relation(fields: [bookingId], references: [id])
+  rating     Int      // 1-5 étoiles
+  comment    String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Payment {
+  id              String   @id @default(cuid())
+  amount          Decimal
+  currency        String   @default("EUR")
+  stripePaymentId String?
+  status          PaymentStatus @default(PENDING)
+  bookings        ServiceBooking[]
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model DelivererFavorite {
+  id             String     @id @default(cuid())
   delivererId    String
-  proposedPrice  Float?
-  message        String?
-  status         String       @default("PENDING")
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  announcementId String
+  createdAt      DateTime   @default(now())
+  
+  // Relations
   announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
   deliverer      User         @relation(fields: [delivererId], references: [id], onDelete: Cascade)
 
-  @@map("delivery_applications")
+  // Index unique pour éviter les doublons
+  @@unique([delivererId, announcementId])
+  @@map("deliverer_favorites")
 }
 
 enum UserRole {
@@ -540,4 +669,107 @@ enum AnnouncementPriority {
   MEDIUM
   HIGH
   URGENT
+}
+
+enum BookingStatus {
+  PENDING    // En attente de confirmation
+  CONFIRMED  // Confirmé par le prestataire
+  COMPLETED  // Service effectué
+  CANCELLED  // Annulé
+  RESCHEDULED // Reprogrammé
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum DeliveryStatus {
+  PENDING
+  ACCEPTED
+  PICKED_UP
+  IN_TRANSIT
+  DELIVERED
+  CONFIRMED
+  CANCELLED
+  DISPUTED
+}
+
+model Delivery {
+  id                String         @id @default(cuid())
+  status            DeliveryStatus @default(PENDING)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  
+  pickupAddress     String
+  deliveryAddress   String
+  pickupDate        DateTime
+  deliveryDate      DateTime?
+  
+  currentLat        Float?
+  currentLng        Float?
+  lastLocationUpdate DateTime?
+  
+  estimatedArrival  DateTime?
+  confirmationCode  String?
+  
+  clientId          String
+  client            User           @relation("ClientDeliveries", fields: [clientId], references: [id])
+  delivererId       String?
+  deliverer         User?          @relation("DelivererDeliveries", fields: [delivererId], references: [id])
+  
+  logs              DeliveryLog[]
+  coordinates       DeliveryCoordinates[]
+  rating            DeliveryRating?
+  proofs            DeliveryProof[]
+
+  @@index([clientId])
+  @@index([delivererId])
+}
+
+model DeliveryLog {
+  id              String         @id @default(cuid())
+  deliveryId      String
+  delivery        Delivery       @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  status          DeliveryStatus
+  timestamp       DateTime       @default(now())
+  note            String?
+  latitude        Float?
+  longitude       Float?
+
+  @@index([deliveryId])
+}
+
+model DeliveryCoordinates {
+  id              String         @id @default(cuid())
+  deliveryId      String
+  delivery        Delivery       @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  latitude        Float
+  longitude       Float
+  timestamp       DateTime       @default(now())
+
+  @@index([deliveryId])
+}
+
+model DeliveryProof {
+  id              String         @id @default(cuid())
+  deliveryId      String
+  delivery        Delivery       @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  type            String         // PHOTO, SIGNATURE, CODE
+  url             String?
+  confirmedBy     String?        // User ID who confirmed
+  confirmedAt     DateTime       @default(now())
+
+  @@index([deliveryId])
+}
+
+model DeliveryRating {
+  id              String         @id @default(cuid())
+  deliveryId      String         @unique
+  delivery        Delivery       @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  rating          Int            // 1-5 stars
+  comment         String?
+  createdAt       DateTime       @default(now())
 }

@@ -1,0 +1,1 @@
+      "form.bookingSuccess": "R├®servation cr├®├®e avec succ├¿s !",
