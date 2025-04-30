@@ -81,6 +81,15 @@ export interface Announcement {
   notes?: string;
   tags: string[];
 
+  // Nouveaux champs
+  photos: string[];
+  estimatedDistance?: number;
+  estimatedDuration?: number;
+  requiresSignature: boolean;
+  requiresId: boolean;
+  specialInstructions?: string;
+  isFavorite: boolean;
+
   // Relations
   applications?: DeliveryApplication[];
 }
@@ -114,6 +123,12 @@ export interface CreateAnnouncementInput {
 
   suggestedPrice?: number;
   isNegotiable?: boolean;
+
+  // Nouveaux champs
+  photos?: string[];
+  requiresSignature?: boolean;
+  requiresId?: boolean;
+  specialInstructions?: string;
 
   tags?: string[];
   notes?: string;
@@ -155,6 +170,15 @@ export interface UpdateAnnouncementInput {
 
   delivererId?: string;
 
+  // Nouveaux champs
+  photos?: string[];
+  estimatedDistance?: number;
+  estimatedDuration?: number;
+  requiresSignature?: boolean;
+  requiresId?: boolean;
+  specialInstructions?: string;
+  isFavorite?: boolean;
+
   cancelReason?: string;
   notes?: string;
   tags?: string[];
@@ -177,6 +201,16 @@ export interface AnnouncementFilters {
   offset?: number;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
+  // Nouveaux filtres
+  maxDistance?: number;
+  nearbyAddress?: string;
+  nearbyLatitude?: number;
+  nearbyLongitude?: number;
+  radiusKm?: number;
+  requiresSignature?: boolean;
+  requiresId?: boolean;
+  hasPhotos?: boolean;
+  isFavorite?: boolean;
 }
 
 // Interface pour une candidature sur une annonce
@@ -191,6 +225,11 @@ export interface DeliveryApplication {
   status: string;
   createdAt: Date;
   updatedAt: Date;
+  // Nouveaux champs
+  estimatedPickupTime?: Date;
+  estimatedDeliveryTime?: Date;
+  isPreferred: boolean;
+  notes?: string;
 }
 
 // Interface pour la création d'une candidature
@@ -198,4 +237,35 @@ export interface CreateDeliveryApplicationInput {
   announcementId: string;
   proposedPrice?: number;
   message?: string;
+  estimatedPickupTime?: Date;
+  estimatedDeliveryTime?: Date;
+  notes?: string;
+}
+
+// Interface pour la mise à jour d'une candidature
+export interface UpdateDeliveryApplicationInput {
+  id: string;
+  proposedPrice?: number;
+  message?: string;
+  status?: string;
+  estimatedPickupTime?: Date;
+  estimatedDeliveryTime?: Date;
+  isPreferred?: boolean;
+  notes?: string;
+}
+
+// Interface pour la géolocalisation
+export interface GeoLocation {
+  latitude: number;
+  longitude: number;
+  address: string;
+}
+
+// Interface pour la recherche géographique
+export interface GeoSearchParams {
+  latitude: number;
+  longitude: number;
+  radiusKm: number;
+  limit?: number;
+  offset?: number;
 }

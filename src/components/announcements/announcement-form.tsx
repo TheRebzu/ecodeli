@@ -42,6 +42,8 @@ import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { PhotoUpload } from './photo-upload';
+import { AddressMapPicker } from './address-map-picker';
 
 type AnnouncementFormProps = {
   announcement?: Announcement;
@@ -94,6 +96,12 @@ export function AnnouncementForm({ announcement, isEdit = false }: AnnouncementF
             isNegotiable: announcement.isNegotiable,
             tags: announcement.tags,
             notes: announcement.notes,
+            photos: announcement.photos || [],
+            estimatedDistance: announcement.estimatedDistance,
+            estimatedDuration: announcement.estimatedDuration,
+            requiresSignature: announcement.requiresSignature,
+            requiresId: announcement.requiresId,
+            specialInstructions: announcement.specialInstructions,
           }
         : {
             title: '',
@@ -107,6 +115,9 @@ export function AnnouncementForm({ announcement, isEdit = false }: AnnouncementF
             isFlexible: false,
             isNegotiable: true,
             tags: [],
+            photos: [],
+            requiresSignature: false,
+            requiresId: false,
           },
   });
 
@@ -117,6 +128,33 @@ export function AnnouncementForm({ announcement, isEdit = false }: AnnouncementF
     } else {
       createAnnouncement(data as CreateAnnouncementSchemaType);
     }
+  }
+
+  function estimateDistanceAndDuration(
+    startLat: number,
+    startLng: number,
+    endLat: number,
+    endLng: number
+  ) {
+    // Calcul simple de la distance à vol d'oiseau (formule de Haversine)
+    const R = 6371; // Rayon de la Terre en km
+    const dLat = (endLat - startLat) * (Math.PI / 180);
+    const dLon = (endLng - startLng) * (Math.PI / 180);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(startLat * (Math.PI / 180)) *
+        Math.cos(endLat * (Math.PI / 180)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c;
+
+    // Estimation approximative de la durée (1 km ≈ 1.5 min en ville)
+    const duration = Math.round(distance * 1.5);
+
+    // Mise à jour des champs du formulaire
+    form.setValue('estimatedDistance', parseFloat(distance.toFixed(1)));
+    form.setValue('estimatedDuration', duration);
   }
 
   return (
@@ -136,39 +174,37 @@ export function AnnouncementForm({ announcement, isEdit = false }: AnnouncementF
               <h3 className="text-lg font-semibold">{t('generalInformation')}</h3>
               <Separator />
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Titre */}
+              <div className="grid grid-cols-1 gap-4">
                 <FormField
                   control={form.control}
                   name="title"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('title')}</FormLabel>
+                      <FormLabel>{t('titleLabel') || 'Titre'}</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder={t('titlePlaceholder')} />
+                        <Input placeholder={t('titlePlaceholder')} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                {/* Type d'annonce */}
                 <FormField
                   control={form.control}
                   name="type"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('type')}</FormLabel>
+                      <FormLabel>{t('typeLabel') || 'Type'}</FormLabel>
                       <Select value={field.value} onValueChange={field.onChange}>
                         <FormControl>
                           <SelectTrigger>
-                            <SelectValue placeholder={t('selectType')} />
+                            {field.value ? <>{t(`type.${field.value}`)}</> : <>{t('selectType')}</>}
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {announcementTypes.map(type => (
-                            <SelectItem key={type.value} value={type.value}>
-                              {type.label}
+                          {Object.values(AnnouncementType).map(type => (
+                            <SelectItem key={type} value={type}>
+                              {t(`type.${type}`)}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -177,48 +213,54 @@ export function AnnouncementForm({ announcement, isEdit = false }: AnnouncementF
                     </FormItem>
                   )}
                 />
-              </div>
 
-              {/* Description */}
-              <FormField
-                control={form.control}
-                name="description"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('description')}</FormLabel>
-                    <FormControl>
-                      <Textarea {...field} placeholder={t('descriptionPlaceholder')} rows={4} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="priority"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('priorityLabel') || 'Priorité'}</FormLabel>
+                      <Select value={field.value} onValueChange={field.onChange}>
+                        <FormControl>
+                          <SelectTrigger>
+                            {field.value ? (
+                              <>{t(`priority.${field.value}`)}</>
+                            ) : (
+                              <>{t('selectPriority')}</>
+                            )}
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {Object.values(AnnouncementPriority).map(priority => (
+                            <SelectItem key={priority} value={priority}>
+                              {t(`priority.${priority}`)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              {/* Priorité */}
-              <FormField
-                control={form.control}
-                name="priority"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{t('priority')}</FormLabel>
-                    <Select value={field.value} onValueChange={field.onChange}>
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('descriptionLabel') || 'Description'}</FormLabel>
                       <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={t('selectPriority')} />
-                        </SelectTrigger>
+                        <Textarea
+                          placeholder={t('descriptionPlaceholder')}
+                          {...field}
+                          className="min-h-32"
+                        />
                       </FormControl>
-                      <SelectContent>
-                        {announcementPriorities.map(priority => (
-                          <SelectItem key={priority.value} value={priority.value}>
-                            {priority.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
 
             {/* Section Adresses */}
@@ -226,32 +268,113 @@ export function AnnouncementForm({ announcement, isEdit = false }: AnnouncementF
               <h3 className="text-lg font-semibold">{t('addresses')}</h3>
               <Separator />
 
-              <div className="grid grid-cols-1 gap-4">
-                {/* Adresse de ramassage */}
+              {/* Adresse de ramassage avec carte */}
+              <FormField
+                control={form.control}
+                name="pickupAddress"
+                render={({ field }) => (
+                  <FormItem>
+                    <AddressMapPicker
+                      label={t('pickupAddress')}
+                      placeholder={t('pickupAddressPlaceholder')}
+                      initialAddress={field.value}
+                      initialLatitude={form.getValues('pickupLatitude')}
+                      initialLongitude={form.getValues('pickupLongitude')}
+                      onAddressChange={(address, lat, lng) => {
+                        field.onChange(address);
+                        form.setValue('pickupLatitude', lat);
+                        form.setValue('pickupLongitude', lng);
+
+                        // Estimation de la distance et durée si les deux adresses sont disponibles
+                        const deliveryLat = form.getValues('deliveryLatitude');
+                        const deliveryLng = form.getValues('deliveryLongitude');
+                        if (deliveryLat && deliveryLng) {
+                          estimateDistanceAndDuration(lat, lng, deliveryLat, deliveryLng);
+                        }
+                      }}
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Adresse de livraison avec carte */}
+              <FormField
+                control={form.control}
+                name="deliveryAddress"
+                render={({ field }) => (
+                  <FormItem>
+                    <AddressMapPicker
+                      label={t('deliveryAddress')}
+                      placeholder={t('deliveryAddressPlaceholder')}
+                      initialAddress={field.value}
+                      initialLatitude={form.getValues('deliveryLatitude')}
+                      initialLongitude={form.getValues('deliveryLongitude')}
+                      onAddressChange={(address, lat, lng) => {
+                        field.onChange(address);
+                        form.setValue('deliveryLatitude', lat);
+                        form.setValue('deliveryLongitude', lng);
+
+                        // Estimation de la distance et durée si les deux adresses sont disponibles
+                        const pickupLat = form.getValues('pickupLatitude');
+                        const pickupLng = form.getValues('pickupLongitude');
+                        if (pickupLat && pickupLng) {
+                          estimateDistanceAndDuration(pickupLat, pickupLng, lat, lng);
+                        }
+                      }}
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Distance et durée estimées */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                 <FormField
                   control={form.control}
-                  name="pickupAddress"
+                  name="estimatedDistance"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('pickupAddress')}</FormLabel>
+                      <FormLabel>{t('estimatedDistance')} (km)</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder={t('pickupAddressPlaceholder')} />
+                        <Input
+                          {...field}
+                          type="number"
+                          step="0.1"
+                          placeholder="0.0"
+                          value={field.value || ''}
+                          onChange={e =>
+                            field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)
+                          }
+                          readOnly
+                        />
                       </FormControl>
+                      <FormDescription>{t('estimatedDistanceDescription')}</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                {/* Adresse de livraison */}
                 <FormField
                   control={form.control}
-                  name="deliveryAddress"
+                  name="estimatedDuration"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('deliveryAddress')}</FormLabel>
+                      <FormLabel>{t('estimatedDuration')} (min)</FormLabel>
                       <FormControl>
-                        <Input {...field} placeholder={t('deliveryAddressPlaceholder')} />
+                        <Input
+                          {...field}
+                          type="number"
+                          step="1"
+                          placeholder="0"
+                          value={field.value || ''}
+                          onChange={e =>
+                            field.onChange(e.target.value ? parseInt(e.target.value) : undefined)
+                          }
+                          readOnly
+                        />
                       </FormControl>
+                      <FormDescription>{t('estimatedDurationDescription')}</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -410,11 +533,10 @@ export function AnnouncementForm({ announcement, isEdit = false }: AnnouncementF
 
             {/* Section Planification */}
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">{t('scheduling')}</h3>
+              <h3 className="text-lg font-semibold">{t('scheduling') || 'Planification'}</h3>
               <Separator />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Date de ramassage */}
                 <FormField
                   control={form.control}
                   name="pickupDate"
@@ -425,16 +547,16 @@ export function AnnouncementForm({ announcement, isEdit = false }: AnnouncementF
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button
-                              variant={'outline'}
+                              variant="outline"
                               className={cn(
-                                'w-full pl-3 text-left font-normal',
+                                'pl-3 text-left font-normal',
                                 !field.value && 'text-muted-foreground'
                               )}
                             >
                               {field.value ? (
                                 format(field.value, 'PPP', { locale: fr })
                               ) : (
-                                <span>{t('selectDate')}</span>
+                                <span>{t('selectDate') || 'Sélectionner une date'}</span>
                               )}
                               <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
@@ -445,7 +567,9 @@ export function AnnouncementForm({ announcement, isEdit = false }: AnnouncementF
                             mode="single"
                             selected={field.value}
                             onSelect={field.onChange}
-                            disabled={date => date < new Date(new Date().setHours(0, 0, 0, 0))}
+                            disabled={date => {
+                              return date < new Date(new Date().setHours(0, 0, 0, 0));
+                            }}
                             initialFocus
                           />
                         </PopoverContent>
@@ -455,7 +579,6 @@ export function AnnouncementForm({ announcement, isEdit = false }: AnnouncementF
                   )}
                 />
 
-                {/* Créneau de ramassage */}
                 <FormField
                   control={form.control}
                   name="pickupTimeWindow"
@@ -465,13 +588,15 @@ export function AnnouncementForm({ announcement, isEdit = false }: AnnouncementF
                       <FormControl>
                         <Input {...field} placeholder="14:00-16:00" />
                       </FormControl>
-                      <FormDescription>{t('timeWindowDescription')}</FormDescription>
+                      <FormDescription>
+                        {t('timeWindowDescription') ||
+                          'Spécifiez une plage horaire (ex: 14:00-16:00)'}
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                {/* Date de livraison */}
                 <FormField
                   control={form.control}
                   name="deliveryDate"
@@ -482,16 +607,16 @@ export function AnnouncementForm({ announcement, isEdit = false }: AnnouncementF
                         <PopoverTrigger asChild>
                           <FormControl>
                             <Button
-                              variant={'outline'}
+                              variant="outline"
                               className={cn(
-                                'w-full pl-3 text-left font-normal',
+                                'pl-3 text-left font-normal',
                                 !field.value && 'text-muted-foreground'
                               )}
                             >
                               {field.value ? (
                                 format(field.value, 'PPP', { locale: fr })
                               ) : (
-                                <span>{t('selectDate')}</span>
+                                <span>{t('selectDate') || 'Sélectionner une date'}</span>
                               )}
                               <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                             </Button>
@@ -518,7 +643,6 @@ export function AnnouncementForm({ announcement, isEdit = false }: AnnouncementF
                   )}
                 />
 
-                {/* Créneau de livraison */}
                 <FormField
                   control={form.control}
                   name="deliveryTimeWindow"
@@ -528,28 +652,32 @@ export function AnnouncementForm({ announcement, isEdit = false }: AnnouncementF
                       <FormControl>
                         <Input {...field} placeholder="14:00-16:00" />
                       </FormControl>
-                      <FormDescription>{t('timeWindowDescription')}</FormDescription>
+                      <FormDescription>
+                        {t('timeWindowDescription') ||
+                          'Spécifiez une plage horaire (ex: 14:00-16:00)'}
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
 
-                {/* Horaires flexibles */}
-                <FormField
-                  control={form.control}
-                  name="isFlexible"
-                  render={({ field }) => (
-                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                      <FormControl>
-                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                      </FormControl>
-                      <div className="space-y-1 leading-none">
-                        <FormLabel>{t('isFlexible')}</FormLabel>
-                        <FormDescription>{t('isFlexibleDescription')}</FormDescription>
-                      </div>
-                    </FormItem>
-                  )}
-                />
+                <div className="col-span-2">
+                  <FormField
+                    control={form.control}
+                    name="isFlexible"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                        <FormControl>
+                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>{t('isFlexible')}</FormLabel>
+                          <FormDescription>{t('isFlexibleDescription')}</FormDescription>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                </div>
               </div>
             </div>
 
@@ -559,26 +687,26 @@ export function AnnouncementForm({ announcement, isEdit = false }: AnnouncementF
               <Separator />
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {/* Prix suggéré */}
                 <FormField
                   control={form.control}
                   name="suggestedPrice"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{t('suggestedPrice')} (€)</FormLabel>
+                      <FormLabel>{t('suggestedPrice')}</FormLabel>
                       <FormControl>
                         <Input
-                          {...field}
                           type="number"
                           step="0.01"
-                          placeholder="0.00"
-                          value={field.value || ''}
+                          {...field}
                           onChange={e =>
                             field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)
                           }
+                          value={field.value || ''}
                         />
                       </FormControl>
-                      <FormDescription>{t('suggestedPriceDescription')}</FormDescription>
+                      <FormDescription>
+                        {t('suggestedPriceDescription') || 'Prix suggéré pour cette livraison'}
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -618,6 +746,91 @@ export function AnnouncementForm({ announcement, isEdit = false }: AnnouncementF
                       <Textarea {...field} placeholder={t('notesPlaceholder')} rows={3} />
                     </FormControl>
                     <FormDescription>{t('notesDescription')}</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Section Exigences de livraison */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">{t('deliveryRequirements')}</h3>
+              <Separator />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="requiresSignature"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>{t('requiresSignature')}</FormLabel>
+                        <FormDescription>{t('requiresSignatureDescription')}</FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="requiresId"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>{t('requiresId')}</FormLabel>
+                        <FormDescription>{t('requiresIdDescription')}</FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="specialInstructions"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('specialInstructions')}</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        placeholder={t('specialInstructionsPlaceholder')}
+                        rows={3}
+                        value={field.value || ''}
+                      />
+                    </FormControl>
+                    <FormDescription>{t('specialInstructionsDescription')}</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Section Photos */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">{t('photos')}</h3>
+              <Separator />
+
+              <FormField
+                control={form.control}
+                name="photos"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('uploadPhotos')}</FormLabel>
+                    <FormControl>
+                      <PhotoUpload
+                        initialPhotos={field.value}
+                        onChange={field.onChange}
+                        maxPhotos={5}
+                      />
+                    </FormControl>
+                    <FormDescription>{t('photosDescription')}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

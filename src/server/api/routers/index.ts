@@ -4,6 +4,7 @@ import { announcementRouter } from './announcement.router';
 import { deliveryRouter } from './delivery.router';
 import { userRouter } from './user.router';
 import { adminRouter } from './admin';
+import { serviceRouter } from './service.router';
 // Importez vos autres routeurs ici
 
 /**
@@ -16,6 +17,7 @@ export const appRouter = router({
   delivery: deliveryRouter,
   user: userRouter,
   admin: adminRouter,
+  service: serviceRouter,
   // Ajoutez vos autres routeurs ici
 });
 

@@ -1,77 +1,250 @@
-import { router, protectedProcedure } from '../trpc';
 import { z } from 'zod';
+import { router, protectedProcedure, publicProcedure } from '../trpc';
+import { serviceService } from '../../services/service.service';
+import {
+  createAvailabilitySchema,
+  createBookingSchema,
+  createReviewSchema,
+  createServiceCategorySchema,
+  createServiceSchema,
+  searchServicesSchema,
+  updateBookingSchema,
+  updateServiceCategorySchema,
+  updateServiceSchema,
+} from '../../../schemas/service.schema';
+import { TRPCError } from '@trpc/server';
 
 export const serviceRouter = router({
-  getAll: protectedProcedure
-    .input(
-      z.object({
-        type: z
-          .enum(['TRANSPORT', 'AIRPORT_TRANSFER', 'PET_SITTING', 'HOUSEKEEPING', 'GARDENING'])
-          .optional(),
-        limit: z.number().min(1).max(100).default(10),
-        cursor: z.string().nullish(),
-      })
-    )
-    .query(async () => {
-      // Récupération des services
-      return [];
-    }),
-
-  getById: protectedProcedure.input(z.object({ id: z.string() })).query(async () => {
-    // Récupération d'un service par ID
-    return null;
+  // Endpoints publics
+  getCategories: publicProcedure.query(async () => {
+    return await serviceService.getServiceCategories();
   }),
 
-  create: protectedProcedure
-    .input(
-      z.object({
-        type: z.enum(['TRANSPORT', 'AIRPORT_TRANSFER', 'PET_SITTING', 'HOUSEKEEPING', 'GARDENING']),
-        description: z.string(),
-        date: z.date(),
-        duration: z.number(), // en minutes
-        address: z.string(),
-        price: z.number(),
-      })
-    )
-    .mutation(async () => {
-      // Création d'un service
-      return { id: 'mock-service-id', success: true };
+  searchServices: publicProcedure.input(searchServicesSchema).query(async ({ input }) => {
+    return await serviceService.searchServices(input);
+  }),
+
+  getServiceById: publicProcedure
+    .input(z.object({ id: z.string().cuid() }))
+    .query(async ({ input }) => {
+      return await serviceService.getServiceById(input.id);
     }),
 
-  book: protectedProcedure
-    .input(
-      z.object({
-        serviceId: z.string(),
-        date: z.date(),
-      })
-    )
-    .mutation(async () => {
-      // Réservation d'un service
-      return { success: true, bookingId: 'mock-booking-id' };
+  getServiceReviews: publicProcedure
+    .input(z.object({ serviceId: z.string().cuid() }))
+    .query(async ({ input }) => {
+      return await serviceService.getServiceReviews(input.serviceId);
     }),
 
-  updateStatus: protectedProcedure
-    .input(
-      z.object({
-        id: z.string(),
-        status: z.enum(['PENDING', 'ACCEPTED', 'COMPLETED', 'CANCELLED']),
-      })
-    )
-    .mutation(async () => {
-      // Mise à jour du statut d'un service
-      return { success: true };
+  getProviderReviews: publicProcedure
+    .input(z.object({ providerId: z.string().cuid() }))
+    .query(async ({ input }) => {
+      return await serviceService.getProviderReviews(input.providerId);
     }),
 
-  addRating: protectedProcedure
+  getAvailableTimeSlots: publicProcedure
     .input(
       z.object({
-        id: z.string(),
-        rating: z.number().min(1).max(5),
-        comment: z.string().optional(),
+        providerId: z.string().cuid(),
+        serviceId: z.string().cuid(),
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
       })
     )
-    .mutation(async () => {
-      // Ajout d'une évaluation
-      return { success: true };
+    .query(async ({ input }) => {
+      const { providerId, serviceId, date } = input;
+      return await serviceService.getAvailableTimeSlots(providerId, serviceId, date);
+    }),
+
+  // Endpoints protégés pour tous les utilisateurs authentifiés
+  createBooking: protectedProcedure.input(createBookingSchema).mutation(async ({ ctx, input }) => {
+    // Vérifier que l'utilisateur n'est pas le prestataire
+    if (ctx.session.user.id === input.providerId) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'Vous ne pouvez pas réserver votre propre service',
+      });
+    }
+
+    return await serviceService.createBooking(ctx.session.user.id, input);
+  }),
+
+  updateBookingStatus: protectedProcedure
+    .input(updateBookingSchema)
+    .mutation(async ({ ctx, input }) => {
+      return await serviceService.updateBookingStatus(ctx.session.user.id, input);
+    }),
+
+  rescheduleBooking: protectedProcedure
+    .input(updateBookingSchema)
+    .mutation(async ({ ctx, input }) => {
+      return await serviceService.rescheduleBooking(ctx.session.user.id, input);
+    }),
+
+  getBookingById: protectedProcedure
+    .input(z.object({ id: z.string().cuid() }))
+    .query(async ({ ctx, input }) => {
+      return await serviceService.getBookingById(ctx.session.user.id, input.id);
+    }),
+
+  getMyClientBookings: protectedProcedure
+    .input(
+      z.object({
+        status: z
+          .enum(['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED', 'RESCHEDULED'])
+          .optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      return await serviceService.getClientBookings(ctx.session.user.id, input.status);
+    }),
+
+  createReview: protectedProcedure.input(createReviewSchema).mutation(async ({ ctx, input }) => {
+    return await serviceService.createReview(ctx.session.user.id, input);
+  }),
+
+  // Endpoints pour les prestataires
+  createService: protectedProcedure.input(createServiceSchema).mutation(async ({ ctx, input }) => {
+    // Vérifier que l'utilisateur est un prestataire
+    const user = await ctx.db.user.findUnique({
+      where: { id: ctx.session.user.id },
+      select: { isProvider: true, providerVerified: true },
+    });
+
+    if (!user?.isProvider) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Vous devez être un prestataire pour créer un service',
+      });
+    }
+
+    if (!user?.providerVerified) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Votre compte de prestataire doit être vérifié pour créer un service',
+      });
+    }
+
+    return await serviceService.createService(ctx.session.user.id, input);
+  }),
+
+  updateService: protectedProcedure.input(updateServiceSchema).mutation(async ({ ctx, input }) => {
+    return await serviceService.updateService(ctx.session.user.id, input);
+  }),
+
+  getMyProviderServices: protectedProcedure.query(async ({ ctx }) => {
+    // Vérifier que l'utilisateur est un prestataire
+    const user = await ctx.db.user.findUnique({
+      where: { id: ctx.session.user.id },
+      select: { isProvider: true },
+    });
+
+    if (!user?.isProvider) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Vous devez être un prestataire pour accéder à vos services',
+      });
+    }
+
+    return await serviceService.getProviderServices(ctx.session.user.id);
+  }),
+
+  getMyProviderBookings: protectedProcedure
+    .input(
+      z.object({
+        status: z
+          .enum(['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED', 'RESCHEDULED'])
+          .optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      // Vérifier que l'utilisateur est un prestataire
+      const user = await ctx.db.user.findUnique({
+        where: { id: ctx.session.user.id },
+        select: { isProvider: true },
+      });
+
+      if (!user?.isProvider) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Vous devez être un prestataire pour accéder à vos réservations',
+        });
+      }
+
+      return await serviceService.getProviderBookings(ctx.session.user.id, input.status);
+    }),
+
+  createAvailability: protectedProcedure
+    .input(createAvailabilitySchema)
+    .mutation(async ({ ctx, input }) => {
+      // Vérifier que l'utilisateur est un prestataire
+      const user = await ctx.db.user.findUnique({
+        where: { id: ctx.session.user.id },
+        select: { isProvider: true },
+      });
+
+      if (!user?.isProvider) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Vous devez être un prestataire pour définir vos disponibilités',
+        });
+      }
+
+      return await serviceService.createAvailability(ctx.session.user.id, input);
+    }),
+
+  getMyAvailabilities: protectedProcedure.query(async ({ ctx }) => {
+    // Vérifier que l'utilisateur est un prestataire
+    const user = await ctx.db.user.findUnique({
+      where: { id: ctx.session.user.id },
+      select: { isProvider: true },
+    });
+
+    if (!user?.isProvider) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Vous devez être un prestataire pour accéder à vos disponibilités',
+      });
+    }
+
+    return await serviceService.getProviderAvailabilities(ctx.session.user.id);
+  }),
+
+  deleteAvailability: protectedProcedure
+    .input(z.object({ id: z.string().cuid() }))
+    .mutation(async ({ ctx, input }) => {
+      return await serviceService.deleteAvailability(ctx.session.user.id, input.id);
+    }),
+
+  // Endpoints pour l'administrateur
+  createCategory: protectedProcedure
+    .input(createServiceCategorySchema)
+    .mutation(async ({ ctx, input }) => {
+      // Vérifier que l'utilisateur est un administrateur
+      if (ctx.session.user.role !== 'ADMIN') {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Vous devez être administrateur pour créer une catégorie',
+        });
+      }
+
+      return await serviceService.createServiceCategory(input);
+    }),
+
+  updateCategory: protectedProcedure
+    .input(updateServiceCategorySchema)
+    .mutation(async ({ ctx, input }) => {
+      // Vérifier que l'utilisateur est un administrateur
+      if (ctx.session.user.role !== 'ADMIN') {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Vous devez être administrateur pour modifier une catégorie',
+        });
+      }
+
+      // Cette méthode n'est pas implémentée dans le service, il faudrait l'ajouter
+      throw new TRPCError({
+        code: 'NOT_IMPLEMENTED',
+        message: "Cette fonctionnalité n'est pas encore implémentée",
+      });
     }),
 });

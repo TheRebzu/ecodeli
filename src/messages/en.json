@@ -1139,6 +1139,559 @@
     "backToAnnouncement": "Back to Announcement",
     "advancedFilters": "Advanced Filters",
     "selectDate": "Select Date",
-    "needsCoolingDescription": "If your package requires refrigeration during transport"
+    "needsCoolingDescription": "If your package requires refrigeration during transport",
+    "createdAt": "Created on",
+    "updatedAt": "Updated on",
+    "announcementPhoto": "Photo {index}",
+    "actions": "Actions",
+    "viewDetails": "View Details",
+    "deleteConfirmation": "Confirm Deletion",
+    "deleteWarning": "Are you sure you want to delete this announcement? This action cannot be undone."
+  },
+  "service": {
+    "booking": {
+      "title": "Service Booking",
+      "search": {
+        "title": "Search for a Service",
+        "subtitle": "Find a provider for your needs",
+        "categoryLabel": "Category",
+        "locationLabel": "Location",
+        "dateLabel": "Date",
+        "maxPriceLabel": "Maximum Price",
+        "searchButton": "Search",
+        "noResults": "No services match your search",
+        "distanceLabel": "Max. Distance (km)",
+        "queryLabel": "Keyword"
+      },
+      "list": {
+        "title": "Available Services",
+        "from": "From",
+        "duration": "{duration} min",
+        "verified": "Verified",
+        "notVerified": "Not Verified",
+        "reviews": "{count} reviews",
+        "noReviews": "No reviews yet",
+        "viewDetails": "View Details"
+      },
+      "details": {
+        "title": "Service Details",
+        "about": "About",
+        "provider": "Provider",
+        "duration": "Duration",
+        "price": "Price",
+        "category": "Category",
+        "description": "Description",
+        "bookNow": "Book Now",
+        "reviews": "Reviews",
+        "writeReview": "Write a Review",
+        "availability": "Availability",
+        "selectDate": "Select a Date",
+        "noTimeSlots": "No time slots available for this date",
+        "selectTimeSlot": "Select a Time Slot"
+      },
+      "form": {
+        "title": "Book the Service",
+        "selectedService": "Selected Service",
+        "selectedDate": "Selected Date",
+        "selectedTime": "Selected Time",
+        "notesLabel": "Notes for the Provider",
+        "notesPlaceholder": "Additional information for the provider",
+        "totalPrice": "Total Price",
+        "confirmBooking": "Confirm Booking",
+        "bookingSuccess": "Booking completed successfully!",
+        "viewBooking": "View My Booking",
+        "continueBooking": "Continue Booking"
+      },
+      "status": {
+        "PENDING": "Pending",
+        "CONFIRMED": "Confirmed",
+        "COMPLETED": "Completed",
+        "CANCELLED": "Cancelled",
+        "RESCHEDULED": "Rescheduled"
+      },
+      "manage": {
+        "title": "Manage My Bookings",
+        "upcoming": "Upcoming",
+        "past": "Past",
+        "all": "All",
+        "noBookings": "You don't have any bookings yet",
+        "cancel": "Cancel",
+        "reschedule": "Reschedule",
+        "confirmCancellation": "Are you sure you want to cancel this booking?",
+        "cancelConfirm": "Yes, cancel",
+        "cancelAbort": "No, keep it",
+        "cancelled": "Booking canceled successfully",
+        "date": "Date",
+        "time": "Time",
+        "status": "Status",
+        "price": "Price",
+        "provider": "Provider",
+        "service": "Service",
+        "actions": "Actions",
+        "details": "Details",
+        "review": "Review"
+      }
+    },
+    "provider": {
+      "dashboard": {
+        "title": "Provider Dashboard",
+        "services": "My Services",
+        "bookings": "My Bookings",
+        "availability": "My Availability",
+        "reviews": "My Reviews",
+        "earnings": "My Earnings"
+      },
+      "services": {
+        "title": "My Services",
+        "addNew": "Add New Service",
+        "edit": "Edit",
+        "delete": "Delete",
+        "active": "Active",
+        "inactive": "Inactive",
+        "noServices": "You don't have any services yet"
+      },
+      "serviceForm": {
+        "createTitle": "Create a New Service",
+        "editTitle": "Edit Service",
+        "nameLabel": "Service Name",
+        "descriptionLabel": "Description",
+        "priceLabel": "Price (€)",
+        "durationLabel": "Duration (minutes)",
+        "categoryLabel": "Category",
+        "isActiveLabel": "Active Service",
+        "save": "Save",
+        "cancel": "Cancel",
+        "serviceCreated": "Service created successfully",
+        "serviceUpdated": "Service updated successfully"
+      },
+      "availability": {
+        "title": "Manage My Availability",
+        "addNew": "Add Availability",
+        "dayOfWeek": "Day of Week",
+        "startTime": "Start Time",
+        "endTime": "End Time",
+        "save": "Save",
+        "delete": "Delete",
+        "noAvailability": "You haven't set any availability yet",
+        "monday": "Monday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday",
+        "thursday": "Thursday",
+        "friday": "Friday",
+        "saturday": "Saturday",
+        "sunday": "Sunday",
+        "availabilityCreated": "Availability added successfully",
+        "availabilityDeleted": "Availability deleted successfully"
+      },
+      "bookings": {
+        "title": "Manage My Bookings",
+        "upcoming": "Upcoming",
+        "past": "Past",
+        "all": "All",
+        "noBookings": "You don't have any bookings yet",
+        "confirm": "Confirm",
+        "complete": "Mark as Completed",
+        "confirmBooking": "Are you sure you want to confirm this booking?",
+        "confirmComplete": "Are you sure you want to mark this booking as completed?",
+        "actionConfirm": "Yes",
+        "actionAbort": "No",
+        "bookingConfirmed": "Booking confirmed successfully",
+        "bookingCompleted": "Booking marked as completed successfully",
+        "client": "Client",
+        "viewDetails": "View Details"
+      },
+      "review": {
+        "title": "My Reviews",
+        "averageRating": "Average Rating: {rating}/5",
+        "totalReviews": "Total Reviews: {count}",
+        "noReviews": "You don't have any reviews yet"
+      }
+    },
+    "review": {
+      "title": "Leave a Review",
+      "ratingLabel": "Rating",
+      "commentLabel": "Comment",
+      "commentPlaceholder": "Share your experience with this service",
+      "submit": "Submit",
+      "reviewSuccess": "Review submitted successfully",
+      "alreadyReviewed": "You have already reviewed this service",
+      "cannotReview": "You can only review services you have used"
+    },
+    "categories": {
+      "all": "All Categories"
+    },
+    "search": {
+      "formTitle": "Search for a service",
+      "keywordsPlaceholder": "What are you looking for?",
+      "locationPlaceholder": "Enter an address",
+      "showAdvancedOptions": "Show more filters",
+      "hideAdvancedOptions": "Hide filters",
+      "serviceType": "Service type",
+      "selectServiceType": "Select a type",
+      "dateFrom": "Start date",
+      "dateTo": "End date",
+      "selectDate": "Select a date",
+      "priceRange": "Price range",
+      "minimumRating": "Minimum rating",
+      "anyRating": "Any rating",
+      "sortBy": "Sort by",
+      "defaultSort": "Default",
+      "sortOrder": "Order",
+      "ascending": "Ascending",
+      "descending": "Descending",
+      "resetButton": "Reset",
+      "searchButton": "Search",
+      "searching": "Searching...",
+      "types": {
+        "transport": "Transport",
+        "airportTransfer": "Airport transfer",
+        "petSitting": "Pet sitting",
+        "housekeeping": "Housekeeping",
+        "gardening": "Gardening"
+      },
+      "sortOptions": {
+        "default": "Default",
+        "price": "Price",
+        "rating": "Rating",
+        "distance": "Distance",
+        "date": "Date"
+      },
+      "errors": {
+        "searchFailed": "Search failed. Please try again."
+      }
+    },
+    "list": {
+      "title": "Available services",
+      "searchPlaceholder": "Search...",
+      "sortBy": "Sort by",
+      "activeFilters": "Active filters",
+      "clearAllFilters": "Clear all filters",
+      "allCategories": "All categories",
+      "noServicesFound": "No services found",
+      "resultsCount": "{count} services found",
+      "noResults": "No results found",
+      "tryDifferentFilters": "Try different search criteria",
+      "resetFilters": "Reset filters",
+      "sortOptions": {
+        "default": "Relevance",
+        "price": "Price",
+        "rating": "Rating",
+        "distance": "Distance"
+      },
+      "filters": {
+        "type": "Type",
+        "categoryId": "Category",
+        "dateRange": "Dates",
+        "priceRange": "Price",
+        "location": "Location",
+        "rating": "Rating",
+        "keywords": "Keywords"
+      }
+    },
+    "card": {
+      "viewDetails": "View details"
+    },
+    "detail": {
+      "verifiedProvider": "Verified provider",
+      "tabs": {
+        "details": "Details",
+        "provider": "Provider",
+        "reviews": "Reviews"
+      },
+      "descriptionTitle": "Service description",
+      "noReviews": "No reviews yet",
+      "beFirstReviewer": "Be the first to leave a review after using this service!",
+      "bookingTitle": "Book this service",
+      "bookingSubtitle": "Select a date and time slot",
+      "selectDate": "Select a date",
+      "selectTime": "Available time",
+      "noTimeSlotsAvailable": "No time slots available for this date",
+      "totalPrice": "Total price",
+      "bookNow": "Book now",
+      "needHelp": "Need help?",
+      "supportHours": "Support available Monday to Friday, 9am-6pm",
+      "faq": {
+        "title1": "How can I cancel my booking?",
+        "content1": "You can cancel your booking up to 24 hours before the scheduled time without any fees. After this deadline, cancellation fees may apply.",
+        "title2": "How can I contact the provider?",
+        "content2": "Once your booking is confirmed, you will be able to communicate with the provider via our secure messaging system.",
+        "title3": "How does payment work?",
+        "content3": "Payment is secure and is only charged after the service is completed. You can pay by credit card or via our e-wallet."
+      }
+    },
+    "booking": {
+      "form": {
+        "appointment": "Appointment",
+        "date": "Date",
+        "time": "Time",
+        "selectTime": "Select a time",
+        "notes": "Special notes",
+        "notesPlaceholder": "Additional instructions or information for the provider...",
+        "paymentMethod": "Payment method",
+        "creditCard": "Credit card",
+        "appWallet": "EcoDeli Wallet",
+        "summary": "Summary",
+        "servicePrice": "Service price",
+        "total": "Total",
+        "termsAndConditions": "I agree to the {link} and privacy policy",
+        "cancel": "Cancel",
+        "confirmBooking": "Confirm booking",
+        "processing": "Processing...",
+        "selectDateFirst": "Please select a date first",
+        "back": "Back"
+      },
+      "status": {
+        "PENDING": "Pending",
+        "CONFIRMED": "Confirmed",
+        "COMPLETED": "Completed",
+        "CANCELLED": "Cancelled",
+        "RESCHEDULED": "Rescheduled"
+      },
+      "form.bookingSuccess": "Booking created successfully!",
+      "manage.cancelled": "Booking cancelled successfully",
+      "review.reviewSuccess": "Thank you for your review!"
+    },
+    "provider": {
+      "tabs": {
+        "calendar": "Calendar",
+        "availability": "Availability"
+      },
+      "calendar": {
+        "title": "My calendar",
+        "subtitle": "Check your appointments",
+        "selectDate": "Select a date",
+        "appointmentsCount": "{count} appointments",
+        "noAppointments": "No appointments scheduled",
+        "nothingScheduled": "Nothing scheduled for today",
+        "freeDay": "You have no appointments on this day"
+      },
+      "availability": {
+        "title": "Manage my availability",
+        "subtitle": "Set your available hours",
+        "add": "Add availability",
+        "addTitle": "New availability",
+        "addSubtitle": "Define when you are available to provide your services",
+        "day": "Day",
+        "selectDay": "Select a day",
+        "startTime": "Start time",
+        "endTime": "End time",
+        "recurring": "Repeat every week",
+        "cancel": "Cancel",
+        "adding": "Adding...",
+        "noAvailability": "No availability defined",
+        "addSome": "Add your availability to receive bookings",
+        "added": "Availability added successfully",
+        "deleted": "Availability deleted",
+        "addFailed": "Failed to add availability",
+        "deleteFailed": "Failed to delete availability",
+        "confirmDelete": "Are you sure you want to delete this availability?"
+      },
+      "days": {
+        "monday": "Monday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday",
+        "thursday": "Thursday",
+        "friday": "Friday",
+        "saturday": "Saturday",
+        "sunday": "Sunday"
+      }
+    },
+    "confirmation": {
+      "title": "Booking confirmed!",
+      "subtitle": "Your booking has been successfully processed.",
+      "service": "Service",
+      "provider": "Provider",
+      "duration": "Duration",
+      "minutes": "minutes",
+      "dateTime": "Date and time",
+      "location": "Location",
+      "notes": "Your notes",
+      "subtotal": "Subtotal",
+      "total": "Total",
+      "paymentId": "Payment ID",
+      "reservationId": "Reservation ID",
+      "addToCalendar": "Add to calendar",
+      "share": "Share",
+      "downloadReceipt": "Download receipt",
+      "viewAllServices": "View all services",
+      "questions": "Questions?",
+      "contactSupport": "Contact support",
+      "calendarEvent": {
+        "prefix": "Appointment:",
+        "appointment": "Appointment with",
+        "notes": "Notes",
+        "online": "Online"
+      },
+      "share": {
+        "title": "My booking on EcoDeli",
+        "text": "I booked {service} on {date} at {time}",
+        "copied": "Link copied to clipboard"
+      }
+    },
+    "review": {
+      "title": "Rate your experience",
+      "editTitle": "Edit your review",
+      "subtitle": "How was your {service} with {provider}?",
+      "ratingLabel": "Your rating",
+      "commentLabel": "Your comment",
+      "commentPlaceholder": "Share your experience with this service...",
+      "cancel": "Cancel",
+      "submit": "Send",
+      "submitting": "Sending...",
+      "update": "Update",
+      "success": "Thank you for your review!",
+      "error": "An error occurred while saving your review."
+    }
+  },
+  "deliveries": {
+    "client": {
+      "title": "My Deliveries",
+      "description": "Track and manage all your deliveries",
+      "listTitle": "Delivery History",
+      "listDescription": "{count, plural, =0 {No deliveries found} one {# delivery found} other {# deliveries found}}"
+    },
+    "statuses": {
+      "PENDING": "Pending",
+      "ACCEPTED": "Accepted",
+      "PICKED_UP": "Picked Up",
+      "IN_TRANSIT": "In Transit",
+      "DELIVERED": "Delivered",
+      "CONFIRMED": "Confirmed",
+      "CANCELLED": "Cancelled",
+      "DISPUTED": "Disputed"
+    },
+    "timeline": {
+      "title": "Progress Tracking",
+      "completed": "Completed",
+      "pending": "Pending",
+      "steps": {
+        "PENDING": "Order Created",
+        "ACCEPTED": "Delivery Accepted",
+        "PICKED_UP": "Package Picked Up",
+        "IN_TRANSIT": "On the Way",
+        "DELIVERED": "Package Delivered",
+        "CONFIRMED": "Delivery Confirmed"
+      }
+    },
+    "detailCard": {
+      "title": "Delivery Details",
+      "pickupAddress": "Pickup Address",
+      "deliveryAddress": "Delivery Address",
+      "pickupDate": "Pickup Date",
+      "deliveryDate": "Delivery Date",
+      "estimatedArrival": "Estimated Arrival",
+      "late": "Late",
+      "client": "Client",
+      "deliverer": "Deliverer"
+    },
+    "tracking": {
+      "map": {
+        "title": "Real-time Tracking",
+        "lastUpdate": "Last Update",
+        "pickupPoint": "Pickup Point",
+        "deliveryPoint": "Delivery Point",
+        "currentPosition": "Current Position",
+        "statusIs": "Status"
+      }
+    },
+    "confirmation": {
+      "title": "Confirm Receipt",
+      "description": "Please confirm that you have received your package",
+      "backToDetails": "Back to Details",
+      "cannotConfirmTitle": "Confirmation Not Possible",
+      "cannotConfirmDescription": "This delivery cannot be confirmed because it hasn't been marked as delivered yet.",
+      "errorTitle": "Confirmation Error",
+      "codeLabel": "Confirmation Code",
+      "codePlaceholder": "Enter code",
+      "codeHelp": "The code was provided by your deliverer",
+      "feedbackLabel": "Comment (optional)",
+      "feedbackPlaceholder": "Share your delivery experience...",
+      "feedbackHelp": "Your feedback will help improve the service",
+      "uploadPhotoButton": "Add proof photo",
+      "photoOptional": "Optional - add a photo as proof of delivery",
+      "cancelButton": "Cancel",
+      "confirmButton": "Confirm Receipt",
+      "successTitle": "Receipt Confirmed!",
+      "successMessage": "Thank you for confirming receipt of your delivery."
+    },
+    "rating": {
+      "title": "Rate Delivery",
+      "description": "Share your experience with the deliverer",
+      "editTitle": "Edit Your Rating",
+      "editDescription": "Update your previous rating",
+      "backToDetails": "Back to Details",
+      "cannotRateTitle": "Rating Not Possible",
+      "cannotRateDescription": "You can only rate confirmed deliveries.",
+      "errorTitle": "Rating Error",
+      "ratingLabel": "Rating",
+      "ratingDescription": "You gave {rating} star(s)",
+      "selectRating": "Select a rating from 1 to 5 stars",
+      "commentLabel": "Comment",
+      "commentPlaceholder": "Describe your experience with this deliverer...",
+      "commentHelp": "Your comment helps other users and helps us improve the service",
+      "cancelButton": "Cancel",
+      "submitButton": "Submit Rating",
+      "updateButton": "Update Rating",
+      "successTitle": "Rating Submitted!",
+      "successMessage": "Thank you for sharing your experience."
+    },
+    "statusUpdate": {
+      "title": "Update Status",
+      "statusIs": "Current Status",
+      "notePlaceholder": "Add a note for this update...",
+      "noteHelp": "Notes help the client understand the status of their delivery",
+      "acceptDelivery": "Accept Delivery",
+      "startPickup": "Start Pickup",
+      "confirmPickup": "Confirm Pickup",
+      "markAsDelivered": "Mark as Delivered",
+      "cancelDelivery": "Cancel Delivery",
+      "waitingForConfirmation": "Waiting for Client Confirmation",
+      "clientMustConfirm": "The client must confirm receipt to finalize the delivery",
+      "errorTitle": "Update Error"
+    },
+    "filters": {
+      "title": "Filters",
+      "description": "Filter your deliveries",
+      "search": "Search",
+      "searchPlaceholder": "Search by address...",
+      "status": "Status",
+      "allStatuses": "All Statuses",
+      "clear": "Clear Filters"
+    },
+    "stats": {
+      "total": "Total Deliveries",
+      "inProgress": "In Progress",
+      "completed": "Completed",
+      "pending": "Pending"
+    },
+    "table": {
+      "id": "ID",
+      "addresses": "Addresses",
+      "date": "Date",
+      "status": "Status",
+      "deliverer": "Deliverer"
+    },
+    "from": "From",
+    "to": "To",
+    "details": "Details",
+    "backToList": "Back to List",
+    "confirmDelivery": "Confirm Receipt",
+    "rateDelivery": "Rate Delivery",
+    "yourRating": "Your Rating",
+    "noDeliveries": "No Deliveries Found",
+    "noDeliveriesDescription": "You don't have any deliveries to display yet.",
+    "noAssignedDeliverer": "Not yet assigned",
+    "deliveryNotFound": "Delivery not found",
+    "errorTitle": "An error occurred",
+    "showFilters": "Show Filters",
+    "hideFilters": "Hide Filters",
+    "deliveryConfirmedTitle": "Delivery Confirmed!",
+    "deliveryConfirmedDescription": "Thank you for confirming receipt of your package.",
+    "deliveryRatedTitle": "Rating Submitted!",
+    "deliveryRatedDescription": "Thank you for sharing your experience with this deliverer.",
+    "tabs": {
+      "map": "Map",
+      "details": "Details"
+    }
   }
 }

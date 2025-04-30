@@ -6,9 +6,28 @@ import {
   CreateAnnouncementInput,
   UpdateAnnouncementInput,
   Announcement,
+  GeoSearchParams,
 } from '@/types/announcement';
 import { Prisma } from '@prisma/client';
 import { AuditService } from './audit.service';
+
+/**
+ * Calcule la distance en kilomètres entre deux points géographiques
+ * en utilisant la formule de Haversine
+ */
+function calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371; // Rayon de la Terre en km
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) *
+      Math.cos(lat2 * (Math.PI / 180)) *
+      Math.sin(dLon / 2) *
+      Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
 
 /**
  * Service pour la gestion des annonces
@@ -745,6 +764,419 @@ export const AnnouncementService = {
     } catch (error) {
       console.error("Erreur lors de la complétion de l'annonce:", error);
       throw new Error("Erreur lors de la complétion de l'annonce");
+    }
+  },
+
+  /**
+   * Recherche des annonces à proximité d'un point géographique
+   */
+  async findNearby(params: GeoSearchParams) {
+    const { latitude, longitude, radiusKm, limit = 10, offset = 0 } = params;
+
+    try {
+      // Récupérer toutes les annonces avec coordonnées
+      const announcements = await db.announcement.findMany({
+        where: {
+          status: AnnouncementStatus.PUBLISHED,
+          pickupLatitude: { not: null },
+          pickupLongitude: { not: null },
+          deliveryLatitude: { not: null },
+          deliveryLongitude: { not: null },
+        },
+        include: {
+          client: {
+            select: {
+              id: true,
+              name: true,
+              image: true,
+            },
+          },
+        },
+      });
+
+      // Calculer la distance pour chaque annonce et filtrer
+      const nearbyAnnouncements = announcements
+        .map((announcement: any) => {
+          // Distance du point de ramassage
+          const pickupDistance = calculateDistance(
+            latitude,
+            longitude,
+            announcement.pickupLatitude!,
+            announcement.pickupLongitude!
+          );
+
+          // Distance du point de livraison
+          const deliveryDistance = calculateDistance(
+            latitude,
+            longitude,
+            announcement.deliveryLatitude!,
+            announcement.deliveryLongitude!
+          );
+
+          // Prendre la distance la plus courte
+          const distance = Math.min(pickupDistance, deliveryDistance);
+
+          return {
+            ...announcement,
+            distance,
+          };
+        })
+        .filter((announcement: any) => announcement.distance <= radiusKm)
+        .sort((a: any, b: any) => a.distance - b.distance)
+        .slice(offset, offset + limit);
+
+      const totalCount = nearbyAnnouncements.length;
+
+      return {
+        announcements: nearbyAnnouncements,
+        totalCount,
+        pagination: {
+          limit,
+          offset,
+          hasMore: offset + nearbyAnnouncements.length < totalCount,
+        },
+      };
+    } catch (error) {
+      console.error("Erreur lors de la recherche d'annonces à proximité:", error);
+      throw new Error("Erreur lors de la recherche d'annonces à proximité");
+    }
+  },
+
+  /**
+   * Suggère des annonces compatibles avec les itinéraires d'un livreur
+   */
+  async suggestForDeliverer(delivererId: string) {
+    try {
+      // Récupérer les informations du livreur
+      const deliverer = await db.deliverer.findUnique({
+        where: { userId: delivererId },
+      });
+
+      if (!deliverer) {
+        throw new Error('Livreur non trouvé');
+      }
+
+      // Récupérer les annonces assignées au livreur pour connaître ses itinéraires habituels
+      const delivererAnnouncements = await db.announcement.findMany({
+        where: {
+          delivererId,
+          status: {
+            in: [
+              AnnouncementStatus.ASSIGNED,
+              AnnouncementStatus.IN_PROGRESS,
+              AnnouncementStatus.COMPLETED,
+            ],
+          },
+        },
+        take: 10,
+        orderBy: { updatedAt: 'desc' },
+      });
+
+      // Si le livreur n'a pas encore d'historique, retourner les annonces les plus récentes
+      if (delivererAnnouncements.length === 0) {
+        return await db.announcement.findMany({
+          where: {
+            status: AnnouncementStatus.PUBLISHED,
+          },
+          include: {
+            client: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
+          },
+          take: 10,
+          orderBy: { createdAt: 'desc' },
+        });
+      }
+
+      // Extraire les coordonnées des itinéraires précédents
+      const routes = delivererAnnouncements.map(ann => ({
+        pickupLat: ann.pickupLatitude,
+        pickupLng: ann.pickupLongitude,
+        deliveryLat: ann.deliveryLatitude,
+        deliveryLng: ann.deliveryLongitude,
+      }));
+
+      // Calculer le centre approximatif des itinéraires précédents
+      const avgCoordinates = routes.reduce(
+        (acc, route) => {
+          if (route.pickupLat && route.pickupLng && route.deliveryLat && route.deliveryLng) {
+            acc.lat += (route.pickupLat + route.deliveryLat) / 2;
+            acc.lng += (route.pickupLng + route.deliveryLng) / 2;
+            acc.count += 1;
+          }
+          return acc;
+        },
+        { lat: 0, lng: 0, count: 0 }
+      );
+
+      // Si aucune coordonnée valide n'a été trouvée, retourner les annonces récentes
+      if (avgCoordinates.count === 0) {
+        return await db.announcement.findMany({
+          where: {
+            status: AnnouncementStatus.PUBLISHED,
+          },
+          include: {
+            client: {
+              select: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
+          },
+          take: 10,
+          orderBy: { createdAt: 'desc' },
+        });
+      }
+
+      const centerLat = avgCoordinates.lat / avgCoordinates.count;
+      const centerLng = avgCoordinates.lng / avgCoordinates.count;
+
+      // Chercher des annonces dans un rayon de 20km du centre
+      return await this.findNearby({
+        latitude: centerLat,
+        longitude: centerLng,
+        radiusKm: 20,
+        limit: 10,
+      });
+    } catch (error) {
+      console.error("Erreur lors de la suggestion d'annonces pour le livreur:", error);
+      throw new Error("Erreur lors de la suggestion d'annonces");
+    }
+  },
+
+  /**
+   * Marque ou démarque une annonce comme favorite pour un livreur
+   */
+  async toggleFavorite(id: string, delivererId: string): Promise<{ isFavorite: boolean }> {
+    try {
+      // Vérifier que l'annonce existe
+      const announcement = await db.announcement.findUnique({
+        where: { id },
+      });
+
+      if (!announcement) {
+        throw new Error('Annonce non trouvée');
+      }
+
+      // Vérifier si cette annonce est déjà en favoris pour ce livreur
+      const existingFavorite = await db.delivererFavorite.findUnique({
+        where: {
+          delivererId_announcementId: {
+            delivererId,
+            announcementId: id,
+          },
+        },
+      });
+
+      if (existingFavorite) {
+        // Supprimer des favoris
+        await db.delivererFavorite.delete({
+          where: {
+            id: existingFavorite.id,
+          },
+        });
+        return { isFavorite: false };
+      } else {
+        // Ajouter aux favoris
+        await db.delivererFavorite.create({
+          data: {
+            delivererId,
+            announcementId: id,
+          },
+        });
+        return { isFavorite: true };
+      }
+    } catch (error) {
+      console.error('Erreur lors de la modification des favoris:', error);
+      throw new Error('Erreur lors de la modification des favoris');
+    }
+  },
+
+  /**
+   * Récupère les annonces favorites d'un livreur
+   */
+  async getFavorites(delivererId: string) {
+    try {
+      const favorites = await db.delivererFavorite.findMany({
+        where: { delivererId },
+        include: {
+          announcement: {
+            include: {
+              client: {
+                select: {
+                  id: true,
+                  name: true,
+                  image: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      return favorites.map(fav => ({
+        ...fav.announcement,
+        isFavorite: true,
+      }));
+    } catch (error) {
+      console.error('Erreur lors de la récupération des favoris:', error);
+      throw new Error('Erreur lors de la récupération des favoris');
+    }
+  },
+
+  /**
+   * Accepte la proposition d'un livreur pour une annonce
+   */
+  async acceptDelivererProposal(announcementId: string, applicationId: string, clientId: string) {
+    try {
+      // Vérifier que l'annonce appartient au client
+      const announcement = await db.announcement.findFirst({
+        where: {
+          id: announcementId,
+          clientId,
+        },
+      });
+
+      if (!announcement) {
+        throw new Error("Annonce non trouvée ou vous n'êtes pas autorisé à la modifier");
+      }
+
+      // Vérifier que l'application existe
+      const application = await db.deliveryApplication.findUnique({
+        where: { id: applicationId },
+      });
+
+      if (!application || application.announcementId !== announcementId) {
+        throw new Error('Candidature non trouvée ou invalide');
+      }
+
+      // Mettre à jour le statut de l'annonce et assigner le livreur
+      await db.announcement.update({
+        where: { id: announcementId },
+        data: {
+          status: AnnouncementStatus.ASSIGNED,
+          delivererId: application.delivererId,
+          finalPrice: application.proposedPrice,
+        },
+      });
+
+      // Mettre à jour le statut de l'application
+      await db.deliveryApplication.update({
+        where: { id: applicationId },
+        data: {
+          status: 'ACCEPTED',
+        },
+      });
+
+      // Refuser automatiquement toutes les autres applications
+      await db.deliveryApplication.updateMany({
+        where: {
+          announcementId,
+          id: { not: applicationId },
+        },
+        data: {
+          status: 'REJECTED',
+        },
+      });
+
+      // Créer une notification pour le livreur
+      await db.notification.create({
+        data: {
+          userId: application.delivererId,
+          title: 'Proposition acceptée',
+          message: `Votre proposition pour l'annonce "${announcement.title}" a été acceptée.`,
+          type: 'ANNOUNCEMENT',
+          read: false,
+          metadata: {
+            announcementId,
+          },
+        },
+      });
+
+      // Journaliser l'action
+      await AuditService.log({
+        action: 'DELIVERER_PROPOSAL_ACCEPTED',
+        userId: clientId,
+        details: {
+          announcementId,
+          applicationId,
+          delivererId: application.delivererId,
+        },
+      });
+
+      return {
+        success: true,
+        message: 'Proposition acceptée avec succès',
+      };
+    } catch (error) {
+      console.error("Erreur lors de l'acceptation de la proposition:", error);
+      throw new Error("Erreur lors de l'acceptation de la proposition");
+    }
+  },
+
+  /**
+   * Met à jour les coordonnées GPS d'une annonce
+   */
+  async updateGpsCoordinates(
+    id: string,
+    data: {
+      pickupLatitude?: number;
+      pickupLongitude?: number;
+      deliveryLatitude?: number;
+      deliveryLongitude?: number;
+    }
+  ) {
+    try {
+      // Vérifier que l'annonce existe
+      const announcement = await db.announcement.findUnique({
+        where: { id },
+      });
+
+      if (!announcement) {
+        throw new Error('Annonce non trouvée');
+      }
+
+      // Mettre à jour les coordonnées
+      await db.announcement.update({
+        where: { id },
+        data,
+      });
+
+      // Si toutes les coordonnées sont fournies, calculer la distance estimée
+      if (
+        data.pickupLatitude !== undefined &&
+        data.pickupLongitude !== undefined &&
+        data.deliveryLatitude !== undefined &&
+        data.deliveryLongitude !== undefined
+      ) {
+        const distance = calculateDistance(
+          data.pickupLatitude,
+          data.pickupLongitude,
+          data.deliveryLatitude,
+          data.deliveryLongitude
+        );
+
+        // Estimer la durée (à environ 50 km/h en moyenne)
+        const durationMinutes = Math.round((distance / 50) * 60);
+
+        await db.announcement.update({
+          where: { id },
+          data: {
+            estimatedDistance: distance,
+            estimatedDuration: durationMinutes,
+          },
+        });
+      }
+
+      return { success: true };
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour des coordonnées GPS:', error);
+      throw new Error('Erreur lors de la mise à jour des coordonnées GPS');
     }
   },
 };

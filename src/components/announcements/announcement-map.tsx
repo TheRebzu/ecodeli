@@ -8,9 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-
-// Remarque: Cette implémentation utilise Leaflet qui nécessite d'être chargé côté client
-// Nous utilisons donc un import dynamique pour éviter les erreurs de rendu côté serveur
 import dynamic from 'next/dynamic';
 
 // Import dynamique de Leaflet (sans SSR)
@@ -23,12 +20,37 @@ const Popup = dynamic(() => import('react-leaflet').then(mod => mod.Popup), { ss
 const Tooltip = dynamic(() => import('react-leaflet').then(mod => mod.Tooltip), { ssr: false });
 const Polyline = dynamic(() => import('react-leaflet').then(mod => mod.Polyline), { ssr: false });
 
+// Interface pour le prototype de l'icône Leaflet
+interface LeafletIconDefaultPrototype {
+  _getIconUrl?: unknown;
+}
+
+// Import dynamique de l'icône Leaflet
+const IconSetup = dynamic(
+  () =>
+    import('leaflet').then(L => {
+      // Configurer le chemin des icônes Leaflet
+      delete (L.Icon.Default.prototype as LeafletIconDefaultPrototype)._getIconUrl;
+
+      L.Icon.Default.mergeOptions({
+        iconRetinaUrl: '/leaflet/marker-icon-2x.png',
+        iconUrl: '/leaflet/marker-icon.png',
+        shadowUrl: '/leaflet/marker-shadow.png',
+      });
+
+      // Composant avec un nom d'affichage
+      const LeafletIconSetup = ({ children }: { children: React.ReactNode }) => <>{children}</>;
+      LeafletIconSetup.displayName = 'LeafletIconSetup';
+      return LeafletIconSetup;
+    }),
+  { ssr: false }
+);
+
 type AnnouncementMapProps = {
   announcements?: Announcement[];
   selectedAnnouncement?: Announcement;
   isLoading?: boolean;
   height?: string;
-  showControls?: boolean;
   onSelectAnnouncement?: (announcement: Announcement) => void;
 };
 
@@ -37,7 +59,6 @@ export function AnnouncementMap({
   selectedAnnouncement,
   isLoading = false,
   height = '500px',
-  showControls = true,
   onSelectAnnouncement,
 }: AnnouncementMapProps) {
   const t = useTranslations('announcements');
@@ -62,7 +83,7 @@ export function AnnouncementMap({
 
   // Fonction pour créer une icône de marqueur personnalisée
   const createCustomIcon = (announcement: Announcement) => {
-    if (typeof window === 'undefined' || !window.L) return null;
+    if (typeof window === 'undefined' || !window.L) return undefined;
 
     // Import de L depuis la fenêtre globale
     const L = window.L;
@@ -155,34 +176,6 @@ export function AnnouncementMap({
     );
   }
 
-  // Calculer les limites de la carte en fonction des annonces
-  const getBounds = () => {
-    if (!displayAnnouncements || displayAnnouncements.length === 0) {
-      return [defaultCenter, defaultCenter];
-    }
-
-    const validAnnouncements = displayAnnouncements.filter(
-      a => a.pickupLatitude && a.pickupLongitude && a.deliveryLatitude && a.deliveryLongitude
-    );
-
-    if (validAnnouncements.length === 0) {
-      return [defaultCenter, defaultCenter];
-    }
-
-    const points: [number, number][] = [];
-
-    validAnnouncements.forEach(a => {
-      if (a.pickupLatitude && a.pickupLongitude) {
-        points.push([a.pickupLatitude, a.pickupLongitude]);
-      }
-      if (a.deliveryLatitude && a.deliveryLongitude) {
-        points.push([a.deliveryLatitude, a.deliveryLongitude]);
-      }
-    });
-
-    return points;
-  };
-
   return (
     <Card className="w-full">
       <CardHeader>
@@ -191,131 +184,132 @@ export function AnnouncementMap({
       </CardHeader>
       <CardContent style={{ height, padding: 0, overflow: 'hidden' }}>
         {mapReady && typeof window !== 'undefined' && window.L && (
-          <MapContainer
-            center={defaultCenter as [number, number]}
-            zoom={defaultZoom}
-            style={{ height: '100%', width: '100%' }}
-            bounds={getBounds()}
-          >
-            <TileLayer
-              attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-              url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-            />
+          <IconSetup>
+            <MapContainer
+              center={defaultCenter as [number, number]}
+              zoom={defaultZoom}
+              style={{ height: '100%', width: '100%' }}
+            >
+              <TileLayer
+                attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
 
-            {/* Afficher les marqueurs pour les points de départ et d'arrivée */}
-            {displayAnnouncements.map(announcement => {
-              if (
-                !announcement.pickupLatitude ||
-                !announcement.pickupLongitude ||
-                !announcement.deliveryLatitude ||
-                !announcement.deliveryLongitude
-              ) {
-                return null;
-              }
+              {/* Afficher les marqueurs pour les points de départ et d'arrivée */}
+              {displayAnnouncements.map(announcement => {
+                if (
+                  !announcement.pickupLatitude ||
+                  !announcement.pickupLongitude ||
+                  !announcement.deliveryLatitude ||
+                  !announcement.deliveryLongitude
+                ) {
+                  return null;
+                }
 
-              const icon = createCustomIcon(announcement);
+                const icon = createCustomIcon(announcement);
 
-              return (
-                <div key={announcement.id}>
-                  {/* Marqueur de départ */}
-                  <Marker
-                    position={[announcement.pickupLatitude, announcement.pickupLongitude]}
-                    icon={icon}
-                    eventHandlers={{
-                      click: () => handleMarkerClick(announcement),
-                    }}
-                  >
-                    <Tooltip direction="top" offset={[0, -20]} opacity={0.7}>
-                      <div>
-                        <p className="font-semibold">{announcement.title}</p>
-                        <p>{t('pickupPoint')}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {announcement.pickupAddress}
-                        </p>
-                      </div>
-                    </Tooltip>
-                    <Popup>
-                      <div className="p-1">
-                        <h3 className="font-semibold">{announcement.title}</h3>
-                        <p className="text-sm">{getAnnouncementTypeLabel(announcement.type)}</p>
-                        <div className="mt-2">
-                          <p className="text-xs font-medium">{t('pickupAddress')}:</p>
-                          <p className="text-xs">{announcement.pickupAddress}</p>
+                return (
+                  <div key={announcement.id}>
+                    {/* Marqueur de départ */}
+                    <Marker
+                      position={[announcement.pickupLatitude, announcement.pickupLongitude]}
+                      icon={icon}
+                      eventHandlers={{
+                        click: () => handleMarkerClick(announcement),
+                      }}
+                    >
+                      <Tooltip direction="top" offset={[0, -20]} opacity={0.7}>
+                        <div>
+                          <p className="font-semibold">{announcement.title}</p>
+                          <p>{t('pickupPoint')}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {announcement.pickupAddress}
+                          </p>
                         </div>
-                        <div className="mt-1">
-                          <p className="text-xs font-medium">{t('deliveryAddress')}:</p>
-                          <p className="text-xs">{announcement.deliveryAddress}</p>
+                      </Tooltip>
+                      <Popup>
+                        <div className="p-1">
+                          <h3 className="font-semibold">{announcement.title}</h3>
+                          <p className="text-sm">{getAnnouncementTypeLabel(announcement.type)}</p>
+                          <div className="mt-2">
+                            <p className="text-xs font-medium">{t('pickupAddress')}:</p>
+                            <p className="text-xs">{announcement.pickupAddress}</p>
+                          </div>
+                          <div className="mt-1">
+                            <p className="text-xs font-medium">{t('deliveryAddress')}:</p>
+                            <p className="text-xs">{announcement.deliveryAddress}</p>
+                          </div>
+                          {onSelectAnnouncement && (
+                            <Button
+                              size="sm"
+                              className="mt-2 w-full text-xs"
+                              onClick={() => handleMarkerClick(announcement)}
+                            >
+                              {t('viewDetails')}
+                            </Button>
+                          )}
                         </div>
-                        {onSelectAnnouncement && (
-                          <Button
-                            size="sm"
-                            className="mt-2 w-full text-xs"
-                            onClick={() => handleMarkerClick(announcement)}
-                          >
-                            {t('viewDetails')}
-                          </Button>
-                        )}
-                      </div>
-                    </Popup>
-                  </Marker>
+                      </Popup>
+                    </Marker>
 
-                  {/* Marqueur d'arrivée */}
-                  <Marker
-                    position={[announcement.deliveryLatitude, announcement.deliveryLongitude]}
-                    icon={icon}
-                    eventHandlers={{
-                      click: () => handleMarkerClick(announcement),
-                    }}
-                  >
-                    <Tooltip direction="top" offset={[0, -20]} opacity={0.7}>
-                      <div>
-                        <p className="font-semibold">{announcement.title}</p>
-                        <p>{t('deliveryPoint')}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {announcement.deliveryAddress}
-                        </p>
-                      </div>
-                    </Tooltip>
-                    <Popup>
-                      <div className="p-1">
-                        <h3 className="font-semibold">{announcement.title}</h3>
-                        <p className="text-sm">{getAnnouncementTypeLabel(announcement.type)}</p>
-                        <div className="mt-2">
-                          <p className="text-xs font-medium">{t('pickupAddress')}:</p>
-                          <p className="text-xs">{announcement.pickupAddress}</p>
+                    {/* Marqueur d'arrivée */}
+                    <Marker
+                      position={[announcement.deliveryLatitude, announcement.deliveryLongitude]}
+                      icon={icon}
+                      eventHandlers={{
+                        click: () => handleMarkerClick(announcement),
+                      }}
+                    >
+                      <Tooltip direction="top" offset={[0, -20]} opacity={0.7}>
+                        <div>
+                          <p className="font-semibold">{announcement.title}</p>
+                          <p>{t('deliveryPoint')}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {announcement.deliveryAddress}
+                          </p>
                         </div>
-                        <div className="mt-1">
-                          <p className="text-xs font-medium">{t('deliveryAddress')}:</p>
-                          <p className="text-xs">{announcement.deliveryAddress}</p>
+                      </Tooltip>
+                      <Popup>
+                        <div className="p-1">
+                          <h3 className="font-semibold">{announcement.title}</h3>
+                          <p className="text-sm">{getAnnouncementTypeLabel(announcement.type)}</p>
+                          <div className="mt-2">
+                            <p className="text-xs font-medium">{t('pickupAddress')}:</p>
+                            <p className="text-xs">{announcement.pickupAddress}</p>
+                          </div>
+                          <div className="mt-1">
+                            <p className="text-xs font-medium">{t('deliveryAddress')}:</p>
+                            <p className="text-xs">{announcement.deliveryAddress}</p>
+                          </div>
+                          {onSelectAnnouncement && (
+                            <Button
+                              size="sm"
+                              className="mt-2 w-full text-xs"
+                              onClick={() => handleMarkerClick(announcement)}
+                            >
+                              {t('viewDetails')}
+                            </Button>
+                          )}
                         </div>
-                        {onSelectAnnouncement && (
-                          <Button
-                            size="sm"
-                            className="mt-2 w-full text-xs"
-                            onClick={() => handleMarkerClick(announcement)}
-                          >
-                            {t('viewDetails')}
-                          </Button>
-                        )}
-                      </div>
-                    </Popup>
-                  </Marker>
+                      </Popup>
+                    </Marker>
 
-                  {/* Ligne reliant les points */}
-                  <Polyline
-                    positions={[
-                      [announcement.pickupLatitude, announcement.pickupLongitude],
-                      [announcement.deliveryLatitude, announcement.deliveryLongitude],
-                    ]}
-                    color={selectedAnnouncement?.id === announcement.id ? '#0284c7' : '#94a3b8'}
-                    weight={selectedAnnouncement?.id === announcement.id ? 3 : 2}
-                    opacity={selectedAnnouncement?.id === announcement.id ? 0.8 : 0.5}
-                    dashArray={selectedAnnouncement?.id === announcement.id ? '' : '5, 5'}
-                  />
-                </div>
-              );
-            })}
-          </MapContainer>
+                    {/* Ligne reliant les points */}
+                    <Polyline
+                      positions={[
+                        [announcement.pickupLatitude, announcement.pickupLongitude],
+                        [announcement.deliveryLatitude, announcement.deliveryLongitude],
+                      ]}
+                      color={selectedAnnouncement?.id === announcement.id ? '#0284c7' : '#94a3b8'}
+                      weight={selectedAnnouncement?.id === announcement.id ? 3 : 2}
+                      opacity={selectedAnnouncement?.id === announcement.id ? 0.8 : 0.5}
+                      dashArray={selectedAnnouncement?.id === announcement.id ? '' : '5, 5'}
+                    />
+                  </div>
+                );
+              })}
+            </MapContainer>
+          </IconSetup>
         )}
       </CardContent>
     </Card>
