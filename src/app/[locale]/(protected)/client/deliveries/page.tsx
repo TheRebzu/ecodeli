@@ -192,7 +192,7 @@ export default function ClientDeliveriesPage() {
                     <SelectValue placeholder={t('filters.allStatuses')} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">{t('filters.allStatuses')}</SelectItem>
+                    <SelectItem value="ALL">{t('filters.allStatuses')}</SelectItem>
                     {Object.values(DeliveryStatus).map(status => (
                       <SelectItem key={status} value={status}>
                         {t(`statuses.${status}`)}
