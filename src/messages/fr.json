@@ -1538,5 +1538,187 @@
       "map": "Carte",
       "details": "Détails"
     }
+  },
+  "storage": {
+    "dashboardPage": {
+      "title": "Gestion des box de stockage",
+      "description": "Gérez vos box de stockage, recherchez des espaces disponibles et suivez vos réservations",
+      "metaTitle": "Box de Stockage | EcoDeli",
+      "metaDescription": "Gérez vos box de stockage, consultez vos réservations et trouvez des espaces disponibles"
+    },
+    "boxTypes": {
+      "standard": "Standard",
+      "climate_controlled": "Climatisée",
+      "secure": "Sécurisée",
+      "extra_large": "Extra large",
+      "refrigerated": "Réfrigérée",
+      "fragile": "Objets fragiles"
+    },
+    "tabs": {
+      "myReservations": "Mes réservations",
+      "findBox": "Rechercher une box",
+      "notifications": "Notifications"
+    },
+    "reservations": {
+      "title": "Mes réservations de box",
+      "empty": "Vous n'avez aucune réservation active",
+      "emptyDescription": "Utilisez l'onglet Rechercher pour trouver et réserver une box de stockage",
+      "active": "Réservations actives",
+      "upcoming": "Réservations à venir",
+      "past": "Historique des réservations",
+      "status": {
+        "active": "Active",
+        "upcoming": "À venir",
+        "completed": "Terminée",
+        "cancelled": "Annulée"
+      },
+      "statuses": {
+        "active": "Active",
+        "pending": "En attente",
+        "completed": "Terminée",
+        "cancelled": "Annulée",
+        "overdue": "En retard",
+        "extended": "Prolongée"
+      },
+      "search": "Rechercher une réservation",
+      "extend": "Prolonger",
+      "cancel": "Annuler",
+      "access": "Accéder",
+      "details": "Détails",
+      "noReservations": "Vous n'avez pas encore de réservation",
+      "noReservationsFound": "Aucune réservation trouvée",
+      "startSearching": "Commencez par rechercher une box disponible",
+      "findBox": "Trouver une box",
+      "expiringSoon": "Expire dans moins de 3 jours",
+      "totalPrice": "Prix total",
+      "size": "Taille",
+      "type": "Type",
+      "boxDetails": "Détails de la box",
+      "startDate": "Date de début",
+      "endDate": "Date de fin"
+    },
+    "search": {
+      "title": "Rechercher une box de stockage",
+      "searchButton": "Rechercher",
+      "resultsTitle": "Résultats de recherche",
+      "noResults": "Aucune box disponible correspondant à vos critères",
+      "filters": {
+        "location": "Emplacement",
+        "startDate": "Date de début",
+        "endDate": "Date de fin",
+        "size": "Taille",
+        "priceRange": "Fourchette de prix",
+        "features": "Caractéristiques",
+        "boxType": "Type de box"
+      },
+      "box": {
+        "reserve": "Réserver",
+        "pricePerDay": "Prix par jour",
+        "size": "Taille",
+        "location": "Emplacement",
+        "features": "Caractéristiques",
+        "availability": "Disponibilité"
+      },
+      "locationPlaceholder": "Entrez une ville ou un code postal",
+      "subscribe": "Être notifié lorsque disponible",
+      "advancedSearch": "Recherche avancée"
+    },
+    "notifications": {
+      "title": "Notifications de disponibilité",
+      "empty": "Aucune notification configurée",
+      "emptyDescription": "Configurez des alertes pour être notifié lorsque des box correspondant à vos critères sont disponibles",
+      "create": "Créer une alerte",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "activeTab": "Notifications actives",
+      "createTab": "Créer une notification",
+      "availabilityAlert": "Alerte de disponibilité",
+      "createTitle": "Créer une notification de disponibilité",
+      "createDescription": "Définissez les critères pour recevoir des notifications lorsque des box correspondantes deviennent disponibles",
+      "createButton": "Créer la notification",
+      "deleteTitle": "Supprimer la notification",
+      "deleteDescription": "Êtes-vous sûr de vouloir supprimer cette notification de disponibilité ?",
+      "confirm": "Confirmer",
+      "cancel": "Annuler",
+      "createdAt": "Créée le {date}",
+      "dateRange": "Période",
+      "location": "Lieu",
+      "boxDetails": "Caractéristiques de la box",
+      "noNotificationsTitle": "Aucune notification active",
+      "noNotificationsDesc": "Vous n'avez pas encore configuré de notifications de disponibilité",
+      "radius": "Rayon de {radius} km",
+      "minSize": "Min. {size} m³",
+      "maxSize": "Max. {size} m³",
+      "anyLocation": "Tous les entrepôts",
+      "anyType": "Tous types"
+    },
+    "warehouse": {
+      "openingHours": "Heures d'ouverture",
+      "contact": "Contact",
+      "facilities": "Équipements",
+      "security": "Sécurité",
+      "directions": "Itinéraire"
+    },
+    "history": {
+      "title": "Historique d'utilisation",
+      "noHistoryTitle": "Pas d'historique disponible",
+      "noHistoryDescription": "Aucune activité n'a été enregistrée pour cette box",
+      "actionTypes": {
+        "access": "Accès à la box",
+        "departure": "Sortie de la box",
+        "maintenance": "Maintenance",
+        "other": "Autre action"
+      }
+    },
+    "details": {
+      "boxDetails": "Détails de la box",
+      "reservationDetails": "Détails de la réservation",
+      "extend": "Prolonger la réservation",
+      "cancel": "Annuler la réservation",
+      "accessCode": "Code d'accès"
+    },
+    "dialogs": {
+      "extend": {
+        "title": "Prolonger la réservation",
+        "description": "Choisissez une nouvelle date de fin pour votre réservation",
+        "newEndDate": "Nouvelle date de fin",
+        "additionalCost": "Coût supplémentaire",
+        "confirm": "Confirmer",
+        "cancel": "Annuler"
+      },
+      "access": {
+        "title": "Accès à la box",
+        "description": "Utilisez le code suivant pour accéder à votre box",
+        "validUntil": "Valide jusqu'à",
+        "regenerate": "Générer un nouveau code",
+        "close": "Fermer"
+      }
+    },
+    "features": {
+      "climate_control": "Climatisation",
+      "security_camera": "Caméra de sécurité",
+      "24h_access": "Accès 24h/24",
+      "fire_protection": "Protection incendie",
+      "private_access": "Accès privé",
+      "loading_dock": "Quai de chargement"
+    },
+    "subscription": {
+      "success": "Notification créée",
+      "successDescription": "Vous serez notifié lorsqu'une box correspondant à vos critères devient disponible",
+      "error": "Erreur",
+      "deactivateSuccess": "Notification supprimée",
+      "deactivateSuccessDescription": "La notification a été supprimée avec succès",
+      "deactivateError": "Erreur lors de la suppression",
+      "pushNotifications": "Notifications push",
+      "pushDescription": "Recevez des notifications instantanées sur votre appareil",
+      "emailNotifications": "Notifications par email",
+      "emailDescription": "Recevez des notifications par email",
+      "smsNotifications": "Notifications SMS",
+      "smsDescription": "Recevez des notifications par SMS"
+    }
   }
 }
