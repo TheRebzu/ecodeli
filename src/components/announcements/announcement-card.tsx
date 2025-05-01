@@ -97,11 +97,11 @@ export function AnnouncementCard({
       case AnnouncementStatus.PUBLISHED:
         return 'default';
       case AnnouncementStatus.ASSIGNED:
-        return 'blue';
+        return 'default';
       case AnnouncementStatus.IN_PROGRESS:
-        return 'green';
+        return 'default';
       case AnnouncementStatus.COMPLETED:
-        return 'success';
+        return 'default';
       case AnnouncementStatus.CANCELLED:
         return 'destructive';
       default:
@@ -325,8 +325,8 @@ export function AnnouncementCard({
               <Clock className="h-4 w-4 mr-2 mt-1 text-muted-foreground" />
               <div className="text-sm">
                 <div>
-                  <span className="font-medium">{t('priority')}: </span>{' '}
-                  {getAnnouncementPriorityLabel(announcement.priority)}
+                  <span className="font-medium">Priorité: </span>{' '}
+                  {announcement.priority && getAnnouncementPriorityLabel(announcement.priority)}
                 </div>
                 <div>
                   <span className="font-medium">{t('flexibility')}: </span>{' '}

@@ -30,6 +30,9 @@ model User {
   lockedUntil            DateTime?
   loginAttempts          Int                   @default(0)
   notes                  String?
+  hasCompletedOnboarding Boolean               @default(false)
+  lastOnboardingStep     Int                   @default(0)
+  onboardingCompletionDate DateTime?
   notifications          Notification[]
   accounts               Account[]
   admin                  Admin?
