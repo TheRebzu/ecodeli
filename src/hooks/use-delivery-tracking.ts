@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/router';
+import { useRouter } from 'next/navigation';
 import { api } from '../trpc/react';
 import { socket } from '../socket';
 import { DeliveryTrackingInfo, DeliveryStatus } from '../types/delivery';
@@ -136,7 +136,8 @@ export function useDeliveryTracking({
   // Si pas autorisé, rediriger vers la liste des livraisons
   useEffect(() => {
     if (error && error.message.includes('FORBIDDEN')) {
-      router.push('/deliveries');
+      // Utiliser le format de chemin adapté à l'App Router
+      router.push('/client/deliveries');
     }
   }, [error, router]);
 

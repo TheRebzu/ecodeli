@@ -4,6 +4,183 @@
     "subtitle": "Votre plateforme de livraison écologique",
     "about": "À propos"
   },
+  "Common": {
+    "Onboarding": {
+      "actions": {
+        "next": "Suivant",
+        "previous": "Précédent",
+        "skip": "Passer le tutoriel",
+        "finish": "Terminer"
+      },
+      "error": {
+        "title": "Erreur",
+        "description": "Une erreur est survenue lors de la mise à jour du tutoriel."
+      },
+      "complete": {
+        "success": {
+          "title": "Tutoriel terminé",
+          "description": "Vous avez terminé le tutoriel avec succès !"
+        }
+      },
+      "reset": {
+        "success": {
+          "title": "Tutoriel réinitialisé",
+          "description": "Le tutoriel a été réinitialisé avec succès."
+        }
+      }
+    }
+  },
+  "Settings": {
+    "Tutorial": {
+      "title": "Paramètres du tutoriel",
+      "description": "Gérez vos préférences concernant le tutoriel d'introduction",
+      "alert": {
+        "title": "À propos du tutoriel",
+        "description": "Le tutoriel vous guide à travers les principales fonctionnalités d'EcoDeli. Vous pouvez le revoir à tout moment ou le réinitialiser pour recommencer à zéro."
+      },
+      "restart": {
+        "title": "Revoir le tutoriel",
+        "description": "Lancez le tutoriel sans réinitialiser votre progression",
+        "info": "Vous pouvez revoir le tutoriel à tout moment pour rafraîchir vos connaissances sur l'utilisation d'EcoDeli.",
+        "button": "Lancer le tutoriel"
+      },
+      "reset": {
+        "title": "Réinitialiser le tutoriel",
+        "description": "Recommencez le tutoriel depuis le début",
+        "info": "Cette action réinitialisera complètement votre progression dans le tutoriel, comme si vous vous connectiez pour la première fois.",
+        "button": "Réinitialiser",
+        "processing": "Réinitialisation..."
+      },
+      "resetSuccess": {
+        "title": "Tutoriel réinitialisé",
+        "description": "Le tutoriel a été réinitialisé avec succès. Vous pouvez maintenant le redémarrer."
+      },
+      "resetError": {
+        "title": "Erreur de réinitialisation",
+        "description": "Une erreur est survenue lors de la réinitialisation du tutoriel."
+      }
+    }
+  },
+  "Client": {
+    "Onboarding": {
+      "steps": {
+        "welcome": {
+          "title": "Bienvenue sur EcoDeli",
+          "description": "Découvrez comment utiliser notre plateforme pour gérer vos livraisons écologiques."
+        },
+        "dashboard": {
+          "title": "Votre tableau de bord",
+          "description": "Accédez rapidement à toutes vos activités et informations importantes."
+        },
+        "announcements": {
+          "title": "Créer des annonces",
+          "description": "Publiez des annonces pour trouver des livreurs disponibles pour vos colis."
+        },
+        "deliveries": {
+          "title": "Suivi des livraisons",
+          "description": "Suivez en temps réel l'état de vos livraisons et communiquez avec vos livreurs."
+        },
+        "services": {
+          "title": "Services disponibles",
+          "description": "Découvrez et réservez des services proposés par nos prestataires partenaires."
+        },
+        "storage": {
+          "title": "Gestion du stockage",
+          "description": "Utilisez notre système de stockage pour vos colis et marchandises."
+        }
+      }
+    }
+  },
+  "Deliverer": {
+    "Onboarding": {
+      "steps": {
+        "welcome": {
+          "title": "Bienvenue, livreur !",
+          "description": "Découvrez comment utiliser EcoDeli pour trouver et gérer vos livraisons."
+        },
+        "dashboard": {
+          "title": "Votre tableau de bord",
+          "description": "Accédez rapidement à toutes vos activités et statistiques de livraison."
+        },
+        "announcements": {
+          "title": "Trouver des annonces",
+          "description": "Parcourez les annonces disponibles et proposez vos services de livraison."
+        },
+        "deliveries": {
+          "title": "Gérer vos livraisons",
+          "description": "Suivez et mettez à jour l'état de vos livraisons en cours."
+        },
+        "routes": {
+          "title": "Planification d'itinéraires",
+          "description": "Optimisez vos trajets pour maximiser votre efficacité et vos revenus."
+        },
+        "payments": {
+          "title": "Suivi des revenus",
+          "description": "Consultez vos paiements et gérez vos informations financières."
+        }
+      }
+    }
+  },
+  "Merchant": {
+    "Onboarding": {
+      "steps": {
+        "welcome": {
+          "title": "Bienvenue, commerçant !",
+          "description": "Découvrez comment utiliser EcoDeli pour gérer vos expéditions écologiques."
+        },
+        "dashboard": {
+          "title": "Votre tableau de bord",
+          "description": "Accédez rapidement à toutes vos activités et statistiques de vente."
+        },
+        "contract": {
+          "title": "Gestion de contrat",
+          "description": "Consultez et gérez votre contrat de partenariat avec EcoDeli."
+        },
+        "announcements": {
+          "title": "Créer des annonces",
+          "description": "Publiez des annonces pour trouver des livreurs pour vos produits."
+        },
+        "deliveries": {
+          "title": "Suivi des expéditions",
+          "description": "Suivez en temps réel l'état des livraisons de vos produits."
+        },
+        "invoices": {
+          "title": "Facturation",
+          "description": "Gérez vos factures et suivez vos transactions financières."
+        }
+      }
+    }
+  },
+  "Provider": {
+    "Onboarding": {
+      "steps": {
+        "welcome": {
+          "title": "Bienvenue, prestataire !",
+          "description": "Découvrez comment utiliser EcoDeli pour gérer vos services et rendez-vous."
+        },
+        "dashboard": {
+          "title": "Votre tableau de bord",
+          "description": "Accédez rapidement à toutes vos activités et statistiques de service."
+        },
+        "services": {
+          "title": "Gestion des services",
+          "description": "Créez et modifiez les services que vous proposez sur la plateforme."
+        },
+        "appointments": {
+          "title": "Gestion des rendez-vous",
+          "description": "Consultez et gérez les réservations de vos clients."
+        },
+        "schedule": {
+          "title": "Disponibilités",
+          "description": "Définissez vos plages horaires de disponibilité pour les réservations."
+        },
+        "ratings": {
+          "title": "Avis et évaluations",
+          "description": "Consultez les avis laissés par vos clients et améliorez votre réputation."
+        }
+      }
+    }
+  },
   "common": {
     "languageName": "Français",
     "switchLanguage": "Changer de langue",
@@ -760,7 +937,121 @@
     "gestion_des_factures": "Gestion des factures",
     "gestion_des_livraisons": "Gestion des livraisons",
     "gestion_des_livreurs": "Gestion des livreurs",
-    "gestion_des_annonces": "Gestion des annonces"
+    "gestion_des_annonces": "Gestion des annonces",
+    "openstreetmap": "OpenStreetMap",
+    "promise": "Promise",
+    "fallback_pour_les_images_dynamiques": ") : (\n              // Fallback pour les images dynamiques",
+    "case_deliverer_return_1": ";\r\n      case 'deliverer':\r\n        return",
+    "case_merchant_return_1": ";\r\n      case 'merchant':\r\n        return",
+    "case_provider_return_1": ";\r\n      case 'provider':\r\n        return",
+    "case_verificationstatus_approved_return": ");\r\n    case VerificationStatus.APPROVED:\r\n      return (",
+    "case_verificationstatus_rejected_return": ");\r\n    case VerificationStatus.REJECTED:\r\n      return (",
+    "null_const_previewurl_setpreviewurl_uses": "(null);\r\n  const [previewUrl, setPreviewUrl] = useState",
+    "null_const_previewtype_setpreviewtype_us": "(null);\r\n  const [previewType, setPreviewType] = useState",
+    "null_const_ispreviewopen_setispreviewope": "(null);\r\n  const [isPreviewOpen, setIsPreviewOpen] = useState(false);\r\n\r\n  const dateLocale = locale === 'fr' ? fr : enUS;\r\n\r\n  const form = useForm",
+    "date": "date",
+    "pdf_preview": "PDF Preview",
+    "record_actiontype_boxactiontype_departur": ") : record.actionType === BoxActionType.DEPARTURE ? (",
+    "null_const_selectedbox_setselectedbox_us": "(null);\r\n  const [selectedBox, setSelectedBox] = useState",
+    "void_issubmitting_boolean_submittext_str": "void;\r\n  isSubmitting?: boolean;\r\n  submitText?: string;\r\n  defaultValues?: Partial",
+    "null_const_dialogopen_setdialogopen_uses": "(null);\r\n  const [dialogOpen, setDialogOpen] = useState",
+    "case_pending_return": ";\r\n      case 'PENDING':\r\n        return",
+    "case_completed_return": ";\r\n      case 'COMPLETED':\r\n        return",
+    "case_cancelled_return": ";\r\n      case 'CANCELLED':\r\n        return",
+    "case_overdue_return": ";\r\n      case 'OVERDUE':\r\n        return",
+    "case_extended_return": ";\r\n      case 'EXTENDED':\r\n        return",
+    "case_payment_return": ");\r\n\r\n      case 'payment':\r\n        return (",
+    "case_confirmation_return": ");\r\n\r\n      case 'confirmation':\r\n        return (",
+    "case_reservation_updated_return": ";\r\n      case 'RESERVATION_UPDATED':\r\n        return",
+    "case_reservation_cancelled_return": ";\r\n      case 'RESERVATION_CANCELLED':\r\n        return",
+    "case_box_accessed_return": ";\r\n      case 'BOX_ACCESSED':\r\n        return",
+    "case_box_closed_return": ";\r\n      case 'BOX_CLOSED':\r\n        return",
+    "case_payment_processed_return": ";\r\n      case 'PAYMENT_PROCESSED':\r\n        return",
+    "case_extended_rental_return": ";\r\n      case 'EXTENDED_RENTAL':\r\n        return",
+    "case_inspection_completed_return": ";\r\n      case 'INSPECTION_COMPLETED':\r\n        return",
+    "case_secure_return": ";\r\n      case 'SECURE':\r\n        return",
+    "case_extra_large_return": ";\r\n      case 'EXTRA_LARGE':\r\n        return",
+    "case_refrigerated_return": ";\r\n      case 'REFRIGERATED':\r\n        return",
+    "case_fragile_return": ";\r\n      case 'FRAGILE':\r\n        return",
+    "0_affichage_des_services": "0 ? (\r\n            /* Affichage des services */",
+    "aucun_service_trouv": ") : (\r\n            /* Aucun service trouvé */",
+    "acc_review_rating_0_service_reviews_leng": "acc + review.rating, 0) / service.reviews.length\r\n      : 0;\r\n\r\n  return (",
+    "availabletimeslots_length_0": ") : availableTimeSlots.length === 0 ? (",
+    "support_ecodeli_fr": "support@ecodeli.fr",
+    "new_date_const_showaddavailability_setsh": "(new Date());\r\n  const [showAddAvailability, setShowAddAvailability] = useState(false);\r\n  const [dayOfWeek, setDayOfWeek] = useState",
+    "1_lundi_par_d_faut_const_starttime_setst": "('1'); // Lundi par défaut\r\n  const [startTime, setStartTime] = useState",
+    "09_00_const_endtime_setendtime_usestate": "('09:00');\r\n  const [endTime, setEndTime] = useState",
+    "bookingsforselecteddate_length_0": ") : bookingsForSelectedDate?.length === 0 ? (",
+    "availabilitiesquery_data_length": ") : !availabilitiesQuery.data?.length ? (",
+    "paypal": "PayPal",
+    "transport": "Transport",
+    "transfert_a_roport": "Transfert aéroport",
+    "garde_d_apos_animaux": "Garde d&apos;animaux",
+    "entretien_maison": "Entretien maison",
+    "jardinage": "Jardinage",
+    "ordre": "Ordre",
+    "croissant": "Croissant",
+    "d_croissant": "Décroissant",
+    "notificationsdata_notifications_length_0": ") : notificationsData?.notifications.length === 0 ? (",
+    "case_rejected_return": ");\r\n      case 'REJECTED':\r\n        return (",
+    "case_pending_default_return": ");\r\n      case 'PENDING':\r\n      default:\r\n        return (",
+    "mapping_des_types_de_documents_pour_l_af": ";\r\n\r\n// Mapping des types de documents pour l'affichage\r\nconst documentTypeLabels: Record",
+    "document_pdf": "Document PDF",
+    "file_size": "file.size",
+    "deliverystatus_accepted": ",\r\n  [DeliveryStatus.ACCEPTED]:",
+    "deliverystatus_picked_up": ",\r\n  [DeliveryStatus.PICKED_UP]:",
+    "deliverystatus_in_transit": ",\r\n  [DeliveryStatus.IN_TRANSIT]:",
+    "deliverystatus_delivered": ",\r\n  [DeliveryStatus.DELIVERED]:",
+    "deliverystatus_confirmed": ",\r\n  [DeliveryStatus.CONFIRMED]:",
+    "deliverystatus_cancelled": ",\r\n  [DeliveryStatus.CANCELLED]:",
+    "deliverystatus_disputed": ",\r\n  [DeliveryStatus.DISPUTED]:",
+    "index_const_isactive_status_step_return": "= index;\r\n              const isActive = status === step;\r\n\r\n              return (",
+    "iscompleted": ") : isCompleted ? (",
+    "new_date_estimatedarrival_status_deliver": "new Date(estimatedArrival) &&\r\n    status !== DeliveryStatus.DELIVERED &&\r\n    status !== DeliveryStatus.CONFIRMED;\r\n\r\n  return (",
+    "your_email_com": "your@email.com",
+    "verifying_const_errormessage_seterrormes": "('verifying');\r\n  const [errorMessage, setErrorMessage] = useState",
+    "v_rification_d_email": "Vérification d'email",
+    "validation_de_votre_adresse_email": "Validation de votre adresse email",
+    "v_rification_de_votre_email_en_cours": "Vérification de votre email en cours...",
+    "votre_email_a_t_v_rifi_avec_succ_s_vous_": "Votre email a été vérifié avec succès. Vous allez être redirigé vers la page de\r\n                connexion.",
+    "aller_la_connexion": "Aller à la connexion",
+    "retour_la_connexion": "Retour à la connexion",
+    "initialphotos_const_uploading_setuploadi": "(initialPhotos);\r\n  const [uploading, setUploading] = useState(false);\r\n\r\n  // Fonction pour télécharger une image vers le serveur\r\n  const uploadPhoto = async (file: File): Promise",
+    "new_date_b_createdat_gettime_new_date_a_": "new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())\r\n    .slice(0, 3);\r\n\r\n  return (",
+    "0_liste_des_annonces": "0 ? (\n          // Liste des annonces",
+    "message_quand_il_n_y_a_pas_d_annonces": ") : (\n          // Message quand il n'y a pas d'annonces",
+    "configuration_du_formulaire_avec_react_h": "([]);\r\n\r\n  // Configuration du formulaire avec React Hook Form et Zod\r\n  const form = useForm",
+    "case_announcementstatus_cancelled_return": ";\n      case AnnouncementStatus.CANCELLED:\n        return",
+    "null_const_marker_setmarker_usestate": "(null);\r\n  const [marker, setMarker] = useState",
+    "null_const_searchresults_setsearchresult": "(null);\r\n  const [searchResults, setSearchResults] = useState",
+    "const_showresults_setshowresults_usestat": "([]);\r\n  const [showResults, setShowResults] = useState(false);\r\n  const [isSearching, setIsSearching] = useState(false);\r\n  const [inputValue, setInputValue] = useState(address);\r\n  const mapRef = useRef",
+    "null_const_autocompleteservice_useref": "(null);\r\n  const autocompleteService = useRef",
+    "null_const_placesservice_useref": "(null);\r\n  const placesService = useRef",
+    "null_const_geocoder_useref": "(null);\r\n  const geocoder = useRef",
+    "initiallatitude_48_8566_const_longitude_": "(initialLatitude || 48.8566);\r\n  const [longitude, setLongitude] = useState",
+    "initiallongitude_2_3522_const_ismapready": "(initialLongitude || 2.3522);\r\n  const [isMapReady, setIsMapReady] = useState(false);\r\n  const [isSearching, setIsSearching] = useState(false);\r\n\r\n  // Référence au timeout pour la recherche d'adresse\r\n  const searchTimeout = useRef",
+    "list_const_searchquery_setsearchquery_us": "('list');\r\n  const [searchQuery, setSearchQuery] = useState('');\r\n  const [selectedTab, setSelectedTab] = useState('all');\r\n  const [maxDistance, setMaxDistance] = useState",
+    "50_const_showfilters_setshowfilters_uses": "(50);\r\n  const [showFilters, setShowFilters] = useState(false);\r\n  const [sortBy, setSortBy] = useState",
+    "displayedannouncements_length_0": ") : displayedAnnouncements.length === 0 ? (",
+    "warehouses_length_0": ") : warehouses.length === 0 ? (",
+    "boxes_length_0": ") : boxes.length === 0 ? (",
+    "pending_const_filters_setfilters_usestat": "('PENDING');\r\n  const [filters, setFilters] = useState",
+    "currentfilters_datefrom_undefined_const_": "(currentFilters.dateFrom || undefined);\r\n  const [dateTo, setDateTo] = useState",
+    "datefrom_date": "(dateFrom ? date",
+    "ispdf": ") : isPdf ? (",
+    "userrole_deliverer_const_rejectnotes_set": "(UserRole.DELIVERER);\r\n  const [rejectNotes, setRejectNotes] = useState",
+    "null_const_previewopen_setpreviewopen_us": "(null);\r\n  const [previewOpen, setPreviewOpen] = useState(false);\r\n  const [verificationOpen, setVerificationOpen] = useState(false);\r\n  const [rejectionReason, setRejectionReason] = useState('');\r\n  const [activeTab, setActiveTab] = useState",
+    "case_verificationstatus_approved_return_1": ");\r\n      case VerificationStatus.APPROVED:\r\n        return (",
+    "case_verificationstatus_rejected_return_1": ");\r\n      case VerificationStatus.REJECTED:\r\n        return (",
+    "filteredcontracts_length_0": ") : filteredContracts.length === 0 ? (",
+    "locale_as_string_const_selecteddateforma": "(locale as string);\r\n  const [selectedDateFormat, setSelectedDateFormat] = useState",
+    "preferences_dateformat_medium_const_sele": "(\r\n    preferences?.dateFormat || 'medium'\r\n  );\r\n  const [selectedCurrency, setSelectedCurrency] = useState",
+    "fran_ais": "Français",
+    "eur": "EUR",
+    "usd": "USD",
+    "isloading": ") : isLoading ? (",
+    "string_valeurs_de_traduction_par_d_faut_": "string;\n\n// Valeurs de traduction par défaut comme fallback\nconst defaultTranslations: Record",
+    "priorit": "Priorité:"
   },
   "auth": {
     "login": {
@@ -1850,215 +2141,139 @@
     }
   },
   "announcements": {
-    "myAnnouncements": "Mes annonces",
-    "myAnnouncementsDescription": "Consultez et gérez vos annonces de livraison",
-    "createNewAnnouncement": "Créer une nouvelle annonce",
-    "newAnnouncement": "Nouvelle annonce",
-    "noAnnouncements": "Vous n'avez pas encore d'annonces",
-    "createYourFirstAnnouncement": "Créer votre première annonce",
-    "createFirstAnnouncement": "Créer votre première annonce",
-    "recentAnnouncements": "Annonces récentes",
-    "recentAnnouncementsDescription": "Consultez vos annonces les plus récentes",
-    "totalAnnouncements": "Total des annonces",
-    "pendingAnnouncements": "En attente",
-    "inProgressAnnouncements": "En cours",
-    "completedAnnouncements": "Complétées",
-    "statusLabel": "Statut",
-    "typeLabel": "Type",
-    "view": "Voir",
-    "proposalsCount": "{count} proposition(s)",
-    "announcementsFound": "{count} annonce(s) trouvée(s)",
-    "noAnnouncementsFound": "Aucune annonce trouvée",
-    "tryDifferentFilters": "Essayez d'autres filtres ou recherchez à nouveau",
-    "availableDeliveries": "Livraisons disponibles",
-    "availableDeliveriesDescription": "Parcourez les livraisons disponibles près de chez vous",
-    "searchAnnouncements": "Rechercher des annonces...",
-    "searchKeyword": "Rechercher par mot-clé...",
-    "filters": "Filtres",
-    "advancedFilters": "Filtres avancés",
-    "filterAnnouncements": "Filtrer les annonces",
-    "resetFilters": "Réinitialiser",
-    "applyFilters": "Appliquer",
-    "allStatuses": "Tous les statuts",
-    "allTypes": "Tous les types",
-    "sortByCreationDate": "Date de création",
-    "sortByUpdateDate": "Date de mise à jour",
-    "sortByPrice": "Prix",
-    "sortByPickupDate": "Date de ramassage",
-    "sortByDeliveryDate": "Date de livraison",
-    "descending": "Décroissant",
-    "ascending": "Croissant",
-    "fromDate": "Date de début",
-    "toDate": "Date de fin",
-    "minPrice": "Prix minimum",
-    "maxPrice": "Prix maximum",
-    "sortBy": "Trier par",
-    "sortOrder": "Ordre de tri",
-    "keyword": "Mot-clé",
-    "clearAllFilters": "Effacer tous les filtres",
-    "favorites": "Favoris",
-    "maxDistance": "Distance maximale",
-    "flexibleTime": "Horaire flexible",
-    "fragile": "Fragile",
-    "needsCooling": "Nécessite réfrigération",
-    "seeDetails": "Voir les détails",
-    "announcementNotFound": "Annonce non trouvée",
-    "title": "Titre",
-    "titleLabel": "Titre",
-    "description": "Description",
-    "descriptionLabel": "Description",
-    "type": {
-      "PACKAGE": "Colis",
-      "GROCERIES": "Courses",
-      "DOCUMENTS": "Documents",
-      "MEAL": "Repas",
-      "FURNITURE": "Mobilier",
-      "OTHER": "Autre"
-    },
+    "title": "Annonces",
+    "all": "Toutes les annonces",
+    "mine": "Mes annonces",
+    "create": "Créer une annonce",
+    "edit": "Modifier",
+    "delete": "Supprimer l'annonce",
+    "deleteConfirmation": "Êtes-vous sûr de vouloir supprimer cette annonce ?",
+    "deleteWarning": "Cette action ne peut pas être annulée. L'annonce sera définitivement supprimée.",
+    "details": "Détails de l'annonce",
+    "publish": "Publier",
+    "published": "Publiée",
+    "dimensions": "Dimensions",
     "priority": {
       "LOW": "Basse",
       "MEDIUM": "Moyenne",
-      "HIGH": "Élevée",
+      "HIGH": "Haute",
       "URGENT": "Urgente"
     },
-    "priorityLabel": "Priorité",
-    "scheduling": "Planification",
-    "selectDate": "Sélectionner une date",
-    "timeWindowDescription": "Spécifiez une plage horaire pour la collecte ou la livraison (ex: 14:00-16:00)",
-    "suggestedPriceDescription": "Proposez un prix pour cette livraison que les livreurs pourront accepter ou négocier",
-    "remainingPhotos": "{count} photos restantes",
-    "createAnnouncement": "Créer une annonce",
-    "editAnnouncement": "Modifier l'annonce",
-    "createAnnouncementDescription": "Remplissez le formulaire pour créer une nouvelle annonce de livraison",
-    "editAnnouncementDescription": "Modifiez les détails de votre annonce de livraison",
-    "generalInformation": "Informations générales",
-    "titlePlaceholder": "Ex: Livraison de colis urgent",
-    "descriptionPlaceholder": "Décrivez votre envoi et toute information importante...",
-    "selectType": "Sélectionnez un type",
-    "selectPriority": "Sélectionnez une priorité",
-    "addresses": "Adresses",
-    "pickupAddress": "Adresse de ramassage",
-    "pickupAddressPlaceholder": "Adresse complète où récupérer le colis",
+    "flexibility": "Flexibilité",
+    "flexible": "Flexible",
+    "notFlexible": "Non flexible",
+    "pickupAddress": "Adresse de collecte",
     "deliveryAddress": "Adresse de livraison",
-    "deliveryAddressPlaceholder": "Adresse complète où livrer le colis",
-    "estimatedDistance": "Distance estimée",
-    "estimatedDistanceDescription": "Distance calculée entre les deux adresses",
-    "estimatedDuration": "Durée estimée",
-    "estimatedDurationDescription": "Durée estimée de la livraison",
-    "packageDetails": "Détails de l'envoi",
-    "weight": "Poids",
-    "width": "Largeur",
-    "height": "Hauteur",
-    "length": "Longueur",
-    "isFragile": "Colis fragile",
-    "isFragileDescription": "Cochez si votre colis nécessite une manipulation délicate",
-    "needsCoolingDescription": "Cochez si votre envoi doit rester au frais",
-    "planning": "Planning",
-    "pickupDate": "Date de ramassage",
-    "selectPickupDate": "Sélectionnez la date de ramassage",
-    "pickupTimeWindow": "Plage horaire de ramassage",
-    "pickupTimeWindowPlaceholder": "Ex: Entre 14h et 16h",
+    "pickupDate": "Date de collecte",
     "deliveryDate": "Date de livraison",
-    "selectDeliveryDate": "Sélectionnez la date de livraison",
-    "deliveryTimeWindow": "Plage horaire de livraison",
-    "deliveryTimeWindowPlaceholder": "Ex: Entre 9h et 12h",
-    "isFlexible": "Horaires flexibles",
-    "isFlexibleDescription": "Le livreur peut adapter les horaires",
-    "pricing": "Tarification",
+    "weight": "Poids",
     "suggestedPrice": "Prix suggéré",
-    "isNegotiable": "Prix négociable",
-    "isNegotiableDescription": "Les livreurs peuvent proposer un autre prix",
-    "additionalInformation": "Informations supplémentaires",
+    "finalPrice": "Prix final",
+    "negotiable": "Négociable",
+    "description": "Description",
+    "fragile": "Fragile",
+    "needsCooling": "Réfrigération nécessaire",
     "notes": "Notes",
-    "notesPlaceholder": "Informations complémentaires pour le livreur...",
-    "notesDescription": "Des informations qui pourraient aider le livreur",
-    "cancel": "Annuler",
-    "creating": "Création en cours...",
-    "updating": "Mise à jour en cours...",
-    "updateAnnouncement": "Mettre à jour l'annonce",
-    "uploadPhotos": "Photos du colis",
-    "photosDescription": "Ajoutez jusqu'à 5 photos de votre colis",
-    "photos": "Photos",
-    "dragAndDrop": "Glissez-déposez vos photos ici",
-    "or": "ou",
-    "selectFiles": "Sélectionner des fichiers",
-    "uploading": "Téléchargement...",
-    "maxFileSize": "Taille max: 5 MB - Formats: JPG, PNG, WEBP",
-    "dropFilesHere": "Déposez les fichiers ici",
-    "uploadError": "Erreur lors du téléchargement de l'image",
-    "maxPhotosError": "Maximum {max} photos autorisées",
-    "photoAlt": "Photo {number}",
-    "enterAddress": "Entrez une adresse...",
-    "addressSearchError": "Erreur lors de la recherche d'adresse",
-    "addressNotFound": "Aucune adresse trouvée",
-    "deliveryRequirements": "Exigences de livraison",
-    "requiresSignature": "Signature requise",
-    "requiresSignatureDescription": "Le destinataire doit signer à la réception",
-    "requiresId": "Vérification d'identité",
-    "requiresIdDescription": "Le destinataire doit présenter une pièce d'identité",
-    "specialInstructions": "Instructions spéciales",
-    "specialInstructionsPlaceholder": "Instructions particulières pour le livreur...",
-    "specialInstructionsDescription": "Informations spécifiques pour faciliter la livraison",
-    "delivererProposals": "Propositions des livreurs",
-    "totalProposals": "{count} proposition(s)",
-    "noProposalsYet": "Aucune proposition de livreur pour le moment",
-    "proposedPrice": "Prix proposé",
-    "estimatedPickup": "Ramassage estimé",
-    "estimatedDelivery": "Livraison estimée",
-    "delivererMessage": "Message du livreur",
-    "additionalNotes": "Notes additionnelles",
-    "showLess": "Voir moins",
-    "showMore": "Voir plus",
-    "preferred": "Préféré",
-    "markPreferred": "Marquer préféré",
-    "youSave": "Économie: {amount} €",
-    "unknownDeliverer": "Livreur inconnu",
-    "reject": "Refuser",
-    "accept": "Accepter",
-    "announcement": "Annonce",
-    "announcementDetails": "Détails de l'annonce",
-    "announcementDetailsDescription": "Consultez les détails de cette annonce",
-    "listView": "Vue liste",
-    "mapView": "Vue carte",
-    "deliveryMap": "Carte des livraisons",
-    "deliveryMapDescription": "Visualisez les points de ramassage et de livraison",
-    "loadingMap": "Chargement de la carte...",
-    "noAnnouncementsToDisplay": "Aucune annonce à afficher sur la carte",
-    "refresh": "Actualiser",
-    "pickupPoint": "Point de ramassage",
-    "deliveryPoint": "Point de livraison",
-    "total": "Total",
-    "pending": "En attente",
-    "published": "Publiées",
-    "assigned": "Assignées",
-    "completed": "Terminées",
-    "previous": "Précédent",
-    "next": "Suivant",
-    "showingResults": "Affichage de {from} à {to} sur {total} résultats",
-    "back": "Retour",
-    "delete": "Supprimer",
-    "details": "Détails",
-    "applications": "Candidatures",
-    "delivererApplications": "Candidatures des livreurs",
-    "noApplicationsYet": "Aucune candidature pour le moment",
-    "createdAt": "Créé le",
-    "updatedAt": "Modifié le",
-    "announcementPhoto": "Photo {index}",
-    "actions": "Actions",
     "viewDetails": "Voir les détails",
-    "deleteConfirmation": "Confirmer la suppression",
-    "deleteWarning": "Êtes-vous sûr de vouloir supprimer cette annonce ? Cette action est irréversible.",
-    "publish": "Publier",
-    "edit": "Modifier",
+    "unpublish": "Dépublier",
     "status": {
       "DRAFT": "Brouillon",
-      "PENDING": "En attente",
       "PUBLISHED": "Publiée",
       "ASSIGNED": "Assignée",
-      "IN_PROGRESS": "En cours",
       "COMPLETED": "Terminée",
       "CANCELLED": "Annulée"
-    }
+    },
+    "notSpecified": "Non spécifié",
+    "myAnnouncements": "My Announcements",
+    "myAnnouncementsDescription": "Manage your delivery announcements",
+    "createAnnouncement": "Create Announcement",
+    "createAnnouncementDescription": "Post a new delivery announcement",
+    "editAnnouncement": "Edit Announcement",
+    "editAnnouncementDescription": "Modify your announcement details",
+    "announcementDetails": "Announcement Details",
+    "announcementDetailsDescription": "View details of this announcement",
+    "announcementNotFound": "Announcement not found",
+    "cannotEditAnnouncement": "Cannot edit announcement",
+    "cannotEditAnnouncementDescription": "This announcement cannot be modified due to its current status",
+    "newAnnouncement": "New Announcement",
+    "type": "Type",
+    "pickupTimeWindow": "Pickup Time Window",
+    "deliveryTimeWindow": "Delivery Time Window",
+    "isFlexible": "Flexible Schedule",
+    "isNegotiable": "Negotiable Price",
+    "width": "Width",
+    "height": "Height",
+    "length": "Length",
+    "isFragile": "Fragile Content",
+    "tags": "Tags",
+    "cancel": "Cancel",
+    "save": "Save",
+    "back": "Back",
+    "complete": "Mark as Completed",
+    "total": "Total",
+    "pending": "Pending",
+    "assigned": "Assigned",
+    "inProgress": "In Progress",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "draft": "Draft",
+    "refresh": "Refresh",
+    "mapView": "Map View",
+    "listView": "List View",
+    "applications": "Applications",
+    "delivererApplications": "Deliverer Applications",
+    "proposedPrice": "Proposed Price",
+    "message": "Message",
+    "viewProfile": "View Profile",
+    "acceptOffer": "Accept Offer",
+    "noApplicationsYet": "No applications yet",
+    "draftAnnouncementTitle": "Draft Announcement",
+    "draftAnnouncementDescription": "This announcement is in draft mode and is not visible to deliverers. Publish it to allow deliverers to apply.",
+    "createFirstAnnouncement": "Create your first announcement",
+    "noAnnouncementsFound": "No announcements found",
+    "package": "Package",
+    "groceries": "Groceries",
+    "documents": "Documents",
+    "meal": "Meal",
+    "furniture": "Furniture",
+    "other": "Other",
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "urgent": "Urgent",
+    "filterAnnouncements": "Filter Announcements",
+    "allStatuses": "All Statuses",
+    "allTypes": "All Types",
+    "fromDate": "From Date",
+    "toDate": "To Date",
+    "minPrice": "Min Price",
+    "maxPrice": "Max Price",
+    "keyword": "Keyword",
+    "sortBy": "Sort By",
+    "sortOrder": "Sort Order",
+    "ascending": "Ascending",
+    "descending": "Descending",
+    "resetFilters": "Reset Filters",
+    "applyFilters": "Apply Filters",
+    "clearAllFilters": "Clear All Filters",
+    "sortByCreationDate": "Creation Date",
+    "sortByUpdateDate": "Update Date",
+    "sortByPrice": "Price",
+    "sortByPickupDate": "Pickup Date",
+    "sortByDeliveryDate": "Delivery Date",
+    "searchKeyword": "Search by keyword...",
+    "showingResults": "Showing {from} to {to} of {total} results",
+    "previous": "Previous",
+    "next": "Next",
+    "announcement": "Announcement",
+    "backToAnnouncement": "Back to Announcement",
+    "advancedFilters": "Advanced Filters",
+    "selectDate": "Select Date",
+    "needsCoolingDescription": "If your package requires refrigeration during transport",
+    "createdAt": "Created on",
+    "updatedAt": "Updated on",
+    "announcementPhoto": "Photo {index}",
+    "actions": "Actions"
   },
   "service": {
     "booking": {
@@ -2074,6 +2289,225 @@
         "noResults": "Aucun service ne correspond à votre recherche",
         "distanceLabel": "Distance max. (km)",
         "queryLabel": "Mot-clé"
+      },
+      "form": {
+        "appointment": "Appointment",
+        "date": "Date",
+        "time": "Time",
+        "selectTime": "Select a time",
+        "notes": "Special notes",
+        "notesPlaceholder": "Additional instructions or information for the provider...",
+        "paymentMethod": "Payment method",
+        "creditCard": "Credit card",
+        "appWallet": "EcoDeli Wallet",
+        "summary": "Summary",
+        "servicePrice": "Service price",
+        "total": "Total",
+        "termsAndConditions": "I agree to the {link} and privacy policy",
+        "cancel": "Cancel",
+        "confirmBooking": "Confirm booking",
+        "processing": "Processing...",
+        "selectDateFirst": "Please select a date first",
+        "back": "Back"
+      },
+      "status": {
+        "PENDING": "Pending",
+        "CONFIRMED": "Confirmed",
+        "COMPLETED": "Completed",
+        "CANCELLED": "Cancelled",
+        "RESCHEDULED": "Rescheduled"
+      }
+    },
+    "provider": {
+      "tabs": {
+        "calendar": "Calendar",
+        "availability": "Availability"
+      },
+      "calendar": {
+        "title": "My calendar",
+        "subtitle": "Check your appointments",
+        "selectDate": "Select a date",
+        "appointmentsCount": "{count} appointments",
+        "noAppointments": "No appointments scheduled",
+        "nothingScheduled": "Nothing scheduled for today",
+        "freeDay": "You have no appointments on this day"
+      },
+      "availability": {
+        "title": "Manage my availability",
+        "subtitle": "Set your available hours",
+        "add": "Add availability",
+        "addTitle": "New availability",
+        "addSubtitle": "Define when you are available to provide your services",
+        "day": "Day",
+        "selectDay": "Select a day",
+        "startTime": "Start time",
+        "endTime": "End time",
+        "recurring": "Repeat every week",
+        "cancel": "Cancel",
+        "adding": "Adding...",
+        "noAvailability": "No availability defined",
+        "addSome": "Add your availability to receive bookings",
+        "added": "Availability added successfully",
+        "deleted": "Availability deleted",
+        "addFailed": "Failed to add availability",
+        "deleteFailed": "Failed to delete availability",
+        "confirmDelete": "Are you sure you want to delete this availability?"
+      },
+      "days": {
+        "monday": "Monday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday",
+        "thursday": "Thursday",
+        "friday": "Friday",
+        "saturday": "Saturday",
+        "sunday": "Sunday"
+      }
+    },
+    "review": {
+      "title": "Rate your experience",
+      "editTitle": "Edit your review",
+      "subtitle": "How was your {service} with {provider}?",
+      "ratingLabel": "Your rating",
+      "commentLabel": "Your comment",
+      "commentPlaceholder": "Share your experience with this service...",
+      "cancel": "Cancel",
+      "submit": "Send",
+      "submitting": "Sending...",
+      "update": "Update",
+      "success": "Thank you for your review!",
+      "error": "An error occurred while saving your review."
+    },
+    "categories": {
+      "all": "All Categories"
+    },
+    "search": {
+      "formTitle": "Search for a service",
+      "keywordsPlaceholder": "What are you looking for?",
+      "locationPlaceholder": "Enter an address",
+      "showAdvancedOptions": "Show more filters",
+      "hideAdvancedOptions": "Hide filters",
+      "serviceType": "Service type",
+      "selectServiceType": "Select a type",
+      "dateFrom": "Start date",
+      "dateTo": "End date",
+      "selectDate": "Select a date",
+      "priceRange": "Price range",
+      "minimumRating": "Minimum rating",
+      "anyRating": "Any rating",
+      "sortBy": "Sort by",
+      "defaultSort": "Default",
+      "sortOrder": "Order",
+      "ascending": "Ascending",
+      "descending": "Descending",
+      "resetButton": "Reset",
+      "searchButton": "Search",
+      "searching": "Searching...",
+      "types": {
+        "transport": "Transport",
+        "airportTransfer": "Airport transfer",
+        "petSitting": "Pet sitting",
+        "housekeeping": "Housekeeping",
+        "gardening": "Gardening"
+      },
+      "sortOptions": {
+        "default": "Default",
+        "price": "Price",
+        "rating": "Rating",
+        "distance": "Distance",
+        "date": "Date"
+      },
+      "errors": {
+        "searchFailed": "Search failed. Please try again."
+      }
+    },
+    "list": {
+      "title": "Available services",
+      "searchPlaceholder": "Search...",
+      "sortBy": "Sort by",
+      "activeFilters": "Active filters",
+      "clearAllFilters": "Clear all filters",
+      "allCategories": "All categories",
+      "noServicesFound": "No services found",
+      "resultsCount": "{count} services found",
+      "noResults": "No results found",
+      "tryDifferentFilters": "Try different search criteria",
+      "resetFilters": "Reset filters",
+      "sortOptions": {
+        "default": "Relevance",
+        "price": "Price",
+        "rating": "Rating",
+        "distance": "Distance"
+      },
+      "filters": {
+        "type": "Type",
+        "categoryId": "Category",
+        "dateRange": "Dates",
+        "priceRange": "Price",
+        "location": "Location",
+        "rating": "Rating",
+        "keywords": "Keywords"
+      }
+    },
+    "card": {
+      "viewDetails": "View details"
+    },
+    "detail": {
+      "verifiedProvider": "Verified provider",
+      "tabs": {
+        "details": "Details",
+        "provider": "Provider",
+        "reviews": "Reviews"
+      },
+      "descriptionTitle": "Service description",
+      "noReviews": "No reviews yet",
+      "beFirstReviewer": "Be the first to leave a review after using this service!",
+      "bookingTitle": "Book this service",
+      "bookingSubtitle": "Select a date and time slot",
+      "selectDate": "Select a date",
+      "selectTime": "Available time",
+      "noTimeSlotsAvailable": "No time slots available for this date",
+      "totalPrice": "Total price",
+      "bookNow": "Book now",
+      "needHelp": "Need help?",
+      "supportHours": "Support available Monday to Friday, 9am-6pm",
+      "faq": {
+        "title1": "How can I cancel my booking?",
+        "content1": "You can cancel your booking up to 24 hours before the scheduled time without any fees. After this deadline, cancellation fees may apply.",
+        "title2": "How can I contact the provider?",
+        "content2": "Once your booking is confirmed, you will be able to communicate with the provider via our secure messaging system.",
+        "title3": "How does payment work?",
+        "content3": "Payment is secure and is only charged after the service is completed. You can pay by credit card or via our e-wallet."
+      }
+    },
+    "confirmation": {
+      "title": "Booking confirmed!",
+      "subtitle": "Your booking has been successfully processed.",
+      "service": "Service",
+      "provider": "Provider",
+      "duration": "Duration",
+      "minutes": "minutes",
+      "dateTime": "Date and time",
+      "location": "Location",
+      "notes": "Your notes",
+      "subtotal": "Subtotal",
+      "total": "Total",
+      "paymentId": "Payment ID",
+      "reservationId": "Reservation ID",
+      "addToCalendar": "Add to calendar",
+      "share": {
+        "title": "My booking on EcoDeli",
+        "text": "I booked {service} on {date} at {time}",
+        "copied": "Link copied to clipboard"
+      },
+      "downloadReceipt": "Download receipt",
+      "viewAllServices": "View all services",
+      "questions": "Questions?",
+      "contactSupport": "Contact support",
+      "calendarEvent": {
+        "prefix": "Appointment:",
+        "appointment": "Appointment with",
+        "notes": "Notes",
+        "online": "Online"
       }
     }
   },
