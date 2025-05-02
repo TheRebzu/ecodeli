@@ -7,12 +7,25 @@ import { db } from '../db';
 import { UserRole, UserStatus } from '../db/enums';
 import { authenticator } from 'otplib';
 
+// Ensure we have a stable and consistent secret
+const getAuthSecret = () => {
+  const secret = process.env.NEXTAUTH_SECRET;
+  if (!secret) {
+    throw new Error('NEXTAUTH_SECRET is not set in environment variables');
+  }
+  return secret;
+};
+
 export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db) as any,
-  secret: process.env.NEXTAUTH_SECRET,
+  secret: getAuthSecret(),
   session: {
     strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 jours
+  },
+  jwt: {
+    // Make JWT configuration more explicit to avoid issues
+    maxAge: 60 * 60 * 24 * 30, // 30 days
   },
   pages: {
     signIn: '/login',

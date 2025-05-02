@@ -31,6 +31,7 @@ import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslations } from 'next-intl';
 import { getAuthErrorMessage } from '@/lib/auth/auth-error';
+import { signIn } from 'next-auth/react';
 
 export function LoginForm({ locale = 'fr' }: { locale?: string }) {
   const searchParams = useSearchParams();
@@ -212,9 +213,7 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
             className="w-full"
             type="button"
             onClick={() => {
-              const googleCallbackUrl = callbackUrl || '/';
-              const origin = window.location.origin;
-              window.location.href = `${origin}/api/auth/signin/google?callbackUrl=${encodeURIComponent(googleCallbackUrl)}`;
+              signIn('google', { callbackUrl: callbackUrl || '/' });
             }}
             disabled={authLoading}
           >
@@ -248,8 +247,7 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
             className="w-full"
             type="button"
             onClick={() => {
-              const origin = window.location.origin;
-              window.location.href = `${origin}/api/auth/signin/github?callbackUrl=${encodeURIComponent(callbackUrl || '/')}`;
+              signIn('github', { callbackUrl: callbackUrl || '/' });
             }}
             disabled={authLoading}
           >
