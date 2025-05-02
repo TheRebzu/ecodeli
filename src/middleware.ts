@@ -1,10 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
-import { UserRole, UserStatus } from '@prisma/client';
 
-// Comment out Upstash imports until environment variables are configured
-// import { Ratelimit } from '@upstash/ratelimit';
-// import { Redis } from '@upstash/redis';
+// Définition des enums si non exportés par Prisma
+enum UserRole {
+  CLIENT = 'CLIENT',
+  DELIVERER = 'DELIVERER',
+  MERCHANT = 'MERCHANT',
+  PROVIDER = 'PROVIDER',
+  ADMIN = 'ADMIN',
+}
+
+enum UserStatus {
+  ACTIVE = 'ACTIVE',
+  INACTIVE = 'INACTIVE',
+  SUSPENDED = 'SUSPENDED',
+  PENDING_VERIFICATION = 'PENDING_VERIFICATION',
+}
 
 // Locales supportées par l'application
 const VALID_LOCALES = ['fr', 'en'];
@@ -326,7 +337,7 @@ function getDashboardPathForRole(role: UserRole, locale: string = 'fr'): string 
   }
 }
 
-// Configuration du middleware pour qu'il s'exécute sur toutes les routes
+// Configuration du middleware pour qu'il s'exécute sur toutes les routes pertinentes
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)'],
 };

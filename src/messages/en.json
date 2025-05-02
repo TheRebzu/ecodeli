@@ -2163,7 +2163,13 @@
       },
       "form.bookingSuccess": "Booking created successfully!",
       "manage.cancelled": "Booking cancelled successfully",
-      "review.reviewSuccess": "Thank you for your review!"
+      "review.reviewSuccess": "Thank you for your review!",
+      "manage": {
+        "cancelled": "Booking cancelled successfully"
+      },
+      "review": {
+        "reviewSuccess": "Thank you for your review!"
+      }
     },
     "provider": {
       "tabs": {

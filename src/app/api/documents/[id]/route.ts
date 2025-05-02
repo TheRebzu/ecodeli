@@ -11,7 +11,7 @@ const prisma = new PrismaClient();
  * Gestionnaire GET pour accéder à un document par son ID
  * Vérifie les permissions d'accès et retourne le fichier
  */
-export async function GET(request: NextRequest, props: { params: Promise<{ id: string }> }) {
+export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
   const params = await props.params;
   try {
     const documentId = params.id;
@@ -82,4 +82,8 @@ export async function GET(request: NextRequest, props: { params: Promise<{ id: s
   } finally {
     await prisma.$disconnect();
   }
+}
+
+export async function DELETE(_params: any, { params: { id } }: { params: { id: string } }) {
+  // Implementation of DELETE method
 }

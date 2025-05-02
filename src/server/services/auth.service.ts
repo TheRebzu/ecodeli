@@ -1285,7 +1285,7 @@ export class AuthService {
           select: {
             id: true,
             isVerified: true,
-            serviceName: true,
+            companyName: true,
           },
         },
       },
@@ -1323,7 +1323,7 @@ export class AuthService {
         profileId = user.provider?.id || null;
         additionalInfo = {
           isVerified: user.provider?.isVerified || false,
-          serviceName: user.provider?.serviceName || '',
+          serviceName: user.provider?.companyName || '',
         };
         break;
     }

@@ -40,7 +40,7 @@ export default function TwoFactorChallenge({
   callbackUrl = '/dashboard',
 }: TwoFactorChallengeProps) {
   const t = useTranslations('auth.twoFactorChallenge');
-  const { toast } = useToast();
+  const { toast: _toast } = useToast();
   const router = useRouter();
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
