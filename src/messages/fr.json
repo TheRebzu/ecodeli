@@ -2480,6 +2480,12 @@
         "COMPLETED": "Completed",
         "CANCELLED": "Cancelled",
         "RESCHEDULED": "Rescheduled"
+      },
+      "manage": {
+        "cancelled": "Réservation annulée avec succès"
+      },
+      "review": {
+        "reviewSuccess": "Merci pour votre évaluation !"
       }
     },
     "provider": {
