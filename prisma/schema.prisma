@@ -30,6 +30,9 @@ model User {
   lockedUntil            DateTime?
   loginAttempts          Int                   @default(0)
   notes                  String?
+  hasCompletedOnboarding Boolean               @default(false)
+  lastOnboardingStep     Int                   @default(0)
+  onboardingCompletionDate DateTime?
   notifications          Notification[]
   accounts               Account[]
   admin                  Admin?
@@ -66,6 +69,8 @@ model User {
   favorites              DelivererFavorite[]   // Relation avec les favoris
   clientDeliveries       Delivery[]            @relation("ClientDeliveries")
   delivererDeliveries    Delivery[]            @relation("DelivererDeliveries")
+  boxUsageHistory        BoxUsageHistory[]    // Historique d'utilisation des box par le client
+  boxSubscriptions       BoxAvailabilitySubscription[] // Abonnements aux notifications de disponibilité
 
   @@map("users")
 }
@@ -326,57 +331,130 @@ model VerificationHistory {
 }
 
 model Warehouse {
-  id          String   @id @default(cuid())
-  name        String
-  location    String
-  address     String
-  capacity    Float
-  occupied    Float    @default(0)
-  description String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  boxes       Box[]
+  id              String   @id @default(cuid())
+  name            String
+  location        String
+  address         String
+  capacity        Float
+  occupied        Float    @default(0)
+  description     String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  latitude        Float?
+  longitude       Float?
+  openingHours    Json?    // Structure: {day: {open: "08:00", close: "18:00"}}
+  contactPhone    String?
+  contactEmail    String?
+  imageUrl        String?
+  boxes           Box[]
+  availableBoxes  Int      @default(0)
+  reservedBoxes   Int      @default(0)
 
   @@map("warehouses")
 }
 
 model Box {
-  id           String        @id @default(cuid())
-  warehouseId  String
-  name         String
-  size         Float
-  isOccupied   Boolean       @default(false)
-  clientId     String?
-  pricePerDay  Float
-  description  String?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  client       User?         @relation(fields: [clientId], references: [id])
-  warehouse    Warehouse     @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
-  reservations Reservation[]
+  id                   String                     @id @default(cuid())
+  warehouseId          String
+  name                 String
+  size                 Float
+  boxType              BoxType                    @default(STANDARD)
+  isOccupied           Boolean                    @default(false)
+  clientId             String?
+  pricePerDay          Float
+  description          String?
+  locationDescription  String?                    // Description de l'emplacement dans l'entrepôt
+  floorLevel           Int                        @default(0)
+  maxWeight            Float?                     // Poids maximum supporté (en kg)
+  dimensions           Json?                      // {width: Float, height: Float, depth: Float}
+  features             String[]                   // ["climate-controlled", "secure", "24h-access"]
+  status               BoxStatus                  @default(AVAILABLE)
+  lastInspectedAt      DateTime?
+  createdAt            DateTime                   @default(now())
+  updatedAt            DateTime                   @updatedAt
+  client               User?                      @relation(fields: [clientId], references: [id])
+  warehouse            Warehouse                  @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  reservations         Reservation[]
+  usageHistory         BoxUsageHistory[]
+  subscriptions        BoxAvailabilitySubscription[]
 
   @@index([warehouseId])
   @@index([clientId])
+  @@index([status])
   @@map("boxes")
 }
 
 model Reservation {
-  id         String   @id @default(cuid())
-  boxId      String
-  clientId   String
-  startDate  DateTime
-  endDate    DateTime
-  status     String   @default("ACTIVE")
-  totalPrice Float
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  box        Box      @relation(fields: [boxId], references: [id], onDelete: Cascade)
-  client     User     @relation(fields: [clientId], references: [id])
+  id               String          @id @default(cuid())
+  boxId            String
+  clientId         String
+  startDate        DateTime
+  endDate          DateTime
+  status           ReservationStatus @default(ACTIVE)
+  totalPrice       Float
+  paymentStatus    PaymentStatus   @default(PENDING)
+  paymentId        String?
+  accessCode       String?         // Code d'accès temporaire
+  lastAccessed     DateTime?       // Dernière fois que la box a été accédée
+  notes            String?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  cancelledAt      DateTime?
+  cancelReason     String?
+  extendedCount    Int             @default(0)
+  originalEndDate  DateTime?       // Date de fin originale avant extension
+  usageHistory     BoxUsageHistory[]
+  box              Box             @relation(fields: [boxId], references: [id], onDelete: Cascade)
+  client           User            @relation(fields: [clientId], references: [id])
 
   @@index([boxId])
   @@index([clientId])
+  @@index([status])
   @@map("reservations")
+}
+
+model BoxUsageHistory {
+  id             String      @id @default(cuid())
+  boxId          String
+  reservationId  String?
+  clientId       String
+  actionType     BoxActionType
+  actionTime     DateTime    @default(now())
+  details        String?
+  ipAddress      String?
+  deviceInfo     String?
+  box            Box         @relation(fields: [boxId], references: [id], onDelete: Cascade)
+  reservation    Reservation? @relation(fields: [reservationId], references: [id])
+  client         User        @relation(fields: [clientId], references: [id])
+
+  @@index([boxId])
+  @@index([reservationId])
+  @@index([clientId])
+  @@map("box_usage_history")
+}
+
+model BoxAvailabilitySubscription {
+  id             String      @id @default(cuid())
+  boxId          String
+  clientId       String
+  startDate      DateTime?
+  endDate        DateTime?
+  minSize        Float?
+  maxPrice       Float?
+  boxType        BoxType?
+  warehouseId    String?
+  isActive       Boolean     @default(true)
+  notificationPreferences Json?  // {email: Boolean, sms: Boolean, push: Boolean}
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  lastNotified   DateTime?
+  box            Box         @relation(fields: [boxId], references: [id], onDelete: Cascade)
+  client         User        @relation(fields: [clientId], references: [id])
+
+  @@index([boxId])
+  @@index([clientId])
+  @@map("box_availability_subscriptions")
 }
 
 model UserActivityLog {
@@ -772,4 +850,42 @@ model DeliveryRating {
   rating          Int            // 1-5 stars
   comment         String?
   createdAt       DateTime       @default(now())
+}
+
+enum BoxType {
+  STANDARD
+  CLIMATE_CONTROLLED
+  SECURE
+  EXTRA_LARGE
+  REFRIGERATED
+  FRAGILE
+}
+
+enum BoxStatus {
+  AVAILABLE
+  RESERVED
+  OCCUPIED
+  MAINTENANCE
+  DAMAGED
+  INACTIVE
+}
+
+enum BoxActionType {
+  RESERVATION_CREATED
+  RESERVATION_UPDATED
+  RESERVATION_CANCELLED
+  BOX_ACCESSED
+  BOX_CLOSED
+  PAYMENT_PROCESSED
+  EXTENDED_RENTAL
+  INSPECTION_COMPLETED
+}
+
+enum ReservationStatus {
+  PENDING
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  OVERDUE
+  EXTENDED
 }

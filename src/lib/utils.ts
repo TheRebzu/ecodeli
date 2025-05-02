@@ -124,3 +124,18 @@ export function generateRandomString(length: number): string {
 
   return result;
 }
+
+/**
+ * Génère un code aléatoire de la longueur spécifiée
+ * @param length Longueur du code à générer
+ * @returns Code aléatoire
+ */
+export function generateRandomCode(length: number): string {
+  const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Exclusion de caractères ambigus (0, 1, I, O)
+  let code = '';
+  for (let i = 0; i < length; i++) {
+    const randomIndex = Math.floor(Math.random() * characters.length);
+    code += characters.charAt(randomIndex);
+  }
+  return code;
+}

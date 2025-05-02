@@ -10,6 +10,7 @@ import {
 } from '../../schemas/delivery-tracking.schema';
 import { TRPCError } from '@trpc/server';
 import { generateRandomString } from '../../lib/utils';
+import { Prisma } from '@prisma/client';
 
 // Service pour le suivi des livraisons
 export const deliveryTrackingService = {
@@ -319,6 +320,22 @@ export const deliveryTrackingService = {
   // Obtenir les détails d'une livraison
   async getDeliveryById(deliveryId: string, userId: string) {
     try {
+      // Vérifier d'abord si la livraison existe et récupérer son ID de livreur
+      const deliveryBasic = await db.delivery.findUnique({
+        where: { id: deliveryId },
+        select: {
+          delivererId: true,
+        },
+      });
+
+      if (!deliveryBasic) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Livraison non trouvée',
+        });
+      }
+
+      // Récupérer ensuite les détails complets avec les relations
       const delivery = await db.delivery.findUnique({
         where: { id: deliveryId },
         include: {
@@ -330,7 +347,7 @@ export const deliveryTrackingService = {
               image: true,
             },
           },
-          deliverer: delivery?.delivererId
+          deliverer: deliveryBasic.delivererId
             ? {
                 select: {
                   id: true,
@@ -429,7 +446,7 @@ export const deliveryTrackingService = {
   async getDeliveries(filters: DeliveryFilterInput, userId: string, role: string) {
     try {
       // Construire les conditions de filtrage
-      const where: Record<string, any> = {};
+      const where: Prisma.DeliveryWhereInput = {};
 
       // Filtrage par statut
       if (filters.status) {
