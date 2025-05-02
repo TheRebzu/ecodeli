@@ -21,7 +21,8 @@ export type NotificationType =
   | 'DELIVERY_ASSIGNED'
   | 'DELIVERY_COMPLETED'
   | 'PAYMENT_RECEIVED'
-  | 'INVOICE_GENERATED';
+  | 'INVOICE_GENERATED'
+  | 'DOCUMENT_SUBMITTED'; // Ajout du nouveau type de notification
 
 interface NotificationData {
   userId: string;
@@ -101,12 +102,22 @@ export class NotificationService {
   }
 
   /**
-   * Marque toutes les notifications d'un utilisateur comme lues
+   * Marque toutes les notifications d'un utilisateur comme lues avec filtrage optionnel par type
    */
-  async markAllAsRead(userId: string): Promise<void> {
+  async markAllAsRead(userId: string, types?: string[]): Promise<void> {
     try {
+      const whereClause: any = {
+        userId,
+        read: false,
+      };
+
+      // Ajouter le filtrage par type si spécifié
+      if (types && types.length > 0) {
+        whereClause.type = { in: types };
+      }
+
       await this.prisma.notification.updateMany({
-        where: { userId, read: false },
+        where: whereClause,
         data: { read: true, readAt: new Date() },
       });
     } catch (error) {
@@ -119,15 +130,22 @@ export class NotificationService {
   }
 
   /**
-   * Récupère les notifications non lues d'un utilisateur
+   * Récupère les notifications non lues d'un utilisateur avec filtrage optionnel par type
    */
-  async getUnreadNotifications(userId: string): Promise<Notification[]> {
+  async getUnreadNotifications(userId: string, types?: string[]): Promise<Notification[]> {
     try {
+      const whereClause: any = {
+        userId,
+        read: false,
+      };
+
+      // Ajouter le filtrage par type si spécifié
+      if (types && types.length > 0) {
+        whereClause.type = { in: types };
+      }
+
       return await this.prisma.notification.findMany({
-        where: {
-          userId,
-          read: false,
-        },
+        where: whereClause,
         orderBy: {
           createdAt: 'desc',
         },
@@ -142,28 +160,36 @@ export class NotificationService {
   }
 
   /**
-   * Récupère toutes les notifications d'un utilisateur
+   * Récupère toutes les notifications d'un utilisateur avec pagination et filtrage optionnel par type
    */
   async getNotifications(
     userId: string,
     page = 1,
-    limit = 10
+    limit = 10,
+    types?: string[]
   ): Promise<{ notifications: Notification[]; total: number }> {
     const skip = (page - 1) * limit;
 
     try {
+      const whereClause: any = {
+        userId,
+      };
+
+      // Ajouter le filtrage par type si spécifié
+      if (types && types.length > 0) {
+        whereClause.type = { in: types };
+      }
+
       const [notifications, total] = await Promise.all([
         this.prisma.notification.findMany({
-          where: {
-            userId,
-          },
+          where: whereClause,
           orderBy: {
             createdAt: 'desc',
           },
           skip,
           take: limit,
         }),
-        this.prisma.notification.count({ where: { userId } }),
+        this.prisma.notification.count({ where: whereClause }),
       ]);
 
       return { notifications, total };
@@ -194,12 +220,19 @@ export class NotificationService {
   }
 
   /**
-   * Supprime toutes les notifications d'un utilisateur
+   * Supprime toutes les notifications d'un utilisateur avec filtrage optionnel par type
    */
-  async deleteAllNotifications(userId: string): Promise<void> {
+  async deleteAllNotifications(userId: string, types?: string[]): Promise<void> {
     try {
+      const whereClause: any = { userId };
+
+      // Ajouter le filtrage par type si spécifié
+      if (types && types.length > 0) {
+        whereClause.type = { in: types };
+      }
+
       await this.prisma.notification.deleteMany({
-        where: { userId },
+        where: whereClause,
       });
     } catch (error) {
       console.error('Error deleting all notifications:', error);
@@ -349,6 +382,65 @@ export class NotificationService {
     );
 
     schedulerRegistry.addTimeout(`missing-docs-reminder-${user.id}`, timeout);
+  }
+
+  /**
+   * Envoie une notification aux administrateurs lorsqu'un document est soumis
+   */
+  async sendDocumentSubmissionToAdminsNotification(
+    document: Document & { user: User },
+    locale: SupportedLanguage = 'fr'
+  ): Promise<void> {
+    try {
+      // Récupérer tous les utilisateurs ayant le rôle ADMIN
+      const admins = await this.prisma.user.findMany({
+        where: { role: 'ADMIN' },
+      });
+
+      if (!admins || admins.length === 0) {
+        console.warn('Aucun administrateur trouvé pour envoyer la notification.');
+        return;
+      }
+
+      const documentTypeName = this.getDocumentTypeName(document.type, locale);
+
+      const title = locale === 'fr' ? `Nouveau document à vérifier` : `New document to verify`;
+
+      const message =
+        locale === 'fr'
+          ? `${document.user.name} a soumis un document de type ${documentTypeName} qui nécessite une vérification.`
+          : `${document.user.name} has submitted a ${documentTypeName} document that requires verification.`;
+
+      // Lien vers la page de vérification du document
+      const link =
+        locale === 'fr'
+          ? `/fr/admin/documents/verification/${document.id}`
+          : `/en/admin/documents/verification/${document.id}`;
+
+      // Créer une notification pour chaque administrateur
+      const notificationPromises = admins.map(admin =>
+        this.createNotification({
+          userId: admin.id,
+          title,
+          message,
+          type: 'DOCUMENT_SUBMITTED',
+          link,
+          data: {
+            documentId: document.id,
+            documentType: document.type,
+            submitterId: document.userId,
+            submitterName: document.user.name,
+            submitterRole: document.user.role,
+            submissionDate: document.uploadedAt,
+          },
+        })
+      );
+
+      await Promise.all(notificationPromises);
+    } catch (error) {
+      console.error("Erreur lors de l'envoi des notifications aux administrateurs:", error);
+      // Ne pas propager l'erreur pour éviter de bloquer le téléchargement du document
+    }
   }
 
   /**

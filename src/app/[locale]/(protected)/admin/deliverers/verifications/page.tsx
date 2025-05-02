@@ -1,16 +1,44 @@
-import { Metadata } from 'next';
-import { getTranslations } from 'next-intl/server';
+'use client';
+
+import { useTranslations } from 'next-intl';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PendingVerificationsTab } from '@/components/admin/verification/pending-verifications-tab';
 import { ProcessedVerificationsTab } from '@/components/admin/verification/processed-verifications-tab';
+import { useState } from 'react';
 
-export const metadata: Metadata = {
-  title: 'Document Verifications',
-  description: 'Manage document verifications for deliverers',
-};
+export default function DelivererVerificationsPage() {
+  const t = useTranslations('admin.verification');
+  const [pendingFilters, setPendingFilters] = useState({
+    status: 'PENDING',
+    page: 1,
+    limit: 10,
+    sortBy: 'createdAt',
+    sortDirection: 'desc',
+  });
 
-export default async function DelivererVerificationsPage() {
-  const t = await getTranslations('admin.verification');
+  const [processedFilters, setProcessedFilters] = useState({
+    status: 'APPROVED',
+    page: 1,
+    limit: 10,
+    sortBy: 'createdAt',
+    sortDirection: 'desc',
+  });
+
+  // Fonction de gestion des changements de page pour les vérifications en attente
+  const handlePendingPageChange = (page: number) => {
+    setPendingFilters(prev => ({
+      ...prev,
+      page,
+    }));
+  };
+
+  // Fonction de gestion des changements de page pour les vérifications traitées
+  const handleProcessedPageChange = (page: number) => {
+    setProcessedFilters(prev => ({
+      ...prev,
+      page,
+    }));
+  };
 
   return (
     <div className="container py-6 space-y-6">
@@ -27,27 +55,15 @@ export default async function DelivererVerificationsPage() {
 
         <TabsContent value="pending" className="mt-6">
           <PendingVerificationsTab
-            filters={{
-              status: 'PENDING',
-              page: 1,
-              limit: 10,
-              sortBy: 'createdAt',
-              sortDirection: 'desc',
-            }}
-            onPageChange={() => {}}
+            filters={pendingFilters}
+            onPageChange={handlePendingPageChange}
           />
         </TabsContent>
 
         <TabsContent value="processed" className="mt-6">
           <ProcessedVerificationsTab
-            filters={{
-              status: 'APPROVED',
-              page: 1,
-              limit: 10,
-              sortBy: 'createdAt',
-              sortDirection: 'desc',
-            }}
-            onPageChange={() => {}}
+            filters={processedFilters}
+            onPageChange={handleProcessedPageChange}
           />
         </TabsContent>
       </Tabs>

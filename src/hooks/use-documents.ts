@@ -1,83 +1,100 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { api } from '@/trpc/react';
 import { useToast } from '@/components/ui/use-toast';
 import { DocumentType, DocumentStatus } from '@prisma/client';
 
-export function useDocuments() {
-  const [filter, setFilter] = useState<DocumentStatus | 'ALL'>('ALL');
+interface UseDocumentsProps {
+  userId?: string;
+  status?: DocumentStatus | 'ALL';
+}
+
+export function useDocuments(userId?: string, status: DocumentStatus | 'ALL' = 'ALL') {
+  const [filter, setFilter] = useState<DocumentStatus | 'ALL'>(status);
+  const [documents, setDocuments] = useState<any[]>([]);
   const t = useTranslations('documents');
   const { toast } = useToast();
 
-  // Récupérer les documents de l'utilisateur
+  // Récupérer les documents d'un utilisateur spécifique ou de l'utilisateur connecté
   const {
-    data: userDocuments,
-    isLoading: isLoadingUserDocs,
-    refetch: refetchUserDocs,
+    data: fetchedDocuments,
+    isLoading,
+    refetch: refreshDocuments,
   } = api.document.getUserDocuments.useQuery({
     status: filter !== 'ALL' ? filter : undefined,
+    userId: userId,
   });
 
+  useEffect(() => {
+    if (fetchedDocuments) {
+      setDocuments(fetchedDocuments);
+    }
+  }, [fetchedDocuments]);
+
   // Supprimer un document
-  const deleteDocument = api.document.deleteDocument.useMutation({
+  const deleteMutation = api.document.deleteDocument.useMutation({
     onSuccess: () => {
-      toast({
-        title: t('deleteSuccess'),
-        description: t('deleteSuccessDescription'),
-      });
-      refetchUserDocs();
+      refreshDocuments();
     },
     onError: error => {
-      toast({
-        title: t('deleteError'),
-        description: error.message,
-        variant: 'destructive',
-      });
+      console.error('Error deleting document:', error);
     },
   });
 
   // Télécharger un document
-  const uploadDocument = api.document.uploadDocument.useMutation({
+  const uploadMutation = api.document.uploadDocument.useMutation({
     onSuccess: () => {
-      toast({
-        title: t('uploadSuccess'),
-        description: t('uploadSuccessDescription'),
-      });
-      refetchUserDocs();
+      refreshDocuments();
     },
     onError: error => {
-      toast({
-        title: t('uploadError'),
-        description: error.message,
-        variant: 'destructive',
-      });
+      console.error('Error uploading document:', error);
     },
   });
 
   // Récupérer les types de documents requis pour l'utilisateur
   const { data: requiredDocuments, isLoading: isLoadingRequired } =
-    api.document.getRequiredDocumentTypes.useQuery();
+    api.document.getRequiredDocumentTypes.useQuery({
+      userRole: 'DELIVERER', // Spécifique aux livreurs
+    });
 
-  // Récupérer les types de documents manquants
-  const getMissingDocumentTypes = (): DocumentType[] => {
-    if (!requiredDocuments || !userDocuments) return [];
+  // Fonction pour télécharger un document avec un type spécifique
+  const uploadDocument = async (file: File, type: string) => {
+    // Créer un FormData pour envoyer le fichier
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('type', type);
 
-    const uploadedVerifiedTypes = userDocuments.filter(doc => doc.isVerified).map(doc => doc.type);
+    if (userId) {
+      formData.append('userId', userId);
+    }
 
-    return requiredDocuments.filter(type => !uploadedVerifiedTypes.includes(type));
+    try {
+      // Utiliser l'API pour télécharger le document
+      await uploadMutation.mutateAsync(formData);
+      return true;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  // Fonction pour supprimer un document
+  const deleteDocument = async (documentId: string) => {
+    try {
+      await deleteMutation.mutateAsync({ id: documentId });
+      return true;
+    } catch (error) {
+      throw error;
+    }
   };
 
   return {
-    userDocuments: userDocuments || [],
-    isLoadingUserDocs,
-    requiredDocuments: requiredDocuments || [],
-    isLoadingRequired,
-    missingDocuments: getMissingDocumentTypes(),
-    deleteDocument: (id: string) => deleteDocument.mutateAsync(id),
-    isDeleting: deleteDocument.isLoading,
-    uploadDocument: (data: any) => uploadDocument.mutateAsync(data),
-    isUploading: uploadDocument.isLoading,
+    documents,
+    isLoading: isLoading || uploadMutation.isLoading || deleteMutation.isLoading,
+    uploadDocument,
+    deleteDocument,
+    refreshDocuments,
     filter,
     setFilter,
+    requiredDocuments: requiredDocuments || [],
   };
 }

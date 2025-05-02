@@ -160,66 +160,82 @@ export class DocumentService {
     file: { buffer: Buffer; filename: string; mimetype: string },
     expiryDate?: Date
   ) {
-    // Vérifier si l'utilisateur existe
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-    });
+    try {
+      // Vérifier si l'utilisateur existe
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
 
-    if (!user) {
+      if (!user) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Utilisateur non trouvé',
+        });
+      }
+
+      // Sauvegarder le fichier
+      const fileResult = await this.saveFile(file, userId);
+
+      // Déterminer le type d'utilisateur
+      let userRole: UserRole;
+      switch (user.role) {
+        case 'CLIENT':
+          userRole = UserRole.CLIENT;
+          break;
+        case 'DELIVERER':
+          userRole = UserRole.DELIVERER;
+          break;
+        case 'MERCHANT':
+          userRole = UserRole.MERCHANT;
+          break;
+        case 'PROVIDER':
+          userRole = UserRole.PROVIDER;
+          break;
+        default:
+          userRole = UserRole.CLIENT;
+      }
+
+      // Créer l'entrée de document
+      const document = await this.prisma.document.create({
+        data: {
+          userId: userId,
+          type: documentType,
+          filename: fileResult.filename,
+          fileUrl: fileResult.fileUrl,
+          mimeType: fileResult.mimeType,
+          fileSize: fileResult.fileSize,
+          uploadedAt: new Date(),
+          expiryDate,
+          userRole: userRole.toString(),
+        },
+        include: {
+          user: true,
+        },
+      });
+
+      // Créer une demande de vérification
+      await this.prisma.verification.create({
+        data: {
+          submitterId: userId,
+          documentId: document.id,
+          status: 'PENDING',
+          requestedAt: new Date(),
+        },
+      });
+
+      // Envoyer une notification à tous les administrateurs
+      const notificationService = new NotificationService();
+      const userLocale = getUserPreferredLocale(user);
+      await notificationService.sendDocumentSubmissionToAdminsNotification(document, userLocale);
+
+      return document;
+    } catch (error) {
+      console.error('Erreur lors du téléchargement du document:', error);
       throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Utilisateur non trouvé',
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors du téléchargement du document',
       });
     }
-
-    // Sauvegarder le fichier
-    const fileResult = await this.saveFile(file, userId);
-
-    // Déterminer le type d'utilisateur
-    let userRole: UserRole;
-    switch (user.role) {
-      case 'CLIENT':
-        userRole = UserRole.CLIENT;
-        break;
-      case 'DELIVERER':
-        userRole = UserRole.DELIVERER;
-        break;
-      case 'MERCHANT':
-        userRole = UserRole.MERCHANT;
-        break;
-      case 'PROVIDER':
-        userRole = UserRole.PROVIDER;
-        break;
-      default:
-        userRole = UserRole.CLIENT;
-    }
-
-    // Créer l'entrée de document
-    const document = await this.prisma.document.create({
-      data: {
-        userId: userId,
-        type: documentType,
-        filename: fileResult.filename,
-        fileUrl: fileResult.fileUrl,
-        mimeType: fileResult.mimeType,
-        fileSize: fileResult.fileSize,
-        uploadedAt: new Date(),
-        expiryDate,
-        userRole: userRole.toString(),
-      },
-    });
-
-    // Créer une demande de vérification
-    await this.prisma.verification.create({
-      data: {
-        submitterId: userId,
-        documentId: document.id,
-        status: 'PENDING',
-        requestedAt: new Date(),
-      },
-    });
-
-    return document;
   }
 
   /**

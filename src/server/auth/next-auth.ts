@@ -78,7 +78,11 @@ export const authOptions: NextAuthOptions = {
         }
 
         // Vérifier si l'utilisateur est actif
-        if (user.status !== UserStatus.ACTIVE) {
+        // Seuls les livreurs peuvent se connecter en état PENDING_VERIFICATION
+        if (
+          user.status !== UserStatus.ACTIVE &&
+          !(user.status === UserStatus.PENDING_VERIFICATION && user.role === UserRole.DELIVERER)
+        ) {
           throw new Error('Votre compte est ' + user.status.toLowerCase());
         }
 

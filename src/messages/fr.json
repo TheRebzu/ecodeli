@@ -61,6 +61,7 @@
       }
     }
   },
+
   "Client": {
     "Onboarding": {
       "steps": {
@@ -1325,7 +1326,70 @@
     "admin": "Administration",
     "logout": "Déconnexion"
   },
+
   "documents": {
+    "deliverer": {
+      "title": "Documents du livreur",
+      "subtitle": "Téléchargez vos documents pour vérification",
+      "pageTitle": "Vérification de Documents | EcoDeli",
+      "pageDescription": "Uploadez vos documents pour vérification"
+    },
+    "verificationRequired": {
+      "title": "Vérification requise",
+      "message": "Pour accéder à toutes les fonctionnalités de livreur, vous devez télécharger et faire vérifier vos documents."
+    },
+    "pendingVerification": {
+      "title": "Vérification en cours",
+      "message": "Vos documents ont été soumis et sont en cours de vérification. Vous serez notifié lorsque la vérification sera terminée."
+    },
+    "documentTypes": {
+      "ID_CARD": "Carte d'identité",
+      "DRIVING_LICENSE": "Permis de conduire",
+      "VEHICLE_REGISTRATION": "Carte grise",
+      "INSURANCE": "Attestation d'assurance",
+      "QUALIFICATION_CERTIFICATE": "Certification professionnelle",
+      "PROOF_OF_ADDRESS": "Justificatif de domicile",
+      "BUSINESS_REGISTRATION": "Extrait KBIS",
+      "OTHER": "Autre document"
+    },
+    "documents": {
+      "idCard": {
+        "title": "Carte d'identité",
+        "description": "Pièce d'identité valide (carte nationale d'identité, passeport, titre de séjour)",
+        "tab": "Carte d'identité",
+        "uploadLabel": "Téléverser votre carte d'identité"
+      },
+      "selfie": {
+        "title": "Selfie",
+        "description": "Photo récente de vous-même prise avec votre téléphone ou webcam",
+        "tab": "Selfie",
+        "uploadLabel": "Téléverser votre selfie"
+      },
+      "drivingLicense": {
+        "title": "Permis de conduire",
+        "description": "Permis de conduire valide pour le type de véhicule que vous utiliserez",
+        "tab": "Permis de conduire",
+        "uploadLabel": "Téléverser votre permis de conduire"
+      }
+    },
+    "uploadForm": {
+      "title": "Téléchargement de document",
+      "description": "Veuillez télécharger votre document au format requis"
+    },
+    "form": {
+      "type": "Type de document",
+      "typeDescription": "Sélectionnez le type de document que vous souhaitez télécharger",
+      "file": "Fichier",
+      "fileDescription": "Format accepté: PDF, JPG, PNG (max 10MB)",
+      "expiryDate": "Date d'expiration",
+      "expiryDateDescription": "Date d'expiration du document (si applicable)",
+      "description": "Description",
+      "descriptionHelp": "Ajoutez des détails supplémentaires sur ce document (optionnel)",
+      "submit": "Soumettre",
+      "selectDate": "Sélectionnez une date",
+      "selectType": "Sélectionnez un type de document",
+      "descriptionPlaceholder": "Décrivez brièvement ce document..."
+    },
     "title": "Documents",
     "upload": "Téléverser un document",
     "view": "Voir le document",
@@ -1346,91 +1410,98 @@
       "approved": "Documents approuvés",
       "rejected": "Documents rejetés",
       "status": "Statut de vérification",
-      "description": "[en] description",
-      "documentDetails": "[en] documentDetails",
-      "rejectionReason": "[en] rejectionReason",
-      "rejectionReasonPlaceholder": "[en] rejectionReasonPlaceholder",
-      "rejectionReasonHelp": "[en] rejectionReasonHelp",
-      "cancel": "[en] cancel",
-      "processing": "[en] processing",
-      "reject": "[en] reject",
-      "approve": "[en] approve"
+      "description": "Détails du document soumis à vérification",
+      "documentDetails": "Détails du document",
+      "rejectionReason": "Motif du rejet",
+      "rejectionReasonPlaceholder": "Veuillez indiquer la raison du rejet",
+      "rejectionReasonHelp": "Cette information sera partagée avec l'utilisateur",
+      "cancel": "Annuler",
+      "processing": "Traitement en cours",
+      "reject": "Rejeter",
+      "approve": "Approuver"
     },
-    "upload_success": "[en] upload_success",
-    "no_file_selected": "[en] no_file_selected",
-    "upload_error": "[en] upload_error",
-    "type": "[en] type",
-    "select_type": "[en] select_type",
-    "type_description": "[en] type_description",
-    "file": "[en] file",
+    "upload_success": "Document téléversé avec succès",
+    "no_file_selected": "Aucun fichier sélectionné",
+    "upload_error": "Erreur lors du téléversement",
+    "type": "Type",
+    "select_type": "Sélectionnez un type",
+    "type_description": "Type de document à téléverser",
+    "file": "Fichier",
     "preview": {
-      "rejectionReason": "[en] rejectionReason",
-      "viewDocument": "[en] viewDocument",
-      "user": "[en] user",
-      "status": "[en] status",
-      "submitted": "[en] submitted",
-      "expires": "[en] expires",
-      "description": "[en] description",
-      "close": "[en] close"
+      "rejectionReason": "Motif du rejet",
+      "viewDocument": "Voir le document",
+      "user": "Utilisateur",
+      "status": "Statut",
+      "submitted": "Soumis le",
+      "expires": "Expire le",
+      "description": "Description",
+      "close": "Fermer"
     },
-    "remove": "[en] remove",
-    "drag_drop": "[en] drag_drop",
-    "max_size": "[en] max_size",
-    "file_description": "[en] file_description",
-    "expiry_date": "[en] expiry_date",
-    "select_expiry_date": "[en] select_expiry_date",
-    "expiry_date_description": "[en] expiry_date_description",
-    "uploading": "[en] uploading",
+    "remove": "Supprimer",
+    "drag_drop": "Glissez-déposez votre fichier ici ou cliquez pour parcourir",
+    "max_size": "Taille maximale: 5 MB",
+    "file_description": "Description du fichier",
+    "expiry_date": "Date d'expiration",
+    "select_expiry_date": "Sélectionner une date d'expiration",
+    "expiry_date_description": "Date d'expiration du document",
+    "uploading": "Téléversement en cours...",
     "success": {
-      "title": "[en] title",
-      "description": "[en] description"
+      "title": "Succès",
+      "description": "Votre document a été téléversé avec succès"
     },
     "error": {
-      "title": "[en] title"
+      "title": "Erreur de téléversement"
     },
-    "defaultRejectionReason": "[en] defaultRejectionReason",
-    "description": "[en] description",
+    "uploadError": {
+      "title": "Erreur lors du téléchargement"
+    },
+    "defaultRejectionReason": "Document non conforme aux exigences",
+    "description": "Description",
     "noDocuments": {
-      "title": "[en] title",
-      "description": "[en] description"
+      "title": "Aucun document",
+      "description": "Vous n'avez pas encore téléversé de documents"
     },
-    "uploadedAt": "[en] uploadedAt",
-    "expiresAt": "[en] expiresAt",
-    "viewPdf": "[en] viewPdf",
-    "rejectionNotesPlaceholder": "[en] rejectionNotesPlaceholder",
-    "rejectionWarning": "[en] rejectionWarning",
+    "uploadedAt": "Téléversé le",
+    "expiresAt": "Expire le",
+    "viewPdf": "Voir le PDF",
+    "rejectionNotesPlaceholder": "Entrez la raison du rejet...",
+    "rejectionWarning": "Veuillez fournir une raison détaillée pour aider l'utilisateur à comprendre pourquoi son document a été rejeté",
     "actions": {
-      "hideDocument": "[en] hideDocument",
-      "viewDocument": "[en] viewDocument",
-      "reject": "[en] reject",
-      "approve": "[en] approve"
+      "hideDocument": "Masquer le document",
+      "viewDocument": "Voir le document",
+      "reject": "Rejeter",
+      "approve": "Approuver"
     },
     "verifySuccess": {
-      "title": "[en] title",
-      "description": "[en] description"
+      "title": "Vérification réussie",
+      "description": "Le document a été vérifié avec succès"
     },
     "verifyError": {
-      "title": "[en] title",
-      "description": "[en] description"
+      "title": "Erreur de vérification",
+      "description": "Une erreur est survenue lors de la vérification du document"
     },
-    "errorTitle": "[en] errorTitle",
-    "errorDescription": "[en] errorDescription",
-    "retry": "[en] retry",
+    "errorTitle": "Erreur",
+    "errorDescription": "Une erreur est survenue",
+    "retry": "Réessayer",
     "tabs": {
-      "pending": "[en] pending",
-      "approved": "[en] approved",
-      "rejected": "[en] rejected"
+      "pending": "En attente",
+      "approved": "Approuvés",
+      "rejected": "Rejetés"
     },
     "columns": {
-      "user": "[en] user",
-      "type": "[en] type",
-      "submitted": "[en] submitted",
-      "expires": "[en] expires",
-      "actions": "[en] actions"
+      "user": "Utilisateur",
+      "type": "Type",
+      "submitted": "Soumis le",
+      "expires": "Expire le",
+      "actions": "Actions"
     },
-    "approve": "[en] approve",
-    "reject": "[en] reject"
+    "approve": "Approuver",
+    "reject": "Rejeter",
+    "status": {
+      "missing": "Document manquant"
+    }
   },
+
   "status": {
     "pending": "En attente",
     "approved": "Approuvé",
@@ -3009,6 +3080,13 @@
     }
   },
   "dashboard": {
+    "welcome": "Bienvenue sur votre tableau de bord",
+    "deliverer": {
+      "title": "Tableau de bord Livreur",
+      "description": "Gérez vos livraisons et suivez votre activité sur EcoDeli",
+      "welcomeMessage": "Bienvenue sur votre tableau de bord de livreur. Vous pouvez gérer vos livraisons, consulter les annonces disponibles et planifier vos trajets.",
+      "pendingVerification": "Votre compte est en attente de vérification. Veuillez compléter les documents requis pour accéder à toutes les fonctionnalités."
+    },
     "client": {
       "metaTitle": "Tableau de bord | EcoDeli",
       "metaDescription": "Gérez vos livraisons, annonces et services dans un seul endroit",
@@ -3024,7 +3102,9 @@
       "averageRating": "Note moyenne",
       "estimatedSavings": "Économies estimées",
       "quickActions": {
-        "title": "Actions rapides"
+        "title": "Actions rapides",
+        "findDeliveries": "Trouver des livraisons",
+        "findDeliveriesDescription": "Parcourez les annonces de livraison disponibles près de chez vous"
       },
       "actions": {
         "createAnnouncement": "Créer une annonce",
@@ -3079,6 +3159,7 @@
       }
     }
   },
+
   "search": {
     "error": "[en] error",
     "backToResults": "[en] backToResults",
