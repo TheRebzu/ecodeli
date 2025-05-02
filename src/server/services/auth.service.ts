@@ -1248,4 +1248,96 @@ export class AuthService {
       isVerified: status === VerificationStatus.APPROVED,
     };
   }
+
+  /**
+   * Récupère les informations de session pour un utilisateur
+   */
+  async getSession(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        emailVerified: true,
+        image: true,
+        status: true,
+        client: {
+          select: {
+            id: true,
+          },
+        },
+        deliverer: {
+          select: {
+            id: true,
+            isVerified: true,
+          },
+        },
+        merchant: {
+          select: {
+            id: true,
+            isVerified: true,
+            companyName: true,
+          },
+        },
+        provider: {
+          select: {
+            id: true,
+            isVerified: true,
+            serviceName: true,
+          },
+        },
+      },
+    });
+
+    if (!user) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Utilisateur non trouvé',
+      });
+    }
+
+    // Déterminer le profileId en fonction du rôle
+    let profileId = null;
+    let additionalInfo = {};
+
+    switch (user.role) {
+      case UserRole.CLIENT:
+        profileId = user.client?.id || null;
+        break;
+      case UserRole.DELIVERER:
+        profileId = user.deliverer?.id || null;
+        additionalInfo = {
+          isVerified: user.deliverer?.isVerified || false,
+        };
+        break;
+      case UserRole.MERCHANT:
+        profileId = user.merchant?.id || null;
+        additionalInfo = {
+          isVerified: user.merchant?.isVerified || false,
+          companyName: user.merchant?.companyName || '',
+        };
+        break;
+      case UserRole.PROVIDER:
+        profileId = user.provider?.id || null;
+        additionalInfo = {
+          isVerified: user.provider?.isVerified || false,
+          serviceName: user.provider?.serviceName || '',
+        };
+        break;
+    }
+
+    return {
+      id: user.id,
+      email: user.email,
+      name: user.name,
+      role: user.role,
+      emailVerified: user.emailVerified,
+      image: user.image,
+      status: user.status,
+      profileId,
+      ...additionalInfo,
+    };
+  }
 }
