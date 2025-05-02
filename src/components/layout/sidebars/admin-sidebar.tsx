@@ -26,12 +26,14 @@ import {
   FileText,
   Shield,
   LucideIcon,
+  LogOut,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/hooks/use-auth';
 
 interface AdminSidebarProps {
   locale: string;
@@ -63,6 +65,7 @@ function isNavigationItem(item: SidebarItem): item is NavigationItem {
 
 export function AdminSidebar({ locale }: AdminSidebarProps) {
   const pathname = usePathname();
+  const { logout } = useAuth();
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
     users: false,
     verifications: true,
@@ -240,6 +243,11 @@ export function AdminSidebar({ locale }: AdminSidebarProps) {
     },
   ];
 
+  const handleLogout = () => {
+    console.log("Déconnexion de l'administrateur");
+    logout();
+  };
+
   return (
     <TooltipProvider delayDuration={300}>
       <nav className="h-full flex flex-col bg-background border-r">
@@ -410,6 +418,18 @@ export function AdminSidebar({ locale }: AdminSidebarProps) {
 
               return null;
             })}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  variant="outline"
+                  className="w-full justify-start text-muted-foreground"
+                  onClick={handleLogout}
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Déconnexion
+                </Button>
+              </TooltipTrigger>
+            </Tooltip>
           </div>
         </div>
       </nav>

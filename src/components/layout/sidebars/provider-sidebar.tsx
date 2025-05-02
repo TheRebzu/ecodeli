@@ -19,6 +19,7 @@ import {
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
+import { useAuth } from '@/hooks/use-auth';
 
 interface ProviderSidebarProps {
   locale: string;
@@ -33,6 +34,7 @@ interface NavigationItem {
 
 export function ProviderSidebar({ locale }: ProviderSidebarProps) {
   const pathname = usePathname();
+  const { logout } = useAuth();
 
   const navigationItems: NavigationItem[] = [
     {
@@ -88,6 +90,11 @@ export function ProviderSidebar({ locale }: ProviderSidebarProps) {
       badge: 3,
     },
   ];
+
+  const handleLogout = () => {
+    console.log('Déconnexion du prestataire');
+    logout();
+  };
 
   return (
     <nav className="h-full flex flex-col bg-background border-r">
@@ -170,7 +177,11 @@ export function ProviderSidebar({ locale }: ProviderSidebarProps) {
           </div>
         </div>
         <Separator className="my-4" />
-        <Button variant="outline" className="w-full justify-start text-muted-foreground">
+        <Button
+          variant="outline"
+          className="w-full justify-start text-muted-foreground"
+          onClick={handleLogout}
+        >
           <LogOut className="h-4 w-4 mr-2" />
           Déconnexion
         </Button>
