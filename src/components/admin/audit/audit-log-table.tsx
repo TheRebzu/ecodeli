@@ -23,26 +23,26 @@ import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AuditLogDetails } from './audit-log-details';
+import Image from 'next/image';
 
-// Type pour les logs d'audit
-interface AuditLog {
+// Définir un type spécifique au lieu de any
+type AuditLogData = {
   id: string;
-  entityType: string;
-  entityId: string;
   action: string;
-  performedById: string;
-  changes: Record<string, any> | null;
-  createdAt: Date;
-  performedBy: {
-    id: string;
-    name: string;
-    email: string;
-    image: string | null;
+  userId: string;
+  resourceType: string;
+  resourceId: string;
+  details: Record<string, unknown>;
+  timestamp: Date;
+  user?: {
+    name?: string;
+    image?: string;
+    email?: string;
   };
-}
+};
 
 interface AuditLogTableProps {
-  logs: AuditLog[];
+  logs: AuditLogData[];
   totalCount: number;
   currentPage: number;
   pageSize: number;
@@ -60,7 +60,7 @@ export function AuditLogTable({
 }: AuditLogTableProps) {
   const t = useTranslations('admin.audit');
   const router = useRouter();
-  const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
+  const [selectedLog, setSelectedLog] = useState<AuditLogData | null>(null);
 
   // Formater l'action du log
   const formatAction = (action: string) => {
@@ -100,16 +100,16 @@ export function AuditLogTable({
   const totalPages = Math.ceil(totalCount / pageSize);
 
   // Afficher les détails d'un log
-  const handleViewDetails = (log: AuditLog) => {
+  const handleViewDetails = (log: AuditLogData) => {
     setSelectedLog(log);
   };
 
   // Naviguer vers l'entité concernée
-  const handleNavigateToEntity = (log: AuditLog) => {
-    if (log.entityType === 'announcement') {
-      router.push(`/admin/announcements/${log.entityId}`);
-    } else if (log.entityType === 'user') {
-      router.push(`/admin/users/${log.entityId}`);
+  const handleNavigateToEntity = (log: AuditLogData) => {
+    if (log.resourceType === 'announcement') {
+      router.push(`/admin/announcements/${log.resourceId}`);
+    } else if (log.resourceType === 'user') {
+      router.push(`/admin/users/${log.resourceId}`);
     }
     // Ajouter d'autres types d'entités selon les besoins
   };
@@ -180,26 +180,26 @@ export function AuditLogTable({
                         <TableCell>
                           <Badge variant={variant}>{label}</Badge>
                         </TableCell>
-                        <TableCell>{formatEntityType(log.entityType)}</TableCell>
+                        <TableCell>{formatEntityType(log.resourceType)}</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            {log.performedBy.image && (
-                              <img
-                                src={log.performedBy.image}
-                                alt={log.performedBy.name}
-                                className="h-8 w-8 rounded-full"
+                            <div className="relative h-8 w-8 rounded-full overflow-hidden border">
+                              <Image
+                                src={log.user?.image || '/images/placeholder-user.png'}
+                                alt={`Avatar de ${log.user?.name || 'utilisateur'}`}
+                                fill
+                                sizes="32px"
+                                className="object-cover"
                               />
-                            )}
+                            </div>
                             <div>
-                              <div className="font-medium">{log.performedBy.name}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {log.performedBy.email}
-                              </div>
+                              <div className="font-medium">{log.user?.name}</div>
+                              <div className="text-xs text-muted-foreground">{log.user?.email}</div>
                             </div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          {format(new Date(log.createdAt), 'PPp', { locale: fr })}
+                          {format(new Date(log.timestamp), 'PPp', { locale: fr })}
                         </TableCell>
                         <TableCell className="text-right">
                           <DropdownMenu>
