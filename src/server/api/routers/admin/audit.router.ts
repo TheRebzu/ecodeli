@@ -1,6 +1,6 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { router as createTRPCRouter, protectedProcedure } from '../../trpc';
+import { router, protectedProcedure } from '../../trpc';
 import { AuditService } from '../../../services/audit.service';
 import { UserRole } from '@prisma/client';
 
@@ -20,7 +20,7 @@ const auditLogFilterSchema = z.object({
  * Routeur pour la gestion des logs d'audit
  * Ces endpoints sont protégés et accessibles uniquement par les administrateurs
  */
-export const auditRouter = createTRPCRouter({
+export const auditRouter = router({
   /**
    * Récupère tous les logs d'audit avec filtres et pagination
    */

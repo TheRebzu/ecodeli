@@ -59,6 +59,9 @@ export class NotificationService {
    */
   async createNotification(data: NotificationCreateInput): Promise<Notification> {
     try {
+      // Convertir les données en JSON si elles existent
+      const dataJson = data.data ? JSON.stringify(data.data) : null;
+
       return await this.prisma.notification.create({
         data: {
           userId: data.userId,
@@ -66,7 +69,7 @@ export class NotificationService {
           message: data.message,
           type: data.type,
           link: data.link,
-          data: data.data ? JSON.stringify(data.data) : null,
+          data: dataJson,
           read: false,
         },
       });
