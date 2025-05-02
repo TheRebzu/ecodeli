@@ -38,7 +38,7 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
   const callbackUrl = searchParams.get('callbackUrl') || '/';
   const [showTwoFactor, setShowTwoFactor] = useState(false);
   const { login, error: authError, isLoading: authLoading } = useAuth();
-  const { toast } = useToast();
+  const { toast: _toast } = useToast();
   const tAuth = useTranslations('auth');
 
   // @ts-ignore: Le cast en 'any' est nécessaire en raison d'incompatibilités
@@ -66,7 +66,7 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
           authError?.includes('facteur')
         ) {
           setShowTwoFactor(true);
-          toast({
+          _toast({
             title: tAuth('notifications.twoFactorRequired'),
             variant: 'default',
           });
