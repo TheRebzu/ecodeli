@@ -1,5 +1,8 @@
-# Exécuter lint-staged pour formater et linter les fichiers modifiés
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Execute lint-staged to format and lint changed files
 pnpm lint-staged
 
-# Vérifier les types TypeScript (temporairement désactivé)
+# Check TypeScript types (temporarily disabled)
 # pnpm typecheck
