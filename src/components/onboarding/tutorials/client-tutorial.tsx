@@ -5,7 +5,7 @@ import { useOnboarding } from '@/context/onboarding-context';
 import { TutorialStep } from '../tutorial-step';
 import { TutorialProgress } from '../tutorial-progress';
 import { TutorialNavigation } from '../tutorial-navigation';
-
+0;
 // Labels pour les boutons de navigation du tutoriel
 const navigationLabels = {
   skip: 'Passer le tutoriel',

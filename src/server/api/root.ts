@@ -18,6 +18,7 @@ import { adminDashboardRouter } from './routers/admin/admin-dashboard.router';
 import { warehouseRouter as adminWarehouseRouter } from './routers/admin/warehouse.router';
 import { deliveryTrackingRouter } from './routers/delivery-tracking.router';
 import { storageRouter } from './routers/storage.router';
+import { clientRouter } from './routers/client.router';
 
 // Re-export createTRPCContext from trpc.ts
 export { createTRPCContext };
@@ -71,6 +72,7 @@ export const appRouter = router({
   adminDashboard: adminDashboardRouter,
   deliveryTracking: deliveryTrackingRouter,
   storage: storageRouter,
+  client: clientRouter,
 });
 
 export type AppRouter = typeof appRouter;

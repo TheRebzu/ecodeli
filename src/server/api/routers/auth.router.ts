@@ -676,6 +676,12 @@ export const authRouter = router({
     const superAdminId = ctx.session.user.id;
     return await authService.createAdmin(superAdminId, input);
   }),
+
+  // Récupération des informations de session
+  getSession: protectedProcedure.query(async ({ ctx }) => {
+    const { user } = ctx.session;
+    return await authService.getSession(user.id);
+  }),
 });
 
 // Fonction pour déterminer le statut de vérification selon le rôle

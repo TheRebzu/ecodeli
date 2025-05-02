@@ -38,6 +38,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
+import { useAuth } from '@/hooks/use-auth';
 
 interface ProtectedHeaderProps {
   locale?: string;
@@ -47,6 +48,7 @@ export function ProtectedHeader({ locale = 'fr' }: ProtectedHeaderProps) {
   const [open, setOpen] = useState(false);
   const [searchValue, setSearchValue] = useState('');
   const pathname = usePathname();
+  const { logout } = useAuth();
 
   // Détermine le rôle actuel à partir du pathname
   const getRoleFromPath = () => {
@@ -113,7 +115,7 @@ export function ProtectedHeader({ locale = 'fr' }: ProtectedHeaderProps) {
 
   const handleLogout = () => {
     console.log('Déconnexion');
-    // Implémenter la logique de déconnexion
+    logout();
   };
 
   return (

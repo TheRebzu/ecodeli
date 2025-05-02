@@ -1,6 +1,7 @@
 import { router, protectedProcedure } from '../trpc';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
+import { DashboardService } from '@/server/services/dashboard.service';
 
 // Définir les interfaces pour les données récupérées de la base de données
 interface DeliveryWithRelations {
@@ -284,4 +285,84 @@ export const clientRouter = router({
         createdAt: appointment.createdAt.toISOString(),
       };
     }),
+
+  // Nouvelle procédure pour récupérer les statistiques du dashboard client
+  getDashboardStats: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+
+    // Vérifier si l'utilisateur est un client
+    const user = await ctx.db.user.findUnique({
+      where: { id: userId },
+      include: { client: true },
+    });
+
+    if (!user || !user.client) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: "Vous n'êtes pas autorisé à accéder à ces données",
+      });
+    }
+
+    return DashboardService.getClientDashboardStats(userId);
+  }),
+
+  // Procédure pour récupérer l'activité récente du client
+  getRecentActivity: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+
+    // Vérifier si l'utilisateur est un client
+    const user = await ctx.db.user.findUnique({
+      where: { id: userId },
+      include: { client: true },
+    });
+
+    if (!user || !user.client) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: "Vous n'êtes pas autorisé à accéder à ces données",
+      });
+    }
+
+    return DashboardService.getClientRecentActivity(userId);
+  }),
+
+  // Procédure pour récupérer les métriques financières du client
+  getFinancialMetrics: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+
+    // Vérifier si l'utilisateur est un client
+    const user = await ctx.db.user.findUnique({
+      where: { id: userId },
+      include: { client: true },
+    });
+
+    if (!user || !user.client) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: "Vous n'êtes pas autorisé à accéder à ces données",
+      });
+    }
+
+    return DashboardService.getClientFinancialMetrics(userId);
+  }),
+
+  // Procédure pour récupérer les éléments actifs du client
+  getActiveItems: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+
+    // Vérifier si l'utilisateur est un client
+    const user = await ctx.db.user.findUnique({
+      where: { id: userId },
+      include: { client: true },
+    });
+
+    if (!user || !user.client) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: "Vous n'êtes pas autorisé à accéder à ces données",
+      });
+    }
+
+    return DashboardService.getClientActiveItems(userId);
+  }),
 });
