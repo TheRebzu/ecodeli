@@ -23,6 +23,7 @@ export type AuthErrorCode =
   | 'PasswordMismatch'
   | 'WeakPassword'
   | 'EmailAlreadyInUse'
+  | 'pending_verification'
   | 'default';
 
 /**

@@ -19,13 +19,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CalendarIcon, UploadIcon } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
@@ -36,9 +29,7 @@ import { cn } from '@/lib/utils';
 
 // Schema for document upload validation
 const documentUploadSchema = z.object({
-  type: z.nativeEnum(DocumentType, {
-    required_error: 'Document type is required',
-  }),
+  // Le type sera déterminé à partir des propriétés ou du contexte
   file: z
     .instanceof(File, {
       message: 'Please upload a document file',
@@ -57,36 +48,19 @@ const documentUploadSchema = z.object({
 
 type DocumentUploadFormProps = {
   role: 'DELIVERER' | 'PROVIDER' | 'MERCHANT';
+  documentType?: DocumentType; // Ajout d'une prop pour définir le type de document
   onSuccess?: () => void;
 };
 
-export default function DocumentUploadForm({ role, onSuccess }: DocumentUploadFormProps) {
+export default function DocumentUploadForm({
+  role,
+  documentType,
+  onSuccess,
+}: DocumentUploadFormProps) {
   const t = useTranslations('documents');
   const { toast } = useToast();
   const [filePreview, setFilePreview] = useState<string | null>(null);
   const locale = 'fr'; // Set this based on your app's locale state
-
-  // Filter document types based on user role
-  const getDocumentTypes = () => {
-    const allTypes = Object.values(DocumentType);
-
-    switch (role) {
-      case 'DELIVERER':
-        return allTypes.filter(type =>
-          ['ID_CARD', 'DRIVING_LICENSE', 'VEHICLE_REGISTRATION', 'INSURANCE'].includes(type)
-        );
-      case 'PROVIDER':
-        return allTypes.filter(type =>
-          ['ID_CARD', 'QUALIFICATION_CERTIFICATE', 'PROOF_OF_ADDRESS', 'INSURANCE'].includes(type)
-        );
-      case 'MERCHANT':
-        return allTypes.filter(type =>
-          ['ID_CARD', 'BUSINESS_REGISTRATION', 'PROOF_OF_ADDRESS'].includes(type)
-        );
-      default:
-        return allTypes;
-    }
-  };
 
   const form = useForm<z.infer<typeof documentUploadSchema>>({
     resolver: zodResolver(documentUploadSchema),
@@ -136,6 +110,15 @@ export default function DocumentUploadForm({ role, onSuccess }: DocumentUploadFo
 
   const onSubmit = async (data: z.infer<typeof documentUploadSchema>) => {
     try {
+      if (!documentType) {
+        toast({
+          title: t('uploadError.title'),
+          description: 'Document type is required',
+          variant: 'destructive',
+        });
+        return;
+      }
+
       // Convert file to base64 for API transmission
       const reader = new FileReader();
       reader.readAsDataURL(data.file);
@@ -144,7 +127,7 @@ export default function DocumentUploadForm({ role, onSuccess }: DocumentUploadFo
         if (!base64File) return;
 
         uploadDocument.mutate({
-          type: data.type,
+          type: documentType, // Utiliser le type de document passé en prop
           fileData: base64File,
           fileName: data.file.name,
           mimeType: data.file.type,
@@ -166,31 +149,7 @@ export default function DocumentUploadForm({ role, onSuccess }: DocumentUploadFo
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            <FormField
-              control={form.control}
-              name="type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('form.type')}</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder={t('form.selectType')} />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {getDocumentTypes().map(type => (
-                        <SelectItem key={type} value={type}>
-                          {t(`documentTypes.${type}`)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormDescription>{t('form.typeDescription')}</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Le champ de sélection de type a été retiré */}
 
             <FormField
               control={form.control}
