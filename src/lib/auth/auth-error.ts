@@ -40,13 +40,13 @@ export function getAuthErrorMessage(
   error: string | null | undefined,
   t: TranslationFunction
 ): string {
-  if (!error) return t('auth.errors.default');
+  if (!error) return t('errors.default');
 
   const errorCode = error as AuthErrorCode;
 
   try {
-    return t(`auth.errors.${errorCode}`);
+    return t(`errors.${errorCode}`);
   } catch {
-    return t('auth.errors.default');
+    return t('errors.default');
   }
 }

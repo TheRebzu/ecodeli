@@ -20,10 +20,7 @@ export function useAuth() {
   const { toast } = useToast();
 
   // Mutations tRPC pour l'authentification
-  const registerClient = api.auth.registerClient.useMutation();
-  const registerDeliverer = api.auth.registerDeliverer.useMutation();
-  const registerMerchant = api.auth.registerMerchant.useMutation();
-  const registerProvider = api.auth.registerProvider.useMutation();
+  const registerMutation = api.auth.register.useMutation(); // Use the correct register procedure
   const verifyEmail = api.auth.verifyEmail.useMutation();
   const forgotPassword = api.auth.forgotPassword.useMutation();
   const resetPassword = api.auth.resetPassword.useMutation();
@@ -37,6 +34,12 @@ export function useAuth() {
       setIsLoading(true);
       setError(null);
 
+      // Clear any previous sessions if there was a JWT error
+      if (status === 'unauthenticated') {
+        // Force clear any potential corrupted cookies
+        await signOut({ redirect: false });
+      }
+
       const response = await signIn('credentials', {
         email: data.email,
         password: data.password,
@@ -45,9 +48,30 @@ export function useAuth() {
       });
 
       if (response?.error) {
-        setError(response.error);
-        setIsLoading(false);
-        return false;
+        // Check for JWT decryption errors
+        if (
+          response.error.includes('decryption operation failed') ||
+          response.error.includes('JWT_SESSION_ERROR')
+        ) {
+          // Clear cookies and retry login once
+          await signOut({ redirect: false });
+          const retryResponse = await signIn('credentials', {
+            email: data.email,
+            password: data.password,
+            totp: data.totp,
+            redirect: false,
+          });
+
+          if (retryResponse?.error) {
+            setError(retryResponse.error);
+            setIsLoading(false);
+            return false;
+          }
+        } else {
+          setError(response.error);
+          setIsLoading(false);
+          return false;
+        }
       }
 
       // Rediriger vers la bonne page en fonction du rôle
@@ -55,7 +79,8 @@ export function useAuth() {
       router.push(dashboard || callbackUrl);
       router.refresh();
       return true;
-    } catch (_) {
+    } catch (error) {
+      console.error('Login error:', error);
       setError('Une erreur est survenue lors de la connexion');
       setIsLoading(false);
       return false;
@@ -118,24 +143,11 @@ export function useAuth() {
     setError(null);
 
     try {
-      let result;
-
-      switch (role) {
-        case 'CLIENT':
-          result = await registerClient.mutateAsync(data as ClientRegisterSchemaType);
-          break;
-        case 'DELIVERER':
-          result = await registerDeliverer.mutateAsync(data as DelivererRegisterSchemaType);
-          break;
-        case 'MERCHANT':
-          result = await registerMerchant.mutateAsync(data as MerchantRegisterSchemaType);
-          break;
-        case 'PROVIDER':
-          result = await registerProvider.mutateAsync(data as ProviderRegisterSchemaType);
-          break;
-        default:
-          throw new Error('Rôle non supporté');
-      }
+      // Use the single register procedure with the role included in the data
+      const result = await registerMutation.mutateAsync({
+        ...data,
+        role,
+      });
 
       toast({
         title: 'Inscription réussie',
