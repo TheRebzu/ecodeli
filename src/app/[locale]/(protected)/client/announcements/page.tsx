@@ -4,6 +4,7 @@ import { AnnouncementList } from '@/components/announcements/announcement-list';
 import { PageHeader } from '@/components/ui/page-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AnnouncementMap } from '@/components/announcements/announcement-map';
+import { PageProps, MetadataProps } from '@/types/next';
 
 export async function generateMetadata({
   params,

@@ -1,18 +1,38 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
-import { router, protectedProcedure, adminProcedure } from '../trpc';
-import { DocumentService } from '../../services/document.service';
+import { router, protectedProcedure, adminProcedure } from '@/server/api/trpc';
+import { DocumentService } from '@/server/services/document.service';
 import { DocumentStatus, DocumentType } from '../../db/enums';
 import {
   uploadDocumentSchema,
   updateDocumentSchema,
   createVerificationSchema,
   updateVerificationSchema,
-} from '../../../schemas/auth/document.schema';
+} from '@/schemas/document.schema';
 
 const documentService = new DocumentService();
 
 export const documentRouter = router({
+  /**
+   * Obtenir les documents de l'utilisateur connecté
+   */
+  getMyDocuments: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      const userId = ctx.session.user.id;
+      const documents = await ctx.db.document.findMany({
+        where: { userId },
+        orderBy: { uploadedAt: 'desc' },
+      });
+      return documents;
+    } catch (error: any) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la récupération des documents',
+        cause: error,
+      });
+    }
+  }),
+
   /**
    * Obtenir les documents d'un utilisateur
    */

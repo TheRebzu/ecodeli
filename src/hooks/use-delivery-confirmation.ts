@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { api } from '../trpc/react';
 import { useRouter } from 'next/router';
-import { DeliveryConfirmationInput } from '../schemas/delivery-tracking.schema';
+import { DeliveryConfirmationInput } from '@/schemas/delivery-tracking.schema';
 
 // Type pour la preuve de livraison
 type ProofType = 'PHOTO' | 'SIGNATURE' | 'CODE';

@@ -8,13 +8,6 @@ import { DashboardHeader } from '@/components/layout/dashboard-header';
 import { DashboardShell } from '@/components/layout/dashboard-shell';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';
-import { Metadata } from 'next';
-
-export const metadata: Metadata = {
-  title: "Journal d'audit",
-  description:
-    "Journal d'audit système montrant toutes les modifications effectuées sur les entités",
-};
 
 const PAGE_SIZE = 20;
 

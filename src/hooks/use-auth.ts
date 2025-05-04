@@ -1,7 +1,7 @@
 import { useSession, signIn, signOut } from 'next-auth/react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { LoginSchemaType } from '@/schemas/auth/login.schema';
+import { LoginSchemaType } from '@/schemas/login.schema';
 import { api } from './use-trpc';
 import { useToast } from '@/components/ui/use-toast';
 import type { UserRole } from '@prisma/client';
@@ -10,7 +10,7 @@ import type {
   DelivererRegisterSchemaType,
   MerchantRegisterSchemaType,
   ProviderRegisterSchemaType,
-} from '@/schemas/auth';
+} from '@/schemas';
 
 export function useAuth() {
   const { data: session, status, update } = useSession();

@@ -3,8 +3,8 @@ import { api } from '../trpc/react';
 import {
   DeliveryStatusUpdateInput,
   DeliveryCoordinatesUpdateInput,
-} from '../schemas/delivery-tracking.schema';
-import { DeliveryStatus } from '../types/delivery';
+} from '@/schemas/delivery-tracking.schema';
+import { DeliveryStatus } from '@/types/delivery';
 import { TRPCClientError } from '@trpc/client';
 
 /**

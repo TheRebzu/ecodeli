@@ -96,13 +96,11 @@ type UploadFileResult = {
 export class DocumentService {
   private prisma: PrismaClient;
   private uploadDir: string;
-  private notificationService: NotificationService;
 
   constructor(prisma = db) {
     this.prisma = prisma;
     // Le dossier d'uploads est relatif à la racine du projet
     this.uploadDir = path.join(process.cwd(), 'public', 'uploads');
-    this.notificationService = new NotificationService();
   }
 
   /**
@@ -224,9 +222,8 @@ export class DocumentService {
       });
 
       // Envoyer une notification à tous les administrateurs
-      const notificationService = new NotificationService();
       const userLocale = getUserPreferredLocale(user);
-      await notificationService.sendDocumentSubmissionToAdminsNotification(document, userLocale);
+      await NotificationService.sendDocumentSubmissionToAdminsNotification(document, userLocale);
 
       return document;
     } catch (error) {

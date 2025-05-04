@@ -1,10 +1,10 @@
-import { router, protectedProcedure, adminProcedure } from '../trpc';
+import { router, protectedProcedure, adminProcedure } from '@/server/api/trpc';
 import { z } from 'zod';
 import { UserRole, DocumentType } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
-import { VerificationService } from '../../services/verification.service';
+import { VerificationService } from '@/server/services/verification.service';
 import { documentService } from '@/server/services/document.service';
-import { notificationService } from '@/server/services/notification.service';
+import { NotificationService } from '@/server/services/notification.service';
 import { VerificationStatus } from '@prisma/client';
 import { getUserPreferredLocale } from '@/lib/user-locale';
 
@@ -211,7 +211,7 @@ export const verificationRouter = router({
           isVerified: true,
           verificationStatus: VerificationStatus.APPROVED,
           verifiedAt: new Date(),
-          verifiedBy: ctx.session.user.id,
+          verifiedBy: ctx.session?.user.id,
           notes: notes || null,
         });
 
@@ -235,12 +235,13 @@ export const verificationRouter = router({
 
           // Send verification status changed notification
           const userLocale = getUserPreferredLocale(document.user);
-          await notificationService.sendVerificationStatusChangedNotification(
-            document.user,
-            VerificationStatus.APPROVED,
-            null,
-            userLocale
-          );
+          await NotificationService.sendNotification({
+            userId: document.user.id,
+            title: 'Vérification complète',
+            content: 'Tous vos documents ont été vérifiés et approuvés.',
+            type: 'VERIFICATION',
+            data: { status: VerificationStatus.APPROVED }
+          });
         }
 
         return updatedDocument;
@@ -282,8 +283,17 @@ export const verificationRouter = router({
           isVerified: false,
           verificationStatus: VerificationStatus.REJECTED,
           verifiedAt: new Date(),
-          verifiedBy: ctx.session.user.id,
+          verifiedBy: ctx.session?.user.id,
           rejectionReason: reason,
+        });
+
+        // Send notification to user about rejection
+        await NotificationService.sendNotification({
+          userId: document.user.id,
+          title: 'Document rejeté',
+          content: `Votre document a été rejeté: ${reason}`,
+          type: 'VERIFICATION',
+          data: { status: VerificationStatus.REJECTED, reason }
         });
 
         return updatedDocument;
@@ -384,7 +394,13 @@ export const verificationRouter = router({
 
         // Send notification for missing documents
         const userLocale = getUserPreferredLocale(user);
-        await notificationService.sendMissingDocumentsReminder(user, missingDocuments, userLocale);
+        await NotificationService.sendNotification({
+          userId: user.id,
+          title: 'Documents manquants',
+          content: `Veuillez soumettre les documents requis: ${missingDocuments.join(', ')}`,
+          type: 'VERIFICATION',
+          data: { missingDocuments }
+        });
 
         return { success: true, missingDocuments };
       } catch (error) {

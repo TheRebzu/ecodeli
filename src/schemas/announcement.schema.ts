@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { AnnouncementPriority, AnnouncementStatus, AnnouncementType } from '../types/announcement';
+import { AnnouncementPriority, AnnouncementStatus, AnnouncementType } from '@/types/announcement';
 
 // Validation des coordonnées GPS
 const gpsCoordinateSchema = z.number().min(-180).max(180);

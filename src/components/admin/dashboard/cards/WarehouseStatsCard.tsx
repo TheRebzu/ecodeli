@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { WarehouseStats } from '@/types/admin/dashboard';
+import { WarehouseStats } from '@/types/dashboard';
 import { WarehouseIcon, PackageIcon } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
 

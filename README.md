@@ -88,3 +88,70 @@ L'application EcoDeli dispose d'un système d'authentification complet avec les 
 - Support pour l'authentification via des fournisseurs sociaux (Google, Facebook, etc.)
 - Amélioration de la gestion des permissions par rôle
 - Journalisation des activités d'authentification
+
+## Internationalisation
+
+EcoDeli utilise [next-intl](https://next-intl-docs.vercel.app/) pour la gestion des traductions.
+
+### Script d'automatisation des traductions
+
+Un script d'automatisation des traductions est disponible pour faciliter la gestion des chaînes à traduire. Ce script analyse le code source pour trouver les chaînes hardcodées, les extrait dans des fichiers de messages structurés et facilite leur traduction.
+
+#### Commandes disponibles
+
+```bash
+# Analyser uniquement (mode dry-run)
+pnpm run translate:analyze
+
+# Extraire les traductions et mettre à jour les fichiers de messages
+pnpm run translate:extract
+
+# Processus complet avec sauvegarde
+pnpm run translate:all --backup
+
+# Vérifier l'état des traductions sans modification
+pnpm run translate:check
+
+# Générer un rapport détaillé
+pnpm run translate:report
+```
+
+#### Options supplémentaires
+
+- `--dry-run` : Exécuter sans modifier les fichiers (simulation)
+- `--backup` : Créer une sauvegarde avant toute modification
+- `--source-lang <lang>` : Spécifier la langue source (défaut: en)
+- `--target-langs <langs>` : Spécifier les langues cibles (séparées par des virgules, défaut: fr)
+
+#### Exemple d'utilisation
+
+```bash
+# Extraire les traductions pour anglais et français
+pnpm run translate:extract --source-lang en --target-langs fr,es,de
+
+# Analyser avec sauvegarde
+pnpm run translate:analyze --backup
+```
+
+#### Structure des fichiers de traduction
+
+Les fichiers de traduction sont générés dans `src/messages/` avec une structure hiérarchique basée sur les modules et composants de l'application. Exemple:
+
+```json
+{
+  "common": {
+    "buttons": {
+      "save": "Save",
+      "cancel": "Cancel"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Log in to your account",
+      "emailLabel": "Email address"
+    }
+  }
+}
+```
+
+Cette structure permet une organisation claire et facilite la maintenance des traductions au fur et à mesure que l'application évolue.

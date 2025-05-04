@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '../trpc/react';
 import { socket } from '../socket';
-import { DeliveryTrackingInfo, DeliveryStatus } from '../types/delivery';
+import { DeliveryTrackingInfo, DeliveryStatus } from '@/types/delivery';
 
 interface UseDeliveryTrackingProps {
   deliveryId: string;

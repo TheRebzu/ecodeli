@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { AnnouncementStatus } from '@/types/announcement';
+import { PageProps, MetadataProps } from '@/types/next';
 
 interface EditAnnouncementPageProps {
   params: Promise<{

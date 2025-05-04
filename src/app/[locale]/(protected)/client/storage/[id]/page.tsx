@@ -16,17 +16,12 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { createServerComponentClient } from '@/trpc/server';
 import { notFound } from 'next/navigation';
-
-// Import dynamique du composant client
-const BoxUsageHistory = dynamic(() => import('@/components/storage/box-usage-history'), {
-  ssr: false,
-});
+import { BoxDetailTabs } from '@/components/storage/box-detail-tabs';
+import { PageProps, MetadataProps } from '@/types/next';
 
 export async function generateMetadata({
   params: { locale },
@@ -169,56 +164,10 @@ export default async function ReservationDetailPage({
             </CardFooter>
           </Card>
 
-          <Tabs defaultValue="details">
-            <TabsList>
-              <TabsTrigger value="details">{t('detailPage.boxDetails')}</TabsTrigger>
-              <TabsTrigger value="history">{t('detailPage.accessHistory')}</TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="details" className="mt-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t('detailPage.boxInfo')}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="flex flex-col">
-                      <span className="text-sm text-muted-foreground">
-                        {t('detailPage.boxSize')}
-                      </span>
-                      <span>{reservation.box.size} m³</span>
-                    </div>
-
-                    <div className="flex flex-col">
-                      <span className="text-sm text-muted-foreground">
-                        {t('detailPage.boxType')}
-                      </span>
-                      <span>{t(`boxTypes.${reservation.box.boxType.toLowerCase()}`)}</span>
-                    </div>
-                  </div>
-
-                  {reservation.box.features && reservation.box.features.length > 0 && (
-                    <div className="space-y-2">
-                      <span className="text-sm text-muted-foreground">
-                        {t('detailPage.features')}
-                      </span>
-                      <div className="flex flex-wrap gap-2">
-                        {reservation.box.features.map((feature: string) => (
-                          <Badge key={feature} variant="secondary">
-                            {t(`features.${feature.toLowerCase()}`)}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="history" className="mt-4">
-              <BoxUsageHistory history={usageHistory} />
-            </TabsContent>
-          </Tabs>
+          <BoxDetailTabs 
+            box={reservation.box} 
+            usageHistory={usageHistory} 
+          />
         </div>
 
         <div className="space-y-6">

@@ -17,174 +17,226 @@ import {
   DeliveryStatus,
   BookingStatus,
   ActivityType,
+  TokenType,
+  TransactionType,
+  TransactionStatus,
+  WithdrawalStatus,
+  SubscriptionStatus,
+  PlanType,
+  InvoiceStatus,
 } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import * as speakeasy from 'speakeasy';
+import { faker } from '@faker-js/faker';
 
 const prisma = new PrismaClient();
 
-async function main() {
-  console.log('🌱 Starting database seeding...');
+// Configuration basée sur la Mission 1
+const SALT_ROUNDS = 10;
+const DEFAULT_PASSWORD = '123456';
+const SEED_DATE = new Date('2024-01-01');
+const COMMISSION_RATE = 0.15; // 15% commission EcoDeli
 
-  // Clean database before seeding
-  await cleanDatabase();
-
-  // Create admin users
-  const adminUsers = await createAdminUsers();
-  console.log(`✅ Created ${adminUsers.length} admin users`);
-
-  // Create client users
-  const clientUsers = await createClientUsers();
-  console.log(`✅ Created ${clientUsers.length} client users`);
-
-  // Create deliverer users with documents
-  const delivererUsers = await createDelivererUsers(adminUsers[0].id);
-  console.log(`✅ Created ${delivererUsers.length} deliverer users with documents`);
-
-  // Create merchant users with contracts
-  const merchantUsers = await createMerchantUsers(adminUsers[0].id);
-  console.log(`✅ Created ${merchantUsers.length} merchant users with contracts`);
-
-  // Create provider users with skills
-  const providerUsers = await createProviderUsers(adminUsers[0].id);
-  console.log(`✅ Created ${providerUsers.length} provider users with skills`);
-
-  // Create warehouses and boxes
-  const warehouses = await createWarehousesAndBoxes();
-  console.log(`✅ Created ${warehouses.length} warehouses with boxes`);
-
-  // Create reservations and box usage history
-  const reservations = await createReservationsAndUsage(clientUsers);
-  console.log(`✅ Created ${reservations.length} box reservations with usage history`);
-
-  // Create box subscriptions
-  const subscriptions = await createBoxSubscriptions(clientUsers);
-  console.log(`✅ Created ${subscriptions.length} box availability subscriptions`);
-
-  // Create user activity logs
-  await createUserActivityLogs([
-    ...clientUsers,
-    ...delivererUsers,
-    ...merchantUsers,
-    ...providerUsers,
-  ]);
-  console.log('✅ Created user activity logs');
-
-  // Create delivery announcements
-  const announcements = await createAnnouncements(clientUsers, delivererUsers);
-  console.log(`✅ Created ${announcements.length} delivery announcements`);
-
-  // Create delivery applications
-  const applications = await createDeliveryApplications(announcements, delivererUsers);
-  console.log(`✅ Created ${applications.length} delivery applications`);
-
-  // Create deliverer favorites
-  const favorites = await createDelivererFavorites(announcements, delivererUsers);
-  console.log(`✅ Created ${favorites.length} deliverer favorites`);
-
-  // Create service categories and services
-  const { categories, services } = await createServicesAndCategories(providerUsers);
-  console.log(`✅ Created ${categories.length} service categories and ${services.length} services`);
-
-  // Create provider availability
-  const availabilities = await createProviderAvailabilities(providerUsers);
-  console.log(`✅ Created ${availabilities.length} provider availability entries`);
-
-  // Create service bookings, payments and reviews
-  const { bookings, payments, reviews } = await createServiceBookingsAndReviews(
-    clientUsers,
-    providerUsers,
-    services
-  );
-  console.log(
-    `✅ Created ${bookings.length} service bookings, ${payments.length} payments, and ${reviews.length} reviews`
-  );
-
-  // Create deliveries and related data
-  const { deliveries, logs, coordinates, proofs, ratings } = await createDeliveriesAndRelatedData(
-    clientUsers,
-    delivererUsers
-  );
-  console.log(`✅ Created ${deliveries.length} deliveries with related data`);
-
-  // Create notifications
-  await createNotifications([
-    ...clientUsers,
-    ...delivererUsers,
-    ...merchantUsers,
-    ...providerUsers,
-  ]);
-  console.log('✅ Created notifications');
-
-  // Create audit logs
-  await createAuditLogs(adminUsers);
-  console.log('✅ Created audit logs');
-
-  console.log('🎉 Database seeding completed successfully!');
-}
-
-async function cleanDatabase() {
-  console.log('🧹 Cleaning database...');
-
-  // Delete all records in reverse order to respect foreign key constraints
-  await prisma.deliveryRating.deleteMany({});
-  await prisma.deliveryProof.deleteMany({});
-  await prisma.deliveryCoordinates.deleteMany({});
-  await prisma.deliveryLog.deleteMany({});
-  await prisma.delivery.deleteMany({});
-  await prisma.serviceReview.deleteMany({});
-  await prisma.serviceBooking.deleteMany({});
-  await prisma.payment.deleteMany({});
-  await prisma.providerAvailability.deleteMany({});
-  await prisma.service.deleteMany({});
-  await prisma.serviceCategory.deleteMany({});
-  await prisma.delivererFavorite.deleteMany({});
-  await prisma.deliveryApplication.deleteMany({});
-  await prisma.announcement.deleteMany({});
-  await prisma.boxAvailabilitySubscription.deleteMany({});
-  await prisma.boxUsageHistory.deleteMany({});
-  await prisma.reservation.deleteMany({});
-  await prisma.box.deleteMany({});
-  await prisma.warehouse.deleteMany({});
-  await prisma.notification.deleteMany({});
-  await prisma.userActivityLog.deleteMany({});
-  await prisma.auditLog.deleteMany({});
-  await prisma.verification.deleteMany({});
-  await prisma.verificationHistory.deleteMany({});
-  await prisma.document.deleteMany({});
-  await prisma.skill.deleteMany({});
-  await prisma.contract.deleteMany({});
-  await prisma.verificationToken.deleteMany({});
-  await prisma.session.deleteMany({});
-  await prisma.account.deleteMany({});
-  await prisma.admin.deleteMany({});
-  await prisma.provider.deleteMany({});
-  await prisma.merchant.deleteMany({});
-  await prisma.deliverer.deleteMany({});
-  await prisma.client.deleteMany({});
-  await prisma.user.deleteMany({});
-
-  console.log('✅ Database cleaned');
-}
-
+// Helper functions
 async function hashPassword(password: string): Promise<string> {
-  return bcrypt.hash(password, 10);
+  return bcrypt.hash(password, SALT_ROUNDS);
 }
 
+function generateTwoFactorSecret(): string {
+  return speakeasy.generateSecret({ length: 20 }).base32;
+}
+
+function generateAccessCode(): string {
+  return Math.floor(100000 + Math.random() * 900000).toString();
+}
+
+function generateInvoiceNumber(date: Date, index: number): string {
+  const year = date.getFullYear();
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const number = index.toString().padStart(4, '0');
+  return `INV-${year}-${month}-${number}`;
+}
+
+function generateRandomDate(start: Date, end: Date): Date {
+  return new Date(start.getTime() + Math.random() * (end.getTime() - start.getTime()));
+}
+
+// Fonction principale
+async function main() {
+  console.log('🌱 Démarrage du seeding de la base de données (Mission 1)...');
+
+  try {
+    // Clean database before seeding
+    await cleanDatabase();
+
+    // 1. Création des utilisateurs
+    const adminUsers = await createAdminUsers();
+    console.log(`✅ ${adminUsers.length} administrateurs créés`);
+
+    const clientUsers = await createClientUsers();
+    console.log(`✅ ${clientUsers.length} clients créés`);
+
+    const delivererUsers = await createDelivererUsers(adminUsers[0].id);
+    console.log(`✅ ${delivererUsers.length} livreurs créés avec documents`);
+
+    const merchantUsers = await createMerchantUsers(adminUsers[0].id);
+    console.log(`✅ ${merchantUsers.length} commerçants créés avec contrats`);
+
+    const providerUsers = await createProviderUsers(adminUsers[0].id);
+    console.log(`✅ ${providerUsers.length} prestataires créés avec compétences`);
+
+    // 2. Création des données financières (Gestion des paiements et facturation)
+    await createFinancialData([
+      ...clientUsers,
+      ...delivererUsers,
+      ...merchantUsers,
+      ...providerUsers,
+    ]);
+    console.log('✅ Données financières créées (wallets, transactions, abonnements)');
+
+    // 3. Création des entrepôts et box (Stockage temporaire de biens)
+    const warehouses = await createWarehousesAndBoxes();
+    console.log(`✅ ${warehouses.length} entrepôts créés avec box`);
+
+    // 4. Création des annonces (Gestion des annonces)
+    const announcements = await createAnnouncements(clientUsers, merchantUsers, delivererUsers);
+    console.log(`✅ ${announcements.length} annonces créées`);
+
+    // 5. Création des candidatures de livraison
+    const applications = await createDeliveryApplications(announcements, delivererUsers);
+    console.log(`✅ ${applications.length} candidatures de livraison créées`);
+
+    // 6. Création des livraisons (Gestion des livraisons)
+    const deliveries = await createDeliveries(clientUsers, delivererUsers, merchantUsers);
+    console.log(`✅ ${deliveries.length} livraisons créées avec paiements`);
+
+    // 7. Création des services et prestations
+    const { categories, services } = await createServicesAndCategories(providerUsers);
+    console.log(`✅ ${categories.length} catégories et ${services.length} services créés`);
+
+    // 8. Création des disponibilités des prestataires (Calendrier des disponibilités)
+    const availabilities = await createProviderAvailabilities(providerUsers);
+    console.log(`✅ ${availabilities.length} disponibilités créées`);
+
+    // 9. Création des réservations de services
+    const { bookings, payments, reviews } = await createServiceBookingsAndReviews(
+      clientUsers,
+      providerUsers,
+      services
+    );
+    console.log(`✅ ${bookings.length} réservations, ${payments.length} paiements, ${reviews.length} évaluations créées`);
+
+    // 10. Création des factures mensuelles automatiques
+    await createMonthlyInvoices(providerUsers, delivererUsers);
+    console.log('✅ Factures mensuelles automatiques créées');
+
+    // 11. Création des notifications
+    await createNotifications([
+      ...clientUsers,
+      ...delivererUsers,
+      ...merchantUsers,
+      ...providerUsers,
+    ]);
+    console.log('✅ Notifications créées');
+
+    // 12. Création des logs d'audit (Administration générale)
+    await createAuditLogs(adminUsers);
+    console.log('✅ Logs d\'audit créés');
+
+    // 13. Création des données d'onboarding (Tutoriel première connexion)
+    await createOnboardingData(clientUsers);
+    console.log('✅ Données d\'onboarding créées');
+
+    console.log('🎉 Seeding de la base de données terminé avec succès !');
+  } catch (error) {
+    console.error('❌ Erreur pendant le seeding:', error);
+    throw error;
+  }
+}
+
+// Fonction de nettoyage de la base de données
+async function cleanDatabase() {
+  console.log('🧹 Nettoyage de la base de données...');
+
+  const tables = [
+    'deliveryRating',
+    'deliveryProof',
+    'deliveryCoordinates',
+    'deliveryLog',
+    'delivery',
+    'serviceReview',
+    'serviceBooking',
+    'financialReport',
+    'commission',
+    'invoiceItem',
+    'invoice',
+    'paymentMethod',
+    'subscription',
+    'withdrawalRequest',
+    'bankTransfer',
+    'walletTransaction',
+    'wallet',
+    'payment',
+    'providerAvailability',
+    'service',
+    'serviceCategory',
+    'delivererFavorite',
+    'deliveryApplication',
+    'announcement',
+    'boxAvailabilitySubscription',
+    'boxUsageHistory',
+    'reservation',
+    'box',
+    'warehouse',
+    'notification',
+    'userActivityLog',
+    'auditLog',
+    'verification',
+    'verificationHistory',
+    'document',
+    'skill',
+    'contract',
+    'verificationToken',
+    'session',
+    'account',
+    'admin',
+    'provider',
+    'merchant',
+    'deliverer',
+    'client',
+    'user',
+  ];
+
+  for (const table of tables) {
+    try {
+      await prisma.$executeRawUnsafe(`TRUNCATE TABLE "${table}" CASCADE;`);
+    } catch (error) {
+      console.warn(`Warning: Could not truncate ${table}:`, error);
+    }
+  }
+
+  console.log('✅ Base de données nettoyée');
+}
+
+// Création des administrateurs
 async function createAdminUsers() {
-  const hashedPassword = await hashPassword('123456');
+  const hashedPassword = await hashPassword(DEFAULT_PASSWORD);
 
   const adminUsers = await Promise.all([
     // Super admin
     prisma.user.create({
       data: {
-        name: 'Super Admin',
-        email: 'admin.super@ecodeli.me',
+        name: 'Admin Principal',
+        email: 'admin.principal@ecodeli.me',
         password: hashedPassword,
         role: UserRole.ADMIN,
         status: UserStatus.ACTIVE,
         emailVerified: new Date(),
         phoneNumber: '+33123456789',
         locale: 'fr',
+        twoFactorEnabled: true,
+        twoFactorSecret: generateTwoFactorSecret(),
+        hasCompletedOnboarding: true,
         admin: {
           create: {
             permissions: [
@@ -197,28 +249,49 @@ async function createAdminUsers() {
             ],
             department: 'Direction',
             twoFactorEnabled: true,
-            twoFactorSecret: 'TESTSECRETFORSUPER',
+            twoFactorSecret: generateTwoFactorSecret(),
           },
         },
       },
     }),
 
-    // Standard admin
+    // Admin support
     prisma.user.create({
       data: {
-        name: 'Admin Standard',
-        email: 'admin.standard@ecodeli.me',
+        name: 'Admin Support',
+        email: 'admin.support@ecodeli.me',
         password: hashedPassword,
         role: UserRole.ADMIN,
         status: UserStatus.ACTIVE,
         emailVerified: new Date(),
-        phoneNumber: '+33123456780',
+        phoneNumber: '+33123456790',
         locale: 'fr',
+        hasCompletedOnboarding: true,
         admin: {
           create: {
-            permissions: ['verification', 'support', 'reports'],
+            permissions: ['verification', 'support', 'user_management'],
             department: 'Support',
-            twoFactorEnabled: false,
+          },
+        },
+      },
+    }),
+
+    // Admin financier
+    prisma.user.create({
+      data: {
+        name: 'Admin Financier',
+        email: 'admin.finance@ecodeli.me',
+        password: hashedPassword,
+        role: UserRole.ADMIN,
+        status: UserStatus.ACTIVE,
+        emailVerified: new Date(),
+        phoneNumber: '+33123456791',
+        locale: 'fr',
+        hasCompletedOnboarding: true,
+        admin: {
+          create: {
+            permissions: ['financial', 'reports', 'payments'],
+            department: 'Finance',
           },
         },
       },
@@ -228,715 +301,664 @@ async function createAdminUsers() {
   return adminUsers;
 }
 
+// Création des clients
 async function createClientUsers() {
-  const hashedPassword = await hashPassword('123456');
+  const hashedPassword = await hashPassword(DEFAULT_PASSWORD);
+  const clients = [];
 
-  const clientUsers = await Promise.all([
-    // Active client 1
-    prisma.user.create({
+  const clientProfiles = [
+    { name: 'Sophie Martin', email: 'sophie.martin@gmail.com', status: UserStatus.ACTIVE, onboarded: true },
+    { name: 'Thomas Dupont', email: 'thomas.dupont@hotmail.fr', status: UserStatus.ACTIVE, onboarded: true },
+    { name: 'Emma Bernard', email: 'emma.bernard@yahoo.fr', status: UserStatus.ACTIVE, onboarded: false },
+    { name: 'Lucas Petit', email: 'lucas.petit@gmail.com', status: UserStatus.PENDING_VERIFICATION, onboarded: false },
+    { name: 'Chloé Dubois', email: 'chloe.dubois@outlook.fr', status: UserStatus.INACTIVE, onboarded: true },
+  ];
+
+  for (const profile of clientProfiles) {
+    const user = await prisma.user.create({
       data: {
-        name: 'Sophie Martin',
-        email: 'client.sophie@ecodeli.me',
+        name: profile.name,
+        email: profile.email,
         password: hashedPassword,
         role: UserRole.CLIENT,
-        status: UserStatus.ACTIVE,
-        emailVerified: new Date(),
-        phoneNumber: '+33601020304',
+        status: profile.status,
+        emailVerified: profile.status === UserStatus.PENDING_VERIFICATION ? null : new Date(),
+        phoneNumber: `+336${faker.string.numeric(8)}`,
         locale: 'fr',
+        isVerified: profile.status === UserStatus.ACTIVE,
+        hasCompletedOnboarding: profile.onboarded,
+        lastOnboardingStep: profile.onboarded ? 5 : faker.number.int({ min: 0, max: 4 }),
+        onboardingCompletionDate: profile.onboarded ? new Date() : null,
         client: {
           create: {
-            address: '15 Rue de Rivoli',
-            phone: '+33601020304',
-            city: 'Paris',
-            postalCode: '75001',
+            address: faker.location.streetAddress(),
+            phone: `+336${faker.string.numeric(8)}`,
+            city: faker.location.city(),
+            postalCode: faker.location.zipCode(),
             country: 'France',
+            preferredLanguage: 'fr',
+            newsletterOptIn: Math.random() > 0.3,
           },
         },
       },
-    }),
+    });
 
-    // Active client 2
-    prisma.user.create({
-      data: {
-        name: 'Thomas Dupont',
-        email: 'client.thomas@ecodeli.me',
-        password: hashedPassword,
-        role: UserRole.CLIENT,
-        status: UserStatus.ACTIVE,
-        emailVerified: new Date(),
-        phoneNumber: '+33602030405',
-        locale: 'fr',
-        client: {
-          create: {
-            address: '25 Avenue des Champs-Élysées',
-            phone: '+33602030405',
-            city: 'Paris',
-            postalCode: '75008',
+    clients.push(user);
+
+    // Création d'adresses multiples pour certains clients
+    if (profile.status === UserStatus.ACTIVE && Math.random() > 0.5) {
+      const clientData = await prisma.client.findUnique({ where: { userId: user.id } });
+      if (clientData) {
+        await prisma.address.create({
+          data: {
+            label: 'Domicile',
+            street: faker.location.streetAddress(),
+            city: faker.location.city(),
+            postalCode: faker.location.zipCode(),
             country: 'France',
+            isDefault: true,
+            clientId: clientData.id,
           },
-        },
-      },
-    }),
+        });
 
-    // Active client 3
-    prisma.user.create({
-      data: {
-        name: 'Emma Bernard',
-        email: 'client.emma@ecodeli.me',
-        password: hashedPassword,
-        role: UserRole.CLIENT,
-        status: UserStatus.ACTIVE,
-        emailVerified: new Date(),
-        phoneNumber: '+33603040506',
-        locale: 'fr',
-        client: {
-          create: {
-            address: '8 Place Bellecour',
-            phone: '+33603040506',
-            city: 'Lyon',
-            postalCode: '69002',
+        await prisma.address.create({
+          data: {
+            label: 'Travail',
+            street: faker.location.streetAddress(),
+            city: faker.location.city(),
+            postalCode: faker.location.zipCode(),
             country: 'France',
+            isDefault: false,
+            clientId: clientData.id,
           },
-        },
-      },
-    }),
+        });
+      }
+    }
+  }
 
-    // Pending verification client
-    prisma.user.create({
-      data: {
-        name: 'Lucas Petit',
-        email: 'client.lucas@ecodeli.me',
-        password: hashedPassword,
-        role: UserRole.CLIENT,
-        status: UserStatus.PENDING_VERIFICATION,
-        phoneNumber: '+33604050607',
-        locale: 'fr',
-        client: {
-          create: {
-            address: '45 Rue de la République',
-            phone: '+33604050607',
-            city: 'Marseille',
-            postalCode: '13001',
-            country: 'France',
-          },
-        },
-      },
-    }),
-
-    // Inactive client
-    prisma.user.create({
-      data: {
-        name: 'Chloe Dubois',
-        email: 'client.chloe@ecodeli.me',
-        password: hashedPassword,
-        role: UserRole.CLIENT,
-        status: UserStatus.INACTIVE,
-        emailVerified: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000), // 90 days ago
-        phoneNumber: '+33605060708',
-        locale: 'fr',
-        client: {
-          create: {
-            address: '12 Avenue Jean Médecin',
-            phone: '+33605060708',
-            city: 'Nice',
-            postalCode: '06000',
-            country: 'France',
-          },
-        },
-      },
-    }),
-  ]);
-
-  return clientUsers;
+  return clients;
 }
 
+// Création des livreurs
 async function createDelivererUsers(adminId: string) {
-  const hashedPassword = await hashPassword('123456');
+  const hashedPassword = await hashPassword(DEFAULT_PASSWORD);
+  const deliverers = [];
 
-  const delivererUsers = await Promise.all([
-    // Verified deliverer
-    prisma.user.create({
+  const delivererProfiles = [
+    { 
+      name: 'Alexandre Lebrun', 
+      email: 'alex.lebrun@gmail.com', 
+      status: UserStatus.ACTIVE,
+      vehicleType: 'Car',
+      licensePlate: 'AB-123-CD',
+      isVerified: true,
+      rating: 4.8
+    },
+    { 
+      name: 'Julie Moreau', 
+      email: 'julie.moreau@outlook.fr', 
+      status: UserStatus.PENDING_VERIFICATION,
+      vehicleType: 'Motorcycle',
+      licensePlate: 'EF-456-GH',
+      isVerified: false,
+      rating: null
+    },
+    { 
+      name: 'Pierre Durand', 
+      email: 'pierre.durand@gmail.com', 
+      status: UserStatus.ACTIVE,
+      vehicleType: 'Bicycle',
+      licensePlate: null,
+      isVerified: true,
+      rating: 4.6
+    },
+  ];
+
+  for (const profile of delivererProfiles) {
+    const user = await prisma.user.create({
       data: {
-        name: 'Alexandre Lebrun',
-        email: 'deliverer.alex@ecodeli.me',
+        name: profile.name,
+        email: profile.email,
         password: hashedPassword,
         role: UserRole.DELIVERER,
-        status: UserStatus.ACTIVE,
-        emailVerified: new Date(),
-        phoneNumber: '+33701020304',
+        status: profile.status,
+        emailVerified: profile.status !== UserStatus.PENDING_VERIFICATION ? new Date() : null,
+        phoneNumber: `+336${faker.string.numeric(8)}`,
         locale: 'fr',
+        isVerified: profile.isVerified,
+        hasCompletedOnboarding: profile.status === UserStatus.ACTIVE,
         deliverer: {
           create: {
-            address: '22 Boulevard Haussmann',
-            phone: '+33701020304',
-            vehicleType: 'Car',
-            licensePlate: 'AB-123-CD',
-            isVerified: true,
-            isActive: true,
-            verificationDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
-            maxCapacity: 50,
-            rating: 4.8,
+            address: faker.location.streetAddress(),
+            phone: `+336${faker.string.numeric(8)}`,
+            vehicleType: profile.vehicleType,
+            licensePlate: profile.licensePlate,
+            isVerified: profile.isVerified,
+            isActive: profile.status === UserStatus.ACTIVE,
+            rating: profile.rating,
+            maxCapacity: profile.vehicleType === 'Car' ? 100 : profile.vehicleType === 'Motorcycle' ? 30 : 15,
+            verificationDate: profile.isVerified ? generateRandomDate(new Date('2023-01-01'), new Date()) : null,
+            yearsOfExperience: faker.number.int({ min: 1, max: 10 }),
+            preferredVehicle: profile.vehicleType,
+            maxWeightCapacity: profile.vehicleType === 'Car' ? 100 : profile.vehicleType === 'Motorcycle' ? 30 : 15,
+            availableDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+            bio: faker.lorem.sentence(),
+            serviceZones: JSON.stringify({
+              type: "FeatureCollection",
+              features: [
+                {
+                  type: "Feature",
+                  properties: { name: "Zone Paris Centre" },
+                  geometry: {
+                    type: "Polygon",
+                    coordinates: [[[2.3, 48.8], [2.4, 48.8], [2.4, 48.9], [2.3, 48.9], [2.3, 48.8]]]
+                  }
+                }
+              ]
+            }),
           },
         },
       },
-    }),
+    });
 
-    // Pending deliverer
-    prisma.user.create({
-      data: {
-        name: 'Julie Moreau',
-        email: 'deliverer.julie@ecodeli.me',
-        password: hashedPassword,
-        role: UserRole.DELIVERER,
-        status: UserStatus.PENDING_VERIFICATION,
-        emailVerified: new Date(),
-        phoneNumber: '+33702030405',
-        locale: 'fr',
-        deliverer: {
-          create: {
-            address: '5 Rue Mouffetard',
-            phone: '+33702030405',
-            vehicleType: 'Motorcycle',
-            licensePlate: 'EF-456-GH',
-            isVerified: false,
-            isActive: false,
-            maxCapacity: 15,
-          },
-        },
-      },
-    }),
+    deliverers.push(user);
 
-    // Rejected deliverer
-    prisma.user.create({
-      data: {
-        name: 'Hugo Roux',
-        email: 'deliverer.hugo@ecodeli.me',
-        password: hashedPassword,
-        role: UserRole.DELIVERER,
-        status: UserStatus.SUSPENDED,
-        emailVerified: new Date(),
-        phoneNumber: '+33703040506',
-        locale: 'fr',
-        deliverer: {
-          create: {
-            address: '18 Rue du Faubourg Saint-Antoine',
-            phone: '+33703040506',
-            vehicleType: 'Bicycle',
-            licensePlate: null,
-            isVerified: false,
-            isActive: false,
-            maxCapacity: 10,
-          },
-        },
-      },
-    }),
-  ]);
+    // Création des documents justificatifs
+    await createDelivererDocuments(user.id, adminId, profile.isVerified);
+  }
 
-  // Create documents for deliverers
-  await Promise.all([
-    // Documents for verified deliverer
-    prisma.document.create({
-      data: {
-        type: DocumentType.ID_CARD,
-        userId: delivererUsers[0].id,
-        filename: 'id_card_alex.jpg',
-        fileUrl: 'https://storage.ecodeli.me/documents/id_card_alex.jpg',
-        mimeType: 'image/jpeg',
-        fileSize: 2500000,
-        uploadedAt: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000), // 35 days ago
-        isVerified: true,
-        verificationStatus: VerificationStatus.APPROVED,
-        reviewerId: adminId,
-        verifications: {
-          create: {
-            status: VerificationStatus.APPROVED,
-            requestedAt: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000),
-            verifiedAt: new Date(Date.now() - 34 * 24 * 60 * 60 * 1000),
-            submitterId: delivererUsers[0].id,
-            verifierId: adminId,
-            notes: 'Document verified and approved.',
-          },
-        },
-      },
-    }),
-    prisma.document.create({
-      data: {
-        type: DocumentType.DRIVING_LICENSE,
-        userId: delivererUsers[0].id,
-        filename: 'driving_license_alex.jpg',
-        fileUrl: 'https://storage.ecodeli.me/documents/driving_license_alex.jpg',
-        mimeType: 'image/jpeg',
-        fileSize: 1800000,
-        uploadedAt: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000),
-        isVerified: true,
-        verificationStatus: VerificationStatus.APPROVED,
-        reviewerId: adminId,
-        verifications: {
-          create: {
-            status: VerificationStatus.APPROVED,
-            requestedAt: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000),
-            verifiedAt: new Date(Date.now() - 34 * 24 * 60 * 60 * 1000),
-            submitterId: delivererUsers[0].id,
-            verifierId: adminId,
-            notes: 'Valid driving license.',
-          },
-        },
-      },
-    }),
-
-    // Documents for pending deliverer
-    prisma.document.create({
-      data: {
-        type: DocumentType.ID_CARD,
-        userId: delivererUsers[1].id,
-        filename: 'id_card_julie.jpg',
-        fileUrl: 'https://storage.ecodeli.me/documents/id_card_julie.jpg',
-        mimeType: 'image/jpeg',
-        fileSize: 2200000,
-        uploadedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 days ago
-        isVerified: false,
-        verificationStatus: VerificationStatus.PENDING,
-        verifications: {
-          create: {
-            status: VerificationStatus.PENDING,
-            requestedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-            submitterId: delivererUsers[1].id,
-          },
-        },
-      },
-    }),
-
-    // Documents for rejected deliverer
-    prisma.document.create({
-      data: {
-        type: DocumentType.ID_CARD,
-        userId: delivererUsers[2].id,
-        filename: 'id_card_hugo.jpg',
-        fileUrl: 'https://storage.ecodeli.me/documents/id_card_hugo.jpg',
-        mimeType: 'image/jpeg',
-        fileSize: 1900000,
-        uploadedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000), // 15 days ago
-        isVerified: false,
-        verificationStatus: VerificationStatus.REJECTED,
-        rejectionReason: 'Document unreadable or tampered with.',
-        reviewerId: adminId,
-        verifications: {
-          create: {
-            status: VerificationStatus.REJECTED,
-            requestedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
-            verifiedAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
-            submitterId: delivererUsers[2].id,
-            verifierId: adminId,
-            rejectionReason: 'Document unreadable or tampered with.',
-            notes: 'Please submit a clearer photo of your ID card.',
-          },
-        },
-      },
-    }),
-  ]);
-
-  return delivererUsers;
+  return deliverers;
 }
 
+// Création des documents pour les livreurs
+async function createDelivererDocuments(userId: string, adminId: string, isVerified: boolean) {
+  const documentTypes = [
+    { type: DocumentType.ID_CARD, filename: 'carte_identite.jpg', required: true },
+    { type: DocumentType.DRIVING_LICENSE, filename: 'permis_conduire.jpg', required: true },
+    { type: DocumentType.VEHICLE_REGISTRATION, filename: 'carte_grise.pdf', required: false },
+    { type: DocumentType.INSURANCE, filename: 'assurance.pdf', required: true },
+  ];
+
+  for (const doc of documentTypes) {
+    const status = isVerified ? VerificationStatus.APPROVED : 
+                   doc.required ? VerificationStatus.PENDING : 
+                   Math.random() > 0.5 ? VerificationStatus.PENDING : VerificationStatus.APPROVED;
+
+    await prisma.document.create({
+      data: {
+        type: doc.type,
+        userId,
+        filename: `${userId}_${doc.filename}`,
+        fileUrl: `https://storage.ecodeli.me/documents/${userId}_${doc.filename}`,
+        mimeType: doc.filename.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg',
+        fileSize: faker.number.int({ min: 500000, max: 5000000 }),
+        uploadedAt: generateRandomDate(new Date('2023-01-01'), new Date()),
+        isVerified: status === VerificationStatus.APPROVED,
+        verificationStatus: status,
+        reviewerId: status !== VerificationStatus.PENDING ? adminId : null,
+        rejectionReason: status === VerificationStatus.REJECTED ? 'Document illisible ou non conforme' : null,
+        verifications: {
+          create: {
+            status,
+            requestedAt: generateRandomDate(new Date('2023-01-01'), new Date()),
+            verifiedAt: status !== VerificationStatus.PENDING ? new Date() : null,
+            submitterId: userId,
+            verifierId: status !== VerificationStatus.PENDING ? adminId : null,
+            rejectionReason: status === VerificationStatus.REJECTED ? 'Document illisible ou non conforme' : null,
+            notes: status === VerificationStatus.APPROVED ? 'Document vérifié et approuvé' : null,
+          },
+        },
+      },
+    });
+  }
+}
+
+// Création des commerçants
 async function createMerchantUsers(adminId: string) {
-  const hashedPassword = await hashPassword('123456');
+  const hashedPassword = await hashPassword(DEFAULT_PASSWORD);
+  const merchants = [];
 
-  const merchantUsers = await Promise.all([
-    // Verified merchant
-    prisma.user.create({
+  const merchantProfiles = [
+    {
+      name: 'Marie Lecomte',
+      email: 'marie.lecomte@epicerie-fine.fr',
+      companyName: 'Épicerie Fine Lecomte',
+      businessType: 'Food Retail',
+      status: UserStatus.ACTIVE,
+      isVerified: true,
+    },
+    {
+      name: 'Antoine Leclerc',
+      email: 'antoine.leclerc@tech-boutique.fr',
+      companyName: 'Tech Boutique Leclerc',
+      businessType: 'Electronics Retail',
+      status: UserStatus.PENDING_VERIFICATION,
+      isVerified: false,
+    },
+    {
+      name: 'François Martin',
+      email: 'francois.martin@bio-market.fr',
+      companyName: 'Bio Market Martin',
+      businessType: 'Organic Food',
+      status: UserStatus.ACTIVE,
+      isVerified: true,
+    },
+  ];
+
+  for (const profile of merchantProfiles) {
+    const user = await prisma.user.create({
       data: {
-        name: 'Marie Lecomte',
-        email: 'merchant.marie@ecodeli.me',
+        name: profile.name,
+        email: profile.email,
         password: hashedPassword,
         role: UserRole.MERCHANT,
-        status: UserStatus.ACTIVE,
-        emailVerified: new Date(),
-        phoneNumber: '+33801020304',
+        status: profile.status,
+        emailVerified: profile.status === UserStatus.ACTIVE ? new Date() : null,
+        phoneNumber: `+331${faker.string.numeric(8)}`,
         locale: 'fr',
+        isVerified: profile.isVerified,
+        hasCompletedOnboarding: profile.status === UserStatus.ACTIVE,
         merchant: {
           create: {
-            companyName: 'Épicerie Fine Lecomte',
-            address: '35 Rue Saint-Honoré',
-            phone: '+33801020304',
-            businessType: 'Food Retail',
-            vatNumber: 'FR12345678901',
-            isVerified: true,
-            verificationDate: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000), // 45 days ago
-            businessName: 'Épicerie Fine Lecomte SARL',
-            businessAddress: '35 Rue Saint-Honoré',
-            businessCity: 'Paris',
-            businessPostal: '75001',
+            companyName: profile.companyName,
+            address: faker.location.streetAddress(),
+            phone: `+331${faker.string.numeric(8)}`,
+            businessType: profile.businessType,
+            vatNumber: `FR${faker.string.numeric(11)}`,
+            isVerified: profile.isVerified,
+            verificationDate: profile.isVerified ? generateRandomDate(new Date('2023-01-01'), new Date()) : null,
+            businessName: `${profile.companyName} SARL`,
+            businessAddress: faker.location.streetAddress(),
+            businessCity: faker.location.city(),
+            businessPostal: faker.location.zipCode(),
             businessCountry: 'France',
-            taxId: 'FR12345678901',
-            websiteUrl: 'https://epicerie-lecomte.fr',
+            taxId: `FR${faker.string.numeric(11)}`,
+            websiteUrl: `https://${profile.companyName.toLowerCase().replace(/\s+/g, '-')}.fr`,
+            logoUrl: `https://storage.ecodeli.me/merchants/logo_${faker.string.uuid()}.png`,
+            foundingYear: faker.number.int({ min: 1990, max: 2020 }),
+            employeeCount: faker.number.int({ min: 1, max: 50 }),
+            description: faker.company.catchPhrase(),
+            openingHours: JSON.stringify({
+              monday: { open: '09:00', close: '19:00' },
+              tuesday: { open: '09:00', close: '19:00' },
+              wednesday: { open: '09:00', close: '19:00' },
+              thursday: { open: '09:00', close: '19:00' },
+              friday: { open: '09:00', close: '19:00' },
+              saturday: { open: '10:00', close: '18:00' },
+              sunday: { open: '00:00', close: '00:00' },
+            }),
           },
         },
       },
-    }),
+    });
 
-    // Pending merchant
-    prisma.user.create({
-      data: {
-        name: 'Antoine Leclerc',
-        email: 'merchant.antoine@ecodeli.me',
-        password: hashedPassword,
-        role: UserRole.MERCHANT,
-        status: UserStatus.PENDING_VERIFICATION,
-        emailVerified: new Date(),
-        phoneNumber: '+33802030405',
-        locale: 'fr',
-        merchant: {
-          create: {
-            companyName: 'Tech Boutique Leclerc',
-            address: '12 Rue de la Paix',
-            phone: '+33802030405',
-            businessType: 'Electronics Retail',
-            vatNumber: 'FR98765432109',
-            isVerified: false,
-            businessName: 'Tech Boutique SARL',
-            businessAddress: '12 Rue de la Paix',
-            businessCity: 'Paris',
-            businessPostal: '75002',
-            businessCountry: 'France',
-            taxId: 'FR98765432109',
-            websiteUrl: 'https://tech-boutique.fr',
-          },
-        },
-      },
-    }),
-  ]);
+    merchants.push(user);
 
-  // Create contracts for merchants
-  await Promise.all([
-    // Active contract for verified merchant
-    prisma.contract.create({
-      data: {
-        merchantId: (await prisma.merchant.findUnique({
-          where: { userId: merchantUsers[0].id },
-        }))!.id,
-        title: 'Standard Delivery Partnership',
-        content: 'This agreement is made between EcoDeli and Épicerie Fine Lecomte...',
-        status: ContractStatus.ACTIVE,
-        signedAt: new Date(Date.now() - 44 * 24 * 60 * 60 * 1000),
-        expiresAt: new Date(Date.now() + 320 * 24 * 60 * 60 * 1000), // expires in about 320 days
-        fileUrl: 'https://storage.ecodeli.me/contracts/lecomte_contract.pdf',
-      },
-    }),
+    // Création des contrats pour les commerçants vérifiés
+    if (profile.isVerified) {
+      await createMerchantContract(user.id);
+    }
+  }
 
-    // Draft contract for pending merchant
-    prisma.contract.create({
-      data: {
-        merchantId: (await prisma.merchant.findUnique({
-          where: { userId: merchantUsers[1].id },
-        }))!.id,
-        title: 'Standard Delivery Partnership',
-        content: 'This agreement is made between EcoDeli and Tech Boutique Leclerc...',
-        status: ContractStatus.DRAFT,
-      },
-    }),
-  ]);
-
-  // Create verification documents for merchants
-  await Promise.all([
-    // Document for verified merchant
-    prisma.document.create({
-      data: {
-        type: DocumentType.BUSINESS_REGISTRATION,
-        userId: merchantUsers[0].id,
-        filename: 'business_reg_lecomte.pdf',
-        fileUrl: 'https://storage.ecodeli.me/documents/business_reg_lecomte.pdf',
-        mimeType: 'application/pdf',
-        fileSize: 3500000,
-        uploadedAt: new Date(Date.now() - 47 * 24 * 60 * 60 * 1000),
-        isVerified: true,
-        verificationStatus: VerificationStatus.APPROVED,
-        reviewerId: adminId,
-        verifications: {
-          create: {
-            status: VerificationStatus.APPROVED,
-            requestedAt: new Date(Date.now() - 47 * 24 * 60 * 60 * 1000),
-            verifiedAt: new Date(Date.now() - 46 * 24 * 60 * 60 * 1000),
-            submitterId: merchantUsers[0].id,
-            verifierId: adminId,
-            notes: 'Business registration verified.',
-          },
-        },
-      },
-    }),
-
-    // Document for pending merchant
-    prisma.document.create({
-      data: {
-        type: DocumentType.BUSINESS_REGISTRATION,
-        userId: merchantUsers[1].id,
-        filename: 'business_reg_leclerc.pdf',
-        fileUrl: 'https://storage.ecodeli.me/documents/business_reg_leclerc.pdf',
-        mimeType: 'application/pdf',
-        fileSize: 3200000,
-        uploadedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-        isVerified: false,
-        verificationStatus: VerificationStatus.PENDING,
-        verifications: {
-          create: {
-            status: VerificationStatus.PENDING,
-            requestedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-            submitterId: merchantUsers[1].id,
-          },
-        },
-      },
-    }),
-  ]);
-
-  return merchantUsers;
+  return merchants;
 }
 
+// Création des contrats pour les commerçants
+async function createMerchantContract(userId: string) {
+  const merchant = await prisma.merchant.findUnique({ where: { userId } });
+  if (!merchant) return;
+
+  await prisma.contract.create({
+    data: {
+      merchantId: merchant.id,
+      title: 'Contrat de partenariat standard EcoDeli',
+      content: `CONTRAT DE PARTENARIAT
+
+Entre les soussignés :
+
+EcoDeli, société par actions simplifiée au capital de 100 000 euros, dont le siège social est situé au 110 rue de Flandre, 75019 Paris, immatriculée au RCS de Paris sous le numéro 123 456 789, représentée par son Président,
+
+Ci-après dénommée "EcoDeli"
+
+ET
+
+${merchant.companyName}, ${merchant.businessName}, dont le siège social est situé au ${merchant.businessAddress}, ${merchant.businessCity}, ${merchant.businessPostal}, immatriculée sous le numéro ${merchant.vatNumber}, représentée par ${merchant.businessName},
+
+Ci-après dénommée "le Partenaire"
+
+Article 1 - OBJET
+Le présent contrat a pour objet de définir les conditions de partenariat entre EcoDeli et le Partenaire pour la livraison de marchandises.
+
+Article 2 - DURÉE
+Le présent contrat est conclu pour une durée d'un an à compter de sa signature, renouvelable par tacite reconduction.
+
+Article 3 - OBLIGATIONS
+3.1 Obligations d'EcoDeli
+- Mise à disposition de la plateforme de livraison
+- Gestion des livreurs
+- Service client
+
+3.2 Obligations du Partenaire
+- Respect des délais de préparation
+- Qualité des produits
+- Paiement des commissions
+
+Article 4 - COMMISSIONS
+Le Partenaire s'engage à verser à EcoDeli une commission de ${COMMISSION_RATE * 100}% sur chaque livraison effectuée.
+
+Article 5 - FACTURATION
+La facturation est établie mensuellement. Le paiement doit être effectué sous 30 jours.
+
+Article 6 - RÉSILIATION
+Chaque partie peut résilier le contrat avec un préavis de 30 jours.
+
+Fait à Paris, le ${new Date().toLocaleDateString('fr-FR')}
+
+Pour EcoDeli                    Pour ${merchant.companyName}
+`,
+      status: ContractStatus.ACTIVE,
+      signedAt: generateRandomDate(new Date('2023-01-01'), new Date()),
+      expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000), // 1 an
+      fileUrl: `https://storage.ecodeli.me/contracts/contract_${merchant.id}.pdf`,
+    },
+  });
+}
+
+// Création des prestataires
 async function createProviderUsers(adminId: string) {
-  const hashedPassword = await hashPassword('123456');
+  const hashedPassword = await hashPassword(DEFAULT_PASSWORD);
+  const providers = [];
 
-  const providerUsers = await Promise.all([
-    // Verified provider
-    prisma.user.create({
+  const providerProfiles = [
+    {
+      name: 'Paul Girard',
+      email: 'paul.girard@services-transport.fr',
+      companyName: 'Services Girard',
+      services: ['Transport personnes', 'Transfert aéroport', 'Transport médical'],
+      status: UserStatus.ACTIVE,
+      isVerified: true,
+      rating: 4.9,
+    },
+    {
+      name: 'Clara Mercier',
+      email: 'clara.mercier@aide-domicile.fr',
+      companyName: 'Assistance Mercier',
+      services: ['Garde personnes âgées', 'Aide aux courses', 'Services à domicile'],
+      status: UserStatus.PENDING_VERIFICATION,
+      isVerified: false,
+      rating: null,
+    },
+    {
+      name: 'Michel Dubois',
+      email: 'michel.dubois@services-pro.fr',
+      companyName: 'Services Pro Dubois',
+      services: ['Bricolage', 'Jardinage', 'Petits travaux'],
+      status: UserStatus.ACTIVE,
+      isVerified: true,
+      rating: 4.7,
+    },
+  ];
+
+  for (const profile of providerProfiles) {
+    const user = await prisma.user.create({
       data: {
-        name: 'Paul Girard',
-        email: 'provider.paul@ecodeli.me',
+        name: profile.name,
+        email: profile.email,
         password: hashedPassword,
         role: UserRole.PROVIDER,
-        status: UserStatus.ACTIVE,
-        emailVerified: new Date(),
-        phoneNumber: '+33901020304',
+        status: profile.status,
+        emailVerified: profile.status === UserStatus.ACTIVE ? new Date() : null,
+        phoneNumber: `+336${faker.string.numeric(8)}`,
         locale: 'fr',
+        isVerified: profile.isVerified,
+        hasCompletedOnboarding: profile.status === UserStatus.ACTIVE,
         isProvider: true,
-        providerVerified: true,
-        providerBio: 'Professional transport and assistance services with 10+ years of experience.',
-        providerAddress: '8 Rue Montorgueil, Paris',
-        providerZipCode: '75002',
-        providerCity: 'Paris',
-        providerLocationLat: 48.8638,
-        providerLocationLng: 2.347,
+        providerVerified: profile.isVerified,
+        providerBio: faker.lorem.paragraph(),
+        providerAddress: faker.location.streetAddress(),
+        providerZipCode: faker.location.zipCode(),
+        providerCity: faker.location.city(),
+        providerLocationLat: 48.8566 + (Math.random() * 0.1 - 0.05),
+        providerLocationLng: 2.3522 + (Math.random() * 0.1 - 0.05),
         provider: {
           create: {
-            companyName: 'Services Girard',
-            address: '8 Rue Montorgueil',
-            phone: '+33901020304',
-            services: ['Transport', 'Home Assistance', 'Airport Pickup'],
-            isVerified: true,
-            rating: 4.9,
-            serviceType: 'Personal Transport',
-            description: 'Professional transport and assistance services.',
-            availability: JSON.stringify({
-              monday: ['9:00-18:00'],
-              tuesday: ['9:00-18:00'],
-              wednesday: ['9:00-18:00'],
-              thursday: ['9:00-18:00'],
-              friday: ['9:00-18:00'],
-            }),
-            verificationDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), // 60 days ago
-          },
-        },
-      },
-    }),
-
-    // Pending provider
-    prisma.user.create({
-      data: {
-        name: 'Clara Mercier',
-        email: 'provider.clara@ecodeli.me',
-        password: hashedPassword,
-        role: UserRole.PROVIDER,
-        status: UserStatus.PENDING_VERIFICATION,
-        emailVerified: new Date(),
-        phoneNumber: '+33902030405',
-        locale: 'fr',
-        isProvider: true,
-        providerVerified: false,
-        providerBio: 'Specialized in elderly care and home assistance services.',
-        providerAddress: '15 Avenue Victor Hugo, Paris',
-        providerZipCode: '75016',
-        providerCity: 'Paris',
-        providerLocationLat: 48.8698,
-        providerLocationLng: 2.285,
-        provider: {
-          create: {
-            companyName: 'Assistance Mercier',
-            address: '15 Avenue Victor Hugo',
-            phone: '+33902030405',
-            services: ['Elderly Care', 'Home Assistance', 'Shopping Assistance'],
-            isVerified: false,
-            serviceType: 'Home Assistance',
-            description: 'Personalized home assistance and care services.',
-            availability: JSON.stringify({
-              monday: ['8:00-17:00'],
-              tuesday: ['8:00-17:00'],
-              wednesday: ['8:00-17:00'],
-              thursday: ['8:00-17:00'],
-              friday: ['8:00-17:00'],
+            companyName: profile.companyName,
+            address: faker.location.streetAddress(),
+            phone: `+336${faker.string.numeric(8)}`,
+            services: profile.services,
+            isVerified: profile.isVerified,
+            rating: profile.rating,
+            serviceType: profile.services[0],
+            description: faker.lorem.paragraph(),
+            verificationDate: profile.isVerified ? generateRandomDate(new Date('2023-01-01'), new Date()) : null,
+            yearsInBusiness: faker.number.int({ min: 1, max: 20 }),
+            serviceRadius: faker.number.int({ min: 5, max: 50 }),
+            languages: ['Français', 'Anglais'],
+            qualifications: profile.services.map(service => `Certification ${service}`),
+            insuranceInfo: JSON.stringify({
+              company: 'AXA Assurances',
+              policyNumber: `POL-${faker.string.numeric(8)}`,
+              expiryDate: '2025-12-31',
             }),
           },
         },
       },
-    }),
-  ]);
+    });
 
-  // Create skills for providers
-  await Promise.all([
-    // Skills for verified provider
-    prisma.skill.create({
-      data: {
-        providerId: (await prisma.provider.findUnique({
-          where: { userId: providerUsers[0].id },
-        }))!.id,
-        name: 'Airport Transfer',
-        description: 'Professional airport pickup and dropoff.',
-        isVerified: true,
-      },
-    }),
-    prisma.skill.create({
-      data: {
-        providerId: (await prisma.provider.findUnique({
-          where: { userId: providerUsers[0].id },
-        }))!.id,
-        name: 'Elderly Transport',
-        description: 'Specialized transport for elderly people.',
-        isVerified: true,
-      },
-    }),
+    providers.push(user);
 
-    // Skills for pending provider
-    prisma.skill.create({
-      data: {
-        providerId: (await prisma.provider.findUnique({
-          where: { userId: providerUsers[1].id },
-        }))!.id,
-        name: 'Elderly Care',
-        description: 'Professional care for elderly people.',
-        isVerified: false,
-      },
-    }),
-    prisma.skill.create({
-      data: {
-        providerId: (await prisma.provider.findUnique({
-          where: { userId: providerUsers[1].id },
-        }))!.id,
-        name: 'Shopping Assistance',
-        description: 'Help with daily shopping and errands.',
-        isVerified: false,
-      },
-    }),
-  ]);
-
-  // Create verification documents for providers
-  await Promise.all([
-    // Documents for verified provider
-    prisma.document.create({
-      data: {
-        type: DocumentType.ID_CARD,
-        userId: providerUsers[0].id,
-        filename: 'id_card_paul.jpg',
-        fileUrl: 'https://storage.ecodeli.me/documents/id_card_paul.jpg',
-        mimeType: 'image/jpeg',
-        fileSize: 2100000,
-        uploadedAt: new Date(Date.now() - 65 * 24 * 60 * 60 * 1000),
-        isVerified: true,
-        verificationStatus: VerificationStatus.APPROVED,
-        reviewerId: adminId,
-        verifications: {
-          create: {
-            status: VerificationStatus.APPROVED,
-            requestedAt: new Date(Date.now() - 65 * 24 * 60 * 60 * 1000),
-            verifiedAt: new Date(Date.now() - 63 * 24 * 60 * 60 * 1000),
-            submitterId: providerUsers[0].id,
-            verifierId: adminId,
-            notes: 'ID verified successfully.',
+    // Création des compétences pour les prestataires
+    const provider = await prisma.provider.findUnique({ where: { userId: user.id } });
+    if (provider) {
+      for (const service of profile.services) {
+        await prisma.skill.create({
+          data: {
+            providerId: provider.id,
+            name: service,
+            description: `${service} - Service professionnel assuré par ${profile.name}`,
+            isVerified: profile.isVerified,
           },
-        },
-      },
-    }),
-    prisma.document.create({
-      data: {
-        type: DocumentType.QUALIFICATION_CERTIFICATE,
-        userId: providerUsers[0].id,
-        filename: 'qualification_paul.pdf',
-        fileUrl: 'https://storage.ecodeli.me/documents/qualification_paul.pdf',
-        mimeType: 'application/pdf',
-        fileSize: 4200000,
-        uploadedAt: new Date(Date.now() - 65 * 24 * 60 * 60 * 1000),
-        isVerified: true,
-        verificationStatus: VerificationStatus.APPROVED,
-        reviewerId: adminId,
-        verifications: {
-          create: {
-            status: VerificationStatus.APPROVED,
-            requestedAt: new Date(Date.now() - 65 * 24 * 60 * 60 * 1000),
-            verifiedAt: new Date(Date.now() - 63 * 24 * 60 * 60 * 1000),
-            submitterId: providerUsers[0].id,
-            verifierId: adminId,
-            notes: 'Professional qualifications verified.',
-          },
-        },
-      },
-    }),
+        });
+      }
+    }
 
-    // Documents for pending provider
-    prisma.document.create({
-      data: {
-        type: DocumentType.ID_CARD,
-        userId: providerUsers[1].id,
-        filename: 'id_card_clara.jpg',
-        fileUrl: 'https://storage.ecodeli.me/documents/id_card_clara.jpg',
-        mimeType: 'image/jpeg',
-        fileSize: 2300000,
-        uploadedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-        isVerified: false,
-        verificationStatus: VerificationStatus.PENDING,
-        verifications: {
-          create: {
-            status: VerificationStatus.PENDING,
-            requestedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-            submitterId: providerUsers[1].id,
-          },
-        },
-      },
-    }),
-    prisma.document.create({
-      data: {
-        type: DocumentType.QUALIFICATION_CERTIFICATE,
-        userId: providerUsers[1].id,
-        filename: 'qualification_clara.pdf',
-        fileUrl: 'https://storage.ecodeli.me/documents/qualification_clara.pdf',
-        mimeType: 'application/pdf',
-        fileSize: 3800000,
-        uploadedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-        isVerified: false,
-        verificationStatus: VerificationStatus.PENDING,
-        verifications: {
-          create: {
-            status: VerificationStatus.PENDING,
-            requestedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-            submitterId: providerUsers[1].id,
-          },
-        },
-      },
-    }),
-  ]);
+    // Création des documents pour les prestataires
+    if (profile.status === 'ACTIVE' || profile.status === 'PENDING_VERIFICATION') {
+      await createProviderDocuments(user.id, adminId, profile.isVerified);
+    }
+  }
 
-  return providerUsers;
+  return providers;
 }
 
-async function createWarehousesAndBoxes() {
-  // Create warehouses
-  const warehouses = await Promise.all([
-    // Paris warehouse
-    prisma.warehouse.create({
+// Création des documents pour les prestataires
+async function createProviderDocuments(userId: string, adminId: string, isVerified: boolean) {
+  const documentTypes = [
+    { type: DocumentType.ID_CARD, filename: 'carte_identite.jpg', required: true },
+    { type: DocumentType.QUALIFICATION_CERTIFICATE, filename: 'certification.pdf', required: true },
+    { type: DocumentType.INSURANCE, filename: 'assurance_pro.pdf', required: true },
+    { type: DocumentType.BUSINESS_REGISTRATION, filename: 'kbis.pdf', required: false },
+  ];
+
+  for (const doc of documentTypes) {
+    const status = isVerified ? VerificationStatus.APPROVED : 
+                   doc.required ? VerificationStatus.PENDING : 
+                   Math.random() > 0.5 ? VerificationStatus.PENDING : VerificationStatus.APPROVED;
+
+    await prisma.document.create({
       data: {
-        name: 'Paris Central',
-        location: 'Paris',
-        address: '110 Rue de Flandre, 75019 Paris',
-        capacity: 1000,
-        occupied: 600,
-        description: 'Central warehouse in Paris with 24/7 access',
+        type: doc.type,
+        userId,
+        filename: `${userId}_${doc.filename}`,
+        fileUrl: `https://storage.ecodeli.me/documents/${userId}_${doc.filename}`,
+        mimeType: doc.filename.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg',
+        fileSize: faker.number.int({ min: 500000, max: 5000000 }),
+        uploadedAt: generateRandomDate(new Date('2023-01-01'), new Date()),
+        isVerified: status === VerificationStatus.APPROVED,
+        verificationStatus: status,
+        reviewerId: status !== VerificationStatus.PENDING ? adminId : null,
+        rejectionReason: status === VerificationStatus.REJECTED ? 'Document non conforme aux exigences' : null,
+        verifications: {
+          create: {
+            status,
+            requestedAt: generateRandomDate(new Date('2023-01-01'), new Date()),
+            verifiedAt: status !== VerificationStatus.PENDING ? new Date() : null,
+            submitterId: userId,
+            verifierId: status !== VerificationStatus.PENDING ? adminId : null,
+            rejectionReason: status === VerificationStatus.REJECTED ? 'Document non conforme aux exigences' : null,
+            notes: status === VerificationStatus.APPROVED ? 'Document vérifié et approuvé' : null,
+          },
+        },
+      },
+    });
+  }
+}
+
+// Création des données financières
+async function createFinancialData(users: any[]) {
+  for (const user of users) {
+    // Création du wallet pour chaque utilisateur
+    const wallet = await prisma.wallet.create({
+      data: {
+        userId: user.id,
+        balance: faker.number.float({ min: 0, max: 1000, fractionDigits: 2 }),
+        currency: 'EUR',
         isActive: true,
-        latitude: 48.8879,
-        longitude: 2.3772,
+        totalEarned: faker.number.float({ min: 0, max: 5000, fractionDigits: 2 }),
+        totalWithdrawn: faker.number.float({ min: 0, max: 3000, fractionDigits: 2 }),
+        withdrawalCount: faker.number.int({ min: 0, max: 20 }),
+      },
+    });
+
+    // Création des transactions du wallet
+    const transactionCount = faker.number.int({ min: 5, max: 20 });
+    for (let i = 0; i < transactionCount; i++) {
+      const transactionType = faker.helpers.arrayElement([
+        TransactionType.EARNING,
+        TransactionType.WITHDRAWAL,
+        TransactionType.PLATFORM_FEE,
+        TransactionType.ADJUSTMENT,
+      ]);
+
+      await prisma.walletTransaction.create({
+        data: {
+          walletId: wallet.id,
+          amount: faker.number.float({ min: 10, max: 500, fractionDigits: 2 }),
+          currency: 'EUR',
+          type: transactionType,
+          status: TransactionStatus.COMPLETED,
+          description: `${transactionType} - ${faker.lorem.sentence()}`,
+          createdAt: generateRandomDate(new Date('2023-01-01'), new Date()),
+        },
+      });
+    }
+
+    // Création des méthodes de paiement (Stripe)
+    if (user.role === UserRole.CLIENT || Math.random() > 0.5) {
+      await prisma.paymentMethod.create({
+        data: {
+          userId: user.id,
+          stripePaymentMethodId: `pm_${faker.string.uuid()}`,
+          type: 'card',
+          isDefault: true,
+          brand: faker.helpers.arrayElement(['visa', 'mastercard', 'amex']),
+          last4: faker.string.numeric(4),
+          expiryMonth: faker.number.int({ min: 1, max: 12 }),
+          expiryYear: faker.number.int({ min: 2025, max: 2030 }),
+        },
+      });
+    }
+
+    // Création des abonnements pour les clients
+    if (user.role === UserRole.CLIENT && Math.random() > 0.3) {
+      const planType = faker.helpers.arrayElement([PlanType.FREE, PlanType.STARTER, PlanType.PREMIUM]);
+      const subscription = await prisma.subscription.create({
+        data: {
+          userId: user.id,
+          status: SubscriptionStatus.ACTIVE,
+          planType,
+          stripePriceId: `price_${faker.string.uuid()}`,
+          stripeSubscriptionId: `sub_${faker.string.uuid()}`,
+          startDate: generateRandomDate(new Date('2023-01-01'), new Date()),
+          autoRenew: true,
+          planName: planType,
+          planPrice: planType === PlanType.FREE ? 0 : planType === PlanType.STARTER ? 9.90 : 19.99,
+          insuranceAmount: planType === PlanType.FREE ? 0 : planType === PlanType.STARTER ? 115 : 3000,
+          discountPercent: planType === PlanType.FREE ? 0 : planType === PlanType.STARTER ? 5 : 9,
+          isPriority: planType === PlanType.PREMIUM,
+        },
+      });
+
+      // Création des factures pour les abonnements payants
+      if (planType !== PlanType.FREE) {
+        const invoice = await prisma.invoice.create({
+          data: {
+            number: generateInvoiceNumber(new Date(), faker.number.int({ min: 1, max: 9999 })),
+            userId: user.id,
+            subscriptionId: subscription.id,
+            amount: subscription.planPrice!,
+            currency: 'EUR',
+            status: InvoiceStatus.PAID,
+            dueDate: new Date(),
+            issuedDate: new Date(),
+            paidDate: new Date(),
+            stripeInvoiceId: `in_${faker.string.uuid()}`,
+            companyName: 'EcoDeli SAS',
+            companyAddress: '110 Rue de Flandre, 75019 Paris',
+            companyVatNumber: 'FR12345678901',
+            companySiret: '123 456 789 00010',
+            clientName: user.name,
+            clientAddress: '123 Rue Example, 75001 Paris',
+            language: 'fr',
+            totalBeforeTax: subscription.planPrice!,
+            totalTax: subscription.planPrice! * 0.2,
+            totalAfterTax: subscription.planPrice! * 1.2,
+          },
+        });
+
+        // Création des lignes de facture
+        await prisma.invoiceItem.create({
+          data: {
+            invoiceId: invoice.id,
+            description: `Abonnement ${planType} - EcoDeli`,
+            quantity: 1,
+            unitPrice: subscription.planPrice!,
+            taxRate: 20.00,
+            taxAmount: subscription.planPrice! * 0.2,
+            totalAmount: subscription.planPrice! * 1.2,
+            itemType: 'subscription',
+          },
+        });
+      }
+    }
+  }
+}
+
+// Création des entrepôts et box
+async function createWarehousesAndBoxes() {
+  const warehouseLocations = [
+    { name: 'Paris - Siège', city: 'Paris', address: '110 Rue de Flandre, 75019 Paris', lat: 48.8879, lng: 2.3772 },
+    { name: 'Marseille', city: 'Marseille', address: '45 Quai des Belges, 13001 Marseille', lat: 43.2965, lng: 5.3698 },
+    { name: 'Lyon', city: 'Lyon', address: '15 Rue de la République, 69001 Lyon', lat: 45.764, lng: 4.8357 },
+    { name: 'Lille', city: 'Lille', address: '30 Rue Nationale, 59000 Lille', lat: 50.6365, lng: 3.0635 },
+    { name: 'Montpellier', city: 'Montpellier', address: '20 Avenue de Toulouse, 34000 Montpellier', lat: 43.6008, lng: 3.8969 },
+    { name: 'Rennes', city: 'Rennes', address: '25 Rue de Brest, 35000 Rennes', lat: 48.1173, lng: -1.6778 },
+  ];
+
+  const warehouses = [];
+
+  for (const location of warehouseLocations) {
+    const warehouse = await prisma.warehouse.create({
+      data: {
+        name: location.name,
+        location: location.city,
+        address: location.address,
+        capacity: faker.number.int({ min: 500, max: 1500 }),
+        occupied: faker.number.int({ min: 100, max: 800 }),
+        description: `Entrepôt EcoDeli ${location.city} - Stockage temporaire sécurisé`,
+        isActive: true,
+        latitude: location.lat,
+        longitude: location.lng,
         openingHours: JSON.stringify({
           monday: { open: '08:00', close: '20:00' },
           tuesday: { open: '08:00', close: '20:00' },
@@ -946,121 +968,45 @@ async function createWarehousesAndBoxes() {
           saturday: { open: '09:00', close: '18:00' },
           sunday: { open: '10:00', close: '16:00' },
         }),
-        contactPhone: '+33123456789',
-        contactEmail: 'paris.warehouse@ecodeli.me',
-        imageUrl: 'https://storage.ecodeli.me/warehouses/paris_central.jpg',
-        availableBoxes: 20,
-        reservedBoxes: 10,
+        contactPhone: `+33${faker.string.numeric(9)}`,
+        contactEmail: `${location.city.toLowerCase()}.warehouse@ecodeli.me`,
+        imageUrl: `https://storage.ecodeli.me/warehouses/${location.city.toLowerCase()}.jpg`,
+        availableBoxes: faker.number.int({ min: 10, max: 30 }),
+        reservedBoxes: faker.number.int({ min: 5, max: 15 }),
       },
-    }),
+    });
 
-    // Lyon warehouse
-    prisma.warehouse.create({
-      data: {
-        name: 'Lyon Hub',
-        location: 'Lyon',
-        address: '15 Rue de la République, 69001 Lyon',
-        capacity: 800,
-        occupied: 400,
-        description: 'Lyon distribution hub with climate control',
-        isActive: true,
-        latitude: 45.764,
-        longitude: 4.8357,
-        openingHours: JSON.stringify({
-          monday: { open: '08:00', close: '19:00' },
-          tuesday: { open: '08:00', close: '19:00' },
-          wednesday: { open: '08:00', close: '19:00' },
-          thursday: { open: '08:00', close: '19:00' },
-          friday: { open: '08:00', close: '19:00' },
-          saturday: { open: '09:00', close: '17:00' },
-          sunday: { open: '10:00', close: '14:00' },
-        }),
-        contactPhone: '+33423456789',
-        contactEmail: 'lyon.warehouse@ecodeli.me',
-        imageUrl: 'https://storage.ecodeli.me/warehouses/lyon_hub.jpg',
-        availableBoxes: 15,
-        reservedBoxes: 5,
-      },
-    }),
+    warehouses.push(warehouse);
 
-    // Marseille warehouse
-    prisma.warehouse.create({
-      data: {
-        name: 'Marseille Port',
-        location: 'Marseille',
-        address: '45 Quai des Belges, 13001 Marseille',
-        capacity: 600,
-        occupied: 300,
-        description: 'Port-side warehouse in Marseille',
-        isActive: true,
-        latitude: 43.2965,
-        longitude: 5.3698,
-        openingHours: JSON.stringify({
-          monday: { open: '08:30', close: '18:30' },
-          tuesday: { open: '08:30', close: '18:30' },
-          wednesday: { open: '08:30', close: '18:30' },
-          thursday: { open: '08:30', close: '18:30' },
-          friday: { open: '08:30', close: '18:30' },
-          saturday: { open: '09:30', close: '16:30' },
-          sunday: { open: '00:00', close: '00:00' }, // Closed
-        }),
-        contactPhone: '+33491234567',
-        contactEmail: 'marseille.warehouse@ecodeli.me',
-        imageUrl: 'https://storage.ecodeli.me/warehouses/marseille_port.jpg',
-        availableBoxes: 10,
-        reservedBoxes: 8,
-      },
-    }),
-  ]);
-
-  // Create boxes for each warehouse
-  for (const warehouse of warehouses) {
-    // Create different types of boxes for each warehouse
-    const boxTypes = [
-      BoxType.STANDARD,
-      BoxType.CLIMATE_CONTROLLED,
-      BoxType.SECURE,
-      BoxType.EXTRA_LARGE,
-      BoxType.REFRIGERATED,
-      BoxType.FRAGILE,
-    ];
-
-    const boxStatuses = [
-      BoxStatus.AVAILABLE,
-      BoxStatus.RESERVED,
-      BoxStatus.OCCUPIED,
-      BoxStatus.MAINTENANCE,
-    ];
-
-    // Create 10 boxes for each warehouse
-    for (let i = 1; i <= 10; i++) {
-      const boxType = boxTypes[Math.floor(Math.random() * boxTypes.length)];
-      const boxStatus = boxStatuses[Math.floor(Math.random() * boxStatuses.length)];
-      const size = Math.floor(Math.random() * 10) + 1; // 1-10 m²
-      const price = size * 5 + (boxType === BoxType.STANDARD ? 0 : 10); // Basic pricing model
+    // Création des box pour chaque entrepôt
+    const boxCount = faker.number.int({ min: 20, max: 50 });
+    for (let i = 1; i <= boxCount; i++) {
+      const boxType = faker.helpers.arrayElement(Object.values(BoxType));
+      const size = faker.number.float({ min: 1, max: 20, fractionDigits: 1 });
+      const pricePerDay = size * 5 + (boxType === BoxType.STANDARD ? 0 : 10);
 
       await prisma.box.create({
         data: {
           warehouseId: warehouse.id,
           name: `${warehouse.name}-Box-${i}`,
-          size: size,
-          boxType: boxType,
-          isOccupied: boxStatus === BoxStatus.OCCUPIED,
-          pricePerDay: price,
-          description: `${boxType} storage box in ${warehouse.name}`,
-          locationDescription: `Level ${Math.floor(i / 4)}, Row ${i % 4}`,
-          floorLevel: Math.floor(i / 4),
-          maxWeight: size * 50, // 50kg per m²
+          size,
+          boxType,
+          isOccupied: Math.random() > 0.7,
+          pricePerDay,
+          description: `Box ${boxType} - ${size}m² - ${warehouse.name}`,
+          locationDescription: `Niveau ${Math.floor(i / 10)}, Rangée ${i % 10}`,
+          floorLevel: Math.floor(i / 10),
+          maxWeight: size * 50,
           dimensions: JSON.stringify({
             width: Math.round(Math.sqrt(size) * 100) / 100,
             height: 2.5,
             depth: Math.round(Math.sqrt(size) * 100) / 100,
           }),
-          features: getFeaturesByBoxType(boxType),
-          status: boxStatus,
-          lastInspectedAt: new Date(
-            Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000
-          ),
+          features: boxType === BoxType.CLIMATE_CONTROLLED ? ['climatisé', 'surveillance_24h', 'accès_sécurisé'] :
+                   boxType === BoxType.SECURE ? ['haute_sécurité', 'biométrique', 'alarme'] :
+                   ['standard', 'surveillance', 'accès_24h'],
+          status: faker.helpers.arrayElement(Object.values(BoxStatus)),
+          lastInspectedAt: generateRandomDate(new Date('2023-01-01'), new Date()),
         },
       });
     }
@@ -1069,328 +1015,102 @@ async function createWarehousesAndBoxes() {
   return warehouses;
 }
 
-function getFeaturesByBoxType(boxType: BoxType): string[] {
-  switch (boxType) {
-    case BoxType.STANDARD:
-      return ['secure-lock', '24h-access'];
-    case BoxType.CLIMATE_CONTROLLED:
-      return ['climate-controlled', 'secure-lock', '24h-access', 'temperature-monitoring'];
-    case BoxType.SECURE:
-      return ['high-security', 'video-surveillance', 'biometric-access', 'alarm', '24h-access'];
-    case BoxType.EXTRA_LARGE:
-      return ['oversized', 'loading-dock', 'forklift-accessible', '24h-access'];
-    case BoxType.REFRIGERATED:
-      return ['temperature-controlled', 'cold-storage', 'humidity-controlled', '24h-access'];
-    case BoxType.FRAGILE:
-      return [
-        'padded-walls',
-        'vibration-dampening',
-        'climate-controlled',
-        'secure-lock',
-        '24h-access',
-      ];
-    default:
-      return ['secure-lock', '24h-access'];
-  }
-}
-
-async function createReservationsAndUsage(clientUsers: any[]) {
-  // Get available boxes
-  const availableBoxes = await prisma.box.findMany({
-    where: { status: BoxStatus.AVAILABLE },
-    take: 5,
-  });
-
-  const reservations = [];
-
-  // Create reservations for the first 3 clients
-  for (let i = 0; i < Math.min(3, clientUsers.length, availableBoxes.length); i++) {
-    const clientUser = clientUsers[i];
-    const box = availableBoxes[i];
-
-    // Calculate dates
-    const startDate = new Date(Date.now() - Math.floor(Math.random() * 15) * 24 * 60 * 60 * 1000);
-    const endDate = new Date(
-      startDate.getTime() + Math.floor(Math.random() * 30 + 5) * 24 * 60 * 60 * 1000
-    );
-    const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000));
-    const totalPrice = totalDays * box.pricePerDay;
-
-    // Create reservation
-    const reservation = await prisma.reservation.create({
-      data: {
-        boxId: box.id,
-        clientId: clientUser.id,
-        startDate: startDate,
-        endDate: endDate,
-        status: ReservationStatus.ACTIVE,
-        totalPrice: totalPrice,
-        paymentStatus: PaymentStatus.COMPLETED,
-        accessCode: Math.floor(100000 + Math.random() * 900000).toString(), // 6-digit code
-        lastAccessed: new Date(Date.now() - Math.floor(Math.random() * 5) * 24 * 60 * 60 * 1000),
-        notes: `Reservation for ${clientUser.name}`,
-      },
-    });
-
-    reservations.push(reservation);
-
-    // Update box status
-    await prisma.box.update({
-      where: { id: box.id },
-      data: {
-        status: BoxStatus.RESERVED,
-        clientId: clientUser.id,
-      },
-    });
-
-    // Create box usage history
-    await prisma.boxUsageHistory.create({
-      data: {
-        boxId: box.id,
-        reservationId: reservation.id,
-        clientId: clientUser.id,
-        actionType: BoxActionType.RESERVATION_CREATED,
-        details: 'Box reserved online',
-        ipAddress: '192.168.1.' + Math.floor(Math.random() * 255),
-        deviceInfo: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7)',
-      },
-    });
-
-    // Add access events
-    const accessEvents = [
-      BoxActionType.BOX_ACCESSED,
-      BoxActionType.BOX_CLOSED,
-      BoxActionType.BOX_ACCESSED,
-      BoxActionType.BOX_CLOSED,
-    ];
-
-    for (let j = 0; j < accessEvents.length; j++) {
-      const eventTime = new Date(
-        startDate.getTime() + Math.floor(Math.random() * totalDays) * 24 * 60 * 60 * 1000
-      );
-
-      await prisma.boxUsageHistory.create({
-        data: {
-          boxId: box.id,
-          reservationId: reservation.id,
-          clientId: clientUser.id,
-          actionType: accessEvents[j],
-          actionTime: eventTime,
-          details:
-            accessEvents[j] === BoxActionType.BOX_ACCESSED
-              ? 'Box accessed using code'
-              : 'Box closed and locked',
-          ipAddress: '192.168.1.' + Math.floor(Math.random() * 255),
-          deviceInfo: j % 2 === 0 ? 'Mobile App iOS 16.5' : 'Mobile App Android 13',
-        },
-      });
-    }
-  }
-
-  return reservations;
-}
-
-async function createBoxSubscriptions(clientUsers: any[]) {
-  // Get all warehouses
-  const warehouses = await prisma.warehouse.findMany({});
-  const subscriptions = [];
-
-  // Create subscriptions for clients
-  for (let i = 0; i < Math.min(3, clientUsers.length); i++) {
-    const clientUser = clientUsers[i];
-    const warehouseId = warehouses[i % warehouses.length].id;
-
-    // Get boxes from the warehouse
-    const boxes = await prisma.box.findMany({
-      where: { warehouseId: warehouseId },
-      take: 2,
-    });
-
-    for (const box of boxes) {
-      const subscription = await prisma.boxAvailabilitySubscription.create({
-        data: {
-          boxId: box.id,
-          clientId: clientUser.id,
-          startDate: new Date(),
-          endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days from now
-          minSize: 2.0,
-          maxPrice: 25.0,
-          boxType: box.boxType,
-          warehouseId: warehouseId,
-          isActive: true,
-          notificationPreferences: JSON.stringify({
-            email: true,
-            sms: i % 2 === 0, // Alternate SMS preference
-            push: true,
-          }),
-          lastNotified: i === 0 ? new Date(Date.now() - 5 * 24 * 60 * 60 * 1000) : null,
-        },
-      });
-
-      subscriptions.push(subscription);
-    }
-  }
-
-  return subscriptions;
-}
-
-async function createUserActivityLogs(users: any[]) {
-  const activityTypes = [
-    ActivityType.LOGIN,
-    ActivityType.LOGOUT,
-    ActivityType.PROFILE_UPDATE,
-    ActivityType.DOCUMENT_UPLOAD,
-    ActivityType.VERIFICATION_SUBMIT,
-  ];
-
-  const logs = [];
-
-  for (const user of users) {
-    // Create 3-5 activity logs per user
-    const logCount = Math.floor(Math.random() * 3) + 3;
-
-    for (let i = 0; i < logCount; i++) {
-      const activityType = activityTypes[Math.floor(Math.random() * activityTypes.length)];
-      const daysAgo = Math.floor(Math.random() * 30); // 0-30 days ago
-
-      logs.push(
-        prisma.userActivityLog.create({
-          data: {
-            userId: user.id,
-            activityType: activityType,
-            details: getActivityDetails(activityType),
-            ipAddress: '192.168.1.' + Math.floor(Math.random() * 255),
-            userAgent:
-              'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-            createdAt: new Date(Date.now() - daysAgo * 24 * 60 * 60 * 1000),
-          },
-        })
-      );
-    }
-  }
-
-  await Promise.all(logs);
-}
-
-function getActivityDetails(activityType: ActivityType): string {
-  switch (activityType) {
-    case ActivityType.LOGIN:
-      return 'User logged in successfully';
-    case ActivityType.LOGOUT:
-      return 'User logged out successfully';
-    case ActivityType.PROFILE_UPDATE:
-      return 'User updated their profile information';
-    case ActivityType.DOCUMENT_UPLOAD:
-      return 'User uploaded a verification document';
-    case ActivityType.VERIFICATION_SUBMIT:
-      return 'User submitted documents for verification';
-    default:
-      return 'User activity recorded';
-  }
-}
-
-async function createAnnouncements(clientUsers: any[], delivererUsers: any[]) {
-  const announcementTypes = [
-    AnnouncementType.PACKAGE,
-    AnnouncementType.GROCERIES,
-    AnnouncementType.DOCUMENTS,
-    AnnouncementType.MEAL,
-    AnnouncementType.FURNITURE,
-  ];
-
-  const announcementStatuses = [
-    AnnouncementStatus.PENDING,
-    AnnouncementStatus.PUBLISHED,
-    AnnouncementStatus.ASSIGNED,
-    AnnouncementStatus.IN_PROGRESS,
-    AnnouncementStatus.COMPLETED,
-  ];
-
+// Création des annonces
+async function createAnnouncements(clientUsers: any[], merchantUsers: any[], delivererUsers: any[]) {
   const announcements = [];
 
-  // Create 2-3 announcements for each active client
+  // Annonces des clients
   for (const client of clientUsers.filter(c => c.status === UserStatus.ACTIVE)) {
-    const announcementCount = Math.floor(Math.random() * 2) + 2; // 2-3 announcements
-
-    for (let i = 0; i < announcementCount; i++) {
-      const type = announcementTypes[Math.floor(Math.random() * announcementTypes.length)];
-      const status = announcementStatuses[Math.floor(Math.random() * announcementStatuses.length)];
-
-      // If status is ASSIGNED, IN_PROGRESS, or COMPLETED, assign a deliverer
-      let delivererId = null;
-      if (
-        [
-          AnnouncementStatus.ASSIGNED,
-          AnnouncementStatus.IN_PROGRESS,
-          AnnouncementStatus.COMPLETED,
-        ].includes(status)
-      ) {
-        const activeDeliverers = delivererUsers.filter(d => d.status === UserStatus.ACTIVE);
-        if (activeDeliverers.length > 0) {
-          delivererId = activeDeliverers[Math.floor(Math.random() * activeDeliverers.length)].id;
-        }
-      }
-
+    for (let i = 0; i < faker.number.int({ min: 1, max: 3 }); i++) {
       const announcement = await prisma.announcement.create({
         data: {
-          title: getAnnouncementTitle(type),
-          description: `Detailed description for the ${type.toLowerCase()} delivery...`,
-          type: type,
-          status: status,
-          priority: [
-            AnnouncementPriority.LOW,
-            AnnouncementPriority.MEDIUM,
-            AnnouncementPriority.HIGH,
-          ][Math.floor(Math.random() * 3)],
-          pickupAddress: getRandomAddress('Paris'),
-          pickupLongitude: 2.3522 + (Math.random() * 0.1 - 0.05), // Paris area
-          pickupLatitude: 48.8566 + (Math.random() * 0.1 - 0.05), // Paris area
-          deliveryAddress: getRandomAddress('Paris'),
-          deliveryLongitude: 2.3522 + (Math.random() * 0.1 - 0.05), // Paris area
-          deliveryLatitude: 48.8566 + (Math.random() * 0.1 - 0.05), // Paris area
-          weight:
-            type === AnnouncementType.FURNITURE ? Math.random() * 50 + 10 : Math.random() * 10,
-          width: Math.random() * 50 + 10,
-          height: Math.random() * 50 + 10,
-          length: Math.random() * 50 + 10,
+          title: faker.helpers.arrayElement([
+            'Livraison de colis urgent',
+            'Transport de documents importants',
+            'Courses alimentaires à récupérer',
+            'Déménagement petit volume',
+            'Récupération achat en ligne',
+          ]),
+          description: faker.lorem.paragraph(),
+          type: faker.helpers.arrayElement(Object.values(AnnouncementType)),
+          status: faker.helpers.arrayElement(Object.values(AnnouncementStatus)),
+          priority: faker.helpers.arrayElement(Object.values(AnnouncementPriority)),
+          pickupAddress: faker.location.streetAddress(),
+          pickupLongitude: 2.3522 + (Math.random() * 0.1 - 0.05),
+          pickupLatitude: 48.8566 + (Math.random() * 0.1 - 0.05),
+          deliveryAddress: faker.location.streetAddress(),
+          deliveryLongitude: 2.3522 + (Math.random() * 0.1 - 0.05),
+          deliveryLatitude: 48.8566 + (Math.random() * 0.1 - 0.05),
+          weight: faker.number.float({ min: 0.1, max: 50 }),
+          width: faker.number.float({ min: 10, max: 100 }),
+          height: faker.number.float({ min: 10, max: 100 }),
+          length: faker.number.float({ min: 10, max: 100 }),
           isFragile: Math.random() > 0.7,
-          needsCooling: type === AnnouncementType.GROCERIES || type === AnnouncementType.MEAL,
-          pickupDate: new Date(Date.now() + Math.floor(Math.random() * 7) * 24 * 60 * 60 * 1000), // 0-7 days from now
-          pickupTimeWindow: ['9:00-12:00', '13:00-17:00', '18:00-20:00'][
-            Math.floor(Math.random() * 3)
-          ],
-          deliveryDate: new Date(
-            Date.now() + Math.floor(Math.random() * 7 + 1) * 24 * 60 * 60 * 1000
-          ), // 1-8 days from now
-          deliveryTimeWindow: ['9:00-12:00', '13:00-17:00', '18:00-20:00'][
-            Math.floor(Math.random() * 3)
-          ],
+          needsCooling: Math.random() > 0.8,
+          pickupDate: generateRandomDate(new Date(), new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)),
+          pickupTimeWindow: faker.helpers.arrayElement(['08:00-10:00', '10:00-12:00', '14:00-16:00', '16:00-18:00']),
+          deliveryDate: generateRandomDate(new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)),
+          deliveryTimeWindow: faker.helpers.arrayElement(['08:00-10:00', '10:00-12:00', '14:00-16:00', '16:00-18:00']),
           isFlexible: Math.random() > 0.5,
-          suggestedPrice: Math.floor(Math.random() * 50) + 5, // 5-55 euros
-          finalPrice:
-            status === AnnouncementStatus.ASSIGNED ? Math.floor(Math.random() * 50) + 5 : null,
+          suggestedPrice: faker.number.float({ min: 5, max: 100, fractionDigits: 2 }),
           isNegotiable: Math.random() > 0.3,
-          paymentStatus: status === AnnouncementStatus.COMPLETED ? 'PAID' : 'PENDING',
           clientId: client.id,
-          delivererId: delivererId,
-          createdAt: new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000), // 0-30 days ago
-          viewCount: Math.floor(Math.random() * 50),
-          applicationsCount: Math.floor(Math.random() * 5),
-          notes: 'Additional information for the delivery...',
-          tags: getTagsForAnnouncementType(type),
-          photos: [
-            `https://storage.ecodeli.me/announcements/photo_${Math.floor(Math.random() * 100)}.jpg`,
-            `https://storage.ecodeli.me/announcements/photo_${Math.floor(Math.random() * 100)}.jpg`,
-          ],
-          estimatedDistance: Math.random() * 15 + 1, // 1-16 km
-          estimatedDuration: Math.floor(Math.random() * 40) + 10, // 10-50 minutes
+          photos: Array(faker.number.int({ min: 1, max: 3 })).fill(0).map(() => `https://storage.ecodeli.me/announcements/photo_${faker.string.uuid()}.jpg`),
+          tags: faker.helpers.arrayElements(['urgent', 'fragile', 'lourd', 'volumineux', 'valeur'], faker.number.int({ min: 1, max: 3 })),
+          estimatedDistance: faker.number.float({ min: 1, max: 50, fractionDigits: 1 }),
+          estimatedDuration: faker.number.int({ min: 10, max: 120 }),
           requiresSignature: Math.random() > 0.7,
           requiresId: Math.random() > 0.8,
-          specialInstructions: Math.random() > 0.5 ? 'Please call before delivery' : null,
-          isFavorite: Math.random() > 0.8,
         },
       });
+      announcements.push(announcement);
+    }
+  }
 
+  // Annonces des commerçants
+  for (const merchant of merchantUsers.filter(m => m.status === UserStatus.ACTIVE)) {
+    for (let i = 0; i < faker.number.int({ min: 2, max: 5 }); i++) {
+      const announcement = await prisma.announcement.create({
+        data: {
+          title: faker.helpers.arrayElement([
+            'Livraison commande client',
+            'Transport marchandises périssables',
+            'Expédition colis e-commerce',
+            'Livraison express restaurant',
+            'Distribution flyers publicitaires',
+          ]),
+          description: faker.lorem.paragraph(),
+          type: faker.helpers.arrayElement([AnnouncementType.PACKAGE, AnnouncementType.GROCERIES, AnnouncementType.MEAL]),
+          status: faker.helpers.arrayElement(Object.values(AnnouncementStatus)),
+          priority: faker.helpers.arrayElement(Object.values(AnnouncementPriority)),
+          pickupAddress: faker.location.streetAddress(),
+          pickupLongitude: 2.3522 + (Math.random() * 0.1 - 0.05),
+          pickupLatitude: 48.8566 + (Math.random() * 0.1 - 0.05),
+          deliveryAddress: faker.location.streetAddress(),
+          deliveryLongitude: 2.3522 + (Math.random() * 0.1 - 0.05),
+          deliveryLatitude: 48.8566 + (Math.random() * 0.1 - 0.05),
+          weight: faker.number.float({ min: 0.1, max: 30 }),
+          width: faker.number.float({ min: 10, max: 80 }),
+          height: faker.number.float({ min: 10, max: 80 }),
+          length: faker.number.float({ min: 10, max: 80 }),
+          isFragile: Math.random() > 0.6,
+          needsCooling: Math.random() > 0.5,
+          pickupDate: generateRandomDate(new Date(), new Date(Date.now() + 3 * 24 * 60 * 60 * 1000)),
+          pickupTimeWindow: faker.helpers.arrayElement(['08:00-10:00', '10:00-12:00', '14:00-16:00', '16:00-18:00']),
+          deliveryDate: generateRandomDate(new Date(), new Date(Date.now() + 5 * 24 * 60 * 60 * 1000)),
+          deliveryTimeWindow: faker.helpers.arrayElement(['08:00-10:00', '10:00-12:00', '14:00-16:00', '16:00-18:00']),
+          isFlexible: Math.random() > 0.7,
+          suggestedPrice: faker.number.float({ min: 10, max: 50, fractionDigits: 2 }),
+          isNegotiable: Math.random() > 0.5,
+          clientId: merchant.id,
+          photos: Array(faker.number.int({ min: 1, max: 3 })).fill(0).map(() => `https://storage.ecodeli.me/announcements/photo_${faker.string.uuid()}.jpg`),
+          tags: faker.helpers.arrayElements(['professionnel', 'régulier', 'urgent', 'fragile'], faker.number.int({ min: 1, max: 3 })),
+          estimatedDistance: faker.number.float({ min: 1, max: 30, fractionDigits: 1 }),
+          estimatedDuration: faker.number.int({ min: 10, max: 60 }),
+          requiresSignature: Math.random() > 0.5,
+          specialInstructions: faker.lorem.sentence(),
+        },
+      });
       announcements.push(announcement);
     }
   }
@@ -1398,578 +1118,173 @@ async function createAnnouncements(clientUsers: any[], delivererUsers: any[]) {
   return announcements;
 }
 
-function getAnnouncementTitle(type: AnnouncementType): string {
-  switch (type) {
-    case AnnouncementType.PACKAGE:
-      return ['Small package delivery', 'Express parcel delivery', 'Urgent package transport'][
-        Math.floor(Math.random() * 3)
-      ];
-    case AnnouncementType.GROCERIES:
-      return [
-        'Weekly grocery delivery',
-        'Fresh produce transport',
-        'Supermarket shopping delivery',
-      ][Math.floor(Math.random() * 3)];
-    case AnnouncementType.DOCUMENTS:
-      return ['Important documents delivery', 'Legal papers transport', 'Urgent contract delivery'][
-        Math.floor(Math.random() * 3)
-      ];
-    case AnnouncementType.MEAL:
-      return ['Hot meal delivery', 'Restaurant order transport', 'Lunch delivery for office'][
-        Math.floor(Math.random() * 3)
-      ];
-    case AnnouncementType.FURNITURE:
-      return ['Small furniture transport', 'IKEA pickup and delivery', 'Chair delivery assistance'][
-        Math.floor(Math.random() * 3)
-      ];
-    default:
-      return ['Miscellaneous item delivery', 'Special item transport', 'Custom delivery request'][
-        Math.floor(Math.random() * 3)
-      ];
-  }
-}
-
-function getRandomAddress(city: string): string {
-  const streets = [
-    'Rue de Rivoli',
-    'Avenue des Champs-Élysées',
-    'Boulevard Saint-Germain',
-    'Rue Saint-Honoré',
-    'Avenue Montaigne',
-    'Rue de la Paix',
-    'Rue du Faubourg Saint-Antoine',
-    'Boulevard Haussmann',
-    'Rue Mouffetard',
-    'Rue Oberkampf',
-  ];
-
-  const numbers = [1, 5, 8, 12, 15, 22, 25, 32, 45, 67, 78, 92, 105, 120];
-  const street = streets[Math.floor(Math.random() * streets.length)];
-  const number = numbers[Math.floor(Math.random() * numbers.length)];
-
-  return `${number} ${street}, ${city}`;
-}
-
-function getTagsForAnnouncementType(type: AnnouncementType): string[] {
-  switch (type) {
-    case AnnouncementType.PACKAGE:
-      return ['package', 'parcel', 'express', ...(Math.random() > 0.5 ? ['fragile'] : [])];
-    case AnnouncementType.GROCERIES:
-      return ['groceries', 'food', ...(Math.random() > 0.5 ? ['refrigerated', 'fresh'] : [])];
-    case AnnouncementType.DOCUMENTS:
-      return ['documents', 'papers', 'confidential', 'urgent'];
-    case AnnouncementType.MEAL:
-      return ['meal', 'food', 'hot', 'restaurant', ...(Math.random() > 0.5 ? ['fragile'] : [])];
-    case AnnouncementType.FURNITURE:
-      return ['furniture', 'heavy', ...(Math.random() > 0.5 ? ['ikea', 'assembly'] : [])];
-    default:
-      return ['misc', 'special', ...(Math.random() > 0.5 ? ['urgent'] : [])];
-  }
-}
-
+// Création des candidatures de livraison
 async function createDeliveryApplications(announcements: any[], delivererUsers: any[]) {
   const applications = [];
   const activeDeliverers = delivererUsers.filter(d => d.status === UserStatus.ACTIVE);
 
-  if (activeDeliverers.length === 0) return applications;
-
-  // For each published announcement, create 1-3 applications
-  for (const announcement of announcements.filter(
-    a => a.status === AnnouncementStatus.PUBLISHED || a.status === AnnouncementStatus.PENDING
-  )) {
-    const applicationCount = Math.floor(Math.random() * 3) + 1; // 1-3 applications
-
-    for (let i = 0; i < applicationCount; i++) {
-      const deliverer = activeDeliverers[Math.floor(Math.random() * activeDeliverers.length)];
-      const proposedPrice = announcement.isNegotiable
-        ? Math.max(announcement.suggestedPrice * (Math.random() * 0.4 + 0.8), 5) // 80%-120% of suggested price
-        : announcement.suggestedPrice;
-
+  for (const announcement of announcements.filter(a => a.status === AnnouncementStatus.PUBLISHED)) {
+    const applicantCount = faker.number.int({ min: 1, max: 4 });
+    
+    for (let i = 0; i < applicantCount; i++) {
+      const deliverer = faker.helpers.arrayElement(activeDeliverers);
       const application = await prisma.deliveryApplication.create({
         data: {
           announcementId: announcement.id,
           delivererId: deliverer.id,
-          proposedPrice: proposedPrice,
-          message: `I can deliver this ${announcement.type.toLowerCase()} with care. ${Math.random() > 0.5 ? 'I have experience with similar deliveries.' : ''}`,
+          proposedPrice: announcement.suggestedPrice * faker.number.float({ min: 0.8, max: 1.2 }),
+          message: faker.lorem.sentence(),
           status: 'PENDING',
-          estimatedPickupTime: new Date(
-            announcement.pickupDate.getTime() + Math.floor(Math.random() * 3600000)
-          ), // +/- 1 hour from requested
-          estimatedDeliveryTime: new Date(
-            announcement.deliveryDate.getTime() + Math.floor(Math.random() * 3600000)
-          ), // +/- 1 hour from requested
-          isPreferred: i === 0, // First application is preferred
-          notes: Math.random() > 0.7 ? 'Some additional notes from the deliverer...' : null,
+          estimatedPickupTime: new Date(announcement.pickupDate.getTime() + faker.number.int({ min: -30, max: 30 }) * 60000),
+          estimatedDeliveryTime: new Date(announcement.deliveryDate.getTime() + faker.number.int({ min: -30, max: 30 }) * 60000),
+          isPreferred: i === 0,
         },
       });
-
       applications.push(application);
     }
 
-    // Update announcement with applications count
+    // Mise à jour du compteur de candidatures
     await prisma.announcement.update({
       where: { id: announcement.id },
-      data: { applicationsCount: applicationCount },
+      data: { applicationsCount: applicantCount },
     });
   }
 
   return applications;
 }
 
-async function createDelivererFavorites(announcements: any[], delivererUsers: any[]) {
-  const favorites = [];
-  const activeDeliverers = delivererUsers.filter(d => d.status === UserStatus.ACTIVE);
-
-  if (activeDeliverers.length === 0) return favorites;
-
-  // Each active deliverer adds 1-3 announcements to favorites
-  for (const deliverer of activeDeliverers) {
-    const favoriteCount = Math.floor(Math.random() * 3) + 1; // 1-3 favorites
-    const randomAnnouncements = [...announcements]
-      .sort(() => 0.5 - Math.random())
-      .slice(0, favoriteCount);
-
-    for (const announcement of randomAnnouncements) {
-      const favorite = await prisma.delivererFavorite.create({
-        data: {
-          delivererId: deliverer.id,
-          announcementId: announcement.id,
-        },
-      });
-
-      favorites.push(favorite);
-    }
-  }
-
-  return favorites;
-}
-
-async function createServicesAndCategories(providerUsers: any[]) {
-  // Create service categories
-  const categories = await Promise.all([
-    prisma.serviceCategory.create({
-      data: {
-        name: 'Transport',
-        description: 'Personal transportation services',
-      },
-    }),
-    prisma.serviceCategory.create({
-      data: {
-        name: 'Elderly Care',
-        description: 'Specialized care services for elderly individuals',
-      },
-    }),
-    prisma.serviceCategory.create({
-      data: {
-        name: 'Pet Care',
-        description: 'Pet sitting and care services',
-      },
-    }),
-    prisma.serviceCategory.create({
-      data: {
-        name: 'Shopping Assistance',
-        description: 'Help with shopping and errands',
-      },
-    }),
-    prisma.serviceCategory.create({
-      data: {
-        name: 'Housekeeping',
-        description: 'Home cleaning and maintenance services',
-      },
-    }),
-  ]);
-
-  const services = [];
-  const activeProviders = providerUsers.filter(p => p.status === UserStatus.ACTIVE);
-
-  // Create services for active providers
-  for (const provider of activeProviders) {
-    // Assign 2-4 services to each provider
-    const serviceCount = Math.floor(Math.random() * 3) + 2; // 2-4 services
-
-    for (let i = 0; i < serviceCount; i++) {
-      const category = categories[Math.floor(Math.random() * categories.length)];
-
-      const service = await prisma.service.create({
-        data: {
-          name: getServiceName(category.name),
-          description: `Professional ${category.name.toLowerCase()} service provided by ${provider.name}`,
-          price: Math.floor(Math.random() * 50) + 20, // 20-70 euros
-          duration: [30, 60, 90, 120][Math.floor(Math.random() * 4)], // 30, 60, 90, or 120 minutes
-          categoryId: category.id,
-          providerId: provider.id,
-          isActive: Math.random() > 0.1, // 90% active
-        },
-      });
-
-      services.push(service);
-    }
-  }
-
-  return { categories, services };
-}
-
-function getServiceName(categoryName: string): string {
-  switch (categoryName) {
-    case 'Transport':
-      return [
-        'Airport Transfer',
-        'Medical Appointment Transport',
-        'Event Transportation',
-        'Shopping Trip Assistance',
-      ][Math.floor(Math.random() * 4)];
-    case 'Elderly Care':
-      return [
-        'Companion Visit',
-        'Medication Reminder',
-        'Daily Check-in',
-        'Reading and Conversation',
-      ][Math.floor(Math.random() * 4)];
-    case 'Pet Care':
-      return ['Dog Walking', 'Pet Sitting', 'Vet Appointment Transportation', 'Pet Feeding'][
-        Math.floor(Math.random() * 4)
-      ];
-    case 'Shopping Assistance':
-      return ['Grocery Shopping', 'Prescription Pickup', 'Gift Shopping', 'Home Goods Shopping'][
-        Math.floor(Math.random() * 4)
-      ];
-    case 'Housekeeping':
-      return ['Light Cleaning', 'Laundry Assistance', 'Meal Preparation', 'Dishwashing'][
-        Math.floor(Math.random() * 4)
-      ];
-    default:
-      return ['Basic Service', 'Premium Service', 'Express Service', 'Custom Service'][
-        Math.floor(Math.random() * 4)
-      ];
-  }
-}
-
-async function createProviderAvailabilities(providerUsers: any[]) {
-  const availabilities = [];
-  const activeProviders = providerUsers.filter(p => p.status === UserStatus.ACTIVE);
-
-  for (const provider of activeProviders) {
-    // Create availability for weekdays
-    for (let dayOfWeek = 0; dayOfWeek < 5; dayOfWeek++) {
-      // 0-4 (Monday-Friday)
-      const startHour = 8 + Math.floor(Math.random() * 2); // 8 or 9 AM
-      const endHour = 17 + Math.floor(Math.random() * 3); // 5, 6, or 7 PM
-
-      // Morning shift
-      const morningAvailability = await prisma.providerAvailability.create({
-        data: {
-          providerId: provider.id,
-          dayOfWeek: dayOfWeek,
-          startTime: new Date(new Date().setHours(startHour, 0, 0, 0)),
-          endTime: new Date(new Date().setHours(12, 0, 0, 0)),
-        },
-      });
-
-      availabilities.push(morningAvailability);
-
-      // Afternoon shift
-      const afternoonAvailability = await prisma.providerAvailability.create({
-        data: {
-          providerId: provider.id,
-          dayOfWeek: dayOfWeek,
-          startTime: new Date(new Date().setHours(13, 0, 0, 0)),
-          endTime: new Date(new Date().setHours(endHour, 0, 0, 0)),
-        },
-      });
-
-      availabilities.push(afternoonAvailability);
-    }
-
-    // Add Saturday availability for some providers
-    if (Math.random() > 0.3) {
-      const saturdayAvailability = await prisma.providerAvailability.create({
-        data: {
-          providerId: provider.id,
-          dayOfWeek: 5, // Saturday
-          startTime: new Date(new Date().setHours(9, 0, 0, 0)),
-          endTime: new Date(new Date().setHours(14, 0, 0, 0)),
-        },
-      });
-
-      availabilities.push(saturdayAvailability);
-    }
-  }
-
-  return availabilities;
-}
-
-async function createServiceBookingsAndReviews(
-  clientUsers: any[],
-  providerUsers: any[],
-  services: any[]
-) {
-  const bookings = [];
-  const payments = [];
-  const reviews = [];
-
-  const activeClients = clientUsers.filter(c => c.status === UserStatus.ACTIVE);
-
-  if (activeClients.length === 0 || services.length === 0) {
-    return { bookings, payments, reviews };
-  }
-
-  // Create 3-5 bookings for each active client
-  for (const client of activeClients) {
-    const bookingCount = Math.floor(Math.random() * 3) + 3; // 3-5 bookings
-
-    for (let i = 0; i < bookingCount; i++) {
-      const service = services[Math.floor(Math.random() * services.length)];
-      const provider = providerUsers.find(p => p.id === service.providerId);
-
-      if (!provider) continue;
-
-      // Determine booking status - past bookings are COMPLETED, future are CONFIRMED
-      let status: BookingStatus;
-      let startTime: Date;
-      let endTime: Date;
-
-      if (i < 2) {
-        // First 2 bookings are in the past (COMPLETED)
-        status = BookingStatus.COMPLETED;
-        startTime = new Date(
-          Date.now() - (Math.floor(Math.random() * 30) + 1) * 24 * 60 * 60 * 1000
-        ); // 1-30 days ago
-      } else {
-        // Other bookings are in the future (CONFIRMED)
-        status = BookingStatus.CONFIRMED;
-        startTime = new Date(
-          Date.now() + (Math.floor(Math.random() * 14) + 1) * 24 * 60 * 60 * 1000
-        ); // 1-14 days in future
-      }
-
-      // Calculate end time based on service duration
-      endTime = new Date(startTime.getTime() + service.duration * 60 * 1000);
-
-      // Create payment for the booking
-      const payment = await prisma.payment.create({
-        data: {
-          amount: service.price,
-          currency: 'EUR',
-          stripePaymentId: `pi_${Math.random().toString(36).substring(2, 15)}`,
-          status:
-            status === BookingStatus.COMPLETED ? PaymentStatus.COMPLETED : PaymentStatus.PENDING,
-        },
-      });
-
-      payments.push(payment);
-
-      // Create booking
-      const booking = await prisma.serviceBooking.create({
-        data: {
-          clientId: client.id,
-          providerId: provider.id,
-          serviceId: service.id,
-          startTime: startTime,
-          endTime: endTime,
-          status: status,
-          totalPrice: service.price,
-          paymentId: payment.id,
-          notes: Math.random() > 0.7 ? 'Special instructions for the service provider...' : null,
-        },
-      });
-
-      bookings.push(booking);
-
-      // For completed bookings, create reviews randomly
-      if (status === BookingStatus.COMPLETED && Math.random() > 0.3) {
-        const review = await prisma.serviceReview.create({
-          data: {
-            bookingId: booking.id,
-            rating: Math.floor(Math.random() * 3) + 3, // 3-5 star rating
-            comment: [
-              'Very satisfied with the service.',
-              'Provider was professional and friendly.',
-              'Service was completed on time and as expected.',
-              'Great experience, will book again.',
-              'Provider went above and beyond my expectations.',
-            ][Math.floor(Math.random() * 5)],
-          },
-        });
-
-        reviews.push(review);
-      }
-    }
-  }
-
-  return { bookings, payments, reviews };
-}
-
-async function createDeliveriesAndRelatedData(clientUsers: any[], delivererUsers: any[]) {
+// Création des livraisons
+async function createDeliveries(clientUsers: any[], delivererUsers: any[], merchantUsers: any[]) {
   const deliveries = [];
-  const logs = [];
-  const coordinates = [];
-  const proofs = [];
-  const ratings = [];
-
-  const activeClients = clientUsers.filter(c => c.status === UserStatus.ACTIVE);
   const activeDeliverers = delivererUsers.filter(d => d.status === UserStatus.ACTIVE);
+  const allClients = [...clientUsers, ...merchantUsers];
 
-  if (activeClients.length === 0 || activeDeliverers.length === 0) {
-    return { deliveries, logs, coordinates, proofs, ratings };
-  }
-
-  // Create 2-4 deliveries for each active client
-  for (const client of activeClients) {
-    const deliveryCount = Math.floor(Math.random() * 3) + 2; // 2-4 deliveries
-
-    for (let i = 0; i < deliveryCount; i++) {
-      const deliverer = activeDeliverers[Math.floor(Math.random() * activeDeliverers.length)];
-
-      // Determine delivery status
-      let status: DeliveryStatus;
-
-      if (i === 0) {
-        // First delivery is COMPLETED
-        status = DeliveryStatus.CONFIRMED;
-      } else if (i === 1) {
-        // Second delivery is IN_TRANSIT
-        status = DeliveryStatus.IN_TRANSIT;
-      } else {
-        // Other deliveries are PENDING or ACCEPTED
-        status = [DeliveryStatus.PENDING, DeliveryStatus.ACCEPTED][Math.floor(Math.random() * 2)];
-      }
-
-      // Create delivery
-      const pickupDate = new Date(Date.now() - Math.floor(Math.random() * 7) * 24 * 60 * 60 * 1000); // 0-7 days ago
-      const deliveryDate =
-        status === DeliveryStatus.CONFIRMED
-          ? new Date(pickupDate.getTime() + Math.floor(Math.random() * 24) * 60 * 60 * 1000) // 0-24 hours after pickup
-          : null;
+  for (const client of allClients.filter(c => c.status === UserStatus.ACTIVE)) {
+    for (let i = 0; i < faker.number.int({ min: 2, max: 5 }); i++) {
+      const deliverer = faker.helpers.arrayElement(activeDeliverers);
+      const status = faker.helpers.arrayElement(Object.values(DeliveryStatus));
+      
+      const pickupDate = generateRandomDate(new Date('2023-01-01'), new Date());
+      const deliveryDate = status === DeliveryStatus.DELIVERED || status === DeliveryStatus.CONFIRMED
+        ? new Date(pickupDate.getTime() + faker.number.int({ min: 1, max: 48 }) * 60 * 60 * 1000)
+        : null;
 
       const delivery = await prisma.delivery.create({
         data: {
-          status: status,
-          pickupAddress: getRandomAddress('Paris'),
-          deliveryAddress: getRandomAddress('Paris'),
-          pickupDate: pickupDate,
-          deliveryDate: deliveryDate,
+          status,
+          pickupAddress: faker.location.streetAddress(),
+          deliveryAddress: faker.location.streetAddress(),
+          pickupDate,
+          deliveryDate,
           clientId: client.id,
           delivererId: status !== DeliveryStatus.PENDING ? deliverer.id : null,
-          currentLat:
-            status === DeliveryStatus.IN_TRANSIT ? 48.8566 + (Math.random() * 0.1 - 0.05) : null,
-          currentLng:
-            status === DeliveryStatus.IN_TRANSIT ? 2.3522 + (Math.random() * 0.1 - 0.05) : null,
+          currentLat: status === DeliveryStatus.IN_TRANSIT ? 48.8566 + (Math.random() * 0.1 - 0.05) : null,
+          currentLng: status === DeliveryStatus.IN_TRANSIT ? 2.3522 + (Math.random() * 0.1 - 0.05) : null,
           lastLocationUpdate: status === DeliveryStatus.IN_TRANSIT ? new Date() : null,
-          estimatedArrival:
-            status === DeliveryStatus.IN_TRANSIT
-              ? new Date(Date.now() + Math.floor(Math.random() * 120) * 60 * 1000) // 0-120 minutes from now
-              : null,
-          confirmationCode:
-            status !== DeliveryStatus.PENDING
-              ? Math.floor(100000 + Math.random() * 900000).toString()
-              : null, // 6-digit code
+          estimatedArrival: status === DeliveryStatus.IN_TRANSIT 
+            ? new Date(Date.now() + faker.number.int({ min: 30, max: 120 }) * 60 * 1000)
+            : null,
+          confirmationCode: status !== DeliveryStatus.PENDING ? generateAccessCode() : null,
         },
       });
 
       deliveries.push(delivery);
 
-      // Create delivery logs based on status
-      const logStatuses = getDeliveryLogStatuses(status);
-
-      for (const logStatus of logStatuses) {
-        const log = await prisma.deliveryLog.create({
+      // Création des logs de livraison
+      const statuses = getDeliveryStatusHistory(status);
+      for (const logStatus of statuses) {
+        await prisma.deliveryLog.create({
           data: {
             deliveryId: delivery.id,
             status: logStatus,
-            timestamp: new Date(
-              pickupDate.getTime() - Math.floor(Math.random() * 24) * 60 * 60 * 1000
-            ),
+            timestamp: generateRandomDate(pickupDate, deliveryDate || new Date()),
             note: getDeliveryLogNote(logStatus),
             latitude: 48.8566 + (Math.random() * 0.1 - 0.05),
             longitude: 2.3522 + (Math.random() * 0.1 - 0.05),
           },
         });
-
-        logs.push(log);
       }
 
-      // Create coordinates for IN_TRANSIT deliveries
-      if (status === DeliveryStatus.IN_TRANSIT) {
-        const coordinateCount = Math.floor(Math.random() * 5) + 3; // 3-7 coordinate points
-
-        for (let j = 0; j < coordinateCount; j++) {
-          const coordinate = await prisma.deliveryCoordinates.create({
-            data: {
-              deliveryId: delivery.id,
-              latitude: 48.8566 + (Math.random() * 0.1 - 0.05),
-              longitude: 2.3522 + (Math.random() * 0.1 - 0.05),
-              timestamp: new Date(pickupDate.getTime() + j * 60 * 60 * 1000), // 1 hour increments
-            },
-          });
-
-          coordinates.push(coordinate);
-        }
-      }
-
-      // Create delivery proofs for CONFIRMED deliveries
-      if (status === DeliveryStatus.CONFIRMED) {
-        // Photo proof
-        const photoProof = await prisma.deliveryProof.create({
+      // Création du paiement pour la livraison
+      if (status !== DeliveryStatus.PENDING && status !== DeliveryStatus.CANCELLED) {
+        const amount = faker.number.float({ min: 10, max: 100, fractionDigits: 2 });
+        const payment = await prisma.payment.create({
           data: {
+            amount,
+            currency: 'EUR',
+            stripePaymentId: `pi_${faker.string.uuid()}`,
+            status: status === DeliveryStatus.CONFIRMED ? PaymentStatus.COMPLETED : PaymentStatus.PENDING,
             deliveryId: delivery.id,
-            type: 'PHOTO',
-            url: `https://storage.ecodeli.me/proofs/delivery_${Math.floor(Math.random() * 100)}.jpg`,
-            confirmedBy: client.id,
+            userId: client.id,
+            isEscrow: true,
+            escrowReleaseDate: new Date(Date.now() + 24 * 60 * 60 * 1000),
+            escrowReleaseCode: generateAccessCode(),
+            escrowReleasedAt: status === DeliveryStatus.CONFIRMED ? deliveryDate : null,
+            commissionRate: COMMISSION_RATE,
+            feeAmount: amount * COMMISSION_RATE,
           },
         });
 
-        proofs.push(photoProof);
+        // Création de la commission
+        await prisma.commission.create({
+          data: {
+            paymentId: payment.id,
+            amount: amount * COMMISSION_RATE,
+            rate: COMMISSION_RATE,
+            type: 'DELIVERY',
+            status: status === DeliveryStatus.CONFIRMED ? 'PROCESSED' : 'PENDING',
+            paidAt: status === DeliveryStatus.CONFIRMED ? deliveryDate : null,
+          },
+        });
+      }
 
-        // Code proof
-        const codeProof = await prisma.deliveryProof.create({
+      // Création des preuves de livraison pour les livraisons confirmées
+      if (status === DeliveryStatus.CONFIRMED) {
+        await prisma.deliveryProof.create({
+          data: {
+            deliveryId: delivery.id,
+            type: 'PHOTO',
+            url: `https://storage.ecodeli.me/proofs/delivery_${delivery.id}.jpg`,
+            confirmedBy: client.id,
+            confirmedAt: deliveryDate!,
+          },
+        });
+
+        await prisma.deliveryProof.create({
           data: {
             deliveryId: delivery.id,
             type: 'CODE',
             confirmedBy: client.id,
+            confirmedAt: deliveryDate!,
           },
         });
 
-        proofs.push(codeProof);
-
-        // Create rating for CONFIRMED deliveries
-        if (Math.random() > 0.2) {
-          // 80% chance of rating
-          const rating = await prisma.deliveryRating.create({
+        // Création d'une évaluation
+        if (Math.random() > 0.3) {
+          await prisma.deliveryRating.create({
             data: {
               deliveryId: delivery.id,
-              rating: Math.floor(Math.random() * 3) + 3, // 3-5 star rating
-              comment: [
-                'Deliverer was punctual and professional.',
-                'Package arrived in perfect condition.',
-                'Great communication throughout the delivery process.',
-                'Very satisfied with the service.',
-                'Will use this deliverer again.',
-              ][Math.floor(Math.random() * 5)],
+              rating: faker.number.int({ min: 3, max: 5 }),
+              comment: faker.helpers.arrayElement([
+                'Livraison rapide et efficace',
+                'Livreur très professionnel',
+                'Colis en parfait état',
+                'Service impeccable, je recommande',
+                'Ponctuel et courtois',
+              ]),
             },
           });
-
-          ratings.push(rating);
         }
       }
     }
   }
 
-  return { deliveries, logs, coordinates, proofs, ratings };
+  return deliveries;
 }
 
-function getDeliveryLogStatuses(status: DeliveryStatus): DeliveryStatus[] {
-  switch (status) {
-    case DeliveryStatus.PENDING:
-      return [DeliveryStatus.PENDING];
-    case DeliveryStatus.ACCEPTED:
-      return [DeliveryStatus.PENDING, DeliveryStatus.ACCEPTED];
-    case DeliveryStatus.IN_TRANSIT:
-      return [
-        DeliveryStatus.PENDING,
-        DeliveryStatus.ACCEPTED,
-        DeliveryStatus.PICKED_UP,
-        DeliveryStatus.IN_TRANSIT,
-      ];
+// Fonctions utilitaires pour les statuts de livraison
+function getDeliveryStatusHistory(finalStatus: DeliveryStatus): DeliveryStatus[] {
+  switch (finalStatus) {
     case DeliveryStatus.CONFIRMED:
       return [
         DeliveryStatus.PENDING,
@@ -1979,262 +1294,481 @@ function getDeliveryLogStatuses(status: DeliveryStatus): DeliveryStatus[] {
         DeliveryStatus.DELIVERED,
         DeliveryStatus.CONFIRMED,
       ];
+    case DeliveryStatus.DELIVERED:
+      return [
+        DeliveryStatus.PENDING,
+        DeliveryStatus.ACCEPTED,
+        DeliveryStatus.PICKED_UP,
+        DeliveryStatus.IN_TRANSIT,
+        DeliveryStatus.DELIVERED,
+      ];
+    case DeliveryStatus.IN_TRANSIT:
+      return [
+        DeliveryStatus.PENDING,
+        DeliveryStatus.ACCEPTED,
+        DeliveryStatus.PICKED_UP,
+        DeliveryStatus.IN_TRANSIT,
+      ];
+    case DeliveryStatus.PICKED_UP:
+      return [
+        DeliveryStatus.PENDING,
+        DeliveryStatus.ACCEPTED,
+        DeliveryStatus.PICKED_UP,
+      ];
+    case DeliveryStatus.ACCEPTED:
+      return [
+        DeliveryStatus.PENDING,
+        DeliveryStatus.ACCEPTED,
+      ];
+    case DeliveryStatus.CANCELLED:
+      return [
+        DeliveryStatus.PENDING,
+        DeliveryStatus.CANCELLED,
+      ];
     default:
-      return [status];
+      return [finalStatus];
   }
 }
 
 function getDeliveryLogNote(status: DeliveryStatus): string {
   switch (status) {
     case DeliveryStatus.PENDING:
-      return 'Delivery request created.';
+      return 'Demande de livraison créée';
     case DeliveryStatus.ACCEPTED:
-      return 'Delivery accepted by deliverer.';
+      return 'Livraison acceptée par le livreur';
     case DeliveryStatus.PICKED_UP:
-      return 'Package picked up from sender.';
+      return 'Colis récupéré';
     case DeliveryStatus.IN_TRANSIT:
-      return 'Package in transit to destination.';
+      return 'Livraison en cours';
     case DeliveryStatus.DELIVERED:
-      return 'Package delivered to recipient.';
+      return 'Colis livré au destinataire';
     case DeliveryStatus.CONFIRMED:
-      return 'Delivery confirmed by recipient.';
+      return 'Livraison confirmée par le client';
     case DeliveryStatus.CANCELLED:
-      return 'Delivery cancelled.';
-    case DeliveryStatus.DISPUTED:
-      return 'Delivery disputed by recipient.';
+      return 'Livraison annulée';
     default:
-      return 'Status update.';
+      return 'Mise à jour du statut';
   }
 }
 
-async function createNotifications(users: any[]) {
-  const notifications = [];
+// Création des services et catégories
+async function createServicesAndCategories(providerUsers: any[]) {
+  const categories = await Promise.all([
+    prisma.serviceCategory.create({
+      data: {
+        name: 'Transport de personnes',
+        description: 'Services de transport personnalisé',
+      },
+    }),
+    prisma.serviceCategory.create({
+      data: {
+        name: 'Aide à domicile',
+        description: 'Services d\'assistance à domicile',
+      },
+    }),
+    prisma.serviceCategory.create({
+      data: {
+        name: 'Bricolage & Jardinage',
+        description: 'Travaux manuels et entretien',
+      },
+    }),
+    prisma.serviceCategory.create({
+      data: {
+        name: 'Garde d\'animaux',
+        description: 'Services de garde pour animaux domestiques',
+      },
+    }),
+  ]);
 
-  // Create welcome notifications for all users
-  for (const user of users) {
-    notifications.push(
-      prisma.notification.create({
+  const services = [];
+  
+  for (const provider of providerUsers.filter(p => p.status === UserStatus.ACTIVE)) {
+    for (const category of categories.slice(0, 2)) {
+      const service = await prisma.service.create({
         data: {
-          userId: user.id,
-          title: 'Bienvenue sur EcoDeli',
-          message: `Bonjour ${user.name}, bienvenue sur la plateforme EcoDeli !`,
-          type: 'welcome',
-          link: '/dashboard',
-          read: true,
-          readAt: new Date(Date.now() - Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000),
+          name: faker.helpers.arrayElement([
+            'Transport médical',
+            'Accompagnement courses',
+            'Transfert aéroport',
+            'Aide ménagère',
+            'Assistance administrative',
+            'Garde de nuit',
+          ]),
+          description: faker.lorem.paragraph(),
+          price: faker.number.float({ min: 20, max: 100, fractionDigits: 2 }),
+          duration: faker.helpers.arrayElement([30, 60, 90, 120]),
+          categoryId: category.id,
+          providerId: provider.id,
+          isActive: true,
         },
-      })
-    );
+      });
+      services.push(service);
+    }
   }
 
-  // Add specific notifications based on user roles
-  for (const user of users) {
-    if (user.role === UserRole.DELIVERER) {
-      if (user.status === UserStatus.PENDING_VERIFICATION) {
-        notifications.push(
-          prisma.notification.create({
-            data: {
-              userId: user.id,
-              title: 'Documents en attente de vérification',
-              message: 'Vos documents ont été reçus et sont en cours de vérification.',
-              type: 'verification',
-              link: '/deliverer/documents',
-              read: false,
-            },
-          })
-        );
-      } else if (user.status === UserStatus.ACTIVE) {
-        notifications.push(
-          prisma.notification.create({
-            data: {
-              userId: user.id,
-              title: 'Vérification approuvée',
-              message: 'Félicitations ! Vos documents ont été vérifiés et approuvés.',
-              type: 'verification_approved',
-              link: '/deliverer/dashboard',
-              read: true,
-              readAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-            },
-          })
-        );
+  return { categories, services };
+}
 
-        // Add delivery opportunity notification
-        notifications.push(
-          prisma.notification.create({
-            data: {
-              userId: user.id,
-              title: 'Nouvelle opportunité de livraison',
-              message: 'Une nouvelle annonce correspond à votre profil. Consultez-la rapidement !',
-              type: 'delivery_opportunity',
-              link: '/deliverer/announcements',
-              read: Math.random() > 0.5,
-              readAt:
-                Math.random() > 0.5
-                  ? new Date(Date.now() - Math.floor(Math.random() * 5) * 24 * 60 * 60 * 1000)
-                  : null,
-            },
-          })
-        );
+// Création des disponibilités des prestataires
+async function createProviderAvailabilities(providerUsers: any[]) {
+  const availabilities = [];
+  
+  for (const provider of providerUsers.filter(p => p.status === UserStatus.ACTIVE)) {
+    // Créer les disponibilités pour la semaine
+    for (let day = 0; day < 7; day++) {
+      if (day === 0) continue; // Pas de disponibilité le dimanche
+      
+      const morningSlot = await prisma.providerAvailability.create({
+        data: {
+          providerId: provider.id,
+          dayOfWeek: day,
+          startTime: new Date(`2024-01-01T08:00:00`),
+          endTime: new Date(`2024-01-01T12:00:00`),
+        },
+      });
+      availabilities.push(morningSlot);
+
+      if (day !== 6) { // Pas d'après-midi le samedi
+        const afternoonSlot = await prisma.providerAvailability.create({
+          data: {
+            providerId: provider.id,
+            dayOfWeek: day,
+            startTime: new Date(`2024-01-01T14:00:00`),
+            endTime: new Date(`2024-01-01T18:00:00`),
+          },
+        });
+        availabilities.push(afternoonSlot);
       }
+    }
+  }
+
+  return availabilities;
+}
+
+// Création des réservations de services
+async function createServiceBookingsAndReviews(clientUsers: any[], providerUsers: any[], services: any[]) {
+  const bookings = [];
+  const payments = [];
+  const reviews = [];
+
+  for (const client of clientUsers.filter(c => c.status === UserStatus.ACTIVE)) {
+    for (let i = 0; i < faker.number.int({ min: 1, max: 3 }); i++) {
+      const service = faker.helpers.arrayElement(services);
+      const provider = providerUsers.find(p => p.id === service.providerId);
+      
+      if (!provider) continue;
+
+      const startTime = generateRandomDate(new Date('2023-01-01'), new Date());
+      const endTime = new Date(startTime.getTime() + service.duration * 60 * 1000);
+      const status = faker.helpers.arrayElement(Object.values(BookingStatus));
+
+      // Create payment for the booking
+      const payment = await prisma.payment.create({
+        data: {
+          amount: service.price,
+          currency: 'EUR',
+          stripePaymentId: `pi_${faker.string.alpha({ length: 10 })}`,
+          status: status === BookingStatus.COMPLETED ? PaymentStatus.COMPLETED : PaymentStatus.PENDING,
+          user: {
+            connect: { id: client.id }
+          },
+          service: {
+            connect: { id: service.id }
+          },
+          commissionRate: COMMISSION_RATE,
+          feeAmount: service.price * COMMISSION_RATE,
+        },
+      });
+      payments.push(payment);
+
+      const booking = await prisma.serviceBooking.create({
+        data: {
+          clientId: client.id,
+          providerId: provider.id,
+          serviceId: service.id,
+          startTime,
+          endTime,
+          status,
+          totalPrice: service.price,
+          paymentId: payment.id,
+          notes: faker.lorem.sentence(),
+        },
+      });
+      bookings.push(booking);
+
+      // Création de la commission
+      await prisma.commission.create({
+        data: {
+          paymentId: payment.id,
+          amount: service.price * COMMISSION_RATE,
+          rate: COMMISSION_RATE,
+          type: 'SERVICE',
+          status: status === BookingStatus.COMPLETED ? 'PROCESSED' : 'PENDING',
+        },
+      });
+
+      // Création des évaluations pour les services terminés
+      if (status === BookingStatus.COMPLETED && Math.random() > 0.3) {
+        const review = await prisma.serviceReview.create({
+          data: {
+            bookingId: booking.id,
+            rating: faker.number.int({ min: 3, max: 5 }),
+            comment: faker.helpers.arrayElement([
+              'Service excellent, prestataire très professionnel',
+              'Ponctuel et efficace',
+              'Très satisfait de la prestation',
+              'Je recommande vivement',
+              'Prestataire à l\'écoute des besoins',
+            ]),
+          },
+        });
+        reviews.push(review);
+      }
+    }
+  }
+
+  return { bookings, payments, reviews };
+}
+
+// Création des factures mensuelles automatiques
+async function createMonthlyInvoices(providerUsers: any[], delivererUsers: any[]) {
+  const currentDate = new Date();
+  const lastMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+  const lastMonthEnd = new Date(currentDate.getFullYear(), currentDate.getMonth(), 0);
+
+  // Factures pour les prestataires
+  for (const provider of providerUsers.filter(p => p.status === UserStatus.ACTIVE)) {
+    const invoice = await prisma.invoice.create({
+      data: {
+        number: generateInvoiceNumber(lastMonth, faker.number.int({ min: 1000, max: 9999 })),
+        userId: provider.id,
+        amount: faker.number.float({ min: 500, max: 3000, fractionDigits: 2 }),
+        currency: 'EUR',
+        status: InvoiceStatus.PAID,
+        dueDate: new Date(currentDate.getFullYear(), currentDate.getMonth(), 15),
+        issuedDate: lastMonthEnd,
+        paidDate: new Date(currentDate.getFullYear(), currentDate.getMonth(), 5),
+        billingPeriodStart: lastMonth,
+        billingPeriodEnd: lastMonthEnd,
+        companyName: 'EcoDeli SAS',
+        companyAddress: '110 Rue de Flandre, 75019 Paris',
+        companyVatNumber: 'FR12345678901',
+        companySiret: '123 456 789 00010',
+        clientName: provider.name,
+        totalBeforeTax: faker.number.float({ min: 400, max: 2500, fractionDigits: 2 }),
+        totalTax: faker.number.float({ min: 80, max: 500, fractionDigits: 2 }),
+        totalAfterTax: faker.number.float({ min: 480, max: 3000, fractionDigits: 2 }),
+      },
+    });
+
+    // Création des lignes de facture
+    const bookingCount = faker.number.int({ min: 5, max: 20 });
+    await prisma.invoiceItem.create({
+      data: {
+        invoiceId: invoice.id,
+        description: `Prestations de services - ${lastMonth.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}`,
+        quantity: bookingCount,
+        unitPrice: invoice.amount / bookingCount,
+        taxRate: 20.00,
+        taxAmount: (invoice.amount / bookingCount) * 0.2,
+        totalAmount: (invoice.amount / bookingCount) * 1.2,
+        itemType: 'service',
+      },
+    });
+  }
+
+  // Factures pour les livreurs
+  for (const deliverer of delivererUsers.filter(d => d.status === UserStatus.ACTIVE)) {
+    const invoice = await prisma.invoice.create({
+      data: {
+        number: generateInvoiceNumber(lastMonth, faker.number.int({ min: 1000, max: 9999 })),
+        userId: deliverer.id,
+        amount: faker.number.float({ min: 300, max: 2000, fractionDigits: 2 }),
+        currency: 'EUR',
+        status: InvoiceStatus.PAID,
+        dueDate: new Date(currentDate.getFullYear(), currentDate.getMonth(), 15),
+        issuedDate: lastMonthEnd,
+        paidDate: new Date(currentDate.getFullYear(), currentDate.getMonth(), 5),
+        billingPeriodStart: lastMonth,
+        billingPeriodEnd: lastMonthEnd,
+        companyName: 'EcoDeli SAS',
+        companyAddress: '110 Rue de Flandre, 75019 Paris',
+        companyVatNumber: 'FR12345678901',
+        companySiret: '123 456 789 00010',
+        clientName: deliverer.name,
+        totalBeforeTax: faker.number.float({ min: 250, max: 1700, fractionDigits: 2 }),
+        totalTax: faker.number.float({ min: 50, max: 300, fractionDigits: 2 }),
+        totalAfterTax: faker.number.float({ min: 300, max: 2000, fractionDigits: 2 }),
+      },
+    });
+
+    // Création des lignes de facture
+    const deliveryCount = faker.number.int({ min: 10, max: 30 });
+    await prisma.invoiceItem.create({
+      data: {
+        invoiceId: invoice.id,
+        description: `Livraisons effectuées - ${lastMonth.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}`,
+        quantity: deliveryCount,
+        unitPrice: invoice.amount / deliveryCount,
+        taxRate: 20.00,
+        taxAmount: (invoice.amount / deliveryCount) * 0.2,
+        totalAmount: (invoice.amount / deliveryCount) * 1.2,
+        itemType: 'delivery',
+      },
+    });
+  }
+}
+
+// Création des notifications
+async function createNotifications(users: any[]) {
+  for (const user of users) {
+    // Notification de bienvenue
+    await prisma.notification.create({
+      data: {
+        userId: user.id,
+        title: 'Bienvenue sur EcoDeli',
+        message: `Bonjour ${user.name}, bienvenue sur la plateforme EcoDeli !`,
+        type: 'welcome',
+        link: '/dashboard',
+        read: true,
+        readAt: new Date(),
+      },
+    });
+
+    // Notifications spécifiques par rôle
+    if (user.role === UserRole.CLIENT) {
+      await prisma.notification.create({
+        data: {
+          userId: user.id,
+          title: 'Découvrez nos services',
+          message: 'Explorez les différents services proposés par EcoDeli',
+          type: 'info',
+          link: '/client/services',
+          read: Math.random() > 0.5,
+          readAt: Math.random() > 0.5 ? new Date() : null,
+        },
+      });
+    }
+
+    if (user.role === UserRole.DELIVERER && user.status === UserStatus.ACTIVE) {
+      await prisma.notification.create({
+        data: {
+          userId: user.id,
+          title: 'Nouvelles annonces disponibles',
+          message: 'De nouvelles opportunités de livraison sont disponibles',
+          type: 'delivery_opportunity',
+          link: '/deliverer/announcements',
+          read: Math.random() > 0.3,
+          readAt: Math.random() > 0.3 ? new Date() : null,
+        },
+      });
+    }
+
+    if (user.role === UserRole.PROVIDER && user.status === UserStatus.ACTIVE) {
+      await prisma.notification.create({
+        data: {
+          userId: user.id,
+          title: 'Mise à jour de votre calendrier',
+          message: 'N\'oubliez pas de mettre à jour vos disponibilités',
+          type: 'reminder',
+          link: '/provider/schedule',
+          read: Math.random() > 0.4,
+          readAt: Math.random() > 0.4 ? new Date() : null,
+        },
+      });
     }
 
     if (user.role === UserRole.MERCHANT && user.status === UserStatus.ACTIVE) {
-      notifications.push(
-        prisma.notification.create({
-          data: {
-            userId: user.id,
-            title: 'Contrat activé',
-            message: 'Votre contrat avec EcoDeli est maintenant actif.',
-            type: 'contract',
-            link: '/merchant/contract',
-            read: true,
-            readAt: new Date(Date.now() - 42 * 24 * 60 * 60 * 1000),
-          },
-        })
-      );
-
-      // Add sales notification
-      notifications.push(
-        prisma.notification.create({
-          data: {
-            userId: user.id,
-            title: 'Récapitulatif des ventes',
-            message: 'Votre rapport de ventes hebdomadaire est disponible.',
-            type: 'sales_report',
-            link: '/merchant/reports',
-            read: Math.random() > 0.7,
-            readAt:
-              Math.random() > 0.7
-                ? new Date(Date.now() - Math.floor(Math.random() * 7) * 24 * 60 * 60 * 1000)
-                : null,
-          },
-        })
-      );
-    }
-
-    if (user.role === UserRole.PROVIDER && user.status === UserStatus.PENDING_VERIFICATION) {
-      notifications.push(
-        prisma.notification.create({
-          data: {
-            userId: user.id,
-            title: 'Compétences en attente de validation',
-            message: 'Vos compétences et documents sont en cours de vérification.',
-            type: 'skills_verification',
-            link: '/provider/documents',
-            read: false,
-          },
-        })
-      );
-    } else if (user.role === UserRole.PROVIDER && user.status === UserStatus.ACTIVE) {
-      // Add service booking notification
-      notifications.push(
-        prisma.notification.create({
-          data: {
-            userId: user.id,
-            title: 'Nouvelle réservation de service',
-            message: 'Un client a réservé un de vos services. Consultez votre planning.',
-            type: 'service_booking',
-            link: '/provider/bookings',
-            read: Math.random() > 0.6,
-            readAt:
-              Math.random() > 0.6
-                ? new Date(Date.now() - Math.floor(Math.random() * 3) * 24 * 60 * 60 * 1000)
-                : null,
-          },
-        })
-      );
-    }
-
-    if (user.role === UserRole.CLIENT && user.status === UserStatus.ACTIVE) {
-      // Add delivery status notification
-      notifications.push(
-        prisma.notification.create({
-          data: {
-            userId: user.id,
-            title: 'Mise à jour de votre livraison',
-            message:
-              Math.random() > 0.5
-                ? 'Votre colis a été récupéré par le livreur.'
-                : 'Votre colis est en cours de livraison.',
-            type: 'delivery_status',
-            link: '/client/deliveries',
-            read: Math.random() > 0.5,
-            readAt:
-              Math.random() > 0.5
-                ? new Date(Date.now() - Math.floor(Math.random() * 2) * 24 * 60 * 60 * 1000)
-                : null,
-          },
-        })
-      );
-
-      // Add box reservation notification
-      if (Math.random() > 0.7) {
-        notifications.push(
-          prisma.notification.create({
-            data: {
-              userId: user.id,
-              title: 'Nouvelle box disponible',
-              message: 'Une box correspondant à vos critères est maintenant disponible.',
-              type: 'box_availability',
-              link: '/client/boxes',
-              read: Math.random() > 0.3,
-              readAt:
-                Math.random() > 0.3
-                  ? new Date(Date.now() - Math.floor(Math.random() * 4) * 24 * 60 * 60 * 1000)
-                  : null,
-            },
-          })
-        );
-      }
+      await prisma.notification.create({
+        data: {
+          userId: user.id,
+          title: 'Rapport mensuel disponible',
+          message: 'Votre rapport d\'activité mensuel est prêt',
+          type: 'report',
+          link: '/merchant/reports',
+          read: Math.random() > 0.6,
+          readAt: Math.random() > 0.6 ? new Date() : null,
+        },
+      });
     }
   }
-
-  await Promise.all(notifications);
 }
 
+// Création des logs d'audit
 async function createAuditLogs(adminUsers: any[]) {
-  if (adminUsers.length === 0) return;
-
-  const logs = [];
-  const entityTypes = ['user', 'document', 'contract', 'announcement', 'delivery', 'service'];
+  const entityTypes = ['user', 'document', 'contract', 'delivery', 'service', 'payment'];
   const actions = ['create', 'update', 'delete', 'verify', 'approve', 'reject'];
 
-  // Create 10-20 audit logs
-  const logCount = Math.floor(Math.random() * 11) + 10; // 10-20 logs
+  for (let i = 0; i < 50; i++) {
+    const admin = faker.helpers.arrayElement(adminUsers);
+    const entityType = faker.helpers.arrayElement(entityTypes);
+    const action = faker.helpers.arrayElement(actions);
 
-  for (let i = 0; i < logCount; i++) {
-    const admin = adminUsers[Math.floor(Math.random() * adminUsers.length)];
-    const entityType = entityTypes[Math.floor(Math.random() * entityTypes.length)];
-    const action = actions[Math.floor(Math.random() * actions.length)];
-    const entityId = `${entityType}_${Math.floor(Math.random() * 1000)}`;
-
-    logs.push(
-      prisma.auditLog.create({
-        data: {
-          entityType: entityType,
-          entityId: entityId,
-          action: action,
-          performedById: admin.id,
-          changes: JSON.stringify({
-            old: { status: 'PENDING' },
-            new: { status: 'APPROVED' },
-          }),
-          createdAt: new Date(Date.now() - Math.floor(Math.random() * 60) * 24 * 60 * 60 * 1000), // 0-60 days ago
-        },
-      })
-    );
+    await prisma.auditLog.create({
+      data: {
+        entityType,
+        entityId: faker.string.uuid(),
+        action,
+        performedById: admin.id,
+        changes: JSON.stringify({
+          old: { status: 'pending' },
+          new: { status: 'approved' },
+          timestamp: new Date().toISOString(),
+        }),
+        createdAt: generateRandomDate(new Date('2023-01-01'), new Date()),
+      },
+    });
   }
-
-  await Promise.all(logs);
 }
 
-// Execute the main function
+// Création des données d'onboarding
+async function createOnboardingData(clientUsers: any[]) {
+  for (const client of clientUsers) {
+    if (!client.hasCompletedOnboarding) {
+      // Mise à jour de l'étape d'onboarding
+      await prisma.user.update({
+        where: { id: client.id },
+        data: {
+          lastOnboardingStep: faker.number.int({ min: 1, max: 4 }),
+          preferences: JSON.stringify({
+            tutorialCompleted: false,
+            showWelcomeMessage: true,
+            preferredLanguage: 'fr',
+            emailNotifications: true,
+            smsNotifications: false,
+          }),
+        },
+      });
+    }
+  }
+}
+
+// Fonction pour getFeaturesByBoxType
+function getFeaturesByBoxType(boxType: BoxType): string[] {
+  switch (boxType) {
+    case BoxType.STANDARD:
+      return ['serrure_sécurisée', 'accès_24h'];
+    case BoxType.CLIMATE_CONTROLLED:
+      return ['climatisation', 'contrôle_température', 'contrôle_humidité', 'surveillance_24h'];
+    case BoxType.SECURE:
+      return ['haute_sécurité', 'vidéosurveillance', 'accès_biométrique', 'alarme'];
+    case BoxType.EXTRA_LARGE:
+      return ['grande_capacité', 'quai_chargement', 'accès_chariot', 'porte_large'];
+    case BoxType.REFRIGERATED:
+      return ['réfrigération', 'contrôle_température', 'monitoring_24h'];
+    case BoxType.FRAGILE:
+      return ['parois_rembourrées', 'antivibration', 'climatisation', 'manipulation_délicate'];
+    default:
+      return ['standard', 'serrure_sécurisée'];
+  }
+}
+
+// Exécution du script
 main()
   .catch(e => {
-    console.error('❌ Error during seeding:', e);
+    console.error('❌ Erreur pendant le seeding:', e);
     process.exit(1);
   })
   .finally(async () => {
-    // Close the Prisma client
     await prisma.$disconnect();
   });
