@@ -1,6 +1,6 @@
-import { router, publicProcedure, protectedProcedure, adminProcedure } from '../trpc';
-import { AuthService } from '../../services/auth.service';
-import { DocumentService } from '../../services/document.service';
+import { router, publicProcedure, protectedProcedure, adminProcedure } from '@/server/api/trpc';
+import { AuthService } from '@/server/services/auth.service';
+import { DocumentService } from '@/server/services/document.service';
 import {
   clientRegisterSchema,
   delivererRegisterSchema,
@@ -11,16 +11,16 @@ import {
   resetPasswordSchema,
   createAdminSchema,
   accountVerificationSchema,
-} from '../../../schemas/auth';
+} from '@/schemas';
 import { z } from 'zod';
 import { DocumentType, UserRole, VerificationStatus } from '@prisma/client';
 import { DocumentStatus } from '../../db/enums';
 import { TRPCError } from '@trpc/server';
 import { authenticator } from 'otplib';
-import { hashPassword, verifyPassword } from '@/lib/auth/passwords';
+import { hashPassword, verifyPassword } from '@/lib/passwords';
 import { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail } from '@/lib/email';
-import { generateVerificationToken, generatePasswordResetToken } from '@/lib/auth/tokens';
-import { generateTOTPSecret, generateBackupCodes } from '@/lib/auth/totp';
+import { generateVerificationToken, generatePasswordResetToken } from '@/lib/tokens';
+import { generateTOTPSecret, generateBackupCodes } from '@/lib/totp';
 
 const authService = new AuthService();
 const documentService = new DocumentService();

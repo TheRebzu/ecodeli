@@ -5,6 +5,7 @@ import { authOptions } from '@/server/auth/next-auth';
 import { getTranslations } from 'next-intl/server';
 import DelivererDocumentUpload from '@/components/documents/deliverer-document-upload';
 import { UserStatus } from '@prisma/client';
+import { PageProps, MetadataProps } from '@/types/next';
 
 type Props = {
   params: { locale: string };
@@ -12,7 +13,9 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const locale = params.locale;
+  // Attendre la résolution des paramètres
+  const resolvedParams = await params;
+  const locale = resolvedParams.locale;
   const t = await getTranslations({ locale, namespace: 'documents' });
 
   return {
@@ -22,7 +25,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function DelivererDocumentsPage({ params, searchParams }: Props) {
-  const locale = params.locale;
+  // Attendre la résolution des paramètres
+  const resolvedParams = await params;
+  const locale = resolvedParams.locale;
   const t = await getTranslations({ locale, namespace: 'documents' });
 
   // Récupérer la session utilisateur

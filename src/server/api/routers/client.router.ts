@@ -1,7 +1,7 @@
-import { router, protectedProcedure } from '../trpc';
+import { router, protectedProcedure } from '@/server/api/trpc';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { DashboardService } from '@/server/services/dashboard.service';
+import { dashboardService } from '@/server/services/dashboard.service';
 
 // Définir les interfaces pour les données récupérées de la base de données
 interface DeliveryWithRelations {
@@ -303,7 +303,7 @@ export const clientRouter = router({
       });
     }
 
-    return DashboardService.getClientDashboardStats(userId);
+    return dashboardService.getClientDashboardStats(userId);
   }),
 
   // Procédure pour récupérer l'activité récente du client
@@ -323,7 +323,7 @@ export const clientRouter = router({
       });
     }
 
-    return DashboardService.getClientRecentActivity(userId);
+    return dashboardService.getClientRecentActivity(userId);
   }),
 
   // Procédure pour récupérer les métriques financières du client
@@ -343,7 +343,7 @@ export const clientRouter = router({
       });
     }
 
-    return DashboardService.getClientFinancialMetrics(userId);
+    return dashboardService.getClientFinancialMetrics(userId);
   }),
 
   // Procédure pour récupérer les éléments actifs du client
@@ -363,6 +363,6 @@ export const clientRouter = router({
       });
     }
 
-    return DashboardService.getClientActiveItems(userId);
+    return dashboardService.getClientActiveItems(userId);
   }),
 });

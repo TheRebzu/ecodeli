@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { api } from '../trpc/react';
-import { DeliveryFilterInput } from '../schemas/delivery-tracking.schema';
-import { DeliveryStatus } from '../types/delivery';
+import { DeliveryFilterInput } from '@/schemas/delivery-tracking.schema';
+import { DeliveryStatus } from '@/types/delivery';
 
 interface UseDeliveryHistoryProps {
   initialFilters?: Partial<DeliveryFilterInput>;

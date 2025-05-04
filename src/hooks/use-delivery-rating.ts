@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { api } from '../trpc/react';
 import { useRouter } from 'next/router';
-import { DeliveryRatingInput } from '../schemas/delivery-tracking.schema';
+import { DeliveryRatingInput } from '@/schemas/delivery-tracking.schema';
 
 /**
  * Hook personnalisé pour gérer l'évaluation d'une livraison

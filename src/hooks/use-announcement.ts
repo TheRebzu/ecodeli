@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { api } from '../trpc/react';
 import { toast } from 'sonner';
-import { AnnouncementStatus, AnnouncementType, AnnouncementPriority } from '../types/announcement';
+import { AnnouncementStatus, AnnouncementType, AnnouncementPriority } from '@/types/announcement';
 import {
   CreateAnnouncementSchemaType,
   UpdateAnnouncementSchemaType,
   AnnouncementFiltersSchemaType,
-} from '../schemas/announcement.schema';
+} from '@/schemas/announcement.schema';
 
 export function useAnnouncement() {
   const router = useRouter();

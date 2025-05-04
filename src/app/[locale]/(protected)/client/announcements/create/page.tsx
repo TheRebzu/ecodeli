@@ -2,6 +2,7 @@ import { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { PageHeader } from '@/components/ui/page-header';
 import { AnnouncementForm } from '@/components/announcements/announcement-form';
+import { PageProps, MetadataProps } from '@/types/next';
 
 export async function generateMetadata({
   params,

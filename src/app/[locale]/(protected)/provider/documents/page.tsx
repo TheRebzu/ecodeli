@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { DocumentUpload } from '@/components/documents/document-upload';
-import { DocumentList } from '@/components/documents/document-list';
+import DocumentList from '@/components/documents/document-list';
 
 export const metadata: Metadata = {
   title: 'Mes documents | EcoDeli Prestataire',

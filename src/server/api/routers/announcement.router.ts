@@ -1,14 +1,14 @@
 import { z } from 'zod';
-import { router, publicProcedure, protectedProcedure } from '../trpc';
-import { AnnouncementService } from '../../services/announcement.service';
+import { router, publicProcedure, protectedProcedure } from '@/server/api/trpc';
+import { AnnouncementService } from '@/server/services/announcement.service';
 import {
   createAnnouncementSchema,
   updateAnnouncementSchema,
   announcementFiltersSchema,
   createDeliveryApplicationSchema,
-} from '../../../schemas/announcement.schema';
+} from '@/schemas/announcement.schema';
 import { TRPCError } from '@trpc/server';
-import { AnnouncementStatus } from '../../../types/announcement';
+import { AnnouncementStatus } from '@/types/announcement';
 
 export const announcementRouter = router({
   // Récupération de toutes les annonces avec filtres

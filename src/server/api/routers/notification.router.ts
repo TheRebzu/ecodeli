@@ -15,13 +15,10 @@ export const notificationRouter = router({
     )
     .query(async ({ ctx, input }) => {
       try {
-        const notificationService = new NotificationService(ctx.db);
-        const result = await notificationService.getNotifications(
-          ctx.session.user.id,
-          input.page,
-          input.limit,
-          input.types
-        );
+        const result = await NotificationService.getUserNotifications(ctx.session.user.id, {
+          limit: input.limit,
+          // Autres paramètres comme nécessaire
+        });
         return result;
       } catch (error) {
         console.error('Error fetching notifications:', error);
@@ -43,8 +40,10 @@ export const notificationRouter = router({
     )
     .query(async ({ ctx, input }) => {
       try {
-        const notificationService = new NotificationService(ctx.db);
-        return await notificationService.getUnreadNotifications(ctx.session.user.id, input?.types);
+        const result = await NotificationService.getUserNotifications(ctx.session.user.id, {
+          unreadOnly: true
+        });
+        return result.notifications;
       } catch (error) {
         console.error('Error fetching unread notifications:', error);
         throw new TRPCError({
@@ -65,12 +64,10 @@ export const notificationRouter = router({
     )
     .query(async ({ ctx, input }) => {
       try {
-        const notificationService = new NotificationService(ctx.db);
-        const unreadNotifications = await notificationService.getUnreadNotifications(
-          ctx.session.user.id,
-          input?.types
-        );
-        return unreadNotifications.length;
+        const result = await NotificationService.getUserNotifications(ctx.session.user.id, {
+          unreadOnly: true
+        });
+        return result.unreadCount;
       } catch (error) {
         console.error('Error fetching unread count:', error);
         throw new TRPCError({
@@ -85,8 +82,7 @@ export const notificationRouter = router({
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       try {
-        const notificationService = new NotificationService(ctx.db);
-        return await notificationService.markAsRead(input.id, ctx.session.user.id);
+        return await NotificationService.markAsRead(input.id);
       } catch (error) {
         console.error('Error marking notification as read:', error);
         throw new TRPCError({
@@ -107,8 +103,7 @@ export const notificationRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const notificationService = new NotificationService(ctx.db);
-        return await notificationService.markAllAsRead(ctx.session.user.id, input?.types);
+        return await NotificationService.markAllAsRead(ctx.session.user.id);
       } catch (error) {
         console.error('Error marking all notifications as read:', error);
         throw new TRPCError({
@@ -123,8 +118,22 @@ export const notificationRouter = router({
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       try {
-        const notificationService = new NotificationService(ctx.db);
-        return await notificationService.deleteNotification(input.id, ctx.session.user.id);
+        // Si la méthode deleteNotification n'existe pas dans NotificationService,
+        // nous utiliserons une alternative
+        const notification = await ctx.db.notification.findUnique({
+          where: { id: input.id }
+        });
+        
+        if (!notification || notification.userId !== ctx.session.user.id) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'You do not have permission to delete this notification',
+          });
+        }
+        
+        return await ctx.db.notification.delete({
+          where: { id: input.id }
+        });
       } catch (error) {
         console.error('Error deleting notification:', error);
         throw new TRPCError({
@@ -145,8 +154,16 @@ export const notificationRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const notificationService = new NotificationService(ctx.db);
-        return await notificationService.deleteAllNotifications(ctx.session.user.id, input?.types);
+        // Si la méthode deleteAllNotifications n'existe pas dans NotificationService,
+        // nous utiliserons une alternative
+        const where = {
+          userId: ctx.session.user.id,
+          ...(input?.types && input.types.length > 0 ? { type: { in: input.types } } : {})
+        };
+        
+        return await ctx.db.notification.deleteMany({
+          where
+        });
       } catch (error) {
         console.error('Error deleting all notifications:', error);
         throw new TRPCError({

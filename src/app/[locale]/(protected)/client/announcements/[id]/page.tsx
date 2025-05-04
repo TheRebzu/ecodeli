@@ -19,6 +19,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import type { User } from '@prisma/client';
+import { PageProps, MetadataProps } from '@/types/next';
 
 // Définir les types pour les applications de livraison qui incluent le livreur
 interface DeliveryApplication {

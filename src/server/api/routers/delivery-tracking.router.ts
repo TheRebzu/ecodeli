@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { router, protectedProcedure } from '../trpc';
-import deliveryTrackingService from '../../services/delivery-tracking.service';
+import { router, protectedProcedure } from '@/server/api/trpc';
+import deliveryTrackingService from '@/server/services/delivery-tracking.service';
 import {
   createDeliveryTrackingSchema,
   deliveryCoordinatesUpdateSchema,
@@ -9,7 +9,7 @@ import {
   deliveryRatingSchema,
   deliveryFilterSchema,
   generateConfirmationCodeSchema,
-} from '../../../schemas/delivery-tracking.schema';
+} from '@/schemas/delivery-tracking.schema';
 
 export const deliveryTrackingRouter = router({
   // Création d'une nouvelle livraison

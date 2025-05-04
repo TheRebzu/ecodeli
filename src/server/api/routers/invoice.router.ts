@@ -1,4 +1,4 @@
-import { router, protectedProcedure } from '../trpc';
+import { router, protectedProcedure } from '@/server/api/trpc';
 import { z } from 'zod';
 
 export const invoiceRouter = router({

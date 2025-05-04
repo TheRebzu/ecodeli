@@ -12,7 +12,7 @@ import {
 import { TRPCError } from '@trpc/server';
 import { Prisma, PaymentStatus } from '@prisma/client';
 import { generateRandomCode } from '@/lib/utils';
-import { notificationService } from './notification.service';
+import { NotificationService } from './notification.service';
 
 // Types personnalisés pour les enums manquants
 export enum BoxType {
@@ -598,7 +598,7 @@ class StorageService {
           // Sérialiser les données en JSON
           const serializedData = JSON.stringify(notificationData);
 
-          await notificationService.createNotification({
+          await NotificationService.sendNotification({
             userId: subscription.clientId,
             title: 'Box disponibles',
             message: `${availableBoxes.length} box ${availableBoxes.length > 1 ? 'sont' : 'est'} maintenant disponible${availableBoxes.length > 1 ? 's' : ''} selon vos critères`,

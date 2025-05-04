@@ -139,3 +139,21 @@ export function generateRandomCode(length: number): string {
   }
   return code;
 }
+
+/**
+ * Formate la taille d'un fichier en unités lisibles (octets, Ko, Mo, Go)
+ * @param bytes Taille en octets
+ * @param decimals Nombre de décimales (par défaut: 2)
+ * @returns Chaîne formatée avec unité
+ */
+export function formatFileSize(bytes: number, decimals: number = 2): string {
+  if (bytes === 0) return '0 octets';
+
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ['octets', 'Ko', 'Mo', 'Go', 'To'];
+  
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}

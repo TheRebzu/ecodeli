@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { DeliveryStatus } from '../types/delivery';
+import { DeliveryStatus } from '@/types/delivery';
 
 // Schéma pour les coordonnées GPS
 export const coordinatesSchema = z.object({

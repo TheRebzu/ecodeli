@@ -1,7 +1,7 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ActivityChartData } from '@/types/admin/dashboard';
+import { ActivityChartData } from '@/types/dashboard';
 import {
   LineChart,
   Line,

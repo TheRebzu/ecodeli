@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { loginSchema } from '@/schemas/auth/login.schema';
-import { registerSchema, UserRole } from '@/schemas/auth/register.schema';
-import { merchantRegisterSchema } from '@/schemas/auth/merchant-register.schema';
+import { loginSchema } from '@/schemas/login.schema';
+import { registerSchema, UserRole } from '@/schemas/register.schema';
+import { merchantRegisterSchema } from '@/schemas/merchant-register.schema';
 
 describe('Auth Schemas', () => {
   describe('Login Schema', () => {

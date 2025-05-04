@@ -7,9 +7,9 @@ import {
   DeliveryRatingInput,
   DeliveryFilterInput,
   CreateDeliveryTrackingInput,
-} from '../../schemas/delivery-tracking.schema';
+} from '@/schemas/delivery-tracking.schema';
 import { TRPCError } from '@trpc/server';
-import { generateRandomString } from '../../lib/utils';
+import { generateRandomString } from '@/lib/utils';
 import { Prisma } from '@prisma/client';
 
 // Service pour le suivi des livraisons

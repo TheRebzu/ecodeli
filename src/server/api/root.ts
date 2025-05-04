@@ -13,12 +13,16 @@ import { documentRouter } from './routers/document.router';
 import { verificationRouter } from './routers/verification.router';
 import { userPreferencesRouter } from '@/server/api/routers/user-preferences.router';
 import { notificationRouter } from './routers/notification.router';
-import { adminUserRouter } from './routers/admin/admin-user.router';
-import { adminDashboardRouter } from './routers/admin/admin-dashboard.router';
-import { warehouseRouter as adminWarehouseRouter } from './routers/admin/warehouse.router';
+import { adminUserRouter } from './routers/admin-user.router';
+import { adminDashboardRouter } from './routers/admin-dashboard.router';
+import { warehouseRouter as adminWarehouseRouter } from './routers/warehouse.router';
 import { deliveryTrackingRouter } from './routers/delivery-tracking.router';
 import { storageRouter } from './routers/storage.router';
 import { clientRouter } from './routers/client.router';
+import { profileRouter } from './routers/profile.router';
+import { walletRouter } from './routers/wallet.router';
+import { billingRouter } from './routers/billing.router';
+import { financialTaskRouter } from './routers/financial-task.router';
 
 // Re-export createTRPCContext from trpc.ts
 export { createTRPCContext };
@@ -73,6 +77,10 @@ export const appRouter = router({
   deliveryTracking: deliveryTrackingRouter,
   storage: storageRouter,
   client: clientRouter,
+  profile: profileRouter,
+  wallet: walletRouter,
+  billing: billingRouter,
+  financialTask: financialTaskRouter,
 });
 
 export type AppRouter = typeof appRouter;

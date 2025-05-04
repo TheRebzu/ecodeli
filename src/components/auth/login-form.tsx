@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useSearchParams } from 'next/navigation';
-import { loginSchema, type LoginSchemaType } from '@/schemas/auth';
+import { loginSchema, type LoginSchemaType } from '@/schemas';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -30,7 +30,7 @@ import AppLink from '@/components/shared/app-link';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslations } from 'next-intl';
-import { getAuthErrorMessage } from '@/lib/auth/auth-error';
+import { getAuthErrorMessage } from '@/lib/auth-error';
 import { signIn } from 'next-auth/react';
 
 export function LoginForm({ locale = 'fr' }: { locale?: string }) {

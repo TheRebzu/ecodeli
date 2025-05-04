@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { PageProps, MetadataProps } from '@/types/next';
 
 export function generateMetadata(): Metadata {
   return {
