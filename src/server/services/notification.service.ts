@@ -468,6 +468,10 @@ export class NotificationService {
         fr: 'Certificat de qualification',
         en: 'Qualification certificate',
       },
+      [DocumentType.SELFIE]: {
+        fr: 'Photo de profil',
+        en: 'Profile photo',
+      },
       [DocumentType.OTHER]: {
         fr: 'Autre document',
         en: 'Other document',
@@ -578,6 +582,7 @@ function getDocumentApprovedMessage(documentType: DocumentType, locale: Supporte
       [DocumentType.INSURANCE_CERTIFICATE]: "Attestation d'assurance",
       [DocumentType.VEHICLE_REGISTRATION]: 'Carte grise',
       [DocumentType.PROFESSIONAL_CERTIFICATION]: 'Certification professionnelle',
+      [DocumentType.SELFIE]: 'Photo de profil',
       [DocumentType.OTHER]: 'Document',
     };
 
@@ -592,6 +597,7 @@ function getDocumentApprovedMessage(documentType: DocumentType, locale: Supporte
       [DocumentType.INSURANCE_CERTIFICATE]: 'Insurance certificate',
       [DocumentType.VEHICLE_REGISTRATION]: 'Vehicle registration',
       [DocumentType.PROFESSIONAL_CERTIFICATION]: 'Professional certification',
+      [DocumentType.SELFIE]: 'Profile photo',
       [DocumentType.OTHER]: 'Document',
     };
 
@@ -618,6 +624,7 @@ function getDocumentRejectedMessage(
       [DocumentType.INSURANCE_CERTIFICATE]: "Attestation d'assurance",
       [DocumentType.VEHICLE_REGISTRATION]: 'Carte grise',
       [DocumentType.PROFESSIONAL_CERTIFICATION]: 'Certification professionnelle',
+      [DocumentType.SELFIE]: 'Photo de profil',
       [DocumentType.OTHER]: 'Document',
     };
 
@@ -632,6 +639,7 @@ function getDocumentRejectedMessage(
       [DocumentType.INSURANCE_CERTIFICATE]: 'Insurance certificate',
       [DocumentType.VEHICLE_REGISTRATION]: 'Vehicle registration',
       [DocumentType.PROFESSIONAL_CERTIFICATION]: 'Professional certification',
+      [DocumentType.SELFIE]: 'Profile photo',
       [DocumentType.OTHER]: 'Document',
     };
 
@@ -705,6 +713,7 @@ function getMissingDocumentsMessage(
       [DocumentType.INSURANCE_CERTIFICATE]: "Attestation d'assurance",
       [DocumentType.VEHICLE_REGISTRATION]: 'Carte grise',
       [DocumentType.PROFESSIONAL_CERTIFICATION]: 'Certification professionnelle',
+      [DocumentType.SELFIE]: 'Photo de profil',
       [DocumentType.OTHER]: 'Document',
     };
 
@@ -721,6 +730,7 @@ function getMissingDocumentsMessage(
       [DocumentType.INSURANCE_CERTIFICATE]: 'Insurance certificate',
       [DocumentType.VEHICLE_REGISTRATION]: 'Vehicle registration',
       [DocumentType.PROFESSIONAL_CERTIFICATION]: 'Professional certification',
+      [DocumentType.SELFIE]: 'Profile photo',
       [DocumentType.OTHER]: 'Document',
     };
 

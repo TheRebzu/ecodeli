@@ -12,7 +12,8 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const locale = params.locale;
+  // Accès asynchrone à params.locale
+  const locale = await Promise.resolve(params.locale);
   const t = await getTranslations({ locale, namespace: 'documents' });
 
   return {
@@ -22,7 +23,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function DelivererDocumentsPage({ params, searchParams }: Props) {
-  const locale = params.locale;
+  // Accès asynchrone à params.locale
+  const locale = await Promise.resolve(params.locale);
   const t = await getTranslations({ locale, namespace: 'documents' });
 
   // Récupérer la session utilisateur
@@ -38,8 +40,9 @@ export default async function DelivererDocumentsPage({ params, searchParams }: P
     redirect(`/${locale}/dashboard`);
   }
 
-  // Récupérer le statut de vérification depuis les paramètres de recherche
-  const verificationRequired = searchParams.verification_required === 'true';
+  // Accès asynchrone aux searchParams
+  const verification_required = await Promise.resolve(searchParams.verification_required);
+  const verificationRequired = verification_required === 'true';
 
   return (
     <div className="container mx-auto py-8 max-w-4xl">
