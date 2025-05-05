@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { router, protectedProcedure } from '../trpc';
+import { router, protectedProcedure, verifiedDelivererProcedure } from '../trpc';
 import deliveryTrackingService from '../../services/delivery-tracking.service';
 import {
   createDeliveryTrackingSchema,
@@ -22,15 +22,15 @@ export const deliveryTrackingRouter = router({
       });
     }),
 
-  // Mise à jour du statut d'une livraison
-  updateStatus: protectedProcedure
+  // Mise à jour du statut d'une livraison (restreint aux livreurs vérifiés)
+  updateStatus: verifiedDelivererProcedure
     .input(deliveryStatusUpdateSchema)
     .mutation(async ({ input, ctx }) => {
       return deliveryTrackingService.updateDeliveryStatus(input, ctx.session.user.id);
     }),
 
-  // Mise à jour des coordonnées en temps réel
-  updateCoordinates: protectedProcedure
+  // Mise à jour des coordonnées en temps réel (restreint aux livreurs vérifiés)
+  updateCoordinates: verifiedDelivererProcedure
     .input(deliveryCoordinatesUpdateSchema)
     .mutation(async ({ input, ctx }) => {
       return deliveryTrackingService.updateDeliveryCoordinates(input, ctx.session.user.id);
@@ -76,17 +76,13 @@ export const deliveryTrackingRouter = router({
       );
     }),
 
-  // Obtenir les livraisons actives d'un livreur
-  getActiveDeliveries: protectedProcedure.query(async ({ ctx }) => {
-    // Vérifier si l'utilisateur est un livreur
-    if (ctx.session.user.role !== 'DELIVERER') {
-      throw new Error('Accès non autorisé');
-    }
+  // Obtenir les livraisons actives d'un livreur (restreint aux livreurs vérifiés)
+  getActiveDeliveries: verifiedDelivererProcedure.query(async ({ ctx }) => {
     return deliveryTrackingService.getActiveDeliveries(ctx.session.user.id);
   }),
 
-  // Générer un nouveau code de confirmation
-  generateConfirmationCode: protectedProcedure
+  // Générer un nouveau code de confirmation (restreint aux livreurs vérifiés)
+  generateConfirmationCode: verifiedDelivererProcedure
     .input(generateConfirmationCodeSchema)
     .mutation(async ({ input, ctx }) => {
       return deliveryTrackingService.generateConfirmationCode(

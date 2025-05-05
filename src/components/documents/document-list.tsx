@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { api } from '@/trpc/react';
 import { DocumentStatus, DocumentType } from '@prisma/client';
 import { formatDistanceToNow } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
@@ -35,40 +34,45 @@ import {
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle, CheckCircle, Clock, Eye, FileText, X } from 'lucide-react';
+import { useDocuments } from '@/hooks/use-documents';
 
-export default function DocumentList() {
+interface DocumentListProps {
+  documents?: any[];
+  isLoading?: boolean;
+  onDelete?: (id: string) => void;
+  locale?: string;
+  userId?: string;
+}
+
+export default function DocumentList({
+  documents: externalDocuments,
+  isLoading: externalLoading,
+  onDelete,
+  locale = 'fr',
+  userId,
+}: DocumentListProps) {
   const t = useTranslations('documents');
   const [selectedDocument, setSelectedDocument] = useState<any | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
-  const locale = 'fr'; // Set this based on your app's locale state
 
-  const { data: documents, isLoading, isError, refetch } = api.auth.getUserDocuments.useQuery();
+  // Utiliser le hook useDocuments seulement si aucun document n'est passé en prop
+  const {
+    documents: hookDocuments,
+    isLoading: hookLoading,
+    deleteDocument,
+    refreshDocuments,
+  } = !externalDocuments
+    ? useDocuments(userId)
+    : { documents: [], isLoading: false, deleteDocument: null, refreshDocuments: () => {} };
+
+  // Utiliser les documents passés en prop ou ceux du hook
+  const documents = externalDocuments || hookDocuments;
+  const isLoading = externalLoading || hookLoading;
+
+  const handleDelete = onDelete || deleteDocument;
 
   if (isLoading) {
     return <DocumentListSkeleton />;
-  }
-
-  if (isError) {
-    return (
-      <Card className="w-full">
-        <CardHeader>
-          <CardTitle>{t('list.title')}</CardTitle>
-          <CardDescription>{t('list.description')}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center p-6 text-center">
-            <div>
-              <AlertCircle className="mx-auto h-10 w-10 text-destructive" />
-              <h3 className="mt-2 text-lg font-semibold">{t('list.errorTitle')}</h3>
-              <p className="text-sm text-muted-foreground">{t('list.errorDescription')}</p>
-              <Button onClick={() => refetch()} className="mt-4">
-                {t('list.retry')}
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
   }
 
   if (!documents || documents.length === 0) {
@@ -96,8 +100,8 @@ export default function DocumentList() {
     setPreviewOpen(true);
   };
 
-  const getStatusBadgeProps = (status: DocumentStatus) => {
-    switch (status) {
+  const getStatusBadgeProps = (status: string) => {
+    switch (status?.toUpperCase()) {
       case 'PENDING':
         return { variant: 'outline' as const, icon: <Clock className="mr-1 h-3 w-3" /> };
       case 'APPROVED':
@@ -139,17 +143,18 @@ export default function DocumentList() {
             </TableHeader>
             <TableBody>
               {documents.map(doc => {
-                const { variant, icon } = getStatusBadgeProps(doc.status as DocumentStatus);
+                const status = doc.verificationStatus || doc.status;
+                const { variant, icon } = getStatusBadgeProps(status);
                 return (
                   <TableRow key={doc.id}>
                     <TableCell className="font-medium">{t(`documentTypes.${doc.type}`)}</TableCell>
                     <TableCell>
                       <Badge variant={variant} className="flex w-fit items-center">
                         {icon}
-                        {t(`status.${doc.status}`)}
+                        {t(`status.${status?.toLowerCase()}`)}
                       </Badge>
                     </TableCell>
-                    <TableCell>{formatDate(doc.createdAt)}</TableCell>
+                    <TableCell>{formatDate(doc.uploadedAt || doc.createdAt)}</TableCell>
                     <TableCell>
                       {doc.expiryDate ? (
                         formatDate(doc.expiryDate)
@@ -194,14 +199,16 @@ export default function DocumentList() {
             <DialogHeader>
               <DialogTitle>{t(`documentTypes.${selectedDocument.type}`)}</DialogTitle>
               <DialogDescription>
-                {selectedDocument.status === 'REJECTED' && selectedDocument.rejectionReason && (
-                  <div className="mt-2 rounded-md bg-destructive/10 p-3 text-sm">
-                    <p className="font-semibold text-destructive">
-                      {t('preview.rejectionReason')}:
-                    </p>
-                    <p>{selectedDocument.rejectionReason}</p>
-                  </div>
-                )}
+                {(selectedDocument.status === 'REJECTED' ||
+                  selectedDocument.verificationStatus === 'REJECTED') &&
+                  selectedDocument.rejectionReason && (
+                    <div className="mt-2 rounded-md bg-destructive/10 p-3 text-sm">
+                      <p className="font-semibold text-destructive">
+                        {t('preview.rejectionReason')}:
+                      </p>
+                      <p>{selectedDocument.rejectionReason}</p>
+                    </div>
+                  )}
               </DialogDescription>
             </DialogHeader>
 
@@ -209,14 +216,14 @@ export default function DocumentList() {
               <div className="rounded-md border">
                 {selectedDocument.mimeType?.startsWith('image/') ? (
                   <img
-                    src={`/api/documents/${selectedDocument.id}`}
+                    src={selectedDocument.fileUrl}
                     alt={t(`documentTypes.${selectedDocument.type}`)}
                     className="h-auto w-full"
                   />
                 ) : (
                   <div className="flex h-40 items-center justify-center bg-muted">
                     <a
-                      href={`/api/documents/${selectedDocument.id}`}
+                      href={selectedDocument.fileUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-primary-foreground"
@@ -231,11 +238,15 @@ export default function DocumentList() {
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
                   <p className="font-semibold text-muted-foreground">{t('preview.status')}</p>
-                  <p>{t(`status.${selectedDocument.status}`)}</p>
+                  <p>
+                    {t(
+                      `status.${(selectedDocument.verificationStatus || selectedDocument.status)?.toLowerCase()}`
+                    )}
+                  </p>
                 </div>
                 <div>
                   <p className="font-semibold text-muted-foreground">{t('preview.submitted')}</p>
-                  <p>{formatDate(selectedDocument.createdAt)}</p>
+                  <p>{formatDate(selectedDocument.uploadedAt || selectedDocument.createdAt)}</p>
                 </div>
                 <div>
                   <p className="font-semibold text-muted-foreground">{t('preview.expires')}</p>
@@ -245,14 +256,14 @@ export default function DocumentList() {
                 </div>
                 <div>
                   <p className="font-semibold text-muted-foreground">{t('preview.fileName')}</p>
-                  <p>{selectedDocument.originalName || '-'}</p>
+                  <p>{selectedDocument.filename || '-'}</p>
                 </div>
               </div>
 
-              {selectedDocument.description && (
+              {selectedDocument.notes && (
                 <div>
                   <p className="font-semibold text-muted-foreground">{t('preview.description')}</p>
-                  <p className="mt-1 text-sm">{selectedDocument.description}</p>
+                  <p className="mt-1 text-sm">{selectedDocument.notes}</p>
                 </div>
               )}
             </div>

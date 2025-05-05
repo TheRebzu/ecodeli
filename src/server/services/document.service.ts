@@ -15,7 +15,6 @@ interface Document {
   id: string;
   userId: string;
   filename: string;
-  originalName: string;
   mimeType: string;
   size: number;
   path: string;
@@ -154,16 +153,20 @@ export class DocumentService {
   /**
    * Télécharge un document pour un utilisateur
    */
-  async uploadDocument(
-    userId: string,
-    documentType: DocumentType,
-    file: { buffer: Buffer; filename: string; mimetype: string },
-    expiryDate?: Date
-  ) {
+  async uploadDocument(params: UploadDocumentParams) {
     try {
+      const { userId, type, filename, mimeType, fileSize, notes, expiryDate } = params;
+
       // Vérifier si l'utilisateur existe
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          role: true,
+          locale: true,
+        },
       });
 
       if (!user) {
@@ -173,10 +176,20 @@ export class DocumentService {
         });
       }
 
-      // Sauvegarder le fichier
-      const fileResult = await this.saveFile(file, userId);
+      // Créer un nom de fichier unique pour éviter les collisions
+      const uniqueFilename = `${Date.now()}-${crypto.randomBytes(8).toString('hex')}-${filename.replace(/[^a-z0-9.]/gi, '-')}`;
 
-      // Déterminer le type d'utilisateur
+      // Créer le chemin du répertoire pour les fichiers de l'utilisateur
+      const userUploadsDir = path.join(this.uploadDir, userId);
+      await fs.mkdir(userUploadsDir, { recursive: true });
+
+      // Chemin du fichier sur le serveur
+      const filePath = path.join(userUploadsDir, uniqueFilename);
+
+      // URL relative pour l'accès client
+      const fileUrl = `/uploads/${userId}/${uniqueFilename}`;
+
+      // Obtenir le rôle de l'utilisateur pour le document
       let userRole: UserRole;
       switch (user.role) {
         case 'CLIENT':
@@ -195,25 +208,27 @@ export class DocumentService {
           userRole = UserRole.CLIENT;
       }
 
-      // Créer l'entrée de document
+      // Créer l'entrée du document dans la base de données
       const document = await this.prisma.document.create({
         data: {
-          userId: userId,
-          type: documentType,
-          filename: fileResult.filename,
-          fileUrl: fileResult.fileUrl,
-          mimeType: fileResult.mimeType,
-          fileSize: fileResult.fileSize,
+          userId,
+          type,
+          filename: uniqueFilename,
+          mimeType,
+          fileSize,
+          fileUrl,
           uploadedAt: new Date(),
+          verificationStatus: VerificationStatus.PENDING,
+          notes,
           expiryDate,
-          userRole: userRole.toString(),
+          isVerified: false,
         },
         include: {
           user: true,
         },
       });
 
-      // Créer une demande de vérification
+      // Créer une demande de vérification pour ce document
       await this.prisma.verification.create({
         data: {
           submitterId: userId,
@@ -223,17 +238,33 @@ export class DocumentService {
         },
       });
 
-      // Envoyer une notification à tous les administrateurs
-      const notificationService = new NotificationService();
-      const userLocale = getUserPreferredLocale(user);
-      await notificationService.sendDocumentSubmissionToAdminsNotification(document, userLocale);
+      console.log(`Document créé avec succès: ${document.id}`);
+      console.log(`Envoi de notification aux administrateurs pour le document ${document.id}`);
+
+      try {
+        // Envoyer une notification à tous les administrateurs
+        const userLocale = getUserPreferredLocale(user);
+        await this.notificationService.sendDocumentSubmissionToAdminsNotification(
+          document,
+          userLocale
+        );
+        console.log(
+          `Notification envoyée avec succès aux administrateurs pour le document ${document.id}`
+        );
+      } catch (notifError) {
+        console.error("Erreur lors de l'envoi de la notification aux administrateurs:", notifError);
+        // Ne pas faire échouer l'upload si la notification échoue
+      }
 
       return document;
     } catch (error) {
       console.error('Erreur lors du téléchargement du document:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors du téléchargement du document',
+        message:
+          'Erreur lors du téléchargement du document: ' +
+          (error instanceof Error ? error.message : String(error)),
+        cause: error,
       });
     }
   }
@@ -526,13 +557,11 @@ export class DocumentService {
     if (status === DocumentStatus.APPROVED) {
       await this.emailService.sendDocumentApprovedEmail(
         document.user.email as string,
-        document.originalName,
         document.type as DocumentType
       );
     } else if (status === DocumentStatus.REJECTED) {
       await this.emailService.sendDocumentRejectedEmail(
         document.user.email as string,
-        document.originalName,
         document.type as DocumentType,
         rejectionReason || 'Aucune raison spécifiée'
       );
@@ -866,6 +895,7 @@ export class DocumentService {
       [DocumentType.INSURANCE]: "Attestation d'assurance",
       [DocumentType.CRIMINAL_RECORD]: 'Casier judiciaire',
       [DocumentType.PROFESSIONAL_CERTIFICATION]: 'Certification professionnelle',
+      [DocumentType.SELFIE]: 'Photo de profil',
       [DocumentType.OTHER]: 'Autre document',
     };
 
