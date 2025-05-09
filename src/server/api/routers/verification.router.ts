@@ -61,19 +61,30 @@ export const verificationRouter = router({
       z.object({
         page: z.number().default(1),
         limit: z.number().default(10),
+        userRole: z.nativeEnum(UserRole).optional(),
       })
     )
     .query(async ({ ctx, input }) => {
-      const { page, limit } = input;
+      const { page, limit, userRole } = input;
       const skip = (page - 1) * limit;
 
       try {
+        // Construire la clause where avec filtrage par rôle si fourni
+        const whereClause: any = {
+          isVerified: false,
+          verificationStatus: VerificationStatus.PENDING,
+        };
+
+        // Ajouter le filtre par rôle d'utilisateur si fourni
+        if (userRole) {
+          whereClause.user = {
+            role: userRole,
+          };
+        }
+
         const [verifications, total] = await Promise.all([
           ctx.db.document.findMany({
-            where: {
-              isVerified: false,
-              verificationStatus: VerificationStatus.PENDING,
-            },
+            where: whereClause,
             include: {
               user: {
                 select: {
@@ -91,10 +102,7 @@ export const verificationRouter = router({
             take: limit,
           }),
           ctx.db.document.count({
-            where: {
-              isVerified: false,
-              verificationStatus: VerificationStatus.PENDING,
-            },
+            where: whereClause,
           }),
         ]);
 

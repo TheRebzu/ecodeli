@@ -45,9 +45,13 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
   const allDocumentsSubmitted = hasIdCard && hasSelfie && hasDrivingLicense;
 
   // Gestionnaire d'upload pour chaque type de document
-  const handleUpload = async (files: File[], type: 'ID_CARD' | 'SELFIE' | 'DRIVING_LICENSE') => {
+  const handleUpload = async (
+    files: File[],
+    type: 'ID_CARD' | 'SELFIE' | 'DRIVING_LICENSE',
+    notes?: string
+  ) => {
     try {
-      await uploadDocument(files[0], type);
+      await uploadDocument(files[0], type, notes || '');
 
       // Message de succès
       toast({
@@ -97,7 +101,7 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
     if (documents.length === 0) return 'missing';
 
     const latestDocument = documents[0];
-    return latestDocument.status.toLowerCase();
+    return latestDocument.verificationStatus.toLowerCase();
   };
 
   // Fonctions pour rendre les badges de statut
@@ -196,13 +200,13 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
                   variant="outline"
                   onClick={() => {
                     // Permettre de remplacer le document si nécessaire
-                    if (idDocuments[0].status === 'REJECTED') {
+                    if (idDocuments[0].verificationStatus === 'REJECTED') {
                       handleDelete(idDocuments[0].id);
                     }
                   }}
-                  disabled={idDocuments[0].status !== 'REJECTED'}
+                  disabled={idDocuments[0].verificationStatus !== 'REJECTED'}
                 >
-                  {idDocuments[0].status === 'REJECTED'
+                  {idDocuments[0].verificationStatus === 'REJECTED'
                     ? t('documents.replaceRejected')
                     : t('documents.alreadySubmitted')}
                 </Button>
@@ -211,7 +215,7 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
           </Card>
         </TabsContent>
 
-        {/* Onglet Photo de profil (selfie) */}
+        {/* Onglet Selfie */}
         <TabsContent value="selfie">
           <Card>
             <CardHeader>
@@ -242,13 +246,13 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
                 <Button
                   variant="outline"
                   onClick={() => {
-                    if (selfieDocuments[0].status === 'REJECTED') {
+                    if (selfieDocuments[0].verificationStatus === 'REJECTED') {
                       handleDelete(selfieDocuments[0].id);
                     }
                   }}
-                  disabled={selfieDocuments[0].status !== 'REJECTED'}
+                  disabled={selfieDocuments[0].verificationStatus !== 'REJECTED'}
                 >
-                  {selfieDocuments[0].status === 'REJECTED'
+                  {selfieDocuments[0].verificationStatus === 'REJECTED'
                     ? t('documents.replaceRejected')
                     : t('documents.alreadySubmitted')}
                 </Button>
@@ -288,13 +292,13 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
                 <Button
                   variant="outline"
                   onClick={() => {
-                    if (drivingLicenseDocuments[0].status === 'REJECTED') {
+                    if (drivingLicenseDocuments[0].verificationStatus === 'REJECTED') {
                       handleDelete(drivingLicenseDocuments[0].id);
                     }
                   }}
-                  disabled={drivingLicenseDocuments[0].status !== 'REJECTED'}
+                  disabled={drivingLicenseDocuments[0].verificationStatus !== 'REJECTED'}
                 >
-                  {drivingLicenseDocuments[0].status === 'REJECTED'
+                  {drivingLicenseDocuments[0].verificationStatus === 'REJECTED'
                     ? t('documents.replaceRejected')
                     : t('documents.alreadySubmitted')}
                 </Button>

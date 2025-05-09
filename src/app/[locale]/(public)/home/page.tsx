@@ -38,8 +38,8 @@ export function generateMetadata(): Metadata {
 }
 
 export default async function HomePage({ params }: { params: { locale: string } }) {
-  // Await params and store locale in a constant to avoid dynamic API issues
-  const locale = await Promise.resolve(params.locale);
+  // Use the locale directly without awaiting - it's a static value provided by Next.js
+  const locale = params.locale;
   setRequestLocale(locale);
 
   // Log pour débogage

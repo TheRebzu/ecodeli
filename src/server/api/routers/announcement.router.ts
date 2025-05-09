@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { router, publicProcedure, protectedProcedure } from '@/server/api/trpc';
-import { AnnouncementService } from '@/server/services/announcement.service';
+import { router, publicProcedure, protectedProcedure, verifiedDelivererProcedure } from '../trpc';
+import { AnnouncementService } from '../../services/announcement.service';
 import {
   createAnnouncementSchema,
   updateAnnouncementSchema,
@@ -174,19 +174,11 @@ export const announcementRouter = router({
       }
     }),
 
-  // Postuler à une annonce (pour les livreurs)
-  applyForAnnouncement: protectedProcedure
+  // Postuler à une annonce (pour les livreurs vérifiés uniquement)
+  applyForAnnouncement: verifiedDelivererProcedure
     .input(createDeliveryApplicationSchema)
     .mutation(async ({ ctx, input }) => {
       try {
-        // Vérifier que l'utilisateur est authentifié
-        if (!ctx.session?.user?.id) {
-          throw new TRPCError({
-            code: 'UNAUTHORIZED',
-            message: 'Vous devez être connecté pour postuler à une annonce',
-          });
-        }
-
         const { announcementId, proposedPrice, message } = input;
 
         return await AnnouncementService.applyForAnnouncement(announcementId, ctx.session.user.id, {
