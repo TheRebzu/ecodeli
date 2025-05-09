@@ -8,7 +8,7 @@ import {
   updateDocumentSchema,
   createVerificationSchema,
   updateVerificationSchema,
-} from '../../../schemas/auth/document.schema';
+} from '@/schemas/document.schema';
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
