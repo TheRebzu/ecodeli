@@ -155,7 +155,7 @@ export class DocumentService {
    */
   async uploadDocument(params: UploadDocumentParams) {
     try {
-      const { userId, type, filename, mimeType, fileSize, notes, expiryDate } = params;
+      const { userId, type, filename, fileUrl, mimeType, fileSize, notes, expiryDate } = params;
 
       // Vérifier si l'utilisateur existe
       const user = await this.prisma.user.findUnique({
@@ -176,44 +176,12 @@ export class DocumentService {
         });
       }
 
-      // Créer un nom de fichier unique pour éviter les collisions
-      const uniqueFilename = `${Date.now()}-${crypto.randomBytes(8).toString('hex')}-${filename.replace(/[^a-z0-9.]/gi, '-')}`;
-
-      // Créer le chemin du répertoire pour les fichiers de l'utilisateur
-      const userUploadsDir = path.join(this.uploadDir, userId);
-      await fs.mkdir(userUploadsDir, { recursive: true });
-
-      // Chemin du fichier sur le serveur
-      const filePath = path.join(userUploadsDir, uniqueFilename);
-
-      // URL relative pour l'accès client
-      const fileUrl = `/uploads/${userId}/${uniqueFilename}`;
-
-      // Obtenir le rôle de l'utilisateur pour le document
-      let userRole: UserRole;
-      switch (user.role) {
-        case 'CLIENT':
-          userRole = UserRole.CLIENT;
-          break;
-        case 'DELIVERER':
-          userRole = UserRole.DELIVERER;
-          break;
-        case 'MERCHANT':
-          userRole = UserRole.MERCHANT;
-          break;
-        case 'PROVIDER':
-          userRole = UserRole.PROVIDER;
-          break;
-        default:
-          userRole = UserRole.CLIENT;
-      }
-
       // Créer l'entrée du document dans la base de données
       const document = await this.prisma.document.create({
         data: {
           userId,
           type,
-          filename: uniqueFilename,
+          filename,
           mimeType,
           fileSize,
           fileUrl,

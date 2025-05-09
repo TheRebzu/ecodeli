@@ -106,6 +106,12 @@ export const documentRouter = router({
     .mutation(async ({ ctx, input }) => {
       try {
         const { documentId, status, rejectionReason } = input;
+        if (!ctx.session?.user?.id) {
+          throw new TRPCError({
+            code: 'UNAUTHORIZED',
+            message: 'Session utilisateur non trouvée',
+          });
+        }
         const adminId = ctx.session.user.id;
 
         // Utiliser correctement le service de document pour mettre à jour le statut
@@ -151,121 +157,151 @@ export const documentRouter = router({
         let mimeType = '';
         let fileSize = 0;
 
-        // Traitement différent selon que input.file est un objet File ou une URL
+        // Traiter le fichier selon son type
         if (typeof input.file === 'string') {
-          // C'est une URL de fichier déjà téléchargé
-          console.log("Traitement d'une URL de fichier:", input.file);
-          fileUrl = input.file;
-
-          // Extraire le nom du fichier depuis l'URL
-          const urlParts = input.file.split('/');
-          fileName = urlParts[urlParts.length - 1];
-          // On ne peut pas déterminer précisément ces informations depuis une URL
-          mimeType = 'application/octet-stream'; // Par défaut
-          fileSize = 0; // Par défaut
-        } else {
-          // C'est un objet File, on doit le sauvegarder physiquement
-          console.log("Traitement d'un objet File:", input.file);
-          const file = input.file;
-
-          // Vérifier que le fichier est valide
-          if (!file) {
+          // Cas d'une chaîne base64
+          console.log('Traitement d\'une chaîne base64');
+          
+          // Extraire le type MIME et les données de la chaîne base64
+          const matches = input.file.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
+          
+          if (!matches || matches.length !== 3) {
+            console.error('Format base64 invalide');
             throw new TRPCError({
               code: 'BAD_REQUEST',
-              message: 'Fichier invalide',
+              message: 'Format de fichier base64 invalide',
             });
           }
-
-          // Vérifier que le nom du fichier est disponible
-          if (!file.name) {
-            console.log("Fichier sans nom, utilisation d'un nom générique");
-            file.name = `document-${Date.now()}`;
-          }
-
-          // 1. Sauvegarder physiquement le fichier
+          
+          // Extraire les informations du format base64
+          mimeType = matches[1];
+          const base64Data = matches[2];
+          const buffer = Buffer.from(base64Data, 'base64');
+          fileSize = buffer.length;
+          
+          // Déterminer l'extension de fichier en fonction du MIME type
+          let extension = '.bin';
+          if (mimeType === 'image/jpeg') extension = '.jpg';
+          else if (mimeType === 'image/png') extension = '.png';
+          else if (mimeType === 'image/heic') extension = '.heic';
+          else if (mimeType === 'application/pdf') extension = '.pdf';
+          
+          // Générer un nom de fichier unique
+          const randomId = crypto.randomBytes(8).toString('hex');
+          const uniqueFilename = `${randomId}${extension}`;
+          
+          // Créer le chemin du dossier pour les uploads
           const uploadDir = path.join(process.cwd(), 'public', 'uploads', userId);
-
-          // Créer le répertoire s'il n'existe pas
           await fs.mkdir(uploadDir, { recursive: true });
-
-          // Créer un nom de fichier unique pour éviter les collisions
-          // Utiliser un nom sécurisé pour le fichier
-          const safeName = file.name
-            ? file.name.replace(/[^a-z0-9.]/gi, '-')
-            : `document-${Date.now()}`;
-          const uniqueFilename = `${Date.now()}-${crypto.randomBytes(8).toString('hex')}-${safeName}`;
-
+          
           // Chemin complet du fichier
           const filePath = path.join(uploadDir, uniqueFilename);
+          
+          // Écrire le fichier sur le disque
+          await fs.writeFile(filePath, buffer);
+          console.log(`Fichier base64 écrit avec succès: ${filePath}, taille: ${buffer.length} octets`);
 
-          // URL relative pour l'accès client
+          // Construire l'URL du fichier
           fileUrl = `/uploads/${userId}/${uniqueFilename}`;
 
-          // Extraire le contenu du fichier et l'écrire sur le disque
-          let fileBuffer;
+          // Enregistrer les métadonnées dans la base de données
+          const result = await documentService.uploadDocument({
+            userId,
+            type: input.type,
+            filename: uniqueFilename,
+            fileUrl,
+            mimeType,
+            fileSize: buffer.length,
+            notes: input.notes,
+            expiryDate: input.expiryDate,
+          });
 
-          // Vérifier tous les cas possibles pour extraire le contenu du fichier
-          if ('arrayBuffer' in file && typeof file.arrayBuffer === 'function') {
-            // Cas standard pour File web API
-            const arrayBuffer = await file.arrayBuffer();
-            fileBuffer = Buffer.from(arrayBuffer);
-          } else if ('buffer' in file) {
-            // Format Node.js
-            fileBuffer = file.buffer;
-          } else if (typeof file === 'object' && 'base64' in file) {
-            // Format base64 spécifié dans un objet
-            fileBuffer = Buffer.from(file.base64, 'base64');
-          } else if (typeof file === 'object' && 'data' in file) {
-            // Format objet avec données brutes
-            fileBuffer = Buffer.from(file.data);
-          } else if (typeof file === 'object') {
-            // Tentative de conversion de l'objet entier en Buffer
+          return result;
+        } else if (typeof input.file === 'object') {
+          // Cas d'un objet File ou similaire
+          console.log('Traitement d\'un objet File:', typeof input.file, input.file);
+          
+          // Par sécurité, vérifions que ces propriétés existent
+          const originalName = (input.file as { name?: string }).name || `document-${Date.now()}`;
+          mimeType = (input.file as { type?: string }).type || 'application/octet-stream';
+          
+          // Déterminer l'extension de fichier
+          let extension = '.bin';
+          if (mimeType === 'image/jpeg') extension = '.jpg';
+          else if (mimeType === 'image/png') extension = '.png';
+          else if (mimeType === 'image/heic') extension = '.heic';
+          else if (mimeType === 'application/pdf') extension = '.pdf';
+          
+          // Générer un nom de fichier unique
+          const randomId = crypto.randomBytes(8).toString('hex');
+          const uniqueFilename = `${randomId}${extension}`;
+          fileName = uniqueFilename;
+          
+          // Créer le chemin du dossier pour les uploads
+          const uploadDir = path.join(process.cwd(), 'public', 'uploads', userId);
+          await fs.mkdir(uploadDir, { recursive: true });
+          
+          // Chemin complet du fichier
+          const filePath = path.join(uploadDir, uniqueFilename);
+          fileUrl = `/uploads/${userId}/${uniqueFilename}`;
+          
+          // Extraire le contenu binaire du fichier
+          let fileBuffer: Buffer;
+          
+          if ('arrayBuffer' in input.file && typeof input.file.arrayBuffer === 'function') {
+            throw new Error('arrayBuffer method not available in server context');
+          } else if ('buffer' in input.file) {
+            fileBuffer = (input.file as { buffer: Buffer }).buffer;
+          } else if (Buffer.isBuffer(input.file)) {
+            fileBuffer = input.file;
+          } else if ('base64' in input.file) {
+            fileBuffer = Buffer.from((input.file as { base64: string }).base64, 'base64');
+          } else if ('data' in input.file) {
+            fileBuffer = Buffer.from((input.file as { data: string | Buffer }).data);
+          } else {
             try {
-              // Convertir l'objet en JSON string pour le debug
-              console.log('Format du fichier reçu:', JSON.stringify(file));
-
-              // Si l'objet a une propriété qui pourrait contenir les données
-              if ('stream' in file) {
-                // Lecture d'un stream
-                const chunks = [];
-                for await (const chunk of file.stream) {
-                  chunks.push(chunk);
-                }
-                fileBuffer = Buffer.concat(chunks);
-              } else if (file.toString() !== '[object Object]') {
-                // Si toString() retourne quelque chose d'utile
-                fileBuffer = Buffer.from(file.toString());
+              console.log('Tentative de sérialisation de l\'objet File:', JSON.stringify(input.file));
+              
+              if (input.file && typeof input.file === 'object') {
+                fileBuffer = Buffer.from(JSON.stringify(input.file));
+                mimeType = 'application/json';
+                extension = '.json';
               } else {
-                // Dernier recours: considérer que le fichier est actuellement une représentation JSON
-                // On le convertit en chaîne pour l'enregistrer tel quel
-                fileBuffer = Buffer.from(JSON.stringify(file));
+                throw new Error('Format de fichier non pris en charge');
               }
             } catch (e) {
-              console.error('Erreur lors de la tentative de conversion du fichier:', e);
+              console.error('Erreur lors de la sérialisation du fichier:', e);
               throw new TRPCError({
                 code: 'BAD_REQUEST',
                 message: 'Format de fichier non pris en charge',
               });
             }
-          } else {
+          }
+          
+          // Écrire le fichier sur le disque
+          try {
+            if (!fileBuffer) {
+              throw new Error('Impossible d\'extraire les données du fichier');
+            }
+            
+            await fs.writeFile(filePath, fileBuffer);
+            fileSize = fileBuffer.length;
+            console.log(`Fichier écrit avec succès: ${filePath}, taille: ${fileSize} octets`);
+          } catch (writeError) {
+            console.error('Erreur lors de l\'écriture du fichier:', writeError);
             throw new TRPCError({
-              code: 'BAD_REQUEST',
-              message: 'Impossible de lire le contenu du fichier',
+              code: 'INTERNAL_SERVER_ERROR',
+              message: 'Erreur lors de l\'enregistrement du fichier',
             });
           }
-
-          await fs.writeFile(filePath, fileBuffer);
-
-          console.log(`Fichier écrit avec succès : ${filePath}`);
-          console.log(`URL du fichier : ${fileUrl}`);
-
-          // Récupérer les métadonnées du fichier
-          fileName = file.name || uniqueFilename;
-          mimeType = file.type || 'application/octet-stream';
-          fileSize = file.size || fileBuffer.length || 0;
+        } else {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Format de fichier non pris en charge',
+          });
         }
 
-        // 2. Enregistrer les métadonnées du document dans la base de données
+        // Enregistrer les métadonnées dans la base de données
         const result = await documentService.uploadDocument({
           userId,
           type: input.type,
@@ -390,14 +426,14 @@ export const documentRouter = router({
   // Admin: Obtenir tous les documents en attente de vérification
   getPendingVerifications: protectedProcedure.query(async ({ ctx }) => {
     // Vérifier que l'utilisateur est admin
-    if (ctx.session.user.role !== 'ADMIN') {
+    if (ctx.session?.user?.role !== 'ADMIN') {
       throw new TRPCError({
         code: 'FORBIDDEN',
         message: 'Accès refusé',
       });
     }
 
-    return await documentService.getPendingVerificationDocuments();
+    return await documentService.getPendingDocuments();
   }),
 
   // Créer une demande de vérification pour un document
@@ -437,7 +473,7 @@ export const documentRouter = router({
     .input(updateVerificationSchema)
     .mutation(async ({ ctx, input }) => {
       // Vérifier que l'utilisateur est admin
-      if (ctx.session.user.role !== 'ADMIN') {
+      if (ctx.session?.user?.role !== 'ADMIN') {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Accès refusé',
@@ -447,7 +483,7 @@ export const documentRouter = router({
       return await documentService.updateVerification({
         verificationId: input.verificationId,
         verifierId: ctx.session.user.id,
-        status: input.status,
+        status: input.status as DocumentStatus,
         notes: input.notes,
       });
     }),
