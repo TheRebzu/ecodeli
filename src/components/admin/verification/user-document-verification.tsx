@@ -126,55 +126,33 @@ export function UserDocumentVerification({
   // Fonction pour télécharger un document correctement
   const downloadDocument = async (doc: Document) => {
     try {
-      // Afficher un toast pour indiquer que le téléchargement commence
       toast({
         title: 'Téléchargement en cours',
         children: 'Préparation du document...',
       });
 
-      // Obtenir l'URL complète du document
-      const fullUrl = getFullDocumentUrl(doc.fileUrl);
-
-      // Effectuer une requête fetch pour obtenir les données du fichier
-      const response = await fetch(fullUrl, {
-        cache: 'no-store',
-        headers: {
-          'Content-Type': doc.mimeType,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error(`Erreur HTTP: ${response.status}`);
-      }
-
-      // Récupérer le flux de données
-      const data = await response.arrayBuffer();
-
-      // Créer un blob avec le bon type MIME
-      const blob = new Blob([data], { type: doc.mimeType });
-
-      // Créer une URL d'objet pour le blob
-      const blobUrl = window.URL.createObjectURL(blob);
-
-      // Créer un élément de lien temporaire
+      // Construire l'URL complète pour le téléchargement
+      const downloadUrl = getFullDocumentUrl(doc.fileUrl);
+      
+      // Créer un élément de lien temporaire pour le téléchargement
       const link = document.createElement('a');
-      link.href = blobUrl;
-
-      // Utiliser le nom de fichier original ou générer un nom par défaut
-      const fileName =
-        doc.filename || `document-${doc.type.toLowerCase()}.${doc.mimeType.split('/').pop()}`;
+      link.href = downloadUrl;
+      
+      // Extraire le nom original du fichier
+      const originalFilename = doc.filename;
+      // Utiliser le nom original ou générer un nom basé sur le type de document
+      const fileName = originalFilename || `${documentTypeLabels[doc.type] || doc.type}.${doc.mimeType?.split('/').pop() || 'pdf'}`;
       link.setAttribute('download', fileName);
-
-      // Ajouter à la page, cliquer, puis supprimer
+      
+      // Cliquer sur le lien pour déclencher le téléchargement
       document.body.appendChild(link);
       link.click();
-
+      
       // Nettoyer
       setTimeout(() => {
         document.body.removeChild(link);
-        window.URL.revokeObjectURL(blobUrl);
       }, 100);
-
+      
       toast({
         title: 'Téléchargement lancé',
         children: 'Le document est en cours de téléchargement.',
@@ -498,7 +476,7 @@ export function UserDocumentVerification({
                   <div className="relative w-full h-[500px]">
                     <img
                       src={getFullDocumentUrl(selectedDocument.fileUrl)}
-                      alt={selectedDocument.filename}
+                      alt={selectedDocument.filename || documentTypeLabels[selectedDocument.type]}
                       className="w-full h-full object-contain rounded-lg"
                     />
                   </div>
@@ -506,7 +484,7 @@ export function UserDocumentVerification({
                   <iframe
                     src={`${getFullDocumentUrl(selectedDocument.fileUrl)}#toolbar=0`}
                     className="w-full h-[500px]"
-                    title={selectedDocument.filename}
+                    title={selectedDocument.filename || documentTypeLabels[selectedDocument.type]}
                   />
                 ) : (
                   <div className="flex flex-col items-center justify-center h-64 bg-muted rounded-lg">

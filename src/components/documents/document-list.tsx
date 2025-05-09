@@ -31,10 +31,21 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertCircle, CheckCircle, Clock, Eye, FileText, X } from 'lucide-react';
+import { AlertCircle, CheckCircle, Clock, Eye, FileText, Trash, X } from 'lucide-react';
 import { useDocuments } from '@/hooks/use-documents';
+import { useToast } from '@/components/ui/use-toast';
 
 interface DocumentListProps {
   documents?: any[];
@@ -52,8 +63,11 @@ export default function DocumentList({
   userId,
 }: DocumentListProps) {
   const t = useTranslations('documents');
+  const { toast } = useToast();
   const [selectedDocument, setSelectedDocument] = useState<any | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState<any | null>(null);
 
   // Utiliser le hook useDocuments seulement si aucun document n'est passé en prop
   const {
@@ -100,6 +114,19 @@ export default function DocumentList({
     setPreviewOpen(true);
   };
 
+  const handleDeleteDocument = (document: any) => {
+    setDocumentToDelete(document);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteDocument = () => {
+    if (handleDelete && documentToDelete) {
+      handleDelete(documentToDelete.id);
+    }
+    setDeleteDialogOpen(false);
+    setDocumentToDelete(null);
+  };
+
   const getStatusBadgeProps = (status: string) => {
     switch (status?.toUpperCase()) {
       case 'PENDING':
@@ -121,6 +148,48 @@ export default function DocumentList({
       addSuffix: true,
       locale: locale === 'fr' ? fr : enUS,
     });
+  };
+
+  const downloadDocument = async (document: any) => {
+    try {
+      // Afficher un message de chargement
+      toast({
+        title: t('download.preparing'),
+        description: t('download.starting'),
+      });
+      
+      // Utiliser la nouvelle API de téléchargement avec le bon type MIME
+      const downloadUrl = `/api/download?path=${encodeURIComponent(document.fileUrl)}&download=true`;
+      
+      // Créer un élément de lien temporaire pour le téléchargement
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      
+      // Définir le nom du fichier à télécharger
+      const fileName = document.filename || `document-${document.type.toLowerCase()}.${document.mimeType?.split('/').pop() || 'file'}`;
+      link.setAttribute('download', fileName);
+      
+      // Cliquer sur le lien pour déclencher le téléchargement
+      document.body.appendChild(link);
+      link.click();
+      
+      // Nettoyer
+      setTimeout(() => {
+        document.body.removeChild(link);
+      }, 100);
+      
+      toast({
+        title: t('download.success'),
+        description: t('download.completed'),
+      });
+    } catch (error) {
+      console.error('Erreur de téléchargement:', error);
+      toast({
+        title: t('download.error'),
+        description: t('download.failed'),
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -176,6 +245,21 @@ export default function DocumentList({
                             </Button>
                           </TooltipTrigger>
                           <TooltipContent>{t('list.view')}</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => handleDeleteDocument(doc)}
+                            >
+                              <Trash className="h-4 w-4" />
+                              <span className="sr-only">{t('list.delete')}</span>
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>{t('list.delete')}</TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
                     </TableCell>
@@ -272,10 +356,36 @@ export default function DocumentList({
               <Button variant="secondary" onClick={() => setPreviewOpen(false)}>
                 {t('preview.close')}
               </Button>
+              {selectedDocument && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => downloadDocument(selectedDocument)}
+                  className="flex items-center gap-2"
+                >
+                  <FileText className="h-4 w-4" />
+                  {t('preview.download')}
+                </Button>
+              )}
             </DialogFooter>
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('deleteDialog.title')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('deleteDialog.description')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('deleteDialog.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDeleteDocument}>
+              {t('deleteDialog.confirm')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

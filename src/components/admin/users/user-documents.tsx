@@ -47,6 +47,7 @@ interface UserDocument {
   updatedAt: Date;
   fileUrl: string;
   filename?: string;
+  mimeType?: string;
 }
 
 interface UserDocumentsProps {
@@ -102,17 +103,25 @@ export function UserDocuments({
     setIsReviewOpen(true);
   };
 
-  // Nouvelle fonction pour télécharger un document sans ouvrir de nouvelle fenêtre
-  const downloadDocument = (document: UserDocument) => {
+  const downloadDocument = async (document: UserDocument) => {
     try {
-      // Créer un élément de lien temporaire
+      toast({
+        title: 'Préparation du document',
+        description: 'Le téléchargement va commencer...'
+      });
+
+      // Utiliser la nouvelle API de téléchargement avec le bon type MIME
+      const downloadUrl = `/api/download?path=${encodeURIComponent(document.fileUrl)}&download=true`;
+      
+      // Créer un élément de lien temporaire pour le téléchargement
       const link = document.createElement('a');
-      link.href = document.fileUrl;
-      // Utiliser le nom de fichier original s'il existe, sinon extraire du chemin
-      const fileName =
-        document.filename || document.fileUrl.split('/').pop() || `document-${document.id}`;
+      link.href = downloadUrl;
+      
+      // Extraire le nom de fichier
+      const fileName = document.filename || document.fileUrl.split('/').pop() || `document-${document.id}`;
       link.setAttribute('download', fileName);
-      link.setAttribute('target', '_self'); // Utiliser la même fenêtre
+      
+      // Déclencher le téléchargement
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);

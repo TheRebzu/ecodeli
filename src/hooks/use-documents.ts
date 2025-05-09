@@ -80,15 +80,35 @@ export function useDocuments(userId?: string, status: DocumentStatus | 'ALL' = '
       userRole: 'DELIVERER', // Spécifique aux livreurs
     });
 
+  // Fonction pour convertir un fichier en base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          resolve(reader.result);
+        } else {
+          reject(new Error('Échec de conversion du fichier en base64'));
+        }
+      };
+      reader.onerror = error => reject(error);
+    });
+  };
+
   // Fonction pour télécharger un document avec un type spécifique
   const uploadDocument = async (file: File, type: string, notes: string = '') => {
     try {
-      // Utiliser correctement la mutation pour télécharger le document
-      // avec le format attendu par l'API
+      // Convertir le fichier en base64 avant de l'envoyer
+      const base64File = await fileToBase64(file);
+
+      console.log(`Envoi du fichier ${file.name} en base64, taille: ${base64File.length}, type: ${file.type}`);
+
+      // Utiliser la mutation pour télécharger le document
       await uploadMutation.mutateAsync({
-        file, // Le fichier à télécharger
-        type: type as DocumentType, // Le type de document correctement typé
-        notes, // Champ optionnel avec les notes supplémentaires
+        file: base64File, // Envoyer la chaîne base64 au lieu de l'objet File
+        type: type as DocumentType,
+        notes,
       });
 
       return true;
