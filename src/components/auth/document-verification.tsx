@@ -46,6 +46,7 @@ const documentTypeLabels: Record<DocumentType, string> = {
   INSURANCE: "Attestation d'assurance",
   CRIMINAL_RECORD: 'Extrait de casier judiciaire',
   PROFESSIONAL_CERTIFICATION: 'Certification professionnelle',
+  SELFIE: 'Photo de profil',
   OTHER: 'Autre document',
 };
 
