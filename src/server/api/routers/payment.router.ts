@@ -2,12 +2,20 @@ import { router, protectedProcedure, adminProcedure } from '@/server/api/trpc';
 import { z } from 'zod';
 import { PaymentService } from '@/server/services/payment.service';
 import { TRPCError } from '@trpc/server';
-import { walletService as importedWalletService } from '@/server/services/wallet.service';
 import { SubscriptionService } from '@/server/services/subscription.service';
 import { CommissionService } from '@/server/services/commission.service';
 import { Prisma } from '@prisma/client';
 import { db } from "@/server/db";
 import { WalletService as WalletServiceClass } from "@/server/services/wallet.service";
+
+// Importation conditionnelle du service de portefeuille
+let importedWalletService: any;
+try {
+  importedWalletService = require('@/server/services/wallet.service').walletService;
+} catch (error) {
+  console.warn("Wallet service could not be imported:", error);
+  importedWalletService = null;
+}
 
 // Création d'une instance de WalletService - en utilisant un nom différent
 const localWalletService = new WalletServiceClass(db);

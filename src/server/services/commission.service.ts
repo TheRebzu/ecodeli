@@ -3,6 +3,16 @@ import { Decimal } from '@prisma/client/runtime/library';
 import { PaymentService } from './payment.service';
 import { walletService } from './wallet.service';
 
+// Vérifier si le wallet service est correctement initialisé
+const isWalletServiceAvailable = () => {
+  try {
+    return walletService && typeof walletService.getUserWallet === 'function';
+  } catch (error) {
+    console.warn("WalletService n'est pas disponible:", error);
+    return false;
+  }
+};
+
 /**
  * Service de gestion des commissions
  */

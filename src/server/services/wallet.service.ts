@@ -12,14 +12,21 @@ import { TRPCError } from "@trpc/server";
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "";
 const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || "ecodeli_encryption_key";
 
-// Initialiser Stripe avec les paramètres de base
-const stripe = new Stripe(STRIPE_SECRET_KEY, {
-  apiVersion: "2023-10-16",
-  appInfo: {
-    name: 'EcoDeli Financial System',
-    version: '1.0.0',
-  },
-});
+// Initialiser Stripe uniquement si la clé API est disponible
+let stripe: Stripe | null = null;
+if (STRIPE_SECRET_KEY) {
+  try {
+    stripe = new Stripe(STRIPE_SECRET_KEY, {
+      apiVersion: "2023-10-16",
+      appInfo: {
+        name: 'EcoDeli Financial System',
+        version: '1.0.0',
+      },
+    });
+  } catch (error) {
+    console.error("Erreur lors de l'initialisation de Stripe:", error);
+  }
+}
 
 export interface WalletBalanceInfo {
   balance: number;
@@ -37,10 +44,17 @@ export class WalletService {
     this.db = prismaClient;
     
     // Initialiser Stripe si la clé API est disponible
-    if (process.env.STRIPE_SECRET_KEY) {
-      this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-        apiVersion: '2023-10-16',
-      });
+    if (process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY.length > 0) {
+      try {
+        this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
+          apiVersion: '2023-10-16' as any, // Cast pour éviter les erreurs de version
+        });
+      } catch (error) {
+        console.error("Erreur lors de l'initialisation de Stripe:", error);
+        // Continue sans Stripe en mode dégradé
+      }
+    } else {
+      console.warn("STRIPE_SECRET_KEY manquant ou vide. Les fonctionnalités de paiement seront limitées.");
     }
   }
 
@@ -340,7 +354,6 @@ export class WalletService {
 
     return { wallet: updatedWallet, transaction };
   }
-
   /**
    * Crée un compte Stripe Connect pour un portefeuille
    */
@@ -354,8 +367,17 @@ export class WalletService {
         throw new Error("Ce portefeuille a déjà un compte Stripe Connect");
       }
 
+      // Vérifier si Stripe est initialisé
+      if (!this.stripe) {
+        console.warn("Stripe n'est pas initialisé. Impossible de créer un compte Connect.");
+        return { 
+          success: false, 
+          error: new Error("Configuration Stripe manquante. Contactez l'administrateur.")
+        };
+      }
+
       // Créer le compte en fonction du type
-      const account = await this.stripe?.accounts.create({
+      const account = await this.stripe.accounts.create({
         type: "express",
         country: country,
         email: userEmail,
@@ -611,5 +633,19 @@ export class WalletService {
   }
 }
 
-// Créer une instance singleton du service
-export const walletService = new WalletService(db); 
+// Créer une instance singleton du service avec gestion d'erreurs
+export const walletService = (() => {
+  try {
+    return new WalletService(db);
+  } catch (error) {
+    console.error("Erreur lors de l'initialisation du WalletService:", error);
+    // Retourner une version simplifiée du service pour les opérations de base
+    return {
+      getUserWallet: async (userId: string) => {
+        console.warn("WalletService en mode dégradé. Certaines fonctions ne sont pas disponibles.");
+        // Retourner les données minimales nécessaires
+        return { id: 'unavailable', userId, balance: 0, currency: 'EUR' };
+      }
+    } as unknown as WalletService;
+  }
+})();
