@@ -21,12 +21,16 @@
     "format": "prettier --write .",
     "prepare": "husky",
     "lint-staged": "lint-staged",
-    "translate:analyze": "tsx scripts/regex-translate.ts --analyze",
-    "translate:extract": "tsx scripts/regex-translate.ts --extract",
-    "translate:all": "tsx scripts/regex-translate.ts --all",
-    "translate:check": "tsx scripts/regex-translate.ts --check",
-    "translate:report": "tsx scripts/regex-translate.ts --report",
-    "build:scripts": "tsc -p tsconfig.scripts.json"
+    "build:scripts": "tsc -p tsconfig.scripts.json",
+    "docker:dev": "cd docker && docker-compose up -d",
+    "docker:dev:build": "cd docker && docker-compose up -d --build",
+    "docker:dev:down": "cd docker && docker-compose down",
+    "docker:dev:logs": "cd docker && docker-compose logs -f",
+    "docker:prod": "cd docker && docker-compose -f docker-compose.prod.yml up -d",
+    "docker:prod:build": "cd docker && docker-compose -f docker-compose.prod.yml up -d --build",
+    "docker:prod:down": "cd docker && docker-compose -f docker-compose.prod.yml down",
+    "docker:backup": "docker exec ecodeli-backup /scripts/run-backup.sh",
+    "docker:clean": "cd docker && docker-compose down -v && docker-compose -f docker-compose.prod.yml down -v"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.9.0",
