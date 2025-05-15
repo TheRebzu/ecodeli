@@ -279,14 +279,26 @@ export const authRouter = router({
         userId: user.id,
       },
       orderBy: {
-        createdAt: 'desc',
+        uploadedAt: 'desc',
       },
       include: {
         verifications: true,
       },
     });
 
-    return documents;
+    // Map uploadedAt to createdAt for frontend compatibility
+    // Also handle SELFIE documents stored as OTHER with notes containing "SELFIE"
+    return documents.map(doc => ({
+      ...doc,
+      createdAt: doc.uploadedAt,
+      // If document is OTHER type but has notes containing "SELFIE" (case insensitive), correct the type for frontend
+      type:
+        doc.type === 'OTHER' &&
+        (doc.notes === 'SELFIE' ||
+          (typeof doc.notes === 'string' && doc.notes.toLowerCase().includes('selfie')))
+          ? 'SELFIE'
+          : doc.type,
+    }));
   }),
 
   // Vérifier un document (pour admin)

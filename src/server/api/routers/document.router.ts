@@ -152,6 +152,12 @@ export const documentRouter = router({
           });
         }
 
+        let docType = input.type;
+        let documentNotes = input.notes || '';
+
+        // SELFIE is now a valid enum type in the Prisma schema, no need to convert
+        // Keep documentNotes as is
+
         let fileUrl = '';
         let fileName = '';
         let mimeType = '';
@@ -210,12 +216,12 @@ export const documentRouter = router({
           // Enregistrer les métadonnées dans la base de données
           const result = await documentService.uploadDocument({
             userId,
-            type: input.type,
+            type: docType,
             filename: uniqueFilename,
             fileUrl,
             mimeType,
             fileSize: buffer.length,
-            notes: input.notes,
+            notes: documentNotes,
             expiryDate: input.expiryDate,
           });
 
@@ -310,12 +316,12 @@ export const documentRouter = router({
         // Enregistrer les métadonnées dans la base de données
         const result = await documentService.uploadDocument({
           userId,
-          type: input.type,
+          type: docType,
           filename: fileName,
-          fileUrl: fileUrl,
-          mimeType: mimeType,
+          fileUrl,
+          mimeType,
           fileSize: fileSize,
-          notes: input.notes,
+          notes: documentNotes,
           expiryDate: input.expiryDate,
         });
 
@@ -489,7 +495,7 @@ export const documentRouter = router({
       return await documentService.updateVerification({
         verificationId: input.verificationId,
         verifierId: ctx.session.user.id,
-        status: input.status as DocumentStatus,
+        status: input.status as unknown as VerificationStatus,
         notes: input.notes,
       });
     }),
