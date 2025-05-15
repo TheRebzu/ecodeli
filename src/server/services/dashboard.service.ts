@@ -127,9 +127,6 @@ export const dashboardService = {
       const idCards = await db.document.count({ 
         where: { type: 'ID_CARD' } 
       });
-      const passports = await db.document.count({ 
-        where: { type: 'PASSPORT' } 
-      });
       const drivingLicenses = await db.document.count({ 
         where: { type: 'DRIVING_LICENSE' } 
       });
@@ -138,6 +135,9 @@ export const dashboardService = {
       });
       const insurances = await db.document.count({ 
         where: { type: 'INSURANCE' } 
+      });
+      const proofOfAddress = await db.document.count({ 
+        where: { type: 'PROOF_OF_ADDRESS' } 
       });
       const others = await db.document.count({ 
         where: { type: 'OTHER' } 
@@ -162,10 +162,10 @@ export const dashboardService = {
         submittedToday,
         documentsByType: {
           ID_CARD: idCards,
-          PASSPORT: passports,
           DRIVING_LICENSE: drivingLicenses,
           VEHICLE_REGISTRATION: vehicleRegistrations,
           INSURANCE: insurances,
+          PROOF_OF_ADDRESS: proofOfAddress,
           OTHER: others
         }
       };
@@ -539,7 +539,7 @@ export const dashboardService = {
   },
 
   /**
-   * Récupère les statistiques du tableau de bord pour un client spécifique
+   * Récupère les statistiques du tableau de bord d'un client
    * @param userId ID de l'utilisateur client
    */
   async getClientDashboardStats(userId: string) {
@@ -562,14 +562,27 @@ export const dashboardService = {
       });
 
       // Livraisons en cours
-      const activeDeliveries = await db.delivery.count({
+      const activeDeliveriesData = await db.delivery.findMany({
         where: {
           clientId,
           status: {
-            in: ['PENDING', 'SCHEDULED', 'IN_TRANSIT'],
+            in: ['PENDING', 'ACCEPTED', 'IN_TRANSIT'],
           },
         },
+        include: {
+          deliverer: {
+            select: {
+              name: true,
+              image: true,
+            },
+          },
+        },
+        orderBy: {
+          updatedAt: 'desc',
+        },
       });
+      
+      const activeDeliveries = activeDeliveriesData.length;
 
       // Livraisons terminées
       const completedDeliveries = await db.delivery.count({
@@ -580,7 +593,7 @@ export const dashboardService = {
       });
 
       // Services réservés
-      const bookedServices = await db.appointment.count({
+      const bookedServices = await db.serviceBooking.count({
         where: {
           clientId,
         },
@@ -590,7 +603,7 @@ export const dashboardService = {
       const unpaidInvoices = await db.invoice.count({
         where: {
           userId,
-          status: 'UNPAID',
+          status: 'OVERDUE',
         },
       });
 
@@ -633,7 +646,7 @@ export const dashboardService = {
       });
 
       // Récupérer les 10 derniers services réservés
-      const recentServices = await db.appointment.findMany({
+      const recentServices = await db.serviceBooking.findMany({
         where: { clientId },
         orderBy: { createdAt: 'desc' },
         take: 5,
@@ -656,14 +669,14 @@ export const dashboardService = {
           date: delivery.createdAt,
           data: delivery,
         })),
-        ...recentServices.map(appointment => ({
+        ...recentServices.map(booking => ({
           type: 'SERVICE',
-          id: appointment.id,
-          status: appointment.status,
-          date: appointment.createdAt,
+          id: booking.id,
+          status: booking.status,
+          date: booking.createdAt,
           data: {
-            ...appointment,
-            serviceName: appointment.service.name,
+            ...booking,
+            serviceName: booking.service.name,
           },
         })),
         ...recentInvoices.map(invoice => ({
@@ -704,7 +717,7 @@ export const dashboardService = {
       const unpaidInvoices = await db.invoice.findMany({
         where: {
           userId,
-          status: 'UNPAID',
+          status: 'OVERDUE',
         },
       });
 
@@ -717,8 +730,9 @@ export const dashboardService = {
       const sixMonthsAgo = new Date();
       sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
 
-      const monthlySpending = await db.payment.groupBy({
-        by: ['month'],
+      // Au lieu de grouper par mois qui n'est pas un champ existant,
+      // on groupe par année et mois en extrayant ces informations de createdAt
+      const monthlyPayments = await db.payment.findMany({
         where: {
           userId,
           status: 'COMPLETED',
@@ -726,19 +740,40 @@ export const dashboardService = {
             gte: sixMonthsAgo,
           },
         },
-        _sum: {
+        select: {
           amount: true,
+          createdAt: true,
         },
         orderBy: {
-          month: 'asc',
+          createdAt: 'asc',
         },
       });
+
+      // Calculer les dépenses mensuelles manuellement
+      const monthlySpending: Record<string, number> = {};
+      
+      monthlyPayments.forEach(payment => {
+        const date = payment.createdAt;
+        const monthYear = `${date.getFullYear()}-${date.getMonth() + 1}`;
+        
+        if (!monthlySpending[monthYear]) {
+          monthlySpending[monthYear] = 0;
+        }
+        
+        monthlySpending[monthYear] += payment.amount.toNumber();
+      });
+
+      // Convertir en tableau pour le frontend
+      const monthlySpendingArray = Object.entries(monthlySpending).map(([monthYear, amount]) => ({
+        month: monthYear,
+        amount,
+      }));
 
       return {
         totalSpent: totalSpent._sum.amount?.toNumber() || 0,
         unpaidAmount,
         unpaidInvoicesCount: unpaidInvoices.length,
-        monthlySpending,
+        monthlySpending: monthlySpendingArray,
       };
     } catch (error) {
       console.error('Erreur lors de la récupération des métriques financières du client:', error);
@@ -769,18 +804,14 @@ export const dashboardService = {
         where: {
           clientId,
           status: {
-            in: ['PENDING', 'SCHEDULED', 'IN_TRANSIT'],
+            in: ['PENDING', 'ACCEPTED', 'IN_TRANSIT'],
           },
         },
         include: {
           deliverer: {
-            include: {
-              user: {
-                select: {
-                  name: true,
-                  profilePicture: true,
-                },
-              },
+            select: {
+              name: true,
+              image: true,
             },
           },
         },
@@ -790,29 +821,26 @@ export const dashboardService = {
       });
 
       // Rendez-vous à venir
-      const upcomingAppointments = await db.appointment.findMany({
+      const upcomingAppointments = await db.serviceBooking.findMany({
         where: {
           clientId,
           status: 'CONFIRMED',
-          date: {
+          startTime: {
             gte: new Date(),
           },
         },
         include: {
           service: true,
           provider: {
-            include: {
-              user: {
-                select: {
-                  name: true,
-                  profilePicture: true,
-                },
-              },
+            select: {
+              id: true,
+              name: true,
+              image: true,
             },
           },
         },
         orderBy: {
-          date: 'asc',
+          startTime: 'asc',
         },
       });
 
