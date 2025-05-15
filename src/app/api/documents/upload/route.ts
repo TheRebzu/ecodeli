@@ -81,13 +81,12 @@ export async function POST(req: NextRequest) {
         userId: session.user.id,
         type: documentType as DocumentType,
         filename: fileName,
-        originalName: file.originalFilename || 'document',
+        fileUrl: filePath,
         mimeType: file.mimetype || 'application/octet-stream',
-        size: file.size || 0,
-        path: filePath,
-        status: 'PENDING',
-        expiryDate: expiryDateStr ? new Date(expiryDateStr) : null,
-        userRole: session.user.role || 'USER',
+        fileSize: file.size || 0,
+        isVerified: false,
+        verificationStatus: 'PENDING',
+        uploadedAt: new Date(),
       },
     });
 
@@ -96,7 +95,7 @@ export async function POST(req: NextRequest) {
       document: {
         id: document.id,
         filename: document.filename,
-        path: document.path,
+        fileUrl: document.fileUrl,
         type: document.type,
       },
     });
