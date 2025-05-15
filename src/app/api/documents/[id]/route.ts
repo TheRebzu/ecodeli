@@ -11,8 +11,7 @@ const prisma = new PrismaClient();
  * Gestionnaire GET pour accéder à un document par son ID
  * Vérifie les permissions d'accès et retourne le fichier
  */
-export async function GET(_request: NextRequest, props: { params: Promise<{ id: string }> }) {
-  const params = await props.params;
+export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const documentId = params.id;
 
@@ -54,8 +53,8 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
     }
 
     // Lire le fichier du document
-    const filePath = document.path;
-    const fullPath = path.resolve(process.cwd(), filePath);
+    const filePath = document.fileUrl;
+    const fullPath = path.join(process.cwd(), 'public', filePath);
 
     try {
       const fileBuffer = await readFile(fullPath);
@@ -66,7 +65,7 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
       // Configurer les en-têtes pour le téléchargement
       const headers = new Headers();
       headers.set('Content-Type', contentType);
-      headers.set('Content-Disposition', `inline; filename="${document.originalName}"`);
+      headers.set('Content-Disposition', `inline; filename="${document.filename}"`);
 
       return new NextResponse(fileBuffer, {
         status: 200,
@@ -84,6 +83,48 @@ export async function GET(_request: NextRequest, props: { params: Promise<{ id: 
   }
 }
 
-export async function DELETE(_params: any, { params: { id } }: { params: { id: string } }) {
-  // Implementation of DELETE method
+export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+  try {
+    const documentId = params.id;
+
+    // Vérifier l'authentification
+    const session = await getServerSession(authOptions);
+
+    if (!session || !session.user) {
+      return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
+    }
+
+    // Récupérer le document
+    const document = await prisma.document.findUnique({
+      where: { id: documentId },
+    });
+
+    if (!document) {
+      return NextResponse.json({ error: 'Document non trouvé' }, { status: 404 });
+    }
+
+    // Vérifier les permissions
+    const userId = session.user.id;
+    const userRole = session.user.role;
+
+    // Seul le propriétaire ou un admin peut supprimer un document
+    const isOwner = document.userId === userId;
+    const isAdmin = userRole === 'ADMIN';
+
+    if (!isOwner && !isAdmin) {
+      return NextResponse.json({ error: 'Accès non autorisé' }, { status: 403 });
+    }
+
+    // Supprimer le document de la base de données
+    await prisma.document.delete({
+      where: { id: documentId },
+    });
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Erreur lors de la suppression du document:', error);
+    return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 });
+  } finally {
+    await prisma.$disconnect();
+  }
 }
