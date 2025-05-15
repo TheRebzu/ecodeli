@@ -45,9 +45,17 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
   const allDocumentsSubmitted = hasIdCard && hasSelfie && hasDrivingLicense;
 
   // Gestionnaire d'upload pour chaque type de document
-  const handleUpload = async (files: File[], type: 'ID_CARD' | 'SELFIE' | 'DRIVING_LICENSE') => {
+  const handleUpload = async (
+    fileData: { base64: string; fileName: string; fileType: string; fileSize: number },
+    type: 'ID_CARD' | 'SELFIE' | 'DRIVING_LICENSE',
+    notes?: string
+  ) => {
     try {
-      await uploadDocument(files[0], type);
+      // Créer un objet File à partir des données reçues
+      const fileBlob = await fetch(fileData.base64).then(r => r.blob());
+      const file = new File([fileBlob], fileData.fileName, { type: fileData.fileType });
+
+      await uploadDocument(file, type, notes || '');
 
       // Message de succès
       toast({
@@ -97,7 +105,7 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
     if (documents.length === 0) return 'missing';
 
     const latestDocument = documents[0];
-    return latestDocument.status.toLowerCase();
+    return latestDocument.verificationStatus.toLowerCase();
   };
 
   // Fonctions pour rendre les badges de statut
@@ -181,7 +189,7 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
                 />
               ) : (
                 <DocumentUploadForm
-                  onUpload={files => handleUpload(files, 'ID_CARD')}
+                  onUpload={fileData => handleUpload(fileData, 'ID_CARD')}
                   isLoading={isLoading}
                   label={t('documents.idCard.uploadLabel')}
                   acceptedFileTypes={{ 'image/*': ['.jpeg', '.jpg', '.png'] }}
@@ -196,13 +204,13 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
                   variant="outline"
                   onClick={() => {
                     // Permettre de remplacer le document si nécessaire
-                    if (idDocuments[0].status === 'REJECTED') {
+                    if (idDocuments[0].verificationStatus === 'REJECTED') {
                       handleDelete(idDocuments[0].id);
                     }
                   }}
-                  disabled={idDocuments[0].status !== 'REJECTED'}
+                  disabled={idDocuments[0].verificationStatus !== 'REJECTED'}
                 >
-                  {idDocuments[0].status === 'REJECTED'
+                  {idDocuments[0].verificationStatus === 'REJECTED'
                     ? t('documents.replaceRejected')
                     : t('documents.alreadySubmitted')}
                 </Button>
@@ -211,7 +219,7 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
           </Card>
         </TabsContent>
 
-        {/* Onglet Photo de profil (selfie) */}
+        {/* Onglet Selfie */}
         <TabsContent value="selfie">
           <Card>
             <CardHeader>
@@ -228,7 +236,7 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
                 />
               ) : (
                 <DocumentUploadForm
-                  onUpload={files => handleUpload(files, 'SELFIE')}
+                  onUpload={fileData => handleUpload(fileData, 'SELFIE')}
                   isLoading={isLoading}
                   label={t('documents.selfie.uploadLabel')}
                   acceptedFileTypes={{ 'image/*': ['.jpeg', '.jpg', '.png'] }}
@@ -242,13 +250,13 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
                 <Button
                   variant="outline"
                   onClick={() => {
-                    if (selfieDocuments[0].status === 'REJECTED') {
+                    if (selfieDocuments[0].verificationStatus === 'REJECTED') {
                       handleDelete(selfieDocuments[0].id);
                     }
                   }}
-                  disabled={selfieDocuments[0].status !== 'REJECTED'}
+                  disabled={selfieDocuments[0].verificationStatus !== 'REJECTED'}
                 >
-                  {selfieDocuments[0].status === 'REJECTED'
+                  {selfieDocuments[0].verificationStatus === 'REJECTED'
                     ? t('documents.replaceRejected')
                     : t('documents.alreadySubmitted')}
                 </Button>
@@ -274,7 +282,7 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
                 />
               ) : (
                 <DocumentUploadForm
-                  onUpload={files => handleUpload(files, 'DRIVING_LICENSE')}
+                  onUpload={fileData => handleUpload(fileData, 'DRIVING_LICENSE')}
                   isLoading={isLoading}
                   label={t('documents.drivingLicense.uploadLabel')}
                   acceptedFileTypes={{ 'image/*': ['.jpeg', '.jpg', '.png'] }}
@@ -288,13 +296,13 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
                 <Button
                   variant="outline"
                   onClick={() => {
-                    if (drivingLicenseDocuments[0].status === 'REJECTED') {
+                    if (drivingLicenseDocuments[0].verificationStatus === 'REJECTED') {
                       handleDelete(drivingLicenseDocuments[0].id);
                     }
                   }}
-                  disabled={drivingLicenseDocuments[0].status !== 'REJECTED'}
+                  disabled={drivingLicenseDocuments[0].verificationStatus !== 'REJECTED'}
                 >
-                  {drivingLicenseDocuments[0].status === 'REJECTED'
+                  {drivingLicenseDocuments[0].verificationStatus === 'REJECTED'
                     ? t('documents.replaceRejected')
                     : t('documents.alreadySubmitted')}
                 </Button>
