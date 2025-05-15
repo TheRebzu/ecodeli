@@ -58,21 +58,33 @@ export function useDocuments(userId?: string, status: DocumentStatus | 'ALL' = '
     });
 
   // Fonction pour télécharger un document avec un type spécifique
-  const uploadDocument = async (file: File, type: string) => {
-    // Créer un FormData pour envoyer le fichier
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('type', type);
-
-    if (userId) {
-      formData.append('userId', userId);
-    }
-
+  const uploadDocument = async (file: File, type: string, notes?: string) => {
     try {
-      // Utiliser l'API pour télécharger le document
-      await uploadMutation.mutateAsync(formData);
+      // Convert the file to base64
+      const reader = new FileReader();
+      const base64Promise = new Promise<string>((resolve, reject) => {
+        reader.onload = () => {
+          const result = reader.result as string;
+          resolve(result);
+        };
+        reader.onerror = () => {
+          reject(new Error('Failed to read file'));
+        };
+      });
+
+      reader.readAsDataURL(file);
+      const base64 = await base64Promise;
+
+      // Use the API to upload the document
+      await uploadMutation.mutateAsync({
+        type: type as DocumentType,
+        file: base64,
+        notes: notes,
+      });
+
       return true;
     } catch (error) {
+      console.error('Error in uploadDocument:', error);
       throw error;
     }
   };
@@ -80,7 +92,7 @@ export function useDocuments(userId?: string, status: DocumentStatus | 'ALL' = '
   // Fonction pour supprimer un document
   const deleteDocument = async (documentId: string) => {
     try {
-      await deleteMutation.mutateAsync({ id: documentId });
+      await deleteMutation.mutateAsync({ documentId });
       return true;
     } catch (error) {
       throw error;
@@ -89,7 +101,7 @@ export function useDocuments(userId?: string, status: DocumentStatus | 'ALL' = '
 
   return {
     documents,
-    isLoading: isLoading || uploadMutation.isLoading || deleteMutation.isLoading,
+    isLoading: isLoading || uploadMutation.isPending || deleteMutation.isPending,
     uploadDocument,
     deleteDocument,
     refreshDocuments,
