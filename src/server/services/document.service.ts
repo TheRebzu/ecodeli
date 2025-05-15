@@ -46,6 +46,27 @@ interface DocumentCreateInput {
   mimeType: string;
 }
 
+// Define UpdateDocumentInput type for document updates
+interface UpdateDocumentInput {
+  isVerified?: boolean;
+  verificationStatus?: VerificationStatus;
+  verifiedAt?: Date;
+  verifiedBy?: string;
+  notes?: string | null;
+  rejectionReason?: string | null;
+  expiryDate?: Date | null;
+}
+
+// Define an interface for API routes to use that accepts string literals
+interface ApiRouteDocumentUpdate {
+  isVerified?: boolean;
+  verificationStatus?: string;
+  notes?: string | null;
+  rejectionReason?: string | null;
+  expiryDate?: Date | null;
+  reviewerId?: string | null;
+}
+
 // Types pour les enums
 enum VerificationStatus {
   PENDING = 'PENDING',
@@ -97,12 +118,14 @@ export class DocumentService {
   private prisma: PrismaClient;
   private uploadDir: string;
   private notificationService: NotificationService;
+  private emailService: EmailService;
 
   constructor(prisma = db) {
     this.prisma = prisma;
     // Le dossier d'uploads est relatif à la racine du projet
     this.uploadDir = path.join(process.cwd(), 'public', 'uploads');
     this.notificationService = new NotificationService();
+    this.emailService = new EmailService();
   }
 
   /**
@@ -1098,6 +1121,58 @@ export class DocumentService {
     if (missingDocuments.length > 0) {
       const locale = getUserPreferredLocale(user);
       await this.notificationService.sendMissingDocumentsReminder(user, missingDocuments, locale);
+    }
+  }
+
+  // API routes specific update method that accepts string literals
+  async updateDocumentFromApi(id: string, data: ApiRouteDocumentUpdate): Promise<Document> {
+    const document = await this.getDocumentById(id);
+
+    if (!document) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Document not found',
+      });
+    }
+
+    // Convert the string status to the enum if provided
+    const updateData = {
+      isVerified: data.isVerified,
+      verificationStatus: data.verificationStatus as VerificationStatus,
+      notes: data.notes,
+      rejectionReason: data.rejectionReason,
+      expiryDate: data.expiryDate,
+      reviewerId: data.reviewerId,
+    };
+
+    try {
+      const updatedDocument = await this.prisma.document.update({
+        where: { id },
+        data: updateData,
+      });
+
+      // Create a verification record if the document is approved or rejected
+      if (data.verificationStatus === 'APPROVED' || data.verificationStatus === 'REJECTED') {
+        await this.prisma.verification.create({
+          data: {
+            status: data.verificationStatus as VerificationStatus,
+            documentId: id,
+            submitterId: document.userId,
+            verifierId: data.reviewerId || undefined,
+            verifiedAt: new Date(),
+            notes: data.notes,
+            rejectionReason: data.rejectionReason,
+          },
+        });
+      }
+
+      return updatedDocument as Document;
+    } catch (error) {
+      console.error('Error updating document:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to update document',
+      });
     }
   }
 }
