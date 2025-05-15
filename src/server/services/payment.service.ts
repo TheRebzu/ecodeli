@@ -1,1 +1,33 @@
-import Stripe from 'stripe';\nimport { db } from '../db';\n\nconst stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {\n  apiVersion: '2024-03-17',\n});\n\nexport const PaymentService = {\n  async createPaymentIntent(data: {\n    amount: number;\n    currency: string;\n    customerId: string;\n    metadata?: Record<string, string>;\n  }) {\n    // Création d'un intent de paiement\n  },\n  \n  async confirmPayment(paymentIntentId: string) {\n    // Confirmation d'un paiement\n  },\n  \n  async createCustomer(data: {\n    email: string;\n    name: string;\n  }) {\n    // Création d'un client Stripe\n  },\n  \n  async createTransfer(data: {\n    amount: number;\n    destinationAccountId: string;\n    description: string;\n  }) {\n    // Création d'un transfert\n  },\n};
+import Stripe from 'stripe';
+import { db } from '../db';
+
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
+  apiVersion: '2025-04-30.basil',
+});
+
+export const PaymentService = {
+  async createPaymentIntent(data: {
+    amount: number;
+    currency: string;
+    customerId: string;
+    metadata?: Record<string, string>;
+  }) {
+    // Création d'un intent de paiement
+  },
+
+  async confirmPayment(paymentIntentId: string) {
+    // Confirmation d'un paiement
+  },
+
+  async createCustomer(data: { email: string; name: string }) {
+    // Création d'un client Stripe
+  },
+
+  async createTransfer(data: {
+    amount: number;
+    destinationAccountId: string;
+    description: string;
+  }) {
+    // Création d'un transfert
+  },
+};
