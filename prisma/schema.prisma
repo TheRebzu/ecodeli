@@ -33,32 +33,6 @@ model User {
   hasCompletedOnboarding   Boolean                       @default(false)
   lastOnboardingStep       Int                           @default(0)
   onboardingCompletionDate DateTime?
-  notifications            Notification[]
-  accounts                 Account[]
-  admin                    Admin?
-  announcements            Announcement[]
-  deliveryAnnouncements    Announcement[]                @relation("AnnouncementDeliverer")
-  performedAuditLogs       AuditLog[]                    @relation("AuditLogPerformer")
-  boxes                    Box[]
-  client                   Client?
-  deliverer                Deliverer?
-  deliveryApplications     DeliveryApplication[]
-  financialTasks           FinancialTask[]
-  reviewedDocuments        Document[]                    @relation("DocumentReviewer")
-  documents                Document[]
-  merchant                 Merchant?
-  provider                 Provider?
-  reservations             Reservation[]
-  sessions                 Session[]
-  activityLogs             UserActivityLog[]
-  verificationHistory      VerificationHistory[]
-  verifiedHistories        VerificationHistory[]         @relation("VerifierRelation")
-  submittedVerifications   Verification[]                @relation("SubmitterRelation")
-  verifications            Verification[]                @relation("VerifierRelation")
-  providedServices         Service[]
-  providerAvailability     ProviderAvailability[]
-  clientBookings           ServiceBooking[]              @relation("ClientBookings")
-  providerBookings         ServiceBooking[]              @relation("ProviderBookings")
   isProvider               Boolean                       @default(false)
   providerBio              String?
   providerLocationLat      Float?
@@ -67,16 +41,42 @@ model User {
   providerZipCode          String?
   providerCity             String?
   providerVerified         Boolean                       @default(false)
-  favorites                DelivererFavorite[] // Relation avec les favoris
   clientDeliveries         Delivery[]                    @relation("ClientDeliveries")
   delivererDeliveries      Delivery[]                    @relation("DelivererDeliveries")
-  boxUsageHistory          BoxUsageHistory[] // Historique d'utilisation des box par le client
-  boxSubscriptions         BoxAvailabilitySubscription[] // Abonnements aux notifications de disponibilité
-  payments                 Payment[]
-  wallet                   Wallet?
-  paymentMethods           PaymentMethod[]
-  subscriptions            Subscription[]
+  notifications            Notification[]
+  providerAvailability     ProviderAvailability[]
+  providedServices         Service[]
+  clientBookings           ServiceBooking[]              @relation("ClientBookings")
+  providerBookings         ServiceBooking[]              @relation("ProviderBookings")
+  accounts                 Account[]
+  admin                    Admin?
+  announcements            Announcement[]
+  deliveryAnnouncements    Announcement[]                @relation("AnnouncementDeliverer")
+  performedAuditLogs       AuditLog[]                    @relation("AuditLogPerformer")
+  boxSubscriptions         BoxAvailabilitySubscription[]
+  boxUsageHistory          BoxUsageHistory[]
+  boxes                    Box[]
+  client                   Client?
+  favorites                DelivererFavorite[]
+  deliverer                Deliverer?
+  deliveryApplications     DeliveryApplication[]
+  reviewedDocuments        Document[]                    @relation("DocumentReviewer")
+  documents                Document[]
+  financialTasks           FinancialTask[]
   invoices                 Invoice[]
+  merchant                 Merchant?
+  paymentMethods           PaymentMethod[]
+  payments                 Payment[]
+  provider                 Provider?
+  reservations             Reservation[]
+  sessions                 Session[]
+  subscriptions            Subscription[]
+  activityLogs             UserActivityLog[]
+  verificationHistory      VerificationHistory[]
+  verifiedHistories        VerificationHistory[]         @relation("VerifierRelation")
+  submittedVerifications   Verification[]                @relation("SubmitterRelation")
+  verifications            Verification[]                @relation("VerifierRelation")
+  wallet                   Wallet?
 
   @@map("users")
 }
@@ -133,12 +133,12 @@ model Client {
   state             String?
   postalCode        String?
   country           String?
+  preferredLanguage String?
+  newsletterOptIn   Boolean   @default(false)
+  notificationPrefs Json?
+  avatarUrl         String?
+  deliveryAddresses Address[]
   user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  deliveryAddresses Address[] // Adresses de livraison multiples
-  preferredLanguage String? // Langue préférée
-  newsletterOptIn   Boolean   @default(false) // Opt-in pour la newsletter
-  notificationPrefs Json? // Préférences de notification spécifiques au client
-  avatarUrl         String? // URL de l'avatar personnalisé
 
   @@map("clients")
 }
@@ -159,16 +159,16 @@ model Deliverer {
   currentLocation     String?
   isActive            Boolean   @default(false)
   rating              Float?
+  serviceZones        Json?
+  bio                 String?
+  yearsOfExperience   Int?
+  preferredVehicle    String?
+  maxWeightCapacity   Float?
+  availableDays       String[]
+  bankInfo            Json?
+  taxIdentifier       String?
+  deliveryPreferences Json?
   user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  serviceZones        Json? // Zones de livraison préférées (format GeoJSON)
-  bio                 String? // Description personnelle
-  yearsOfExperience   Int? // Années d'expérience
-  preferredVehicle    String? // Type de véhicule préféré
-  maxWeightCapacity   Float? // Capacité de poids maximale en kg
-  availableDays       String[] // Jours disponibles
-  bankInfo            Json? // Informations bancaires (cryptées)
-  taxIdentifier       String? // Identifiant fiscal
-  deliveryPreferences Json? // Préférences de livraison
 
   @@map("deliverers")
 }
@@ -193,18 +193,18 @@ model Merchant {
   websiteUrl       String?
   isVerified       Boolean    @default(false)
   verificationDate DateTime?
+  logoUrl          String?
+  coverPhotoUrl    String?
+  openingHours     Json?
+  description      String?
+  socialLinks      Json?
+  paymentMethods   String[]
+  deliveryOptions  String[]
+  certifications   String[]
+  foundingYear     Int?
+  employeeCount    Int?
   contracts        Contract[]
   user             User       @relation(fields: [userId], references: [id], onDelete: Cascade)
-  logoUrl          String? // URL du logo de l'entreprise
-  coverPhotoUrl    String? // URL de la photo de couverture
-  openingHours     Json? // Heures d'ouverture
-  description      String? // Description de l'entreprise
-  socialLinks      Json? // Liens sociaux
-  paymentMethods   String[] // Méthodes de paiement acceptées
-  deliveryOptions  String[] // Options de livraison proposées
-  certifications   String[] // Certifications professionnelles
-  foundingYear     Int? // Année de fondation
-  employeeCount    Int? // Nombre d'employés
 
   @@map("merchants")
 }
@@ -224,18 +224,18 @@ model Provider {
   description        String?
   availability       String?
   verificationDate   DateTime?
+  professionalBio    String?
+  serviceRadius      Int?
+  portfolioUrls      String[]
+  qualifications     String[]
+  yearsInBusiness    Int?
+  insuranceInfo      Json?
+  workSchedule       Json?
+  serviceFees        Json?
+  cancellationPolicy String?
+  languages          String[]
   user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   skills             Skill[]
-  professionalBio    String? // Biographie professionnelle
-  serviceRadius      Int? // Rayon de service en km
-  portfolioUrls      String[] // URLs du portfolio
-  qualifications     String[] // Qualifications professionnelles
-  yearsInBusiness    Int? // Années d'activité
-  insuranceInfo      Json? // Informations d'assurance
-  workSchedule       Json? // Horaires de travail détaillés
-  serviceFees        Json? // Structure des frais
-  cancellationPolicy String? // Politique d'annulation
-  languages          String[] // Langues parlées
 
   @@map("providers")
 }
@@ -383,13 +383,13 @@ model Warehouse {
   updatedAt      DateTime @updatedAt
   latitude       Float?
   longitude      Float?
-  openingHours   Json? // Structure: {day: {open: "08:00", close: "18:00"}}
+  openingHours   Json?
   contactPhone   String?
   contactEmail   String?
   imageUrl       String?
-  boxes          Box[]
   availableBoxes Int      @default(0)
   reservedBoxes  Int      @default(0)
+  boxes          Box[]
 
   @@map("warehouses")
 }
@@ -404,20 +404,20 @@ model Box {
   clientId            String?
   pricePerDay         Float
   description         String?
-  locationDescription String? // Description de l'emplacement dans l'entrepôt
+  locationDescription String?
   floorLevel          Int                           @default(0)
-  maxWeight           Float? // Poids maximum supporté (en kg)
-  dimensions          Json? // {width: Float, height: Float, depth: Float}
-  features            String[] // ["climate-controlled", "secure", "24h-access"]
+  maxWeight           Float?
+  dimensions          Json?
+  features            String[]
   status              BoxStatus                     @default(AVAILABLE)
   lastInspectedAt     DateTime?
   createdAt           DateTime                      @default(now())
   updatedAt           DateTime                      @updatedAt
+  subscriptions       BoxAvailabilitySubscription[]
+  usageHistory        BoxUsageHistory[]
   client              User?                         @relation(fields: [clientId], references: [id])
   warehouse           Warehouse                     @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
   reservations        Reservation[]
-  usageHistory        BoxUsageHistory[]
-  subscriptions       BoxAvailabilitySubscription[]
 
   @@index([warehouseId])
   @@index([clientId])
@@ -435,15 +435,15 @@ model Reservation {
   totalPrice      Float
   paymentStatus   PaymentStatus     @default(PENDING)
   paymentId       String?
-  accessCode      String? // Code d'accès temporaire
-  lastAccessed    DateTime? // Dernière fois que la box a été accédée
+  accessCode      String?
+  lastAccessed    DateTime?
   notes           String?
   createdAt       DateTime          @default(now())
   updatedAt       DateTime          @updatedAt
   cancelledAt     DateTime?
   cancelReason    String?
   extendedCount   Int               @default(0)
-  originalEndDate DateTime? // Date de fin originale avant extension
+  originalEndDate DateTime?
   usageHistory    BoxUsageHistory[]
   box             Box               @relation(fields: [boxId], references: [id], onDelete: Cascade)
   client          User              @relation(fields: [clientId], references: [id])
@@ -465,8 +465,8 @@ model BoxUsageHistory {
   ipAddress     String?
   deviceInfo    String?
   box           Box           @relation(fields: [boxId], references: [id], onDelete: Cascade)
-  reservation   Reservation?  @relation(fields: [reservationId], references: [id])
   client        User          @relation(fields: [clientId], references: [id])
+  reservation   Reservation?  @relation(fields: [reservationId], references: [id])
 
   @@index([boxId])
   @@index([reservationId])
@@ -485,7 +485,7 @@ model BoxAvailabilitySubscription {
   boxType                 BoxType?
   warehouseId             String?
   isActive                Boolean   @default(true)
-  notificationPreferences Json? // {email: Boolean, sms: Boolean, push: Boolean}
+  notificationPreferences Json?
   createdAt               DateTime  @default(now())
   updatedAt               DateTime  @updatedAt
   lastNotified            DateTime?
@@ -561,16 +561,16 @@ model Announcement {
   notes               String?
   tags                String[]
   photos              String[]              @default([])
-  estimatedDistance   Float? // Distance estimée en km
-  estimatedDuration   Int? // Durée estimée en minutes
+  estimatedDistance   Float?
+  estimatedDuration   Int?
   requiresSignature   Boolean               @default(false)
   requiresId          Boolean               @default(false)
-  specialInstructions String? // Instructions spéciales pour le livreur
-  isFavorite          Boolean               @default(false) // Pour marquer comme favoris par les livreurs
+  specialInstructions String?
+  isFavorite          Boolean               @default(false)
   client              User                  @relation(fields: [clientId], references: [id], onDelete: Cascade)
   deliverer           User?                 @relation("AnnouncementDeliverer", fields: [delivererId], references: [id])
+  favorites           DelivererFavorite[]
   applications        DeliveryApplication[]
-  favorites           DelivererFavorite[] // Relation avec les favoris
 
   @@map("announcements")
 }
@@ -584,10 +584,10 @@ model DeliveryApplication {
   status                String       @default("PENDING")
   createdAt             DateTime     @default(now())
   updatedAt             DateTime     @updatedAt
-  estimatedPickupTime   DateTime? // Heure estimée de ramassage
-  estimatedDeliveryTime DateTime? // Heure estimée de livraison
-  isPreferred           Boolean      @default(false) // Marqué comme préféré par le client
-  notes                 String? // Notes supplémentaires
+  estimatedPickupTime   DateTime?
+  estimatedDeliveryTime DateTime?
+  isPreferred           Boolean      @default(false)
+  notes                 String?
   announcement          Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
   deliverer             User         @relation(fields: [delivererId], references: [id], onDelete: Cascade)
 
@@ -599,16 +599,16 @@ model Service {
   name        String
   description String
   price       Decimal
-  duration    Int // Durée en minutes
+  duration    Int
   categoryId  String
-  category    ServiceCategory  @relation(fields: [categoryId], references: [id])
   providerId  String
-  provider    User             @relation(fields: [providerId], references: [id])
-  bookings    ServiceBooking[]
-  payments    Payment[]
   isActive    Boolean          @default(true)
   createdAt   DateTime         @default(now())
   updatedAt   DateTime         @updatedAt
+  category    ServiceCategory  @relation(fields: [categoryId], references: [id])
+  provider    User             @relation(fields: [providerId], references: [id])
+  bookings    ServiceBooking[]
+  payments    Payment[]
 
   @@index([providerId])
   @@index([categoryId])
@@ -618,20 +618,20 @@ model ServiceCategory {
   id          String    @id @default(cuid())
   name        String
   description String?
-  services    Service[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+  services    Service[]
 }
 
 model ProviderAvailability {
   id         String   @id @default(cuid())
   providerId String
-  provider   User     @relation(fields: [providerId], references: [id])
-  dayOfWeek  Int // 0-6 pour lundi-dimanche
-  startTime  DateTime // Heure de début
-  endTime    DateTime // Heure de fin
+  dayOfWeek  Int
+  startTime  DateTime
+  endTime    DateTime
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+  provider   User     @relation(fields: [providerId], references: [id])
 
   @@index([providerId])
 }
@@ -639,21 +639,21 @@ model ProviderAvailability {
 model ServiceBooking {
   id         String         @id @default(cuid())
   clientId   String
-  client     User           @relation("ClientBookings", fields: [clientId], references: [id])
   providerId String
-  provider   User           @relation("ProviderBookings", fields: [providerId], references: [id])
   serviceId  String
-  service    Service        @relation(fields: [serviceId], references: [id])
   startTime  DateTime
   endTime    DateTime
   status     BookingStatus  @default(PENDING)
   totalPrice Decimal
   paymentId  String?
-  payment    Payment?       @relation(fields: [paymentId], references: [id])
   notes      String?
-  review     ServiceReview?
   createdAt  DateTime       @default(now())
   updatedAt  DateTime       @updatedAt
+  client     User           @relation("ClientBookings", fields: [clientId], references: [id])
+  payment    Payment?       @relation(fields: [paymentId], references: [id])
+  provider   User           @relation("ProviderBookings", fields: [providerId], references: [id])
+  service    Service        @relation(fields: [serviceId], references: [id])
+  review     ServiceReview?
 
   @@index([clientId])
   @@index([providerId])
@@ -664,27 +664,27 @@ model ServiceBooking {
 model ServiceReview {
   id        String         @id @default(cuid())
   bookingId String         @unique
-  booking   ServiceBooking @relation(fields: [bookingId], references: [id])
-  rating    Int // 1-5 étoiles
+  rating    Int
   comment   String?
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
+  booking   ServiceBooking @relation(fields: [bookingId], references: [id])
 }
 
 model Payment {
-  id                 String         @id @default(cuid())
+  id                 String           @id @default(cuid())
   amount             Decimal
   currency           String
   status             PaymentStatus
   description        String?
   userId             String
-  isEscrow           Boolean        @default(false)
+  isEscrow           Boolean          @default(false)
   escrowReleaseCode  String?
   escrowReleaseDate  DateTime?
   escrowReleasedAt   DateTime?
   stripePaymentId    String?
   paymentIntentId    String?
-  deliveryId         String?        @unique
+  deliveryId         String?          @unique
   serviceId          String?
   subscriptionId     String?
   invoiceId          String?
@@ -701,25 +701,25 @@ model Payment {
   paymentMethodId    String?
   receiptUrl         String?
   errorMessage       String?
-  createdAt          DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt
-  source             String?        // DELIVERY, SERVICE, SUBSCRIPTION, MERCHANT_FEE
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  source             String?
   notes              String?
-  paymentProvider    String         @default("STRIPE")
-  isRecurring        Boolean        @default(false)
-  recurringFrequency String?        // MONTHLY, ANNUAL
-  processingFee      Decimal?       // Frais de traitement
-  taxAmount          Decimal?       // Montant de la TVA
-  taxRate            Decimal?       // Taux de TVA
-  paymentReference   String?        // Référence externe du paiement
-  ipAddress          String?        // Adresse IP pour détection de fraude
-  user               User           @relation(fields: [userId], references: [id])
-  invoice            Invoice?       @relation(fields: [invoiceId], references: [id])
-  delivery           Delivery?      @relation("PaymentToDelivery", fields: [deliveryId], references: [id])
-  service            Service?       @relation(fields: [serviceId], references: [id])
-  subscription       Subscription?  @relation(fields: [subscriptionId], references: [id])
-  commission         Commission?    @relation(fields: [commissionId], references: [id])
+  paymentProvider    String           @default("STRIPE")
+  isRecurring        Boolean          @default(false)
+  recurringFrequency String?
+  processingFee      Decimal?
+  taxAmount          Decimal?
+  taxRate            Decimal?
+  paymentReference   String?
+  ipAddress          String?
   bookings           ServiceBooking[]
+  commission         Commission?      @relation(fields: [commissionId], references: [id])
+  delivery           Delivery?        @relation("PaymentToDelivery", fields: [deliveryId], references: [id])
+  invoice            Invoice?         @relation(fields: [invoiceId], references: [id])
+  service            Service?         @relation(fields: [serviceId], references: [id])
+  subscription       Subscription?    @relation(fields: [subscriptionId], references: [id])
+  user               User             @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([deliveryId])
@@ -731,84 +731,81 @@ model Payment {
 }
 
 model DelivererFavorite {
-  id             String   @id @default(cuid())
+  id             String       @id @default(cuid())
   delivererId    String
   announcementId String
-  createdAt      DateTime @default(now())
+  createdAt      DateTime     @default(now())
+  announcement   Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  deliverer      User         @relation(fields: [delivererId], references: [id], onDelete: Cascade)
 
-  // Relations
-  announcement Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
-  deliverer    User         @relation(fields: [delivererId], references: [id], onDelete: Cascade)
-
-  // Index unique pour éviter les doublons
   @@unique([delivererId, announcementId])
   @@map("deliverer_favorites")
 }
 
 model Wallet {
-  id                     String              @id @default(cuid())
-  userId                 String              @unique
-  balance                Decimal             @default(0)
-  currency               String              @default("EUR")
-  transactions           WalletTransaction[]
-  withdrawalRequests     WithdrawalRequest[]
-  createdAt              DateTime            @default(now())
-  updatedAt              DateTime            @updatedAt
-  isActive               Boolean             @default(true)
-  totalEarned            Decimal?
-  totalWithdrawn         Decimal?
-  lastTransactionAt      DateTime?
-  stripeConnectAccountId String?
-  stripeCustomerId       String?
-  automaticWithdrawal    Boolean             @default(false)
-  withdrawalThreshold    Decimal?
-  withdrawalDay          Int?
-  minimumWithdrawalAmount Decimal            @default(10)
-  accountType            String?             // express, standard
-  accountVerified        Boolean             @default(false)
-  user                   User                @relation(fields: [userId], references: [id])
-  encryptedBankInfo      String?             // IBAN et informations bancaires chiffrées
-  notificationThreshold  Decimal?            // Seuil pour déclenchement notifications solde
-  notificationsEnabled   Boolean             @default(true)
-  lastWithdrawalAt       DateTime?
-  earningsThisMonth      Decimal?            // Gains du mois en cours
-  earningsLastMonth      Decimal?            // Gains du mois précédent
-  taxReportingEnabled    Boolean             @default(false)
-  fiscalCategory         String?             // Catégorie fiscale (auto-entrepreneur, etc.)
-  taxIdentifier          String?             // Numéro fiscal
+  id                      String              @id @default(cuid())
+  userId                  String              @unique
+  balance                 Decimal             @default(0)
+  currency                String              @default("EUR")
+  isActive                Boolean             @default(true)
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+  lastTransactionAt       DateTime?
+  accountVerified         Boolean             @default(false)
+  accountType             String?
+  minimumWithdrawalAmount Decimal             @default(10)
+  automaticWithdrawal     Boolean             @default(false)
+  withdrawalThreshold     Decimal?
+  withdrawalDay           Int?
+  totalEarned             Decimal?
+  totalWithdrawn          Decimal?
+  earningsLastMonth       Decimal?
+  earningsThisMonth       Decimal?
+  encryptedBankInfo       String?
+  fiscalCategory          String?
+  lastWithdrawalAt        DateTime?
+  notificationThreshold   Decimal?
+  notificationsEnabled    Boolean             @default(true)
+  stripeConnectAccountId  String?
+  stripeCustomerId        String?
+  taxIdentifier           String?
+  taxReportingEnabled     Boolean             @default(false)
+  transactions            WalletTransaction[]
+  user                    User                @relation(fields: [userId], references: [id])
+  withdrawalRequests      WithdrawalRequest[]
 
   @@map("wallets")
 }
 
 model WalletTransaction {
-  id                String             @id @default(cuid())
+  id                String            @id @default(cuid())
   walletId          String
   amount            Decimal
   currency          String
   type              TransactionType
-  status            TransactionStatus  @default(PENDING)
-  reference         String?
+  status            TransactionStatus @default(PENDING)
   description       String?
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
+  reference         String?
+  stripeTransferId  String?
+  metadata          Json?
+  createdAt         DateTime          @default(now())
+  balanceAfter      Decimal?
+  commissionRate    Decimal?
   completedAt       DateTime?
+  deliveryId        String?
   failedAt          DateTime?
   failureReason     String?
-  stripeTransferId  String?
+  isSystemGenerated Boolean           @default(false)
   paymentId         String?
+  previousBalance   Decimal?
+  reportingCategory String?
+  serviceId         String?
+  sourceTransaction String?
+  taxAmount         Decimal?
+  taxRate           Decimal?
+  updatedAt         DateTime          @updatedAt
   withdrawalId      String?
-  metadata          Json?
-  wallet            Wallet             @relation(fields: [walletId], references: [id])
-  deliveryId        String?            // ID de la livraison liée
-  serviceId         String?            // ID du service lié
-  commissionRate    Decimal?           // Taux de commission appliqué
-  balanceAfter      Decimal?           // Solde après la transaction
-  previousBalance   Decimal?           // Solde avant la transaction
-  sourceTransaction String?            // Transaction à l'origine
-  taxAmount         Decimal?           // Montant de taxe
-  taxRate           Decimal?           // Taux de taxe
-  reportingCategory String?            // Catégorie pour rapports financiers
-  isSystemGenerated Boolean            @default(false) // Transaction générée par le système
+  wallet            Wallet            @relation(fields: [walletId], references: [id])
 
   @@index([walletId])
   @@index([type])
@@ -819,63 +816,63 @@ model WalletTransaction {
 
 model BankTransfer {
   id                    String             @id @default(cuid())
-  withdrawalRequestId   String?            @unique
   amount                Decimal
   currency              String
-  status                TransactionStatus
-  reference             String?
-  senderName            String?
-  senderIban            String?
+  withdrawalRequestId   String?            @unique
   recipientName         String
-  recipientIban         String
-  recipientBic          String?
   bankName              String?
+  reference             String?
   initiatedAt           DateTime
-  estimatedArrivalDate  DateTime?
   completedAt           DateTime?
   failedAt              DateTime?
   failureReason         String?
-  transferReference     String?
-  externalReference     String?
-  withdrawalRequest     WithdrawalRequest? @relation(fields: [withdrawalRequestId], references: [id])
+  notes                 String?
   metadata              Json?
-  transferMethod        String             @default("SEPA") // SEPA, SWIFT, etc.
-  platformTransactionId String?            // ID de transaction externe
-  transferFee           Decimal?           // Frais de transfert
+  createdBy             String?
+  endorsedBy            String?
+  estimatedArrivalDate  DateTime?
+  externalReference     String?
   isRecipientVerified   Boolean            @default(false)
   isSenderVerified      Boolean            @default(true)
-  notes                 String?
-  createdBy             String?            // ID de l'administrateur qui a initié le transfert
-  endorsedBy            String?            // ID de l'administrateur qui a validé le transfert
-  transferProofUrl      String?            // URL de la preuve de transfert
+  platformTransactionId String?
+  recipientBic          String?
+  recipientIban         String
+  senderIban            String?
+  senderName            String?
+  transferFee           Decimal?
+  transferMethod        String             @default("SEPA")
+  transferProofUrl      String?
+  transferReference     String?
+  status                TransactionStatus
+  withdrawalRequest     WithdrawalRequest? @relation(fields: [withdrawalRequestId], references: [id])
 
   @@map("bank_transfers")
 }
 
 model WithdrawalRequest {
-  id                 String           @id @default(cuid())
-  walletId           String
-  amount             Decimal
-  currency           String
-  status             WithdrawalStatus @default(PENDING)
-  requestedAt        DateTime         @default(now())
-  processedAt        DateTime?
-  preferredMethod    String?          // BANK_TRANSFER, STRIPE_CONNECT
-  reference          String?
-  wallet             Wallet           @relation(fields: [walletId], references: [id])
-  bankTransfer       BankTransfer?
-  rejectionReason    String?
-  processorId        String?          // ID de l'administrateur qui a traité la demande
-  processorComments  String?
-  supportingDocuments String[]        // URLs des documents justificatifs
-  priority           Int              @default(0)
-  reviewRequired     Boolean          @default(false)
-  lastNotificationAt DateTime?
-  estimatedFee       Decimal?         // Frais estimés
-  estimatedArrival   DateTime?        // Date d'arrivée estimée
-  taxWithheld        Decimal?         // Montant de taxe retenu à la source
-  expedited          Boolean          @default(false) // Demande prioritaire
-  accountVerified    Boolean          @default(true)  // Compte vérifié 
+  id                  String           @id @default(cuid())
+  walletId            String
+  amount              Decimal
+  currency            String
+  status              WithdrawalStatus @default(PENDING)
+  requestedAt         DateTime         @default(now())
+  processedAt         DateTime?
+  rejectionReason     String?
+  preferredMethod     String?
+  reference           String?
+  accountVerified     Boolean          @default(true)
+  estimatedArrival    DateTime?
+  estimatedFee        Decimal?
+  expedited           Boolean          @default(false)
+  lastNotificationAt  DateTime?
+  priority            Int              @default(0)
+  processorComments   String?
+  processorId         String?
+  reviewRequired      Boolean          @default(false)
+  supportingDocuments String[]
+  taxWithheld         Decimal?
+  bankTransfer        BankTransfer?
+  wallet              Wallet           @relation(fields: [walletId], references: [id])
 
   @@index([walletId])
   @@index([status])
@@ -884,43 +881,43 @@ model WithdrawalRequest {
 }
 
 model Subscription {
-  id                    String               @id @default(cuid())
-  userId                String
-  planType              PlanType
-  status                SubscriptionStatus
-  startDate             DateTime
-  endDate               DateTime?
-  createdAt             DateTime             @default(now())
-  updatedAt             DateTime             @updatedAt
-  cancelledAt           DateTime?
-  autoRenew             Boolean              @default(true)
-  stripeSubscriptionId  String?
-  cancelAtPeriodEnd     Boolean              @default(false)
-  currentPeriodStart    DateTime?
-  currentPeriodEnd      DateTime?
-  price                 Decimal?
-  currency              String               @default("EUR")
-  metadata              Json?
-  user                  User                 @relation(fields: [userId], references: [id])
-  payments              Payment[]
-  billingCycleAnchor    Int?                 // Jour du mois pour facturation
-  nextInvoiceDate       DateTime?            // Date prévue prochaine facture
-  previousPlanType      PlanType?            // Plan précédent
-  upgradedAt            DateTime?            // Date de passage à un plan supérieur
-  downgradedAt          DateTime?            // Date de passage à un plan inférieur
-  trialEnd              DateTime?            // Fin de période d'essai
-  trialStart            DateTime?            // Début de période d'essai
-  couponApplied         String?              // Code promo appliqué
-  discountAmount        Decimal?             // Montant de la remise
-  discountPercent       Decimal?             // Pourcentage de remise
-  discountDuration      String?              // Durée de la remise (ONCE, FOREVER, REPEATING)
-  discountDurationMonths Int?                // Nombre de mois pour remise REPEATING
-  paymentFailureCount   Int                  @default(0)
-  lastPaymentFailure    DateTime?            // Dernière tentative de paiement échouée
-  gracePeriodEnd        DateTime?            // Fin de période de grâce
-  pausedAt              DateTime?            // Date de mise en pause
-  resumeAt              DateTime?            // Date de reprise prévue
-  customPlanFeatures    Json?                // Caractéristiques personnalisées du plan
+  id                     String             @id @default(cuid())
+  userId                 String
+  status                 SubscriptionStatus
+  planType               PlanType
+  stripeSubscriptionId   String?
+  startDate              DateTime
+  endDate                DateTime?
+  autoRenew              Boolean            @default(true)
+  cancelAtPeriodEnd      Boolean            @default(false)
+  cancelledAt            DateTime?
+  currentPeriodStart     DateTime?
+  currentPeriodEnd       DateTime?
+  discountPercent        Decimal?
+  previousPlanType       PlanType?
+  billingCycleAnchor     Int?
+  couponApplied          String?
+  createdAt              DateTime           @default(now())
+  currency               String             @default("EUR")
+  customPlanFeatures     Json?
+  discountAmount         Decimal?
+  discountDuration       String?
+  discountDurationMonths Int?
+  downgradedAt           DateTime?
+  gracePeriodEnd         DateTime?
+  lastPaymentFailure     DateTime?
+  metadata               Json?
+  nextInvoiceDate        DateTime?
+  pausedAt               DateTime?
+  paymentFailureCount    Int                @default(0)
+  price                  Decimal?
+  resumeAt               DateTime?
+  trialEnd               DateTime?
+  trialStart             DateTime?
+  updatedAt              DateTime           @updatedAt
+  upgradedAt             DateTime?
+  payments               Payment[]
+  user                   User               @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([status])
@@ -928,32 +925,32 @@ model Subscription {
 }
 
 model PaymentMethod {
-  id               String   @id @default(cuid())
+  id               String    @id @default(cuid())
   userId           String
-  type             String   // CARD, BANK_ACCOUNT
-  provider         String   @default("STRIPE")
-  token            String
+  type             String
+  isDefault        Boolean   @default(false)
+  brand            String?
+  last4            String?
   expiryMonth      Int?
   expiryYear       Int?
-  last4            String?
-  brand            String?
-  isDefault        Boolean  @default(false)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  billingEmail     String?
-  billingName      String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
   billingAddress   String?
   billingCity      String?
-  billingState     String?
-  billingPostal    String?
   billingCountry   String?
-  user             User     @relation(fields: [userId], references: [id])
-  isDeleted        Boolean  @default(false)
+  billingEmail     String?
+  billingName      String?
+  billingPostal    String?
+  billingState     String?
   deletedAt        DateTime?
-  fingerprint      String?  // Empreinte unique pour détecter les doublons
-  mandateId        String?  // ID du mandat SEPA
-  mandateStatus    String?  // Statut du mandat SEPA
-  mandateCreatedAt DateTime? // Date de création du mandat SEPA
+  fingerprint      String?
+  isDeleted        Boolean   @default(false)
+  mandateCreatedAt DateTime?
+  mandateId        String?
+  mandateStatus    String?
+  provider         String    @default("STRIPE")
+  token            String
+  user             User      @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([isDefault])
@@ -961,49 +958,49 @@ model PaymentMethod {
 }
 
 model Invoice {
-  id                 String         @id @default(cuid())
-  invoiceNumber      String         @unique
+  id                 String        @id @default(cuid())
   userId             String
-  merchantId         String?
-  providerId         String?
+  amount             Decimal
+  currency           String        @default("EUR")
   status             InvoiceStatus
-  issueDate          DateTime
   dueDate            DateTime
   paidDate           DateTime?
-  amount             Decimal
-  taxAmount          Decimal?
-  totalAmount        Decimal
-  currency           String         @default("EUR")
   pdfUrl             String?
-  description        String?
-  serviceDescription String?
-  items              InvoiceItem[]
-  payments           Payment[]
-  createdAt          DateTime       @default(now())
-  updatedAt          DateTime       @updatedAt
-  user               User           @relation(fields: [userId], references: [id])
-  billingPeriodStart DateTime?      // Début de période de facturation
-  billingPeriodEnd   DateTime?      // Fin de période de facturation
-  billingName        String?
+  billingPeriodStart DateTime?
+  billingPeriodEnd   DateTime?
+  paymentTerms       String?
+  notes              String?
+  companyName        String?
   billingAddress     String?
   billingCity        String?
-  billingState       String?
-  billingPostal      String?
   billingCountry     String?
-  companyName        String?
-  taxId              String?        // Numéro de TVA
-  taxRate            Decimal?       // Taux de TVA
-  notes              String?        // Notes additionnelles
+  billingName        String?
+  billingPostal      String?
+  billingState       String?
+  createdAt          DateTime      @default(now())
+  description        String?
+  emailSentAt        DateTime?
+  invoiceNumber      String        @unique
+  invoiceType        String        @default("SERVICE")
+  isCreditNote       Boolean       @default(false)
+  issueDate          DateTime
+  locale             String        @default("fr")
+  merchantId         String?
+  originalInvoiceId  String?
+  providerId         String?
+  refundReason       String?
+  reminderSentAt     DateTime?
+  remoteStorageUrl   String?
+  serviceDescription String?
+  taxAmount          Decimal?
+  taxId              String?
+  taxRate            Decimal?
   termsAndConditions String?
-  invoiceType        String         @default("SERVICE") // SERVICE, SUBSCRIPTION, MERCHANT_FEE
-  paymentTerms       String?
-  remoteStorageUrl   String?        // URL de stockage externe pour archivage légal
-  isCreditNote       Boolean        @default(false)
-  originalInvoiceId  String?        // En cas de note de crédit
-  refundReason       String?        // Raison du remboursement si note de crédit
-  emailSentAt        DateTime?      // Date d'envoi par email
-  reminderSentAt     DateTime?      // Date d'envoi de rappel
-  locale             String         @default("fr")      // Langue de la facture
+  totalAmount        Decimal
+  updatedAt          DateTime      @updatedAt
+  items              InvoiceItem[]
+  user               User          @relation(fields: [userId], references: [id])
+  payments           Payment[]
 
   @@index([userId])
   @@index([status])
@@ -1012,24 +1009,24 @@ model Invoice {
 }
 
 model InvoiceItem {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   invoiceId   String
   description String
   quantity    Decimal
   unitPrice   Decimal
-  amount      Decimal
   taxRate     Decimal?
   taxAmount   Decimal?
+  serviceId   String?
+  deliveryId  String?
   discount    Decimal?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  invoice     Invoice  @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
-  serviceId   String?  // ID du service associé
-  deliveryId  String?  // ID de la livraison associée
-  itemCode    String?  // Code d'article pour la comptabilité
-  periodStart DateTime? // Début de période pour facturation récurrente
-  periodEnd   DateTime? // Fin de période pour facturation récurrente
-  metadata    Json?     // Métadonnées additionnelles
+  amount      Decimal
+  createdAt   DateTime  @default(now())
+  itemCode    String?
+  metadata    Json?
+  periodEnd   DateTime?
+  periodStart DateTime?
+  updatedAt   DateTime  @updatedAt
+  invoice     Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
 
   @@index([invoiceId])
   @@map("invoice_items")
@@ -1037,9 +1034,9 @@ model InvoiceItem {
 
 model PromotionRecord {
   id          String   @id @default(cuid())
-  type        String // COMMISSION, DISCOUNT, etc.
-  serviceType String? // DELIVERY, SERVICE, null pour global
-  rate        Decimal // Taux de la promotion
+  type        String
+  serviceType String?
+  rate        Decimal
   startDate   DateTime
   endDate     DateTime
   isActive    Boolean  @default(true)
@@ -1050,27 +1047,27 @@ model PromotionRecord {
 }
 
 model Commission {
-  id                String   @id @default(cuid())
-  serviceType       String
-  rate              Decimal
-  isActive          Boolean  @default(true)
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  minimumAmount     Decimal?
-  maximumAmount     Decimal?
-  flatFee           Decimal?
-  payments          Payment[] // Paiements avec cette commission
-  description       String?
-  applicableRoles   String[]  // Rôles auxquels s'applique cette commission
-  startDate         DateTime?
-  endDate           DateTime?
-  tierThresholds    Json?     // Paliers pour commissions progressives
-  currency          String    @default("EUR")
-  calculationType   String    @default("PERCENTAGE") // PERCENTAGE, FIXED, TIERED
-  payoutSchedule    String?   @default("IMMEDIATE") // IMMEDIATE, DAILY, WEEKLY, MONTHLY
-  promotionId       String?   // ID de la promotion associée si commission spéciale
-  countryCode       String?   // Code pays si commission spécifique par pays
-  productCategory   String?   // Catégorie de produit si spécifique
+  id              String    @id @default(cuid())
+  rate            Decimal
+  promotionId     String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  applicableRoles String[]
+  calculationType String    @default("PERCENTAGE")
+  countryCode     String?
+  currency        String    @default("EUR")
+  description     String?
+  endDate         DateTime?
+  flatFee         Decimal?
+  isActive        Boolean   @default(true)
+  maximumAmount   Decimal?
+  minimumAmount   Decimal?
+  payoutSchedule  String?   @default("IMMEDIATE")
+  productCategory String?
+  serviceType     String
+  startDate       DateTime?
+  tierThresholds  Json?
+  payments        Payment[]
 
   @@index([serviceType])
   @@index([isActive])
@@ -1083,18 +1080,18 @@ model BillingCycle {
   providerId       String?
   periodStart      DateTime
   periodEnd        DateTime
-  status           String    @default("PENDING") // PENDING, PROCESSING, COMPLETED, FAILED
-  invoiceId        String?   // ID de la facture générée
+  status           String    @default("PENDING")
+  invoiceId        String?
   totalAmount      Decimal?
   serviceFees      Decimal?
   commissionFees   Decimal?
   processingFees   Decimal?
   createdAt        DateTime  @default(now())
   updatedAt        DateTime  @updatedAt
-  scheduledRunDate DateTime  // Date prévue de la prochaine facturation
-  serviceSummary   Json?     // Résumé des services facturés
-  lastRunAt        DateTime? // Dernière exécution
-  errorMessage     String?   // Message d'erreur
+  scheduledRunDate DateTime
+  serviceSummary   Json?
+  lastRunAt        DateTime?
+  errorMessage     String?
   retryCount       Int       @default(0)
 
   @@index([periodStart, periodEnd])
@@ -1103,34 +1100,34 @@ model BillingCycle {
 }
 
 model FinancialAccount {
-  id                 String   @id @default(cuid())
+  id                 String    @id @default(cuid())
   name               String
-  accountType        String   // OPERATIONAL, ESCROW, REVENUE, TAX
-  balance            Decimal  @default(0)
-  currency           String   @default("EUR")
+  accountType        String
+  balance            Decimal   @default(0)
+  currency           String    @default("EUR")
   description        String?
-  isActive           Boolean  @default(true)
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  reconciliationDate DateTime? // Date de dernière réconciliation
-  bankAccount        String?  // Compte bancaire associé
-  accountNumber      String?  // Numéro de compte
+  isActive           Boolean   @default(true)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  reconciliationDate DateTime?
+  bankAccount        String?
+  accountNumber      String?
   notes              String?
 
   @@map("financial_accounts")
 }
 
 model TaxRate {
-  id          String   @id @default(cuid())
+  id          String    @id @default(cuid())
   name        String
   rate        Decimal
   countryCode String
   description String?
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  taxType     String   @default("VAT") // VAT, GST, SALES_TAX
-  region      String?  // Région ou état
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  taxType     String    @default("VAT")
+  region      String?
   startDate   DateTime?
   endDate     DateTime?
 
@@ -1141,19 +1138,19 @@ model TaxRate {
 
 model FinancialReport {
   id               String   @id @default(cuid())
-  reportType       String   // MONTHLY, QUARTERLY, ANNUAL, CUSTOM
-  periodStart      DateTime
-  periodEnd        DateTime
-  generatedAt      DateTime @default(now())
+  data             Json?
   totalRevenue     Decimal?
   totalCommissions Decimal?
-  totalFees        Decimal?
-  netRevenue       Decimal?
+  status           String   @default("DRAFT")
+  generatedAt      DateTime @default(now())
   fileUrl          String?
-  status           String   @default("DRAFT") // DRAFT, PUBLISHED, ARCHIVED
-  generatedBy      String?  // ID de l'administrateur
-  data             Json?    // Données complètes du rapport
+  generatedBy      String?
+  netRevenue       Decimal?
   notes            String?
+  periodEnd        DateTime
+  periodStart      DateTime
+  reportType       String
+  totalFees        Decimal?
 
   @@index([reportType])
   @@index([periodStart, periodEnd])
@@ -1161,24 +1158,112 @@ model FinancialReport {
 }
 
 model FinancialTask {
-  id          String             @id @default(cuid())
+  id          String                @id @default(cuid())
   title       String
   description String?
   dueDate     DateTime?
-  completed   Boolean            @default(false)
+  completed   Boolean               @default(false)
   completedAt DateTime?
   priority    FinancialTaskPriority
   category    FinancialTaskCategory
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
   userId      String
-  user        User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId])
   @@index([priority])
   @@index([category])
   @@index([completed])
   @@map("financial_tasks")
+}
+
+model Delivery {
+  id                 String                @id @default(cuid())
+  status             DeliveryStatus        @default(PENDING)
+  createdAt          DateTime              @default(now())
+  updatedAt          DateTime              @updatedAt
+  pickupAddress      String
+  deliveryAddress    String
+  pickupDate         DateTime
+  deliveryDate       DateTime?
+  currentLat         Float?
+  currentLng         Float?
+  lastLocationUpdate DateTime?
+  estimatedArrival   DateTime?
+  confirmationCode   String?
+  clientId           String
+  delivererId        String?
+  client             User                  @relation("ClientDeliveries", fields: [clientId], references: [id])
+  deliverer          User?                 @relation("DelivererDeliveries", fields: [delivererId], references: [id])
+  coordinates        DeliveryCoordinates[]
+  logs               DeliveryLog[]
+  proofs             DeliveryProof[]
+  rating             DeliveryRating?
+  payment            Payment?              @relation("PaymentToDelivery")
+
+  @@index([clientId])
+  @@index([delivererId])
+}
+
+model DeliveryLog {
+  id         String         @id @default(cuid())
+  deliveryId String
+  status     DeliveryStatus
+  timestamp  DateTime       @default(now())
+  note       String?
+  latitude   Float?
+  longitude  Float?
+  delivery   Delivery       @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryId])
+}
+
+model DeliveryCoordinates {
+  id         String   @id @default(cuid())
+  deliveryId String
+  latitude   Float
+  longitude  Float
+  timestamp  DateTime @default(now())
+  delivery   Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryId])
+}
+
+model DeliveryProof {
+  id          String   @id @default(cuid())
+  deliveryId  String
+  type        String
+  url         String?
+  confirmedBy String?
+  confirmedAt DateTime @default(now())
+  delivery    Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryId])
+}
+
+model DeliveryRating {
+  id         String   @id @default(cuid())
+  deliveryId String   @unique
+  rating     Int
+  comment    String?
+  createdAt  DateTime @default(now())
+  delivery   Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+}
+
+model Address {
+  id         String  @id @default(cuid())
+  label      String
+  street     String
+  city       String
+  state      String?
+  postalCode String
+  country    String
+  isDefault  Boolean @default(false)
+  clientId   String
+  client     Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("addresses")
 }
 
 enum UserRole {
@@ -1210,8 +1295,8 @@ enum DocumentType {
   QUALIFICATION_CERTIFICATE
   PROOF_OF_ADDRESS
   BUSINESS_REGISTRATION
-  SELFIE
   OTHER
+  SELFIE
 }
 
 enum ContractStatus {
@@ -1276,11 +1361,11 @@ enum AnnouncementPriority {
 }
 
 enum BookingStatus {
-  PENDING // En attente de confirmation
-  CONFIRMED // Confirmé par le prestataire
-  COMPLETED // Service effectué
-  CANCELLED // Annulé
-  RESCHEDULED // Reprogrammé
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+  RESCHEDULED
 }
 
 enum PaymentStatus {
@@ -1307,84 +1392,6 @@ enum DeliveryStatus {
   CONFIRMED
   CANCELLED
   DISPUTED
-}
-
-model Delivery {
-  id        String         @id @default(cuid())
-  status    DeliveryStatus @default(PENDING)
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-
-  pickupAddress   String
-  deliveryAddress String
-  pickupDate      DateTime
-  deliveryDate    DateTime?
-
-  currentLat         Float?
-  currentLng         Float?
-  lastLocationUpdate DateTime?
-
-  estimatedArrival DateTime?
-  confirmationCode String?
-
-  clientId    String
-  client      User    @relation("ClientDeliveries", fields: [clientId], references: [id])
-  delivererId String?
-  deliverer   User?   @relation("DelivererDeliveries", fields: [delivererId], references: [id])
-
-  logs        DeliveryLog[]
-  coordinates DeliveryCoordinates[]
-  rating      DeliveryRating?
-  proofs      DeliveryProof[]
-  payment     Payment?      @relation("PaymentToDelivery")
-
-  @@index([clientId])
-  @@index([delivererId])
-}
-
-model DeliveryLog {
-  id         String         @id @default(cuid())
-  deliveryId String
-  delivery   Delivery       @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
-  status     DeliveryStatus
-  timestamp  DateTime       @default(now())
-  note       String?
-  latitude   Float?
-  longitude  Float?
-
-  @@index([deliveryId])
-}
-
-model DeliveryCoordinates {
-  id         String   @id @default(cuid())
-  deliveryId String
-  delivery   Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
-  latitude   Float
-  longitude  Float
-  timestamp  DateTime @default(now())
-
-  @@index([deliveryId])
-}
-
-model DeliveryProof {
-  id          String   @id @default(cuid())
-  deliveryId  String
-  delivery    Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
-  type        String // PHOTO, SIGNATURE, CODE
-  url         String?
-  confirmedBy String? // User ID who confirmed
-  confirmedAt DateTime @default(now())
-
-  @@index([deliveryId])
-}
-
-model DeliveryRating {
-  id         String   @id @default(cuid())
-  deliveryId String   @unique
-  delivery   Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
-  rating     Int // 1-5 stars
-  comment    String?
-  createdAt  DateTime @default(now())
 }
 
 enum BoxType {
@@ -1423,21 +1430,6 @@ enum ReservationStatus {
   CANCELLED
   OVERDUE
   EXTENDED
-}
-
-model Address {
-  id         String  @id @default(cuid())
-  label      String // Ex: "Domicile", "Travail"
-  street     String
-  city       String
-  state      String?
-  postalCode String
-  country    String
-  isDefault  Boolean @default(false)
-  clientId   String
-  client     Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
-
-  @@map("addresses")
 }
 
 enum TransactionType {
