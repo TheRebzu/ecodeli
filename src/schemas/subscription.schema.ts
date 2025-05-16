@@ -4,18 +4,18 @@ import { PlanType, SubscriptionStatus } from '@prisma/client';
 /**
  * Énumération des types de plans disponibles
  */
-export const PlanTypeEnum = z.enum(["FREE", "STARTER", "PREMIUM"]);
+export const PlanTypeEnum = z.enum(['FREE', 'STARTER', 'PREMIUM']);
 
 /**
  * Énumération des statuts d'abonnement
  */
 export const SubscriptionStatusEnum = z.enum([
-  "ACTIVE",
-  "PAST_DUE",
-  "UNPAID",
-  "CANCELLED",
-  "TRIAL",
-  "ENDED"
+  'ACTIVE',
+  'PAST_DUE',
+  'UNPAID',
+  'CANCELLED',
+  'TRIAL',
+  'ENDED',
 ]);
 
 /**
@@ -24,7 +24,7 @@ export const SubscriptionStatusEnum = z.enum([
 export const SubscriptionSchema = z.object({
   id: z.string().cuid().optional(),
   userId: z.string(),
-  status: SubscriptionStatusEnum.default("ACTIVE"),
+  status: SubscriptionStatusEnum.default('ACTIVE'),
   planType: PlanTypeEnum,
   stripePriceId: z.string().optional(),
   stripeSubscriptionId: z.string().optional(),
@@ -135,12 +135,14 @@ export const resumeSubscriptionSchema = z.object({
 /**
  * Schéma pour récupérer les détails d'un abonnement
  */
-export const getSubscriptionSchema = z.object({
-  subscriptionId: z.string().cuid().optional(),
-  userId: z.string().cuid().optional(),
-}).refine(data => data.subscriptionId || data.userId, {
-  message: "Soit l'ID d'abonnement, soit l'ID utilisateur doit être fourni",
-});
+export const getSubscriptionSchema = z
+  .object({
+    subscriptionId: z.string().cuid().optional(),
+    userId: z.string().cuid().optional(),
+  })
+  .refine(data => data.subscriptionId || data.userId, {
+    message: "Soit l'ID d'abonnement, soit l'ID utilisateur doit être fourni",
+  });
 
 /**
  * Schéma pour la recherche d'abonnements
@@ -197,50 +199,54 @@ export const subscriptionReportSchema = z.object({
  */
 export const SUBSCRIPTION_PLANS = {
   FREE: {
-    id: "free",
-    name: "Free",
-    description: "Accès aux fonctionnalités de base",
+    id: 'free',
+    name: 'Free',
+    description: 'Accès aux fonctionnalités de base',
     price: 0,
-    stripePriceId: "",
-    features: ["Accès limité aux services de livraison", "Assurance limitée", "Support client standard"],
+    stripePriceId: '',
+    features: [
+      'Accès limité aux services de livraison',
+      'Assurance limitée',
+      'Support client standard',
+    ],
     insuranceAmount: 50,
     discountPercent: 0,
-    priority: false
+    priority: false,
   },
   STARTER: {
-    id: "starter",
-    name: "Starter",
-    description: "Parfait pour une utilisation régulière",
-    price: 9.90,
-    stripePriceId: "price_starter_mensuel",
+    id: 'starter',
+    name: 'Starter',
+    description: 'Parfait pour une utilisation régulière',
+    price: 9.9,
+    stripePriceId: 'price_starter_mensuel',
     features: [
-      "Accès complet aux services de livraison",
+      'Accès complet aux services de livraison',
       "Assurance jusqu'à 115€ par envoi",
       "Réduction de 5% sur les frais d'envoi",
-      "Support client prioritaire"
+      'Support client prioritaire',
     ],
     insuranceAmount: 115,
     discountPercent: 5,
-    priority: false
+    priority: false,
   },
   PREMIUM: {
-    id: "premium",
-    name: "Premium",
-    description: "Pour les utilisateurs fréquents",
+    id: 'premium',
+    name: 'Premium',
+    description: 'Pour les utilisateurs fréquents',
     price: 19.99,
-    stripePriceId: "price_premium_mensuel",
+    stripePriceId: 'price_premium_mensuel',
     features: [
-      "Accès illimité à tous les services",
+      'Accès illimité à tous les services',
       "Assurance jusqu'à 3000€ par envoi",
-      "Réduction de 9% sur tous les frais",
-      "Support client VIP",
-      "Livraisons prioritaires",
-      "Accès aux promotions exclusives"
+      'Réduction de 9% sur tous les frais',
+      'Support client VIP',
+      'Livraisons prioritaires',
+      'Accès aux promotions exclusives',
     ],
     insuranceAmount: 3000,
     discountPercent: 9,
-    priority: true
-  }
+    priority: true,
+  },
 };
 
 // Exports des types
@@ -268,11 +274,7 @@ export const subscriptionPlans = [
     name: 'Gratuit',
     description: 'Accès de base aux services EcoDeli',
     priceMonthly: 0,
-    features: [
-      'Accès à la plateforme',
-      'Livraisons standards',
-      'Assurance limitée (jusqu\'à 115€)',
-    ],
+    features: ['Accès à la plateforme', 'Livraisons standards', "Assurance limitée (jusqu'à 115€)"],
     insuranceAmount: 115,
     discountPercent: 0,
     isPriority: false,
@@ -281,10 +283,10 @@ export const subscriptionPlans = [
     type: 'STARTER',
     name: 'Starter',
     description: 'Idéal pour les utilisateurs réguliers',
-    priceMonthly: 9.90,
+    priceMonthly: 9.9,
     features: [
       'Tous les avantages du forfait Gratuit',
-      'Assurance standard (jusqu\'à 115€)',
+      "Assurance standard (jusqu'à 115€)",
       'Réduction de 5% sur toutes les commandes',
       'Support client prioritaire',
     ],
@@ -299,7 +301,7 @@ export const subscriptionPlans = [
     priceMonthly: 19.99,
     features: [
       'Tous les avantages du forfait Starter',
-      'Assurance premium (jusqu\'à 3000€)',
+      "Assurance premium (jusqu'à 3000€)",
       'Réduction de 9% sur toutes les commandes',
       'Service client ultra-prioritaire',
       'Livraisons express illimitées',

@@ -4,13 +4,30 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { SaveIcon, XIcon } from 'lucide-react';
 import { useProfile } from '@/hooks/use-profile';
 import { useProfileStore } from '@/store/use-profile-store';
-import { updateDelivererProfileSchema, type UpdateDelivererProfile } from '@/schemas/profile.schema';
+import {
+  updateDelivererProfileSchema,
+  type UpdateDelivererProfile,
+} from '@/schemas/profile.schema';
 import { Checkbox } from '@/components/ui/checkbox';
 
 const daysOfWeek = [
@@ -36,7 +53,7 @@ const vehicleTypes = [
 export function DelivererProfileForm() {
   const { profile, roleSpecificProfile, updateProfile, isUpdatingProfile } = useProfile();
   const { setIsEditingProfile } = useProfileStore();
-  
+
   const form = useForm<UpdateDelivererProfile>({
     resolver: zodResolver(updateDelivererProfileSchema),
     defaultValues: {
@@ -56,16 +73,16 @@ export function DelivererProfileForm() {
       taxIdentifier: roleSpecificProfile?.taxIdentifier || '',
     },
   });
-  
+
   const onSubmit = (data: UpdateDelivererProfile) => {
     updateProfile(data);
     setIsEditingProfile(false);
   };
-  
+
   const handleCancel = () => {
     setIsEditingProfile(false);
   };
-  
+
   return (
     <Card>
       <CardHeader>
@@ -88,7 +105,7 @@ export function DelivererProfileForm() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="email"
@@ -103,7 +120,7 @@ export function DelivererProfileForm() {
                 )}
               />
             </div>
-            
+
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
@@ -118,7 +135,7 @@ export function DelivererProfileForm() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="phone"
@@ -128,15 +145,13 @@ export function DelivererProfileForm() {
                     <FormControl>
                       <Input placeholder="+33 6 05 06 07 08" {...field} />
                     </FormControl>
-                    <FormDescription>
-                      Visible par les clients lors des livraisons
-                    </FormDescription>
+                    <FormDescription>Visible par les clients lors des livraisons</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
-            
+
             <FormField
               control={form.control}
               name="address"
@@ -150,7 +165,7 @@ export function DelivererProfileForm() {
                 </FormItem>
               )}
             />
-            
+
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
@@ -158,17 +173,14 @@ export function DelivererProfileForm() {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Type de véhicule</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      defaultValue={field.value}
-                    >
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner un type de véhicule" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {vehicleTypes.map((type) => (
+                        {vehicleTypes.map(type => (
                           <SelectItem key={type.value} value={type.value}>
                             {type.label}
                           </SelectItem>
@@ -179,7 +191,7 @@ export function DelivererProfileForm() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="licensePlate"
@@ -194,7 +206,7 @@ export function DelivererProfileForm() {
                 )}
               />
             </div>
-            
+
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
@@ -203,22 +215,24 @@ export function DelivererProfileForm() {
                   <FormItem>
                     <FormLabel>Capacité de chargement (volume)</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="30" 
+                      <Input
+                        type="number"
+                        placeholder="30"
                         {...field}
                         value={field.value === undefined ? '' : field.value}
-                        onChange={(e) => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))}
+                        onChange={e =>
+                          field.onChange(
+                            e.target.value === '' ? undefined : parseFloat(e.target.value)
+                          )
+                        }
                       />
                     </FormControl>
-                    <FormDescription>
-                      En litres
-                    </FormDescription>
+                    <FormDescription>En litres</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="maxWeightCapacity"
@@ -226,23 +240,25 @@ export function DelivererProfileForm() {
                   <FormItem>
                     <FormLabel>Capacité de charge (poids)</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number" 
-                        placeholder="20" 
+                      <Input
+                        type="number"
+                        placeholder="20"
                         {...field}
                         value={field.value === undefined ? '' : field.value}
-                        onChange={(e) => field.onChange(e.target.value === '' ? undefined : parseFloat(e.target.value))}
+                        onChange={e =>
+                          field.onChange(
+                            e.target.value === '' ? undefined : parseFloat(e.target.value)
+                          )
+                        }
                       />
                     </FormControl>
-                    <FormDescription>
-                      En kilogrammes
-                    </FormDescription>
+                    <FormDescription>En kilogrammes</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
             </div>
-            
+
             <FormField
               control={form.control}
               name="yearsOfExperience"
@@ -250,19 +266,21 @@ export function DelivererProfileForm() {
                 <FormItem>
                   <FormLabel>Années d'expérience</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="number" 
-                      placeholder="2" 
+                    <Input
+                      type="number"
+                      placeholder="2"
                       {...field}
                       value={field.value === undefined ? '' : field.value}
-                      onChange={(e) => field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value))}
+                      onChange={e =>
+                        field.onChange(e.target.value === '' ? undefined : parseInt(e.target.value))
+                      }
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="taxIdentifier"
@@ -279,7 +297,7 @@ export function DelivererProfileForm() {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="bio"
@@ -287,10 +305,10 @@ export function DelivererProfileForm() {
                 <FormItem>
                   <FormLabel>Biographie / Présentation</FormLabel>
                   <FormControl>
-                    <Textarea 
-                      placeholder="Décrivez votre expérience et vos spécialités de livraison..." 
-                      className="min-h-[120px]" 
-                      {...field} 
+                    <Textarea
+                      placeholder="Décrivez votre expérience et vos spécialités de livraison..."
+                      className="min-h-[120px]"
+                      {...field}
                     />
                   </FormControl>
                   <FormDescription>
@@ -300,7 +318,7 @@ export function DelivererProfileForm() {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="availableDays"
@@ -312,7 +330,7 @@ export function DelivererProfileForm() {
                       Sélectionnez les jours où vous êtes disponible pour effectuer des livraisons
                     </FormDescription>
                   </div>
-                  {daysOfWeek.map((day) => (
+                  {daysOfWeek.map(day => (
                     <FormField
                       key={day.id}
                       control={form.control}
@@ -326,22 +344,18 @@ export function DelivererProfileForm() {
                             <FormControl>
                               <Checkbox
                                 checked={field.value?.includes(day.id)}
-                                onCheckedChange={(checked) => {
+                                onCheckedChange={checked => {
                                   return checked
-                                    ? field.onChange([...field.value || [], day.id])
+                                    ? field.onChange([...(field.value || []), day.id])
                                     : field.onChange(
-                                        field.value?.filter(
-                                          (value) => value !== day.id
-                                        )
-                                      )
+                                        field.value?.filter(value => value !== day.id)
+                                      );
                                 }}
                               />
                             </FormControl>
-                            <FormLabel className="font-normal">
-                              {day.label}
-                            </FormLabel>
+                            <FormLabel className="font-normal">{day.label}</FormLabel>
                           </FormItem>
-                        )
+                        );
                       }}
                     />
                   ))}
@@ -349,21 +363,13 @@ export function DelivererProfileForm() {
                 </FormItem>
               )}
             />
-            
           </CardContent>
           <CardFooter className="flex justify-end space-x-2">
-            <Button 
-              variant="outline" 
-              type="button" 
-              onClick={handleCancel}
-            >
+            <Button variant="outline" type="button" onClick={handleCancel}>
               <XIcon className="h-4 w-4 mr-2" />
               Annuler
             </Button>
-            <Button 
-              type="submit"
-              disabled={isUpdatingProfile}
-            >
+            <Button type="submit" disabled={isUpdatingProfile}>
               <SaveIcon className="h-4 w-4 mr-2" />
               Enregistrer
             </Button>
@@ -372,4 +378,4 @@ export function DelivererProfileForm() {
       </Form>
     </Card>
   );
-} 
+}

@@ -8,7 +8,7 @@ import {
   finalizeBankTransferSchema,
   withdrawalSearchSchema,
   pendingWithdrawalsSchema,
-  withdrawalStatsSchema
+  withdrawalStatsSchema,
 } from '@/schemas/withdrawal.schema';
 
 /**
@@ -28,13 +28,13 @@ export const withdrawalRouter = router({
           input.amount,
           input.preferredMethod
         );
-        
+
         return withdrawalRequest;
       } catch (error: any) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: error.message || 'Erreur lors de la création de la demande de virement',
-          cause: error
+          cause: error,
         });
       }
     }),
@@ -53,7 +53,7 @@ export const withdrawalRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: error.message || 'Erreur lors de la récupération des détails du virement',
-          cause: error
+          cause: error,
         });
       }
     }),
@@ -71,8 +71,8 @@ export const withdrawalRouter = router({
       } catch (error: any) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de la récupération de l\'historique des virements',
-          cause: error
+          message: error.message || "Erreur lors de la récupération de l'historique des virements",
+          cause: error,
         });
       }
     }),
@@ -80,23 +80,22 @@ export const withdrawalRouter = router({
   /**
    * Récupère les statistiques de virement pour un utilisateur
    */
-  getUserWithdrawalStats: protectedProcedure
-    .query(async ({ ctx }) => {
-      try {
-        const userId = ctx.session.user.id;
-        const stats = await withdrawalService.getUserWithdrawalStats(userId);
-        return stats;
-      } catch (error: any) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de la récupération des statistiques de virement',
-          cause: error
-        });
-      }
-    }),
+  getUserWithdrawalStats: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      const userId = ctx.session.user.id;
+      const stats = await withdrawalService.getUserWithdrawalStats(userId);
+      return stats;
+    } catch (error: any) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: error.message || 'Erreur lors de la récupération des statistiques de virement',
+        cause: error,
+      });
+    }
+  }),
 
   // Endpoints administrateurs
-  
+
   /**
    * Récupère toutes les demandes de virement en attente (admin)
    */
@@ -110,7 +109,7 @@ export const withdrawalRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: error.message || 'Erreur lors de la récupération des virements en attente',
-          cause: error
+          cause: error,
         });
       }
     }),
@@ -129,13 +128,13 @@ export const withdrawalRouter = router({
           adminId,
           input.notes
         );
-        
+
         return result;
       } catch (error: any) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: error.message || 'Erreur lors du traitement de la demande de virement',
-          cause: error
+          cause: error,
         });
       }
     }),
@@ -150,22 +149,22 @@ export const withdrawalRouter = router({
         const adminId = ctx.session.user.id;
         const details = {
           reference: input.reference,
-          failureReason: input.failureReason
+          failureReason: input.failureReason,
         };
-        
+
         const result = await withdrawalService.finalizeBankTransfer(
           input.bankTransferId,
           input.status,
           adminId,
           details
         );
-        
+
         return result;
       } catch (error: any) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: error.message || 'Erreur lors de la finalisation du virement bancaire',
-          cause: error
+          cause: error,
         });
       }
     }),
@@ -173,120 +172,124 @@ export const withdrawalRouter = router({
   /**
    * Recherche des demandes de virement avec filtrage (admin)
    */
-  searchWithdrawals: adminProcedure
-    .input(withdrawalSearchSchema)
-    .query(async ({ ctx, input }) => {
-      try {
-        // Si l'utilisateur est spécifié, rechercher par ID utilisateur
-        if (input.userId) {
-          const result = await withdrawalService.getUserWithdrawalHistory(input.userId, {
-            page: input.page,
-            limit: input.limit,
-            status: input.status,
-            startDate: input.startDate,
-            endDate: input.endDate
-          });
-          
-          return result;
-        }
-        
-        // Si le wallet est spécifié, rechercher par ID wallet
-        if (input.walletId) {
-          // Pour cet exemple, nous récupérons d'abord l'utilisateur associé au wallet
-          const wallet = await ctx.db.wallet.findUnique({
-            where: { id: input.walletId },
-            select: { userId: true }
-          });
-          
-          if (!wallet) {
-            throw new TRPCError({
-              code: 'NOT_FOUND',
-              message: 'Portefeuille non trouvé'
-            });
-          }
-          
-          const result = await withdrawalService.getUserWithdrawalHistory(wallet.userId, {
-            page: input.page,
-            limit: input.limit,
-            status: input.status,
-            startDate: input.startDate,
-            endDate: input.endDate
-          });
-          
-          return result;
-        }
-        
-        // Si aucun filtre spécifique, rechercher toutes les demandes (avec pagination)
-        const requests = await ctx.db.withdrawalRequest.findMany({
-          where: {
-            ...(input.status ? { status: input.status } : {}),
-            ...(input.startDate && input.endDate ? {
-              requestedAt: {
-                gte: input.startDate,
-                lte: input.endDate
-              }
-            } : {})
-          },
-          include: {
-            wallet: {
-              include: {
-                user: {
-                  select: {
-                    id: true,
-                    name: true,
-                    email: true,
-                    role: true
-                  }
-                }
-              }
-            },
-            bankTransfer: true
-          },
-          orderBy: { requestedAt: 'desc' },
-          skip: (input.page - 1) * input.limit,
-          take: input.limit
+  searchWithdrawals: adminProcedure.input(withdrawalSearchSchema).query(async ({ ctx, input }) => {
+    try {
+      // Si l'utilisateur est spécifié, rechercher par ID utilisateur
+      if (input.userId) {
+        const result = await withdrawalService.getUserWithdrawalHistory(input.userId, {
+          page: input.page,
+          limit: input.limit,
+          status: input.status,
+          startDate: input.startDate,
+          endDate: input.endDate,
         });
-        
-        const total = await ctx.db.withdrawalRequest.count({
-          where: {
-            ...(input.status ? { status: input.status } : {}),
-            ...(input.startDate && input.endDate ? {
-              requestedAt: {
-                gte: input.startDate,
-                lte: input.endDate
-              }
-            } : {})
-          }
-        });
-        
-        return {
-          withdrawalRequests: requests,
-          pagination: {
-            total,
-            page: input.page,
-            limit: input.limit,
-            totalPages: Math.ceil(total / input.limit)
-          }
-        };
-      } catch (error: any) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de la recherche des demandes de virement',
-          cause: error
-        });
+
+        return result;
       }
-    }),
+
+      // Si le wallet est spécifié, rechercher par ID wallet
+      if (input.walletId) {
+        // Pour cet exemple, nous récupérons d'abord l'utilisateur associé au wallet
+        const wallet = await ctx.db.wallet.findUnique({
+          where: { id: input.walletId },
+          select: { userId: true },
+        });
+
+        if (!wallet) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Portefeuille non trouvé',
+          });
+        }
+
+        const result = await withdrawalService.getUserWithdrawalHistory(wallet.userId, {
+          page: input.page,
+          limit: input.limit,
+          status: input.status,
+          startDate: input.startDate,
+          endDate: input.endDate,
+        });
+
+        return result;
+      }
+
+      // Si aucun filtre spécifique, rechercher toutes les demandes (avec pagination)
+      const requests = await ctx.db.withdrawalRequest.findMany({
+        where: {
+          ...(input.status ? { status: input.status } : {}),
+          ...(input.startDate && input.endDate
+            ? {
+                requestedAt: {
+                  gte: input.startDate,
+                  lte: input.endDate,
+                },
+              }
+            : {}),
+        },
+        include: {
+          wallet: {
+            include: {
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  role: true,
+                },
+              },
+            },
+          },
+          bankTransfer: true,
+        },
+        orderBy: { requestedAt: 'desc' },
+        skip: (input.page - 1) * input.limit,
+        take: input.limit,
+      });
+
+      const total = await ctx.db.withdrawalRequest.count({
+        where: {
+          ...(input.status ? { status: input.status } : {}),
+          ...(input.startDate && input.endDate
+            ? {
+                requestedAt: {
+                  gte: input.startDate,
+                  lte: input.endDate,
+                },
+              }
+            : {}),
+        },
+      });
+
+      return {
+        withdrawalRequests: requests,
+        pagination: {
+          total,
+          page: input.page,
+          limit: input.limit,
+          totalPages: Math.ceil(total / input.limit),
+        },
+      };
+    } catch (error: any) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: error.message || 'Erreur lors de la recherche des demandes de virement',
+        cause: error,
+      });
+    }
+  }),
 
   /**
    * Génère un rapport de virements pour une période donnée (admin)
    */
   generateWithdrawalReport: adminProcedure
-    .input(z.object({
-      startDate: z.date(),
-      endDate: z.date(),
-      format: z.enum(['PDF', 'CSV', 'JSON']).default('JSON'),
-      includeUserDetails: z.boolean().default(true)
-    }))
+    .input(
+      z.object({
+        startDate: z.date(),
+        endDate: z.date(),
+        format: z.enum(['PDF', 'CSV', 'JSON']).default('JSON'),
+        includeUserDetails: z.boolean().default(true),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       try {
         const { startDate, endDate } = input;
@@ -296,51 +299,42 @@ export const withdrawalRouter = router({
           where: {
             requestedAt: {
               gte: startDate,
-              lte: endDate
-            }
+              lte: endDate,
+            },
           },
           include: {
             wallet: {
               include: {
-                user: input.includeUserDetails ? {
-                  select: {
-                    id: true,
-                    name: true,
-                    email: true,
-                    role: true
-                  }
-                } : false
-              }
+                user: input.includeUserDetails
+                  ? {
+                      select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                        role: true,
+                      },
+                    }
+                  : false,
+              },
             },
-            bankTransfer: true
+            bankTransfer: true,
           },
-          orderBy: { requestedAt: 'desc' }
+          orderBy: { requestedAt: 'desc' },
         });
 
         // Calculer les statistiques
-        const totalRequested = withdrawalRequests.reduce(
-          (sum, req) => sum + Number(req.amount),
-          0
-        );
+        const totalRequested = withdrawalRequests.reduce((sum, req) => sum + Number(req.amount), 0);
 
         const completedRequests = withdrawalRequests.filter(req => req.status === 'COMPLETED');
-        const totalCompleted = completedRequests.reduce(
-          (sum, req) => sum + Number(req.amount),
-          0
-        );
+        const totalCompleted = completedRequests.reduce((sum, req) => sum + Number(req.amount), 0);
 
         const rejectedRequests = withdrawalRequests.filter(req => req.status === 'REJECTED');
-        const totalRejected = rejectedRequests.reduce(
-          (sum, req) => sum + Number(req.amount),
-          0
-        );
+        const totalRejected = rejectedRequests.reduce((sum, req) => sum + Number(req.amount), 0);
 
-        const pendingRequests = withdrawalRequests.filter(req => 
-          req.status === 'PENDING' || req.status === 'PROCESSING');
-        const totalPending = pendingRequests.reduce(
-          (sum, req) => sum + Number(req.amount),
-          0
+        const pendingRequests = withdrawalRequests.filter(
+          req => req.status === 'PENDING' || req.status === 'PROCESSING'
         );
+        const totalPending = pendingRequests.reduce((sum, req) => sum + Number(req.amount), 0);
 
         // Regrouper par statut
         const byStatus = withdrawalRequests.reduce((acc: any, req) => {
@@ -364,10 +358,10 @@ export const withdrawalRouter = router({
               rejectedCount: rejectedRequests.length,
               rejectedAmount: totalRejected,
               pendingCount: pendingRequests.length,
-              pendingAmount: totalPending
+              pendingAmount: totalPending,
             },
             byStatus,
-            withdrawalRequests
+            withdrawalRequests,
           };
         }
 
@@ -380,17 +374,17 @@ export const withdrawalRouter = router({
             totalRequests: withdrawalRequests.length,
             totalAmount: totalRequested,
             completedCount: completedRequests.length,
-            completedAmount: totalCompleted
-          }
+            completedAmount: totalCompleted,
+          },
         };
       } catch (error: any) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: error.message || 'Erreur lors de la génération du rapport',
-          cause: error
+          cause: error,
         });
       }
-    })
+    }),
 });
 
-export default withdrawalRouter; 
+export default withdrawalRouter;

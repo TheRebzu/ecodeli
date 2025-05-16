@@ -31,18 +31,18 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Checkbox } from '@/components/ui/checkbox';
 import { UserListItem } from '@/types/admin';
-import { 
-  EllipsisVertical, 
-  Eye, 
-  UserCheck, 
-  UserX, 
-  Download, 
-  Filter, 
-  RefreshCw, 
+import {
+  EllipsisVertical,
+  Eye,
+  UserCheck,
+  UserX,
+  Download,
+  Filter,
+  RefreshCw,
   Trash,
   LockIcon,
   MailIcon,
-  Tag
+  Tag,
 } from 'lucide-react';
 
 interface UserTableProps {
@@ -59,18 +59,18 @@ interface UserTableProps {
   onRefresh?: () => void;
 }
 
-export function UserTable({ 
-  users, 
-  onViewUser, 
-  onUpdateStatus, 
-  onUpdateRole, 
+export function UserTable({
+  users,
+  onViewUser,
+  onUpdateStatus,
+  onUpdateRole,
   onForcePasswordReset,
   onExportSelected,
   onBulkAction,
   selectedUsers,
   onSelectUser,
   onSelectAllUsers,
-  onRefresh
+  onRefresh,
 }: UserTableProps) {
   const [confirmAction, setConfirmAction] = useState<{
     type: 'status' | 'role' | 'passwordReset';
@@ -94,17 +94,17 @@ export function UserTable({
       case UserStatus.ACTIVE:
         title = 'Activer le compte utilisateur';
         description =
-          'Êtes-vous sûr de vouloir activer ce compte utilisateur ? Il retrouvera l\'accès à la plateforme.';
+          "Êtes-vous sûr de vouloir activer ce compte utilisateur ? Il retrouvera l'accès à la plateforme.";
         break;
       case UserStatus.SUSPENDED:
         title = 'Suspendre le compte utilisateur';
         description =
-          'Êtes-vous sûr de vouloir suspendre ce compte utilisateur ? Il perdra l\'accès à la plateforme jusqu\'à sa réactivation.';
+          "Êtes-vous sûr de vouloir suspendre ce compte utilisateur ? Il perdra l'accès à la plateforme jusqu'à sa réactivation.";
         break;
       case UserStatus.INACTIVE:
         title = 'Désactiver le compte utilisateur';
         description =
-          'Êtes-vous sûr de vouloir désactiver ce compte utilisateur ? Il ne pourra plus se connecter jusqu\'à sa réactivation.';
+          "Êtes-vous sûr de vouloir désactiver ce compte utilisateur ? Il ne pourra plus se connecter jusqu'à sa réactivation.";
         break;
       default:
         break;
@@ -134,7 +134,8 @@ export function UserTable({
       type: 'passwordReset',
       userId,
       title: 'Forcer la réinitialisation du mot de passe',
-      description: 'Êtes-vous sûr de vouloir forcer la réinitialisation du mot de passe pour cet utilisateur ? Un email lui sera envoyé avec un lien de réinitialisation.',
+      description:
+        'Êtes-vous sûr de vouloir forcer la réinitialisation du mot de passe pour cet utilisateur ? Un email lui sera envoyé avec un lien de réinitialisation.',
     });
   };
 
@@ -190,11 +191,11 @@ export function UserTable({
 
   const confirmBulkActionHandler = () => {
     if (!confirmBulkAction) return;
-    
+
     if (onBulkAction) {
       onBulkAction(confirmBulkAction.action);
     }
-    
+
     setConfirmBulkAction(null);
   };
 
@@ -249,7 +250,8 @@ export function UserTable({
 
   // Calcul des statistiques de sélection
   const selectedCount = selectedUsers.length;
-  const areAllPageUsersSelected = users.length > 0 && users.every(user => selectedUsers.includes(user.id));
+  const areAllPageUsersSelected =
+    users.length > 0 && users.every(user => selectedUsers.includes(user.id));
 
   return (
     <>
@@ -257,7 +259,8 @@ export function UserTable({
         <div className="flex items-center gap-2">
           {selectedCount > 0 && (
             <div className="font-medium text-sm">
-              {selectedCount} utilisateur{selectedCount > 1 ? 's' : ''} sélectionné{selectedCount > 1 ? 's' : ''}
+              {selectedCount} utilisateur{selectedCount > 1 ? 's' : ''} sélectionné
+              {selectedCount > 1 ? 's' : ''}
             </div>
           )}
         </div>
@@ -312,7 +315,7 @@ export function UserTable({
         <TableHeader>
           <TableRow>
             <TableHead className="w-[40px]">
-              <Checkbox 
+              <Checkbox
                 checked={areAllPageUsersSelected}
                 onCheckedChange={onSelectAllUsers}
                 aria-label="Sélectionner tous les utilisateurs"
@@ -337,9 +340,12 @@ export function UserTable({
             </TableRow>
           ) : (
             users.map(user => (
-              <TableRow key={user.id} className={selectedUsers.includes(user.id) ? "bg-muted/30" : undefined}>
+              <TableRow
+                key={user.id}
+                className={selectedUsers.includes(user.id) ? 'bg-muted/30' : undefined}
+              >
                 <TableCell>
-                  <Checkbox 
+                  <Checkbox
                     checked={selectedUsers.includes(user.id)}
                     onCheckedChange={() => onSelectUser(user.id)}
                     aria-label={`Sélectionner ${user.name}`}
@@ -408,9 +414,9 @@ export function UserTable({
                             </DropdownMenuItem>
                           )
                       )}
-                      
+
                       <DropdownMenuSeparator />
-                      
+
                       <DropdownMenuLabel>Outils</DropdownMenuLabel>
                       <DropdownMenuItem onClick={() => handleForcePasswordReset(user.id)}>
                         <LockIcon className="mr-2 h-4 w-4" />

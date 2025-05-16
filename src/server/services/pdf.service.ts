@@ -34,10 +34,22 @@ export const PdfService = {
       try {
         // Initialiser le document PDF
         const doc = new PDFDocument({ margin: 50 });
-        
+
         // Récupérer les données
-        const { invoiceNumber, date, dueDate, customerName, customerEmail, items, subtotal, tax, total, currency, notes } = data;
-        
+        const {
+          invoiceNumber,
+          date,
+          dueDate,
+          customerName,
+          customerEmail,
+          items,
+          subtotal,
+          tax,
+          total,
+          currency,
+          notes,
+        } = data;
+
         // Convertir le stream en buffer
         const buffers: Buffer[] = [];
         doc.on('data', buffers.push.bind(buffers));
@@ -53,20 +65,20 @@ export const PdfService = {
           date,
           dueDate,
           customerName,
-          customerEmail
+          customerEmail,
         });
         this.generateInvoiceTable(doc, items, subtotal, tax, total, currency);
-        
+
         // Notes
         if (notes) {
           doc.moveDown();
           doc.font('Helvetica-Bold').text('Notes', { align: 'left' });
           doc.font('Helvetica').text(notes, { align: 'left' });
         }
-        
+
         // Pied de page
         this.generateFooter(doc);
-        
+
         // Finaliser le PDF
         doc.end();
       } catch (error) {
@@ -86,7 +98,7 @@ export const PdfService = {
       .text('EcoDeli', 50, 45)
       .fontSize(10)
       .text('EcoDeli SAS', 50, 70)
-      .text('123 Rue de l\'Innovation', 50, 85)
+      .text("123 Rue de l'Innovation", 50, 85)
       .text('75001 Paris, France', 50, 100)
       .text('SIRET: 123 456 789 00010', 50, 115)
       .text('TVA: FR 12 345 678 901', 50, 130)
@@ -96,22 +108,22 @@ export const PdfService = {
   /**
    * Génère les informations client et facture
    */
-  generateCustomerInformation(doc: PDFKit.PDFDocument, info: {
-    invoiceNumber: string;
-    date: Date;
-    dueDate: Date;
-    customerName: string;
-    customerEmail: string;
-  }) {
-    doc
-      .fillColor('#444444')
-      .fontSize(20)
-      .text('Facture', 50, 160);
-    
+  generateCustomerInformation(
+    doc: PDFKit.PDFDocument,
+    info: {
+      invoiceNumber: string;
+      date: Date;
+      dueDate: Date;
+      customerName: string;
+      customerEmail: string;
+    }
+  ) {
+    doc.fillColor('#444444').fontSize(20).text('Facture', 50, 160);
+
     this.generateHr(doc, 185);
-    
+
     const customerInformationTop = 200;
-    
+
     // Informations de la facture (côté gauche)
     doc
       .fontSize(10)
@@ -121,15 +133,15 @@ export const PdfService = {
       .font('Helvetica')
       .text('Date:', 50, customerInformationTop + 15)
       .text(this.formatDate(info.date), 150, customerInformationTop + 15)
-      .text('Date d\'échéance:', 50, customerInformationTop + 30)
+      .text("Date d'échéance:", 50, customerInformationTop + 30)
       .text(this.formatDate(info.dueDate), 150, customerInformationTop + 30)
-      
+
       // Informations du client (côté droit)
       .font('Helvetica-Bold')
       .text(info.customerName, 300, customerInformationTop)
       .font('Helvetica')
       .text(info.customerEmail, 300, customerInformationTop + 15);
-    
+
     this.generateHr(doc, 252);
   },
 
@@ -146,7 +158,7 @@ export const PdfService = {
   ) {
     let i;
     const invoiceTableTop = 330;
-    
+
     doc.font('Helvetica-Bold');
     this.generateTableRow(
       doc,
@@ -158,14 +170,14 @@ export const PdfService = {
     );
     this.generateHr(doc, invoiceTableTop + 20);
     doc.font('Helvetica');
-    
+
     let position = invoiceTableTop + 30;
-    
+
     // Ajouter les éléments
     for (i = 0; i < items.length; i++) {
       const item = items[i];
       const itemTotal = item.quantity * item.unitPrice;
-      
+
       this.generateTableRow(
         doc,
         position,
@@ -174,15 +186,15 @@ export const PdfService = {
         this.formatCurrency(item.unitPrice, currency),
         this.formatCurrency(itemTotal, currency)
       );
-      
+
       this.generateHr(doc, position + 20);
       position += 30;
     }
-    
+
     // Totaux
     const subtotalPosition = position + 20;
     doc.font('Helvetica-Bold');
-    
+
     this.generateTableRow(
       doc,
       subtotalPosition,
@@ -191,7 +203,7 @@ export const PdfService = {
       'Sous-total',
       this.formatCurrency(subtotal, currency)
     );
-    
+
     const taxPosition = subtotalPosition + 20;
     this.generateTableRow(
       doc,
@@ -201,7 +213,7 @@ export const PdfService = {
       'TVA (20%)',
       this.formatCurrency(tax, currency)
     );
-    
+
     const totalPosition = taxPosition + 25;
     doc.fontSize(14);
     this.generateTableRow(
@@ -214,33 +226,26 @@ export const PdfService = {
     );
     doc.fontSize(10);
   },
-  
+
   /**
    * Génère le pied de page
    */
   generateFooter(doc: PDFKit.PDFDocument) {
     doc
       .fontSize(10)
-      .text(
-        'Paiement à effectuer sous 30 jours. Merci pour votre confiance!',
-        50,
-        700,
-        { align: 'center', width: 500 }
-      );
+      .text('Paiement à effectuer sous 30 jours. Merci pour votre confiance!', 50, 700, {
+        align: 'center',
+        width: 500,
+      });
   },
-  
+
   /**
    * Génère une ligne horizontale
    */
   generateHr(doc: PDFKit.PDFDocument, y: number) {
-    doc
-      .strokeColor('#aaaaaa')
-      .lineWidth(1)
-      .moveTo(50, y)
-      .lineTo(550, y)
-      .stroke();
+    doc.strokeColor('#aaaaaa').lineWidth(1).moveTo(50, y).lineTo(550, y).stroke();
   },
-  
+
   /**
    * Génère une ligne de tableau
    */
@@ -259,7 +264,7 @@ export const PdfService = {
       .text(unitPrice, 370, y, { width: 90, align: 'right' })
       .text(total, 0, y, { align: 'right' });
   },
-  
+
   /**
    * Formate un montant en devise
    */
@@ -273,10 +278,10 @@ export const PdfService = {
         currencySymbol = '£';
         break;
     }
-    
+
     return `${amount.toFixed(2)} ${currencySymbol}`;
   },
-  
+
   /**
    * Formate une date
    */
@@ -284,7 +289,7 @@ export const PdfService = {
     const day = date.getDate().toString().padStart(2, '0');
     const month = (date.getMonth() + 1).toString().padStart(2, '0');
     const year = date.getFullYear();
-    
+
     return `${day}/${month}/${year}`;
-  }
+  },
 };

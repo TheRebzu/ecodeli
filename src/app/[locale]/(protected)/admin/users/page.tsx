@@ -7,13 +7,7 @@ import { UserFilters } from '@/types/admin';
 import UserStatsAdvanced from '@/components/admin/users/user-stats-advanced';
 import UserBulkActions from '@/components/admin/users/user-bulk-actions';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { AlertCircleIcon, DownloadIcon, PlusIcon, UsersIcon } from 'lucide-react';
@@ -77,9 +71,7 @@ export default function AdminUsersPage() {
               <UsersIcon className="mr-2 h-4 w-4" />
               {t('tabs.all')}
             </TabsTrigger>
-            <TabsTrigger value="stats">
-              {t('stats.title')}
-            </TabsTrigger>
+            <TabsTrigger value="stats">{t('stats.title')}</TabsTrigger>
           </TabsList>
         </div>
 
@@ -108,9 +100,7 @@ export default function AdminUsersPage() {
             <div className="space-y-4">
               <Card>
                 <CardHeader className="p-4">
-                  <CardTitle className="text-xl">
-                    Statistiques rapides
-                  </CardTitle>
+                  <CardTitle className="text-xl">Statistiques rapides</CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 pt-0">
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -127,15 +117,20 @@ export default function AdminUsersPage() {
                       <span className="text-2xl font-bold">{statsQuery.data?.newUsersToday}</span>
                     </div>
                     <div className="flex flex-col space-y-1">
-                      <span className="text-sm text-muted-foreground">En attente de vérification</span>
-                      <span className="text-2xl font-bold">{statsQuery.data?.usersByVerification?.unverified || 0}</span>
+                      <span className="text-sm text-muted-foreground">
+                        En attente de vérification
+                      </span>
+                      <span className="text-2xl font-bold">
+                        {statsQuery.data?.usersByVerification?.unverified || 0}
+                      </span>
                     </div>
                   </div>
                 </CardContent>
               </Card>
 
               <p className="text-sm text-muted-foreground">
-                Cette page afficherait normalement le tableau des utilisateurs. Implémentez votre <code>UserTable</code> ici avec la gestion de sélection.
+                Cette page afficherait normalement le tableau des utilisateurs. Implémentez votre{' '}
+                <code>UserTable</code> ici avec la gestion de sélection.
               </p>
             </div>
           )}

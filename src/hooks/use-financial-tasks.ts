@@ -10,7 +10,7 @@ import {
 
 export function useFinancialTasks() {
   const { toast } = useToast();
-  
+
   // État pour les filtres et la pagination
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -52,7 +52,7 @@ export function useFinancialTasks() {
       tasksQuery.refetch();
       statsQuery.refetch();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: error.message || 'Impossible de créer la tâche financière',
@@ -72,7 +72,7 @@ export function useFinancialTasks() {
       tasksQuery.refetch();
       statsQuery.refetch();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: error.message || 'Impossible de mettre à jour la tâche financière',
@@ -87,7 +87,7 @@ export function useFinancialTasks() {
       tasksQuery.refetch();
       statsQuery.refetch();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: error.message || 'Impossible de changer le statut de la tâche',
@@ -107,7 +107,7 @@ export function useFinancialTasks() {
       tasksQuery.refetch();
       statsQuery.refetch();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: error.message || 'Impossible de supprimer la tâche financière',
@@ -183,7 +183,7 @@ export function useFinancialTasks() {
     filters,
     sort,
     stats: statsQuery.data,
-    
+
     // États de chargement
     isLoadingTasks: tasksQuery.isLoading,
     isLoadingStats: statsQuery.isLoading,
@@ -203,8 +203,8 @@ export function useFinancialTasks() {
     handleSortChange,
     refetchTasks: tasksQuery.refetch,
     refetchStats: statsQuery.refetch,
-    
+
     // Utils
     getTaskById,
   };
-} 
+}

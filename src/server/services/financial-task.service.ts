@@ -55,14 +55,14 @@ export class FinancialTaskService {
       if (userId && task.userId !== userId) {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: 'Vous n\'êtes pas autorisé à accéder à cette tâche',
+          message: "Vous n'êtes pas autorisé à accéder à cette tâche",
         });
       }
 
       return task;
     } catch (error) {
       if (error instanceof TRPCError) throw error;
-      
+
       console.error('Erreur lors de la récupération de la tâche financière:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
@@ -110,11 +110,11 @@ export class FinancialTaskService {
 
       if (filters.dueDateFrom || filters.dueDateTo) {
         where.dueDate = {};
-        
+
         if (filters.dueDateFrom) {
           where.dueDate.gte = filters.dueDateFrom;
         }
-        
+
         if (filters.dueDateTo) {
           where.dueDate.lte = filters.dueDateTo;
         }
@@ -178,7 +178,7 @@ export class FinancialTaskService {
       return updatedTask;
     } catch (error) {
       if (error instanceof TRPCError) throw error;
-      
+
       console.error('Erreur lors de la mise à jour de la tâche financière:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
@@ -205,7 +205,7 @@ export class FinancialTaskService {
       });
     } catch (error) {
       if (error instanceof TRPCError) throw error;
-      
+
       console.error('Erreur lors du changement de statut de la tâche financière:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
@@ -230,7 +230,7 @@ export class FinancialTaskService {
       return { success: true };
     } catch (error) {
       if (error instanceof TRPCError) throw error;
-      
+
       console.error('Erreur lors de la suppression de la tâche financière:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
@@ -280,7 +280,7 @@ export class FinancialTaskService {
       // Tâches à venir (dans les 7 prochains jours)
       const nextWeek = new Date();
       nextWeek.setDate(nextWeek.getDate() + 7);
-      
+
       const upcomingTasks = await this.prisma.financialTask.count({
         where: {
           userId,
@@ -325,4 +325,4 @@ export class FinancialTaskService {
 }
 
 // Exporter une instance du service pour l'utiliser dans le routeur tRPC
-export const financialTaskService = new FinancialTaskService(); 
+export const financialTaskService = new FinancialTaskService();

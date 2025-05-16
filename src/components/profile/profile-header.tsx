@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React from 'react';
 import { useProfile } from '@/hooks/use-profile';
@@ -30,23 +30,20 @@ const getRoleBadge = (role: UserRole) => {
     ADMIN: 'Administrateur',
   };
 
-  return (
-    <Badge className={cn('ml-2', roleColors[role])}>
-      {roleLabels[role]}
-    </Badge>
-  );
+  return <Badge className={cn('ml-2', roleColors[role])}>{roleLabels[role]}</Badge>;
 };
 
 export function ProfileHeader() {
   const { profile, isLoadingProfile } = useProfile();
-  const { profileView, setProfileView, getAvailableSections, setIsEditingProfile } = useProfileStore();
-  
+  const { profileView, setProfileView, getAvailableSections, setIsEditingProfile } =
+    useProfileStore();
+
   const handleEdit = () => {
     setIsEditingProfile(true);
   };
-  
+
   const tabs = profile ? getAvailableSections(profile.role) : [];
-  
+
   const tabIcons = {
     info: <UserIcon className="h-4 w-4 mr-2" />,
     documents: <FileIcon className="h-4 w-4 mr-2" />,
@@ -54,7 +51,7 @@ export function ProfileHeader() {
     preferences: <SettingsIcon className="h-4 w-4 mr-2" />,
     security: <ShieldIcon className="h-4 w-4 mr-2" />,
   };
-  
+
   const tabLabels = {
     info: 'Informations',
     documents: 'Documents',
@@ -62,7 +59,7 @@ export function ProfileHeader() {
     preferences: 'Préférences',
     security: 'Sécurité',
   };
-  
+
   if (isLoadingProfile) {
     return (
       <Card className="mb-6">
@@ -84,11 +81,11 @@ export function ProfileHeader() {
       </Card>
     );
   }
-  
+
   if (!profile) {
     return null;
   }
-  
+
   return (
     <Card className="mb-6">
       <CardContent className="p-6">
@@ -96,9 +93,7 @@ export function ProfileHeader() {
           <div className="flex items-center">
             <Avatar className="h-16 w-16">
               <AvatarImage src={profile.image || ''} alt={profile.name} />
-              <AvatarFallback>
-                {profile.name?.slice(0, 2).toUpperCase() || 'U'}
-              </AvatarFallback>
+              <AvatarFallback>{profile.name?.slice(0, 2).toUpperCase() || 'U'}</AvatarFallback>
             </Avatar>
             <div className="ml-4">
               <h1 className="text-xl font-semibold flex items-center">
@@ -115,7 +110,7 @@ export function ProfileHeader() {
         </div>
         <Separator className="my-4" />
         <div className="flex space-x-1">
-          {tabs.map((tab) => (
+          {tabs.map(tab => (
             <Button
               key={tab}
               variant={profileView === tab ? 'default' : 'ghost'}
@@ -131,4 +126,4 @@ export function ProfileHeader() {
       </CardContent>
     </Card>
   );
-} 
+}

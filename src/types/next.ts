@@ -27,4 +27,4 @@ export type MetadataProps = {
     [key: string]: string;
   }>;
   searchParams: Promise<Record<string, string | string[] | undefined>>;
-}; 
+};

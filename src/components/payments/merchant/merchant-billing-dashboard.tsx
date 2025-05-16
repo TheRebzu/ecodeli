@@ -151,13 +151,13 @@ export default function MerchantBillingDashboard({ merchantId }: MerchantBilling
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold">Facturation & Paiements</h1>
-      
+
       <Tabs defaultValue="overview" onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
           <TabsTrigger value="invoices">Factures</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="overview" className="space-y-6 pt-4">
           {/* Résumé général */}
           <div className="grid grid-cols-1 gap-6 md:grid-cols-4">
@@ -176,7 +176,7 @@ export default function MerchantBillingDashboard({ merchantId }: MerchantBilling
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -192,7 +192,7 @@ export default function MerchantBillingDashboard({ merchantId }: MerchantBilling
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -208,7 +208,7 @@ export default function MerchantBillingDashboard({ merchantId }: MerchantBilling
                 </div>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -218,9 +218,7 @@ export default function MerchantBillingDashboard({ merchantId }: MerchantBilling
               <CardContent>
                 <div className="flex items-center">
                   <FileText className="mr-2 h-4 w-4 text-primary" />
-                  <span className="text-2xl font-bold">
-                    {billingStats.totalInvoices}
-                  </span>
+                  <span className="text-2xl font-bold">{billingStats.totalInvoices}</span>
                 </div>
                 <div className="mt-2 flex items-center text-xs text-muted-foreground">
                   <span className="flex items-center text-green-500 mr-2">
@@ -239,14 +237,12 @@ export default function MerchantBillingDashboard({ merchantId }: MerchantBilling
               </CardContent>
             </Card>
           </div>
-          
+
           {/* Dernières factures */}
           <Card>
             <CardHeader>
               <CardTitle>Dernières factures</CardTitle>
-              <CardDescription>
-                Les 5 dernières factures émises
-              </CardDescription>
+              <CardDescription>Les 5 dernières factures émises</CardDescription>
             </CardHeader>
             <CardContent>
               <InvoiceList
@@ -256,7 +252,7 @@ export default function MerchantBillingDashboard({ merchantId }: MerchantBilling
                 onView={handleViewInvoice}
                 pagination={{ currentPage: 1, totalPages: 1, totalItems: invoices.length }}
               />
-              
+
               <div className="mt-4 flex justify-center">
                 <Button variant="outline" onClick={() => setActiveTab('invoices')}>
                   Voir toutes les factures
@@ -264,14 +260,12 @@ export default function MerchantBillingDashboard({ merchantId }: MerchantBilling
               </div>
             </CardContent>
           </Card>
-          
+
           {/* Méthodes de paiement */}
           <Card>
             <CardHeader>
               <CardTitle>Méthodes de paiement</CardTitle>
-              <CardDescription>
-                Gérez vos méthodes de paiement
-              </CardDescription>
+              <CardDescription>Gérez vos méthodes de paiement</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-between rounded-md border p-4">
@@ -284,19 +278,15 @@ export default function MerchantBillingDashboard({ merchantId }: MerchantBilling
                 </div>
                 <Badge>Par défaut</Badge>
               </div>
-              
+
               <div className="mt-4 flex justify-end gap-2">
-                <Button variant="outline">
-                  Ajouter une carte
-                </Button>
-                <Button variant="outline">
-                  Gérer les méthodes
-                </Button>
+                <Button variant="outline">Ajouter une carte</Button>
+                <Button variant="outline">Gérer les méthodes</Button>
               </div>
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="invoices" className="pt-4">
           <InvoiceList
             invoices={invoices}
@@ -314,4 +304,4 @@ export default function MerchantBillingDashboard({ merchantId }: MerchantBilling
       </Tabs>
     </div>
   );
-} 
+}

@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { useCallback } from 'react';
 import { toast } from 'sonner';
@@ -11,31 +11,31 @@ export function useProfileDocuments() {
     data: documents,
     isLoading: isLoadingDocuments,
     error: documentsError,
-    refetch: refetchDocuments
+    refetch: refetchDocuments,
   } = api.document.getMyDocuments.useQuery();
-  
+
   // Procédure d'upload de document
   const uploadDocumentMutation = api.document.uploadDocument.useMutation({
     onSuccess: () => {
       toast.success('Document téléchargé avec succès');
       refetchDocuments();
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(`Erreur lors du téléchargement du document: ${error.message}`);
-    }
+    },
   });
-  
+
   // Procédure de suppression de document
   const deleteDocumentMutation = api.document.deleteDocument.useMutation({
     onSuccess: () => {
       toast.success('Document supprimé avec succès');
       refetchDocuments();
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(`Erreur lors de la suppression du document: ${error.message}`);
-    }
+    },
   });
-  
+
   /**
    * Télécharger un nouveau document
    */
@@ -45,17 +45,17 @@ export function useProfileDocuments() {
       const fileListContainer = new DataTransfer();
       fileListContainer.items.add(file);
       const fileList = fileListContainer.files;
-      
+
       // Appeler la mutation avec les paramètres corrects
-      uploadDocumentMutation.mutate({ 
+      uploadDocumentMutation.mutate({
         file: fileList,
-        type, 
-        notes 
+        type,
+        notes,
       });
     },
     [uploadDocumentMutation]
   );
-  
+
   /**
    * Supprimer un document
    */
@@ -65,7 +65,7 @@ export function useProfileDocuments() {
     },
     [deleteDocumentMutation]
   );
-  
+
   /**
    * Filtrer les documents par type
    */
@@ -76,7 +76,7 @@ export function useProfileDocuments() {
     },
     [documents]
   );
-  
+
   /**
    * Vérifier si l'utilisateur a un document de type spécifique
    */
@@ -87,7 +87,7 @@ export function useProfileDocuments() {
     },
     [documents]
   );
-  
+
   /**
    * Obtenir le document le plus récent d'un type spécifique
    */
@@ -96,14 +96,14 @@ export function useProfileDocuments() {
       if (!documents) return null;
       const typeDocuments = documents.filter((doc: Document) => doc.type === type);
       if (typeDocuments.length === 0) return null;
-      
+
       return typeDocuments.reduce((latest: Document, current: Document) => {
         return new Date(latest.uploadedAt) > new Date(current.uploadedAt) ? latest : current;
       });
     },
     [documents]
   );
-  
+
   return {
     documents,
     isLoadingDocuments,
@@ -115,6 +115,6 @@ export function useProfileDocuments() {
     getDocumentsByType,
     hasDocumentOfType,
     getLatestDocumentOfType,
-    refreshDocuments: refetchDocuments
+    refreshDocuments: refetchDocuments,
   };
-} 
+}

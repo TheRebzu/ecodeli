@@ -1,12 +1,27 @@
 'use client';
 
 import React from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Download, AlertCircle, CheckCircle, ClockIcon, CreditCard, BanknoteIcon, Receipt } from 'lucide-react';
+import {
+  Download,
+  AlertCircle,
+  CheckCircle,
+  ClockIcon,
+  CreditCard,
+  BanknoteIcon,
+  Receipt,
+} from 'lucide-react';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
 import { PaymentStatus } from '@prisma/client';
@@ -60,7 +75,7 @@ export function PaymentSummary({
           icon: <CheckCircle className="h-4 w-4" />,
           color: 'text-green-600',
           bgColor: 'bg-green-50',
-          borderColor: 'border-green-200'
+          borderColor: 'border-green-200',
         };
       case 'PENDING':
         return {
@@ -69,7 +84,7 @@ export function PaymentSummary({
           icon: <ClockIcon className="h-4 w-4" />,
           color: 'text-yellow-600',
           bgColor: 'bg-yellow-50',
-          borderColor: 'border-yellow-200'
+          borderColor: 'border-yellow-200',
         };
       case 'FAILED':
         return {
@@ -78,7 +93,7 @@ export function PaymentSummary({
           icon: <AlertCircle className="h-4 w-4" />,
           color: 'text-red-600',
           bgColor: 'bg-red-50',
-          borderColor: 'border-red-200'
+          borderColor: 'border-red-200',
         };
       case 'REFUNDED':
         return {
@@ -87,7 +102,7 @@ export function PaymentSummary({
           icon: <BanknoteIcon className="h-4 w-4" />,
           color: 'text-blue-600',
           bgColor: 'bg-blue-50',
-          borderColor: 'border-blue-200'
+          borderColor: 'border-blue-200',
         };
       default:
         return {
@@ -96,7 +111,7 @@ export function PaymentSummary({
           icon: <CreditCard className="h-4 w-4" />,
           color: 'text-gray-600',
           bgColor: 'bg-gray-50',
-          borderColor: 'border-gray-200'
+          borderColor: 'border-gray-200',
         };
     }
   };
@@ -129,9 +144,9 @@ export function PaymentSummary({
             <p className="text-sm">{formatDate(createdAt)}</p>
           </div>
         </div>
-        
+
         <Separator />
-        
+
         {/* Informations client */}
         {(customerName || customerEmail) && (
           <>
@@ -155,7 +170,7 @@ export function PaymentSummary({
             <Separator />
           </>
         )}
-        
+
         {/* Détails du paiement */}
         <div className="space-y-2">
           <h3 className="text-sm font-medium text-gray-700">{t('paymentDetails')}</h3>
@@ -186,28 +201,24 @@ export function PaymentSummary({
             )}
           </div>
         </div>
-        
+
         {/* Alerte selon statut */}
         {status === 'PENDING' && (
           <Alert className={`${statusInfo.bgColor} ${statusInfo.color} ${statusInfo.borderColor}`}>
             <ClockIcon className="h-4 w-4" />
             <AlertTitle>{t('pendingPaymentTitle')}</AlertTitle>
-            <AlertDescription>
-              {t('pendingPaymentDescription')}
-            </AlertDescription>
+            <AlertDescription>{t('pendingPaymentDescription')}</AlertDescription>
           </Alert>
         )}
-        
+
         {status === 'FAILED' && (
           <Alert className={`${statusInfo.bgColor} ${statusInfo.color} ${statusInfo.borderColor}`}>
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>{t('failedPaymentTitle')}</AlertTitle>
-            <AlertDescription>
-              {t('failedPaymentDescription')}
-            </AlertDescription>
+            <AlertDescription>{t('failedPaymentDescription')}</AlertDescription>
           </Alert>
         )}
-        
+
         {/* Métadonnées supplémentaires */}
         {metadata && Object.keys(metadata).length > 0 && (
           <div className="space-y-2">
@@ -223,7 +234,7 @@ export function PaymentSummary({
           </div>
         )}
       </CardContent>
-      
+
       {/* Actions */}
       {(onDownloadReceipt || onViewInvoice) && (
         <CardFooter className="flex gap-2 justify-end">

@@ -4,7 +4,15 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Button } from '@/components/ui/button';
-import { CalendarClock, CheckCircle2, Circle, DollarSign, Plus, Trash2, AlertCircle } from 'lucide-react';
+import {
+  CalendarClock,
+  CheckCircle2,
+  Circle,
+  DollarSign,
+  Plus,
+  Trash2,
+  AlertCircle,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
@@ -33,10 +41,10 @@ interface TodoProps {
  * Composant TodoMarker qui affiche un élément visuel pour indiquer du travail à terminer
  * Ce composant est utile pendant le développement pour marquer les fonctionnalités inachevées
  */
-function TodoMarker({ 
-  title = 'À implémenter', 
+function TodoMarker({
+  title = 'À implémenter',
   description = 'Cette fonctionnalité est en cours de développement et sera disponible prochainement.',
-  priority = 'medium' 
+  priority = 'medium',
 }: {
   title?: string;
   description?: string;
@@ -46,7 +54,7 @@ function TodoMarker({
   const colors = {
     low: 'bg-blue-50 text-blue-800 border-blue-200',
     medium: 'bg-amber-50 text-amber-800 border-amber-200',
-    high: 'bg-red-50 text-red-800 border-red-200'
+    high: 'bg-red-50 text-red-800 border-red-200',
   };
 
   const colorClass = colors[priority];
@@ -64,8 +72,8 @@ function TodoMarker({
  * Composant Todo pour gérer une liste de tâches
  */
 export function Todo({
-  title = "Tâches financières",
-  description = "Liste des tâches financières à accomplir",
+  title = 'Tâches financières',
+  description = 'Liste des tâches financières à accomplir',
   items = [],
   onToggle,
   onDelete,
@@ -103,9 +111,9 @@ export function Todo({
   const formatDate = (date?: Date) => {
     if (!date) return '';
     return new Intl.DateTimeFormat('fr-FR', {
-      day: '2-digit', 
+      day: '2-digit',
       month: '2-digit',
-      year: 'numeric'
+      year: 'numeric',
     }).format(date);
   };
 
@@ -118,50 +126,52 @@ export function Todo({
       <CardContent>
         <div className="space-y-4">
           {items.length === 0 ? (
-            <div className="text-center py-6 text-gray-500">
-              Aucune tâche financière à afficher
-            </div>
+            <div className="text-center py-6 text-gray-500">Aucune tâche financière à afficher</div>
           ) : (
-            items.map((item) => (
-              <div 
+            items.map(item => (
+              <div
                 key={item.id}
                 className={cn(
-                  "flex items-start space-x-2 p-3 rounded-md border",
-                  item.completed ? "bg-gray-50 opacity-70" : ""
+                  'flex items-start space-x-2 p-3 rounded-md border',
+                  item.completed ? 'bg-gray-50 opacity-70' : ''
                 )}
                 onMouseEnter={() => setHoveredItem(item.id)}
                 onMouseLeave={() => setHoveredItem(null)}
               >
-                <Checkbox 
+                <Checkbox
                   checked={item.completed}
-                  onCheckedChange={(checked) => onToggle?.(item.id, checked as boolean)}
+                  onCheckedChange={checked => onToggle?.(item.id, checked as boolean)}
                   className="mt-1"
                 />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between">
-                    <p className={cn(
-                      "font-medium text-sm",
-                      item.completed ? "line-through text-gray-500" : ""
-                    )}>
+                    <p
+                      className={cn(
+                        'font-medium text-sm',
+                        item.completed ? 'line-through text-gray-500' : ''
+                      )}
+                    >
                       {item.title}
                     </p>
                     <div className="flex items-center gap-2">
-                      <span className={cn(
-                        "text-xs px-2 py-0.5 rounded-full border",
-                        getPriorityClass(item.priority)
-                      )}>
+                      <span
+                        className={cn(
+                          'text-xs px-2 py-0.5 rounded-full border',
+                          getPriorityClass(item.priority)
+                        )}
+                      >
                         {item.priority}
                       </span>
-                      <div className="flex items-center">
-                        {getCategoryIcon(item.category)}
-                      </div>
+                      <div className="flex items-center">{getCategoryIcon(item.category)}</div>
                     </div>
                   </div>
                   {item.description && (
-                    <p className={cn(
-                      "text-xs text-gray-600 mt-1",
-                      item.completed ? "line-through" : ""
-                    )}>
+                    <p
+                      className={cn(
+                        'text-xs text-gray-600 mt-1',
+                        item.completed ? 'line-through' : ''
+                      )}
+                    >
                       {item.description}
                     </p>
                   )}
@@ -172,10 +182,10 @@ export function Todo({
                   )}
                 </div>
                 {hoveredItem === item.id && onDelete && (
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-6 w-6" 
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-6 w-6"
                     onClick={() => onDelete(item.id)}
                   >
                     <Trash2 className="h-4 w-4 text-gray-500 hover:text-red-500" />
@@ -185,11 +195,7 @@ export function Todo({
             ))
           )}
           {showAddButton && onAdd && (
-            <Button 
-              variant="outline" 
-              className="w-full mt-4" 
-              onClick={onAdd}
-            >
+            <Button variant="outline" className="w-full mt-4" onClick={onAdd}>
               <Plus className="h-4 w-4 mr-2" />
               Ajouter une tâche
             </Button>
@@ -201,4 +207,4 @@ export function Todo({
 }
 
 // Exportation du composant TodoMarker par défaut
-export default TodoMarker; 
+export default TodoMarker;

@@ -1,203 +1,225 @@
 import { initTRPC, TRPCError } from '@trpc/server';
+import { type CreateNextContextOptions } from '@trpc/server/adapters/next';
+import { type Session } from 'next-auth';
 import superjson from 'superjson';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '../auth/next-auth';
-import { db } from '../db';
+import { ZodError } from 'zod';
+import { getServerAuthSession } from '@/server/auth';
+import { db } from '@/server/db';
+import { UserRole } from '@prisma/client';
 import { headers as getHeaders, type ReadonlyHeaders } from 'next/headers';
 
-// Define the type for context options
-type ContextOptions = {
-  headers?: ReadonlyHeaders | Headers;
+/**
+ * 1. CONTEXT
+ *
+ * This section defines the "contexts" that are available in the backend API.
+ *
+ * These allow you to access things when processing a request, like the database, the session, etc.
+ */
+
+type CreateContextOptions = {
+  session: Session | null;
+  headers: any; // Type spécifique à ajouter si nécessaire
 };
 
-// Updated for App Router compatibility
-export const createTRPCContext = async (opts: ContextOptions = {}) => {
-  try {
-    // Get headers from opts or try to get them from the current request
-    const headers = opts.headers || getHeaders();
-    // For App Router compatibility
-    const session = await getServerSession(authOptions);
-
-    return {
-      db,
-      session,
-      headers,
-    };
-  } catch {
-    // Fallback for when headers are not available (outside request context)
-    console.warn('Creating tRPC context without headers - some features may not work');
-    return {
-      db,
-      session: null,
-    };
-  }
+/**
+ * This helper generates the "internals" for a tRPC context. If you need to use it, you can export
+ * it from here.
+ *
+ * Examples of things you may need it for:
+ * - testing, so we don't have to mock Next.js' req/res
+ * - tRPC's `createSSGHelpers`, where we don't have req/res
+ *
+ * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
+ */
+export const createInnerTRPCContext = (opts: CreateContextOptions) => {
+  return {
+    session: opts.session,
+    db,
+    headers: opts.headers,
+  };
 };
+
+/**
+ * This is the actual context you'll use in your router. It will be used to process every request
+ * that goes through your tRPC endpoint.
+ *
+ * @see https://trpc.io/docs/context
+ */
+export const createTRPCContext = async (opts: CreateNextContextOptions) => {
+  const { req, res } = opts;
+
+  // Get the session from the server using the getServerSession wrapper function
+  const session = await getServerAuthSession({ req, res });
+
+  return createInnerTRPCContext({
+    session,
+    headers: req.headers,
+  });
+};
+
+/**
+ * 2. INITIALIZATION
+ *
+ * This is where the tRPC API is initialized, connecting the context and transformer. We also parse
+ * ZodErrors so that you get typesafety on the frontend if your procedure fails due to validation
+ * errors on the backend.
+ */
 
 const t = initTRPC.context<typeof createTRPCContext>().create({
   transformer: superjson,
+  errorFormatter({ shape, error }) {
+    return {
+      ...shape,
+      data: {
+        ...shape.data,
+        zodError:
+          error.cause instanceof ZodError ? error.cause.flatten() : null,
+      },
+    };
+  },
 });
 
+/**
+ * 3. ROUTER & PROCEDURE (EXPORT)
+ *
+ * These are the pieces you use to build your tRPC API. You should import these a lot in the
+ * "/src/server/api/routers" directory.
+ */
+
+/**
+ * This is how you create new routers and sub-routers in your tRPC API.
+ *
+ * @see https://trpc.io/docs/router
+ */
 export const router = t.router;
+
+/**
+ * Public (unauthenticated) procedure
+ *
+ * This is the base piece you use to build new queries and mutations on your tRPC API. It does not
+ * guarantee that a user querying is authorized, but you can still access user session data if they
+ * are logged in.
+ */
 export const publicProcedure = t.procedure;
 
-// Middleware d'authentification
-const isAuthenticated = t.middleware(({ ctx, next }) => {
+/** Reusable middleware that enforces users are logged in before running the procedure. */
+const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
   if (!ctx.session || !ctx.session.user) {
-    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Vous devez être connecté' });
+    throw new TRPCError({ code: 'UNAUTHORIZED' });
   }
   return next({
     ctx: {
-      ...ctx,
+      // Infers the `session` as non-nullable
       session: { ...ctx.session, user: ctx.session.user },
     },
   });
 });
 
-export const protectedProcedure = t.procedure.use(isAuthenticated);
+/**
+ * Protected (authenticated) procedure
+ *
+ * If you want a query or mutation to ONLY be accessible to logged in users, use this. It verifies
+ * the session is valid and guarantees `ctx.session.user` is not null.
+ *
+ * @see https://trpc.io/docs/procedures
+ */
+export const protectedProcedure = t.procedure.use(enforceUserIsAuthed);
 
-// Middleware pour vérifier si l'utilisateur est un administrateur
-const isAdmin = t.middleware(({ ctx, next }) => {
-  if (!ctx.session || !ctx.session.user || ctx.session.user.role !== 'ADMIN') {
-    throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: "Vous n'avez pas les autorisations nécessaires pour effectuer cette action",
-    });
+/** Middleware qui vérifie que l'utilisateur est un livreur vérifié */
+const enforceUserIsVerifiedDeliverer = t.middleware(({ ctx, next }) => {
+  if (!ctx.session || !ctx.session.user) {
+    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Vous devez être connecté' });
   }
-  return next({
-    ctx,
-  });
-});
 
-export const adminProcedure = t.procedure.use(isAuthenticated).use(isAdmin);
-
-// Middleware pour vérifier si l'utilisateur est un client
-const isClient = t.middleware(({ ctx, next }) => {
-  if (!ctx.session || !ctx.session.user || ctx.session.user.role !== 'CLIENT') {
-    throw new TRPCError({
+  if (ctx.session.user.role !== UserRole.DELIVERER) {
+    throw new TRPCError({ 
       code: 'FORBIDDEN',
-      message: "Cette fonction n'est accessible qu'aux clients",
-    });
-  }
-  return next({
-    ctx,
-  });
-});
-
-export const clientProcedure = t.procedure.use(isAuthenticated).use(isClient);
-
-// Middleware pour vérifier si l'utilisateur est un livreur
-const isDeliverer = t.middleware(({ ctx, next }) => {
-  if (!ctx.session || !ctx.session.user || ctx.session.user.role !== 'DELIVERER') {
-    throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: "Cette fonction n'est accessible qu'aux livreurs",
-    });
-  }
-  return next({
-    ctx,
-  });
-});
-
-export const delivererProcedure = t.procedure.use(isAuthenticated).use(isDeliverer);
-
-// Middleware pour vérifier si l'utilisateur est un livreur vérifié
-const isVerifiedDeliverer = t.middleware(async ({ ctx, next }) => {
-  if (!ctx.session || !ctx.session.user || ctx.session.user.role !== 'DELIVERER') {
-    throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: "Cette fonction n'est accessible qu'aux livreurs",
+      message: 'Accès réservé aux livreurs'
     });
   }
 
-  // Vérifier si le livreur est vérifié
   if (!ctx.session.user.isVerified) {
-    throw new TRPCError({
+    throw new TRPCError({ 
       code: 'FORBIDDEN',
-      message: 'Vous devez compléter la vérification de votre compte pour accéder à cette fonction',
+      message: 'Votre compte doit être vérifié pour accéder à cette fonctionnalité'
     });
   }
 
   return next({
-    ctx,
+    ctx: {
+      session: { ...ctx.session, user: ctx.session.user },
+    },
   });
 });
 
-export const verifiedDelivererProcedure = t.procedure.use(isAuthenticated).use(isVerifiedDeliverer);
+/** Procédure protégée pour les livreurs vérifiés uniquement */
+export const verifiedDelivererProcedure = t.procedure.use(enforceUserIsVerifiedDeliverer);
 
-// Middleware pour vérifier si l'utilisateur est un commerçant
-const isMerchant = t.middleware(({ ctx, next }) => {
-  if (!ctx.session || !ctx.session.user || ctx.session.user.role !== 'MERCHANT') {
-    throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: "Cette fonction n'est accessible qu'aux commerçants",
-    });
-  }
-  return next({
-    ctx,
-  });
-});
-
-export const merchantProcedure = t.procedure.use(isAuthenticated).use(isMerchant);
-
-// Middleware pour vérifier si l'utilisateur est un commerçant vérifié
-const isVerifiedMerchant = t.middleware(async ({ ctx, next }) => {
-  if (!ctx.session || !ctx.session.user || ctx.session.user.role !== 'MERCHANT') {
-    throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: "Cette fonction n'est accessible qu'aux commerçants",
-    });
+/** Middleware qui vérifie que l'utilisateur est un administrateur */
+const enforceUserIsAdmin = t.middleware(({ ctx, next }) => {
+  if (!ctx.session || !ctx.session.user) {
+    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Vous devez être connecté' });
   }
 
-  // Vérifier si le commerçant est vérifié
-  if (!ctx.session.user.isVerified) {
-    throw new TRPCError({
+  if (ctx.session.user.role !== UserRole.ADMIN) {
+    throw new TRPCError({ 
       code: 'FORBIDDEN',
-      message: 'Vous devez compléter la vérification de votre compte pour accéder à cette fonction',
+      message: 'Accès réservé aux administrateurs'
     });
   }
 
   return next({
-    ctx,
+    ctx: {
+      session: { ...ctx.session, user: ctx.session.user },
+    },
   });
 });
 
-export const verifiedMerchantProcedure = t.procedure.use(isAuthenticated).use(isVerifiedMerchant);
+/** Procédure protégée pour les administrateurs uniquement */
+export const adminProcedure = t.procedure.use(enforceUserIsAdmin);
 
-// Middleware pour vérifier si l'utilisateur est un prestataire
-const isProvider = t.middleware(({ ctx, next }) => {
-  if (!ctx.session || !ctx.session.user || ctx.session.user.role !== 'PROVIDER') {
-    throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: "Cette fonction n'est accessible qu'aux prestataires",
-    });
-  }
-  return next({
-    ctx,
-  });
-});
-
-export const providerProcedure = t.procedure.use(isAuthenticated).use(isProvider);
-
-// Middleware pour vérifier si l'utilisateur est un prestataire vérifié
-const isVerifiedProvider = t.middleware(async ({ ctx, next }) => {
-  if (!ctx.session || !ctx.session.user || ctx.session.user.role !== 'PROVIDER') {
-    throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: "Cette fonction n'est accessible qu'aux prestataires",
-    });
+/** Middleware qui vérifie que l'utilisateur est un client */
+const enforceUserIsClient = t.middleware(({ ctx, next }) => {
+  if (!ctx.session || !ctx.session.user) {
+    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Vous devez être connecté' });
   }
 
-  // Vérifier si le prestataire est vérifié
-  if (!ctx.session.user.isVerified) {
-    throw new TRPCError({
+  if (ctx.session.user.role !== UserRole.CLIENT) {
+    throw new TRPCError({ 
       code: 'FORBIDDEN',
-      message: 'Vous devez compléter la vérification de votre compte pour accéder à cette fonction',
+      message: 'Accès réservé aux clients'
     });
   }
 
   return next({
-    ctx,
+    ctx: {
+      session: { ...ctx.session, user: ctx.session.user },
+    },
   });
 });
 
-export const verifiedProviderProcedure = t.procedure.use(isAuthenticated).use(isVerifiedProvider);
+/** Procédure protégée pour les clients uniquement */
+export const clientProcedure = t.procedure.use(enforceUserIsClient);
+
+/** Middleware qui vérifie que l'utilisateur est un commerçant */
+const enforceUserIsMerchant = t.middleware(({ ctx, next }) => {
+  if (!ctx.session || !ctx.session.user) {
+    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Vous devez être connecté' });
+  }
+
+  if (ctx.session.user.role !== UserRole.MERCHANT) {
+    throw new TRPCError({ 
+      code: 'FORBIDDEN',
+      message: 'Accès réservé aux commerçants'
+    });
+  }
+
+  return next({
+    ctx: {
+      session: { ...ctx.session, user: ctx.session.user },
+    },
+  });
+});
+
+/** Procédure protégée pour les commerçants uniquement */
+export const merchantProcedure = t.procedure.use(enforceUserIsMerchant);

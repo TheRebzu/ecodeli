@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React from 'react';
 import { ProfileHeader } from '@/components/profile/profile-header';
@@ -10,11 +10,11 @@ import { useProfileStore } from '@/store/use-profile-store';
 export default function ProviderProfilePage() {
   // Dans cette page côté serveur Next.js, les hooks client React ne sont pas directement utilisables
   // Le state UI sera géré dans les composants client
-  
+
   return (
     <div className="container mx-auto py-8">
       <ProfileHeader />
-      
+
       <ProviderProfileContent />
     </div>
   );
@@ -23,7 +23,7 @@ export default function ProviderProfilePage() {
 // Ce composant côté client gère l'affichage conditionnel basé sur le state
 function ProviderProfileContent() {
   const { profileView, isEditingProfile } = useProfileStore();
-  
+
   // Afficher le formulaire si le mode édition est activé
   if (isEditingProfile) {
     // Ici nous pourrions utiliser un formulaire spécifique aux prestataires
@@ -37,7 +37,7 @@ function ProviderProfileContent() {
       </div>
     );
   }
-  
+
   // Afficher différentes sections en fonction de la vue sélectionnée
   switch (profileView) {
     case 'info':

@@ -3,7 +3,14 @@
 import React from 'react';
 import { Check, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -58,8 +65,8 @@ const SUBSCRIPTION_PLANS_ARRAY: SubscriptionPlan[] = [
     name: 'Starter',
     description: 'Pour les clients réguliers avec besoins modérés',
     price: {
-      monthly: 9.90,
-      annually: 99.00,
+      monthly: 9.9,
+      annually: 99.0,
     },
     popular: true,
     badge: 'Populaire',
@@ -82,7 +89,7 @@ const SUBSCRIPTION_PLANS_ARRAY: SubscriptionPlan[] = [
     description: 'Plan complet pour les utilisateurs professionnels',
     price: {
       monthly: 19.99,
-      annually: 199.90,
+      annually: 199.9,
     },
     features: [
       { name: 'Accès basic à la plateforme', included: true },
@@ -110,10 +117,10 @@ export const SubscriptionPlans = ({
   currentPlan = 'FREE',
   onSelectPlan,
   isLoading = false,
-  className
+  className,
 }: SubscriptionPlansProps) => {
   const t = useTranslations('subscription');
-  
+
   // Formatage des plans depuis le schema
   const plans = [
     {
@@ -130,34 +137,23 @@ export const SubscriptionPlans = ({
       type: 'PREMIUM' as const,
       ...SUBSCRIPTION_PLANS.PREMIUM,
       recommended: true,
-    }
+    },
   ];
 
   return (
-    <div className={cn("grid gap-6 md:grid-cols-3", className)}>
-      {plans.map((plan) => (
-        <Card 
-          key={plan.type} 
-          className={cn(
-            "flex flex-col",
-            plan.recommended && "border-primary shadow-md"
-          )}
+    <div className={cn('grid gap-6 md:grid-cols-3', className)}>
+      {plans.map(plan => (
+        <Card
+          key={plan.type}
+          className={cn('flex flex-col', plan.recommended && 'border-primary shadow-md')}
         >
           <CardHeader className="flex flex-col space-y-1">
-            {plan.recommended && (
-              <Badge className="w-fit mb-2">
-                {t('recommended')}
-              </Badge>
-            )}
+            {plan.recommended && <Badge className="w-fit mb-2">{t('recommended')}</Badge>}
             <CardTitle className="text-xl">{plan.name}</CardTitle>
             <CardDescription className="flex items-baseline">
-              <span className="text-3xl font-bold">
-                {plan.priceFormatted}
-              </span>
+              <span className="text-3xl font-bold">{plan.priceFormatted}</span>
               {plan.type !== 'FREE' && (
-                <span className="text-sm text-muted-foreground ml-1">
-                  /{t('month')}
-                </span>
+                <span className="text-sm text-muted-foreground ml-1">/{t('month')}</span>
               )}
             </CardDescription>
           </CardHeader>
@@ -173,53 +169,49 @@ export const SubscriptionPlans = ({
               {/* Limites spécifiques avec détails */}
               <li className="flex items-center mt-4">
                 <span className="text-sm font-medium">
-                  {t('assuranceLimit')}: 
-                  {plan.limits.insurance > 0 ? 
-                    <span className="text-primary font-bold ml-1">
-                      {plan.limits.insurance}€
-                    </span> : 
-                    <span className="text-muted-foreground ml-1">
-                      {t('none')}
-                    </span>
-                  }
+                  {t('assuranceLimit')}:
+                  {plan.limits.insurance > 0 ? (
+                    <span className="text-primary font-bold ml-1">{plan.limits.insurance}€</span>
+                  ) : (
+                    <span className="text-muted-foreground ml-1">{t('none')}</span>
+                  )}
                 </span>
               </li>
-              
+
               <li className="flex items-center">
                 <span className="text-sm font-medium">
-                  {t('discount')}: 
-                  {plan.limits.discount > 0 ? 
+                  {t('discount')}:
+                  {plan.limits.discount > 0 ? (
                     <span className="text-primary font-bold ml-1">
                       {plan.limits.discount * 100}%
-                    </span> : 
-                    <span className="text-muted-foreground ml-1">
-                      {t('none')}
                     </span>
-                  }
+                  ) : (
+                    <span className="text-muted-foreground ml-1">{t('none')}</span>
+                  )}
                 </span>
               </li>
-              
+
               <li className="flex items-center">
                 <span className="text-sm font-medium">
-                  {t('deliveryLimit')}: 
-                  {plan.limits.deliveriesPerMonth < 0 ? 
-                    <span className="text-primary font-bold ml-1">
-                      {t('unlimited')}
-                    </span> : 
+                  {t('deliveryLimit')}:
+                  {plan.limits.deliveriesPerMonth < 0 ? (
+                    <span className="text-primary font-bold ml-1">{t('unlimited')}</span>
+                  ) : (
                     <span className="text-primary font-bold ml-1">
                       {plan.limits.deliveriesPerMonth}
                     </span>
-                  }
+                  )}
                 </span>
               </li>
-              
+
               <li className="flex items-center">
                 <span className="text-sm font-medium">
-                  {t('priorityDelivery')}: 
-                  {plan.limits.priority ? 
-                    <Check className="h-4 w-4 text-primary ml-1" /> : 
+                  {t('priorityDelivery')}:
+                  {plan.limits.priority ? (
+                    <Check className="h-4 w-4 text-primary ml-1" />
+                  ) : (
                     <X className="h-4 w-4 text-muted-foreground ml-1" />
-                  }
+                  )}
                 </span>
               </li>
             </ul>
@@ -227,7 +219,7 @@ export const SubscriptionPlans = ({
           <CardFooter>
             <Button
               className="w-full"
-              variant={currentPlan === plan.type ? "outline" : "default"}
+              variant={currentPlan === plan.type ? 'outline' : 'default'}
               onClick={() => onSelectPlan(plan.type)}
               disabled={isLoading || currentPlan === plan.type}
             >
@@ -238,4 +230,4 @@ export const SubscriptionPlans = ({
       ))}
     </div>
   );
-}; 
+};

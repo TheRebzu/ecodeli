@@ -7,10 +7,35 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { api } from '@/trpc/react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Loader2, AlertCircle, ArrowLeftCircle, CreditCard, Check, DollarSign, AlertTriangle, ArrowUpRight, Wallet } from 'lucide-react';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
+import {
+  Loader2,
+  AlertCircle,
+  ArrowLeftCircle,
+  CreditCard,
+  Check,
+  DollarSign,
+  AlertTriangle,
+  ArrowUpRight,
+  Wallet,
+} from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { formatCurrency } from '@/lib/utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -23,16 +48,19 @@ const withdrawalSchema = z.object({
   amount: z
     .string()
     .min(1, { message: 'Le montant est requis' })
-    .refine((val) => !isNaN(parseFloat(val)), {
+    .refine(val => !isNaN(parseFloat(val)), {
       message: 'Le montant doit être un nombre valide',
     })
-    .refine((val) => parseFloat(val) > 0, {
+    .refine(val => parseFloat(val) > 0, {
       message: 'Le montant doit être supérieur à 0',
     }),
   bankDetails: z.object({
     accountName: z.string().min(1, { message: 'Le nom du titulaire du compte est requis' }),
     iban: z.string().min(15, { message: 'IBAN invalide' }).max(34, { message: 'IBAN invalide' }),
-    bic: z.string().min(8, { message: 'BIC/SWIFT invalide' }).max(11, { message: 'BIC/SWIFT invalide' }),
+    bic: z
+      .string()
+      .min(8, { message: 'BIC/SWIFT invalide' })
+      .max(11, { message: 'BIC/SWIFT invalide' }),
   }),
 });
 
@@ -81,21 +109,21 @@ export function WithdrawalForm({
     try {
       setStatus('idle');
       setErrorMessage(null);
-      
+
       // Valider que le montant est inférieur au solde
       if (parseFloat(data.amount) > walletBalance) {
         setStatus('error');
         setErrorMessage(t('insufficientBalance'));
         return;
       }
-      
+
       // Valider que le montant est supérieur au minimum
       if (parseFloat(data.amount) < minimumAmount) {
         setStatus('error');
         setErrorMessage(t('belowMinimumAmount', { amount: minimumAmount, currency }));
         return;
       }
-      
+
       await onSubmit(data);
       setStatus('success');
       form.reset();
@@ -113,7 +141,8 @@ export function WithdrawalForm({
           {t('requestWithdrawal')}
         </CardTitle>
         <CardDescription>
-          {t('currentBalance')}: <span className="font-bold">{formatCurrency(walletBalance, currency)}</span>
+          {t('currentBalance')}:{' '}
+          <span className="font-bold">{formatCurrency(walletBalance, currency)}</span>
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -166,7 +195,7 @@ export function WithdrawalForm({
 
             <div className="space-y-4 border p-3 rounded-md">
               <h3 className="font-medium text-sm">{t('bankDetails')}</h3>
-              
+
               <FormField
                 control={form.control}
                 name="bankDetails.accountName"
@@ -188,8 +217,8 @@ export function WithdrawalForm({
                   <FormItem>
                     <FormLabel>IBAN</FormLabel>
                     <FormControl>
-                      <Input 
-                        {...field} 
+                      <Input
+                        {...field}
                         placeholder="FR76 1234 5678 9123 4567 8912 345"
                         disabled={isLoading || status === 'success'}
                       />
@@ -206,8 +235,8 @@ export function WithdrawalForm({
                   <FormItem>
                     <FormLabel>BIC / SWIFT</FormLabel>
                     <FormControl>
-                      <Input 
-                        {...field} 
+                      <Input
+                        {...field}
                         placeholder="CEPAFRPP751"
                         disabled={isLoading || status === 'success'}
                       />
@@ -219,11 +248,7 @@ export function WithdrawalForm({
             </div>
 
             <CardFooter className="px-0 pt-2">
-              <Button 
-                type="submit" 
-                className="w-full" 
-                disabled={isLoading || status === 'success'}
-              >
+              <Button type="submit" className="w-full" disabled={isLoading || status === 'success'}>
                 {isLoading ? t('processing') : t('requestWithdrawal')}
               </Button>
             </CardFooter>

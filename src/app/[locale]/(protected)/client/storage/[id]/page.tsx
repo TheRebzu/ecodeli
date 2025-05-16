@@ -164,10 +164,7 @@ export default async function ReservationDetailPage({
             </CardFooter>
           </Card>
 
-          <BoxDetailTabs 
-            box={reservation.box} 
-            usageHistory={usageHistory} 
-          />
+          <BoxDetailTabs box={reservation.box} usageHistory={usageHistory} />
         </div>
 
         <div className="space-y-6">

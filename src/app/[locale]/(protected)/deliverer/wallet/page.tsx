@@ -8,20 +8,9 @@ import { useToast } from '@/components/ui/use-toast';
 
 import { WalletBalance } from '@/components/payments/wallet-balance';
 import { WithdrawalForm } from '@/components/payments/withdrawal-form';
-import { 
-  Tabs, 
-  TabsContent, 
-  TabsList, 
-  TabsTrigger 
-} from '@/components/ui/tabs';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { 
-  Wallet, 
-  ArrowUpRight, 
-  BanknoteIcon, 
-  HistoryIcon,
-  AlertCircle
-} from 'lucide-react';
+import { Wallet, ArrowUpRight, BanknoteIcon, HistoryIcon, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 // Mock data pour les transactions (à remplacer par les données réelles)
@@ -33,7 +22,7 @@ const mockTransactions = [
     type: 'EARNING',
     status: 'COMPLETED',
     description: 'Livraison #D2305-001',
-    createdAt: new Date('2025-05-01T10:30:00')
+    createdAt: new Date('2025-05-01T10:30:00'),
   },
   {
     id: '2',
@@ -42,7 +31,7 @@ const mockTransactions = [
     type: 'EARNING',
     status: 'COMPLETED',
     description: 'Livraison #D2305-002',
-    createdAt: new Date('2025-05-02T14:15:00')
+    createdAt: new Date('2025-05-02T14:15:00'),
   },
   {
     id: '3',
@@ -51,7 +40,7 @@ const mockTransactions = [
     type: 'WITHDRAWAL',
     status: 'PENDING',
     description: 'Retrait vers compte bancaire',
-    createdAt: new Date('2025-05-03T09:45:00')
+    createdAt: new Date('2025-05-03T09:45:00'),
   },
   {
     id: '4',
@@ -60,7 +49,7 @@ const mockTransactions = [
     type: 'EARNING',
     status: 'COMPLETED',
     description: 'Livraison #D2305-003',
-    createdAt: new Date('2025-05-04T16:20:00')
+    createdAt: new Date('2025-05-04T16:20:00'),
   },
   {
     id: '5',
@@ -69,8 +58,8 @@ const mockTransactions = [
     type: 'PLATFORM_FEE',
     status: 'COMPLETED',
     description: 'Frais de plateforme',
-    createdAt: new Date('2025-05-04T16:20:00')
-  }
+    createdAt: new Date('2025-05-04T16:20:00'),
+  },
 ];
 
 export default function DelivererWalletPage() {
@@ -82,7 +71,7 @@ export default function DelivererWalletPage() {
 
   // Utiliser l'API tRPC pour récupérer les données du portefeuille
   const { data: walletData, isLoading, error } = api.wallet.getDelivererWallet.useQuery();
-  
+
   // Pour soumettre une demande de retrait
   const withdrawalMutation = api.wallet.requestWithdrawal.useMutation({
     onSuccess: () => {
@@ -92,13 +81,13 @@ export default function DelivererWalletPage() {
       });
       setShowWithdrawalForm(false);
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: t('withdrawalRequestFailed'),
         description: error.message,
         variant: 'destructive',
       });
-    }
+    },
   });
 
   if (error) {
@@ -117,7 +106,7 @@ export default function DelivererWalletPage() {
     try {
       await withdrawalMutation.mutateAsync({
         amount: parseFloat(data.amount),
-        bankDetails: data.bankDetails
+        bankDetails: data.bankDetails,
       });
     } finally {
       setIsSubmitting(false);
@@ -130,7 +119,7 @@ export default function DelivererWalletPage() {
   };
 
   // Valeur du portefeuille depuis l'API ou mock
-  const walletBalance = walletData?.balance || 115.50;
+  const walletBalance = walletData?.balance || 115.5;
 
   return (
     <div className="container py-8">
@@ -191,14 +180,21 @@ export default function DelivererWalletPage() {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {mockTransactions.map((transaction) => (
-                    <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-md">
+                  {mockTransactions.map(transaction => (
+                    <div
+                      key={transaction.id}
+                      className="flex items-center justify-between p-4 border rounded-md"
+                    >
                       <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-full ${
-                          transaction.type === 'EARNING' ? 'bg-green-100' : 
-                          transaction.type === 'WITHDRAWAL' ? 'bg-amber-100' : 
-                          'bg-red-100'
-                        }`}>
+                        <div
+                          className={`p-2 rounded-full ${
+                            transaction.type === 'EARNING'
+                              ? 'bg-green-100'
+                              : transaction.type === 'WITHDRAWAL'
+                                ? 'bg-amber-100'
+                                : 'bg-red-100'
+                          }`}
+                        >
                           {transaction.type === 'EARNING' ? (
                             <BanknoteIcon className="h-5 w-5 text-green-600" />
                           ) : transaction.type === 'WITHDRAWAL' ? (
@@ -210,15 +206,20 @@ export default function DelivererWalletPage() {
                         <div>
                           <p className="font-medium">{transaction.description}</p>
                           <p className="text-sm text-muted-foreground">
-                            {new Date(transaction.createdAt).toLocaleDateString('fr-FR')} • {t(`transactionStatus.${transaction.status.toLowerCase()}`)}
+                            {new Date(transaction.createdAt).toLocaleDateString('fr-FR')} •{' '}
+                            {t(`transactionStatus.${transaction.status.toLowerCase()}`)}
                           </p>
                         </div>
                       </div>
-                      <p className={`font-medium ${
-                        transaction.type === 'EARNING' ? 'text-green-600' : 
-                        transaction.type === 'WITHDRAWAL' ? 'text-amber-600' : 
-                        'text-red-600'
-                      }`}>
+                      <p
+                        className={`font-medium ${
+                          transaction.type === 'EARNING'
+                            ? 'text-green-600'
+                            : transaction.type === 'WITHDRAWAL'
+                              ? 'text-amber-600'
+                              : 'text-red-600'
+                        }`}
+                      >
                         {transaction.type === 'EARNING' ? '+' : '-'}
                         {transaction.amount.toFixed(2)} €
                       </p>
@@ -232,4 +233,4 @@ export default function DelivererWalletPage() {
       </Tabs>
     </div>
   );
-} 
+}

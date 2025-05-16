@@ -29,10 +29,7 @@ export async function POST(req: NextRequest) {
       event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
     } catch (err) {
       console.error('Erreur de signature webhook:', err);
-      return NextResponse.json(
-        { error: 'Signature invalide' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Signature invalide' }, { status: 400 });
     }
 
     // Traiter l'événement selon son type
@@ -40,18 +37,12 @@ export async function POST(req: NextRequest) {
       await handleStripeEvent(event);
       return NextResponse.json({ received: true });
     } catch (error) {
-      console.error('Erreur lors du traitement de l\'événement:', error);
-      return NextResponse.json(
-        { error: 'Erreur lors du traitement' },
-        { status: 500 }
-      );
+      console.error("Erreur lors du traitement de l'événement:", error);
+      return NextResponse.json({ error: 'Erreur lors du traitement' }, { status: 500 });
     }
   } catch (error) {
     console.error('Erreur interne du webhook:', error);
-    return NextResponse.json(
-      { error: 'Erreur interne du serveur' },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 });
   }
 }
 
@@ -69,7 +60,7 @@ async function handleStripeEvent(event: Stripe.Event) {
     case 'payment_intent.payment_failed':
       await handlePaymentIntentFailed(event.data.object as Stripe.PaymentIntent);
       break;
-    
+
     // Événements liés aux abonnements
     case 'customer.subscription.created':
       await handleSubscriptionCreated(event.data.object as Stripe.Subscription);
@@ -86,7 +77,7 @@ async function handleStripeEvent(event: Stripe.Event) {
     case 'invoice.payment_failed':
       await handleInvoicePaymentFailed(event.data.object as Stripe.Invoice);
       break;
-    
+
     // Événements liés aux comptes Connect
     case 'account.updated':
       await handleConnectAccountUpdated(event.data.object as Stripe.Account);
@@ -97,7 +88,7 @@ async function handleStripeEvent(event: Stripe.Event) {
     case 'payout.failed':
       await handlePayoutFailed(event.data.object as Stripe.Payout);
       break;
-    
+
     default:
       console.log(`Événement non géré: ${event.type}`);
   }
@@ -108,7 +99,7 @@ async function handleStripeEvent(event: Stripe.Event) {
  */
 async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent) {
   const { id, metadata, amount, currency } = paymentIntent;
-  
+
   // Récupérer les métadonnées
   const userId = metadata?.userId;
   const deliveryId = metadata?.deliveryId;
@@ -122,7 +113,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
 
   // Récupérer le paiement existant ou en créer un nouveau
   const existingPayment = await db.payment.findFirst({
-    where: { paymentIntentId: id }
+    where: { paymentIntentId: id },
   });
 
   if (existingPayment) {
@@ -133,8 +124,8 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
         status: PaymentStatus.COMPLETED,
         stripePaymentId: id,
         updatedAt: new Date(),
-        receiptUrl: paymentIntent.charges?.data[0]?.receipt_url || null
-      }
+        receiptUrl: paymentIntent.charges?.data[0]?.receipt_url || null,
+      },
     });
 
     // Si c'est lié à une livraison, mettre à jour le statut
@@ -152,10 +143,10 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
           bookings: {
             updateMany: {
               where: { serviceId, paymentId: existingPayment.id },
-              data: { status: 'CONFIRMED' }
-            }
-          }
-        }
+              data: { status: 'CONFIRMED' },
+            },
+          },
+        },
       });
     }
   } else {
@@ -171,8 +162,8 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
         ...(deliveryId ? { deliveryId } : {}),
         ...(serviceId ? { serviceId } : {}),
         ...(subscriptionId ? { subscriptionId } : {}),
-        metadata: metadata || {}
-      }
+        metadata: metadata || {},
+      },
     });
   }
 }
@@ -182,10 +173,10 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
  */
 async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
   const { id } = paymentIntent;
-  
+
   // Mettre à jour le paiement en échec
   const existingPayment = await db.payment.findFirst({
-    where: { paymentIntentId: id }
+    where: { paymentIntentId: id },
   });
 
   if (existingPayment) {
@@ -193,8 +184,8 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
       where: { id: existingPayment.id },
       data: {
         status: PaymentStatus.FAILED,
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     });
 
     // Notifier l'utilisateur de l'échec du paiement
@@ -204,8 +195,8 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
         title: 'Échec de paiement',
         content: `Le paiement de ${existingPayment.amount}${existingPayment.currency} a échoué. Veuillez vérifier votre moyen de paiement.`,
         type: 'PAYMENT_FAILED',
-        isRead: false
-      }
+        isRead: false,
+      },
     });
   }
 }
@@ -218,7 +209,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
 
   // Récupérer l'utilisateur via le customer Stripe
   const user = await db.user.findFirst({
-    where: { stripeCustomerId: customer as string }
+    where: { stripeCustomerId: customer as string },
   });
 
   if (!user) {
@@ -241,8 +232,8 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
       autoRenew: subscription.cancel_at_period_end === false,
       currentPeriodStart: new Date(subscription.current_period_start * 1000),
       currentPeriodEnd: new Date(subscription.current_period_end * 1000),
-      stripePriceId: subscription.items.data[0]?.price.id
-    }
+      stripePriceId: subscription.items.data[0]?.price.id,
+    },
   });
 }
 
@@ -254,7 +245,7 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
 
   // Récupérer l'abonnement dans notre base de données
   const existingSubscription = await db.subscription.findFirst({
-    where: { stripeSubscriptionId: id }
+    where: { stripeSubscriptionId: id },
   });
 
   if (!existingSubscription) {
@@ -277,8 +268,8 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
       currentPeriodEnd: new Date(subscription.current_period_end * 1000),
       cancelAtPeriodEnd: subscription.cancel_at_period_end,
       cancelledAt: subscription.canceled_at ? new Date(subscription.canceled_at * 1000) : null,
-      stripePriceId: subscription.items.data[0]?.price.id
-    }
+      stripePriceId: subscription.items.data[0]?.price.id,
+    },
   });
 }
 
@@ -290,7 +281,7 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
 
   // Récupérer l'abonnement dans notre base de données
   const existingSubscription = await db.subscription.findFirst({
-    where: { stripeSubscriptionId: id }
+    where: { stripeSubscriptionId: id },
   });
 
   if (!existingSubscription) {
@@ -305,8 +296,8 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
       status: SubscriptionStatus.ENDED,
       endDate: new Date(),
       cancelledAt: new Date(),
-      autoRenew: false
-    }
+      autoRenew: false,
+    },
   });
 
   // Créer un abonnement gratuit pour l'utilisateur
@@ -316,8 +307,8 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
       planType: 'FREE',
       status: SubscriptionStatus.ACTIVE,
       startDate: new Date(),
-      autoRenew: true
-    }
+      autoRenew: true,
+    },
   });
 }
 
@@ -326,12 +317,12 @@ async function handleSubscriptionDeleted(subscription: Stripe.Subscription) {
  */
 async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
   const { id, customer, subscription } = invoice;
-  
+
   if (!subscription) return;
 
   // Récupérer l'utilisateur via le customer Stripe
   const user = await db.user.findFirst({
-    where: { stripeCustomerId: customer as string }
+    where: { stripeCustomerId: customer as string },
   });
 
   if (!user) {
@@ -341,7 +332,7 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
 
   // Récupérer l'abonnement dans notre base de données
   const existingSubscription = await db.subscription.findFirst({
-    where: { stripeSubscriptionId: subscription as string }
+    where: { stripeSubscriptionId: subscription as string },
   });
 
   if (!existingSubscription) {
@@ -362,8 +353,8 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
       issuedDate: new Date(invoice.created * 1000),
       paidDate: new Date(),
       stripeInvoiceId: id,
-      pdfUrl: invoice.invoice_pdf
-    }
+      pdfUrl: invoice.invoice_pdf,
+    },
   });
 
   // Ajouter les éléments de la facture
@@ -382,8 +373,8 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
         unitPrice: preTaxAmount,
         taxRate,
         taxAmount,
-        totalAmount: new Decimal(amount)
-      }
+        totalAmount: new Decimal(amount),
+      },
     });
   }
 }
@@ -393,12 +384,12 @@ async function handleInvoicePaymentSucceeded(invoice: Stripe.Invoice) {
  */
 async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
   const { customer, subscription } = invoice;
-  
+
   if (!subscription) return;
 
   // Récupérer l'utilisateur via le customer Stripe
   const user = await db.user.findFirst({
-    where: { stripeCustomerId: customer as string }
+    where: { stripeCustomerId: customer as string },
   });
 
   if (!user) {
@@ -408,7 +399,7 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
 
   // Récupérer l'abonnement dans notre base de données
   const existingSubscription = await db.subscription.findFirst({
-    where: { stripeSubscriptionId: subscription as string }
+    where: { stripeSubscriptionId: subscription as string },
   });
 
   if (!existingSubscription) {
@@ -420,19 +411,19 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
   await db.subscription.update({
     where: { id: existingSubscription.id },
     data: {
-      status: SubscriptionStatus.PAST_DUE
-    }
+      status: SubscriptionStatus.PAST_DUE,
+    },
   });
 
   // Notifier l'utilisateur
   await db.notification.create({
     data: {
       userId: user.id,
-      title: 'Paiement d\'abonnement échoué',
+      title: "Paiement d'abonnement échoué",
       content: `Le paiement de votre abonnement ${existingSubscription.planType} a échoué. Veuillez mettre à jour votre méthode de paiement pour éviter l'interruption de service.`,
       type: 'SUBSCRIPTION_PAYMENT_FAILED',
-      isRead: false
-    }
+      isRead: false,
+    },
   });
 }
 
@@ -442,7 +433,7 @@ async function handleInvoicePaymentFailed(invoice: Stripe.Invoice) {
 async function handleConnectAccountUpdated(account: Stripe.Account) {
   // Récupérer le wallet associé au compte Stripe Connect
   const wallet = await db.wallet.findFirst({
-    where: { stripeAccountId: account.id }
+    where: { stripeAccountId: account.id },
   });
 
   if (!wallet) {
@@ -455,20 +446,25 @@ async function handleConnectAccountUpdated(account: Stripe.Account) {
     where: { id: wallet.id },
     data: {
       accountVerified: account.details_submitted && !account.requirements?.disabled_reason,
-      accountType: account.type
-    }
+      accountType: account.type,
+    },
   });
 
   // Si le compte est maintenant vérifié, notifier l'utilisateur
-  if (account.details_submitted && !account.requirements?.disabled_reason && !wallet.accountVerified) {
+  if (
+    account.details_submitted &&
+    !account.requirements?.disabled_reason &&
+    !wallet.accountVerified
+  ) {
     await db.notification.create({
       data: {
         userId: wallet.userId,
         title: 'Compte de paiement vérifié',
-        content: 'Votre compte de paiement a été vérifié avec succès. Vous pouvez maintenant recevoir des paiements.',
+        content:
+          'Votre compte de paiement a été vérifié avec succès. Vous pouvez maintenant recevoir des paiements.',
         type: 'WALLET_VERIFIED',
-        isRead: false
-      }
+        isRead: false,
+      },
     });
   }
 }
@@ -480,21 +476,21 @@ async function handlePayoutCreated(payout: Stripe.Payout) {
   // Pour les payouts, nous devons lier à une demande de retrait
   // Ce code suppose qu'il y a des métadonnées sur le payout liant à withdrawalRequestId
   const { id, metadata, amount, currency, destination } = payout;
-  
+
   const withdrawalRequestId = metadata?.withdrawalRequestId;
-  
+
   if (withdrawalRequestId) {
     await db.withdrawalRequest.update({
       where: { id: withdrawalRequestId },
       data: {
         status: 'PROCESSING',
-        stripePayoutId: id
-      }
+        stripePayoutId: id,
+      },
     });
   } else {
     // Essayer de trouver le wallet par le compte destination
     const wallet = await db.wallet.findFirst({
-      where: { stripeAccountId: destination as string }
+      where: { stripeAccountId: destination as string },
     });
 
     if (wallet) {
@@ -502,13 +498,13 @@ async function handlePayoutCreated(payout: Stripe.Payout) {
       await db.walletTransaction.create({
         data: {
           walletId: wallet.id,
-          amount: new Decimal(-1 * amount / 100), // Montant négatif car c'est un retrait
+          amount: new Decimal((-1 * amount) / 100), // Montant négatif car c'est un retrait
           currency: currency.toUpperCase(),
           type: 'WITHDRAWAL',
           status: 'PENDING',
           description: 'Retrait automatique via Stripe',
-          stripeTransferId: id
-        }
+          stripeTransferId: id,
+        },
       });
     }
   }
@@ -519,22 +515,22 @@ async function handlePayoutCreated(payout: Stripe.Payout) {
  */
 async function handlePayoutFailed(payout: Stripe.Payout) {
   const { id, metadata, failure_code, failure_message } = payout;
-  
+
   const withdrawalRequestId = metadata?.withdrawalRequestId;
-  
+
   if (withdrawalRequestId) {
     await db.withdrawalRequest.update({
       where: { id: withdrawalRequestId },
       data: {
         status: 'FAILED',
-        rejectionReason: `${failure_code}: ${failure_message}`
-      }
+        rejectionReason: `${failure_code}: ${failure_message}`,
+      },
     });
 
     // Récupérer la demande complète
     const request = await db.withdrawalRequest.findUnique({
       where: { id: withdrawalRequestId },
-      include: { wallet: true }
+      include: { wallet: true },
     });
 
     if (request) {
@@ -545,15 +541,15 @@ async function handlePayoutFailed(payout: Stripe.Payout) {
           title: 'Échec du virement',
           content: `Votre demande de virement de ${request.amount} ${request.currency} a échoué: ${failure_message}`,
           type: 'WITHDRAWAL_FAILED',
-          isRead: false
-        }
+          isRead: false,
+        },
       });
     }
   } else {
     // Si nous n'avons pas de lien direct, essayer de trouver via stripePayoutId
     const withdrawalRequest = await db.withdrawalRequest.findFirst({
       where: { stripePayoutId: id },
-      include: { wallet: true }
+      include: { wallet: true },
     });
 
     if (withdrawalRequest) {
@@ -561,8 +557,8 @@ async function handlePayoutFailed(payout: Stripe.Payout) {
         where: { id: withdrawalRequest.id },
         data: {
           status: 'FAILED',
-          rejectionReason: `${failure_code}: ${failure_message}`
-        }
+          rejectionReason: `${failure_code}: ${failure_message}`,
+        },
       });
 
       // Notifier l'utilisateur
@@ -572,8 +568,8 @@ async function handlePayoutFailed(payout: Stripe.Payout) {
           title: 'Échec du virement',
           content: `Votre demande de virement de ${withdrawalRequest.amount} ${withdrawalRequest.currency} a échoué: ${failure_message}`,
           type: 'WITHDRAWAL_FAILED',
-          isRead: false
-        }
+          isRead: false,
+        },
       });
     }
   }
@@ -604,12 +600,12 @@ function getSubscriptionStatus(stripeStatus: string): SubscriptionStatus {
  */
 function getPlanTypeFromStripePriceId(priceId?: string) {
   if (!priceId) return 'FREE';
-  
+
   if (priceId === process.env.STRIPE_PRICE_STARTER) {
     return 'STARTER';
   } else if (priceId === process.env.STRIPE_PRICE_PREMIUM) {
     return 'PREMIUM';
   }
-  
+
   return 'FREE';
 }

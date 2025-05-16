@@ -1,0 +1,36 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Workflow de Développement
+
+## Ajout d'une Nouvelle Fonctionnalité
+
+### 1. Backend
+1. Définir le modèle dans [prisma/schema.prisma](mdc:prisma/schema.prisma)
+2. Créer une migration avec `npx prisma migrate dev`
+3. Créer des types dans [src/types](mdc:src/types)
+4. Créer des schémas Zod dans [src/schemas](mdc:src/schemas)
+5. Implémenter un service dans [src/server/services](mdc:src/server/services)
+6. Créer un routeur tRPC dans [src/server/api/routers](mdc:src/server/api/routers)
+7. Ajouter le routeur à [src/server/api/root.ts](mdc:src/server/api/root.ts)
+
+### 2. Frontend
+1. Créer des hooks personnalisés dans [src/hooks](mdc:src/hooks)
+2. Créer un store Zustand si nécessaire dans [src/store](mdc:src/store)
+3. Développer des composants dans [src/components](mdc:src/components)
+4. Créer des pages dans [src/app/[locale]](mdc:src/app/[locale])
+5. Ajouter des traductions dans [src/messages](mdc:src/messages)
+
+### 3. Tests
+1. Écrire des tests unitaires dans [tests/unit](mdc:tests/unit)
+2. Tester manuellement les fonctionnalités
+
+## Normes de Codage
+- Utiliser TypeScript strictement typé
+- Suivre les conventions ESLint et Prettier
+- Écrire des commentaires en français
+- Respecter l'architecture par domaine fonctionnel
+
+

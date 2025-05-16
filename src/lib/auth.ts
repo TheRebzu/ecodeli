@@ -4,4 +4,4 @@
 
 import { authOptions as nextAuthOptions } from '@/server/auth/next-auth';
 
-export const authOptions = nextAuthOptions; 
+export const authOptions = nextAuthOptions;

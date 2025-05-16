@@ -8,7 +8,14 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Loader2 } from 'lucide-react';
 import { api } from '@/trpc/react';
 import { useTranslations } from 'next-intl';
@@ -22,7 +29,9 @@ const resetPasswordSchema = z
       .regex(/[A-Z]/, { message: 'Le mot de passe doit contenir au moins une majuscule' })
       .regex(/[a-z]/, { message: 'Le mot de passe doit contenir au moins une minuscule' })
       .regex(/[0-9]/, { message: 'Le mot de passe doit contenir au moins un chiffre' })
-      .regex(/[^A-Za-z0-9]/, { message: 'Le mot de passe doit contenir au moins un caractère spécial' }),
+      .regex(/[^A-Za-z0-9]/, {
+        message: 'Le mot de passe doit contenir au moins un caractère spécial',
+      }),
     confirmPassword: z.string(),
   })
   .refine(data => data.password === data.confirmPassword, {
@@ -149,4 +158,4 @@ export function PasswordResetForm() {
       </Form>
     </div>
   );
-} 
+}

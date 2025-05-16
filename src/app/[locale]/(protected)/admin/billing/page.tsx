@@ -29,11 +29,11 @@ export default function AdminBillingPage() {
             <TabsTrigger value="history">Historique</TabsTrigger>
             <TabsTrigger value="settings">Paramètres</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="dashboard" className="mt-6">
             <BillingDashboard />
           </TabsContent>
-          
+
           <TabsContent value="history" className="mt-6">
             <Card>
               <CardContent className="pt-6">
@@ -41,21 +41,19 @@ export default function AdminBillingPage() {
                   <div className="flex justify-between items-center">
                     <h2 className="text-xl font-bold">Historique des opérations</h2>
                   </div>
-                  
+
                   <p className="text-muted-foreground">
                     L'historique des opérations de facturation sera affiché ici.
                   </p>
-                  
+
                   <div className="bg-muted p-8 rounded-md text-center">
-                    <p className="text-muted-foreground">
-                      Fonctionnalité à implémenter
-                    </p>
+                    <p className="text-muted-foreground">Fonctionnalité à implémenter</p>
                   </div>
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
-          
+
           <TabsContent value="settings" className="mt-6">
             <Card>
               <CardContent className="pt-6">
@@ -63,15 +61,13 @@ export default function AdminBillingPage() {
                   <div className="flex justify-between items-center">
                     <h2 className="text-xl font-bold">Paramètres de facturation</h2>
                   </div>
-                  
+
                   <p className="text-muted-foreground">
                     Configurez les paramètres de facturation automatique.
                   </p>
-                  
+
                   <div className="bg-muted p-8 rounded-md text-center">
-                    <p className="text-muted-foreground">
-                      Fonctionnalité à implémenter
-                    </p>
+                    <p className="text-muted-foreground">Fonctionnalité à implémenter</p>
                   </div>
                 </div>
               </CardContent>
@@ -81,4 +77,4 @@ export default function AdminBillingPage() {
       </div>
     </div>
   );
-} 
+}

@@ -1,14 +1,7 @@
-// Définition manuelle de l'enum DeliveryStatus car il n'est peut-être pas encore généré par Prisma
-export enum DeliveryStatus {
-  PENDING = 'PENDING',
-  ACCEPTED = 'ACCEPTED',
-  PICKED_UP = 'PICKED_UP',
-  IN_TRANSIT = 'IN_TRANSIT',
-  DELIVERED = 'DELIVERED',
-  CONFIRMED = 'CONFIRMED',
-  CANCELLED = 'CANCELLED',
-  DISPUTED = 'DISPUTED',
-}
+import { DeliveryStatus } from '@prisma/client';
+
+// Réexporter l'enum DeliveryStatus de Prisma pour une meilleure compatibilité
+export { DeliveryStatus };
 
 // Type pour les filtres de livraison
 export interface DeliveryFilters {

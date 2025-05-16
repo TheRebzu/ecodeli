@@ -24,16 +24,16 @@ export default function AuthLayout({ children }: Props) {
       try {
         const res = await fetch('/api/auth/session');
         const session = await res.json();
-        
+
         if (session && session.user) {
           window.location.href = `/${locale}/dashboard`;
           return;
         }
-        
+
         // Charger les messages pour le client
         const messagesRes = await fetch(`/api/i18n/messages?locale=${locale}`);
         const messagesData = await messagesRes.json();
-        
+
         setMessages(messagesData);
         setIsAuthenticated(false);
         setIsLoading(false);
@@ -43,7 +43,7 @@ export default function AuthLayout({ children }: Props) {
         setIsLoading(false);
       }
     }
-    
+
     checkAuth();
   }, [locale]);
 

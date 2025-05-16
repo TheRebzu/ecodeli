@@ -2,10 +2,10 @@ import { z } from 'zod';
 
 // Statuts possibles d'un cycle de facturation
 export const BillingCycleStatusEnum = z.enum([
-  'PENDING',   // En attente d'exécution
+  'PENDING', // En attente d'exécution
   'PROCESSING', // En cours d'exécution
-  'COMPLETED',  // Terminé avec succès
-  'FAILED'      // Échoué
+  'COMPLETED', // Terminé avec succès
+  'FAILED', // Échoué
 ]);
 
 // Schéma de base pour les cycles de facturation
@@ -18,27 +18,23 @@ export const billingCycleBaseSchema = z.object({
 });
 
 // Schéma pour la création d'un cycle de facturation
-export const createBillingCycleSchema = billingCycleBaseSchema.extend({
-  scheduledRunDate: z.date().default(() => new Date()),
-}).refine(
-  data => data.merchantId || data.providerId,
-  {
-    message: "Un ID de marchand ou de prestataire est requis",
-    path: ["merchantId"],
-  }
-).refine(
-  data => data.periodEnd > data.periodStart,
-  {
-    message: "La date de fin doit être postérieure à la date de début",
-    path: ["periodEnd"],
-  }
-).refine(
-  data => data.scheduledRunDate >= data.periodEnd,
-  {
-    message: "La date d'exécution prévue doit être postérieure ou égale à la période de facturation",
-    path: ["scheduledRunDate"],
-  }
-);
+export const createBillingCycleSchema = billingCycleBaseSchema
+  .extend({
+    scheduledRunDate: z.date().default(() => new Date()),
+  })
+  .refine(data => data.merchantId || data.providerId, {
+    message: 'Un ID de marchand ou de prestataire est requis',
+    path: ['merchantId'],
+  })
+  .refine(data => data.periodEnd > data.periodStart, {
+    message: 'La date de fin doit être postérieure à la date de début',
+    path: ['periodEnd'],
+  })
+  .refine(data => data.scheduledRunDate >= data.periodEnd, {
+    message:
+      "La date d'exécution prévue doit être postérieure ou égale à la période de facturation",
+    path: ['scheduledRunDate'],
+  });
 
 // Schéma pour la mise à jour d'un cycle de facturation
 export const updateBillingCycleSchema = z.object({
@@ -88,4 +84,4 @@ export type UpdateBillingCycleInput = z.infer<typeof updateBillingCycleSchema>;
 export type RetryBillingCycleInput = z.infer<typeof retryBillingCycleSchema>;
 export type SearchBillingCyclesInput = z.infer<typeof searchBillingCyclesSchema>;
 export type BillingStatsInput = z.infer<typeof billingStatsSchema>;
-export type BillingReportInput = z.infer<typeof billingReportSchema>; 
+export type BillingReportInput = z.infer<typeof billingReportSchema>;

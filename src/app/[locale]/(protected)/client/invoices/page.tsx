@@ -15,7 +15,7 @@ const mockInvoices: Invoice[] = [
   {
     id: 'inv-001',
     number: 'FAC-2025-001',
-    amount: 42.50,
+    amount: 42.5,
     currency: 'EUR',
     status: 'PAID',
     dueDate: new Date('2025-06-15'),
@@ -27,10 +27,10 @@ const mockInvoices: Invoice[] = [
         id: 'item-001',
         description: 'Livraison éco-responsable',
         quantity: 1,
-        unitPrice: 35.00,
+        unitPrice: 35.0,
         taxRate: 20,
-        taxAmount: 7.00,
-        totalAmount: 42.00,
+        taxAmount: 7.0,
+        totalAmount: 42.0,
       },
     ],
   },
@@ -48,26 +48,26 @@ const mockInvoices: Invoice[] = [
         id: 'item-002',
         description: 'Livraison éco-responsable',
         quantity: 1,
-        unitPrice: 35.00,
+        unitPrice: 35.0,
         taxRate: 20,
-        taxAmount: 7.00,
-        totalAmount: 42.00,
+        taxAmount: 7.0,
+        totalAmount: 42.0,
       },
       {
         id: 'item-003',
         description: 'Service de stockage temporaire',
         quantity: 2,
-        unitPrice: 10.00,
+        unitPrice: 10.0,
         taxRate: 10,
-        taxAmount: 2.00,
-        totalAmount: 22.00,
+        taxAmount: 2.0,
+        totalAmount: 22.0,
       },
     ],
   },
   {
     id: 'inv-003',
     number: 'FAC-2025-003',
-    amount: 35.00,
+    amount: 35.0,
     currency: 'EUR',
     status: 'OVERDUE',
     dueDate: new Date('2025-05-20'),
@@ -81,14 +81,14 @@ const mockInvoices: Invoice[] = [
         unitPrice: 29.17,
         taxRate: 20,
         taxAmount: 5.83,
-        totalAmount: 35.00,
+        totalAmount: 35.0,
       },
     ],
   },
   {
     id: 'inv-004',
     number: 'FAC-2025-004',
-    amount: 19.90,
+    amount: 19.9,
     currency: 'EUR',
     status: 'DRAFT',
     dueDate: new Date('2025-07-15'),
@@ -101,7 +101,7 @@ const mockInvoices: Invoice[] = [
         unitPrice: 16.58,
         taxRate: 20,
         taxAmount: 3.32,
-        totalAmount: 19.90,
+        totalAmount: 19.9,
       },
     ],
   },
@@ -113,11 +113,15 @@ export default function ClientInvoicesPage() {
   const [isDownloading, setIsDownloading] = useState<string | null>(null);
 
   // À remplacer par un appel tRPC réel
-  const { data: invoices, isLoading, error } = {
+  const {
+    data: invoices,
+    isLoading,
+    error,
+  } = {
     data: mockInvoices,
-    isLoading: false, 
-    error: null
-  }; 
+    isLoading: false,
+    error: null,
+  };
   // Décommenter pour utiliser tRPC
   // const { data: invoices, isLoading, error } = api.invoices.getClientInvoices.useQuery();
 
@@ -127,18 +131,18 @@ export default function ClientInvoicesPage() {
     try {
       // Simuler un téléchargement pour les tests
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       // Récupérer l'URL du PDF - à remplacer par l'implémentation réelle
       const invoice = mockInvoices.find(inv => inv.id === invoiceId);
       if (invoice?.pdfUrl) {
         // Dans une implémentation réelle, on redirigerait vers l'URL ou on déclencherait le téléchargement
         console.log(`Téléchargement de ${invoice.pdfUrl}`);
       }
-      
+
       // Décommenter pour utiliser tRPC
       // await api.invoices.downloadInvoice.mutate({ invoiceId });
     } catch (err) {
-      console.error("Erreur lors du téléchargement", err);
+      console.error('Erreur lors du téléchargement', err);
     } finally {
       setIsDownloading(null);
     }

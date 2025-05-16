@@ -7,10 +7,7 @@ import { getTranslations } from 'next-intl/server';
 import { PageProps, MetadataProps } from '@/types/next';
 
 // Utiliser le type correct pour les paramètres
-export async function generateMetadata({
-  params,
-  searchParams,
-}: MetadataProps): Promise<Metadata> {
+export async function generateMetadata({ params, searchParams }: MetadataProps): Promise<Metadata> {
   // Attendre la résolution des paramètres
   const resolvedParams = await params;
   const locale = resolvedParams.locale;
@@ -26,10 +23,7 @@ export async function generateMetadata({
   };
 }
 
-export default async function LoginPage({
-  params,
-  searchParams,
-}: PageProps) {
+export default async function LoginPage({ params, searchParams }: PageProps) {
   // Attendre la résolution des paramètres
   const resolvedParams = await params;
   const locale = resolvedParams.locale;

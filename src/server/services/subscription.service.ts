@@ -11,7 +11,7 @@ const getStripeClient = (): Stripe => {
   if (!_stripe) {
     const apiKey = process.env.STRIPE_SECRET_KEY;
     if (!apiKey) {
-      throw new Error('STRIPE_SECRET_KEY n\'est pas définie dans les variables d\'environnement');
+      throw new Error("STRIPE_SECRET_KEY n'est pas définie dans les variables d'environnement");
     }
     _stripe = new Stripe(apiKey, {
       maxNetworkRetries: 2,
@@ -30,28 +30,37 @@ export const SUBSCRIPTION_PLANS = {
     features: ['Accès de base à la plateforme', 'Assurance limitée (50€/envoi)'],
     discountPercent: 0,
     insuranceAmount: 50,
-    isPriority: false
+    isPriority: false,
   },
   STARTER: {
     id: 'starter',
     name: 'Starter',
-    price: 9.90,
+    price: 9.9,
     stripePriceId: process.env.STRIPE_PRICE_ID_STARTER || 'price_starter',
-    features: ['Assurance jusqu\'à 115€/envoi', 'Réduction 5% sur l\'envoi de colis', 'Support client standard'],
+    features: [
+      "Assurance jusqu'à 115€/envoi",
+      "Réduction 5% sur l'envoi de colis",
+      'Support client standard',
+    ],
     discountPercent: 5,
     insuranceAmount: 115,
-    isPriority: false
+    isPriority: false,
   },
   PREMIUM: {
     id: 'premium',
     name: 'Premium',
     price: 19.99,
     stripePriceId: process.env.STRIPE_PRICE_ID_PREMIUM || 'price_premium',
-    features: ['Assurance jusqu\'à 3000€/envoi', 'Réduction 9% sur l\'envoi de colis', 'Support prioritaire', 'Livraison express prioritaire'],
+    features: [
+      "Assurance jusqu'à 3000€/envoi",
+      "Réduction 9% sur l'envoi de colis",
+      'Support prioritaire',
+      'Livraison express prioritaire',
+    ],
     discountPercent: 9,
     insuranceAmount: 3000,
-    isPriority: true
-  }
+    isPriority: true,
+  },
 };
 
 /**
@@ -70,7 +79,7 @@ export const SubscriptionService = {
       case 'PREMIUM':
         return SUBSCRIPTION_PLANS.PREMIUM;
       default:
-        throw new Error('Plan d\'abonnement non reconnu');
+        throw new Error("Plan d'abonnement non reconnu");
     }
   },
 
@@ -81,7 +90,7 @@ export const SubscriptionService = {
     return {
       FREE: SUBSCRIPTION_PLANS.FREE,
       STARTER: SUBSCRIPTION_PLANS.STARTER,
-      PREMIUM: SUBSCRIPTION_PLANS.PREMIUM
+      PREMIUM: SUBSCRIPTION_PLANS.PREMIUM,
     };
   },
 
@@ -93,9 +102,9 @@ export const SubscriptionService = {
       where: {
         userId,
         status: {
-          in: ['ACTIVE', 'TRIAL']
-        }
-      }
+          in: ['ACTIVE', 'TRIAL'],
+        },
+      },
     });
 
     if (!subscription) {
@@ -120,9 +129,9 @@ export const SubscriptionService = {
       where: {
         userId,
         status: {
-          in: ['ACTIVE', 'TRIAL']
-        }
-      }
+          in: ['ACTIVE', 'TRIAL'],
+        },
+      },
     });
 
     if (existingSubscription) {
@@ -146,8 +155,8 @@ export const SubscriptionService = {
         planPrice: new Decimal(0),
         discountPercent: new Decimal(planDetails.discountPercent),
         insuranceAmount: new Decimal(planDetails.insuranceAmount),
-        isPriority: planDetails.isPriority
-      }
+        isPriority: planDetails.isPriority,
+      },
     });
 
     return subscription;
@@ -185,16 +194,16 @@ export const SubscriptionService = {
       where: {
         userId,
         status: {
-          in: ['ACTIVE', 'TRIAL']
-        }
-      }
+          in: ['ACTIVE', 'TRIAL'],
+        },
+      },
     });
 
     // Si un abonnement Stripe existe déjà, le mettre à jour
     if (existingSubscription?.stripeSubscriptionId) {
       const stripe = getStripeClient();
       await stripe.subscriptions.update(existingSubscription.stripeSubscriptionId, {
-        cancel_at_period_end: true
+        cancel_at_period_end: true,
       });
 
       // Mettre à jour l'abonnement dans la base de données
@@ -203,8 +212,8 @@ export const SubscriptionService = {
         data: {
           cancelAtPeriodEnd: true,
           cancelledAt: new Date(),
-          status: 'CANCELLED'
-        }
+          status: 'CANCELLED',
+        },
       });
     }
 
@@ -212,11 +221,9 @@ export const SubscriptionService = {
     const stripe = getStripeClient();
     const stripeSubscription = await stripe.subscriptions.create({
       customer: customer.id,
-      items: [
-        { price: planDetails.stripePriceId }
-      ],
+      items: [{ price: planDetails.stripePriceId }],
       default_payment_method: paymentMethodId,
-      expand: ['latest_invoice.payment_intent']
+      expand: ['latest_invoice.payment_intent'],
     });
 
     // Récupérer les périodes de facturation
@@ -242,15 +249,15 @@ export const SubscriptionService = {
         discountPercent: new Decimal(planDetails.discountPercent),
         insuranceAmount: new Decimal(planDetails.insuranceAmount),
         isPriority: planDetails.isPriority,
-        previousPlanType: existingSubscription?.planType || null
-      }
+        previousPlanType: existingSubscription?.planType || null,
+      },
     });
 
     // Enregistrer le paiement initial
     const invoice = stripeSubscription.latest_invoice as Stripe.Invoice;
     if (invoice && invoice.payment_intent) {
       const paymentIntent = invoice.payment_intent as Stripe.PaymentIntent;
-      
+
       await db.payment.create({
         data: {
           amount: new Decimal(planDetails.price),
@@ -260,8 +267,8 @@ export const SubscriptionService = {
           userId,
           stripePaymentId: paymentIntent.id,
           paymentIntentId: paymentIntent.id,
-          metadata: { type: 'subscription_payment', planType }
-        }
+          metadata: { type: 'subscription_payment', planType },
+        },
       });
     }
 
@@ -270,7 +277,7 @@ export const SubscriptionService = {
       userId,
       title: 'Abonnement activé',
       content: `Votre abonnement ${planDetails.name} a été activé avec succès.`,
-      type: 'SUBSCRIPTION_ACTIVATED'
+      type: 'SUBSCRIPTION_ACTIVATED',
     });
 
     return { subscription, stripeSubscription };
@@ -281,7 +288,7 @@ export const SubscriptionService = {
    */
   async cancelSubscription(subscriptionId: string, cancelImmediately = false) {
     const subscription = await db.subscription.findUnique({
-      where: { id: subscriptionId }
+      where: { id: subscriptionId },
     });
 
     if (!subscription) {
@@ -289,7 +296,7 @@ export const SubscriptionService = {
     }
 
     if (subscription.status !== 'ACTIVE' && subscription.status !== 'TRIAL') {
-      throw new Error('Cet abonnement n\'est pas actif');
+      throw new Error("Cet abonnement n'est pas actif");
     }
 
     // Si c'est un abonnement gratuit, le mettre à jour dans la base de données seulement
@@ -300,8 +307,8 @@ export const SubscriptionService = {
           status: 'CANCELLED',
           autoRenew: false,
           cancelAtPeriodEnd: true,
-          cancelledAt: new Date()
-        }
+          cancelledAt: new Date(),
+        },
       });
 
       // Créer automatiquement un nouvel abonnement FREE
@@ -312,11 +319,11 @@ export const SubscriptionService = {
 
     // Pour les abonnements payants, annuler via Stripe
     if (!subscription.stripeSubscriptionId) {
-      throw new Error('Identifiant d\'abonnement Stripe manquant');
+      throw new Error("Identifiant d'abonnement Stripe manquant");
     }
 
     const stripe = getStripeClient();
-    
+
     if (cancelImmediately) {
       // Annulation immédiate
       const canceledSubscription = await stripe.subscriptions.cancel(
@@ -329,8 +336,8 @@ export const SubscriptionService = {
           status: 'CANCELLED',
           autoRenew: false,
           cancelAtPeriodEnd: false,
-          cancelledAt: new Date()
-        }
+          cancelledAt: new Date(),
+        },
       });
 
       // Créer automatiquement un nouvel abonnement FREE
@@ -348,11 +355,15 @@ export const SubscriptionService = {
         where: { id: subscriptionId },
         data: {
           cancelAtPeriodEnd: true,
-          cancelledAt: new Date()
-        }
+          cancelledAt: new Date(),
+        },
       });
 
-      return { success: true, message: 'Abonnement sera annulé à la fin de la période', updatedSubscription };
+      return {
+        success: true,
+        message: 'Abonnement sera annulé à la fin de la période',
+        updatedSubscription,
+      };
     }
   },
 
@@ -361,7 +372,7 @@ export const SubscriptionService = {
    */
   async changePlan(subscriptionId: string, newPlanType: PlanType, paymentMethodId?: string) {
     const subscription = await db.subscription.findUnique({
-      where: { id: subscriptionId }
+      where: { id: subscriptionId },
     });
 
     if (!subscription) {
@@ -369,12 +380,15 @@ export const SubscriptionService = {
     }
 
     if (subscription.status !== 'ACTIVE' && subscription.status !== 'TRIAL') {
-      throw new Error('Cet abonnement n\'est pas actif');
+      throw new Error("Cet abonnement n'est pas actif");
     }
 
     // Si le plan est le même, ne rien faire
     if (subscription.planType === newPlanType) {
-      return { success: true, message: 'Aucun changement nécessaire, l\'utilisateur utilise déjà ce plan' };
+      return {
+        success: true,
+        message: "Aucun changement nécessaire, l'utilisateur utilise déjà ce plan",
+      };
     }
 
     // Traitement spécial pour le passage de/vers FREE
@@ -388,26 +402,32 @@ export const SubscriptionService = {
 
     if (subscription.planType === 'FREE') {
       // Passer de FREE à un plan payant est traité comme une nouvelle souscription
-      const result = await this.subscribeToNewPlan(subscription.userId, newPlanType, paymentMethodId || '');
+      const result = await this.subscribeToNewPlan(
+        subscription.userId,
+        newPlanType,
+        paymentMethodId || ''
+      );
       return { success: true, subscription: result.subscription };
     }
 
     // Pour les changements entre plans payants, mettre à jour via Stripe
     if (!subscription.stripeSubscriptionId) {
-      throw new Error('Identifiant d\'abonnement Stripe manquant');
+      throw new Error("Identifiant d'abonnement Stripe manquant");
     }
 
     const newPlanDetails = this.getPlanDetails(newPlanType);
-    
+
     if (!newPlanDetails.stripePriceId) {
       throw new Error('Identifiant de prix Stripe non configuré pour ce plan');
     }
 
     const stripe = getStripeClient();
-    
+
     // Récupérer l'abonnement Stripe
-    const stripeSubscription = await stripe.subscriptions.retrieve(subscription.stripeSubscriptionId);
-    
+    const stripeSubscription = await stripe.subscriptions.retrieve(
+      subscription.stripeSubscriptionId
+    );
+
     // Mettre à jour l'abonnement avec le nouveau prix
     const updatedSubscription = await stripe.subscriptions.update(
       subscription.stripeSubscriptionId,
@@ -419,7 +439,7 @@ export const SubscriptionService = {
           },
         ],
         proration_behavior: 'create_prorations',
-        ...(paymentMethodId ? { default_payment_method: paymentMethodId } : {})
+        ...(paymentMethodId ? { default_payment_method: paymentMethodId } : {}),
       }
     );
 
@@ -437,26 +457,26 @@ export const SubscriptionService = {
         insuranceAmount: new Decimal(newPlanDetails.insuranceAmount),
         isPriority: newPlanDetails.isPriority,
         previousPlanType: subscription.planType,
-        planChangedAt: new Date()
-      }
+        planChangedAt: new Date(),
+      },
     });
 
     // Déterminer si c'est un upgrade ou downgrade
-    const isUpgrade = newPlanType === 'PREMIUM' || 
-                     (newPlanType === 'STARTER' && subscription.planType === 'FREE');
+    const isUpgrade =
+      newPlanType === 'PREMIUM' || (newPlanType === 'STARTER' && subscription.planType === 'FREE');
 
     // Notifier l'utilisateur
     await NotificationService.sendNotification({
       userId: subscription.userId,
       title: isUpgrade ? 'Plan mis à niveau' : 'Plan modifié',
       content: `Votre abonnement a été ${isUpgrade ? 'mis à niveau' : 'modifié'} vers le plan ${newPlanDetails.name}.`,
-      type: isUpgrade ? 'SUBSCRIPTION_UPGRADED' : 'SUBSCRIPTION_CHANGED'
+      type: isUpgrade ? 'SUBSCRIPTION_UPGRADED' : 'SUBSCRIPTION_CHANGED',
     });
 
-    return { 
-      success: true, 
+    return {
+      success: true,
       subscription: dbUpdatedSubscription,
-      stripeSubscription: updatedSubscription 
+      stripeSubscription: updatedSubscription,
     };
   },
 
@@ -465,7 +485,7 @@ export const SubscriptionService = {
    */
   async updatePaymentMethod(subscriptionId: string, paymentMethodId: string) {
     const subscription = await db.subscription.findUnique({
-      where: { id: subscriptionId }
+      where: { id: subscriptionId },
     });
 
     if (!subscription) {
@@ -473,16 +493,16 @@ export const SubscriptionService = {
     }
 
     if (!subscription.stripeSubscriptionId) {
-      throw new Error('Identifiant d\'abonnement Stripe manquant');
+      throw new Error("Identifiant d'abonnement Stripe manquant");
     }
 
     const stripe = getStripeClient();
-    
+
     // Mettre à jour l'abonnement Stripe avec le nouveau moyen de paiement
     const updatedSubscription = await stripe.subscriptions.update(
       subscription.stripeSubscriptionId,
       {
-        default_payment_method: paymentMethodId
+        default_payment_method: paymentMethodId,
       }
     );
 
@@ -494,15 +514,15 @@ export const SubscriptionService = {
    */
   async handleSubscriptionWebhook(event: any) {
     const stripe = getStripeClient();
-    
+
     switch (event.type) {
       case 'customer.subscription.created':
       case 'customer.subscription.updated': {
         const subscription = event.data.object as Stripe.Subscription;
-        
+
         // Trouver l'abonnement dans la base de données
         const dbSubscription = await db.subscription.findFirst({
-          where: { stripeSubscriptionId: subscription.id }
+          where: { stripeSubscriptionId: subscription.id },
         });
 
         if (!dbSubscription) {
@@ -518,19 +538,19 @@ export const SubscriptionService = {
             currentPeriodStart: new Date(subscription.current_period_start * 1000),
             currentPeriodEnd: new Date(subscription.current_period_end * 1000),
             cancelAtPeriodEnd: subscription.cancel_at_period_end,
-            updatedAt: new Date()
-          }
+            updatedAt: new Date(),
+          },
         });
 
         return { success: true };
       }
-      
+
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as Stripe.Subscription;
-        
+
         // Trouver l'abonnement dans la base de données
         const dbSubscription = await db.subscription.findFirst({
-          where: { stripeSubscriptionId: subscription.id }
+          where: { stripeSubscriptionId: subscription.id },
         });
 
         if (!dbSubscription) {
@@ -543,8 +563,8 @@ export const SubscriptionService = {
           data: {
             status: 'CANCELLED',
             cancelledAt: new Date(),
-            updatedAt: new Date()
-          }
+            updatedAt: new Date(),
+          },
         });
 
         // Créer automatiquement un nouvel abonnement FREE
@@ -552,17 +572,17 @@ export const SubscriptionService = {
 
         return { success: true };
       }
-      
+
       case 'invoice.payment_succeeded': {
         const invoice = event.data.object as Stripe.Invoice;
-        
+
         if (!invoice.subscription) {
           return { success: true, message: 'Invoice sans abonnement' };
         }
 
         // Trouver l'abonnement dans la base de données
         const dbSubscription = await db.subscription.findFirst({
-          where: { stripeSubscriptionId: invoice.subscription as string }
+          where: { stripeSubscriptionId: invoice.subscription as string },
         });
 
         if (!dbSubscription) {
@@ -580,11 +600,11 @@ export const SubscriptionService = {
               userId: dbSubscription.userId,
               stripePaymentId: invoice.payment_intent as string,
               paymentIntentId: invoice.payment_intent as string,
-              metadata: { 
-                type: 'subscription_payment', 
-                invoiceId: invoice.id 
-              }
-            }
+              metadata: {
+                type: 'subscription_payment',
+                invoiceId: invoice.id,
+              },
+            },
           });
         }
 
@@ -593,23 +613,23 @@ export const SubscriptionService = {
           where: { id: dbSubscription.id },
           data: {
             status: 'ACTIVE',
-            updatedAt: new Date()
-          }
+            updatedAt: new Date(),
+          },
         });
 
         return { success: true };
       }
-      
+
       case 'invoice.payment_failed': {
         const invoice = event.data.object as Stripe.Invoice;
-        
+
         if (!invoice.subscription) {
           return { success: true, message: 'Invoice sans abonnement' };
         }
 
         // Trouver l'abonnement dans la base de données
         const dbSubscription = await db.subscription.findFirst({
-          where: { stripeSubscriptionId: invoice.subscription as string }
+          where: { stripeSubscriptionId: invoice.subscription as string },
         });
 
         if (!dbSubscription) {
@@ -621,21 +641,22 @@ export const SubscriptionService = {
           where: { id: dbSubscription.id },
           data: {
             status: 'PAST_DUE',
-            updatedAt: new Date()
-          }
+            updatedAt: new Date(),
+          },
         });
 
         // Notifier l'utilisateur
         await NotificationService.sendNotification({
           userId: dbSubscription.userId,
           title: 'Paiement échoué',
-          content: 'Le paiement de votre abonnement a échoué. Veuillez mettre à jour vos informations de paiement.',
-          type: 'PAYMENT_FAILED'
+          content:
+            'Le paiement de votre abonnement a échoué. Veuillez mettre à jour vos informations de paiement.',
+          type: 'PAYMENT_FAILED',
         });
 
         return { success: true };
       }
-      
+
       default:
         return { success: true, message: `Événement non traité: ${event.type}` };
     }
@@ -659,5 +680,5 @@ export const SubscriptionService = {
       default:
         return 'ACTIVE';
     }
-  }
+  },
 };

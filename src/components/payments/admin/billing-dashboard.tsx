@@ -1,7 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
@@ -20,7 +27,7 @@ import { cn } from '@/lib/utils';
 export default function BillingDashboard() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
-  
+
   const {
     isLoading,
     billingStats,
@@ -60,7 +67,7 @@ export default function BillingDashboard() {
               <Calendar
                 mode="single"
                 selected={selectedDate}
-                onSelect={(date) => date && setSelectedDate(date)}
+                onSelect={date => date && setSelectedDate(date)}
                 initialFocus
               />
               <div className="p-3 border-t flex justify-end">
@@ -73,13 +80,15 @@ export default function BillingDashboard() {
         </div>
       </div>
 
-      <Alert variant={isToday(currentMonthStart) ? "destructive" : "default"}>
+      <Alert variant={isToday(currentMonthStart) ? 'destructive' : 'default'}>
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>Période de facturation</AlertTitle>
         <AlertDescription>
           La facturation mensuelle concerne la période: <strong>{billingPeriod}</strong>
           {isToday(currentMonthStart) && (
-            <p className="mt-1 font-semibold">Nous sommes au début du mois! Il est temps de lancer la facturation mensuelle.</p>
+            <p className="mt-1 font-semibold">
+              Nous sommes au début du mois! Il est temps de lancer la facturation mensuelle.
+            </p>
           )}
         </AlertDescription>
       </Alert>
@@ -109,11 +118,14 @@ export default function BillingDashboard() {
                   <div className="space-y-1">
                     <p className="text-sm text-muted-foreground">Montant</p>
                     <p className="text-2xl font-bold">
-                      {new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(billingStats?.totalBilled || 0)}
+                      {new Intl.NumberFormat('fr-FR', {
+                        style: 'currency',
+                        currency: 'EUR',
+                      }).format(billingStats?.totalBilled || 0)}
                     </p>
                   </div>
                 </div>
-                
+
                 <div className="space-y-1">
                   <div className="flex justify-between">
                     <span className="text-sm">En attente</span>
@@ -132,7 +144,11 @@ export default function BillingDashboard() {
             )}
           </CardContent>
           <CardFooter>
-            <Button variant="outline" className="w-full" onClick={() => window.location.href = '/admin/billing/reports'}>
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => (window.location.href = '/admin/billing/reports')}
+            >
               Voir tous les rapports
             </Button>
           </CardFooter>
@@ -146,8 +162,8 @@ export default function BillingDashboard() {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="space-y-2">
-              <Button 
-                variant="default" 
+              <Button
+                variant="default"
                 className="w-full"
                 onClick={() => runMonthlyBilling()}
                 disabled={isLoading}
@@ -155,9 +171,9 @@ export default function BillingDashboard() {
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Lancer la facturation mensuelle
               </Button>
-              
-              <Button 
-                variant="secondary" 
+
+              <Button
+                variant="secondary"
                 className="w-full"
                 onClick={() => scheduleMonthlyCycles()}
                 disabled={isLoading}
@@ -165,9 +181,9 @@ export default function BillingDashboard() {
                 {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                 Planifier les cycles (aujourd'hui)
               </Button>
-              
-              <Button 
-                variant="secondary" 
+
+              <Button
+                variant="secondary"
                 className="w-full"
                 onClick={() => executeScheduledCycles()}
                 disabled={isLoading}
@@ -176,7 +192,7 @@ export default function BillingDashboard() {
                 Exécuter les cycles planifiés
               </Button>
             </div>
-            
+
             <div className="rounded-md bg-muted p-3">
               <p className="text-sm text-muted-foreground">
                 Ces actions peuvent prendre plusieurs minutes selon le nombre d'utilisateurs.
@@ -197,8 +213,8 @@ export default function BillingDashboard() {
             <CardDescription>Rappels et virements</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               className="w-full"
               onClick={() => sendPaymentReminders()}
               disabled={isLoading}
@@ -206,9 +222,9 @@ export default function BillingDashboard() {
               {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Envoyer rappels factures impayées
             </Button>
-            
-            <Button 
-              variant="outline" 
+
+            <Button
+              variant="outline"
               className="w-full"
               onClick={() => processAutomaticPayouts()}
               disabled={isLoading}
@@ -219,7 +235,8 @@ export default function BillingDashboard() {
           </CardContent>
           <CardFooter>
             <div className="text-xs text-muted-foreground w-full">
-              Ces opérations sont normalement exécutées par le CRON mais peuvent être lancées manuellement.
+              Ces opérations sont normalement exécutées par le CRON mais peuvent être lancées
+              manuellement.
             </div>
           </CardFooter>
         </Card>
@@ -240,11 +257,16 @@ export default function BillingDashboard() {
             ) : billingStats?.cycleStats && Object.keys(billingStats.cycleStats).length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {Object.entries(billingStats.cycleStats).map(([status, count]) => (
-                  <div key={status} className="flex items-center justify-between p-3 rounded-lg border">
+                  <div
+                    key={status}
+                    className="flex items-center justify-between p-3 rounded-lg border"
+                  >
                     <div className="flex items-center gap-2">
                       {status === 'COMPLETED' && <CheckCircle className="h-5 w-5 text-green-500" />}
                       {status === 'FAILED' && <XCircle className="h-5 w-5 text-red-500" />}
-                      {status === 'PROCESSING' && <RefreshCw className="h-5 w-5 text-blue-500 animate-spin" />}
+                      {status === 'PROCESSING' && (
+                        <RefreshCw className="h-5 w-5 text-blue-500 animate-spin" />
+                      )}
                       {status === 'PENDING' && <AlertCircle className="h-5 w-5 text-yellow-500" />}
                       <span className="font-medium">
                         {status === 'COMPLETED' && 'Terminés'}
@@ -253,12 +275,17 @@ export default function BillingDashboard() {
                         {status === 'PENDING' && 'En attente'}
                       </span>
                     </div>
-                    <Badge variant={
-                      status === 'COMPLETED' ? 'default' : 
-                      status === 'FAILED' ? 'destructive' : 
-                      status === 'PROCESSING' ? 'secondary' : 
-                      'outline'
-                    }>
+                    <Badge
+                      variant={
+                        status === 'COMPLETED'
+                          ? 'default'
+                          : status === 'FAILED'
+                            ? 'destructive'
+                            : status === 'PROCESSING'
+                              ? 'secondary'
+                              : 'outline'
+                      }
+                    >
                       {count}
                     </Badge>
                   </div>
@@ -272,10 +299,10 @@ export default function BillingDashboard() {
           </div>
         </CardContent>
         <CardFooter>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="w-full"
-            onClick={() => window.location.href = '/admin/billing/cycles'}
+            onClick={() => (window.location.href = '/admin/billing/cycles')}
           >
             Gérer les cycles de facturation
           </Button>
@@ -283,4 +310,4 @@ export default function BillingDashboard() {
       </Card>
     </div>
   );
-} 
+}

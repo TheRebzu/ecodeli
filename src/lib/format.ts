@@ -7,11 +7,15 @@ import { fr, enUS } from 'date-fns/locale';
  * @param formatStyle Format de date ('short', 'medium', 'long' ou 'full')
  * @param locale Locale pour le formatage (fr-FR par défaut)
  */
-export function formatDate(date: Date | string, formatStyle: 'short' | 'medium' | 'long' | 'full' = 'medium', locale: string = 'fr-FR'): string {
+export function formatDate(
+  date: Date | string,
+  formatStyle: 'short' | 'medium' | 'long' | 'full' = 'medium',
+  locale: string = 'fr-FR'
+): string {
   if (typeof date === 'string') {
     date = new Date(date);
   }
-  
+
   return new Intl.DateTimeFormat(locale, {
     dateStyle: formatStyle,
   }).format(date);
@@ -23,11 +27,15 @@ export function formatDate(date: Date | string, formatStyle: 'short' | 'medium' 
  * @param formatStyle Format ('short', 'medium', 'long' ou 'full')
  * @param locale Locale pour le formatage (fr-FR par défaut)
  */
-export function formatDateTime(date: Date | string, formatStyle: 'short' | 'medium' | 'long' | 'full' = 'medium', locale: string = 'fr-FR'): string {
+export function formatDateTime(
+  date: Date | string,
+  formatStyle: 'short' | 'medium' | 'long' | 'full' = 'medium',
+  locale: string = 'fr-FR'
+): string {
   if (typeof date === 'string') {
     date = new Date(date);
   }
-  
+
   return new Intl.DateTimeFormat(locale, {
     dateStyle: formatStyle,
     timeStyle: formatStyle,
@@ -40,11 +48,15 @@ export function formatDateTime(date: Date | string, formatStyle: 'short' | 'medi
  * @param formatString Format de date (ex: 'yyyy-MM-dd')
  * @param localeStr Locale ('fr' ou 'en')
  */
-export function formatDateCustom(date: Date | string, formatString: string, localeStr: string = 'fr'): string {
+export function formatDateCustom(
+  date: Date | string,
+  formatString: string,
+  localeStr: string = 'fr'
+): string {
   if (typeof date === 'string') {
     date = new Date(date);
   }
-  
+
   return format(date, formatString, {
     locale: localeStr === 'fr' ? fr : enUS,
   });
@@ -81,7 +93,11 @@ export function formatDuration(minutes: number): string {
  * @param locale Locale pour le formatage (fr-FR par défaut)
  * @returns Le montant formaté
  */
-export function formatCurrency(amount: number, currency: string = 'EUR', locale: string = 'fr-FR'): string {
+export function formatCurrency(
+  amount: number,
+  currency: string = 'EUR',
+  locale: string = 'fr-FR'
+): string {
   return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency,
@@ -113,7 +129,7 @@ export function formatTime(date: Date | string, locale: string = 'fr-FR'): strin
   if (typeof date === 'string') {
     date = new Date(date);
   }
-  
+
   return new Intl.DateTimeFormat(locale, {
     hour: 'numeric',
     minute: 'numeric',
@@ -126,15 +142,19 @@ export function formatTime(date: Date | string, locale: string = 'fr-FR'): strin
  * @param locale Locale ('fr' ou 'en')
  * @param formatString Format optionnel (si non fourni, utilise le format par défaut de la locale)
  */
-export function formatDateLocalized(date: Date | string, locale: string = 'fr', formatString?: string): string {
+export function formatDateLocalized(
+  date: Date | string,
+  locale: string = 'fr',
+  formatString?: string
+): string {
   if (typeof date === 'string') {
     date = new Date(date);
   }
-  
+
   if (formatString) {
     return formatDateCustom(date, formatString, locale);
   }
-  
+
   // Format par défaut selon la locale
   const defaultFormat = locale === 'fr' ? 'dd/MM/yyyy' : 'MM/dd/yyyy';
   return formatDateCustom(date, defaultFormat, locale);

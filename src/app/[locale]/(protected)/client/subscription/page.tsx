@@ -6,18 +6,25 @@ import { api } from '@/trpc/react';
 import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { 
-  AlertCircle, 
-  Check, 
-  CheckCircle2, 
-  Clock, 
-  CreditCard, 
-  Gift, 
-  Shield, 
-  Star, 
-  X 
+import {
+  AlertCircle,
+  Check,
+  CheckCircle2,
+  Clock,
+  CreditCard,
+  Gift,
+  Shield,
+  Star,
+  X,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -28,7 +35,7 @@ import { formatCurrency, formatDate } from '@/lib/format';
 enum SubscriptionPlan {
   FREE = 'FREE',
   STARTER = 'STARTER',
-  PREMIUM = 'PREMIUM'
+  PREMIUM = 'PREMIUM',
 }
 
 interface Subscription {
@@ -50,7 +57,7 @@ interface Subscription {
     lastFour?: string;
     expiryDate?: string;
     brand?: string;
-  }
+  };
 }
 
 // Données mockées pour les plans d'abonnement
@@ -63,7 +70,7 @@ const subscriptionPlans = [
     period: 'month',
     features: [
       { name: 'Livraison standard', included: true },
-      { name: 'Jusqu\'à 5 colis par mois', included: true },
+      { name: "Jusqu'à 5 colis par mois", included: true },
       { name: 'Accès aux livreurs standards', included: true },
       { name: 'Délai de livraison: 24-48h', included: true },
       { name: 'Support client par email', included: true },
@@ -76,7 +83,7 @@ const subscriptionPlans = [
     popular: false,
     cta: 'Plan Actuel',
     ctaDisabled: true,
-    type: SubscriptionPlan.FREE
+    type: SubscriptionPlan.FREE,
   },
   {
     id: 'plan_starter',
@@ -86,7 +93,7 @@ const subscriptionPlans = [
     period: 'month',
     features: [
       { name: 'Livraison standard', included: true },
-      { name: 'Jusqu\'à 15 colis par mois', included: true },
+      { name: "Jusqu'à 15 colis par mois", included: true },
       { name: 'Accès aux livreurs standards', included: true },
       { name: 'Délai de livraison: 12-24h', included: true },
       { name: 'Support client par email et téléphone', included: true },
@@ -99,7 +106,7 @@ const subscriptionPlans = [
     popular: true,
     cta: 'Passer au plan Starter',
     ctaDisabled: false,
-    type: SubscriptionPlan.STARTER
+    type: SubscriptionPlan.STARTER,
   },
   {
     id: 'plan_premium',
@@ -122,8 +129,8 @@ const subscriptionPlans = [
     popular: false,
     cta: 'Passer au plan Premium',
     ctaDisabled: false,
-    type: SubscriptionPlan.PREMIUM
-  }
+    type: SubscriptionPlan.PREMIUM,
+  },
 ];
 
 // Mock de l'abonnement actuel
@@ -149,10 +156,14 @@ export default function ClientSubscriptionPage() {
   const [confirmCancel, setConfirmCancel] = useState(false);
 
   // À remplacer par un appel tRPC réel
-  const { data: subscription, isLoading, error } = {
+  const {
+    data: subscription,
+    isLoading,
+    error,
+  } = {
     data: mockSubscription,
     isLoading: false,
-    error: null
+    error: null,
   };
   // Décommenter pour utiliser tRPC
   // const { data: subscription, isLoading, error } = api.subscription.getCurrentSubscription.useQuery();
@@ -167,10 +178,10 @@ export default function ClientSubscriptionPage() {
     try {
       // Simuler un délai réseau
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       // Rediriger vers la page de paiement
       router.push(`/client/payments/subscription?plan=${planType}`);
-      
+
       // Décommenter pour utiliser tRPC
       // await api.subscription.createCheckoutSession.mutate({ planType });
     } catch (err) {
@@ -190,13 +201,13 @@ export default function ClientSubscriptionPage() {
     try {
       // Simuler un délai réseau
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       // Décommenter pour utiliser tRPC
       // await api.subscription.cancelSubscription.mutate();
-      
+
       // Simuler une mise à jour locale
       setConfirmCancel(false);
-      
+
       // Dans une vraie app, on rechargerait les données ou redirigerait l'utilisateur
     } catch (err) {
       console.error("Erreur lors de l'annulation de l'abonnement", err);
@@ -206,7 +217,8 @@ export default function ClientSubscriptionPage() {
   };
 
   // Trouver le plan d'abonnement actuel de l'utilisateur
-  const currentPlan = subscriptionPlans.find(plan => plan.type === subscription?.plan) || subscriptionPlans[0];
+  const currentPlan =
+    subscriptionPlans.find(plan => plan.type === subscription?.plan) || subscriptionPlans[0];
 
   // Gérer les erreurs
   if (error) {
@@ -214,7 +226,11 @@ export default function ClientSubscriptionPage() {
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
         <AlertTitle>{t('error')}</AlertTitle>
-        <AlertDescription>{typeof error === 'object' && error !== null ? (error as any).message || t('unknownError') : t('unknownError')}</AlertDescription>
+        <AlertDescription>
+          {typeof error === 'object' && error !== null
+            ? (error as any).message || t('unknownError')
+            : t('unknownError')}
+        </AlertDescription>
       </Alert>
     );
   }
@@ -233,25 +249,34 @@ export default function ClientSubscriptionPage() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
-                  <CardTitle>{t('currentPlan')}: {t(`plans.${subscription.plan.toLowerCase()}.name`)}</CardTitle>
+                  <CardTitle>
+                    {t('currentPlan')}: {t(`plans.${subscription.plan.toLowerCase()}.name`)}
+                  </CardTitle>
                   <CardDescription>
                     {subscription.plan !== SubscriptionPlan.FREE ? (
                       <>
-                        {subscription.cancelAtPeriodEnd 
+                        {subscription.cancelAtPeriodEnd
                           ? t('willCancelOn', { date: formatDate(subscription.currentPeriodEnd) })
-                          : t('renewsOn', { date: formatDate(subscription.currentPeriodEnd) })
-                        }
+                          : t('renewsOn', { date: formatDate(subscription.currentPeriodEnd) })}
                       </>
                     ) : (
                       t('freePlanDescription')
                     )}
                   </CardDescription>
                 </div>
-                <Badge 
-                  variant={subscription.status === 'ACTIVE' ? 'default' : subscription.status === 'CANCELLED' ? 'destructive' : 'outline'}
+                <Badge
+                  variant={
+                    subscription.status === 'ACTIVE'
+                      ? 'default'
+                      : subscription.status === 'CANCELLED'
+                        ? 'destructive'
+                        : 'outline'
+                  }
                   className="ml-auto"
                 >
-                  {subscription.status === 'ACTIVE' && <CheckCircle2 className="h-3.5 w-3.5 mr-1" />}
+                  {subscription.status === 'ACTIVE' && (
+                    <CheckCircle2 className="h-3.5 w-3.5 mr-1" />
+                  )}
                   {subscription.status === 'CANCELLED' && <X className="h-3.5 w-3.5 mr-1" />}
                   {subscription.status === 'PENDING' && <Clock className="h-3.5 w-3.5 mr-1" />}
                   {t(`status.${subscription.status.toLowerCase()}`)}
@@ -269,80 +294,86 @@ export default function ClientSubscriptionPage() {
                   </div>
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">{t('nextBillingDate')}:</span>
-                    <span className="font-medium">
-                      {formatDate(subscription.currentPeriodEnd)}
-                    </span>
+                    <span className="font-medium">{formatDate(subscription.currentPeriodEnd)}</span>
                   </div>
-                  
+
                   {subscription.paymentMethod && (
                     <div className="flex justify-between">
                       <span className="text-muted-foreground">{t('paymentMethod')}:</span>
                       <span className="font-medium flex items-center">
                         <CreditCard className="h-4 w-4 mr-1" />
-                        {subscription.paymentMethod.type === 'CARD' && subscription.paymentMethod.brand && (
-                          <>
-                            {subscription.paymentMethod.brand.toUpperCase()} 
-                            •••• {subscription.paymentMethod.lastFour} 
-                            {subscription.paymentMethod.expiryDate && ` (${subscription.paymentMethod.expiryDate})`}
-                          </>
-                        )}
+                        {subscription.paymentMethod.type === 'CARD' &&
+                          subscription.paymentMethod.brand && (
+                            <>
+                              {subscription.paymentMethod.brand.toUpperCase()}
+                              •••• {subscription.paymentMethod.lastFour}
+                              {subscription.paymentMethod.expiryDate &&
+                                ` (${subscription.paymentMethod.expiryDate})`}
+                            </>
+                          )}
                         {subscription.paymentMethod.type === 'PAYPAL' && 'PayPal'}
                       </span>
                     </div>
                   )}
-                  
-                  {!subscription.cancelAtPeriodEnd && subscription.plan !== SubscriptionPlan.FREE && (
-                    <div className="pt-2">
-                      {confirmCancel ? (
-                        <div className="space-y-2">
-                          <p className="text-sm text-amber-600">{t('cancelConfirmation')}</p>
-                          <div className="flex space-x-2">
-                            <Button 
-                              variant="destructive" 
-                              size="sm" 
-                              onClick={handleCancelSubscription}
-                              disabled={isProcessing}
-                            >
-                              {t('confirmCancel')}
-                            </Button>
-                            <Button 
-                              variant="outline" 
-                              size="sm" 
-                              onClick={() => setConfirmCancel(false)}
-                              disabled={isProcessing}
-                            >
-                              {t('keepSubscription')}
-                            </Button>
+
+                  {!subscription.cancelAtPeriodEnd &&
+                    subscription.plan !== SubscriptionPlan.FREE && (
+                      <div className="pt-2">
+                        {confirmCancel ? (
+                          <div className="space-y-2">
+                            <p className="text-sm text-amber-600">{t('cancelConfirmation')}</p>
+                            <div className="flex space-x-2">
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={handleCancelSubscription}
+                                disabled={isProcessing}
+                              >
+                                {t('confirmCancel')}
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setConfirmCancel(false)}
+                                disabled={isProcessing}
+                              >
+                                {t('keepSubscription')}
+                              </Button>
+                            </div>
                           </div>
-                        </div>
-                      ) : (
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => setConfirmCancel(true)}
-                        >
-                          {t('cancelSubscription')}
-                        </Button>
-                      )}
-                    </div>
-                  )}
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setConfirmCancel(true)}
+                          >
+                            {t('cancelSubscription')}
+                          </Button>
+                        )}
+                      </div>
+                    )}
                 </div>
               </CardContent>
             )}
           </Card>
         )}
 
-        <Tabs defaultValue="plans" className="w-full pt-4" value={activeTab} onValueChange={setActiveTab}>
+        <Tabs
+          defaultValue="plans"
+          className="w-full pt-4"
+          value={activeTab}
+          onValueChange={setActiveTab}
+        >
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="plans">{t('plans')}</TabsTrigger>
             <TabsTrigger value="history">{t('billingHistory')}</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="plans" className="pt-4">
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {subscriptionPlans.map((plan) => (
-                <Card 
-                  key={plan.id} 
+              {subscriptionPlans.map(plan => (
+                <Card
+                  key={plan.id}
                   className={`flex flex-col ${plan.popular ? 'border-primary shadow-md' : ''}`}
                 >
                   {plan.popular && (
@@ -353,13 +384,15 @@ export default function ClientSubscriptionPage() {
                       </Badge>
                     </div>
                   )}
-                  
+
                   <CardHeader>
                     <CardTitle className="flex items-center gap-2">
-                      {plan.name === 'Gratuit' && <Gift className="h-5 w-5 text-muted-foreground" />}
+                      {plan.name === 'Gratuit' && (
+                        <Gift className="h-5 w-5 text-muted-foreground" />
+                      )}
                       {plan.name === 'Starter' && <Shield className="h-5 w-5 text-blue-500" />}
                       {plan.name === 'Premium' && <Star className="h-5 w-5 text-amber-500" />}
-                      
+
                       {plan.name}
                     </CardTitle>
                     <div className="flex items-baseline">
@@ -381,7 +414,9 @@ export default function ClientSubscriptionPage() {
                           ) : (
                             <X className="h-4 w-4 mt-0.5 text-muted-foreground" />
                           )}
-                          <span className={feature.included ? '' : 'text-muted-foreground line-through'}>
+                          <span
+                            className={feature.included ? '' : 'text-muted-foreground line-through'}
+                          >
                             {feature.name}
                           </span>
                         </li>
@@ -389,9 +424,9 @@ export default function ClientSubscriptionPage() {
                     </ul>
                   </CardContent>
                   <CardFooter className="pt-4">
-                    <Button 
-                      className="w-full" 
-                      variant={currentPlan.type === plan.type ? "outline" : "default"}
+                    <Button
+                      className="w-full"
+                      variant={currentPlan.type === plan.type ? 'outline' : 'default'}
                       disabled={currentPlan.type === plan.type || plan.ctaDisabled || isProcessing}
                       onClick={() => handleUpgradeSubscription(plan.type)}
                     >
@@ -402,7 +437,7 @@ export default function ClientSubscriptionPage() {
               ))}
             </div>
           </TabsContent>
-          
+
           <TabsContent value="history" className="pt-4">
             <Card>
               <CardHeader>

@@ -57,7 +57,9 @@ const isAdmin = t.middleware(({ ctx, next }) => {
 
 export const adminProcedure = t.procedure.use(isAuthenticated).use(isAdmin);
 
-// Export the full router
+/**
+ * Routeur principal qui contient tous les sous-routeurs de l'API
+ */
 export const appRouter = router({
   auth: authRouter,
   user: userRouter,
@@ -67,20 +69,21 @@ export const appRouter = router({
   payment: paymentRouter,
   invoice: invoiceRouter,
   warehouse: warehouseRouter,
-  adminWarehouse: adminWarehouseRouter,
   document: documentRouter,
   verification: verificationRouter,
   userPreferences: userPreferencesRouter,
   notification: notificationRouter,
   adminUser: adminUserRouter,
   adminDashboard: adminDashboardRouter,
+  adminWarehouse: adminWarehouseRouter,
   deliveryTracking: deliveryTrackingRouter,
   storage: storageRouter,
-  client: clientRouter,
+  clientData: clientRouter,
   profile: profileRouter,
   wallet: walletRouter,
   billing: billingRouter,
   financialTask: financialTaskRouter,
 });
 
+// Type du routeur pour les imports de type
 export type AppRouter = typeof appRouter;

@@ -2135,24 +2135,7 @@
   "service": {
     "booking": {
       "form": {
-        "appointment": "Appointment",
-        "date": "Date",
-        "time": "Time",
-        "selectTime": "Select a time",
-        "notes": "Special notes",
-        "notesPlaceholder": "Additional instructions or information for the provider...",
-        "paymentMethod": "Payment method",
-        "creditCard": "Credit card",
-        "appWallet": "EcoDeli Wallet",
-        "summary": "Summary",
-        "servicePrice": "Service price",
-        "total": "Total",
-        "termsAndConditions": "I agree to the {link} and privacy policy",
-        "cancel": "Cancel",
-        "confirmBooking": "Confirm booking",
-        "processing": "Processing...",
-        "selectDateFirst": "Please select a date first",
-        "back": "Back"
+        "bookingSuccess": "Booking created successfully!"
       },
       "status": {
         "PENDING": "Pending",
@@ -2161,9 +2144,6 @@
         "CANCELLED": "Cancelled",
         "RESCHEDULED": "Rescheduled"
       },
-      "form.bookingSuccess": "Booking created successfully!",
-      "manage.cancelled": "Booking cancelled successfully",
-      "review.reviewSuccess": "Thank you for your review!",
       "manage": {
         "cancelled": "Booking cancelled successfully"
       },

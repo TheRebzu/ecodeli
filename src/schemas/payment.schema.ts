@@ -144,7 +144,13 @@ export const getPaymentSchema = z.object({
  */
 export const createDisputeSchema = z.object({
   paymentId: z.string().cuid(),
-  reason: z.enum(['PRODUCT_NOT_RECEIVED', 'PRODUCT_NOT_AS_DESCRIBED', 'DUPLICATE', 'FRAUDULENT', 'OTHER']),
+  reason: z.enum([
+    'PRODUCT_NOT_RECEIVED',
+    'PRODUCT_NOT_AS_DESCRIBED',
+    'DUPLICATE',
+    'FRAUDULENT',
+    'OTHER',
+  ]),
   description: z.string().min(10).max(1000),
   evidenceFiles: z.array(z.string()).optional(),
 });

@@ -1,9 +1,16 @@
 'use client';
 
 import React from 'react';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTranslations } from 'next-intl';
 import { formatCurrency, formatDate } from '@/lib/utils';
 import { ArrowUpRight, ArrowDownLeft, Clock, AlertCircle, Check } from 'lucide-react';
@@ -14,7 +21,14 @@ import { CreditCard, ArrowUp } from 'lucide-react';
 
 // Types pour les transactions
 export type TransactionStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
-export type TransactionType = 'EARNING' | 'WITHDRAWAL' | 'REFUND' | 'SUBSCRIPTION_FEE' | 'PLATFORM_FEE' | 'ADJUSTMENT' | 'BONUS';
+export type TransactionType =
+  | 'EARNING'
+  | 'WITHDRAWAL'
+  | 'REFUND'
+  | 'SUBSCRIPTION_FEE'
+  | 'PLATFORM_FEE'
+  | 'ADJUSTMENT'
+  | 'BONUS';
 
 export interface Transaction {
   id: string;
@@ -50,16 +64,16 @@ export const WalletBalance = ({
   lastUpdated,
   pendingAmount = 0,
   reservedAmount = 0,
-  availableAmount
+  availableAmount,
 }: WalletBalanceProps) => {
   const t = useTranslations('wallet');
-  
+
   // Convertir les transactions entre entrées et sorties pour l'affichage par onglets
-  const incomingTransactions = transactions.filter(tx => 
+  const incomingTransactions = transactions.filter(tx =>
     ['EARNING', 'REFUND', 'ADJUSTMENT', 'BONUS'].includes(tx.type)
   );
-  
-  const outgoingTransactions = transactions.filter(tx => 
+
+  const outgoingTransactions = transactions.filter(tx =>
     ['WITHDRAWAL', 'SUBSCRIPTION_FEE', 'PLATFORM_FEE'].includes(tx.type)
   );
 
@@ -88,20 +102,36 @@ export const WalletBalance = ({
   const getStatusBadge = (status: TransactionStatus) => {
     switch (status) {
       case 'COMPLETED':
-        return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">{t('completed')}</Badge>;
+        return (
+          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+            {t('completed')}
+          </Badge>
+        );
       case 'PENDING':
-        return <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">{t('pending')}</Badge>;
+        return (
+          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+            {t('pending')}
+          </Badge>
+        );
       case 'FAILED':
-        return <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">{t('failed')}</Badge>;
+        return (
+          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+            {t('failed')}
+          </Badge>
+        );
       case 'CANCELLED':
-        return <Badge variant="outline" className="bg-slate-50 text-slate-700 border-slate-200">{t('cancelled')}</Badge>;
+        return (
+          <Badge variant="outline" className="bg-slate-50 text-slate-700 border-slate-200">
+            {t('cancelled')}
+          </Badge>
+        );
       default:
         return null;
     }
   };
 
   // Si disponible n'est pas fourni, calculer à partir du solde et des montants réservés/en attente
-  const available = availableAmount ?? (balance - pendingAmount - reservedAmount);
+  const available = availableAmount ?? balance - pendingAmount - reservedAmount;
 
   return (
     <Card className="w-full">
@@ -124,7 +154,7 @@ export const WalletBalance = ({
             <TabsTrigger value="incoming">{t('incoming')}</TabsTrigger>
             <TabsTrigger value="outgoing">{t('outgoing')}</TabsTrigger>
           </TabsList>
-          
+
           <TabsContent value="incoming" className="mt-4 space-y-4">
             {isLoading ? (
               <>
@@ -139,8 +169,11 @@ export const WalletBalance = ({
                     <p>{t('noIncomingTransactions')}</p>
                   </div>
                 ) : (
-                  incomingTransactions.slice(0, 5).map((transaction) => (
-                    <div key={transaction.id} className="flex items-center justify-between border-b pb-3">
+                  incomingTransactions.slice(0, 5).map(transaction => (
+                    <div
+                      key={transaction.id}
+                      className="flex items-center justify-between border-b pb-3"
+                    >
                       <div className="flex items-center space-x-3">
                         <div className="bg-slate-100 p-2 rounded-full">
                           {getTransactionIcon(transaction.type)}
@@ -166,7 +199,7 @@ export const WalletBalance = ({
               </>
             )}
           </TabsContent>
-          
+
           <TabsContent value="outgoing" className="mt-4 space-y-4">
             {isLoading ? (
               <>
@@ -181,8 +214,11 @@ export const WalletBalance = ({
                     <p>{t('noOutgoingTransactions')}</p>
                   </div>
                 ) : (
-                  outgoingTransactions.slice(0, 5).map((transaction) => (
-                    <div key={transaction.id} className="flex items-center justify-between border-b pb-3">
+                  outgoingTransactions.slice(0, 5).map(transaction => (
+                    <div
+                      key={transaction.id}
+                      className="flex items-center justify-between border-b pb-3"
+                    >
                       <div className="flex items-center space-x-3">
                         <div className="bg-slate-100 p-2 rounded-full">
                           {getTransactionIcon(transaction.type)}
@@ -212,12 +248,8 @@ export const WalletBalance = ({
 
         <div className="space-y-4">
           <div className="flex flex-col items-center justify-center py-6">
-            <p className="text-sm font-medium text-muted-foreground mb-2">
-              {t('currentBalance')}
-            </p>
-            <h2 className="text-3xl font-bold">
-              {formatCurrency(balance, currency)}
-            </h2>
+            <p className="text-sm font-medium text-muted-foreground mb-2">{t('currentBalance')}</p>
+            <h2 className="text-3xl font-bold">{formatCurrency(balance, currency)}</h2>
             {lastUpdated && (
               <p className="text-xs text-muted-foreground mt-1 flex items-center">
                 <Clock className="h-3 w-3 mr-1" />
@@ -234,9 +266,7 @@ export const WalletBalance = ({
                     <CreditCard className="h-4 w-4 mr-2 text-primary" />
                     <span className="text-sm font-medium">{t('available')}</span>
                   </div>
-                  <span className="font-bold">
-                    {formatCurrency(available, currency)}
-                  </span>
+                  <span className="font-bold">{formatCurrency(available, currency)}</span>
                 </div>
               </CardContent>
             </Card>
@@ -279,10 +309,8 @@ export const WalletBalance = ({
         <Button variant="outline" onClick={onViewAllTransactions}>
           {t('viewAllTransactions')}
         </Button>
-        <Button onClick={onRequestWithdrawal}>
-          {t('requestWithdrawal')}
-        </Button>
+        <Button onClick={onRequestWithdrawal}>{t('requestWithdrawal')}</Button>
       </CardFooter>
     </Card>
   );
-}; 
+};

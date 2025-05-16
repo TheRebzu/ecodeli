@@ -67,4 +67,4 @@ export const categoryIcons: Record<FinancialTaskCategory, string> = {
   INVOICE: 'calendar-clock',
   WITHDRAWAL: 'check-circle-2',
   OTHER: 'circle',
-}; 
+};

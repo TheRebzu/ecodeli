@@ -19,4 +19,4 @@ export function Heading({ title, description, className, icon }: HeadingProps) {
       <p className="text-sm text-muted-foreground">{description}</p>
     </div>
   );
-} 
+}

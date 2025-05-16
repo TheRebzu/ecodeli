@@ -1,11 +1,17 @@
-"use client";
+'use client';
 
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -17,7 +23,7 @@ import { UpdateUserPreferences } from '@/schemas/user-preferences.schema';
 
 export function ProfilePreferences() {
   const { profile, isLoadingProfile } = useProfile();
-  
+
   // État local pour stocker les préférences
   const [formState, setFormState] = useState({
     locale: 'fr',
@@ -28,7 +34,7 @@ export function ProfilePreferences() {
     contactlessDelivery: false,
     deliveryInstructions: '',
   });
-  
+
   // Initialiser les préférences à partir du profil
   useEffect(() => {
     if (profile) {
@@ -43,37 +49,37 @@ export function ProfilePreferences() {
       });
     }
   }, [profile]);
-  
+
   // Mutation pour mettre à jour les préférences
   const updatePreferencesMutation = api.userPreferences.updateUserPreferences.useMutation({
     onSuccess: () => {
       toast.success('Préférences mises à jour avec succès');
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(`Erreur lors de la mise à jour des préférences: ${error.message}`);
-    }
+    },
   });
-  
+
   // Mise à jour de l'état du formulaire
   const updateFormState = (key: string, value: any) => {
     setFormState(prev => ({
       ...prev,
-      [key]: value
+      [key]: value,
     }));
-    
+
     // Convertir les préférences au format attendu par l'API
     const apiPrefs: Partial<UpdateUserPreferences> = {};
-    
+
     if (key === 'locale') {
       apiPrefs.locale = value;
     }
-    
+
     // Envoyer immédiatement la mise à jour
     if (Object.keys(apiPrefs).length > 0) {
       updatePreferencesMutation.mutate(apiPrefs);
     }
   };
-  
+
   if (isLoadingProfile) {
     return (
       <Card>
@@ -83,7 +89,7 @@ export function ProfilePreferences() {
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {[1, 2, 3, 4].map((i) => (
+          {[1, 2, 3, 4].map(i => (
             <div key={i} className="space-y-2">
               <Skeleton className="h-5 w-32" />
               <Skeleton className="h-10 w-full" />
@@ -93,7 +99,7 @@ export function ProfilePreferences() {
       </Card>
     );
   }
-  
+
   return (
     <Card>
       <CardHeader>
@@ -102,12 +108,12 @@ export function ProfilePreferences() {
       <CardContent className="space-y-6">
         <div className="space-y-4">
           <h3 className="font-medium">Apparence</h3>
-          
+
           <div className="grid gap-2">
             <Label htmlFor="theme">Thème</Label>
-            <Select 
-              value={formState.theme} 
-              onValueChange={(value) => updateFormState('theme', value)}
+            <Select
+              value={formState.theme}
+              onValueChange={value => updateFormState('theme', value)}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner un thème" />
@@ -120,48 +126,48 @@ export function ProfilePreferences() {
             </Select>
           </div>
         </div>
-        
+
         <Separator />
-        
+
         <div className="space-y-4">
           <h3 className="font-medium">Notifications</h3>
-          
+
           <div className="flex items-center justify-between">
             <Label htmlFor="emailNotifications">Notifications par email</Label>
-            <Switch 
-              id="emailNotifications" 
+            <Switch
+              id="emailNotifications"
               checked={formState.emailNotifications}
-              onCheckedChange={(checked) => updateFormState('emailNotifications', checked)}
+              onCheckedChange={checked => updateFormState('emailNotifications', checked)}
             />
           </div>
-          
+
           <div className="flex items-center justify-between">
             <Label htmlFor="pushNotifications">Notifications push</Label>
-            <Switch 
-              id="pushNotifications" 
+            <Switch
+              id="pushNotifications"
               checked={formState.pushNotifications}
-              onCheckedChange={(checked) => updateFormState('pushNotifications', checked)}
+              onCheckedChange={checked => updateFormState('pushNotifications', checked)}
             />
           </div>
-          
+
           <div className="flex items-center justify-between">
             <Label htmlFor="smsNotifications">Notifications SMS</Label>
-            <Switch 
-              id="smsNotifications" 
+            <Switch
+              id="smsNotifications"
               checked={formState.smsNotifications}
-              onCheckedChange={(checked) => updateFormState('smsNotifications', checked)}
+              onCheckedChange={checked => updateFormState('smsNotifications', checked)}
             />
           </div>
         </div>
-        
+
         <Separator />
-        
+
         <div className="space-y-4">
           <h3 className="font-medium">Langue</h3>
-          
-          <RadioGroup 
-            value={formState.locale} 
-            onValueChange={(value) => updateFormState('locale', value)}
+
+          <RadioGroup
+            value={formState.locale}
+            onValueChange={value => updateFormState('locale', value)}
           >
             <div className="flex items-center space-x-2">
               <RadioGroupItem value="fr" id="fr" />
@@ -173,31 +179,31 @@ export function ProfilePreferences() {
             </div>
           </RadioGroup>
         </div>
-        
+
         {profile?.role === 'CLIENT' && (
           <>
             <Separator />
-            
+
             <div className="space-y-4">
               <h3 className="font-medium">Préférences de livraison</h3>
-              
+
               <div className="flex items-center justify-between">
                 <Label htmlFor="contactlessDelivery">Livraison sans contact</Label>
-                <Switch 
-                  id="contactlessDelivery" 
+                <Switch
+                  id="contactlessDelivery"
                   checked={formState.contactlessDelivery}
-                  onCheckedChange={(checked) => updateFormState('contactlessDelivery', checked)}
+                  onCheckedChange={checked => updateFormState('contactlessDelivery', checked)}
                 />
               </div>
-              
+
               <div className="grid gap-2">
                 <Label htmlFor="deliveryInstructions">Instructions de livraison par défaut</Label>
-                <textarea 
+                <textarea
                   id="deliveryInstructions"
                   className="min-h-[80px] rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                   placeholder="Instructions pour le livreur..."
                   value={formState.deliveryInstructions}
-                  onChange={(e) => updateFormState('deliveryInstructions', e.target.value)}
+                  onChange={e => updateFormState('deliveryInstructions', e.target.value)}
                 />
               </div>
             </div>
@@ -211,4 +217,4 @@ export function ProfilePreferences() {
       )}
     </Card>
   );
-} 
+}

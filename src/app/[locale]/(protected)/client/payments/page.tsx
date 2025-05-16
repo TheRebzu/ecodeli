@@ -4,22 +4,16 @@ import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { api } from '@/trpc/react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { 
-  CreditCard, 
-  Wallet, 
-  Receipt, 
-  ArrowUpRight, 
-  Loader2, 
+import {
+  CreditCard,
+  Wallet,
+  Receipt,
+  ArrowUpRight,
+  Loader2,
   CreditCardIcon,
-  AlertCircle
+  AlertCircle,
 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -40,37 +34,45 @@ export default function ClientPaymentsPage() {
   const [showPaymentForm, setShowPaymentForm] = useState(false);
 
   // Récupérer le solde du portefeuille
-  const { data: walletData, isLoading: isLoadingWallet, error: walletError } = 
-    api.wallet.getUserWalletBalance.useQuery();
+  const {
+    data: walletData,
+    isLoading: isLoadingWallet,
+    error: walletError,
+  } = api.wallet.getUserWalletBalance.useQuery();
 
   // Récupérer l'historique des paiements
-  const { data: paymentsData, isLoading: isLoadingPayments, error: paymentsError } = 
-    api.payment.getUserPayments.useQuery({ 
-      page: 1, 
-      limit: 10 
-    });
+  const {
+    data: paymentsData,
+    isLoading: isLoadingPayments,
+    error: paymentsError,
+  } = api.payment.getUserPayments.useQuery({
+    page: 1,
+    limit: 10,
+  });
 
   // Récupérer les détails d'un paiement spécifique
-  const { data: paymentDetails, isLoading: isLoadingPaymentDetails } = 
+  const { data: paymentDetails, isLoading: isLoadingPaymentDetails } =
     api.payment.getPaymentDetails.useQuery(
       { paymentId: selectedPaymentId || '' },
       { enabled: !!selectedPaymentId }
     );
 
   // Récupérer les tâches financières
-  const { data: financialTasks, isLoading: isLoadingTasks } = 
+  const { data: financialTasks, isLoading: isLoadingTasks } =
     api.payment.getFinancialTasks.useQuery();
 
   // Convertir les tâches financières en TodoItems
-  const todoItems: TodoItem[] = financialTasks ? financialTasks.map(task => ({
-    id: task.id,
-    title: task.title,
-    description: task.description,
-    dueDate: task.dueDate,
-    completed: task.completed,
-    priority: task.priority as 'low' | 'medium' | 'high',
-    category: task.category as 'payment' | 'invoice' | 'withdrawal' | 'other'
-  })) : [];
+  const todoItems: TodoItem[] = financialTasks
+    ? financialTasks.map(task => ({
+        id: task.id,
+        title: task.title,
+        description: task.description,
+        dueDate: task.dueDate,
+        completed: task.completed,
+        priority: task.priority as 'low' | 'medium' | 'high',
+        category: task.category as 'payment' | 'invoice' | 'withdrawal' | 'other',
+      }))
+    : [];
 
   // Gérer la sélection d'un paiement
   const handleSelectPayment = (paymentId: string) => {
@@ -153,9 +155,7 @@ export default function ClientPaymentsPage() {
                   <Alert variant="destructive">
                     <AlertCircle className="h-4 w-4" />
                     <AlertTitle>{t('error')}</AlertTitle>
-                    <AlertDescription>
-                      {walletError.message}
-                    </AlertDescription>
+                    <AlertDescription>{walletError.message}</AlertDescription>
                   </Alert>
                 ) : isLoadingWallet ? (
                   <div className="space-y-2">
@@ -195,10 +195,7 @@ export default function ClientPaymentsPage() {
                     <Skeleton className="h-8 w-full" />
                   </div>
                 ) : (
-                  <Todo
-                    items={todoItems}
-                    showAddButton={false}
-                  />
+                  <Todo items={todoItems} showAddButton={false} />
                 )}
               </CardContent>
             </Card>
@@ -215,9 +212,7 @@ export default function ClientPaymentsPage() {
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>{t('error')}</AlertTitle>
-                  <AlertDescription>
-                    {paymentsError.message}
-                  </AlertDescription>
+                  <AlertDescription>{paymentsError.message}</AlertDescription>
                 </Alert>
               ) : isLoadingPayments ? (
                 <div className="space-y-2">
@@ -235,16 +230,20 @@ export default function ClientPaymentsPage() {
                 </div>
               ) : (
                 <PaymentHistory
-                  payments={paymentsData?.payments.map(p => ({
-                    id: p.id,
-                    date: p.createdAt,
-                    type: 'PAYMENT',
-                    status: p.status,
-                    amount: Number(p.amount),
-                    currency: p.currency,
-                    description: typeof p.metadata === 'object' && p.metadata ? 
-                      (p.metadata as Record<string, any>).description || '' : '',
-                  })) || []}
+                  payments={
+                    paymentsData?.payments.map(p => ({
+                      id: p.id,
+                      date: p.createdAt,
+                      type: 'PAYMENT',
+                      status: p.status,
+                      amount: Number(p.amount),
+                      currency: p.currency,
+                      description:
+                        typeof p.metadata === 'object' && p.metadata
+                          ? (p.metadata as Record<string, any>).description || ''
+                          : '',
+                    })) || []
+                  }
                   onViewDetails={handleSelectPayment}
                   totalCount={paymentsData?.pagination.totalCount || 0}
                   currentPage={paymentsData?.pagination.currentPage || 1}
@@ -267,9 +266,7 @@ export default function ClientPaymentsPage() {
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>{t('error')}</AlertTitle>
-                  <AlertDescription>
-                    {paymentsError.message}
-                  </AlertDescription>
+                  <AlertDescription>{paymentsError.message}</AlertDescription>
                 </Alert>
               ) : isLoadingPayments ? (
                 <div className="space-y-2">
@@ -287,16 +284,20 @@ export default function ClientPaymentsPage() {
                 </div>
               ) : (
                 <PaymentHistory
-                  payments={paymentsData?.payments.map(p => ({
-                    id: p.id,
-                    date: p.createdAt,
-                    type: 'PAYMENT',
-                    status: p.status,
-                    amount: Number(p.amount),
-                    currency: p.currency,
-                    description: typeof p.metadata === 'object' && p.metadata ? 
-                      (p.metadata as Record<string, any>).description || '' : '',
-                  })) || []}
+                  payments={
+                    paymentsData?.payments.map(p => ({
+                      id: p.id,
+                      date: p.createdAt,
+                      type: 'PAYMENT',
+                      status: p.status,
+                      amount: Number(p.amount),
+                      currency: p.currency,
+                      description:
+                        typeof p.metadata === 'object' && p.metadata
+                          ? (p.metadata as Record<string, any>).description || ''
+                          : '',
+                    })) || []
+                  }
                   onViewDetails={handleSelectPayment}
                   totalCount={paymentsData?.pagination.totalCount || 0}
                   currentPage={paymentsData?.pagination.currentPage || 1}
@@ -332,9 +333,7 @@ export default function ClientPaymentsPage() {
                 <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
                   <AlertTitle>{t('error')}</AlertTitle>
-                  <AlertDescription>
-                    {t('paymentNotFound')}
-                  </AlertDescription>
+                  <AlertDescription>{t('paymentNotFound')}</AlertDescription>
                 </Alert>
               ) : (
                 <PaymentSummary
@@ -345,10 +344,17 @@ export default function ClientPaymentsPage() {
                   createdAt={paymentDetails.createdAt}
                   updatedAt={paymentDetails.updatedAt}
                   paymentMethod={paymentDetails.paymentMethod ? 'card' : 'wallet'}
-                  description={typeof paymentDetails.metadata === 'object' && paymentDetails.metadata ? 
-                    (paymentDetails.metadata as Record<string, any>).description || '' : ''}
+                  description={
+                    typeof paymentDetails.metadata === 'object' && paymentDetails.metadata
+                      ? (paymentDetails.metadata as Record<string, any>).description || ''
+                      : ''
+                  }
                   invoiceId={paymentDetails.invoiceId}
-                  onViewInvoice={paymentDetails.invoiceId ? () => console.log('View invoice', paymentDetails.invoiceId) : undefined}
+                  onViewInvoice={
+                    paymentDetails.invoiceId
+                      ? () => console.log('View invoice', paymentDetails.invoiceId)
+                      : undefined
+                  }
                 />
               )}
             </CardContent>

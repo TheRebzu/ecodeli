@@ -27,7 +27,7 @@ export function DatePicker({
   selected,
   onSelect,
   placeholder,
-  disabled
+  disabled,
 }: DatePickerProps) {
   const t = useTranslations('datePickerLocale');
   const [date, setDate] = React.useState<Date | undefined>(selected);
@@ -51,8 +51,8 @@ export function DatePicker({
         <Button
           variant="outline"
           className={cn(
-            "w-full justify-start text-left font-normal",
-            !date && "text-muted-foreground",
+            'w-full justify-start text-left font-normal',
+            !date && 'text-muted-foreground',
             className
           )}
         >

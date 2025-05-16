@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,7 +7,14 @@ import { useProfileDocuments } from '@/hooks/use-profile-documents';
 import { DocumentType, UserRole, VerificationStatus } from '@prisma/client';
 import { useProfile } from '@/hooks/use-profile';
 import { Skeleton } from '@/components/ui/skeleton';
-import { FileIcon, FileUpIcon, FileCheckIcon, FilePlusIcon, TrashIcon, AlertTriangleIcon } from 'lucide-react';
+import {
+  FileIcon,
+  FileUpIcon,
+  FileCheckIcon,
+  FilePlusIcon,
+  TrashIcon,
+  AlertTriangleIcon,
+} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { formatDate, formatFileSize } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
@@ -27,15 +34,14 @@ const getVerificationBadge = (status: VerificationStatus) => {
     REJECTED: 'Rejeté',
   };
 
-  return (
-    <Badge className={statusColors[status]}>
-      {statusLabels[status]}
-    </Badge>
-  );
+  return <Badge className={statusColors[status]}>{statusLabels[status]}</Badge>;
 };
 
 // Fonction pour afficher un document
-const DocumentItem = ({ document, onDelete }: { 
+const DocumentItem = ({
+  document,
+  onDelete,
+}: {
   document: any;
   onDelete: (id: string) => void;
 }) => {
@@ -56,9 +62,9 @@ const DocumentItem = ({ document, onDelete }: {
       </div>
       <div className="flex items-center gap-2">
         {getVerificationBadge(document.verificationStatus)}
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           className="h-8 w-8 text-destructive"
           onClick={() => onDelete(document.id)}
         >
@@ -99,7 +105,7 @@ const getRequiredDocumentTypes = (role: UserRole) => {
 // Fonction pour afficher le nom lisible du type de document
 const getDocumentTypeName = (type: DocumentType) => {
   const typeNames: Record<string, string> = {
-    ID_CARD: 'Carte d\'identité',
+    ID_CARD: "Carte d'identité",
     DRIVING_LICENSE: 'Permis de conduire',
     VEHICLE_REGISTRATION: 'Carte grise',
     INSURANCE: 'Assurance',
@@ -108,36 +114,31 @@ const getDocumentTypeName = (type: DocumentType) => {
     BUSINESS_REGISTRATION: 'Extrait K-bis',
     OTHER: 'Autre document',
   };
-  
+
   return typeNames[type] || type;
 };
 
 export function ProfileDocumentsList() {
   const [uploadType, setUploadType] = useState<DocumentType | null>(null);
-  const { 
-    documents, 
-    isLoadingDocuments, 
-    deleteDocument, 
-    hasDocumentOfType,
-    getDocumentsByType
-  } = useProfileDocuments();
+  const { documents, isLoadingDocuments, deleteDocument, hasDocumentOfType, getDocumentsByType } =
+    useProfileDocuments();
   const { profile } = useProfile();
   const { selectedDocumentType, setSelectedDocumentType } = useProfileStore();
-  
+
   // Gérer la suppression d'un document
   const handleDeleteDocument = (id: string) => {
     if (window.confirm('Êtes-vous sûr de vouloir supprimer ce document ?')) {
       deleteDocument(id);
     }
   };
-  
+
   // Démarrer le processus d'upload
   const handleUploadClick = (type: DocumentType) => {
     setUploadType(type);
     setSelectedDocumentType(type);
     // Note: L'upload réel serait géré dans un composant modal ou formulaire
   };
-  
+
   if (isLoadingDocuments || !profile) {
     return (
       <Card>
@@ -147,16 +148,16 @@ export function ProfileDocumentsList() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {[1, 2, 3].map((i) => (
+          {[1, 2, 3].map(i => (
             <Skeleton key={i} className="h-20 w-full mb-2" />
           ))}
         </CardContent>
       </Card>
     );
   }
-  
+
   const requiredDocuments = getRequiredDocumentTypes(profile.role);
-  
+
   return (
     <Card>
       <CardHeader>
@@ -170,17 +171,17 @@ export function ProfileDocumentsList() {
           </div>
         ) : (
           <>
-            {requiredDocuments.map((docType) => {
+            {requiredDocuments.map(docType => {
               const typeDocuments = getDocumentsByType(docType);
               const hasDocument = typeDocuments.length > 0;
-              
+
               return (
                 <div key={docType} className="mb-4">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-medium">{getDocumentTypeName(docType)}</h3>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => handleUploadClick(docType)}
                       className="flex items-center"
                     >
@@ -188,14 +189,10 @@ export function ProfileDocumentsList() {
                       {hasDocument ? 'Mettre à jour' : 'Ajouter'}
                     </Button>
                   </div>
-                  
+
                   {hasDocument ? (
                     typeDocuments.map((doc: any) => (
-                      <DocumentItem 
-                        key={doc.id} 
-                        document={doc} 
-                        onDelete={handleDeleteDocument} 
-                      />
+                      <DocumentItem key={doc.id} document={doc} onDelete={handleDeleteDocument} />
                     ))
                   ) : (
                     <div className="flex items-center p-3 border border-dashed border-border rounded-lg mb-2 text-muted-foreground">
@@ -220,4 +217,4 @@ export function ProfileDocumentsList() {
       </CardFooter>
     </Card>
   );
-} 
+}

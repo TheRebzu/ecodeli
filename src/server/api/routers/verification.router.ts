@@ -248,7 +248,7 @@ export const verificationRouter = router({
             title: 'Vérification complète',
             content: 'Tous vos documents ont été vérifiés et approuvés.',
             type: 'VERIFICATION',
-            data: { status: VerificationStatus.APPROVED }
+            data: { status: VerificationStatus.APPROVED },
           });
         }
 
@@ -301,7 +301,7 @@ export const verificationRouter = router({
           title: 'Document rejeté',
           content: `Votre document a été rejeté: ${reason}`,
           type: 'VERIFICATION',
-          data: { status: VerificationStatus.REJECTED, reason }
+          data: { status: VerificationStatus.REJECTED, reason },
         });
 
         return updatedDocument;
@@ -407,7 +407,7 @@ export const verificationRouter = router({
           title: 'Documents manquants',
           content: `Veuillez soumettre les documents requis: ${missingDocuments.join(', ')}`,
           type: 'VERIFICATION',
-          data: { missingDocuments }
+          data: { missingDocuments },
         });
 
         return { success: true, missingDocuments };

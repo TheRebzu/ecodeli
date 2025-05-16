@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React from 'react';
 import { ProfileHeader } from '@/components/profile/profile-header';
@@ -11,11 +11,11 @@ import { UserRole } from '@prisma/client';
 export default function ClientProfilePage() {
   // Dans cette page côté serveur Next.js, les hooks client React ne sont pas directement utilisables
   // Le state UI sera géré dans les composants client
-  
+
   return (
     <div className="container mx-auto py-8">
       <ProfileHeader />
-      
+
       <ClientProfileContent />
     </div>
   );
@@ -24,12 +24,12 @@ export default function ClientProfilePage() {
 function ClientProfileContent() {
   // Astuce : On doit importer useProfileStore dans un composant client
   const { profileView, isEditingProfile } = useProfileStore();
-  
+
   // Afficher le formulaire si le mode édition est activé
   if (isEditingProfile) {
     return <ClientProfileForm />;
   }
-  
+
   // Afficher différentes sections en fonction de la vue sélectionnée
   switch (profileView) {
     case 'info':
@@ -60,4 +60,3 @@ function ClientProfileContent() {
       return <ProfileInfoCard />;
   }
 }
-

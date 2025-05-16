@@ -157,27 +157,29 @@ export default function DocumentList({
         title: t('download.preparing'),
         description: t('download.starting'),
       });
-      
+
       // Utiliser la nouvelle API de téléchargement avec le bon type MIME
       const downloadUrl = `/api/download?path=${encodeURIComponent(document.fileUrl)}&download=true`;
-      
+
       // Créer un élément de lien temporaire pour le téléchargement
       const link = document.createElement('a');
       link.href = downloadUrl;
-      
+
       // Définir le nom du fichier à télécharger
-      const fileName = document.filename || `document-${document.type.toLowerCase()}.${document.mimeType?.split('/').pop() || 'file'}`;
+      const fileName =
+        document.filename ||
+        `document-${document.type.toLowerCase()}.${document.mimeType?.split('/').pop() || 'file'}`;
       link.setAttribute('download', fileName);
-      
+
       // Cliquer sur le lien pour déclencher le téléchargement
       document.body.appendChild(link);
       link.click();
-      
+
       // Nettoyer
       setTimeout(() => {
         document.body.removeChild(link);
       }, 100);
-      
+
       toast({
         title: t('download.success'),
         description: t('download.completed'),
@@ -357,8 +359,8 @@ export default function DocumentList({
                 {t('preview.close')}
               </Button>
               {selectedDocument && (
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => downloadDocument(selectedDocument)}
                   className="flex items-center gap-2"
                 >

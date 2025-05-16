@@ -1,12 +1,12 @@
 import { router, protectedProcedure } from '@/server/api/trpc';
 import { profileService } from '@/server/services/profile.service';
-import { 
+import {
   addressSchema,
   updateClientProfileSchema,
   updateDelivererProfileSchema,
   updateMerchantProfileSchema,
   updateProviderProfileSchema,
-  profileSchemaMap
+  profileSchemaMap,
 } from '@/schemas/profile.schema';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
@@ -33,13 +33,15 @@ export const profileRouter = router({
    * Mise à jour du profil en fonction du rôle de l'utilisateur connecté
    */
   updateProfile: protectedProcedure
-    .input(z.object({
-      data: z.object({}).passthrough(), // Accept any data, will be validated based on role
-    }))
+    .input(
+      z.object({
+        data: z.object({}).passthrough(), // Accept any data, will be validated based on role
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
       const role = ctx.session.user.role;
-      
+
       // Vérifier si le rôle est valide pour la mise à jour du profil
       if (!profileSchemaMap[role]) {
         throw new TRPCError({
@@ -47,10 +49,10 @@ export const profileRouter = router({
           message: 'Rôle utilisateur non valide pour la mise à jour du profil',
         });
       }
-      
+
       // Valider les données en fonction du rôle
       const validatedData = profileSchemaMap[role].parse(input.data);
-      
+
       // Mettre à jour le profil en fonction du rôle
       switch (role) {
         case 'CLIENT':
@@ -72,76 +74,76 @@ export const profileRouter = router({
   /**
    * Ajouter une nouvelle adresse pour un client
    */
-  addClientAddress: protectedProcedure
-    .input(addressSchema)
-    .mutation(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
-      const role = ctx.session.user.role;
-      
-      if (role !== 'CLIENT') {
+  addClientAddress: protectedProcedure.input(addressSchema).mutation(async ({ ctx, input }) => {
+    const userId = ctx.session.user.id;
+    const role = ctx.session.user.role;
+
+    if (role !== 'CLIENT') {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Seuls les clients peuvent ajouter des adresses',
+      });
+    }
+
+    try {
+      // Récupérer le client ID
+      const client = await ctx.db.client.findUnique({
+        where: { userId },
+        select: { id: true },
+      });
+
+      if (!client) {
         throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: 'Seuls les clients peuvent ajouter des adresses',
+          code: 'NOT_FOUND',
+          message: 'Client non trouvé',
         });
       }
-      
-      try {
-        // Récupérer le client ID
-        const client = await ctx.db.client.findUnique({
-          where: { userId },
-          select: { id: true }
-        });
-        
-        if (!client) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Client non trouvé',
-          });
-        }
-        
-        // Créer l'adresse
-        const address = await ctx.db.address.create({
-          data: {
-            label: input.label,
-            street: input.street,
-            city: input.city,
-            state: input.state,
-            postalCode: input.postalCode,
-            country: input.country,
-            isDefault: input.isDefault,
-            clientId: client.id
-          }
-        });
-        
-        return address;
-      } catch (error) {
-        console.error('Erreur lors de l\'ajout d\'une adresse:', error);
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de l\'ajout d\'une adresse',
-        });
-      }
-    }),
+
+      // Créer l'adresse
+      const address = await ctx.db.address.create({
+        data: {
+          label: input.label,
+          street: input.street,
+          city: input.city,
+          state: input.state,
+          postalCode: input.postalCode,
+          country: input.country,
+          isDefault: input.isDefault,
+          clientId: client.id,
+        },
+      });
+
+      return address;
+    } catch (error) {
+      console.error("Erreur lors de l'ajout d'une adresse:", error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: "Erreur lors de l'ajout d'une adresse",
+      });
+    }
+  }),
 
   /**
    * Mettre à jour une adresse existante
    */
   updateClientAddress: protectedProcedure
-    .input(z.object({
-      addressId: z.string(),
-      data: addressSchema,
-    }))
+    .input(
+      z.object({
+        addressId: z.string(),
+        data: addressSchema,
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
       const role = ctx.session.user.role;
-      
+
       if (role !== 'CLIENT') {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Seuls les clients peuvent modifier des adresses',
         });
       }
-      
+
       try {
         // Vérifier que l'adresse appartient bien au client
         const address = await ctx.db.address.findUnique({
@@ -149,26 +151,26 @@ export const profileRouter = router({
           include: {
             client: {
               select: {
-                userId: true
-              }
-            }
-          }
+                userId: true,
+              },
+            },
+          },
         });
-        
+
         if (!address) {
           throw new TRPCError({
             code: 'NOT_FOUND',
             message: 'Adresse non trouvée',
           });
         }
-        
+
         if (address.client.userId !== userId) {
           throw new TRPCError({
             code: 'FORBIDDEN',
-            message: 'Vous n\'avez pas le droit de modifier cette adresse',
+            message: "Vous n'avez pas le droit de modifier cette adresse",
           });
         }
-        
+
         // Mettre à jour l'adresse
         const updatedAddress = await ctx.db.address.update({
           where: { id: input.addressId },
@@ -180,15 +182,15 @@ export const profileRouter = router({
             postalCode: input.data.postalCode,
             country: input.data.country,
             isDefault: input.data.isDefault,
-          }
+          },
         });
-        
+
         return updatedAddress;
       } catch (error) {
-        console.error('Erreur lors de la modification d\'une adresse:', error);
+        console.error("Erreur lors de la modification d'une adresse:", error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la modification d\'une adresse',
+          message: "Erreur lors de la modification d'une adresse",
         });
       }
     }),
@@ -197,78 +199,82 @@ export const profileRouter = router({
    * Supprimer une adresse existante
    */
   deleteClientAddress: protectedProcedure
-    .input(z.object({
-      addressId: z.string(),
-    }))
+    .input(
+      z.object({
+        addressId: z.string(),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
       return profileService.deleteAddress(input.addressId, userId);
     }),
-    
+
   /**
    * Définir une adresse comme adresse par défaut
    */
   setDefaultAddress: protectedProcedure
-    .input(z.object({
-      addressId: z.string(),
-    }))
+    .input(
+      z.object({
+        addressId: z.string(),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
       const role = ctx.session.user.role;
-      
+
       if (role !== 'CLIENT') {
         throw new TRPCError({
           code: 'FORBIDDEN',
           message: 'Seuls les clients peuvent définir une adresse par défaut',
         });
       }
-      
+
       try {
         // Récupérer le client
         const client = await ctx.db.client.findUnique({
           where: { userId },
-          select: { id: true }
+          select: { id: true },
         });
-        
+
         if (!client) {
           throw new TRPCError({
             code: 'NOT_FOUND',
             message: 'Client non trouvé',
           });
         }
-        
+
         // Vérifier que l'adresse appartient bien au client
         const address = await ctx.db.address.findUnique({
           where: { id: input.addressId },
-          select: { clientId: true }
+          select: { clientId: true },
         });
-        
+
         if (!address || address.clientId !== client.id) {
           throw new TRPCError({
             code: 'FORBIDDEN',
-            message: 'Vous n\'avez pas le droit de modifier cette adresse',
+            message: "Vous n'avez pas le droit de modifier cette adresse",
           });
         }
-        
+
         // Réinitialiser toutes les adresses par défaut
         await ctx.db.address.updateMany({
           where: { clientId: client.id },
-          data: { isDefault: false }
+          data: { isDefault: false },
         });
-        
+
         // Définir la nouvelle adresse par défaut
         await ctx.db.address.update({
           where: { id: input.addressId },
-          data: { isDefault: true }
+          data: { isDefault: true },
         });
-        
+
         return { success: true };
       } catch (error) {
-        console.error('Erreur lors de la définition de l\'adresse par défaut:', error);
+        console.error("Erreur lors de la définition de l'adresse par défaut:", error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la définition de l\'adresse par défaut',
+          message: "Erreur lors de la définition de l'adresse par défaut",
         });
       }
     }),
-}); 
+});

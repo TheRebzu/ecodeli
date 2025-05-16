@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { startOfMonth, endOfMonth, format, subMonths } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { 
+import {
   BarChart,
   Calendar,
   DollarSign,
@@ -14,11 +14,18 @@ import {
   Package,
   UserCog,
   RefreshCw,
-  Download
+  Download,
 } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DatePicker } from '@/components/ui/date-picker';
 import { formatCurrency, formatPercent } from '@/lib/format';
@@ -68,7 +75,7 @@ export function CommissionDashboard({
   isLoading = false,
   onDateRangeChange,
   onExportCSV,
-  onRefresh
+  onRefresh,
 }: CommissionDashboardProps) {
   const t = useTranslations('commissions');
   const [dateRange, setDateRange] = useState<'current' | 'last' | 'custom'>('current');
@@ -78,10 +85,10 @@ export function CommissionDashboard({
   // Gérer le changement de plage de dates
   const handleDateRangeChange = (range: 'current' | 'last' | 'custom') => {
     setDateRange(range);
-    
+
     let newStartDate: Date;
     let newEndDate: Date;
-    
+
     switch (range) {
       case 'current':
         newStartDate = startOfMonth(new Date());
@@ -98,7 +105,7 @@ export function CommissionDashboard({
       default:
         return;
     }
-    
+
     setStartDate(newStartDate);
     setEndDate(newEndDate);
     onDateRangeChange(newStartDate, newEndDate);
@@ -107,7 +114,7 @@ export function CommissionDashboard({
   // Lorsque les dates personnalisées changent
   const handleCustomDateChange = (type: 'start' | 'end', date: Date | undefined) => {
     if (!date) return;
-    
+
     if (type === 'start') {
       setStartDate(date);
       if (dateRange === 'custom') {
@@ -126,17 +133,17 @@ export function CommissionDashboard({
     if (!report || report.totalCommission === 0) return 0;
     return (report.breakdown.delivery.commission / report.totalCommission) * 100;
   };
-  
+
   const calculateServicePercentage = () => {
     if (!report || report.totalCommission === 0) return 0;
     return (report.breakdown.service.commission / report.totalCommission) * 100;
   };
-  
+
   const calculateSubscriptionPercentage = () => {
     if (!report || report.totalCommission === 0) return 0;
     return (report.breakdown.subscription.commission / report.totalCommission) * 100;
   };
-  
+
   const calculateCommissionRate = () => {
     if (!report || report.totalAmount === 0) return 0;
     return (report.totalCommission / report.totalAmount) * 100;
@@ -150,9 +157,9 @@ export function CommissionDashboard({
           <p className="text-muted-foreground">{t('dashboardDescription')}</p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
+          <Button
+            variant="outline"
+            size="sm"
             onClick={onRefresh}
             disabled={isLoading}
             className="flex items-center gap-1"
@@ -161,9 +168,9 @@ export function CommissionDashboard({
             {t('refresh')}
           </Button>
           {onExportCSV && (
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={onExportCSV}
               className="flex items-center gap-1"
             >
@@ -176,9 +183,9 @@ export function CommissionDashboard({
 
       <div className="flex flex-col sm:flex-row gap-4">
         <div className="flex-1">
-          <Select 
-            value={dateRange} 
-            onValueChange={(value) => handleDateRangeChange(value as 'current' | 'last' | 'custom')}
+          <Select
+            value={dateRange}
+            onValueChange={value => handleDateRangeChange(value as 'current' | 'last' | 'custom')}
           >
             <SelectTrigger className="w-full">
               <Calendar className="h-4 w-4 mr-2" />
@@ -191,19 +198,19 @@ export function CommissionDashboard({
             </SelectContent>
           </Select>
         </div>
-        
+
         {dateRange === 'custom' && (
           <div className="flex flex-col sm:flex-row gap-2">
-            <DatePicker 
+            <DatePicker
               selected={startDate}
-              onSelect={(date) => handleCustomDateChange('start', date)}
+              onSelect={date => handleCustomDateChange('start', date)}
               placeholder={t('startDate')}
             />
-            <DatePicker 
+            <DatePicker
               selected={endDate}
-              onSelect={(date) => handleCustomDateChange('end', date)}
+              onSelect={date => handleCustomDateChange('end', date)}
               placeholder={t('endDate')}
-              disabled={(d) => d < startDate}
+              disabled={d => d < startDate}
             />
           </div>
         )}
@@ -213,17 +220,17 @@ export function CommissionDashboard({
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t('totalCommissions')}
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">{t('totalCommissions')}</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {isLoading ? (
                 <div className="h-8 w-32 bg-muted animate-pulse rounded" />
+              ) : report ? (
+                formatCurrency(report.totalCommission)
               ) : (
-                report ? formatCurrency(report.totalCommission) : '0,00 €'
+                '0,00 €'
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
@@ -239,20 +246,20 @@ export function CommissionDashboard({
             </p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t('deliveryCommissions')}
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">{t('deliveryCommissions')}</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {isLoading ? (
                 <div className="h-8 w-32 bg-muted animate-pulse rounded" />
+              ) : report ? (
+                formatCurrency(report.breakdown.delivery.commission)
               ) : (
-                report ? formatCurrency(report.breakdown.delivery.commission) : '0,00 €'
+                '0,00 €'
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
@@ -261,7 +268,9 @@ export function CommissionDashboard({
               ) : (
                 report && (
                   <span className="flex items-center gap-1">
-                    <span>{report.breakdown.delivery.count} {t('deliveries')}</span>
+                    <span>
+                      {report.breakdown.delivery.count} {t('deliveries')}
+                    </span>
                     <span>•</span>
                     <span>{formatPercent(calculateDeliveryPercentage() / 100)}</span>
                   </span>
@@ -270,20 +279,20 @@ export function CommissionDashboard({
             </p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t('serviceCommissions')}
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">{t('serviceCommissions')}</CardTitle>
             <UserCog className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {isLoading ? (
                 <div className="h-8 w-32 bg-muted animate-pulse rounded" />
+              ) : report ? (
+                formatCurrency(report.breakdown.service.commission)
               ) : (
-                report ? formatCurrency(report.breakdown.service.commission) : '0,00 €'
+                '0,00 €'
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
@@ -292,7 +301,9 @@ export function CommissionDashboard({
               ) : (
                 report && (
                   <span className="flex items-center gap-1">
-                    <span>{report.breakdown.service.count} {t('services')}</span>
+                    <span>
+                      {report.breakdown.service.count} {t('services')}
+                    </span>
                     <span>•</span>
                     <span>{formatPercent(calculateServicePercentage() / 100)}</span>
                   </span>
@@ -301,20 +312,20 @@ export function CommissionDashboard({
             </p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              {t('totalTransactions')}
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">{t('totalTransactions')}</CardTitle>
             <BarChart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
               {isLoading ? (
                 <div className="h-8 w-32 bg-muted animate-pulse rounded" />
+              ) : report ? (
+                report.totalPayments
               ) : (
-                report ? report.totalPayments : 0
+                0
               )}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
@@ -338,14 +349,12 @@ export function CommissionDashboard({
           <TabsTrigger value="breakdown">{t('commissionBreakdown')}</TabsTrigger>
           <TabsTrigger value="rates">{t('commissionRates')}</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="breakdown" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>{t('commissionBreakdown')}</CardTitle>
-              <CardDescription>
-                {t('breakdownDescription')}
-              </CardDescription>
+              <CardDescription>{t('breakdownDescription')}</CardDescription>
             </CardHeader>
             <CardContent>
               {isLoading ? (
@@ -359,46 +368,53 @@ export function CommissionDashboard({
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">{t('delivery')}</span>
-                      <span className="text-sm">{formatCurrency(report.breakdown.delivery.commission)} ({formatPercent(calculateDeliveryPercentage() / 100)})</span>
+                      <span className="text-sm">
+                        {formatCurrency(report.breakdown.delivery.commission)} (
+                        {formatPercent(calculateDeliveryPercentage() / 100)})
+                      </span>
                     </div>
                     <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
-                      <div 
-                        className="h-full bg-blue-500 transition-all" 
+                      <div
+                        className="h-full bg-blue-500 transition-all"
                         style={{ width: `${calculateDeliveryPercentage()}%` }}
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">{t('service')}</span>
-                      <span className="text-sm">{formatCurrency(report.breakdown.service.commission)} ({formatPercent(calculateServicePercentage() / 100)})</span>
+                      <span className="text-sm">
+                        {formatCurrency(report.breakdown.service.commission)} (
+                        {formatPercent(calculateServicePercentage() / 100)})
+                      </span>
                     </div>
                     <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
-                      <div 
-                        className="h-full bg-green-500 transition-all" 
+                      <div
+                        className="h-full bg-green-500 transition-all"
                         style={{ width: `${calculateServicePercentage()}%` }}
                       />
                     </div>
                   </div>
-                  
+
                   <div className="space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">{t('subscription')}</span>
-                      <span className="text-sm">{formatCurrency(report.breakdown.subscription.commission)} ({formatPercent(calculateSubscriptionPercentage() / 100)})</span>
+                      <span className="text-sm">
+                        {formatCurrency(report.breakdown.subscription.commission)} (
+                        {formatPercent(calculateSubscriptionPercentage() / 100)})
+                      </span>
                     </div>
                     <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
-                      <div 
-                        className="h-full bg-purple-500 transition-all" 
+                      <div
+                        className="h-full bg-purple-500 transition-all"
                         style={{ width: `${calculateSubscriptionPercentage()}%` }}
                       />
                     </div>
                   </div>
                 </div>
               ) : (
-                <div className="py-8 text-center text-muted-foreground">
-                  {t('noData')}
-                </div>
+                <div className="py-8 text-center text-muted-foreground">{t('noData')}</div>
               )}
             </CardContent>
             <CardFooter className="border-t pt-4">
@@ -408,14 +424,12 @@ export function CommissionDashboard({
             </CardFooter>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="rates" className="space-y-4">
           <Card>
             <CardHeader>
               <CardTitle>{t('currentCommissionRates')}</CardTitle>
-              <CardDescription>
-                {t('ratesDescription')}
-              </CardDescription>
+              <CardDescription>{t('ratesDescription')}</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -429,7 +443,7 @@ export function CommissionDashboard({
                     <span className="text-xl font-bold">15%</span>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center justify-between p-3 border rounded-md">
                   <div className="flex items-center">
                     <UserCog className="h-5 w-5 mr-2 text-green-500" />
@@ -440,7 +454,7 @@ export function CommissionDashboard({
                     <span className="text-xl font-bold">20%</span>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center justify-between p-3 border rounded-md">
                   <div className="flex items-center">
                     <TrendingUp className="h-5 w-5 mr-2 text-purple-500" />
@@ -454,9 +468,7 @@ export function CommissionDashboard({
               </div>
             </CardContent>
             <CardFooter className="border-t pt-4 flex flex-col items-start">
-              <p className="text-sm">
-                {t('commissionNote')}
-              </p>
+              <p className="text-sm">{t('commissionNote')}</p>
               <Button variant="link" className="p-0 h-auto mt-2">
                 {t('viewCommissionPolicy')}
               </Button>
@@ -466,4 +478,4 @@ export function CommissionDashboard({
       </Tabs>
     </div>
   );
-} 
+}

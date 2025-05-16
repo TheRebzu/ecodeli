@@ -27,7 +27,7 @@ export const dashboardService = {
         deliveryStats,
         recentActivities,
         activityChartData,
-        actionItems
+        actionItems,
       };
     } catch (error) {
       console.error('Erreur lors de la récupération des données du tableau de bord:', error);
@@ -42,8 +42,10 @@ export const dashboardService = {
     try {
       const totalUsers = await db.user.count();
       const activeUsers = await db.user.count({ where: { status: 'ACTIVE' } });
-      const pendingVerifications = await db.user.count({ where: { status: 'PENDING_VERIFICATION' } });
-      
+      const pendingVerifications = await db.user.count({
+        where: { status: 'PENDING_VERIFICATION' },
+      });
+
       // Statistiques par rôle
       const clientCount = await db.user.count({ where: { role: 'CLIENT' } });
       const delivererCount = await db.user.count({ where: { role: 'DELIVERER' } });
@@ -57,9 +59,9 @@ export const dashboardService = {
       const newUsersToday = await db.user.count({
         where: {
           createdAt: {
-            gte: today
-          }
-        }
+            gte: today,
+          },
+        },
       });
 
       // Nouveaux utilisateurs (cette semaine)
@@ -69,9 +71,9 @@ export const dashboardService = {
       const newUsersThisWeek = await db.user.count({
         where: {
           createdAt: {
-            gte: startOfWeek
-          }
-        }
+            gte: startOfWeek,
+          },
+        },
       });
 
       // Nouveaux utilisateurs (ce mois)
@@ -81,9 +83,9 @@ export const dashboardService = {
       const newUsersThisMonth = await db.user.count({
         where: {
           createdAt: {
-            gte: startOfMonth
-          }
-        }
+            gte: startOfMonth,
+          },
+        },
       });
 
       return {
@@ -98,8 +100,8 @@ export const dashboardService = {
           DELIVERER: delivererCount,
           MERCHANT: merchantCount,
           PROVIDER: providerCount,
-          ADMIN: adminCount
-        }
+          ADMIN: adminCount,
+        },
       };
     } catch (error) {
       console.error('Erreur lors de la récupération des statistiques utilisateurs:', error);
@@ -113,34 +115,34 @@ export const dashboardService = {
   async getDocumentStats() {
     try {
       const totalDocuments = await db.document.count();
-      const pendingReview = await db.document.count({ 
-        where: { verificationStatus: 'PENDING' } 
+      const pendingReview = await db.document.count({
+        where: { verificationStatus: 'PENDING' },
       });
-      const approved = await db.document.count({ 
-        where: { verificationStatus: 'APPROVED' } 
+      const approved = await db.document.count({
+        where: { verificationStatus: 'APPROVED' },
       });
-      const rejected = await db.document.count({ 
-        where: { verificationStatus: 'REJECTED' } 
+      const rejected = await db.document.count({
+        where: { verificationStatus: 'REJECTED' },
       });
 
       // Documents par type
-      const idCards = await db.document.count({ 
-        where: { type: 'ID_CARD' } 
+      const idCards = await db.document.count({
+        where: { type: 'ID_CARD' },
       });
-      const drivingLicenses = await db.document.count({ 
-        where: { type: 'DRIVING_LICENSE' } 
+      const drivingLicenses = await db.document.count({
+        where: { type: 'DRIVING_LICENSE' },
       });
-      const vehicleRegistrations = await db.document.count({ 
-        where: { type: 'VEHICLE_REGISTRATION' } 
+      const vehicleRegistrations = await db.document.count({
+        where: { type: 'VEHICLE_REGISTRATION' },
       });
-      const insurances = await db.document.count({ 
-        where: { type: 'INSURANCE' } 
+      const insurances = await db.document.count({
+        where: { type: 'INSURANCE' },
       });
-      const proofOfAddress = await db.document.count({ 
-        where: { type: 'PROOF_OF_ADDRESS' } 
+      const proofOfAddress = await db.document.count({
+        where: { type: 'PROOF_OF_ADDRESS' },
       });
-      const others = await db.document.count({ 
-        where: { type: 'OTHER' } 
+      const others = await db.document.count({
+        where: { type: 'OTHER' },
       });
 
       // Documents soumis aujourd'hui
@@ -149,9 +151,9 @@ export const dashboardService = {
       const submittedToday = await db.document.count({
         where: {
           uploadedAt: {
-            gte: today
-          }
-        }
+            gte: today,
+          },
+        },
       });
 
       return {
@@ -166,8 +168,8 @@ export const dashboardService = {
           VEHICLE_REGISTRATION: vehicleRegistrations,
           INSURANCE: insurances,
           PROOF_OF_ADDRESS: proofOfAddress,
-          OTHER: others
-        }
+          OTHER: others,
+        },
       };
     } catch (error) {
       console.error('Erreur lors de la récupération des statistiques de documents:', error);
@@ -183,8 +185,8 @@ export const dashboardService = {
       const totalPayments = await db.payment.count();
       const totalAmount = await db.payment.aggregate({
         _sum: {
-          amount: true
-        }
+          amount: true,
+        },
       });
 
       // Transactions par statut
@@ -195,24 +197,24 @@ export const dashboardService = {
       // Statistiques des 30 derniers jours
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-      
+
       const last30DaysPayments = await db.payment.count({
         where: {
           createdAt: {
-            gte: thirtyDaysAgo
-          }
-        }
+            gte: thirtyDaysAgo,
+          },
+        },
       });
 
       const last30DaysAmount = await db.payment.aggregate({
         where: {
           createdAt: {
-            gte: thirtyDaysAgo
-          }
+            gte: thirtyDaysAgo,
+          },
         },
         _sum: {
-          amount: true
-        }
+          amount: true,
+        },
       });
 
       return {
@@ -223,8 +225,8 @@ export const dashboardService = {
         paymentsByStatus: {
           COMPLETED: successful,
           PENDING: pending,
-          FAILED: failed
-        }
+          FAILED: failed,
+        },
       };
     } catch (error) {
       console.error('Erreur lors de la récupération des statistiques de transactions:', error);
@@ -251,9 +253,9 @@ export const dashboardService = {
         where: {
           status: 'ACTIVE',
           endDate: {
-            gte: new Date()
-          }
-        }
+            gte: new Date(),
+          },
+        },
       });
 
       return {
@@ -263,10 +265,10 @@ export const dashboardService = {
         occupiedBoxes,
         maintenanceBoxes,
         occupancyRate,
-        activeReservations
+        activeReservations,
       };
     } catch (error) {
-      console.error('Erreur lors de la récupération des statistiques d\'entrepôts:', error);
+      console.error("Erreur lors de la récupération des statistiques d'entrepôts:", error);
       throw error;
     }
   },
@@ -281,9 +283,9 @@ export const dashboardService = {
       const inProgressDeliveries = await db.delivery.count({
         where: {
           status: {
-            in: ['ACCEPTED', 'PICKED_UP', 'IN_TRANSIT']
-          }
-        }
+            in: ['ACCEPTED', 'PICKED_UP', 'IN_TRANSIT'],
+          },
+        },
       });
       const completedDeliveries = await db.delivery.count({ where: { status: 'DELIVERED' } });
       const cancelledDeliveries = await db.delivery.count({ where: { status: 'CANCELLED' } });
@@ -294,9 +296,9 @@ export const dashboardService = {
       const deliveriesToday = await db.delivery.count({
         where: {
           createdAt: {
-            gte: today
-          }
-        }
+            gte: today,
+          },
+        },
       });
 
       // Livraisons terminées aujourd'hui
@@ -304,9 +306,9 @@ export const dashboardService = {
         where: {
           status: 'DELIVERED',
           updatedAt: {
-            gte: today
-          }
-        }
+            gte: today,
+          },
+        },
       });
 
       return {
@@ -316,7 +318,7 @@ export const dashboardService = {
         completedDeliveries,
         cancelledDeliveries,
         deliveriesToday,
-        completedToday
+        completedToday,
       };
     } catch (error) {
       console.error('Erreur lors de la récupération des statistiques de livraisons:', error);
@@ -334,8 +336,8 @@ export const dashboardService = {
         take: limit,
         orderBy: { uploadedAt: 'desc' },
         include: {
-          user: true
-        }
+          user: true,
+        },
       });
 
       // Récentes livraisons
@@ -344,29 +346,29 @@ export const dashboardService = {
         orderBy: { createdAt: 'desc' },
         include: {
           client: true,
-          deliverer: true
-        }
+          deliverer: true,
+        },
       });
 
       // Récentes vérifications
       const recentVerifications = await db.document.findMany({
         where: {
           verificationStatus: {
-            in: ['APPROVED', 'REJECTED']
-          }
+            in: ['APPROVED', 'REJECTED'],
+          },
         },
         take: limit,
         orderBy: { uploadedAt: 'desc' },
         include: {
           user: true,
-          reviewer: true
-        }
+          reviewer: true,
+        },
       });
 
       // Récentes inscriptions
       const recentRegistrations = await db.user.findMany({
         take: limit,
-        orderBy: { createdAt: 'desc' }
+        orderBy: { createdAt: 'desc' },
       });
 
       // Combiner et trier par date
@@ -374,23 +376,23 @@ export const dashboardService = {
         ...recentDocuments.map(doc => ({
           type: 'DOCUMENT_SUBMISSION',
           date: doc.uploadedAt,
-          data: doc
+          data: doc,
         })),
         ...recentDeliveries.map(del => ({
           type: 'DELIVERY',
           date: del.createdAt,
-          data: del
+          data: del,
         })),
         ...recentVerifications.map(ver => ({
           type: 'VERIFICATION',
           date: ver.uploadedAt,
-          data: ver
+          data: ver,
         })),
         ...recentRegistrations.map(reg => ({
           type: 'REGISTRATION',
           date: reg.createdAt,
-          data: reg
-        }))
+          data: reg,
+        })),
       ]
         .sort((a, b) => b.date.getTime() - a.date.getTime())
         .slice(0, limit);
@@ -428,7 +430,7 @@ export const dashboardService = {
       for (const dateStr of dates) {
         const startDate = new Date(dateStr);
         startDate.setHours(0, 0, 0, 0);
-        
+
         const endDate = new Date(dateStr);
         endDate.setHours(23, 59, 59, 999);
 
@@ -437,9 +439,9 @@ export const dashboardService = {
           where: {
             createdAt: {
               gte: startDate,
-              lte: endDate
-            }
-          }
+              lte: endDate,
+            },
+          },
         });
 
         // Comptage des livraisons
@@ -447,9 +449,9 @@ export const dashboardService = {
           where: {
             createdAt: {
               gte: startDate,
-              lte: endDate
-            }
-          }
+              lte: endDate,
+            },
+          },
         });
 
         // Comptage des documents
@@ -457,9 +459,9 @@ export const dashboardService = {
           where: {
             uploadedAt: {
               gte: startDate,
-              lte: endDate
-            }
-          }
+              lte: endDate,
+            },
+          },
         });
 
         registrations.push(usersCount);
@@ -472,20 +474,20 @@ export const dashboardService = {
         datasets: [
           {
             label: 'Inscriptions',
-            data: registrations
+            data: registrations,
           },
           {
             label: 'Livraisons',
-            data: deliveries
+            data: deliveries,
           },
           {
             label: 'Documents',
-            data: documents
-          }
-        ]
+            data: documents,
+          },
+        ],
       };
     } catch (error) {
-      console.error('Erreur lors de la récupération des données du graphique d\'activité:', error);
+      console.error("Erreur lors de la récupération des données du graphique d'activité:", error);
       throw error;
     }
   },
@@ -498,22 +500,22 @@ export const dashboardService = {
       // Documents en attente de vérification
       const pendingDocuments = await db.document.count({
         where: {
-          verificationStatus: 'PENDING'
-        }
+          verificationStatus: 'PENDING',
+        },
       });
 
       // Utilisateurs en attente de vérification
       const pendingUsers = await db.user.count({
         where: {
-          status: 'PENDING_VERIFICATION'
-        }
+          status: 'PENDING_VERIFICATION',
+        },
       });
 
       // Demandes de retrait en attente
       const pendingWithdrawals = await db.withdrawalRequest.count({
         where: {
-          status: 'PENDING'
-        }
+          status: 'PENDING',
+        },
       });
 
       try {
@@ -522,18 +524,18 @@ export const dashboardService = {
           pendingDocuments,
           pendingUsers,
           pendingWithdrawals,
-          pendingReports: 0 // Valeur par défaut
+          pendingReports: 0, // Valeur par défaut
         };
       } catch (error) {
         // Si la table report n'existe pas, retourner sans elle
         return {
           pendingDocuments,
           pendingUsers,
-          pendingWithdrawals
+          pendingWithdrawals,
         };
       }
     } catch (error) {
-      console.error('Erreur lors de la récupération des éléments d\'action:', error);
+      console.error("Erreur lors de la récupération des éléments d'action:", error);
       throw error;
     }
   },
@@ -581,7 +583,7 @@ export const dashboardService = {
           updatedAt: 'desc',
         },
       });
-      
+
       const activeDeliveries = activeDeliveriesData.length;
 
       // Livraisons terminées
@@ -686,12 +688,13 @@ export const dashboardService = {
           date: invoice.createdAt,
           data: invoice,
         })),
-      ].sort((a, b) => b.date.getTime() - a.date.getTime())
-       .slice(0, 10);
+      ]
+        .sort((a, b) => b.date.getTime() - a.date.getTime())
+        .slice(0, 10);
 
       return allActivities;
     } catch (error) {
-      console.error('Erreur lors de la récupération de l\'activité récente du client:', error);
+      console.error("Erreur lors de la récupération de l'activité récente du client:", error);
       throw error;
     }
   },
@@ -704,7 +707,7 @@ export const dashboardService = {
     try {
       // Montant total dépensé
       const totalSpent = await db.payment.aggregate({
-        where: { 
+        where: {
           userId,
           status: 'COMPLETED',
         },
@@ -751,15 +754,15 @@ export const dashboardService = {
 
       // Calculer les dépenses mensuelles manuellement
       const monthlySpending: Record<string, number> = {};
-      
+
       monthlyPayments.forEach(payment => {
         const date = payment.createdAt;
         const monthYear = `${date.getFullYear()}-${date.getMonth() + 1}`;
-        
+
         if (!monthlySpending[monthYear]) {
           monthlySpending[monthYear] = 0;
         }
-        
+
         monthlySpending[monthYear] += payment.amount.toNumber();
       });
 
@@ -869,4 +872,667 @@ export const dashboardService = {
       throw error;
     }
   },
-}; 
+
+  /**
+   * Génère un rapport de ventes
+   */
+  async getSalesReport({
+    startDate,
+    endDate,
+    granularity,
+    comparison,
+    categoryFilter,
+  }: SalesReportOptions) {
+    const endDateFormatted = endDate;
+    const startDateFormatted = startDate;
+
+    // Déterminer la période précédente pour comparaison si demandé
+    const compareStartDate = comparison
+      ? new Date(startDate.getTime() - (endDate.getTime() - startDate.getTime()))
+      : null;
+    const compareEndDate = comparison ? startDate : null;
+
+    try {
+      // Requête principale pour les ventes de la période sélectionnée
+      let salesQuery = await db.invoice.findMany({
+        where: {
+          createdAt: {
+            gte: startDateFormatted,
+            lte: endDateFormatted,
+          },
+          status: 'PAID',
+          ...(categoryFilter ? { category: categoryFilter } : {}),
+        },
+        select: {
+          id: true,
+          totalAmount: true,
+          createdAt: true,
+          status: true,
+          category: true,
+        },
+        orderBy: {
+          createdAt: 'asc',
+        },
+      });
+
+      // Données pour comparaison avec période précédente si demandé
+      let comparisonData = null;
+      if (comparison && compareStartDate && compareEndDate) {
+        comparisonData = await db.invoice.findMany({
+          where: {
+            createdAt: {
+              gte: compareStartDate,
+              lte: compareEndDate,
+            },
+            status: 'PAID',
+            ...(categoryFilter ? { category: categoryFilter } : {}),
+          },
+          select: {
+            id: true,
+            totalAmount: true,
+            createdAt: true,
+            status: true,
+            category: true,
+          },
+          orderBy: {
+            createdAt: 'asc',
+          },
+        });
+      }
+
+      // Analyse et agrégation des données par période (jour, semaine, mois...)
+      const timeSeriesData = aggregateTimeSeriesData(salesQuery, granularity, 'totalAmount');
+      const comparisonTimeSeriesData = comparisonData
+        ? aggregateTimeSeriesData(comparisonData, granularity, 'totalAmount')
+        : null;
+
+      // Agréger les données par catégorie
+      const salesByCategory = await db.invoice.groupBy({
+        by: ['category'],
+        where: {
+          createdAt: {
+            gte: startDateFormatted,
+            lte: endDateFormatted,
+          },
+          status: 'PAID',
+        },
+        _sum: {
+          totalAmount: true,
+        },
+        orderBy: {
+          _sum: {
+            totalAmount: 'desc',
+          },
+        },
+      });
+
+      // Calcul des totaux et des comparaisons
+      const totalSales = salesQuery.reduce((sum, invoice) => sum + Number(invoice.totalAmount), 0);
+      const previousTotalSales = comparisonData
+        ? comparisonData.reduce((sum, invoice) => sum + Number(invoice.totalAmount), 0)
+        : 0;
+
+      const percentChange =
+        previousTotalSales > 0 ? ((totalSales - previousTotalSales) / previousTotalSales) * 100 : 0;
+
+      return {
+        timeSeriesData,
+        comparisonTimeSeriesData,
+        salesByCategory: salesByCategory.map(category => ({
+          name: category.category || 'Non catégorisé',
+          value: Number(category._sum.totalAmount),
+        })),
+        summary: {
+          totalSales,
+          numberOfInvoices: salesQuery.length,
+          previousTotalSales: comparison ? previousTotalSales : null,
+          percentChange: comparison ? percentChange : null,
+          averageOrderValue: salesQuery.length > 0 ? totalSales / salesQuery.length : 0,
+        },
+      };
+    } catch (error) {
+      console.error('Erreur lors de la génération du rapport de ventes:', error);
+      throw error;
+    }
+  },
+
+  /**
+   * Génère un rapport d'activité utilisateur
+   */
+  async getUserActivityReport({
+    startDate,
+    endDate,
+    granularity,
+    comparison,
+    userRoleFilter,
+  }: UserActivityReportOptions) {
+    const endDateFormatted = endDate;
+    const startDateFormatted = startDate;
+
+    // Déterminer la période précédente pour comparaison si demandé
+    const compareStartDate = comparison
+      ? new Date(startDate.getTime() - (endDate.getTime() - startDate.getTime()))
+      : null;
+    const compareEndDate = comparison ? startDate : null;
+
+    try {
+      // Requête pour les inscriptions d'utilisateurs
+      const userSignupsQuery = await db.user.findMany({
+        where: {
+          createdAt: {
+            gte: startDateFormatted,
+            lte: endDateFormatted,
+          },
+          ...(userRoleFilter ? { role: userRoleFilter as any } : {}),
+        },
+        select: {
+          id: true,
+          createdAt: true,
+          role: true,
+        },
+        orderBy: {
+          createdAt: 'asc',
+        },
+      });
+
+      // Requête pour les connexions d'utilisateurs
+      const userLoginsQuery = await db.session.findMany({
+        where: {
+          createdAt: {
+            gte: startDateFormatted,
+            lte: endDateFormatted,
+          },
+          user: userRoleFilter ? { role: userRoleFilter as any } : undefined,
+        },
+        select: {
+          id: true,
+          userId: true,
+          createdAt: true,
+          user: {
+            select: {
+              role: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'asc',
+        },
+      });
+
+      // Données de comparaison
+      let comparisonSignups = null;
+      let comparisonLogins = null;
+
+      if (comparison && compareStartDate && compareEndDate) {
+        comparisonSignups = await db.user.findMany({
+          where: {
+            createdAt: {
+              gte: compareStartDate,
+              lte: compareEndDate,
+            },
+            ...(userRoleFilter ? { role: userRoleFilter as any } : {}),
+          },
+          select: {
+            id: true,
+            createdAt: true,
+            role: true,
+          },
+          orderBy: {
+            createdAt: 'asc',
+          },
+        });
+
+        comparisonLogins = await db.session.findMany({
+          where: {
+            createdAt: {
+              gte: compareStartDate,
+              lte: compareEndDate,
+            },
+            user: userRoleFilter ? { role: userRoleFilter as any } : undefined,
+          },
+          select: {
+            id: true,
+            userId: true,
+            createdAt: true,
+            user: {
+              select: {
+                role: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: 'asc',
+          },
+        });
+      }
+
+      // Agréger les données d'inscriptions par période
+      const signupsTimeSeriesData = aggregateTimeSeriesData(userSignupsQuery, granularity, 'count');
+      const comparisonSignupsData = comparisonSignups
+        ? aggregateTimeSeriesData(comparisonSignups, granularity, 'count')
+        : null;
+
+      // Agréger les données de connexions par période
+      const loginsTimeSeriesData = aggregateTimeSeriesData(userLoginsQuery, granularity, 'count');
+      const comparisonLoginsData = comparisonLogins
+        ? aggregateTimeSeriesData(comparisonLogins, granularity, 'count')
+        : null;
+
+      // Analyser par rôle si pas de filtre
+      const usersByRole = !userRoleFilter
+        ? await db.user.groupBy({
+            by: ['role'],
+            where: {
+              createdAt: {
+                gte: startDateFormatted,
+                lte: endDateFormatted,
+              },
+            },
+            _count: true,
+          })
+        : [];
+
+      // Calculer les utilisateurs actifs (ayant eu au moins une session)
+      const activeUserIds = new Set(userLoginsQuery.map(login => login.userId));
+      const activeUsersCount = activeUserIds.size;
+
+      // Calculer les totaux et comparaisons
+      const totalSignups = userSignupsQuery.length;
+      const previousTotalSignups = comparisonSignups ? comparisonSignups.length : 0;
+      const signupsPercentChange =
+        previousTotalSignups > 0
+          ? ((totalSignups - previousTotalSignups) / previousTotalSignups) * 100
+          : 0;
+
+      return {
+        signupsTimeSeriesData,
+        comparisonSignupsData,
+        loginsTimeSeriesData,
+        comparisonLoginsData,
+        usersByRole: usersByRole.map(role => ({
+          role: role.role,
+          count: role._count,
+        })),
+        summary: {
+          totalSignups,
+          activeUsers: activeUsersCount,
+          previousTotalSignups: comparison ? previousTotalSignups : null,
+          signupsPercentChange: comparison ? signupsPercentChange : null,
+          totalLogins: userLoginsQuery.length,
+          uniqueLogins: activeUsersCount,
+        },
+      };
+    } catch (error) {
+      console.error("Erreur lors de la génération du rapport d'activité utilisateur:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Génère un rapport de performance de livraison
+   */
+  async getDeliveryPerformanceReport({
+    startDate,
+    endDate,
+    granularity,
+    comparison,
+    zoneFilter,
+    delivererFilter,
+  }: DeliveryPerformanceReportOptions) {
+    const endDateFormatted = endDate;
+    const startDateFormatted = startDate;
+
+    // Déterminer la période précédente pour comparaison si demandé
+    const compareStartDate = comparison
+      ? new Date(startDate.getTime() - (endDate.getTime() - startDate.getTime()))
+      : null;
+    const compareEndDate = comparison ? startDate : null;
+
+    try {
+      // Requête pour les livraisons
+      const deliveriesQuery = await db.delivery.findMany({
+        where: {
+          createdAt: {
+            gte: startDateFormatted,
+            lte: endDateFormatted,
+          },
+          ...(zoneFilter ? { zone: zoneFilter } : {}),
+          ...(delivererFilter ? { delivererId: delivererFilter } : {}),
+        },
+        select: {
+          id: true,
+          status: true,
+          createdAt: true,
+          completedAt: true,
+          estimatedDeliveryTime: true,
+          actualDeliveryTime: true,
+          zone: true,
+          delivererId: true,
+          deliverer: {
+            select: {
+              name: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'asc',
+        },
+      });
+
+      // Données de comparaison
+      let comparisonDeliveries = null;
+
+      if (comparison && compareStartDate && compareEndDate) {
+        comparisonDeliveries = await db.delivery.findMany({
+          where: {
+            createdAt: {
+              gte: compareStartDate,
+              lte: compareEndDate,
+            },
+            ...(zoneFilter ? { zone: zoneFilter } : {}),
+            ...(delivererFilter ? { delivererId: delivererFilter } : {}),
+          },
+          select: {
+            id: true,
+            status: true,
+            createdAt: true,
+            completedAt: true,
+            estimatedDeliveryTime: true,
+            actualDeliveryTime: true,
+            zone: true,
+            delivererId: true,
+            deliverer: {
+              select: {
+                name: true,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: 'asc',
+          },
+        });
+      }
+
+      // Calculer les livraisons à temps vs en retard
+      const completedDeliveries = deliveriesQuery.filter(
+        d => d.status === 'DELIVERED' && d.estimatedDeliveryTime && d.actualDeliveryTime
+      );
+      const onTimeDeliveries = completedDeliveries.filter(d => {
+        const estimated = new Date(d.estimatedDeliveryTime!);
+        const actual = new Date(d.actualDeliveryTime!);
+        return actual <= estimated;
+      });
+
+      // Temps de livraison moyen par zone
+      const deliveryTimesByZone = await db.$queryRaw`
+        SELECT 
+          zone,
+          EXTRACT(EPOCH FROM AVG(actual_delivery_time - created_at))/60 as average_time
+        FROM delivery
+        WHERE 
+          created_at BETWEEN ${startDateFormatted} AND ${endDateFormatted}
+          AND status = 'DELIVERED'
+          AND actual_delivery_time IS NOT NULL
+          ${zoneFilter ? Prisma.sql`AND zone = ${zoneFilter}` : Prisma.sql``}
+          ${delivererFilter ? Prisma.sql`AND deliverer_id = ${delivererFilter}` : Prisma.sql``}
+        GROUP BY zone
+        ORDER BY average_time ASC
+      `;
+
+      // Problèmes par type
+      const deliveryIssues = await db.$queryRaw`
+        SELECT 
+          issue_type,
+          COUNT(*) as count
+        FROM delivery_issue
+        WHERE 
+          created_at BETWEEN ${startDateFormatted} AND ${endDateFormatted}
+          ${
+            delivererFilter
+              ? Prisma.sql`AND delivery_id IN (
+            SELECT id FROM delivery WHERE deliverer_id = ${delivererFilter}
+          )`
+              : Prisma.sql``
+          }
+          ${
+            zoneFilter
+              ? Prisma.sql`AND delivery_id IN (
+            SELECT id FROM delivery WHERE zone = ${zoneFilter}
+          )`
+              : Prisma.sql``
+          }
+        GROUP BY issue_type
+        ORDER BY count DESC
+      `;
+
+      // Agréger les données de livraison par période
+      const deliveriesTimeSeriesData = aggregateTimeSeriesData(
+        deliveriesQuery,
+        granularity,
+        'count'
+      );
+
+      // Agréger les livraisons à temps par période
+      const onTimeDeliveriesData =
+        onTimeDeliveries.length > 0
+          ? aggregateTimeSeriesData(onTimeDeliveries, granularity, 'count')
+          : [];
+
+      // Calculer le taux de livraison à temps par période
+      const onTimeDeliveryRate = deliveriesTimeSeriesData.map(period => {
+        const totalForPeriod = period.value;
+        const onTimeForPeriod =
+          onTimeDeliveriesData.find(p => p.period === period.period)?.value || 0;
+        const rate = totalForPeriod > 0 ? (onTimeForPeriod / totalForPeriod) * 100 : 0;
+
+        return {
+          period: period.period,
+          rate: rate,
+        };
+      });
+
+      // Données de comparaison pour le taux de livraison à temps
+      let previousOnTimePercentage = null;
+      if (comparisonDeliveries) {
+        const prevCompletedDeliveries = comparisonDeliveries.filter(
+          d => d.status === 'DELIVERED' && d.estimatedDeliveryTime && d.actualDeliveryTime
+        );
+        const prevOnTimeDeliveries = prevCompletedDeliveries.filter(d => {
+          const estimated = new Date(d.estimatedDeliveryTime!);
+          const actual = new Date(d.actualDeliveryTime!);
+          return actual <= estimated;
+        });
+
+        previousOnTimePercentage =
+          prevCompletedDeliveries.length > 0
+            ? (prevOnTimeDeliveries.length / prevCompletedDeliveries.length) * 100
+            : 0;
+      }
+
+      // Calculer le taux de livraison à temps global
+      const onTimePercentage =
+        completedDeliveries.length > 0
+          ? (onTimeDeliveries.length / completedDeliveries.length) * 100
+          : 0;
+
+      // Calculer le changement de pourcentage
+      const percentChange =
+        previousOnTimePercentage !== null ? onTimePercentage - previousOnTimePercentage : 0;
+
+      // Calculer le temps moyen de livraison
+      const averageDeliveryTimeInMinutes =
+        completedDeliveries.length > 0
+          ? completedDeliveries.reduce((sum, delivery) => {
+              if (delivery.actualDeliveryTime && delivery.createdAt) {
+                const createdAt = new Date(delivery.createdAt);
+                const completedAt = new Date(delivery.actualDeliveryTime);
+                return sum + (completedAt.getTime() - createdAt.getTime()) / (1000 * 60);
+              }
+              return sum;
+            }, 0) / completedDeliveries.length
+          : 0;
+
+      // Calculer le taux de problèmes
+      const issueCount = await db.deliveryIssue.count({
+        where: {
+          createdAt: {
+            gte: startDateFormatted,
+            lte: endDateFormatted,
+          },
+          delivery: {
+            ...(zoneFilter ? { zone: zoneFilter } : {}),
+            ...(delivererFilter ? { delivererId: delivererFilter } : {}),
+          },
+        },
+      });
+
+      const issueRate =
+        deliveriesQuery.length > 0 ? (issueCount / deliveriesQuery.length) * 100 : 0;
+
+      // Calculer le taux d'annulation
+      const cancelledDeliveries = deliveriesQuery.filter(d => d.status === 'CANCELLED').length;
+      const cancelRate =
+        deliveriesQuery.length > 0 ? (cancelledDeliveries / deliveriesQuery.length) * 100 : 0;
+
+      return {
+        onTimeDeliveryRate,
+        deliveryTimesByZone: deliveryTimesByZone.map((zone: any, index: number) => ({
+          zone: zone.zone,
+          averageTime: parseFloat(zone.average_time),
+          color: index % 2 === 0 ? '#8884d8' : '#82ca9d',
+        })),
+        deliveryIssues: (deliveryIssues as any[]).map((issue, index) => ({
+          issueType: issue.issue_type,
+          count: parseInt(issue.count, 10),
+          percentage: (parseInt(issue.count, 10) / issueCount) * 100,
+          color: getColorByIndex(index),
+        })),
+        deliveriesByStatus: [
+          {
+            status: 'DELIVERED',
+            count: deliveriesQuery.filter(d => d.status === 'DELIVERED').length,
+            color: '#4CAF50',
+          },
+          {
+            status: 'IN_TRANSIT',
+            count: deliveriesQuery.filter(d => d.status === 'IN_TRANSIT').length,
+            color: '#2196F3',
+          },
+          {
+            status: 'PENDING',
+            count: deliveriesQuery.filter(d => d.status === 'PENDING').length,
+            color: '#FFC107',
+          },
+          {
+            status: 'CANCELLED',
+            count: deliveriesQuery.filter(d => d.status === 'CANCELLED').length,
+            color: '#F44336',
+          },
+          {
+            status: 'PROBLEM',
+            count: deliveriesQuery.filter(d => d.status === 'PROBLEM').length,
+            color: '#FF5722',
+          },
+        ],
+        performanceSummary: {
+          totalDeliveries: deliveriesQuery.length,
+          onTimePercentage,
+          previousOnTimePercentage: comparison ? previousOnTimePercentage : null,
+          percentChange,
+          averageDeliveryTime: averageDeliveryTimeInMinutes,
+          issueRate,
+          cancelRate,
+        },
+      };
+    } catch (error) {
+      console.error('Erreur lors de la génération du rapport de performance de livraison:', error);
+      throw error;
+    }
+  },
+};
+
+/**
+ * Fonction utilitaire pour agréger des données par période (jour, semaine, mois...)
+ */
+function aggregateTimeSeriesData(data: any[], granularity: string, valueField: string = 'count') {
+  if (!data || data.length === 0) return [];
+
+  const result: { period: string; value: number }[] = [];
+  const groupedData: Record<string, any[]> = {};
+
+  // Regrouper les données par la période spécifiée
+  data.forEach(item => {
+    const date = new Date(item.createdAt);
+    let periodKey: string;
+
+    switch (granularity) {
+      case 'day':
+        periodKey = date.toISOString().split('T')[0]; // YYYY-MM-DD
+        break;
+      case 'week':
+        const weekStart = new Date(date);
+        weekStart.setDate(date.getDate() - date.getDay()); // Début de la semaine (dimanche)
+        periodKey = weekStart.toISOString().split('T')[0];
+        break;
+      case 'month':
+        periodKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        break;
+      case 'quarter':
+        const quarter = Math.floor(date.getMonth() / 3) + 1;
+        periodKey = `${date.getFullYear()}-Q${quarter}`;
+        break;
+      case 'year':
+        periodKey = `${date.getFullYear()}`;
+        break;
+      default:
+        periodKey = date.toISOString().split('T')[0]; // Par défaut: jour
+    }
+
+    if (!groupedData[periodKey]) {
+      groupedData[periodKey] = [];
+    }
+
+    groupedData[periodKey].push(item);
+  });
+
+  // Calculer la valeur pour chaque période
+  Object.entries(groupedData).forEach(([period, items]) => {
+    let value: number;
+
+    if (valueField === 'count') {
+      value = items.length;
+    } else {
+      // Somme des valeurs numériques
+      value = items.reduce((sum, item) => sum + (Number(item[valueField]) || 0), 0);
+    }
+
+    result.push({ period, value });
+  });
+
+  // Trier par période
+  result.sort((a, b) => a.period.localeCompare(b.period));
+
+  return result;
+}
+
+/**
+ * Fonction utilitaire pour obtenir une couleur en fonction de l'index
+ */
+function getColorByIndex(index: number): string {
+  const colors = [
+    '#8884d8',
+    '#82ca9d',
+    '#ffc658',
+    '#ff8042',
+    '#0088FE',
+    '#00C49F',
+    '#FFBB28',
+    '#FF8042',
+    '#8844d8',
+    '#41ca9d',
+    '#eec658',
+    '#ef8042',
+  ];
+
+  return colors[index % colors.length];
+}

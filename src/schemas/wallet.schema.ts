@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 import { TransactionType } from '@prisma/client';
 
 /**
@@ -9,16 +9,16 @@ export const WalletSchema = z.object({
   id: z.string().cuid().optional(),
   userId: z.string(),
   balance: z.number().nonnegative(),
-  currency: z.string().default("EUR"),
+  currency: z.string().default('EUR'),
   isActive: z.boolean().default(true),
   stripeAccountId: z.string().nullable().optional(),
   accountVerified: z.boolean().default(false),
-  accountType: z.enum(["express", "standard", "custom"]).nullable().optional(),
+  accountType: z.enum(['express', 'standard', 'custom']).nullable().optional(),
   iban: z.string().nullable().optional(),
   bic: z.string().nullable().optional(),
   bankName: z.string().nullable().optional(),
   accountHolder: z.string().nullable().optional(),
-  accountHolderType: z.enum(["individual", "company"]).nullable().optional(),
+  accountHolderType: z.enum(['individual', 'company']).nullable().optional(),
   minimumWithdrawalAmount: z.number().default(10),
   automaticWithdrawal: z.boolean().default(false),
   withdrawalThreshold: z.number().default(100),
@@ -34,7 +34,7 @@ export const CreateWalletSchema = WalletSchema.omit({
   accountVerified: true,
   stripeAccountId: true,
 }).extend({
-  userId: z.string()
+  userId: z.string(),
 });
 
 /**
@@ -43,7 +43,7 @@ export const CreateWalletSchema = WalletSchema.omit({
 export const UpdateWalletSchema = WalletSchema.partial().omit({
   id: true,
   userId: true,
-  balance: true
+  balance: true,
 });
 
 /**
@@ -51,7 +51,7 @@ export const UpdateWalletSchema = WalletSchema.partial().omit({
  */
 export const WalletBalanceSchema = z.object({
   balance: z.number().nonnegative(),
-  currency: z.string().default("EUR"),
+  currency: z.string().default('EUR'),
   availableBalance: z.number().nonnegative().optional(),
   pendingBalance: z.number().nonnegative().optional(),
 });
@@ -63,17 +63,17 @@ export const WalletTransactionSchema = z.object({
   id: z.string().cuid().optional(),
   walletId: z.string(),
   amount: z.number(),
-  currency: z.string().default("EUR"),
+  currency: z.string().default('EUR'),
   type: z.enum([
-    "EARNING",
-    "WITHDRAWAL",
-    "REFUND",
-    "SUBSCRIPTION_FEE",
-    "PLATFORM_FEE",
-    "ADJUSTMENT",
-    "BONUS"
+    'EARNING',
+    'WITHDRAWAL',
+    'REFUND',
+    'SUBSCRIPTION_FEE',
+    'PLATFORM_FEE',
+    'ADJUSTMENT',
+    'BONUS',
   ]),
-  status: z.enum(["PENDING", "COMPLETED", "FAILED", "CANCELLED"]).default("PENDING"),
+  status: z.enum(['PENDING', 'COMPLETED', 'FAILED', 'CANCELLED']).default('PENDING'),
   description: z.string().optional(),
   reference: z.string().optional(),
   stripeTransferId: z.string().optional(),
@@ -85,15 +85,15 @@ export const WalletTransactionSchema = z.object({
  */
 export const CreateTransactionSchema = z.object({
   walletId: z.string(),
-  amount: z.number().positive("Le montant doit être positif"),
+  amount: z.number().positive('Le montant doit être positif'),
   type: z.enum([
-    "EARNING",
-    "WITHDRAWAL",
-    "REFUND",
-    "SUBSCRIPTION_FEE",
-    "PLATFORM_FEE",
-    "ADJUSTMENT",
-    "BONUS"
+    'EARNING',
+    'WITHDRAWAL',
+    'REFUND',
+    'SUBSCRIPTION_FEE',
+    'PLATFORM_FEE',
+    'ADJUSTMENT',
+    'BONUS',
   ]),
   description: z.string().optional(),
   reference: z.string().optional(),
@@ -107,8 +107,8 @@ export const WithdrawalRequestSchema = z.object({
   id: z.string().cuid().optional(),
   walletId: z.string(),
   amount: z.number().positive(),
-  currency: z.string().default("EUR"),
-  status: z.enum(["PENDING", "PROCESSING", "COMPLETED", "FAILED", "CANCELLED"]).default("PENDING"),
+  currency: z.string().default('EUR'),
+  status: z.enum(['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'CANCELLED']).default('PENDING'),
   stripePayoutId: z.string().optional(),
   requestedAt: z.date().optional(),
   processedAt: z.date().optional(),
@@ -121,14 +121,14 @@ export const WithdrawalRequestSchema = z.object({
  */
 export const CreateWithdrawalRequestSchema = z.object({
   amount: z.number().positive(),
-  currency: z.string().default("EUR"),
+  currency: z.string().default('EUR'),
 });
 
 /**
  * Schéma pour mettre à jour une demande de retrait
  */
 export const UpdateWithdrawalRequestSchema = z.object({
-  status: z.enum(["PENDING", "PROCESSING", "COMPLETED", "FAILED", "CANCELLED"]),
+  status: z.enum(['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'CANCELLED']),
   processedAt: z.date().optional(),
   rejectionReason: z.string().optional(),
   stripePayoutId: z.string().optional(),
@@ -143,7 +143,7 @@ export const WalletStatsSchema = z.object({
   pendingWithdrawals: z.number().nonnegative(),
   currentBalance: z.number().nonnegative(),
   pendingBalance: z.number().nonnegative(),
-  currency: z.string().default("EUR"),
+  currency: z.string().default('EUR'),
   transactionCount: z.number().nonnegative(),
   lastTransactionDate: z.date().optional(),
 });
@@ -162,11 +162,19 @@ export const WalletConfigSchema = z.object({
  * Schéma pour l'ajout d'informations bancaires
  */
 export const BankInfoSchema = z.object({
-  iban: z.string().min(15).max(34).regex(/^[A-Z0-9]+$/),
-  bic: z.string().min(8).max(11).regex(/^[A-Z0-9]+$/),
+  iban: z
+    .string()
+    .min(15)
+    .max(34)
+    .regex(/^[A-Z0-9]+$/),
+  bic: z
+    .string()
+    .min(8)
+    .max(11)
+    .regex(/^[A-Z0-9]+$/),
   bankName: z.string().min(2),
   accountHolder: z.string().min(2),
-  accountHolderType: z.enum(["individual", "company"]),
+  accountHolderType: z.enum(['individual', 'company']),
 });
 
 /**
@@ -174,16 +182,18 @@ export const BankInfoSchema = z.object({
  */
 export const TransactionSearchSchema = z.object({
   walletId: z.string(),
-  type: z.enum([
-    "EARNING",
-    "WITHDRAWAL",
-    "REFUND",
-    "SUBSCRIPTION_FEE",
-    "PLATFORM_FEE",
-    "ADJUSTMENT",
-    "BONUS"
-  ]).optional(),
-  status: z.enum(["PENDING", "COMPLETED", "FAILED", "CANCELLED"]).optional(),
+  type: z
+    .enum([
+      'EARNING',
+      'WITHDRAWAL',
+      'REFUND',
+      'SUBSCRIPTION_FEE',
+      'PLATFORM_FEE',
+      'ADJUSTMENT',
+      'BONUS',
+    ])
+    .optional(),
+  status: z.enum(['PENDING', 'COMPLETED', 'FAILED', 'CANCELLED']).optional(),
   dateFrom: z.string().optional(),
   dateTo: z.string().optional(),
   page: z.number().optional().default(1),
@@ -337,6 +347,8 @@ export type VerifyConnectAccountInput = z.infer<typeof verifyConnectAccountSchem
 export type SaveBankInfoInput = z.infer<typeof saveBankInfoSchema>;
 export type RequestWithdrawalInput = z.infer<typeof requestWithdrawalSchema>;
 export type ProcessWithdrawalInput = z.infer<typeof processWithdrawalSchema>;
-export type UpdateAutomaticWithdrawalSettingsInput = z.infer<typeof updateAutomaticWithdrawalSettingsSchema>;
+export type UpdateAutomaticWithdrawalSettingsInput = z.infer<
+  typeof updateAutomaticWithdrawalSettingsSchema
+>;
 export type GenerateEarningsReportInput = z.infer<typeof generateEarningsReportSchema>;
-export type GetWalletStatsInput = z.infer<typeof getWalletStatsSchema>; 
+export type GetWalletStatsInput = z.infer<typeof getWalletStatsSchema>;

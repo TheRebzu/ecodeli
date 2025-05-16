@@ -58,10 +58,10 @@ export function useWallet(options: UseWalletOptions = {}) {
   const [isLoading, setIsLoading] = useState(false);
 
   // Obtenir l'équilibre du portefeuille
-  const { 
-    data: balanceData, 
+  const {
+    data: balanceData,
     isLoading: isLoadingBalance,
-    refetch: refetchBalance
+    refetch: refetchBalance,
   } = api.wallet.getMyBalance.useQuery();
 
   // Obtenir les transactions
@@ -81,25 +81,25 @@ export function useWallet(options: UseWalletOptions = {}) {
         title: 'Demande de virement soumise',
         variant: 'success',
       });
-      
+
       // Rafraîchir les données manuellement
       refetchWithdrawals();
       refetchBalance();
-      
+
       if (options.onWithdrawalSuccess) {
         options.onWithdrawalSuccess();
       }
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur: ' + error.message,
         variant: 'destructive',
       });
-      
+
       if (options.onWithdrawalError) {
         options.onWithdrawalError(error as unknown as Error);
       }
-    }
+    },
   });
 
   // Mutation pour annuler une demande de virement
@@ -109,17 +109,17 @@ export function useWallet(options: UseWalletOptions = {}) {
         title: 'Demande annulée',
         variant: 'success',
       });
-      
+
       // Rafraîchir les données manuellement
       refetchWithdrawals();
       refetchBalance();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur: ' + error.message,
         variant: 'destructive',
       });
-    }
+    },
   });
 
   // Variables de refetch pour les données
@@ -129,42 +129,47 @@ export function useWallet(options: UseWalletOptions = {}) {
   );
 
   // Statut du compte Connect
-  const { 
-    data: connectStatus, 
+  const {
+    data: connectStatus,
     isLoading: isCheckingAccount,
-    refetch: refetchConnectStatus
+    refetch: refetchConnectStatus,
   } = api.wallet.getConnectAccountStatus.useQuery();
 
   // Créer une demande de virement
-  const submitWithdrawal = useCallback((amount: number) => {
-    createWithdrawal.mutate({ amount, currency: "EUR" });
-  }, [createWithdrawal]);
+  const submitWithdrawal = useCallback(
+    (amount: number) => {
+      createWithdrawal.mutate({ amount, currency: 'EUR' });
+    },
+    [createWithdrawal]
+  );
 
   // Annuler une demande de virement
-  const cancelWithdrawalRequest = useCallback((withdrawalId: string) => {
-    cancelWithdrawal.mutate({ withdrawalId });
-  }, [cancelWithdrawal]);
+  const cancelWithdrawalRequest = useCallback(
+    (withdrawalId: string) => {
+      cancelWithdrawal.mutate({ withdrawalId });
+    },
+    [cancelWithdrawal]
+  );
 
   // Requêtes tRPC
   const walletQuery = trpc.wallet.getWallet.useQuery(undefined, {
-    enabled: false
+    enabled: false,
   });
   const balanceQuery = trpc.wallet.getBalance.useQuery(undefined, {
-    enabled: false
+    enabled: false,
   });
   const transactionHistoryQuery = trpc.wallet.getTransactionHistory.useQuery(
     { page: 1, limit: 10 },
     { enabled: false }
   );
   const walletStatsQuery = trpc.wallet.getWalletStats.useQuery(undefined, {
-    enabled: false
+    enabled: false,
   });
   const createConnectAccountMutation = trpc.wallet.createConnectAccount.useMutation();
   const generateOnboardingLinkMutation = trpc.wallet.generateOnboardingLink.useMutation();
-  const checkConnectAccountStatusQuery = trpc.wallet.checkConnectAccountStatus.useQuery(
-    undefined,
-    { enabled: false }
-  );
+  const checkConnectAccountStatusQuery = trpc.wallet.checkConnectAccountStatus.useQuery(undefined, {
+    enabled: false,
+  });
 
   /**
    * Récupère les détails du portefeuille
@@ -178,7 +183,10 @@ export function useWallet(options: UseWalletOptions = {}) {
       toast({
         variant: 'destructive',
         title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Une erreur est survenue lors de la récupération du portefeuille'
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Une erreur est survenue lors de la récupération du portefeuille',
       });
       return null;
     }
@@ -190,24 +198,29 @@ export function useWallet(options: UseWalletOptions = {}) {
   const getBalance = useCallback(async () => {
     try {
       const result = await balanceQuery.refetch();
-      return result.data || {
-        balance: 0,
-        availableBalance: 0,
-        pendingBalance: 0,
-        currency: 'EUR'
-      };
+      return (
+        result.data || {
+          balance: 0,
+          availableBalance: 0,
+          pendingBalance: 0,
+          currency: 'EUR',
+        }
+      );
     } catch (error) {
       console.error('Erreur lors de la récupération du solde:', error);
       toast({
         variant: 'destructive',
         title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Une erreur est survenue lors de la récupération du solde'
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Une erreur est survenue lors de la récupération du solde',
       });
       return {
         balance: 0,
         availableBalance: 0,
         pendingBalance: 0,
-        currency: 'EUR'
+        currency: 'EUR',
       };
     }
   }, [balanceQuery]);
@@ -219,13 +232,18 @@ export function useWallet(options: UseWalletOptions = {}) {
     async (page: number = 1, limit: number = 10) => {
       try {
         const result = await transactionHistoryQuery.refetch({ page, limit });
-        return result.data || { transactions: [], pagination: { total: 0, page, limit, totalPages: 0 } };
+        return (
+          result.data || { transactions: [], pagination: { total: 0, page, limit, totalPages: 0 } }
+        );
       } catch (error) {
-        console.error('Erreur lors de la récupération de l\'historique des transactions:', error);
+        console.error("Erreur lors de la récupération de l'historique des transactions:", error);
         toast({
           variant: 'destructive',
           title: 'Erreur',
-          description: error instanceof Error ? error.message : 'Une erreur est survenue lors de la récupération de l\'historique'
+          description:
+            error instanceof Error
+              ? error.message
+              : "Une erreur est survenue lors de la récupération de l'historique",
         });
         return { transactions: [], pagination: { total: 0, page, limit, totalPages: 0 } };
       }
@@ -239,21 +257,26 @@ export function useWallet(options: UseWalletOptions = {}) {
   const getWalletStats = useCallback(async () => {
     try {
       const result = await walletStatsQuery.refetch();
-      return result.data || {
-        totalEarnings: 0,
-        totalWithdrawals: 0,
-        pendingWithdrawals: 0,
-        currentBalance: 0,
-        pendingBalance: 0,
-        currency: 'EUR',
-        transactionCount: 0
-      };
+      return (
+        result.data || {
+          totalEarnings: 0,
+          totalWithdrawals: 0,
+          pendingWithdrawals: 0,
+          currentBalance: 0,
+          pendingBalance: 0,
+          currency: 'EUR',
+          transactionCount: 0,
+        }
+      );
     } catch (error) {
       console.error('Erreur lors de la récupération des statistiques:', error);
       toast({
         variant: 'destructive',
         title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Une erreur est survenue lors de la récupération des statistiques'
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Une erreur est survenue lors de la récupération des statistiques',
       });
       return {
         totalEarnings: 0,
@@ -262,7 +285,7 @@ export function useWallet(options: UseWalletOptions = {}) {
         currentBalance: 0,
         pendingBalance: 0,
         currency: 'EUR',
-        transactionCount: 0
+        transactionCount: 0,
       };
     }
   }, [walletStatsQuery]);
@@ -275,17 +298,20 @@ export function useWallet(options: UseWalletOptions = {}) {
       setIsLoading(true);
       try {
         const result = await createConnectAccountMutation.mutateAsync({ country });
-        
+
         // Actualiser l'état du portefeuille
         await walletQuery.refetch();
-        
+
         return result;
       } catch (error) {
         console.error('Erreur lors de la création du compte Stripe Connect:', error);
         toast({
           variant: 'destructive',
           title: 'Erreur',
-          description: error instanceof Error ? error.message : 'Une erreur est survenue lors de la création du compte'
+          description:
+            error instanceof Error
+              ? error.message
+              : 'Une erreur est survenue lors de la création du compte',
         });
         throw error;
       } finally {
@@ -305,11 +331,14 @@ export function useWallet(options: UseWalletOptions = {}) {
         const result = await generateOnboardingLinkMutation.mutateAsync({ returnUrl });
         return result;
       } catch (error) {
-        console.error('Erreur lors de la génération du lien d\'onboarding:', error);
+        console.error("Erreur lors de la génération du lien d'onboarding:", error);
         toast({
           variant: 'destructive',
           title: 'Erreur',
-          description: error instanceof Error ? error.message : 'Une erreur est survenue lors de la génération du lien'
+          description:
+            error instanceof Error
+              ? error.message
+              : 'Une erreur est survenue lors de la génération du lien',
         });
         throw error;
       } finally {
@@ -331,7 +360,10 @@ export function useWallet(options: UseWalletOptions = {}) {
       toast({
         variant: 'destructive',
         title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Une erreur est survenue lors de la vérification du compte'
+        description:
+          error instanceof Error
+            ? error.message
+            : 'Une erreur est survenue lors de la vérification du compte',
       });
       return { isVerified: false, stripeAccountId: null, success: false };
     }
@@ -345,13 +377,13 @@ export function useWallet(options: UseWalletOptions = {}) {
     isCancellingWithdrawal: cancelWithdrawal.isPending,
     connectStatus,
     isCheckingAccount,
-    
+
     // Actions
     getTransactions,
     getWithdrawals,
     submitWithdrawal,
     cancelWithdrawalRequest,
-    
+
     // Rafraîchir les données
     refetchBalance,
     refetchWithdrawals,
@@ -364,6 +396,6 @@ export function useWallet(options: UseWalletOptions = {}) {
     getWalletStats,
     createConnectAccount,
     generateOnboardingLink,
-    checkConnectAccountStatus
+    checkConnectAccountStatus,
   };
-} 
+}

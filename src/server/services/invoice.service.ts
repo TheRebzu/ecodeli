@@ -49,15 +49,15 @@ export const InvoiceService = {
       if (fromDate && toDate) {
         where.createdAt = {
           gte: new Date(fromDate),
-          lte: new Date(toDate)
+          lte: new Date(toDate),
         };
       } else if (fromDate) {
         where.createdAt = {
-          gte: new Date(fromDate)
+          gte: new Date(fromDate),
         };
       } else if (toDate) {
         where.createdAt = {
-          lte: new Date(toDate)
+          lte: new Date(toDate),
         };
       }
 
@@ -72,10 +72,10 @@ export const InvoiceService = {
             select: {
               id: true,
               status: true,
-              paymentMethod: true
-            }
-          }
-        }
+              paymentMethod: true,
+            },
+          },
+        },
       });
 
       // Compter le total pour la pagination
@@ -87,8 +87,8 @@ export const InvoiceService = {
           total,
           page,
           limit,
-          totalPages: Math.ceil(total / limit)
-        }
+          totalPages: Math.ceil(total / limit),
+        },
       };
     } catch (error) {
       console.error('Erreur lors de la récupération des factures:', error);
@@ -115,26 +115,26 @@ export const InvoiceService = {
               id: true,
               pickupAddress: true,
               deliveryAddress: true,
-              status: true
-            }
+              status: true,
+            },
           },
           service: {
             select: {
               id: true,
               title: true,
               description: true,
-              price: true
-            }
+              price: true,
+            },
           },
           user: {
             select: {
               id: true,
               email: true,
               name: true,
-              role: true
-            }
-          }
-        }
+              role: true,
+            },
+          },
+        },
       });
 
       if (!invoice) {
@@ -153,7 +153,17 @@ export const InvoiceService = {
    */
   async generate(data: InvoiceCreateData) {
     try {
-      const { userId, amount, currency = 'EUR', paymentId, deliveryId, serviceId, subscriptionId, dueDate, items } = data;
+      const {
+        userId,
+        amount,
+        currency = 'EUR',
+        paymentId,
+        deliveryId,
+        serviceId,
+        subscriptionId,
+        dueDate,
+        items,
+      } = data;
 
       // Générer un numéro de facture unique
       const invoiceNumber = await this.generateInvoiceNumber();
@@ -170,13 +180,13 @@ export const InvoiceService = {
           paymentId,
           deliveryId,
           serviceId,
-          subscriptionId
-        }
+          subscriptionId,
+        },
       });
 
       // Récupérer les informations de l'utilisateur
       const user = await db.user.findUnique({
-        where: { id: userId }
+        where: { id: userId },
       });
 
       if (!user) {
@@ -195,14 +205,14 @@ export const InvoiceService = {
         tax: 0, // Calculer la TVA si nécessaire
         total: amount,
         currency,
-        notes: 'Merci pour votre confiance!'
+        notes: 'Merci pour votre confiance!',
       });
 
       // Sauvegarder l'URL du PDF (simulé ici)
       const pdfUrl = `/invoices/${invoice.id}.pdf`;
       await db.invoice.update({
         where: { id: invoice.id },
-        data: { pdfUrl }
+        data: { pdfUrl },
       });
 
       return { ...invoice, pdfUrl, pdfBuffer };
@@ -218,7 +228,7 @@ export const InvoiceService = {
   async markAsPaid(id: string, paymentId?: string) {
     try {
       const invoice = await db.invoice.findUnique({
-        where: { id }
+        where: { id },
       });
 
       if (!invoice) {
@@ -229,8 +239,8 @@ export const InvoiceService = {
         where: { id },
         data: {
           status: 'PAID',
-          paymentId
-        }
+          paymentId,
+        },
       });
     } catch (error) {
       console.error('Erreur lors du marquage de la facture comme payée:', error);
@@ -244,15 +254,15 @@ export const InvoiceService = {
   async generateInvoiceNumber() {
     const year = new Date().getFullYear();
     const month = (new Date().getMonth() + 1).toString().padStart(2, '0');
-    
+
     // Compter le nombre de factures existantes pour ce mois
     const count = await db.invoice.count({
       where: {
         createdAt: {
           gte: new Date(`${year}-${month}-01`),
-          lt: new Date(`${year}-${parseInt(month) + 1}-01`)
-        }
-      }
+          lt: new Date(`${year}-${parseInt(month) + 1}-01`),
+        },
+      },
     });
 
     // Formater le numéro de facture: YYYYMM-XXXX
@@ -278,7 +288,7 @@ export const InvoiceService = {
           customer: user.stripe_customer_id,
           amount: Math.round(item.amount * 100), // Conversion en centimes
           currency: 'eur',
-          description: item.description
+          description: item.description,
         });
         invoiceItems.push(invoiceItem);
       }
@@ -288,7 +298,7 @@ export const InvoiceService = {
         customer: user.stripe_customer_id,
         auto_advance: true, // Facturer automatiquement
         collection_method: 'send_invoice',
-        days_until_due: 30
+        days_until_due: 30,
       });
 
       // Finaliser la facture
@@ -307,8 +317,8 @@ export const InvoiceService = {
           dueDate: new Date(finalizedInvoice.due_date * 1000),
           pdfUrl: finalizedInvoice.invoice_pdf,
           stripeInvoiceId: finalizedInvoice.id,
-          userId
-        }
+          userId,
+        },
       });
 
       return { invoice, stripeInvoice: finalizedInvoice };
@@ -316,5 +326,5 @@ export const InvoiceService = {
       console.error('Erreur lors de la création de la facture Stripe:', error);
       throw error;
     }
-  }
+  },
 };

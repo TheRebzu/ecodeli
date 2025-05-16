@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { api } from '@/trpc/react';
 import { useRouter } from 'next/navigation';
@@ -15,7 +15,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from '@/components/ui/table';
 import {
   Wallet,
   ArrowDownToLine,
@@ -34,7 +34,7 @@ import {
   Truck,
   RefreshCw,
   BanknoteIcon,
-} from "lucide-react";
+} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
@@ -48,7 +48,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "@/components/ui/alert-dialog";
+} from '@/components/ui/alert-dialog';
 import {
   Pagination,
   PaginationContent,
@@ -56,17 +56,17 @@ import {
   PaginationItem,
   PaginationLink,
   PaginationNext,
-  PaginationPrevious 
+  PaginationPrevious,
 } from '@/components/ui/pagination';
-import { 
-  TransactionStatus, 
-  TransactionType, 
+import {
+  TransactionStatus,
+  TransactionType,
   WithdrawalStatus,
-  type WalletBalanceInfo
+  type WalletBalanceInfo,
 } from '@/types/payment';
-import { 
+import {
   WalletTransaction as Transaction,
-  WithdrawalRequest as Withdrawal
+  WithdrawalRequest as Withdrawal,
 } from '@/types/prisma-client';
 import WalletBalance from '../wallet-balance';
 import { useWallet } from '@/hooks/use-wallet';
@@ -82,15 +82,43 @@ interface PaginationData {
 const getStatusBadge = (status: string) => {
   switch (status) {
     case 'COMPLETED':
-      return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 flex items-center gap-1"><CheckCircle2 className="h-3 w-3" />Complété</Badge>;
+      return (
+        <Badge
+          variant="outline"
+          className="bg-green-50 text-green-700 border-green-200 flex items-center gap-1"
+        >
+          <CheckCircle2 className="h-3 w-3" />
+          Complété
+        </Badge>
+      );
     case 'PENDING':
-      return <Badge variant="outline" className="flex items-center gap-1"><Clock className="h-3 w-3" />En attente</Badge>;
+      return (
+        <Badge variant="outline" className="flex items-center gap-1">
+          <Clock className="h-3 w-3" />
+          En attente
+        </Badge>
+      );
     case 'PROCESSING':
-      return <Badge variant="secondary" className="flex items-center gap-1"><Clock className="h-3 w-3" />En cours</Badge>;
+      return (
+        <Badge variant="secondary" className="flex items-center gap-1">
+          <Clock className="h-3 w-3" />
+          En cours
+        </Badge>
+      );
     case 'CANCELLED':
-      return <Badge variant="destructive" className="flex items-center gap-1"><XCircle className="h-3 w-3" />Annulé</Badge>;
+      return (
+        <Badge variant="destructive" className="flex items-center gap-1">
+          <XCircle className="h-3 w-3" />
+          Annulé
+        </Badge>
+      );
     case 'FAILED':
-      return <Badge variant="destructive" className="flex items-center gap-1"><AlertCircle className="h-3 w-3" />Échoué</Badge>;
+      return (
+        <Badge variant="destructive" className="flex items-center gap-1">
+          <AlertCircle className="h-3 w-3" />
+          Échoué
+        </Badge>
+      );
     default:
       return <Badge variant="outline">{status}</Badge>;
   }
@@ -99,21 +127,59 @@ const getStatusBadge = (status: string) => {
 const getTransactionIcon = (type: string) => {
   switch (type) {
     case 'EARNING':
-      return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 min-w-10 justify-center"><ArrowDownToLine className="h-4 w-4" /></Badge>;
+      return (
+        <Badge
+          variant="outline"
+          className="bg-green-50 text-green-700 border-green-200 min-w-10 justify-center"
+        >
+          <ArrowDownToLine className="h-4 w-4" />
+        </Badge>
+      );
     case 'WITHDRAWAL':
-      return <Badge variant="destructive" className="min-w-10 justify-center"><ArrowUpFromLine className="h-4 w-4" /></Badge>;
+      return (
+        <Badge variant="destructive" className="min-w-10 justify-center">
+          <ArrowUpFromLine className="h-4 w-4" />
+        </Badge>
+      );
     case 'REFUND':
-      return <Badge variant="secondary" className="min-w-10 justify-center"><CreditCard className="h-4 w-4" /></Badge>;
+      return (
+        <Badge variant="secondary" className="min-w-10 justify-center">
+          <CreditCard className="h-4 w-4" />
+        </Badge>
+      );
     case 'SUBSCRIPTION_FEE':
-      return <Badge variant="destructive" className="min-w-10 justify-center"><Calendar className="h-4 w-4" /></Badge>;
+      return (
+        <Badge variant="destructive" className="min-w-10 justify-center">
+          <Calendar className="h-4 w-4" />
+        </Badge>
+      );
     case 'PLATFORM_FEE':
-      return <Badge variant="destructive" className="min-w-10 justify-center"><CircleDollarSign className="h-4 w-4" /></Badge>;
+      return (
+        <Badge variant="destructive" className="min-w-10 justify-center">
+          <CircleDollarSign className="h-4 w-4" />
+        </Badge>
+      );
     case 'ADJUSTMENT':
-      return <Badge variant="secondary" className="min-w-10 justify-center"><BanknoteIcon className="h-4 w-4" /></Badge>;
+      return (
+        <Badge variant="secondary" className="min-w-10 justify-center">
+          <BanknoteIcon className="h-4 w-4" />
+        </Badge>
+      );
     case 'BONUS':
-      return <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 min-w-10 justify-center"><CircleDollarSign className="h-4 w-4" /></Badge>;
+      return (
+        <Badge
+          variant="outline"
+          className="bg-green-50 text-green-700 border-green-200 min-w-10 justify-center"
+        >
+          <CircleDollarSign className="h-4 w-4" />
+        </Badge>
+      );
     default:
-      return <Badge className="min-w-10 justify-center"><Package className="h-4 w-4" /></Badge>;
+      return (
+        <Badge className="min-w-10 justify-center">
+          <Package className="h-4 w-4" />
+        </Badge>
+      );
   }
 };
 
@@ -126,7 +192,7 @@ const getTransactionTitle = (type: string) => {
     case 'REFUND':
       return 'Remboursement';
     case 'SUBSCRIPTION_FEE':
-      return 'Frais d\'abonnement';
+      return "Frais d'abonnement";
     case 'PLATFORM_FEE':
       return 'Commission plateforme';
     case 'ADJUSTMENT':
@@ -146,33 +212,41 @@ export default function DelivererWalletDashboard({ userId }: { userId: string })
   const { toast } = useToast();
   const utils = api.useUtils();
 
-  const { data: transactionsData, isLoading: isLoadingTransactions } = api.wallet.getTransactionHistory.useQuery({
-    page: currentPage,
-    limit: pageSize,
-  }, {
-    enabled: activeTab === 'transactions',
-  });
+  const { data: transactionsData, isLoading: isLoadingTransactions } =
+    api.wallet.getTransactionHistory.useQuery(
+      {
+        page: currentPage,
+        limit: pageSize,
+      },
+      {
+        enabled: activeTab === 'transactions',
+      }
+    );
 
-  const { data: withdrawalsData, isLoading: isLoadingWithdrawals } = api.wallet.getWithdrawals.useQuery({
-    page: currentPage,
-    limit: pageSize,
-  }, {
-    enabled: activeTab === 'withdrawals',
-  });
+  const { data: withdrawalsData, isLoading: isLoadingWithdrawals } =
+    api.wallet.getWithdrawals.useQuery(
+      {
+        page: currentPage,
+        limit: pageSize,
+      },
+      {
+        enabled: activeTab === 'withdrawals',
+      }
+    );
 
   const cancelWithdrawalMutation = api.wallet.cancelWithdrawal.useMutation({
     onSuccess: () => {
       toast({
-        title: "Demande de virement annulée",
-        variant: "success",
+        title: 'Demande de virement annulée',
+        variant: 'success',
       });
 
       if (activeTab === 'withdrawals') {
         refetchWithdrawals();
       }
-    }
+    },
   });
-  
+
   const { refetch: refetchWithdrawals } = api.wallet.getWithdrawals.useQuery(
     { page: 1, limit: 10 },
     { enabled: false }
@@ -188,16 +262,14 @@ export default function DelivererWalletDashboard({ userId }: { userId: string })
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <WalletBalance userId={userId} className="lg:col-span-2" />
-        
+
         <Card>
           <CardHeader className="bg-primary/10 pb-2">
             <CardTitle className="flex items-center gap-2">
               <CreditCard className="h-5 w-5" />
               Actions rapides
             </CardTitle>
-            <CardDescription>
-              Gérez vos revenus et paiements
-            </CardDescription>
+            <CardDescription>Gérez vos revenus et paiements</CardDescription>
           </CardHeader>
           <CardContent className="grid gap-4 pt-6">
             <Button
@@ -230,10 +302,14 @@ export default function DelivererWalletDashboard({ userId }: { userId: string })
 
       <Tabs defaultValue="transactions" className="w-full" onValueChange={setActiveTab}>
         <TabsList className="w-full">
-          <TabsTrigger value="transactions" className="flex-1">Historique des transactions</TabsTrigger>
-          <TabsTrigger value="withdrawals" className="flex-1">Demandes de virement</TabsTrigger>
+          <TabsTrigger value="transactions" className="flex-1">
+            Historique des transactions
+          </TabsTrigger>
+          <TabsTrigger value="withdrawals" className="flex-1">
+            Demandes de virement
+          </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="transactions" className="pt-4">
           <Card>
             <CardHeader className="pb-3">
@@ -248,16 +324,18 @@ export default function DelivererWalletDashboard({ userId }: { userId: string })
             <CardContent>
               {isLoadingTransactions ? (
                 <div className="space-y-3">
-                  {Array(5).fill(0).map((_, i) => (
-                    <div key={i} className="flex items-center gap-3">
-                      <Skeleton className="h-8 w-8 rounded-full" />
-                      <div className="space-y-1 flex-1">
-                        <Skeleton className="h-4 w-1/3" />
-                        <Skeleton className="h-3 w-1/4" />
+                  {Array(5)
+                    .fill(0)
+                    .map((_, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <Skeleton className="h-8 w-8 rounded-full" />
+                        <div className="space-y-1 flex-1">
+                          <Skeleton className="h-4 w-1/3" />
+                          <Skeleton className="h-3 w-1/4" />
+                        </div>
+                        <Skeleton className="h-4 w-16" />
                       </div>
-                      <Skeleton className="h-4 w-16" />
-                    </div>
-                  ))}
+                    ))}
                 </div>
               ) : (
                 <>
@@ -273,29 +351,41 @@ export default function DelivererWalletDashboard({ userId }: { userId: string })
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {transactionsData?.transactions && transactionsData.transactions.length > 0 ? (
+                        {transactionsData?.transactions &&
+                        transactionsData.transactions.length > 0 ? (
                           transactionsData.transactions.map((transaction: Transaction) => (
                             <TableRow key={transaction.id}>
                               <TableCell>
                                 <div className="flex flex-col items-center gap-1">
                                   {getTransactionIcon(transaction.type)}
-                                  <span className="text-xs">{getTransactionTitle(transaction.type)}</span>
+                                  <span className="text-xs">
+                                    {getTransactionTitle(transaction.type)}
+                                  </span>
                                 </div>
                               </TableCell>
                               <TableCell>
-                                <div className="text-sm">
-                                  {formatDate(transaction.createdAt)}
-                                </div>
+                                <div className="text-sm">{formatDate(transaction.createdAt)}</div>
                               </TableCell>
                               <TableCell>
                                 <div className="max-w-[200px] truncate">
-                                  {transaction.description || `Transaction #${transaction.id.slice(-6)}`}
+                                  {transaction.description ||
+                                    `Transaction #${transaction.id.slice(-6)}`}
                                 </div>
                               </TableCell>
                               <TableCell>{getStatusBadge(transaction.status)}</TableCell>
                               <TableCell className="text-right font-medium">
-                                <span className={transaction.type === 'WITHDRAWAL' || transaction.type === 'PLATFORM_FEE' ? 'text-destructive' : 'text-emerald-600'}>
-                                  {transaction.type === 'WITHDRAWAL' || transaction.type === 'PLATFORM_FEE' ? '-' : '+'}
+                                <span
+                                  className={
+                                    transaction.type === 'WITHDRAWAL' ||
+                                    transaction.type === 'PLATFORM_FEE'
+                                      ? 'text-destructive'
+                                      : 'text-emerald-600'
+                                  }
+                                >
+                                  {transaction.type === 'WITHDRAWAL' ||
+                                  transaction.type === 'PLATFORM_FEE'
+                                    ? '-'
+                                    : '+'}
                                   {formatCurrency(Number(transaction.amount), transaction.currency)}
                                 </span>
                               </TableCell>
@@ -316,8 +406,8 @@ export default function DelivererWalletDashboard({ userId }: { userId: string })
                     <Pagination className="mt-4">
                       <PaginationContent>
                         <PaginationItem>
-                          <PaginationPrevious 
-                            href="#" 
+                          <PaginationPrevious
+                            href="#"
                             onClick={(e: React.MouseEvent) => {
                               e.preventDefault();
                               if (currentPage > 1) setCurrentPage(currentPage - 1);
@@ -325,33 +415,36 @@ export default function DelivererWalletDashboard({ userId }: { userId: string })
                             className={currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
                           />
                         </PaginationItem>
-                        
-                        {Array.from({ length: Math.min(3, transactionsData.pagination.totalPages) }, (_, i) => {
-                          const pageNumber = i + 1;
-                          return (
-                            <PaginationItem key={i}>
-                              <PaginationLink 
-                                href="#" 
-                                onClick={(e: React.MouseEvent) => {
-                                  e.preventDefault();
-                                  setCurrentPage(pageNumber);
-                                }}
-                                isActive={currentPage === pageNumber}
-                              >
-                                {pageNumber}
-                              </PaginationLink>
-                            </PaginationItem>
-                          );
-                        })}
-                        
+
+                        {Array.from(
+                          { length: Math.min(3, transactionsData.pagination.totalPages) },
+                          (_, i) => {
+                            const pageNumber = i + 1;
+                            return (
+                              <PaginationItem key={i}>
+                                <PaginationLink
+                                  href="#"
+                                  onClick={(e: React.MouseEvent) => {
+                                    e.preventDefault();
+                                    setCurrentPage(pageNumber);
+                                  }}
+                                  isActive={currentPage === pageNumber}
+                                >
+                                  {pageNumber}
+                                </PaginationLink>
+                              </PaginationItem>
+                            );
+                          }
+                        )}
+
                         {transactionsData.pagination.totalPages > 3 && (
                           <>
                             <PaginationItem>
                               <PaginationEllipsis />
                             </PaginationItem>
                             <PaginationItem>
-                              <PaginationLink 
-                                href="#" 
+                              <PaginationLink
+                                href="#"
                                 onClick={(e: React.MouseEvent) => {
                                   e.preventDefault();
                                   setCurrentPage(transactionsData.pagination.totalPages);
@@ -363,15 +456,20 @@ export default function DelivererWalletDashboard({ userId }: { userId: string })
                             </PaginationItem>
                           </>
                         )}
-                        
+
                         <PaginationItem>
-                          <PaginationNext 
-                            href="#" 
+                          <PaginationNext
+                            href="#"
                             onClick={(e: React.MouseEvent) => {
                               e.preventDefault();
-                              if (currentPage < transactionsData.pagination.totalPages) setCurrentPage(currentPage + 1);
+                              if (currentPage < transactionsData.pagination.totalPages)
+                                setCurrentPage(currentPage + 1);
                             }}
-                            className={currentPage >= transactionsData.pagination.totalPages ? 'pointer-events-none opacity-50' : ''}
+                            className={
+                              currentPage >= transactionsData.pagination.totalPages
+                                ? 'pointer-events-none opacity-50'
+                                : ''
+                            }
                           />
                         </PaginationItem>
                       </PaginationContent>
@@ -382,7 +480,7 @@ export default function DelivererWalletDashboard({ userId }: { userId: string })
             </CardContent>
           </Card>
         </TabsContent>
-        
+
         <TabsContent value="withdrawals" className="pt-4">
           <Card>
             <CardHeader className="pb-3">
@@ -396,16 +494,18 @@ export default function DelivererWalletDashboard({ userId }: { userId: string })
             <CardContent>
               {isLoadingWithdrawals ? (
                 <div className="space-y-3">
-                  {Array(5).fill(0).map((_, i) => (
-                    <div key={i} className="flex items-center gap-3">
-                      <Skeleton className="h-8 w-8 rounded-full" />
-                      <div className="space-y-1 flex-1">
-                        <Skeleton className="h-4 w-1/3" />
-                        <Skeleton className="h-3 w-1/4" />
+                  {Array(5)
+                    .fill(0)
+                    .map((_, i) => (
+                      <div key={i} className="flex items-center gap-3">
+                        <Skeleton className="h-8 w-8 rounded-full" />
+                        <div className="space-y-1 flex-1">
+                          <Skeleton className="h-4 w-1/3" />
+                          <Skeleton className="h-3 w-1/4" />
+                        </div>
+                        <Skeleton className="h-4 w-16" />
                       </div>
-                      <Skeleton className="h-4 w-16" />
-                    </div>
-                  ))}
+                    ))}
                 </div>
               ) : (
                 <>
@@ -425,9 +525,7 @@ export default function DelivererWalletDashboard({ userId }: { userId: string })
                           withdrawalsData.withdrawals.map((withdrawal: Withdrawal) => (
                             <TableRow key={withdrawal.id}>
                               <TableCell>
-                                <div className="text-sm">
-                                  {formatDate(withdrawal.requestedAt)}
-                                </div>
+                                <div className="text-sm">{formatDate(withdrawal.requestedAt)}</div>
                               </TableCell>
                               <TableCell className="font-medium">
                                 {formatCurrency(Number(withdrawal.amount), withdrawal.currency)}
@@ -438,9 +536,9 @@ export default function DelivererWalletDashboard({ userId }: { userId: string })
                               </TableCell>
                               <TableCell className="text-right">
                                 {withdrawal.status === 'PENDING' && (
-                                  <Button 
-                                    variant="outline" 
-                                    size="sm" 
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
                                     className="h-8"
                                     onClick={() => handleCancelWithdrawal(withdrawal.id)}
                                   >
@@ -465,8 +563,8 @@ export default function DelivererWalletDashboard({ userId }: { userId: string })
                     <Pagination className="mt-4">
                       <PaginationContent>
                         <PaginationItem>
-                          <PaginationPrevious 
-                            href="#" 
+                          <PaginationPrevious
+                            href="#"
                             onClick={(e: React.MouseEvent) => {
                               e.preventDefault();
                               if (currentPage > 1) setCurrentPage(currentPage - 1);
@@ -474,33 +572,36 @@ export default function DelivererWalletDashboard({ userId }: { userId: string })
                             className={currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
                           />
                         </PaginationItem>
-                        
-                        {Array.from({ length: Math.min(3, withdrawalsData.pagination.totalPages) }, (_, i) => {
-                          const pageNumber = i + 1;
-                          return (
-                            <PaginationItem key={i}>
-                              <PaginationLink 
-                                href="#" 
-                                onClick={(e: React.MouseEvent) => {
-                                  e.preventDefault();
-                                  setCurrentPage(pageNumber);
-                                }}
-                                isActive={currentPage === pageNumber}
-                              >
-                                {pageNumber}
-                              </PaginationLink>
-                            </PaginationItem>
-                          );
-                        })}
-                        
+
+                        {Array.from(
+                          { length: Math.min(3, withdrawalsData.pagination.totalPages) },
+                          (_, i) => {
+                            const pageNumber = i + 1;
+                            return (
+                              <PaginationItem key={i}>
+                                <PaginationLink
+                                  href="#"
+                                  onClick={(e: React.MouseEvent) => {
+                                    e.preventDefault();
+                                    setCurrentPage(pageNumber);
+                                  }}
+                                  isActive={currentPage === pageNumber}
+                                >
+                                  {pageNumber}
+                                </PaginationLink>
+                              </PaginationItem>
+                            );
+                          }
+                        )}
+
                         {withdrawalsData.pagination.totalPages > 3 && (
                           <>
                             <PaginationItem>
                               <PaginationEllipsis />
                             </PaginationItem>
                             <PaginationItem>
-                              <PaginationLink 
-                                href="#" 
+                              <PaginationLink
+                                href="#"
                                 onClick={(e: React.MouseEvent) => {
                                   e.preventDefault();
                                   setCurrentPage(withdrawalsData.pagination.totalPages);
@@ -512,15 +613,20 @@ export default function DelivererWalletDashboard({ userId }: { userId: string })
                             </PaginationItem>
                           </>
                         )}
-                        
+
                         <PaginationItem>
-                          <PaginationNext 
-                            href="#" 
+                          <PaginationNext
+                            href="#"
                             onClick={(e: React.MouseEvent) => {
                               e.preventDefault();
-                              if (currentPage < withdrawalsData.pagination.totalPages) setCurrentPage(currentPage + 1);
+                              if (currentPage < withdrawalsData.pagination.totalPages)
+                                setCurrentPage(currentPage + 1);
                             }}
-                            className={currentPage >= withdrawalsData.pagination.totalPages ? 'pointer-events-none opacity-50' : ''}
+                            className={
+                              currentPage >= withdrawalsData.pagination.totalPages
+                                ? 'pointer-events-none opacity-50'
+                                : ''
+                            }
                           />
                         </PaginationItem>
                       </PaginationContent>
@@ -534,4 +640,4 @@ export default function DelivererWalletDashboard({ userId }: { userId: string })
       </Tabs>
     </div>
   );
-} 
+}

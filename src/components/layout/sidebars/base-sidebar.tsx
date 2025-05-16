@@ -82,7 +82,7 @@ export function BaseSidebar({
   // Effet pour gérer les changements de taille d'écran (après montage)
   useEffect(() => {
     if (!mounted) return;
-    
+
     const handleResize = () => {
       setWindowWidth(window.innerWidth);
       if (window.innerWidth < 1024) {

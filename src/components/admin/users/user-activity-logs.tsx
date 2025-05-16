@@ -1,6 +1,18 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
-import { Calendar, Clock, Filter, X, Activity, Search, RefreshCw, Download, ExternalLink, Shield, Check } from 'lucide-react';
+import {
+  Calendar,
+  Clock,
+  Filter,
+  X,
+  Activity,
+  Search,
+  RefreshCw,
+  Download,
+  ExternalLink,
+  Shield,
+  Check,
+} from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,7 +38,7 @@ import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DatePicker } from '@/components/ui/date-picker';
 import { ActivityType, UserActivityLogItem } from '@/types/admin';
-import { 
+import {
   Dialog,
   DialogClose,
   DialogContent,
@@ -34,117 +46,117 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger
+  DialogTrigger,
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 
 // Mapping des types d'activité vers des libellés et couleurs
 const activityTypeLabels: Record<ActivityType, { label: string; color: string; icon: any }> = {
-  [ActivityType.LOGIN]: { 
-    label: 'Connexion', 
+  [ActivityType.LOGIN]: {
+    label: 'Connexion',
     color: 'bg-green-500',
-    icon: <Shield className="h-4 w-4" />
+    icon: <Shield className="h-4 w-4" />,
   },
-  [ActivityType.LOGOUT]: { 
-    label: 'Déconnexion', 
+  [ActivityType.LOGOUT]: {
+    label: 'Déconnexion',
     color: 'bg-blue-500',
-    icon: <ExternalLink className="h-4 w-4" />
+    icon: <ExternalLink className="h-4 w-4" />,
   },
-  [ActivityType.PROFILE_UPDATE]: { 
-    label: 'Mise à jour du profil', 
+  [ActivityType.PROFILE_UPDATE]: {
+    label: 'Mise à jour du profil',
     color: 'bg-orange-500',
-    icon: <Activity className="h-4 w-4" />
+    icon: <Activity className="h-4 w-4" />,
   },
-  [ActivityType.PASSWORD_CHANGE]: { 
-    label: 'Changement de mot de passe', 
+  [ActivityType.PASSWORD_CHANGE]: {
+    label: 'Changement de mot de passe',
     color: 'bg-amber-500',
-    icon: <Shield className="h-4 w-4" />
+    icon: <Shield className="h-4 w-4" />,
   },
-  [ActivityType.STATUS_CHANGE]: { 
-    label: 'Changement de statut', 
+  [ActivityType.STATUS_CHANGE]: {
+    label: 'Changement de statut',
     color: 'bg-purple-500',
-    icon: <Activity className="h-4 w-4" />
+    icon: <Activity className="h-4 w-4" />,
   },
-  [ActivityType.ROLE_CHANGE]: { 
-    label: 'Changement de rôle', 
+  [ActivityType.ROLE_CHANGE]: {
+    label: 'Changement de rôle',
     color: 'bg-indigo-500',
-    icon: <Activity className="h-4 w-4" />
+    icon: <Activity className="h-4 w-4" />,
   },
-  [ActivityType.VERIFICATION_SUBMIT]: { 
-    label: 'Soumission de vérification', 
+  [ActivityType.VERIFICATION_SUBMIT]: {
+    label: 'Soumission de vérification',
     color: 'bg-lime-500',
-    icon: <Activity className="h-4 w-4" />
+    icon: <Activity className="h-4 w-4" />,
   },
-  [ActivityType.VERIFICATION_REVIEW]: { 
-    label: 'Revue de vérification', 
+  [ActivityType.VERIFICATION_REVIEW]: {
+    label: 'Revue de vérification',
     color: 'bg-cyan-500',
-    icon: <Activity className="h-4 w-4" />
+    icon: <Activity className="h-4 w-4" />,
   },
-  [ActivityType.DOCUMENT_UPLOAD]: { 
-    label: 'Téléchargement de document', 
+  [ActivityType.DOCUMENT_UPLOAD]: {
+    label: 'Téléchargement de document',
     color: 'bg-emerald-500',
-    icon: <Activity className="h-4 w-4" />
+    icon: <Activity className="h-4 w-4" />,
   },
-  [ActivityType.ACCOUNT_CREATION]: { 
-    label: 'Création de compte', 
+  [ActivityType.ACCOUNT_CREATION]: {
+    label: 'Création de compte',
     color: 'bg-sky-500',
-    icon: <Activity className="h-4 w-4" />
+    icon: <Activity className="h-4 w-4" />,
   },
-  [ActivityType.EMAIL_VERIFIED]: { 
-    label: 'Email vérifié', 
+  [ActivityType.EMAIL_VERIFIED]: {
+    label: 'Email vérifié',
     color: 'bg-green-500',
-    icon: <Activity className="h-4 w-4" />
+    icon: <Activity className="h-4 w-4" />,
   },
-  [ActivityType.PHONE_VERIFIED]: { 
-    label: 'Téléphone vérifié', 
+  [ActivityType.PHONE_VERIFIED]: {
+    label: 'Téléphone vérifié',
     color: 'bg-green-500',
-    icon: <Activity className="h-4 w-4" />
+    icon: <Activity className="h-4 w-4" />,
   },
-  [ActivityType.PASSWORD_RESET]: { 
-    label: 'Réinitialisation de mot de passe', 
+  [ActivityType.PASSWORD_RESET]: {
+    label: 'Réinitialisation de mot de passe',
     color: 'bg-amber-500',
-    icon: <Shield className="h-4 w-4" />
+    icon: <Shield className="h-4 w-4" />,
   },
-  [ActivityType.PASSWORD_RESET_REQUEST]: { 
-    label: 'Demande de réinitialisation', 
+  [ActivityType.PASSWORD_RESET_REQUEST]: {
+    label: 'Demande de réinitialisation',
     color: 'bg-amber-500',
-    icon: <Shield className="h-4 w-4" />
+    icon: <Shield className="h-4 w-4" />,
   },
-  [ActivityType.ACCOUNT_LOCKED]: { 
-    label: 'Compte verrouillé', 
+  [ActivityType.ACCOUNT_LOCKED]: {
+    label: 'Compte verrouillé',
     color: 'bg-red-500',
-    icon: <Shield className="h-4 w-4" />
+    icon: <Shield className="h-4 w-4" />,
   },
-  [ActivityType.ACCOUNT_UNLOCKED]: { 
-    label: 'Compte déverrouillé', 
+  [ActivityType.ACCOUNT_UNLOCKED]: {
+    label: 'Compte déverrouillé',
     color: 'bg-green-500',
-    icon: <Shield className="h-4 w-4" />
+    icon: <Shield className="h-4 w-4" />,
   },
-  [ActivityType.FAILED_LOGIN_ATTEMPT]: { 
-    label: 'Tentative échouée', 
+  [ActivityType.FAILED_LOGIN_ATTEMPT]: {
+    label: 'Tentative échouée',
     color: 'bg-red-500',
-    icon: <Shield className="h-4 w-4" />
+    icon: <Shield className="h-4 w-4" />,
   },
-  [ActivityType.PERMISSION_CHANGE]: { 
-    label: 'Changement de permissions', 
+  [ActivityType.PERMISSION_CHANGE]: {
+    label: 'Changement de permissions',
     color: 'bg-indigo-500',
-    icon: <Shield className="h-4 w-4" />
+    icon: <Shield className="h-4 w-4" />,
   },
-  [ActivityType.SUBSCRIPTION_CHANGE]: { 
-    label: 'Changement d\'abonnement', 
+  [ActivityType.SUBSCRIPTION_CHANGE]: {
+    label: "Changement d'abonnement",
     color: 'bg-emerald-500',
-    icon: <Activity className="h-4 w-4" />
+    icon: <Activity className="h-4 w-4" />,
   },
-  [ActivityType.PAYMENT_METHOD_ADDED]: { 
-    label: 'Méthode de paiement ajoutée', 
+  [ActivityType.PAYMENT_METHOD_ADDED]: {
+    label: 'Méthode de paiement ajoutée',
     color: 'bg-emerald-500',
-    icon: <Activity className="h-4 w-4" />
+    icon: <Activity className="h-4 w-4" />,
   },
-  [ActivityType.OTHER]: { 
-    label: 'Autre', 
+  [ActivityType.OTHER]: {
+    label: 'Autre',
     color: 'bg-gray-500',
-    icon: <Activity className="h-4 w-4" />
+    icon: <Activity className="h-4 w-4" />,
   },
 };
 
@@ -187,7 +199,7 @@ export function UserActivityLogs({
     dateTo?: Date;
     sortDirection?: 'asc' | 'desc';
   }>({
-    sortDirection: 'desc'
+    sortDirection: 'desc',
   });
 
   const [selectedActivityTypes, setSelectedActivityTypes] = useState<ActivityType[]>([]);
@@ -212,7 +224,7 @@ export function UserActivityLogs({
     if (onAddLog) {
       onAddLog({
         activityType: newLogType,
-        details: newLogDetails
+        details: newLogDetails,
       });
       setNewLogDetails('');
       setNewLogType(ActivityType.OTHER);
@@ -228,7 +240,9 @@ export function UserActivityLogs({
   };
 
   const applyTypeFilter = () => {
-    handleFilterChange({ types: selectedActivityTypes.length > 0 ? selectedActivityTypes : undefined });
+    handleFilterChange({
+      types: selectedActivityTypes.length > 0 ? selectedActivityTypes : undefined,
+    });
   };
 
   const getActivityBadge = (type: ActivityType) => {
@@ -247,7 +261,9 @@ export function UserActivityLogs({
         <div className="flex justify-between items-start">
           <div>
             <CardTitle>Journaux d'activité</CardTitle>
-            <CardDescription>Historique des activités utilisateur et journal d'audit</CardDescription>
+            <CardDescription>
+              Historique des activités utilisateur et journal d'audit
+            </CardDescription>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={onRefresh}>
@@ -273,13 +289,13 @@ export function UserActivityLogs({
                       Créer une nouvelle entrée dans le journal d'activité de cet utilisateur
                     </DialogDescription>
                   </DialogHeader>
-                  
+
                   <div className="space-y-4 py-4">
                     <div className="space-y-2">
                       <Label htmlFor="activity-type">Type d'activité</Label>
-                      <Select 
-                        value={newLogType} 
-                        onValueChange={(value) => setNewLogType(value as ActivityType)}
+                      <Select
+                        value={newLogType}
+                        onValueChange={value => setNewLogType(value as ActivityType)}
                       >
                         <SelectTrigger>
                           <SelectValue placeholder="Sélectionner un type" />
@@ -293,27 +309,24 @@ export function UserActivityLogs({
                         </SelectContent>
                       </Select>
                     </div>
-                    
+
                     <div className="space-y-2">
                       <Label htmlFor="details">Détails</Label>
                       <Textarea
                         id="details"
                         placeholder="Entrez les détails de l'activité"
                         value={newLogDetails}
-                        onChange={(e) => setNewLogDetails(e.target.value)}
+                        onChange={e => setNewLogDetails(e.target.value)}
                         rows={4}
                       />
                     </div>
                   </div>
-                  
+
                   <DialogFooter>
                     <DialogClose asChild>
                       <Button variant="outline">Annuler</Button>
                     </DialogClose>
-                    <Button 
-                      onClick={handleAddActivityLog}
-                      disabled={!newLogDetails.trim()}
-                    >
+                    <Button onClick={handleAddActivityLog} disabled={!newLogDetails.trim()}>
                       Ajouter l'entrée
                     </Button>
                   </DialogFooter>
@@ -368,17 +381,10 @@ export function UserActivityLogs({
                   ))}
                 </div>
                 <div className="flex justify-between mt-4">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    onClick={() => setSelectedActivityTypes([])}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => setSelectedActivityTypes([])}>
                     Effacer
                   </Button>
-                  <Button 
-                    size="sm" 
-                    onClick={applyTypeFilter}
-                  >
+                  <Button size="sm" onClick={applyTypeFilter}>
                     Appliquer
                   </Button>
                 </div>
@@ -439,7 +445,7 @@ export function UserActivityLogs({
 
           <Select
             value={activeFilters.sortDirection || 'desc'}
-            onValueChange={(value) => handleFilterChange({ sortDirection: value })}
+            onValueChange={value => handleFilterChange({ sortDirection: value })}
           >
             <SelectTrigger className="w-[150px]">
               <SelectValue placeholder="Tri" />
@@ -451,7 +457,10 @@ export function UserActivityLogs({
           </Select>
 
           {/* Affichage des filtres actifs */}
-          {(activeFilters.types?.length || activeFilters.searchTerm || activeFilters.dateFrom || activeFilters.dateTo) && (
+          {(activeFilters.types?.length ||
+            activeFilters.searchTerm ||
+            activeFilters.dateFrom ||
+            activeFilters.dateTo) && (
             <div className="flex flex-wrap gap-2 mt-2 ml-1">
               {activeFilters.types && activeFilters.types.length > 0 && (
                 <Badge variant="secondary" className="flex items-center gap-1">
@@ -547,15 +556,9 @@ export function UserActivityLogs({
                         {format(new Date(log.createdAt), 'HH:mm:ss')}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      {getActivityBadge(log.activityType)}
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {log.details || '-'}
-                    </TableCell>
-                    <TableCell className="font-mono text-xs">
-                      {log.ipAddress || '-'}
-                    </TableCell>
+                    <TableCell>{getActivityBadge(log.activityType)}</TableCell>
+                    <TableCell className="text-sm">{log.details || '-'}</TableCell>
+                    <TableCell className="font-mono text-xs">{log.ipAddress || '-'}</TableCell>
                   </TableRow>
                 ))}
               </TableBody>

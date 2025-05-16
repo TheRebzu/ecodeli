@@ -69,4 +69,4 @@ export function BoxDetailTabs({ box, usageHistory }: BoxDetailTabsProps) {
       </TabsContent>
     </Tabs>
   );
-} 
+}

@@ -3,12 +3,17 @@ import { db } from '../db';
 import { Decimal } from '@prisma/client/runtime/library';
 import { AuthService } from './auth.service';
 import { generateRandomCode } from '@/lib/utils';
+import { prisma } from '../db';
+import { PaymentStatus, AnnouncementStatus, UserRole } from '@prisma/client';
+import { NotificationService } from './notification.service';
+import { randomBytes } from 'crypto';
+import { TRPCError } from '@trpc/server';
 
 // Service d'authentification
 const authService = new AuthService();
 
 // Récupérer la clé API Stripe depuis les variables d'environnement
-const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "";
+const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || '';
 
 // Initialiser Stripe avec les paramètres de base
 // Créer une fonction pour obtenir une instance de Stripe à la demande
@@ -18,15 +23,18 @@ const getStripeInstance = () => {
     console.warn('Clé API Stripe non définie. Les fonctionnalités de paiement sont désactivées.');
     return null;
   }
-  
+
   return new Stripe(STRIPE_SECRET_KEY, {
-    apiVersion: "2023-10-16",
+    apiVersion: '2023-10-16' as Stripe.LatestApiVersion,
     appInfo: {
       name: 'EcoDeli Financial System',
       version: '1.0.0',
     },
   });
 };
+
+// Obtenir l'instance de Stripe pour les méthodes statiques
+const stripe = getStripeInstance();
 
 export interface CreatePaymentIntentParams {
   amount: number;
@@ -51,21 +59,27 @@ export interface CreateCustomerParams {
 /**
  * Service pour gérer les paiements via Stripe
  */
-export const PaymentService = {
+export class PaymentService {
+  private prisma: PrismaClient;
+
+  constructor(prismaClient?: PrismaClient) {
+    this.prisma = prismaClient || db;
+  }
+
   /**
    * Récupère ou crée un client Stripe pour un utilisateur
    */
   async getOrCreateStripeCustomer(userId: string, email: string) {
     try {
-      const stripe = getStripeInstance();
-      if (!stripe) {
+      const stripeInstance = getStripeInstance();
+      if (!stripeInstance) {
         return { id: 'stripe-mock-customer-id' };
       }
 
       // Chercher l'utilisateur
-      const user = await db.user.findUnique({ 
+      const user = await this.prisma.user.findUnique({
         where: { id: userId },
-        include: { accounts: true }
+        include: { accounts: true },
       });
 
       if (!user) {
@@ -73,26 +87,28 @@ export const PaymentService = {
       }
 
       // Chercher si l'utilisateur a déjà un compte Stripe
-      let stripeCustomerId = user.accounts.find(acc => acc.provider === 'stripe')?.providerAccountId;
+      let stripeCustomerId = user.accounts.find(
+        acc => acc.provider === 'stripe'
+      )?.providerAccountId;
 
       // Si aucun client Stripe n'existe, le créer
       if (!stripeCustomerId) {
-        const customer = await stripe.customers.create({
+        const customer = await stripeInstance.customers.create({
           email: email,
           metadata: { userId },
-          name: user.name || undefined
+          name: user.name || undefined,
         });
 
         stripeCustomerId = customer.id;
 
         // Enregistrer l'identifiant Stripe
-        await db.account.create({
+        await this.prisma.account.create({
           data: {
             userId,
             provider: 'stripe',
             providerAccountId: customer.id,
-            type: 'payment'
-          }
+            type: 'payment',
+          },
         });
       }
 
@@ -101,32 +117,21 @@ export const PaymentService = {
       console.error('Erreur lors de la création du client Stripe:', error);
       throw error;
     }
-  },
+  }
 
   /**
    * Crée un intent de paiement
    */
-  async createPaymentIntent(params: {
-    amount: number;
-    currency: string;
-    userId: string;
-    deliveryId?: string;
-    serviceId?: string;
-    subscriptionId?: string;
-    paymentMethodId?: string;
-    description?: string;
-    metadata?: Record<string, any>;
-    isEscrow?: boolean;
-  }) {
+  async createPaymentIntent(params: CreatePaymentIntentParams) {
     try {
-      const stripe = getStripeInstance();
-      if (!stripe) {
+      const stripeInstance = getStripeInstance();
+      if (!stripeInstance) {
         // En développement, créer un faux payment intent pour ne pas bloquer l'application
         console.log('Mode de développement : simulation de paiement');
         const paymentId = `pi_mock_${Date.now()}`;
-        
+
         // Créer un paiement fictif dans la base de données
-        const payment = await db.payment.create({
+        const payment = await this.prisma.payment.create({
           data: {
             amount: new Decimal(params.amount),
             currency: params.currency,
@@ -139,33 +144,33 @@ export const PaymentService = {
             ...(params.subscriptionId ? { subscriptionId: params.subscriptionId } : {}),
             isEscrow: params.isEscrow || false,
             metadata: params.metadata || {},
-            paymentMethodType: params.paymentMethodId ? 'card' : undefined
-          }
+            paymentMethodType: params.paymentMethodId ? 'card' : undefined,
+          },
         });
 
         return {
           success: true,
           paymentIntentId: paymentId,
           clientSecret: `pi_${paymentId}_secret_${Date.now()}`,
-          payment
+          payment,
         };
       }
 
-      const { 
-        amount, 
-        currency, 
-        userId, 
-        deliveryId, 
-        serviceId, 
-        subscriptionId, 
+      const {
+        amount,
+        currency,
+        userId,
+        deliveryId,
+        serviceId,
+        subscriptionId,
         paymentMethodId,
         description,
         metadata,
-        isEscrow = false
+        isEscrow = false,
       } = params;
 
       // Récupérer ou créer le client Stripe
-      const user = await db.user.findUnique({ where: { id: userId } });
+      const user = await this.prisma.user.findUnique({ where: { id: userId } });
       if (!user || !user.email) {
         throw new Error('Utilisateur ou email non trouvé');
       }
@@ -173,7 +178,7 @@ export const PaymentService = {
       const customer = await this.getOrCreateStripeCustomer(userId, user.email);
 
       // Créer l'intent de paiement
-      const paymentIntent = await stripe.paymentIntents.create({
+      const paymentIntent = await stripeInstance.paymentIntents.create({
         amount: Math.round(amount * 100), // Conversion en centimes
         currency,
         customer: customer.id,
@@ -185,12 +190,12 @@ export const PaymentService = {
           ...(serviceId ? { serviceId } : {}),
           ...(subscriptionId ? { subscriptionId } : {}),
           isEscrow: isEscrow ? 'true' : 'false',
-          ...metadata
+          ...metadata,
         },
       });
 
       // Créer une entrée dans la base de données
-      const payment = await db.payment.create({
+      const payment = await this.prisma.payment.create({
         data: {
           amount: new Decimal(amount),
           currency,
@@ -203,607 +208,630 @@ export const PaymentService = {
           ...(subscriptionId ? { subscriptionId } : {}),
           isEscrow,
           metadata: metadata || {},
-          paymentMethodType: paymentMethodId ? 'card' : undefined
-        }
+          paymentMethodType: paymentMethodId ? 'card' : undefined,
+        },
       });
 
       return {
         success: true,
         paymentIntentId: paymentIntent.id,
         clientSecret: paymentIntent.client_secret,
-        payment
+        payment,
       };
     } catch (error) {
       console.error('Erreur lors de la création du payment intent:', error);
       throw error;
     }
-  },
+  }
 
   /**
-   * Crée une transaction Stripe
+   * Crée un paiement en escrow pour une annonce
    */
-  async createTransfer(amount: number, destinationAccountId: string, description: string, metadata?: Record<string, any>) {
-    try {
-      const stripe = getStripeInstance();
-      if (!stripe) {
-        // En développement, simuler un transfert
-        return {
-          success: true,
-          transferId: `tr_mock_${Date.now()}`
-        };
-      }
-
-      // Créer le transfert
-      const transfer = await stripe.transfers.create({
-        amount: Math.round(amount * 100), // Conversion en centimes
-        currency: 'eur',
-        destination: destinationAccountId,
-        description,
-        metadata
-      });
-
-      return {
-        success: true,
-        transferId: transfer.id
-      };
-    } catch (error) {
-      console.error('Erreur lors de la création du transfert:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Crée une transaction de paiement sous séquestre
-   */
-  async createEscrowPayment(
+  async createAnnouncementPayment(
+    announcementId: string,
     amount: number,
-    currency: string,
     userId: string,
-    deliveryId: string,
-    releaseAfterDays?: number,
-    generateReleaseCode: boolean = false,
     paymentMethodId?: string,
-    description?: string,
     metadata?: Record<string, any>
   ) {
     try {
-      // Générer un code de déblocage si nécessaire
-      let releaseCode = null;
-      if (generateReleaseCode) {
-        releaseCode = generateRandomCode(6);
-      }
-
-      // Calculer la date de déblocage automatique si nécessaire
-      let releaseDate = null;
-      if (releaseAfterDays && releaseAfterDays > 0) {
-        releaseDate = new Date();
-        releaseDate.setDate(releaseDate.getDate() + releaseAfterDays);
-      }
-
-      // Créer l'intent de paiement avec isEscrow à true
-      const result = await this.createPaymentIntent({
-        amount,
-        currency,
-        userId,
-        deliveryId,
-        paymentMethodId,
-        description: description || "Paiement sous séquestre pour livraison",
-        metadata: {
-          ...metadata,
-          escrow: 'true',
-          releaseCode,
-          releaseDate: releaseDate ? releaseDate.toISOString() : null
+      // Vérifier que l'annonce existe et appartient à l'utilisateur
+      const announcement = await this.prisma.announcement.findUnique({
+        where: { id: announcementId },
+        include: {
+          client: true,
         },
-        isEscrow: true
       });
 
-      // Mettre à jour le paiement avec les données spécifiques d'escrow
-      await db.payment.update({
-        where: { id: result.payment.id },
-        data: {
-          isEscrow: true,
-          escrowReleaseCode: releaseCode,
-          escrowReleaseDate: releaseDate
-        }
-      });
-
-      return {
-        success: true,
-        paymentIntentId: result.paymentIntentId,
-        clientSecret: result.clientSecret,
-        releaseCode,
-        releaseDate
-      };
-    } catch (error) {
-      console.error('Erreur lors de la création du paiement sous séquestre:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Libère un paiement sous séquestre
-   */
-  async releaseEscrowPayment(paymentId: string, releaseCode?: string) {
-    try {
-      const stripe = getStripeInstance();
-      
-      // Récupérer le paiement
-      const payment = await db.payment.findUnique({
-        where: { id: paymentId }
-      });
-
-      if (!payment) {
-        throw new Error('Paiement non trouvé');
-      }
-
-      // Vérifier que c'est un paiement sous séquestre
-      if (!payment.isEscrow) {
-        throw new Error('Ce paiement n\'est pas sous séquestre');
-      }
-
-      // Vérifier si le paiement a déjà été libéré
-      if (payment.escrowReleasedAt) {
-        return { success: false, message: 'Ce paiement a déjà été libéré' };
-      }
-
-      // Vérifier le code de déblocage si nécessaire
-      if (payment.escrowReleaseCode && releaseCode) {
-        if (payment.escrowReleaseCode !== releaseCode) {
-          return { success: false, message: 'Code de déblocage invalide' };
-        }
-      }
-
-      // Libérer le paiement dans la base de données
-      const updatedPayment = await db.payment.update({
-        where: { id: paymentId },
-        data: {
-          status: 'COMPLETED',
-          escrowReleasedAt: new Date()
-        }
-      });
-
-      // Si Stripe est configuré, capturer le paiement
-      if (stripe && payment.paymentIntentId) {
-        await stripe.paymentIntents.capture(payment.paymentIntentId);
-      }
-
-      return {
-        success: true,
-        message: 'Paiement libéré avec succès',
-        payment: updatedPayment
-      };
-    } catch (error) {
-      console.error('Erreur lors de la libération du paiement sous séquestre:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Capture un paiement autorisé
-   */
-  async capturePayment(paymentIntentId: string, amount?: number) {
-    try {
-      const stripe = getStripeInstance();
-      if (!stripe) {
-        // En développement, simuler une capture
-        const payment = await db.payment.findFirst({
-          where: { paymentIntentId }
+      if (!announcement) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Annonce introuvable',
         });
-        
-        if (!payment) {
-          throw new Error('Paiement non trouvé');
-        }
-        
-        await db.payment.update({
-          where: { id: payment.id },
-          data: { status: 'COMPLETED' }
+      }
+
+      if (announcement.clientId !== userId) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: "Vous n'êtes pas autorisé à effectuer ce paiement",
         });
-        
-        return {
-          success: true,
-          message: 'Paiement capturé avec succès (simulation)'
-        };
       }
 
-      // Capturer le paiement
-      const captureParams: any = {};
-      if (amount) {
-        captureParams.amount_to_capture = Math.round(amount * 100);
+      // Vérifier que l'annonce est assignée à un livreur
+      if (announcement.status !== 'ASSIGNED' || !announcement.delivererId) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: "L'annonce n'est pas assignée à un livreur",
+        });
       }
 
-      const paymentIntent = await stripe.paymentIntents.capture(
-        paymentIntentId,
-        captureParams
+      // Créer une intention de paiement chez Stripe
+      const stripeInstance = getStripeInstance();
+      const stripeCustomer = await this.getOrCreateStripeCustomer(
+        userId,
+        announcement.client.email
       );
 
-      // Mettre à jour le statut dans la base de données
-      const payment = await db.payment.findFirst({
-        where: { paymentIntentId }
-      });
-
-      if (payment) {
-        await db.payment.update({
-          where: { id: payment.id },
-          data: { status: 'COMPLETED' }
+      let paymentIntent;
+      if (stripeInstance) {
+        paymentIntent = await stripeInstance.paymentIntents.create({
+          amount: Math.round(amount * 100), // Stripe utilise les centimes
+          currency: 'eur',
+          customer: stripeCustomer.id,
+          payment_method: paymentMethodId,
+          metadata: {
+            announcementId,
+            type: 'announcement_payment',
+            ...metadata,
+          },
+          confirm: !!paymentMethodId,
+          setup_future_usage: 'off_session',
         });
-      }
-
-      return {
-        success: true,
-        paymentIntentId: paymentIntent.id,
-        status: paymentIntent.status
-      };
-    } catch (error) {
-      console.error('Erreur lors de la capture du paiement:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Annule un paiement
-   */
-  async cancelPayment(paymentId: string) {
-    try {
-      const stripe = getStripeInstance();
-      
-      // Récupérer le paiement
-      const payment = await db.payment.findUnique({
-        where: { id: paymentId }
-      });
-
-      if (!payment) {
-        throw new Error('Paiement non trouvé');
-      }
-
-      // Si le paiement est déjà terminé ou annulé, on ne peut pas l'annuler
-      if (['COMPLETED', 'REFUNDED', 'CANCELLED'].includes(payment.status)) {
-        throw new Error(`Impossible d'annuler un paiement avec le statut ${payment.status}`);
-      }
-
-      // Annuler le paiement dans Stripe si configuré
-      if (stripe && payment.paymentIntentId) {
-        await stripe.paymentIntents.cancel(payment.paymentIntentId);
-      }
-
-      // Mettre à jour le statut dans la base de données
-      const updatedPayment = await db.payment.update({
-        where: { id: paymentId },
-        data: { status: 'CANCELLED' }
-      });
-
-      return {
-        success: true,
-        message: 'Paiement annulé avec succès',
-        payment: updatedPayment
-      };
-    } catch (error) {
-      console.error('Erreur lors de l\'annulation du paiement:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Effectue un remboursement
-   */
-  async refundPayment(paymentId: string, amount?: number, reason?: string) {
-    try {
-      const stripe = getStripeInstance();
-      
-      // Récupérer le paiement
-      const payment = await db.payment.findUnique({
-        where: { id: paymentId }
-      });
-
-      if (!payment) {
-        throw new Error('Paiement non trouvé');
-      }
-
-      // Vérifier si le paiement peut être remboursé
-      if (payment.status !== 'COMPLETED') {
-        throw new Error('Seuls les paiements complétés peuvent être remboursés');
-      }
-
-      let refund = null;
-      
-      // Créer le remboursement dans Stripe si configuré
-      if (stripe && payment.stripePaymentId) {
-        const refundParams: any = {
-          payment_intent: payment.stripePaymentId,
-          reason: reason || 'requested_by_customer'
-        };
-
-        if (amount) {
-          refundParams.amount = Math.round(amount * 100);
-        }
-
-        refund = await stripe.refunds.create(refundParams);
-      }
-
-      // Créer une entrée de remboursement dans la base de données
-      const refundAmount = amount || Number(payment.amount);
-      
-      const refundRecord = await db.refund.create({
-        data: {
-          paymentId,
-          amount: new Decimal(refundAmount),
-          reason: reason || 'Demande de remboursement client',
-          status: 'COMPLETED',
-          stripeRefundId: refund ? refund.id : `refund_mock_${Date.now()}`
-        }
-      });
-
-      // Mettre à jour le statut du paiement
-      const fullRefund = !amount || amount === Number(payment.amount);
-      
-      await db.payment.update({
-        where: { id: paymentId },
-        data: {
-          status: fullRefund ? 'REFUNDED' : 'PARTIALLY_REFUNDED',
-          refundedAmount: db.Prisma.Decimal.add(
-            payment.refundedAmount || 0,
-            refundAmount
-          )
-        }
-      });
-
-      return {
-        success: true,
-        message: 'Remboursement effectué avec succès',
-        refundId: refundRecord.id,
-        stripeRefundId: refund ? refund.id : null
-      };
-    } catch (error) {
-      console.error('Erreur lors du remboursement:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Obtient l'historique des paiements d'un utilisateur
-   */
-  async getPaymentHistory(userId: string, options: {
-    page?: number;
-    limit?: number;
-    startDate?: Date;
-    endDate?: Date;
-    status?: string;
-    type?: string;
-  }) {
-    try {
-      const {
-        page = 1,
-        limit = 10,
-        startDate,
-        endDate,
-        status,
-        type
-      } = options;
-
-      const skip = (page - 1) * limit;
-
-      // Construction de la requête
-      const whereClause: any = { userId };
-
-      if (startDate) {
-        whereClause.createdAt = { ...(whereClause.createdAt || {}), gte: startDate };
-      }
-
-      if (endDate) {
-        whereClause.createdAt = { ...(whereClause.createdAt || {}), lte: endDate };
-      }
-
-      if (status) {
-        whereClause.status = status;
-      }
-
-      // Filtrer par type (deliveryId, serviceId, subscriptionId)
-      if (type) {
-        switch (type) {
-          case 'delivery':
-            whereClause.deliveryId = { not: null };
-            break;
-          case 'service':
-            whereClause.serviceId = { not: null };
-            break;
-          case 'subscription':
-            whereClause.subscriptionId = { not: null };
-            break;
-        }
-      }
-
-      // Comptage total pour la pagination
-      const totalCount = await db.payment.count({ where: whereClause });
-
-      // Récupération des paiements avec relations
-      const payments = await db.payment.findMany({
-        where: whereClause,
-        skip,
-        take: limit,
-        orderBy: { createdAt: 'desc' },
-        include: {
-          delivery: {
-            select: {
-              id: true,
-              status: true,
-              trackingNumber: true,
-              deliveryDate: true
-            }
-          },
-          service: {
-            select: {
-              id: true,
-              name: true,
-              description: true
-            }
-          },
-          subscription: {
-            select: {
-              id: true,
-              planId: true,
-              status: true,
-              currentPeriodEnd: true
-            }
-          },
-          refunds: true
-        }
-      });
-
-      // Calcul de la pagination
-      const totalPages = Math.ceil(totalCount / limit);
-      const hasNextPage = page < totalPages;
-      const hasPreviousPage = page > 1;
-
-      return {
-        payments,
-        pagination: {
-          totalCount,
-          totalPages,
-          currentPage: page,
-          limit,
-          hasNextPage,
-          hasPreviousPage
-        }
-      };
-    } catch (error) {
-      console.error('Erreur lors de la récupération de l\'historique des paiements:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Ajoute une méthode de paiement à un utilisateur
-   */
-  async addPaymentMethod(userId: string, paymentMethodId: string, setAsDefault: boolean = false) {
-    try {
-      const stripe = getStripeInstance();
-      if (!stripe) {
-        return {
-          success: true,
-          message: 'Méthode de paiement simulée ajoutée avec succès',
-          paymentMethodId: `pm_mock_${Date.now()}`
+      } else {
+        // Mode développement - simuler un paiement
+        paymentIntent = {
+          id: `pi_mock_${Date.now()}`,
+          client_secret: `seti_mock_${Date.now()}`,
+          status: 'succeeded',
         };
       }
 
-      // Récupérer ou créer le customer Stripe
-      const user = await db.user.findUnique({ 
-        where: { id: userId },
-        select: { email: true }
-      });
+      // Calculer la commission de la plateforme (7% par défaut)
+      const commissionRate = 0.07;
+      const commissionAmount = amount * commissionRate;
+      const delivererAmount = amount - commissionAmount;
 
-      if (!user || !user.email) {
-        throw new Error('Utilisateur ou email non trouvé');
-      }
-
-      const customer = await this.getOrCreateStripeCustomer(userId, user.email);
-
-      // Attacher la méthode de paiement au customer
-      await stripe.paymentMethods.attach(paymentMethodId, {
-        customer: customer.id,
-      });
-
-      // Si demandé, définir comme méthode par défaut
-      if (setAsDefault) {
-        await stripe.customers.update(customer.id, {
-          invoice_settings: {
-            default_payment_method: paymentMethodId,
-          },
-        });
-      }
-
-      // Enregistrer la méthode de paiement dans la base de données
-      // Récupérer les détails de la méthode de paiement
-      const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
-      
-      await db.paymentMethod.create({
+      // Créer le paiement dans notre base de données
+      const payment = await this.prisma.payment.create({
         data: {
+          amount: new Decimal(amount),
+          currency: 'EUR',
+          status: PaymentStatus.PENDING,
+          paymentIntentId: paymentIntent.id,
+          isEscrow: true,
           userId,
-          stripePaymentMethodId: paymentMethodId,
-          type: paymentMethod.type,
-          isDefault: setAsDefault,
-          brand: paymentMethod.card?.brand || null,
-          last4: paymentMethod.card?.last4 || null,
-          expiryMonth: paymentMethod.card?.exp_month || null,
-          expiryYear: paymentMethod.card?.exp_year || null,
-          fingerprint: paymentMethod.card?.fingerprint || null,
-        }
+          description: `Paiement pour l'annonce: ${announcement.title}`,
+          commissionRate: new Decimal(commissionRate),
+          commissionAmount: new Decimal(commissionAmount),
+          delivererAmount: new Decimal(delivererAmount),
+          metadata: metadata || {},
+          deliveryId: announcementId,
+        },
       });
 
       return {
-        success: true,
-        message: 'Méthode de paiement ajoutée avec succès',
-        paymentMethodId
+        payment,
+        clientSecret: paymentIntent.client_secret,
+        status: paymentIntent.status,
       };
     } catch (error) {
-      console.error('Erreur lors de l\'ajout de la méthode de paiement:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Récupère les méthodes de paiement d'un utilisateur
-   */
-  async getPaymentMethods(userId: string) {
-    try {
-      const stripe = getStripeInstance();
-      
-      // Récupérer les méthodes de paiement de la base de données
-      const dbPaymentMethods = await db.paymentMethod.findMany({
-        where: { userId }
+      console.error('Erreur lors de la création du paiement:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Impossible de créer le paiement',
       });
-
-      if (!stripe) {
-        return {
-          success: true,
-          paymentMethods: dbPaymentMethods
-        };
-      }
-
-      return {
-        success: true,
-        paymentMethods: dbPaymentMethods
-      };
-    } catch (error) {
-      console.error('Erreur lors de la récupération des méthodes de paiement:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Supprime une méthode de paiement
-   */
-  async removePaymentMethod(userId: string, paymentMethodId: string) {
-    try {
-      const stripe = getStripeInstance();
-      
-      // Vérifier que la méthode appartient à l'utilisateur
-      const paymentMethod = await db.paymentMethod.findFirst({
-        where: {
-          userId,
-          stripePaymentMethodId: paymentMethodId
-        }
-      });
-
-      if (!paymentMethod) {
-        throw new Error('Méthode de paiement non trouvée ou n\'appartient pas à l\'utilisateur');
-      }
-
-      // Détacher la méthode de paiement dans Stripe si configuré
-      if (stripe) {
-        await stripe.paymentMethods.detach(paymentMethodId);
-      }
-
-      // Supprimer de la base de données
-      await db.paymentMethod.delete({
-        where: { id: paymentMethod.id }
-      });
-
-      return {
-        success: true,
-        message: 'Méthode de paiement supprimée avec succès'
-      };
-    } catch (error) {
-      console.error('Erreur lors de la suppression de la méthode de paiement:', error);
-      throw error;
     }
   }
-};
+
+  /**
+   * Confirme un paiement après autorisation par Stripe
+   */
+  async confirmAnnouncementPayment(paymentIntentId: string) {
+    try {
+      // Récupérer les informations du paiement
+      const payment = await this.prisma.payment.findFirst({
+        where: { paymentIntentId },
+        include: {
+          delivery: true,
+        },
+      });
+
+      if (!payment) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Paiement non trouvé',
+        });
+      }
+
+      // Vérifier le statut chez Stripe
+      const stripeInstance = getStripeInstance();
+      let status = 'succeeded';
+      let errorMessage = null;
+
+      if (stripeInstance) {
+        const paymentIntent = await stripeInstance.paymentIntents.retrieve(paymentIntentId);
+        status = paymentIntent.status;
+        errorMessage = paymentIntent.last_payment_error?.message;
+      }
+
+      if (status === 'succeeded') {
+        // Mettre à jour le statut du paiement
+        await this.prisma.payment.update({
+          where: { id: payment.id },
+          data: {
+            status: 'AUTHORIZED',
+            capturedAt: new Date(),
+          },
+        });
+
+        // Générer un code de libération pour le paiement en escrow
+        const escrowReleaseCode = this.generateEscrowReleaseCode();
+
+        await this.prisma.payment.update({
+          where: { id: payment.id },
+          data: {
+            escrowReleaseCode,
+          },
+        });
+
+        // Notifier le client et le livreur
+        if (payment.deliveryId) {
+          const announcementId = payment.deliveryId;
+
+          // Envoyer le code au client uniquement
+          await NotificationService.send(
+            payment.userId,
+            'Code de confirmation de livraison',
+            `Votre code de confirmation pour la livraison: ${escrowReleaseCode}`,
+            'PAYMENT_INFO',
+            `/client/announcements/${announcementId}`,
+            { announcementId, escrowReleaseCode }
+          );
+
+          // Notifier le livreur que le paiement est prêt
+          const announcement = await this.prisma.announcement.findUnique({
+            where: { id: announcementId as string },
+            select: { delivererId: true },
+          });
+
+          if (announcement?.delivererId) {
+            await NotificationService.send(
+              announcement.delivererId,
+              'Paiement confirmé',
+              'Le client a effectué le paiement pour la livraison. Vous pouvez commencer.',
+              'PAYMENT_CONFIRMED',
+              `/deliverer/announcements/${announcementId}`,
+              { announcementId }
+            );
+          }
+
+          // Mettre à jour le statut de l'annonce si nécessaire
+          await this.prisma.announcement.update({
+            where: { id: announcementId as string },
+            data: {
+              status: AnnouncementStatus.ASSIGNED,
+              paymentStatus: 'PAID',
+            },
+          });
+        }
+
+        return {
+          success: true,
+          payment: await this.prisma.payment.findUnique({
+            where: { id: payment.id },
+          }),
+        };
+      } else {
+        // Le paiement a échoué ou est en attente
+        await this.prisma.payment.update({
+          where: { id: payment.id },
+          data: {
+            status:
+              status === 'requires_payment_method' ? PaymentStatus.FAILED : PaymentStatus.PENDING,
+            errorMessage: errorMessage,
+          },
+        });
+
+        return {
+          success: false,
+          status: status,
+          error: errorMessage,
+        };
+      }
+    } catch (error) {
+      console.error('Erreur lors de la confirmation du paiement:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Impossible de confirmer le paiement',
+      });
+    }
+  }
+
+  /**
+   * Libère un paiement en escrow après confirmation de livraison
+   */
+  async releaseAnnouncementPayment(
+    announcementId: string,
+    userId: string,
+    escrowReleaseCode?: string
+  ) {
+    try {
+      // Vérifier que l'annonce existe
+      const announcement = await this.prisma.announcement.findUnique({
+        where: { id: announcementId },
+      });
+
+      if (!announcement) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Annonce introuvable',
+        });
+      }
+
+      // Vérifier que l'utilisateur est le client ou un admin
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Utilisateur introuvable',
+        });
+      }
+
+      const isAuthorized = announcement.clientId === userId || user.role === UserRole.ADMIN;
+
+      if (!isAuthorized) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: "Vous n'êtes pas autorisé à libérer ce paiement",
+        });
+      }
+
+      // Vérifier le statut de l'annonce
+      if (
+        announcement.status !== AnnouncementStatus.DELIVERED &&
+        announcement.status !== AnnouncementStatus.COMPLETED
+      ) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: "Le statut de l'annonce ne permet pas de libérer le paiement",
+        });
+      }
+
+      // Récupérer le paiement
+      const payment = await this.prisma.payment.findFirst({
+        where: {
+          deliveryId: announcementId,
+          status: 'AUTHORIZED',
+        },
+      });
+
+      if (!payment) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Aucun paiement en attente trouvé pour cette annonce',
+        });
+      }
+
+      // Si un code est requis et que l'utilisateur n'est pas admin, vérifier le code
+      if (payment.escrowReleaseCode && !escrowReleaseCode && user.role !== UserRole.ADMIN) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Code de libération requis',
+        });
+      }
+
+      if (
+        payment.escrowReleaseCode &&
+        escrowReleaseCode !== payment.escrowReleaseCode &&
+        user.role !== UserRole.ADMIN
+      ) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Code de libération invalide',
+        });
+      }
+
+      // Mettre à jour le statut du paiement
+      const updatedPayment = await this.prisma.payment.update({
+        where: { id: payment.id },
+        data: {
+          status: PaymentStatus.COMPLETED,
+          escrowReleasedAt: new Date(),
+        },
+      });
+
+      // Mettre à jour le statut de l'annonce
+      await this.prisma.announcement.update({
+        where: { id: announcementId },
+        data: {
+          status: AnnouncementStatus.PAID,
+        },
+      });
+
+      // Ajouter le montant au portefeuille du livreur
+      if (announcement.delivererId && payment.delivererAmount) {
+        await this.addFundsToDelivererWallet(
+          announcement.delivererId,
+          Number(payment.delivererAmount),
+          `Paiement pour la livraison: ${announcement.title}`,
+          { announcementId, paymentId: payment.id }
+        );
+      }
+
+      // Notifier le livreur
+      if (announcement.delivererId) {
+        await NotificationService.send(
+          announcement.delivererId,
+          'Paiement reçu',
+          `Le paiement pour la livraison "${announcement.title}" a été effectué`,
+          'PAYMENT_RECEIVED',
+          `/deliverer/wallet`,
+          { announcementId, paymentId: payment.id }
+        );
+      }
+
+      return {
+        success: true,
+        payment: updatedPayment,
+      };
+    } catch (error) {
+      console.error('Erreur lors de la libération du paiement:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Impossible de libérer le paiement',
+      });
+    }
+  }
+
+  /**
+   * Rembourse un paiement en cas de problème
+   */
+  async refundAnnouncementPayment(
+    announcementId: string,
+    userId: string,
+    reason: string,
+    amount?: number
+  ) {
+    try {
+      // Vérifier les autorisations (admin ou client)
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+      });
+
+      if (!user) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Utilisateur introuvable',
+        });
+      }
+
+      // Récupérer l'annonce et le paiement
+      const announcement = await this.prisma.announcement.findUnique({
+        where: { id: announcementId },
+      });
+
+      if (!announcement) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Annonce introuvable',
+        });
+      }
+
+      const isAuthorized = user.role === UserRole.ADMIN || announcement.clientId === userId;
+
+      if (!isAuthorized) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: "Vous n'êtes pas autorisé à effectuer ce remboursement",
+        });
+      }
+
+      const payment = await this.prisma.payment.findFirst({
+        where: {
+          deliveryId: announcementId,
+          status: {
+            in: ['AUTHORIZED', 'COMPLETED'],
+          },
+        },
+      });
+
+      if (!payment) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Aucun paiement trouvé pour cette annonce',
+        });
+      }
+
+      // Si le paiement a un ID Stripe, effectuer le remboursement via Stripe
+      const stripeInstance = getStripeInstance();
+      if (payment.paymentIntentId && stripeInstance) {
+        const refundAmount = amount ? Math.round(amount * 100) : undefined; // Stripe utilise les centimes
+
+        const refund = await stripeInstance.refunds.create({
+          payment_intent: payment.paymentIntentId,
+          amount: refundAmount,
+          reason: 'requested_by_customer',
+          metadata: {
+            announcementId,
+            reason,
+            userId,
+          },
+        });
+
+        // Mettre à jour le paiement dans notre base de données
+        await this.prisma.payment.update({
+          where: { id: payment.id },
+          data: {
+            status: PaymentStatus.REFUNDED,
+            refundId: refund.id,
+            refundedAmount: new Decimal(refundAmount ? refundAmount / 100 : Number(payment.amount)),
+            refundedAt: new Date(),
+          },
+        });
+
+        // Mettre à jour le statut de l'annonce si nécessaire
+        if (announcement.status !== AnnouncementStatus.CANCELLED) {
+          await this.prisma.announcement.update({
+            where: { id: announcementId },
+            data: {
+              status: AnnouncementStatus.CANCELLED,
+              cancelReason: reason,
+            },
+          });
+        }
+
+        // Notifier le client et le livreur
+        await NotificationService.send(
+          announcement.clientId,
+          'Remboursement effectué',
+          `Votre paiement pour l'annonce "${announcement.title}" a été remboursé`,
+          'PAYMENT_REFUNDED',
+          `/client/announcements/${announcementId}`,
+          { announcementId, refundId: refund.id }
+        );
+
+        if (announcement.delivererId) {
+          await NotificationService.send(
+            announcement.delivererId,
+            'Annonce remboursée',
+            `Le paiement pour l'annonce "${announcement.title}" a été remboursé au client`,
+            'PAYMENT_REFUNDED',
+            `/deliverer/announcements/${announcementId}`,
+            { announcementId }
+          );
+        }
+
+        return {
+          success: true,
+          refundId: refund.id,
+        };
+      } else {
+        // Mode développement - simuler un remboursement
+        const mockRefundId = `re_mock_${Date.now()}`;
+
+        // Mettre à jour le paiement
+        await this.prisma.payment.update({
+          where: { id: payment.id },
+          data: {
+            status: PaymentStatus.REFUNDED,
+            refundId: mockRefundId,
+            refundedAmount: new Decimal(amount || Number(payment.amount)),
+            refundedAt: new Date(),
+          },
+        });
+
+        // Mettre à jour le statut de l'annonce
+        await this.prisma.announcement.update({
+          where: { id: announcementId },
+          data: {
+            status: AnnouncementStatus.CANCELLED,
+            cancelReason: reason,
+          },
+        });
+
+        // Notifier les parties
+        await NotificationService.send(
+          announcement.clientId,
+          'Remboursement effectué',
+          `Votre paiement pour l'annonce "${announcement.title}" a été remboursé`,
+          'PAYMENT_REFUNDED',
+          `/client/announcements/${announcementId}`,
+          { announcementId, refundId: mockRefundId }
+        );
+
+        if (announcement.delivererId) {
+          await NotificationService.send(
+            announcement.delivererId,
+            'Annonce remboursée',
+            `Le paiement pour l'annonce "${announcement.title}" a été remboursé au client`,
+            'PAYMENT_REFUNDED',
+            `/deliverer/announcements/${announcementId}`,
+            { announcementId }
+          );
+        }
+
+        return {
+          success: true,
+          refundId: mockRefundId,
+        };
+      }
+    } catch (error) {
+      console.error('Erreur lors du remboursement:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: "Impossible d'effectuer le remboursement",
+      });
+    }
+  }
+
+  /**
+   * Génère un code unique pour la libération d'un paiement escrow
+   */
+  private generateEscrowReleaseCode(): string {
+    const characters = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+      result += characters.charAt(Math.floor(Math.random() * characters.length));
+    }
+    return result;
+  }
+
+  /**
+   * Ajoute des fonds au portefeuille d'un livreur
+   */
+  private async addFundsToDelivererWallet(
+    delivererId: string,
+    amount: number,
+    description: string,
+    metadata?: Record<string, any>
+  ) {
+    // Récupérer ou créer le portefeuille du livreur
+    const wallet = await this.prisma.wallet.upsert({
+      where: { userId: delivererId },
+      update: {
+        balance: {
+          increment: amount,
+        },
+        lastTransactionAt: new Date(),
+      },
+      create: {
+        userId: delivererId,
+        balance: amount,
+        lastTransactionAt: new Date(),
+      },
+    });
+
+    // Enregistrer la transaction
+    await this.prisma.walletTransaction.create({
+      data: {
+        walletId: wallet.id,
+        amount: new Decimal(amount),
+        currency: 'EUR',
+        type: 'EARNING',
+        status: 'COMPLETED',
+        description,
+        previousBalance: wallet.balance - amount,
+        balanceAfter: wallet.balance,
+        metadata: metadata ? JSON.stringify(metadata) : undefined,
+      },
+    });
+
+    return wallet;
+  }
+}
+
+// Instancier et exporter le service
+export const paymentService = new PaymentService();
