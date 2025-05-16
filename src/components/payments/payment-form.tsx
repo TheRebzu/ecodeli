@@ -4,13 +4,34 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { CreditCard, AlertCircle, Check, Euro } from 'lucide-react';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { formatCurrency } from '@/lib/utils';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslations } from 'next-intl';
@@ -38,7 +59,7 @@ export function PaymentForm({
   initialAmount,
   destinationId,
   destinationType,
-  walletBalance
+  walletBalance,
 }: PaymentFormProps) {
   const t = useTranslations('payment');
   const { toast } = useToast();
@@ -46,14 +67,16 @@ export function PaymentForm({
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [useExistingCard, setUseExistingCard] = useState(savedPaymentMethods.length > 0);
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'card' | 'wallet' | 'sepa' | 'saved_card'>('card');
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
+    'card' | 'wallet' | 'sepa' | 'saved_card'
+  >('card');
   const [selectedCardId, setSelectedCardId] = useState<string | undefined>(
     savedPaymentMethods.length > 0 ? savedPaymentMethods[0].id : undefined
   );
 
   // Créer un intent de paiement via tRPC
   const createPaymentIntent = api.payment.createPaymentIntent.useMutation({
-    onSuccess: (data) => {
+    onSuccess: data => {
       setIsProcessing(false);
       setStatus('success');
       toast({
@@ -64,7 +87,7 @@ export function PaymentForm({
         onSuccess(data.paymentIntentId);
       }
     },
-    onError: (error) => {
+    onError: error => {
       setIsProcessing(false);
       setStatus('error');
       setErrorMessage(error.message);
@@ -78,9 +101,12 @@ export function PaymentForm({
 
   // Schéma de validation avec Zod
   const paymentSchema = z.object({
-    amount: z.number().positive({ message: t('amountPositive') }).min(1, { message: t('amountMinimum') }),
+    amount: z
+      .number()
+      .positive({ message: t('amountPositive') })
+      .min(1, { message: t('amountMinimum') }),
     description: z.string().optional(),
-    savePaymentMethod: z.boolean().optional()
+    savePaymentMethod: z.boolean().optional(),
   });
 
   type PaymentFormValues = z.infer<typeof paymentSchema>;
@@ -91,8 +117,8 @@ export function PaymentForm({
     defaultValues: {
       amount: initialAmount || 0,
       description: '',
-      savePaymentMethod: false
-    }
+      savePaymentMethod: false,
+    },
   });
 
   // Mois pour le champ d'expiration
@@ -122,8 +148,10 @@ export function PaymentForm({
         description: values.description || 'Paiement EcoDeli',
         ...(destinationId ? { deliveryId: destinationId } : {}),
         ...(destinationType === 'SERVICE' ? { serviceId: destinationId } : {}),
-        ...(values.useExistingCard && values.paymentMethodId ? { paymentMethodId: values.paymentMethodId } : {}),
-        // Si on n'utilise pas de carte existante, on devrait envoyer les détails de la carte à Stripe 
+        ...(values.useExistingCard && values.paymentMethodId
+          ? { paymentMethodId: values.paymentMethodId }
+          : {}),
+        // Si on n'utilise pas de carte existante, on devrait envoyer les détails de la carte à Stripe
         // via leur SDK et obtenir un token/PaymentMethod, mais cette partie nécessite StripeElements
       };
 
@@ -137,7 +165,10 @@ export function PaymentForm({
   };
 
   // Fonction pour gérer le changement de méthode de paiement
-  const handlePaymentMethodChange = (method: 'card' | 'wallet' | 'sepa' | 'saved_card', cardId?: string) => {
+  const handlePaymentMethodChange = (
+    method: 'card' | 'wallet' | 'sepa' | 'saved_card',
+    cardId?: string
+  ) => {
     setSelectedPaymentMethod(method);
     if (method === 'saved_card' && cardId) {
       setSelectedCardId(cardId);
@@ -146,7 +177,10 @@ export function PaymentForm({
 
   // Formatage du numéro de carte (ajout d'espaces tous les 4 chiffres)
   const formatCardNumber = (value: string) => {
-    return value.replace(/\s/g, '').replace(/(\d{4})/g, '$1 ').trim();
+    return value
+      .replace(/\s/g, '')
+      .replace(/(\d{4})/g, '$1 ')
+      .trim();
   };
 
   return (
@@ -157,7 +191,9 @@ export function PaymentForm({
           {t('processPayment')}
         </CardTitle>
         <CardDescription>
-          {initialAmount > 0 ? t('amountToPay', { amount: formatCurrency(initialAmount, 'EUR') }) : t('enterPaymentDetails')}
+          {initialAmount > 0
+            ? t('amountToPay', { amount: formatCurrency(initialAmount, 'EUR') })
+            : t('enterPaymentDetails')}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -188,7 +224,9 @@ export function PaymentForm({
                   <FormLabel>{t('amount')}</FormLabel>
                   <FormControl>
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">€</span>
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                        €
+                      </span>
                       <Input
                         {...field}
                         type="number"
@@ -197,14 +235,12 @@ export function PaymentForm({
                         placeholder="0.00"
                         className="pl-8"
                         value={field.value}
-                        onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                        onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
                         disabled={isProcessing || status === 'success'}
                       />
                     </div>
                   </FormControl>
-                  <FormDescription>
-                    {t('enterAmountDesc')}
-                  </FormDescription>
+                  <FormDescription>{t('enterAmountDesc')}</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -224,9 +260,7 @@ export function PaymentForm({
                       disabled={isProcessing || status === 'success'}
                     />
                   </FormControl>
-                  <FormDescription>
-                    {t('descriptionDesc')}
-                  </FormDescription>
+                  <FormDescription>{t('descriptionDesc')}</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -251,7 +285,7 @@ export function PaymentForm({
                   <Checkbox
                     id="useExistingCard"
                     checked={useExistingCard}
-                    onCheckedChange={(checked) => {
+                    onCheckedChange={checked => {
                       setUseExistingCard(checked === true);
                       form.setValue('useExistingCard', checked === true);
                     }}
@@ -282,7 +316,7 @@ export function PaymentForm({
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            {savedPaymentMethods.map((method) => (
+                            {savedPaymentMethods.map(method => (
                               <SelectItem key={method.id} value={method.id}>
                                 {method.brand.toUpperCase()} •••• {method.last4} (
                                 {method.expiryMonth.toString().padStart(2, '0')}/
@@ -315,8 +349,10 @@ export function PaymentForm({
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     {t('processing')}
                   </>
+                ) : status === 'success' ? (
+                  t('paymentComplete')
                 ) : (
-                  status === 'success' ? t('paymentComplete') : t('pay')
+                  t('pay')
                 )}
               </Button>
             </div>

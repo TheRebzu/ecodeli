@@ -56,16 +56,18 @@ export const updateInvoiceSchema = z.object({
   taxAmount: z.number().min(0).optional(),
   totalAmount: z.number().positive().optional(),
   dueDate: z.date().optional(),
-  items: z.array(
-    z.object({
-      id: z.string().cuid().optional(),
-      description: z.string(),
-      quantity: z.number().positive(),
-      unitPrice: z.number().positive(),
-      taxRate: z.number().min(0).max(100).optional(),
-      discount: z.number().min(0).max(100).optional(),
-    })
-  ).optional(),
+  items: z
+    .array(
+      z.object({
+        id: z.string().cuid().optional(),
+        description: z.string(),
+        quantity: z.number().positive(),
+        unitPrice: z.number().positive(),
+        taxRate: z.number().min(0).max(100).optional(),
+        discount: z.number().min(0).max(100).optional(),
+      })
+    )
+    .optional(),
   serviceDescription: z.string().optional(),
   notes: z.string().optional(),
   paymentTerms: z.string().optional(),

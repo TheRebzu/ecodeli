@@ -180,11 +180,11 @@ export const documentRouter = router({
         // Traiter le fichier selon son type
         if (typeof input.file === 'string') {
           // Cas d'une chaîne base64
-          console.log('Traitement d\'une chaîne base64');
-          
+          console.log("Traitement d'une chaîne base64");
+
           // Extraire le type MIME et les données de la chaîne base64
           const matches = input.file.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
-          
+
           if (!matches || matches.length !== 3) {
             console.error('Format base64 invalide');
             throw new TRPCError({
@@ -192,34 +192,36 @@ export const documentRouter = router({
               message: 'Format de fichier base64 invalide',
             });
           }
-          
+
           // Extraire les informations du format base64
           mimeType = matches[1];
           const base64Data = matches[2];
           const buffer = Buffer.from(base64Data, 'base64');
           fileSize = buffer.length;
-          
+
           // Déterminer l'extension de fichier en fonction du MIME type
           let extension = '.bin';
           if (mimeType === 'image/jpeg') extension = '.jpg';
           else if (mimeType === 'image/png') extension = '.png';
           else if (mimeType === 'image/heic') extension = '.heic';
           else if (mimeType === 'application/pdf') extension = '.pdf';
-          
+
           // Générer un nom de fichier unique
           const randomId = crypto.randomBytes(8).toString('hex');
           const uniqueFilename = `${randomId}${extension}`;
-          
+
           // Créer le chemin du dossier pour les uploads
           const uploadDir = path.join(process.cwd(), 'public', 'uploads', userId);
           await fs.mkdir(uploadDir, { recursive: true });
-          
+
           // Chemin complet du fichier
           const filePath = path.join(uploadDir, uniqueFilename);
-          
+
           // Écrire le fichier sur le disque
           await fs.writeFile(filePath, buffer);
-          console.log(`Fichier base64 écrit avec succès: ${filePath}, taille: ${buffer.length} octets`);
+          console.log(
+            `Fichier base64 écrit avec succès: ${filePath}, taille: ${buffer.length} octets`
+          );
 
           // Construire l'URL du fichier
           fileUrl = `/uploads/${userId}/${uniqueFilename}`;
@@ -239,35 +241,35 @@ export const documentRouter = router({
           return result;
         } else if (typeof input.file === 'object') {
           // Cas d'un objet File ou similaire
-          console.log('Traitement d\'un objet File:', typeof input.file, input.file);
-          
+          console.log("Traitement d'un objet File:", typeof input.file, input.file);
+
           // Par sécurité, vérifions que ces propriétés existent
           const originalName = (input.file as { name?: string }).name || `document-${Date.now()}`;
           mimeType = (input.file as { type?: string }).type || 'application/octet-stream';
-          
+
           // Déterminer l'extension de fichier
           let extension = '.bin';
           if (mimeType === 'image/jpeg') extension = '.jpg';
           else if (mimeType === 'image/png') extension = '.png';
           else if (mimeType === 'image/heic') extension = '.heic';
           else if (mimeType === 'application/pdf') extension = '.pdf';
-          
+
           // Générer un nom de fichier unique
           const randomId = crypto.randomBytes(8).toString('hex');
           const uniqueFilename = `${randomId}${extension}`;
           fileName = uniqueFilename;
-          
+
           // Créer le chemin du dossier pour les uploads
           const uploadDir = path.join(process.cwd(), 'public', 'uploads', userId);
           await fs.mkdir(uploadDir, { recursive: true });
-          
+
           // Chemin complet du fichier
           const filePath = path.join(uploadDir, uniqueFilename);
           fileUrl = `/uploads/${userId}/${uniqueFilename}`;
-          
+
           // Extraire le contenu binaire du fichier
           let fileBuffer: Buffer;
-          
+
           if ('arrayBuffer' in input.file && typeof input.file.arrayBuffer === 'function') {
             throw new Error('arrayBuffer method not available in server context');
           } else if ('buffer' in input.file) {
@@ -280,8 +282,11 @@ export const documentRouter = router({
             fileBuffer = Buffer.from((input.file as { data: string | Buffer }).data);
           } else {
             try {
-              console.log('Tentative de sérialisation de l\'objet File:', JSON.stringify(input.file));
-              
+              console.log(
+                "Tentative de sérialisation de l'objet File:",
+                JSON.stringify(input.file)
+              );
+
               if (input.file && typeof input.file === 'object') {
                 fileBuffer = Buffer.from(JSON.stringify(input.file));
                 mimeType = 'application/json';
@@ -297,21 +302,21 @@ export const documentRouter = router({
               });
             }
           }
-          
+
           // Écrire le fichier sur le disque
           try {
             if (!fileBuffer) {
-              throw new Error('Impossible d\'extraire les données du fichier');
+              throw new Error("Impossible d'extraire les données du fichier");
             }
-            
+
             await fs.writeFile(filePath, fileBuffer);
             fileSize = fileBuffer.length;
             console.log(`Fichier écrit avec succès: ${filePath}, taille: ${fileSize} octets`);
           } catch (writeError) {
-            console.error('Erreur lors de l\'écriture du fichier:', writeError);
+            console.error("Erreur lors de l'écriture du fichier:", writeError);
             throw new TRPCError({
               code: 'INTERNAL_SERVER_ERROR',
-              message: 'Erreur lors de l\'enregistrement du fichier',
+              message: "Erreur lors de l'enregistrement du fichier",
             });
           }
         } else {

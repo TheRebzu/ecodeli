@@ -29,7 +29,7 @@ const availableFields = [
   { id: 'email', label: 'Email' },
   { id: 'role', label: 'Rôle' },
   { id: 'status', label: 'Statut' },
-  { id: 'createdAt', label: 'Date d\'inscription' },
+  { id: 'createdAt', label: "Date d'inscription" },
   { id: 'lastLoginAt', label: 'Dernière connexion' },
   { id: 'isVerified', label: 'Vérifié' },
   { id: 'phoneNumber', label: 'Téléphone' },
@@ -40,25 +40,28 @@ const availableFields = [
   { id: 'lastActivityAt', label: 'Dernière activité' },
   { id: 'emailVerified', label: 'Email vérifié' },
   { id: 'phoneVerified', label: 'Téléphone vérifié' },
-  { id: 'subscriptionStatus', label: 'Statut d\'abonnement' }
+  { id: 'subscriptionStatus', label: "Statut d'abonnement" },
 ];
 
-export function UserExportDialog({ 
-  open, 
-  onOpenChange, 
+export function UserExportDialog({
+  open,
+  onOpenChange,
   onExport,
-  selectedCount 
+  selectedCount,
 }: UserExportDialogProps) {
   const [format, setFormat] = useState<'csv' | 'excel' | 'pdf'>('csv');
   const [selectedFields, setSelectedFields] = useState<string[]>([
-    'name', 'email', 'role', 'status', 'createdAt', 'lastLoginAt'
+    'name',
+    'email',
+    'role',
+    'status',
+    'createdAt',
+    'lastLoginAt',
   ]);
 
   const handleFieldToggle = (fieldId: string) => {
-    setSelectedFields(prev => 
-      prev.includes(fieldId)
-        ? prev.filter(id => id !== fieldId)
-        : [...prev, fieldId]
+    setSelectedFields(prev =>
+      prev.includes(fieldId) ? prev.filter(id => id !== fieldId) : [...prev, fieldId]
     );
   };
 
@@ -83,16 +86,20 @@ export function UserExportDialog({
         <DialogHeader>
           <DialogTitle>Exporter des utilisateurs</DialogTitle>
           <DialogDescription>
-            {selectedCount 
+            {selectedCount
               ? `Exporter ${selectedCount} utilisateur${selectedCount > 1 ? 's' : ''} sélectionné${selectedCount > 1 ? 's' : ''}`
               : 'Exporter tous les utilisateurs selon les filtres appliqués'}
           </DialogDescription>
         </DialogHeader>
-        
+
         <div className="py-4 space-y-4">
           <div>
             <h3 className="text-sm font-medium mb-2">Format d'exportation</h3>
-            <Tabs defaultValue={format} onValueChange={(value) => setFormat(value as any)} className="w-full">
+            <Tabs
+              defaultValue={format}
+              onValueChange={value => setFormat(value as any)}
+              className="w-full"
+            >
               <TabsList className="grid grid-cols-3">
                 <TabsTrigger value="csv" className="flex items-center">
                   <FileText className="h-4 w-4 mr-2" />
@@ -109,35 +116,25 @@ export function UserExportDialog({
               </TabsList>
             </Tabs>
           </div>
-          
+
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <h3 className="text-sm font-medium">Champs à exporter</h3>
               <div className="flex gap-2">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleSelectAllFields}
-                >
+                <Button type="button" variant="outline" size="sm" onClick={handleSelectAllFields}>
                   Tout sélectionner
                 </Button>
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleClearFields}
-                >
+                <Button type="button" variant="outline" size="sm" onClick={handleClearFields}>
                   Effacer
                 </Button>
               </div>
             </div>
-            
+
             <div className="space-y-2 max-h-48 overflow-y-auto border rounded-md p-3">
               {availableFields.map(field => (
                 <div key={field.id} className="flex items-center space-x-2">
-                  <Checkbox 
-                    id={`field-${field.id}`} 
+                  <Checkbox
+                    id={`field-${field.id}`}
                     checked={selectedFields.includes(field.id)}
                     onCheckedChange={() => handleFieldToggle(field.id)}
                   />
@@ -147,16 +144,12 @@ export function UserExportDialog({
             </div>
           </div>
         </div>
-        
+
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Annuler
           </Button>
-          <Button 
-            onClick={handleExport} 
-            disabled={selectedFields.length === 0}
-            className="gap-1"
-          >
+          <Button onClick={handleExport} disabled={selectedFields.length === 0} className="gap-1">
             <Download className="h-4 w-4" />
             Exporter
           </Button>
@@ -164,4 +157,4 @@ export function UserExportDialog({
       </DialogContent>
     </Dialog>
   );
-} 
+}

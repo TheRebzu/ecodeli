@@ -2,12 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { loadStripe, StripeElementsOptions } from '@stripe/stripe-js';
-import { 
-  Elements, 
-  PaymentElement, 
-  useStripe, 
-  useElements
-} from '@stripe/react-stripe-js';
+import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Loader2, AlertCircle, Check, CreditCard } from 'lucide-react';
@@ -17,9 +12,7 @@ import { api } from '@/trpc/react';
 import { formatCurrency } from '@/lib/utils';
 
 // Initialiser Stripe avec la clé publique
-const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || ''
-);
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
 interface CheckoutFormProps {
   clientSecret: string;
@@ -30,12 +23,20 @@ interface CheckoutFormProps {
 }
 
 // Formulaire de paiement Stripe
-function CheckoutForm({ clientSecret, amount, currency = 'EUR', onSuccess, onCancel }: CheckoutFormProps) {
+function CheckoutForm({
+  clientSecret,
+  amount,
+  currency = 'EUR',
+  onSuccess,
+  onCancel,
+}: CheckoutFormProps) {
   const t = useTranslations('payment');
   const stripe = useStripe();
   const elements = useElements();
   const [isProcessing, setIsProcessing] = useState(false);
-  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
+  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'error'>(
+    'idle'
+  );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -118,8 +119,10 @@ function CheckoutForm({ clientSecret, amount, currency = 'EUR', onSuccess, onCan
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               {t('processing')}
             </>
+          ) : paymentStatus === 'success' ? (
+            t('paymentComplete')
           ) : (
-            paymentStatus === 'success' ? t('paymentComplete') : t('makePayment')
+            t('makePayment')
           )}
         </Button>
       </div>
@@ -142,7 +145,7 @@ export function StripeElements({
   amount,
   currency = 'EUR',
   onSuccess,
-  onCancel
+  onCancel,
 }: StripeElementsProps) {
   const t = useTranslations('payment');
   const [stripeReady, setStripeReady] = useState(false);
@@ -227,7 +230,7 @@ export function StripePaymentMethodSelector({
 
   // Récupérer les méthodes de paiement sauvegardées via l'API tRPC
   const paymentMethodsQuery = api.payment.getPaymentMethods.useQuery();
-  
+
   // Mise à jour des données lorsque la requête est terminée
   useEffect(() => {
     if (!paymentMethodsQuery.isLoading) {
@@ -271,7 +274,7 @@ export function StripePaymentMethodSelector({
     <div className="space-y-2">
       <h3 className="text-sm font-medium">{t('selectSavedPaymentMethod')}</h3>
       <div className="space-y-2">
-        {paymentMethods.map((method) => (
+        {paymentMethods.map(method => (
           <div
             key={method.id}
             className={`border rounded-md p-3 cursor-pointer transition-colors ${
@@ -284,9 +287,15 @@ export function StripePaymentMethodSelector({
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <div className="flex-shrink-0">
-                  {method.card.brand === 'visa' && <span className="text-blue-600 font-bold">Visa</span>}
-                  {method.card.brand === 'mastercard' && <span className="text-red-600 font-bold">Mastercard</span>}
-                  {method.card.brand === 'amex' && <span className="text-blue-800 font-bold">Amex</span>}
+                  {method.card.brand === 'visa' && (
+                    <span className="text-blue-600 font-bold">Visa</span>
+                  )}
+                  {method.card.brand === 'mastercard' && (
+                    <span className="text-red-600 font-bold">Mastercard</span>
+                  )}
+                  {method.card.brand === 'amex' && (
+                    <span className="text-blue-800 font-bold">Amex</span>
+                  )}
                   {!['visa', 'mastercard', 'amex'].includes(method.card.brand) && (
                     <span className="font-bold">{method.card.brand}</span>
                   )}
@@ -295,15 +304,13 @@ export function StripePaymentMethodSelector({
                   <p className="text-sm font-medium">•••• {method.card.last4}</p>
                   <p className="text-xs text-muted-foreground">
                     {t('expiresOn', {
-                      month: method.card.exp_month.toString().padStart(2, '0'), 
-                      year: method.card.exp_year.toString().slice(-2)
+                      month: method.card.exp_month.toString().padStart(2, '0'),
+                      year: method.card.exp_year.toString().slice(-2),
                     })}
                   </p>
                 </div>
               </div>
-              {selectedPaymentMethodId === method.id && (
-                <Check className="h-5 w-5 text-primary" />
-              )}
+              {selectedPaymentMethodId === method.id && <Check className="h-5 w-5 text-primary" />}
             </div>
           </div>
         ))}

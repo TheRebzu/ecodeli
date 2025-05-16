@@ -16,7 +16,7 @@ declare module 'speakeasy' {
   }
 
   export function generateSecret(options?: GenerateSecretOptions): GenerateSecretResult;
-  
+
   export function totp(options: {
     secret: string;
     encoding?: 'ascii' | 'hex' | 'base32';
@@ -27,7 +27,7 @@ declare module 'speakeasy' {
     algorithm?: 'sha1' | 'sha256' | 'sha512';
     window?: number;
   }): string;
-  
+
   export function hotp(options: {
     secret: string;
     encoding?: 'ascii' | 'hex' | 'base32';
@@ -35,4 +35,4 @@ declare module 'speakeasy' {
     digits?: number;
     algorithm?: 'sha1' | 'sha256' | 'sha512';
   }): string;
-} 
+}

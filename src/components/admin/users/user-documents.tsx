@@ -107,20 +107,21 @@ export function UserDocuments({
     try {
       toast({
         title: 'Préparation du document',
-        description: 'Le téléchargement va commencer...'
+        description: 'Le téléchargement va commencer...',
       });
 
       // Utiliser la nouvelle API de téléchargement avec le bon type MIME
       const downloadUrl = `/api/download?path=${encodeURIComponent(document.fileUrl)}&download=true`;
-      
+
       // Créer un élément de lien temporaire pour le téléchargement
       const link = document.createElement('a');
       link.href = downloadUrl;
-      
+
       // Extraire le nom de fichier
-      const fileName = document.filename || document.fileUrl.split('/').pop() || `document-${document.id}`;
+      const fileName =
+        document.filename || document.fileUrl.split('/').pop() || `document-${document.id}`;
       link.setAttribute('download', fileName);
-      
+
       // Déclencher le téléchargement
       document.body.appendChild(link);
       link.click();

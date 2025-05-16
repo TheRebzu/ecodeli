@@ -23,5 +23,5 @@ export {
   CommissionDashboard,
   InvoiceList,
   InvoiceDetails,
-  StripeElements
-}; 
+  StripeElements,
+};

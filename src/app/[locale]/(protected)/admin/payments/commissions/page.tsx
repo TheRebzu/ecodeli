@@ -14,7 +14,7 @@ import { fr } from 'date-fns/locale';
 const mockCommissionReport: CommissionReport = {
   period: {
     startDate: new Date('2025-05-01'),
-    endDate: new Date('2025-05-31')
+    endDate: new Date('2025-05-31'),
   },
   totalPayments: 237,
   totalAmount: 9845.75,
@@ -22,17 +22,17 @@ const mockCommissionReport: CommissionReport = {
   breakdown: {
     delivery: {
       count: 189,
-      commission: 1265.43
+      commission: 1265.43,
     },
     service: {
       count: 42,
-      commission: 427.95
+      commission: 427.95,
     },
     subscription: {
       count: 6,
-      commission: 59.00
-    }
-  }
+      commission: 59.0,
+    },
+  },
 };
 
 export default function AdminCommissionsPage() {
@@ -46,48 +46,59 @@ export default function AdminCommissionsPage() {
   const handleDateRangeChange = async (startDate: Date, endDate: Date) => {
     setIsLoading(true);
     setError(null);
-    
+
     try {
       // Simuler un appel réseau
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       // Dans une vraie app, on utiliserait tRPC ici
       // const response = await api.admin.commissions.getCommissionReport.mutate({ startDate, endDate });
-      
+
       // Générer des données mock variables selon la période
-      const monthDiff = startDate.getMonth() - new Date().getMonth() + 
-                       (12 * (startDate.getFullYear() - new Date().getFullYear()));
-      
+      const monthDiff =
+        startDate.getMonth() -
+        new Date().getMonth() +
+        12 * (startDate.getFullYear() - new Date().getFullYear());
+
       // Ajuster les données selon la période sélectionnée pour simuler différents rapports
       const varianceFactor = Math.abs(monthDiff) * 0.1 + 0.9;
-      
+
       const newReport: CommissionReport = {
         period: {
           startDate,
-          endDate
+          endDate,
         },
         totalPayments: Math.round(mockCommissionReport.totalPayments * varianceFactor),
         totalAmount: Math.round(mockCommissionReport.totalAmount * varianceFactor * 100) / 100,
-        totalCommission: Math.round(mockCommissionReport.totalCommission * varianceFactor * 100) / 100,
+        totalCommission:
+          Math.round(mockCommissionReport.totalCommission * varianceFactor * 100) / 100,
         breakdown: {
           delivery: {
             count: Math.round(mockCommissionReport.breakdown.delivery.count * varianceFactor),
-            commission: Math.round(mockCommissionReport.breakdown.delivery.commission * varianceFactor * 100) / 100
+            commission:
+              Math.round(
+                mockCommissionReport.breakdown.delivery.commission * varianceFactor * 100
+              ) / 100,
           },
           service: {
             count: Math.round(mockCommissionReport.breakdown.service.count * varianceFactor),
-            commission: Math.round(mockCommissionReport.breakdown.service.commission * varianceFactor * 100) / 100
+            commission:
+              Math.round(mockCommissionReport.breakdown.service.commission * varianceFactor * 100) /
+              100,
           },
           subscription: {
             count: Math.round(mockCommissionReport.breakdown.subscription.count * varianceFactor),
-            commission: Math.round(mockCommissionReport.breakdown.subscription.commission * varianceFactor * 100) / 100
-          }
-        }
+            commission:
+              Math.round(
+                mockCommissionReport.breakdown.subscription.commission * varianceFactor * 100
+              ) / 100,
+          },
+        },
       };
-      
+
       setReport(newReport);
     } catch (err) {
-      console.error("Erreur lors du chargement des données de commission", err);
+      console.error('Erreur lors du chargement des données de commission', err);
       setError(t('errorLoadingData'));
     } finally {
       setIsLoading(false);
@@ -100,26 +111,26 @@ export default function AdminCommissionsPage() {
     try {
       // Simuler un délai réseau
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       // Dans une vraie app, on utiliserait tRPC ici
-      // await api.admin.commissions.exportCsv.mutate({ 
+      // await api.admin.commissions.exportCsv.mutate({
       //   startDate: report.period.startDate,
       //   endDate: report.period.endDate
       // });
-      
+
       // Simuler la création et le téléchargement d'un fichier CSV
       const fileName = `commissions_${format(report.period.startDate, 'yyyy-MM-dd', { locale: fr })}_${format(report.period.endDate, 'yyyy-MM-dd', { locale: fr })}.csv`;
       console.log(`Exporting CSV: ${fileName}`);
-      
+
       // Création d'un contenu CSV simple pour démonstration
       const csvContent = [
-        "Type,Nombre,Montant commission",
+        'Type,Nombre,Montant commission',
         `Livraisons,${report.breakdown.delivery.count},${report.breakdown.delivery.commission}`,
         `Services,${report.breakdown.service.count},${report.breakdown.service.commission}`,
         `Abonnements,${report.breakdown.subscription.count},${report.breakdown.subscription.commission}`,
-        `TOTAL,${report.totalPayments},${report.totalCommission}`
-      ].join("\n");
-      
+        `TOTAL,${report.totalPayments},${report.totalCommission}`,
+      ].join('\n');
+
       // Code pour déclencher le téléchargement (pour démonstration)
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
@@ -168,4 +179,4 @@ export default function AdminCommissionsPage() {
       />
     </div>
   );
-} 
+}

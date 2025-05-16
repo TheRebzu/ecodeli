@@ -25,7 +25,7 @@ import {
   PlanType,
   InvoiceStatus,
   FinancialTaskPriority,
-  FinancialTaskCategory
+  FinancialTaskCategory,
 } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import * as speakeasy from 'speakeasy';
@@ -71,7 +71,7 @@ async function main() {
     // First make sure your database schema is up to date
     await prisma.$executeRaw`SELECT 1`;
     console.log('Database connection successful');
-    
+
     // 1. Create users by checking if they exist first
     const adminUsers = await createAdminUsers();
     console.log(`✅ ${adminUsers.length} administrators processed`);
@@ -193,9 +193,24 @@ async function createClientUsers() {
   const clients = [];
 
   const clientProfiles = [
-    { name: 'Sophie Martin', email: 'sophie.martin@gmail.com', status: UserStatus.ACTIVE, onboarded: true },
-    { name: 'Thomas Dupont', email: 'thomas.dupont@hotmail.fr', status: UserStatus.ACTIVE, onboarded: true },
-    { name: 'Emma Bernard', email: 'emma.bernard@yahoo.fr', status: UserStatus.ACTIVE, onboarded: false },
+    {
+      name: 'Sophie Martin',
+      email: 'sophie.martin@gmail.com',
+      status: UserStatus.ACTIVE,
+      onboarded: true,
+    },
+    {
+      name: 'Thomas Dupont',
+      email: 'thomas.dupont@hotmail.fr',
+      status: UserStatus.ACTIVE,
+      onboarded: true,
+    },
+    {
+      name: 'Emma Bernard',
+      email: 'emma.bernard@yahoo.fr',
+      status: UserStatus.ACTIVE,
+      onboarded: false,
+    },
   ];
 
   for (const profile of clientProfiles) {
@@ -272,23 +287,23 @@ async function createDelivererUsers(adminId: string) {
   const deliverers = [];
 
   const delivererProfiles = [
-    { 
-      name: 'Alexandre Lebrun', 
-      email: 'alex.lebrun@gmail.com', 
+    {
+      name: 'Alexandre Lebrun',
+      email: 'alex.lebrun@gmail.com',
       status: UserStatus.ACTIVE,
       vehicleType: 'Car',
       licensePlate: 'AB-123-CD',
       isVerified: true,
-      rating: 4.8
+      rating: 4.8,
     },
-    { 
-      name: 'Julie Moreau', 
-      email: 'julie.moreau@outlook.fr', 
+    {
+      name: 'Julie Moreau',
+      email: 'julie.moreau@outlook.fr',
       status: UserStatus.PENDING_VERIFICATION,
       vehicleType: 'Motorcycle',
       licensePlate: 'EF-456-GH',
       isVerified: false,
-      rating: null
+      rating: null,
     },
   ];
 
@@ -325,25 +340,37 @@ async function createDelivererUsers(adminId: string) {
             isVerified: profile.isVerified,
             isActive: profile.status === UserStatus.ACTIVE,
             rating: profile.rating,
-            maxCapacity: profile.vehicleType === 'Car' ? 100 : profile.vehicleType === 'Motorcycle' ? 30 : 15,
-            verificationDate: profile.isVerified ? generateRandomDate(new Date('2023-01-01'), new Date()) : null,
+            maxCapacity:
+              profile.vehicleType === 'Car' ? 100 : profile.vehicleType === 'Motorcycle' ? 30 : 15,
+            verificationDate: profile.isVerified
+              ? generateRandomDate(new Date('2023-01-01'), new Date())
+              : null,
             yearsOfExperience: faker.number.int({ min: 1, max: 10 }),
             preferredVehicle: profile.vehicleType,
-            maxWeightCapacity: profile.vehicleType === 'Car' ? 100 : profile.vehicleType === 'Motorcycle' ? 30 : 15,
+            maxWeightCapacity:
+              profile.vehicleType === 'Car' ? 100 : profile.vehicleType === 'Motorcycle' ? 30 : 15,
             availableDays: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
             bio: faker.lorem.sentence(),
             serviceZones: JSON.stringify({
-              type: "FeatureCollection",
+              type: 'FeatureCollection',
               features: [
                 {
-                  type: "Feature",
-                  properties: { name: "Zone Paris Centre" },
+                  type: 'Feature',
+                  properties: { name: 'Zone Paris Centre' },
                   geometry: {
-                    type: "Polygon",
-                    coordinates: [[[2.3, 48.8], [2.4, 48.8], [2.4, 48.9], [2.3, 48.9], [2.3, 48.8]]]
-                  }
-                }
-              ]
+                    type: 'Polygon',
+                    coordinates: [
+                      [
+                        [2.3, 48.8],
+                        [2.4, 48.8],
+                        [2.4, 48.9],
+                        [2.3, 48.9],
+                        [2.3, 48.8],
+                      ],
+                    ],
+                  },
+                },
+              ],
             }),
           },
         },
@@ -386,7 +413,8 @@ async function createDelivererDocuments(userId: string, adminId: string, isVerif
           isVerified: status === VerificationStatus.APPROVED,
           verificationStatus: status,
           reviewerId: status !== VerificationStatus.PENDING ? adminId : null,
-          rejectionReason: status === VerificationStatus.REJECTED ? 'Document illisible ou non conforme' : null,
+          rejectionReason:
+            status === VerificationStatus.REJECTED ? 'Document illisible ou non conforme' : null,
         },
       });
 
@@ -399,7 +427,8 @@ async function createDelivererDocuments(userId: string, adminId: string, isVerif
           documentId: document.id,
           submitterId: userId,
           verifierId: status !== VerificationStatus.PENDING ? adminId : null,
-          rejectionReason: status === VerificationStatus.REJECTED ? 'Document illisible ou non conforme' : null,
+          rejectionReason:
+            status === VerificationStatus.REJECTED ? 'Document illisible ou non conforme' : null,
           notes: status === VerificationStatus.APPROVED ? 'Document vérifié et approuvé' : null,
         },
       });
@@ -465,7 +494,9 @@ async function createMerchantUsers(adminId: string) {
             businessType: profile.businessType,
             vatNumber: `FR${faker.string.numeric(11)}`,
             isVerified: profile.isVerified,
-            verificationDate: profile.isVerified ? generateRandomDate(new Date('2023-01-01'), new Date()) : null,
+            verificationDate: profile.isVerified
+              ? generateRandomDate(new Date('2023-01-01'), new Date())
+              : null,
             businessName: `${profile.companyName} SARL`,
             businessAddress: faker.location.streetAddress(),
             businessCity: faker.location.city(),
@@ -626,7 +657,9 @@ async function createProviderUsers(adminId: string) {
             rating: profile.rating,
             serviceType: profile.services[0],
             description: faker.lorem.paragraph(),
-            verificationDate: profile.isVerified ? generateRandomDate(new Date('2023-01-01'), new Date()) : null,
+            verificationDate: profile.isVerified
+              ? generateRandomDate(new Date('2023-01-01'), new Date())
+              : null,
             yearsInBusiness: faker.number.int({ min: 1, max: 20 }),
             serviceRadius: faker.number.int({ min: 5, max: 50 }),
             languages: ['Français', 'Anglais'],
@@ -696,8 +729,20 @@ async function createFinancialData(users: any[]) {
 // Create warehouses and boxes
 async function createWarehousesAndBoxes() {
   const warehouseLocations = [
-    { name: 'Paris - Siège', city: 'Paris', address: '110 Rue de Flandre, 75019 Paris', lat: 48.8879, lng: 2.3772 },
-    { name: 'Marseille', city: 'Marseille', address: '45 Quai des Belges, 13001 Marseille', lat: 43.2965, lng: 5.3698 },
+    {
+      name: 'Paris - Siège',
+      city: 'Paris',
+      address: '110 Rue de Flandre, 75019 Paris',
+      lat: 48.8879,
+      lng: 2.3772,
+    },
+    {
+      name: 'Marseille',
+      city: 'Marseille',
+      address: '45 Quai des Belges, 13001 Marseille',
+      lat: 43.2965,
+      lng: 5.3698,
+    },
   ];
 
   const warehouses = [];
@@ -706,11 +751,8 @@ async function createWarehousesAndBoxes() {
     for (const location of warehouseLocations) {
       // Check if warehouse already exists
       const existingWarehouse = await prisma.warehouse.findFirst({
-        where: { 
-          OR: [
-            { name: location.name },
-            { address: location.address }
-          ]
+        where: {
+          OR: [{ name: location.name }, { address: location.address }],
         },
       });
 
@@ -843,18 +885,30 @@ async function createAnnouncements(clientUsers: any[], merchantUsers: any[]) {
             length: faker.number.float({ min: 10, max: 100 }),
             isFragile: Math.random() > 0.7,
             needsCooling: Math.random() > 0.8,
-            pickupDate: generateRandomDate(new Date(), new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)),
-            pickupTimeWindow: faker.helpers.arrayElement(['08:00-10:00', '10:00-12:00', '14:00-16:00']),
-            deliveryDate: generateRandomDate(new Date(Date.now() + 1 * 24 * 60 * 60 * 1000), new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)),
-            deliveryTimeWindow: faker.helpers.arrayElement(['08:00-10:00', '10:00-12:00', '14:00-16:00']),
+            pickupDate: generateRandomDate(
+              new Date(),
+              new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+            ),
+            pickupTimeWindow: faker.helpers.arrayElement([
+              '08:00-10:00',
+              '10:00-12:00',
+              '14:00-16:00',
+            ]),
+            deliveryDate: generateRandomDate(
+              new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
+              new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
+            ),
+            deliveryTimeWindow: faker.helpers.arrayElement([
+              '08:00-10:00',
+              '10:00-12:00',
+              '14:00-16:00',
+            ]),
             isFlexible: Math.random() > 0.5,
             suggestedPrice: faker.number.float({ min: 5, max: 100, fractionDigits: 2 }),
             isNegotiable: Math.random() > 0.3,
             clientId: client.id,
-            photos: [
-              `https://storage.ecodeli.me/announcements/photo_${faker.string.uuid()}.jpg`
-            ],
-            tags: ["urgent", "fragile"],
+            photos: [`https://storage.ecodeli.me/announcements/photo_${faker.string.uuid()}.jpg`],
+            tags: ['urgent', 'fragile'],
             estimatedDistance: faker.number.float({ min: 1, max: 50, fractionDigits: 1 }),
             estimatedDuration: faker.number.int({ min: 10, max: 120 }),
             requiresSignature: Math.random() > 0.7,

@@ -1,23 +1,29 @@
-import { Decimal } from "@prisma/client/runtime/library";
-import { db } from "@/server/db";
-import Stripe from "stripe";
-import { TransactionStatus, TransactionType, Wallet, WalletTransaction, WithdrawalRequest } from "@/types/prisma-client";
-import { encryptData, decryptData } from "@/lib/cryptography";
-import { PaymentService } from "./payment.service";
+import { Decimal } from '@prisma/client/runtime/library';
+import { db } from '@/server/db';
+import Stripe from 'stripe';
+import {
+  TransactionStatus,
+  TransactionType,
+  Wallet,
+  WalletTransaction,
+  WithdrawalRequest,
+} from '@/types/prisma-client';
+import { encryptData, decryptData } from '@/lib/cryptography';
+import { PaymentService } from './payment.service';
 import { NotificationService } from './notification.service';
-import { PrismaClient, UserRole } from "@prisma/client";
-import { TRPCError } from "@trpc/server";
+import { PrismaClient, UserRole } from '@prisma/client';
+import { TRPCError } from '@trpc/server';
 
 // Récupérer la clé API Stripe depuis les variables d'environnement
-const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || "";
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || "ecodeli_encryption_key";
+const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || '';
+const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'ecodeli_encryption_key';
 
 // Initialiser Stripe uniquement si la clé API est disponible
 let stripe: Stripe | null = null;
 if (STRIPE_SECRET_KEY) {
   try {
     stripe = new Stripe(STRIPE_SECRET_KEY, {
-      apiVersion: "2023-10-16",
+      apiVersion: '2023-10-16',
       appInfo: {
         name: 'EcoDeli Financial System',
         version: '1.0.0',
@@ -42,7 +48,7 @@ export class WalletService {
 
   constructor(prismaClient: PrismaClient) {
     this.db = prismaClient;
-    
+
     // Initialiser Stripe si la clé API est disponible
     if (process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY.length > 0) {
       try {
@@ -54,7 +60,9 @@ export class WalletService {
         // Continue sans Stripe en mode dégradé
       }
     } else {
-      console.warn("STRIPE_SECRET_KEY manquant ou vide. Les fonctionnalités de paiement seront limitées.");
+      console.warn(
+        'STRIPE_SECRET_KEY manquant ou vide. Les fonctionnalités de paiement seront limitées.'
+      );
     }
   }
 
@@ -72,7 +80,7 @@ export class WalletService {
 
       // Trouver le portefeuille existant ou en créer un nouveau
       let wallet = await this.db.wallet.findUnique({ where: { userId } });
-      
+
       if (!wallet) {
         wallet = await this.db.wallet.create({
           data: {
@@ -83,7 +91,7 @@ export class WalletService {
           },
         });
       }
-      
+
       return wallet;
     } catch (error) {
       console.error('Erreur dans getUserWallet:', error);
@@ -101,7 +109,7 @@ export class WalletService {
           status: 'PENDING',
         },
       });
-      
+
       return pendingPayments.reduce((total, payment) => total + Number(payment.amount), 0);
     } catch (error) {
       console.error('Erreur dans getPendingAmount:', error);
@@ -122,7 +130,7 @@ export class WalletService {
           },
         },
       });
-      
+
       return escrowPayments.reduce((total, payment) => total + Number(payment.amount), 0);
     } catch (error) {
       console.error('Erreur dans getReservedAmount:', error);
@@ -131,24 +139,24 @@ export class WalletService {
   }
 
   // Méthode pour obtenir les transactions du portefeuille
-  async getWalletTransactions(userId: string, options: {
-    skip: number;
-    take: number;
-    type?: 'ALL' | 'CREDIT' | 'DEBIT' | 'WITHDRAWAL';
-    startDate?: Date;
-    endDate?: Date;
-  }) {
+  async getWalletTransactions(
+    userId: string,
+    options: {
+      skip: number;
+      take: number;
+      type?: 'ALL' | 'CREDIT' | 'DEBIT' | 'WITHDRAWAL';
+      startDate?: Date;
+      endDate?: Date;
+    }
+  ) {
     try {
       const { skip, take, type, startDate, endDate } = options;
-      
+
       // Construire le filtre de base
       const whereClause: any = {
-        OR: [
-          { senderId: userId },
-          { recipientId: userId },
-        ],
+        OR: [{ senderId: userId }, { recipientId: userId }],
       };
-      
+
       // Ajouter des filtres supplémentaires si nécessaire
       if (type && type !== 'ALL') {
         if (type === 'CREDIT') {
@@ -160,15 +168,15 @@ export class WalletService {
           whereClause.senderId = userId;
         }
       }
-      
+
       if (startDate) {
         whereClause.createdAt = { ...(whereClause.createdAt || {}), gte: startDate };
       }
-      
+
       if (endDate) {
         whereClause.createdAt = { ...(whereClause.createdAt || {}), lte: endDate };
       }
-      
+
       // Récupérer les transactions
       const transactions = await this.db.walletTransaction.findMany({
         where: whereClause,
@@ -176,10 +184,10 @@ export class WalletService {
         skip,
         take,
       });
-      
+
       // Compter le nombre total de transactions pour la pagination
       const total = await this.db.walletTransaction.count({ where: whereClause });
-      
+
       return { transactions, total };
     } catch (error) {
       console.error('Erreur dans getWalletTransactions:', error);
@@ -196,11 +204,11 @@ export class WalletService {
   }) {
     try {
       const { senderId, recipientId, amount, description } = params;
-      
+
       // Vérifier que les deux utilisateurs existent et ont des portefeuilles
       const senderWallet = await this.getUserWallet(senderId);
       const recipientWallet = await this.getUserWallet(recipientId);
-      
+
       // Vérifier que le solde est suffisant
       if (senderWallet.balance < amount) {
         throw new TRPCError({
@@ -208,9 +216,9 @@ export class WalletService {
           message: 'Solde insuffisant pour effectuer le transfert',
         });
       }
-      
+
       // Créer la transaction et mettre à jour les soldes
-      return await this.db.$transaction(async (tx) => {
+      return await this.db.$transaction(async tx => {
         // Mettre à jour le solde de l'expéditeur
         await tx.wallet.update({
           where: { id: senderWallet.id },
@@ -219,7 +227,7 @@ export class WalletService {
             lastTransactionAt: new Date(),
           },
         });
-        
+
         // Mettre à jour le solde du destinataire
         await tx.wallet.update({
           where: { id: recipientWallet.id },
@@ -228,7 +236,7 @@ export class WalletService {
             lastTransactionAt: new Date(),
           },
         });
-        
+
         // Créer la transaction
         const transaction = await tx.walletTransaction.create({
           data: {
@@ -241,7 +249,7 @@ export class WalletService {
             description: description || 'Transfert de fonds',
           },
         });
-        
+
         return transaction;
       });
     } catch (error) {
@@ -259,16 +267,16 @@ export class WalletService {
     });
 
     if (!wallet) {
-      throw new Error("Portefeuille non trouvé");
+      throw new Error('Portefeuille non trouvé');
     }
 
     const pendingTransactions = await this.db.walletTransaction.aggregate({
       where: {
         walletId,
-        status: "PENDING",
+        status: 'PENDING',
         type: {
-          in: ["EARNING", "REFUND", "BONUS"]
-        }
+          in: ['EARNING', 'REFUND', 'BONUS'],
+        },
       },
       _sum: {
         amount: true,
@@ -278,7 +286,7 @@ export class WalletService {
     const pendingWithdrawals = await this.db.withdrawalRequest.aggregate({
       where: {
         walletId,
-        status: "PENDING",
+        status: 'PENDING',
       },
       _sum: {
         amount: true,
@@ -304,7 +312,7 @@ export class WalletService {
   async addFunds(
     walletId: string,
     amount: number,
-    reference: string, 
+    reference: string,
     type: TransactionType = 'EARNING',
     description?: string
   ) {
@@ -319,7 +327,7 @@ export class WalletService {
 
     // Convertir en Decimal pour l'opération
     const amountDecimal = new Decimal(amount);
-    
+
     // Créer une transaction dans le portefeuille
     const transaction = await this.db.walletTransaction.create({
       data: {
@@ -329,8 +337,8 @@ export class WalletService {
         type,
         status: 'COMPLETED',
         description: description || `Ajout de fonds: ${amount} ${wallet.currency}`,
-        reference
-      }
+        reference,
+      },
     });
 
     // Mettre à jour le solde du portefeuille
@@ -340,8 +348,8 @@ export class WalletService {
         balance: new Decimal(wallet.balance).plus(amountDecimal),
         totalEarned: new Decimal(wallet.totalEarned || 0).plus(amountDecimal),
         lastTransactionAt: new Date(),
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     });
 
     // Notifier l'utilisateur
@@ -349,7 +357,7 @@ export class WalletService {
       userId: wallet.userId,
       title: 'Fonds ajoutés',
       content: `${amount} ${wallet.currency} ont été ajoutés à votre portefeuille.`,
-      type: 'WALLET_FUNDS_ADDED'
+      type: 'WALLET_FUNDS_ADDED',
     });
 
     return { wallet: updatedWallet, transaction };
@@ -357,47 +365,47 @@ export class WalletService {
   /**
    * Crée un compte Stripe Connect pour un portefeuille
    */
-  async createConnectAccount(userId: string, userEmail: string, country: string = "FR") {
+  async createConnectAccount(userId: string, userEmail: string, country: string = 'FR') {
     try {
       // Récupérer le portefeuille de l'utilisateur
       const wallet = await this.getUserWallet(userId);
-      
+
       // Vérifier si le portefeuille a déjà un compte Stripe
       if (wallet.stripeAccountId) {
-        throw new Error("Ce portefeuille a déjà un compte Stripe Connect");
+        throw new Error('Ce portefeuille a déjà un compte Stripe Connect');
       }
 
       // Vérifier si Stripe est initialisé
       if (!this.stripe) {
         console.warn("Stripe n'est pas initialisé. Impossible de créer un compte Connect.");
-        return { 
-          success: false, 
-          error: new Error("Configuration Stripe manquante. Contactez l'administrateur.")
+        return {
+          success: false,
+          error: new Error("Configuration Stripe manquante. Contactez l'administrateur."),
         };
       }
 
       // Créer le compte en fonction du type
       const account = await this.stripe.accounts.create({
-        type: "express",
+        type: 'express',
         country: country,
         email: userEmail,
         capabilities: {
           transfers: { requested: true },
           card_payments: { requested: true },
         },
-        business_type: "individual",
+        business_type: 'individual',
         business_profile: {
-          url: "https://ecodeli.com",
-          mcc: "4215", // Service de livraison
+          url: 'https://ecodeli.com',
+          mcc: '4215', // Service de livraison
         },
         metadata: {
           walletId: wallet.id,
-          userId: userId
-        }
+          userId: userId,
+        },
       });
 
       if (!account) {
-        throw new Error("Échec de la création du compte Stripe Connect");
+        throw new Error('Échec de la création du compte Stripe Connect');
       }
 
       // Mettre à jour le portefeuille
@@ -405,16 +413,16 @@ export class WalletService {
         where: { id: wallet.id },
         data: {
           stripeAccountId: account.id,
-          accountType: "express",
-        }
+          accountType: 'express',
+        },
       });
 
-      return { 
-        success: true, 
-        accountId: account.id 
+      return {
+        success: true,
+        accountId: account.id,
       };
     } catch (error) {
-      console.error("Erreur lors de la création du compte Connect:", error);
+      console.error('Erreur lors de la création du compte Connect:', error);
       return { success: false, error };
     }
   }
@@ -423,18 +431,18 @@ export class WalletService {
    * Génère un rapport sur les revenus d'un utilisateur
    */
   async generateEarningsReport(userId: string, startDate: Date, endDate: Date) {
-    const wallet = await this.db.wallet.findUnique({ 
+    const wallet = await this.db.wallet.findUnique({
       where: { userId },
       include: {
         transactions: {
           where: {
             createdAt: {
               gte: startDate,
-              lte: endDate
-            }
-          }
-        }
-      }
+              lte: endDate,
+            },
+          },
+        },
+      },
     });
 
     if (!wallet) {
@@ -445,11 +453,11 @@ export class WalletService {
     const totalEarnings = wallet.transactions
       .filter(t => t.type === 'EARNING' && t.status === 'COMPLETED')
       .reduce((sum, t) => sum.plus(t.amount), new Decimal(0));
-    
+
     const totalFees = wallet.transactions
       .filter(t => t.type === 'PLATFORM_FEE' && t.status === 'COMPLETED')
       .reduce((sum, t) => sum.plus(t.amount), new Decimal(0));
-    
+
     const totalWithdrawals = wallet.transactions
       .filter(t => t.type === 'WITHDRAWAL' && t.status === 'COMPLETED')
       .reduce((sum, t) => sum.plus(t.amount), new Decimal(0));
@@ -466,17 +474,17 @@ export class WalletService {
     return {
       period: {
         startDate,
-        endDate
+        endDate,
       },
       summary: {
         totalEarnings,
         totalFees,
         totalWithdrawals,
         netEarnings: totalEarnings.minus(totalFees),
-        currentBalance: wallet.balance
+        currentBalance: wallet.balance,
       },
       dailyEarnings,
-      transactions: wallet.transactions
+      transactions: wallet.transactions,
     };
   }
 
@@ -485,14 +493,14 @@ export class WalletService {
    */
   async getWalletStats(walletId: string) {
     const wallet = await this.db.wallet.findUnique({ where: { id: walletId } });
-    if (!wallet) throw new Error("Portefeuille non trouvé");
+    if (!wallet) throw new Error('Portefeuille non trouvé');
 
     // Calculer les statistiques
     const totalEarnings = await this.db.walletTransaction.aggregate({
       where: {
         walletId,
-        type: "EARNING",
-        status: "COMPLETED",
+        type: 'EARNING',
+        status: 'COMPLETED',
       },
       _sum: { amount: true },
     });
@@ -500,7 +508,7 @@ export class WalletService {
     const totalWithdrawals = await this.db.withdrawalRequest.aggregate({
       where: {
         walletId,
-        status: "COMPLETED",
+        status: 'COMPLETED',
       },
       _sum: { amount: true },
     });
@@ -508,7 +516,7 @@ export class WalletService {
     const pendingWithdrawals = await this.db.withdrawalRequest.aggregate({
       where: {
         walletId,
-        status: "PENDING",
+        status: 'PENDING',
       },
       _sum: { amount: true },
     });
@@ -519,7 +527,7 @@ export class WalletService {
 
     const lastTransaction = await this.db.walletTransaction.findFirst({
       where: { walletId },
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: 'desc' },
     });
 
     // Calculer le taux de croissance mensuel
@@ -531,8 +539,8 @@ export class WalletService {
     const currentMonthEarnings = await this.db.walletTransaction.aggregate({
       where: {
         walletId,
-        type: "EARNING",
-        status: "COMPLETED",
+        type: 'EARNING',
+        status: 'COMPLETED',
         createdAt: { gte: firstDayOfMonth },
       },
       _sum: { amount: true },
@@ -541,11 +549,11 @@ export class WalletService {
     const lastMonthEarnings = await this.db.walletTransaction.aggregate({
       where: {
         walletId,
-        type: "EARNING",
-        status: "COMPLETED",
-        createdAt: { 
+        type: 'EARNING',
+        status: 'COMPLETED',
+        createdAt: {
           gte: lastMonth,
-          lt: firstDayOfMonth
+          lt: firstDayOfMonth,
         },
       },
       _sum: { amount: true },
@@ -554,11 +562,11 @@ export class WalletService {
     const previousMonthEarnings = await this.db.walletTransaction.aggregate({
       where: {
         walletId,
-        type: "EARNING",
-        status: "COMPLETED",
-        createdAt: { 
+        type: 'EARNING',
+        status: 'COMPLETED',
+        createdAt: {
           gte: twoMonthsAgo,
-          lt: lastMonth
+          lt: lastMonth,
         },
       },
       _sum: { amount: true },
@@ -570,13 +578,19 @@ export class WalletService {
     const previousMonthTotal = Number(previousMonthEarnings._sum.amount || 0);
 
     // Éviter la division par zéro
-    const monthOverMonthGrowth = lastMonthTotal === 0 
-      ? currentMonthTotal > 0 ? 100 : 0 
-      : ((currentMonthTotal - lastMonthTotal) / lastMonthTotal) * 100;
-    
-    const previousMonthGrowth = previousMonthTotal === 0 
-      ? lastMonthTotal > 0 ? 100 : 0 
-      : ((lastMonthTotal - previousMonthTotal) / previousMonthTotal) * 100;
+    const monthOverMonthGrowth =
+      lastMonthTotal === 0
+        ? currentMonthTotal > 0
+          ? 100
+          : 0
+        : ((currentMonthTotal - lastMonthTotal) / lastMonthTotal) * 100;
+
+    const previousMonthGrowth =
+      previousMonthTotal === 0
+        ? lastMonthTotal > 0
+          ? 100
+          : 0
+        : ((lastMonthTotal - previousMonthTotal) / previousMonthTotal) * 100;
 
     return {
       totalEarnings: Number(totalEarnings._sum.amount || 0),
@@ -587,13 +601,13 @@ export class WalletService {
       currency: wallet.currency,
       transactionCount,
       lastTransactionDate: lastTransaction?.createdAt,
-      
+
       // Données de croissance
       currentMonthEarnings: currentMonthTotal,
       lastMonthEarnings: lastMonthTotal,
       monthOverMonthGrowth: parseFloat(monthOverMonthGrowth.toFixed(2)),
       previousMonthGrowth: parseFloat(previousMonthGrowth.toFixed(2)),
-      
+
       // Informations compte Connect
       hasConnectAccount: !!wallet.stripeAccountId,
       accountVerified: wallet.accountVerified,
@@ -613,7 +627,7 @@ export class WalletService {
   async getOrCreateWallet(userId: string) {
     try {
       let wallet = await this.db.wallet.findUnique({ where: { userId } });
-      
+
       if (!wallet) {
         wallet = await this.db.wallet.create({
           data: {
@@ -624,7 +638,7 @@ export class WalletService {
           },
         });
       }
-      
+
       return wallet;
     } catch (error) {
       console.error('Erreur dans getOrCreateWallet:', error);
@@ -642,10 +656,10 @@ export const walletService = (() => {
     // Retourner une version simplifiée du service pour les opérations de base
     return {
       getUserWallet: async (userId: string) => {
-        console.warn("WalletService en mode dégradé. Certaines fonctions ne sont pas disponibles.");
+        console.warn('WalletService en mode dégradé. Certaines fonctions ne sont pas disponibles.');
         // Retourner les données minimales nécessaires
         return { id: 'unavailable', userId, balance: 0, currency: 'EUR' };
-      }
+      },
     } as unknown as WalletService;
   }
 })();

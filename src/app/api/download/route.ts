@@ -31,10 +31,7 @@ export async function GET(request: NextRequest) {
     // Sécurité: s'assurer que le chemin est dans le répertoire uploads
     const normalizedPath = path.normalize(filePath).replace(/^\/+/, '');
     if (!normalizedPath.startsWith('uploads/') && !filePath.startsWith('/uploads/')) {
-      return NextResponse.json(
-        { success: false, message: 'Chemin non autorisé' },
-        { status: 403 }
-      );
+      return NextResponse.json({ success: false, message: 'Chemin non autorisé' }, { status: 403 });
     }
 
     // Chemin complet du fichier sur le serveur
@@ -48,7 +45,7 @@ export async function GET(request: NextRequest) {
       // Si le fichier exact n'est pas trouvé, essayer de trouver un fichier similaire dans le même dossier
       const dirPath = path.dirname(fullPath);
       const targetBasename = path.basename(fullPath);
-      
+
       // Vérifier si le répertoire existe
       if (!fs.existsSync(dirPath)) {
         return NextResponse.json(
@@ -64,11 +61,11 @@ export async function GET(request: NextRequest) {
       const match = targetBasename.match(/document-(\d+)/);
       if (match && match[0]) {
         documentId = match[0]; // "document-1746623068020"
-        
+
         // Lire le contenu du répertoire pour trouver un fichier correspondant
         const files = fs.readdirSync(dirPath);
         const matchingFile = files.find(file => file.includes(documentId));
-        
+
         if (matchingFile) {
           finalPath = path.join(dirPath, matchingFile);
         } else {
@@ -110,7 +107,7 @@ export async function GET(request: NextRequest) {
     // Créer les en-têtes de réponse
     const headers = new Headers();
     headers.set('Content-Type', contentType);
-    
+
     if (forceDownload) {
       // Forcer le téléchargement au lieu de l'affichage dans le navigateur
       headers.set('Content-Disposition', `attachment; filename="${fileName}"`);
@@ -118,7 +115,7 @@ export async function GET(request: NextRequest) {
       // Permettre l'affichage dans le navigateur pour les images et PDFs
       headers.set('Content-Disposition', `inline; filename="${fileName}"`);
     }
-    
+
     headers.set('Content-Length', fileBuffer.length.toString());
     headers.set('Cache-Control', 'no-cache');
 

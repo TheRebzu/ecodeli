@@ -77,6 +77,20 @@ model User {
   submittedVerifications   Verification[]                @relation("SubmitterRelation")
   verifications            Verification[]                @relation("VerifierRelation")
   wallet                   Wallet?
+  currentStatus            DeliveryStatusEnum
+  lastUpdated              DateTime                      @default(now())
+  estimatedArrival         DateTime?
+  actualArrival            DateTime?
+  trackingEnabled          Boolean                       @default(true)
+  proofOfDelivery          String?
+  deliveryCode             String?
+  statuses                 DeliveryStatus[]
+  deliveryTracking         DeliveryTracking[]
+  checkpointsCompleted     DeliveryCheckpoint[]
+  etaUpdates               DeliveryETA[]
+  statusUpdates            DeliveryStatusHistory[]
+  reportedIssues           DeliveryIssue[]
+  resolvedIssues           DeliveryIssue[]               @relation("IssueResolver")
 
   @@map("users")
 }
@@ -1201,6 +1215,19 @@ model Delivery {
   proofs             DeliveryProof[]
   rating             DeliveryRating?
   payment            Payment?              @relation("PaymentToDelivery")
+  currentStatus      DeliveryStatusEnum
+  estimatedArrival   DateTime?
+  actualArrival      DateTime?
+  trackingEnabled    Boolean             @default(true)
+  proofOfDelivery    String?
+  deliveryCode       String?
+  statuses           DeliveryStatus[]
+  tracking           DeliveryTracking[]
+  trackingPositions  DeliveryTrackingPosition[]
+  checkpoints        DeliveryCheckpoint[]
+  eta                DeliveryETA?
+  statusHistory      DeliveryStatusHistory[]
+  issues             DeliveryIssue[]
 
   @@index([clientId])
   @@index([delivererId])
@@ -1264,6 +1291,150 @@ model Address {
   client     Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
 
   @@map("addresses")
+}
+
+model DeliveryStatus {
+  id            String    @id @default(cuid())
+  deliveryId    String
+  status        DeliveryStatusEnum
+  notes         String?
+  location      Json?     // Format GeoJSON {type: "Point", coordinates: [longitude, latitude]}
+  accuracy      Float?    // Précision en mètres
+  timestamp     DateTime  @default(now())
+  updatedById   String
+  updatedBy     User      @relation(fields: [updatedById], references: [id])
+  delivery      Delivery  @relation(fields: [deliveryId], references: [id])
+
+  @@index([deliveryId, timestamp])
+}
+
+model DeliveryTracking {
+  id             String    @id @default(cuid())
+  deliveryId     String
+  delivery       Delivery  @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  delivererId    String
+  deliverer      User      @relation(fields: [delivererId], references: [id])
+  isActive       Boolean   @default(true)
+  startedAt      DateTime  @default(now())
+  endedAt        DateTime?
+  lastUpdatedAt  DateTime  @updatedAt
+  batteryLevel   Int?      // Niveau de batterie du livreur en pourcentage
+  networkType    String?   // Type de connexion réseau (4G, WiFi, etc.)
+  
+  @@index([deliveryId])
+  @@index([delivererId])
+  @@index([isActive])
+  @@map("delivery_tracking")
+}
+
+model DeliveryTrackingPosition {
+  id              String    @id @default(cuid())
+  deliveryId      String
+  delivery        Delivery  @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  timestamp       DateTime  @default(now())
+  location        Json      // Format GeoJSON {type: "Point", coordinates: [longitude, latitude]}
+  accuracy        Float?    // Précision en mètres
+  heading         Float?    // Direction en degrés (0-360)
+  speed           Float?    // Vitesse en km/h
+  altitude        Float?    // Altitude en mètres
+  isSynced        Boolean   @default(true)  // Indique si la position a été synchronisée depuis le mode hors ligne
+  syncedAt        DateTime? // Date de synchronisation si initialement hors ligne
+  metadata        Json?     // Données additionnelles (conditions météo, trafic, etc.)
+
+  @@index([deliveryId, timestamp])
+  @@map("delivery_tracking_positions")
+}
+
+model DeliveryCheckpoint {
+  id             String           @id @default(cuid())
+  deliveryId     String
+  delivery       Delivery         @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  type           CheckpointType
+  location       Json             // Format GeoJSON {type: "Point", coordinates: [longitude, latitude]}
+  address        String
+  name           String?          // Nom du point de passage (ex: "Entrepôt Nord")
+  plannedTime    DateTime?        // Heure prévue
+  actualTime     DateTime?        // Heure réelle de passage
+  completedBy    String?
+  completedByUser User?           @relation(fields: [completedBy], references: [id])
+  notes          String?
+  photoProofUrl  String?          // URL vers une photo de preuve si nécessaire
+  signatureProofUrl String?       // URL vers une signature si nécessaire
+  confirmationCode String?        // Code de confirmation utilisé
+  metadata       Json?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  @@index([deliveryId])
+  @@index([type])
+  @@map("delivery_checkpoints")
+}
+
+model DeliveryETA {
+  id              String    @id @default(cuid())
+  deliveryId      String    @unique
+  delivery        Delivery  @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  estimatedTime   DateTime
+  previousEstimate DateTime?
+  calculatedAt    DateTime  @default(now())
+  calculationType String    @default("REAL_TIME") // REAL_TIME, HISTORICAL, MANUAL
+  distanceRemaining Float?  // En kilomètres
+  trafficCondition String?  // LIGHT, MODERATE, HEAVY
+  confidence      Float?    // Score de confiance (0-1)
+  notifiedAt      DateTime?
+  updatedById     String?
+  updatedByUser   User?     @relation(fields: [updatedById], references: [id])
+  metadata        Json?
+
+  @@index([deliveryId])
+  @@index([estimatedTime])
+  @@map("delivery_eta")
+}
+
+model DeliveryStatusHistory {
+  id            String              @id @default(cuid())
+  deliveryId    String
+  delivery      Delivery            @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  status        DeliveryStatusEnum
+  previousStatus DeliveryStatusEnum?
+  timestamp     DateTime            @default(now())
+  updatedById   String
+  updatedBy     User                @relation(fields: [updatedById], references: [id])
+  location      Json?               // Format GeoJSON {type: "Point", coordinates: [longitude, latitude]}
+  notes         String?
+  reason        String?             // Raison du changement, surtout pour retards/annulations
+  customerNotified Boolean          @default(false)
+  notificationSentAt DateTime?
+  metadata      Json?
+
+  @@index([deliveryId, timestamp])
+  @@index([deliveryId, status])
+  @@map("delivery_status_history")
+}
+
+model DeliveryIssue {
+  id            String           @id @default(cuid())
+  deliveryId    String
+  delivery      Delivery         @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  type          DeliveryIssueType
+  reportedById  String
+  reportedBy    User             @relation(fields: [reportedById], references: [id])
+  reportedAt    DateTime         @default(now())
+  description   String
+  severity      IssueSeverity    @default(MEDIUM)
+  status        IssueStatus      @default(OPEN)
+  resolvedAt    DateTime?
+  resolvedById  String?
+  resolvedBy    User?            @relation("IssueResolver", fields: [resolvedById], references: [id])
+  resolution    String?
+  photoUrls     String[]
+  location      Json?            // Format GeoJSON
+  metadata      Json?
+
+  @@index([deliveryId])
+  @@index([type])
+  @@index([status])
+  @@map("delivery_issues")
 }
 
 enum UserRole {
@@ -1336,21 +1507,26 @@ enum ActivityType {
 
 enum AnnouncementStatus {
   DRAFT
-  PENDING
   PUBLISHED
+  IN_APPLICATION
   ASSIGNED
   IN_PROGRESS
+  DELIVERED
   COMPLETED
+  PAID
+  PROBLEM
+  DISPUTE
   CANCELLED
 }
 
 enum AnnouncementType {
-  PACKAGE
-  GROCERIES
-  DOCUMENTS
-  MEAL
-  FURNITURE
-  OTHER
+  PACKAGE_DELIVERY
+  GROCERY_SHOPPING
+  PERSON_TRANSPORT
+  AIRPORT_TRANSFER
+  FOREIGN_PURCHASE
+  PET_CARE
+  HOME_SERVICES
 }
 
 enum AnnouncementPriority {
@@ -1370,28 +1546,20 @@ enum BookingStatus {
 
 enum PaymentStatus {
   PENDING
+  BLOCKED
   COMPLETED
-  FAILED
   REFUNDED
-  PENDING_CAPTURE
-  AUTHORIZED
-  CAPTURED
-  DISPUTED
-  CANCELLED
-  PARTIAL_REFUND
-  PROCESSING
-  REQUIRES_ACTION
+  FAILED
 }
 
 enum DeliveryStatus {
   PENDING
-  ACCEPTED
   PICKED_UP
   IN_TRANSIT
   DELIVERED
   CONFIRMED
+  PROBLEM
   CANCELLED
-  DISPUTED
 }
 
 enum BoxType {
@@ -1511,4 +1679,84 @@ enum FinancialTaskCategory {
   INVOICE
   WITHDRAWAL
   OTHER
+}
+
+enum ApplicationStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  CANCELLED
+}
+
+enum AddressType {
+  PICKUP
+  DELIVERY
+  WAYPOINT
+}
+
+enum PackageType {
+  STANDARD
+  FRAGILE
+  REFRIGERATED
+  OVERSIZED
+  DOCUMENTS
+  FOOD
+  ELECTRONICS
+}
+
+enum DeliveryStatusEnum {
+  CREATED
+  ASSIGNED
+  PENDING_PICKUP
+  PICKED_UP
+  IN_TRANSIT
+  NEARBY
+  ARRIVED
+  ATTEMPT_DELIVERY
+  DELIVERED
+  NOT_DELIVERED
+  RESCHEDULED
+  RETURNED
+  CANCELLED
+}
+
+enum CheckpointType {
+  DEPARTURE          // Point de départ
+  PICKUP             // Récupération du colis
+  WAYPOINT           // Point de passage intermédiaire
+  DELIVERY_ATTEMPT   // Tentative de livraison
+  DELIVERY           // Livraison réussie
+  RETURN_POINT       // Point de retour (en cas d'échec)
+  WAREHOUSE          // Entrepôt
+  CUSTOMS            // Douanes
+  HANDOFF            // Transfert à un autre livreur
+  OTHER              // Autre
+}
+
+enum DeliveryIssueType {
+  ACCESS_PROBLEM     // Problème d'accès
+  ADDRESS_NOT_FOUND  // Adresse introuvable
+  CUSTOMER_ABSENT    // Client absent
+  DAMAGED_PACKAGE    // Colis endommagé
+  DELIVERY_REFUSED   // Livraison refusée
+  VEHICLE_BREAKDOWN  // Panne du véhicule
+  TRAFFIC_JAM        // Embouteillage
+  WEATHER_CONDITION  // Conditions météorologiques
+  SECURITY_ISSUE     // Problème de sécurité
+  OTHER              // Autre
+}
+
+enum IssueSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum IssueStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  ESCALATED
+  CLOSED
 }

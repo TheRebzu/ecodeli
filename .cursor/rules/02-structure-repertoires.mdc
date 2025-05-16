@@ -1,0 +1,34 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Structure des Répertoires
+
+## App Router ([locale])
+Le projet utilise Next.js App Router avec internationalisation :
+
+- [src/app/[locale]](mdc:src/app/[locale]) - Point d'entrée avec paramètre locale
+  - [(auth)](mdc:src/app/[locale]/(auth)) - Routes d'authentification (publiques)
+  - [(protected)](mdc:src/app/[locale]/(protected)) - Routes protégées par rôle
+  - [(public)](mdc:src/app/[locale]/(public)) - Routes publiques
+
+## Routes par Rôle
+Chaque rôle a ses propres routes protégées :
+
+- [client](mdc:src/app/[locale]/(protected)/client) - Zone client
+- [deliverer](mdc:src/app/[locale]/(protected)/deliverer) - Zone livreur
+- [merchant](mdc:src/app/[locale]/(protected)/merchant) - Zone commerçant
+- [provider](mdc:src/app/[locale]/(protected)/provider) - Zone prestataire
+- [admin](mdc:src/app/[locale]/(protected)/admin) - Zone administration
+
+## Modules Frontend/Backend
+- [src/components](mdc:src/components) - Composants React par fonctionnalité
+- [src/server/api/routers](mdc:src/server/api/routers) - Routeurs tRPC
+- [src/server/services](mdc:src/server/services) - Services métier
+- [src/schemas](mdc:src/schemas) - Schémas de validation Zod
+- [src/hooks](mdc:src/hooks) - Hooks personnalisés React
+- [src/store](mdc:src/store) - Stores Zustand pour la gestion d'état
+- [src/lib](mdc:src/lib) - Utilitaires et helpers
+- [src/messages](mdc:src/messages) - Fichiers de traduction
+

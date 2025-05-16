@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import { create } from 'zustand';
 import { devtools, persist } from 'zustand/middleware';
@@ -11,17 +11,17 @@ interface ProfileState {
   isAddingAddress: boolean;
   editingAddressId: string | null;
   selectedDocumentType: string | null;
-  
+
   // Actions
   setProfileView: (view: ProfileState['profileView']) => void;
   setIsEditingProfile: (isEditing: boolean) => void;
   setIsAddingAddress: (isAdding: boolean) => void;
   setEditingAddressId: (addressId: string | null) => void;
   setSelectedDocumentType: (documentType: string | null) => void;
-  
+
   // Utilitaires pour récupérer les sections de profil en fonction du rôle
   getAvailableSections: (role: UserRole) => ProfileState['profileView'][];
-  
+
   // Réinitialiser le store
   reset: () => void;
 }
@@ -39,21 +39,21 @@ export const useProfileStore = create<ProfileState>()(
     persist(
       (set, get) => ({
         ...initialState,
-        
-        setProfileView: (view) => set({ profileView: view }),
-        
-        setIsEditingProfile: (isEditing) => set({ isEditingProfile: isEditing }),
-        
-        setIsAddingAddress: (isAdding) => set({ isAddingAddress: isAdding }),
-        
-        setEditingAddressId: (addressId) => set({ editingAddressId: addressId }),
-        
-        setSelectedDocumentType: (documentType) => set({ selectedDocumentType: documentType }),
-        
-        getAvailableSections: (role) => {
+
+        setProfileView: view => set({ profileView: view }),
+
+        setIsEditingProfile: isEditing => set({ isEditingProfile: isEditing }),
+
+        setIsAddingAddress: isAdding => set({ isAddingAddress: isAdding }),
+
+        setEditingAddressId: addressId => set({ editingAddressId: addressId }),
+
+        setSelectedDocumentType: documentType => set({ selectedDocumentType: documentType }),
+
+        getAvailableSections: role => {
           // Sections disponibles par défaut pour tous les rôles
           const commonSections: ProfileState['profileView'][] = ['info', 'preferences', 'security'];
-          
+
           // Sections spécifiques par rôle
           switch (role) {
             case UserRole.CLIENT:
@@ -68,16 +68,16 @@ export const useProfileStore = create<ProfileState>()(
               return commonSections;
           }
         },
-        
+
         reset: () => set(initialState),
       }),
       {
         name: 'profile-store',
-        partialize: (state) => ({
+        partialize: state => ({
           // Exclure certains états du stockage persistant
           profileView: state.profileView,
         }),
       }
     )
   )
-); 
+);

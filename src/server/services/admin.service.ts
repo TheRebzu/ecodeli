@@ -807,7 +807,7 @@ export class AdminService {
         usersByRole,
         usersByStatus,
         verifiedUsers,
-        topCountries
+        topCountries,
       ] = await Promise.all([
         this.prisma.user.count(),
         this.prisma.user.count({ where: { status: 'ACTIVE' } }),
@@ -817,13 +817,13 @@ export class AdminService {
         this.prisma.user.groupBy({ by: ['role'], _count: true }),
         this.prisma.user.groupBy({ by: ['status'], _count: true }),
         this.prisma.user.count({ where: { isVerified: true } }),
-        this.prisma.user.groupBy({ 
-          by: ['country'], 
+        this.prisma.user.groupBy({
+          by: ['country'],
           _count: true,
           where: { country: { not: null } },
           orderBy: { _count: { country: 'desc' } },
-          take: 5
-        })
+          take: 5,
+        }),
       ]);
 
       // Transformation des données
@@ -839,7 +839,7 @@ export class AdminService {
 
       const countriesStats = topCountries.map(country => ({
         country: country.country || 'Unknown',
-        count: country._count
+        count: country._count,
       }));
 
       // Récupération des inscriptions dans le temps (derniers 6 mois)
@@ -866,13 +866,13 @@ export class AdminService {
         usersByStatus: statusStats,
         usersByVerification: {
           verified: verifiedUsers,
-          unverified: totalUsers - verifiedUsers
+          unverified: totalUsers - verifiedUsers,
         },
         topCountries: countriesStats,
         registrationsOverTime: registrationsOverTime.map(row => ({
           date: row.month.toISOString().split('T')[0],
-          count: Number(row.count)
-        }))
+          count: Number(row.count),
+        })),
       };
     } catch (error) {
       console.error('Error retrieving user statistics:', error);
@@ -888,7 +888,7 @@ export class AdminService {
    */
   async forcePasswordReset(
     userId: string,
-    options: { 
+    options: {
       reason?: string;
       notifyUser?: boolean;
       expireExistingTokens?: boolean;
@@ -901,7 +901,7 @@ export class AdminService {
       // Vérifier si l'utilisateur existe
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
-        select: { id: true, email: true, name: true, status: true, role: true }
+        select: { id: true, email: true, name: true, status: true, role: true },
       });
 
       if (!user) {
@@ -918,7 +918,7 @@ export class AdminService {
       // Supprimer tous les tokens existants si nécessaire
       if (expireExistingTokens) {
         await this.prisma.passwordResetToken.deleteMany({
-          where: { userId }
+          where: { userId },
         });
       }
 
@@ -930,8 +930,8 @@ export class AdminService {
           expires,
           forced: true,
           forcedByUserId: performedById,
-          reason
-        }
+          reason,
+        },
       });
 
       // Générer un lien de réinitialisation
@@ -939,19 +939,21 @@ export class AdminService {
 
       // Notifier l'utilisateur si demandé
       if (notifyUser) {
-        const locale = await getUserPreferredLocale(userId) || 'fr';
-        
+        const locale = (await getUserPreferredLocale(userId)) || 'fr';
+
         await sendEmailNotification({
           to: user.email,
-          subject: locale === 'fr' ? 'Réinitialisation de votre mot de passe' : 'Password Reset Required',
+          subject:
+            locale === 'fr' ? 'Réinitialisation de votre mot de passe' : 'Password Reset Required',
           template: 'admin-force-password-reset',
           data: {
             name: user.name,
             resetLink,
-            reason: reason || (locale === 'fr' ? 'Demande de l\'administrateur' : 'Administrator request'),
+            reason:
+              reason || (locale === 'fr' ? "Demande de l'administrateur" : 'Administrator request'),
             expiresIn: '24 heures',
-            locale
-          }
+            locale,
+          },
         });
       }
 
@@ -961,8 +963,8 @@ export class AdminService {
           userId,
           activityType: 'PASSWORD_RESET_REQUEST',
           details: `Réinitialisation forcée par un administrateur${reason ? `: ${reason}` : ''}`,
-          performedById
-        }
+          performedById,
+        },
       });
 
       return { success: true, message: 'Réinitialisation du mot de passe initiée' };
@@ -988,7 +990,14 @@ export class AdminService {
     performedById: string;
   }) {
     try {
-      const { userIds, action, reason, notifyUsers = true, additionalData, performedById } = options;
+      const {
+        userIds,
+        action,
+        reason,
+        notifyUsers = true,
+        additionalData,
+        performedById,
+      } = options;
 
       if (!userIds.length) {
         throw new TRPCError({
@@ -1000,13 +1009,13 @@ export class AdminService {
       // Vérifier que tous les utilisateurs existent
       const users = await this.prisma.user.findMany({
         where: { id: { in: userIds } },
-        select: { id: true, email: true, name: true, status: true, role: true }
+        select: { id: true, email: true, name: true, status: true, role: true },
       });
 
       if (users.length !== userIds.length) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
-          message: 'Certains utilisateurs n\'existent pas',
+          message: "Certains utilisateurs n'existent pas",
         });
       }
 
@@ -1015,11 +1024,11 @@ export class AdminService {
       switch (action) {
         case 'ACTIVATE':
           results = await Promise.all(
-            users.map(user => 
-              this.updateUserStatus(user.id, 'ACTIVE', { 
-                reason, 
+            users.map(user =>
+              this.updateUserStatus(user.id, 'ACTIVE', {
+                reason,
                 notifyUser: notifyUsers,
-                performedById
+                performedById,
               })
             )
           );
@@ -1027,11 +1036,11 @@ export class AdminService {
 
         case 'DEACTIVATE':
           results = await Promise.all(
-            users.map(user => 
-              this.updateUserStatus(user.id, 'INACTIVE', { 
-                reason, 
+            users.map(user =>
+              this.updateUserStatus(user.id, 'INACTIVE', {
+                reason,
                 notifyUser: notifyUsers,
-                performedById
+                performedById,
               })
             )
           );
@@ -1039,12 +1048,12 @@ export class AdminService {
 
         case 'SUSPEND':
           results = await Promise.all(
-            users.map(user => 
-              this.updateUserStatus(user.id, 'SUSPENDED', { 
-                reason, 
+            users.map(user =>
+              this.updateUserStatus(user.id, 'SUSPENDED', {
+                reason,
                 notifyUser: notifyUsers,
                 performedById,
-                expiresAt: additionalData?.expiresAt
+                expiresAt: additionalData?.expiresAt,
               })
             )
           );
@@ -1052,12 +1061,12 @@ export class AdminService {
 
         case 'FORCE_PASSWORD_RESET':
           results = await Promise.all(
-            users.map(user => 
-              this.forcePasswordReset(user.id, { 
-                reason, 
+            users.map(user =>
+              this.forcePasswordReset(user.id, {
+                reason,
                 notifyUser: notifyUsers,
                 expireExistingTokens: true,
-                performedById
+                performedById,
               })
             )
           );
@@ -1081,7 +1090,7 @@ export class AdminService {
               message: 'Tag non spécifié pour cette action',
             });
           }
-          
+
           results = await Promise.all(
             users.map(user => this.addUserTag(user.id, additionalData.tag, performedById))
           );
@@ -1097,14 +1106,14 @@ export class AdminService {
       return {
         success: true,
         processed: users.length,
-        results
+        results,
       };
     } catch (error) {
       console.error('Error performing bulk user action:', error);
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de l\'exécution de l\'action en masse',
+        message: "Erreur lors de l'exécution de l'action en masse",
       });
     }
   }
@@ -1116,7 +1125,7 @@ export class AdminService {
     try {
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
-        select: { id: true, tags: true }
+        select: { id: true, tags: true },
       });
 
       if (!user) {
@@ -1131,7 +1140,7 @@ export class AdminService {
       if (!currentTags.includes(tag)) {
         await this.prisma.user.update({
           where: { id: userId },
-          data: { tags: [...currentTags, tag] }
+          data: { tags: [...currentTags, tag] },
         });
 
         // Ajouter une entrée dans le journal d'activité
@@ -1140,8 +1149,8 @@ export class AdminService {
             userId,
             activityType: 'OTHER',
             details: `Tag ajouté: ${tag}`,
-            performedById
-          }
+            performedById,
+          },
         });
       }
 
@@ -1150,7 +1159,7 @@ export class AdminService {
       console.error('Error adding user tag:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de l\'ajout du tag',
+        message: "Erreur lors de l'ajout du tag",
       });
     }
   }
@@ -1162,7 +1171,7 @@ export class AdminService {
     try {
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
-        select: { id: true, email: true, name: true }
+        select: { id: true, email: true, name: true },
       });
 
       if (!user) {
@@ -1175,7 +1184,7 @@ export class AdminService {
       // Marquer l'utilisateur comme supprimé
       await this.prisma.user.update({
         where: { id: userId },
-        data: { 
+        data: {
           status: 'INACTIVE',
           isDeleted: true,
           deletedAt: new Date(),
@@ -1187,9 +1196,9 @@ export class AdminService {
           phoneNumber: null,
           // Révoquer les sessions
           sessions: {
-            deleteMany: {}
-          }
-        }
+            deleteMany: {},
+          },
+        },
       });
 
       // Ajouter une entrée dans le journal d'activité
@@ -1198,8 +1207,8 @@ export class AdminService {
           userId,
           activityType: 'OTHER',
           details: `Compte supprimé${reason ? `: ${reason}` : ''}`,
-          performedById
-        }
+          performedById,
+        },
       });
 
       return { success: true, userId };
@@ -1207,7 +1216,7 @@ export class AdminService {
       console.error('Error soft-deleting user:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la suppression de l\'utilisateur',
+        message: "Erreur lors de la suppression de l'utilisateur",
       });
     }
   }
@@ -1227,13 +1236,13 @@ export class AdminService {
 
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
-        select: { 
-          id: true, 
-          email: true, 
+        select: {
+          id: true,
+          email: true,
           name: true,
           role: true,
-          documents: { select: { id: true } }
-        }
+          documents: { select: { id: true } },
+        },
       });
 
       if (!user) {
@@ -1251,7 +1260,7 @@ export class AdminService {
         role: user.role,
         deletedAt: new Date(),
         deletedBy: performedById,
-        reason
+        reason,
       };
 
       // Stocker cette information dans un système externe ou dans une table séparée
@@ -1263,19 +1272,19 @@ export class AdminService {
           userRole: user.role,
           reason,
           deletedByUserId: performedById,
-        }
+        },
       });
 
       // Supprimer les documents associés
       if (user.documents.length > 0) {
         await this.prisma.document.deleteMany({
-          where: { userId }
+          where: { userId },
         });
       }
 
       // Supprimer l'utilisateur et toutes ses données associées en cascade
       await this.prisma.user.delete({
-        where: { id: userId }
+        where: { id: userId },
       });
 
       return { success: true, message: 'Utilisateur définitivement supprimé' };
@@ -1283,7 +1292,7 @@ export class AdminService {
       console.error('Error permanently deleting user:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la suppression définitive de l\'utilisateur',
+        message: "Erreur lors de la suppression définitive de l'utilisateur",
       });
     }
   }
@@ -1295,7 +1304,7 @@ export class AdminService {
     try {
       const admin = await this.prisma.user.findUnique({
         where: { id: adminId, role: 'ADMIN' },
-        select: { id: true, passwordHash: true }
+        select: { id: true, passwordHash: true },
       });
 
       if (!admin || !admin.passwordHash) {

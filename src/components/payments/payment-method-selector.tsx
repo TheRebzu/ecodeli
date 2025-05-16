@@ -88,26 +88,21 @@ export function PaymentMethodSelector({
 
   return (
     <div className={cn('space-y-4', className)}>
-      <RadioGroup 
-        value={selectedMethod} 
+      <RadioGroup
+        value={selectedMethod}
         onValueChange={handleSelect}
         className="grid gap-4"
         disabled={disabled}
       >
         {/* Nouvelle carte */}
         <div>
-          <RadioGroupItem
-            value="card"
-            id="card"
-            className="peer sr-only"
-            disabled={disabled}
-          />
+          <RadioGroupItem value="card" id="card" className="peer sr-only" disabled={disabled} />
           <Label
             htmlFor="card"
             className={cn(
-              "flex flex-col items-center justify-between rounded-md border-2 border-muted bg-white p-4 hover:bg-gray-50 hover:border-gray-300 transition-all",
-              selectedMethod === 'card' ? "border-primary" : "",
-              "cursor-pointer"
+              'flex flex-col items-center justify-between rounded-md border-2 border-muted bg-white p-4 hover:bg-gray-50 hover:border-gray-300 transition-all',
+              selectedMethod === 'card' ? 'border-primary' : '',
+              'cursor-pointer'
             )}
           >
             <div className="flex w-full items-center space-x-3">
@@ -132,9 +127,9 @@ export function PaymentMethodSelector({
             <Label
               htmlFor="saved_card"
               className={cn(
-                "flex flex-col items-center justify-between rounded-md border-2 border-muted bg-white p-4 hover:bg-gray-50 hover:border-gray-300 transition-all",
-                selectedMethod === 'saved_card' ? "border-primary" : "",
-                "cursor-pointer"
+                'flex flex-col items-center justify-between rounded-md border-2 border-muted bg-white p-4 hover:bg-gray-50 hover:border-gray-300 transition-all',
+                selectedMethod === 'saved_card' ? 'border-primary' : '',
+                'cursor-pointer'
               )}
             >
               <div className="flex w-full items-center space-x-3">
@@ -147,12 +142,12 @@ export function PaymentMethodSelector({
 
               {selectedMethod === 'saved_card' && (
                 <div className="w-full mt-4 grid gap-2">
-                  {savedCards.map((card) => (
-                    <Card 
-                      key={card.id} 
+                  {savedCards.map(card => (
+                    <Card
+                      key={card.id}
                       className={cn(
-                        "cursor-pointer border hover:border-primary transition-all",
-                        selectedCardId === card.id ? "border-primary bg-primary/5" : ""
+                        'cursor-pointer border hover:border-primary transition-all',
+                        selectedCardId === card.id ? 'border-primary bg-primary/5' : ''
                       )}
                       onClick={() => handleCardSelect(card.id)}
                     >
@@ -164,7 +159,7 @@ export function PaymentMethodSelector({
                                 src={getCardBrandLogo(card.brand) as string}
                                 alt={card.brand}
                                 fill
-                                style={{ objectFit: "contain" }}
+                                style={{ objectFit: 'contain' }}
                               />
                             </div>
                           ) : (
@@ -176,7 +171,8 @@ export function PaymentMethodSelector({
                           </div>
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {card.expiryMonth.toString().padStart(2, '0')}/{card.expiryYear.toString().slice(-2)}
+                          {card.expiryMonth.toString().padStart(2, '0')}/
+                          {card.expiryYear.toString().slice(-2)}
                         </div>
                       </CardContent>
                     </Card>
@@ -199,9 +195,9 @@ export function PaymentMethodSelector({
             <Label
               htmlFor="wallet"
               className={cn(
-                "flex flex-col items-center justify-between rounded-md border-2 border-muted bg-white p-4 hover:bg-gray-50 hover:border-gray-300 transition-all",
-                selectedMethod === 'wallet' ? "border-primary" : "",
-                walletBalance <= 0 ? "opacity-50 cursor-not-allowed" : "cursor-pointer"
+                'flex flex-col items-center justify-between rounded-md border-2 border-muted bg-white p-4 hover:bg-gray-50 hover:border-gray-300 transition-all',
+                selectedMethod === 'wallet' ? 'border-primary' : '',
+                walletBalance <= 0 ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
               )}
             >
               <div className="flex w-full items-center space-x-3">
@@ -219,18 +215,13 @@ export function PaymentMethodSelector({
 
         {/* SEPA */}
         <div>
-          <RadioGroupItem
-            value="sepa"
-            id="sepa"
-            className="peer sr-only"
-            disabled={disabled}
-          />
+          <RadioGroupItem value="sepa" id="sepa" className="peer sr-only" disabled={disabled} />
           <Label
             htmlFor="sepa"
             className={cn(
-              "flex flex-col items-center justify-between rounded-md border-2 border-muted bg-white p-4 hover:bg-gray-50 hover:border-gray-300 transition-all",
-              selectedMethod === 'sepa' ? "border-primary" : "",
-              "cursor-pointer"
+              'flex flex-col items-center justify-between rounded-md border-2 border-muted bg-white p-4 hover:bg-gray-50 hover:border-gray-300 transition-all',
+              selectedMethod === 'sepa' ? 'border-primary' : '',
+              'cursor-pointer'
             )}
           >
             <div className="flex w-full items-center space-x-3">

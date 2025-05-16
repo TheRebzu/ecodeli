@@ -1,6 +1,7 @@
 import { router, adminProcedure } from '@/server/api/trpc';
 import { dashboardService } from '@/server/services/dashboard.service';
 import { z } from 'zod';
+import { TRPCError } from '@trpc/server';
 
 export const adminDashboardRouter = router({
   /**
@@ -73,4 +74,114 @@ export const adminDashboardRouter = router({
   getActionItems: adminProcedure.query(async () => {
     return await dashboardService.getActionItems();
   }),
+
+  /**
+   * Récupère les rapports de ventes
+   */
+  getSalesReport: adminProcedure
+    .input(
+      z.object({
+        startDate: z.date(),
+        endDate: z.date(),
+        granularity: z.enum(['day', 'week', 'month', 'quarter', 'year']),
+        comparison: z.boolean().optional(),
+        categoryFilter: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      try {
+        // Vérifier que les dates sont valides
+        if (input.endDate < input.startDate) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'La date de fin doit être postérieure à la date de début',
+          });
+        }
+
+        return await dashboardService.getSalesReport({
+          startDate: input.startDate,
+          endDate: input.endDate,
+          granularity: input.granularity,
+          comparison: input.comparison || false,
+          categoryFilter: input.categoryFilter,
+        });
+      } catch (error) {
+        console.error('Erreur dans le rapport de ventes:', error);
+        throw error;
+      }
+    }),
+
+  /**
+   * Récupère les rapports d'activité utilisateur
+   */
+  getUserActivityReport: adminProcedure
+    .input(
+      z.object({
+        startDate: z.date(),
+        endDate: z.date(),
+        granularity: z.enum(['day', 'week', 'month', 'quarter', 'year']),
+        comparison: z.boolean().optional(),
+        userRoleFilter: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      try {
+        // Vérifier que les dates sont valides
+        if (input.endDate < input.startDate) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'La date de fin doit être postérieure à la date de début',
+          });
+        }
+
+        return await dashboardService.getUserActivityReport({
+          startDate: input.startDate,
+          endDate: input.endDate,
+          granularity: input.granularity,
+          comparison: input.comparison || false,
+          userRoleFilter: input.userRoleFilter,
+        });
+      } catch (error) {
+        console.error("Erreur dans le rapport d'activité utilisateur:", error);
+        throw error;
+      }
+    }),
+
+  /**
+   * Récupère les rapports de performance de livraison
+   */
+  getDeliveryPerformanceReport: adminProcedure
+    .input(
+      z.object({
+        startDate: z.date(),
+        endDate: z.date(),
+        granularity: z.enum(['day', 'week', 'month', 'quarter', 'year']),
+        comparison: z.boolean().optional(),
+        zoneFilter: z.string().optional(),
+        delivererFilter: z.string().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      try {
+        // Vérifier que les dates sont valides
+        if (input.endDate < input.startDate) {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'La date de fin doit être postérieure à la date de début',
+          });
+        }
+
+        return await dashboardService.getDeliveryPerformanceReport({
+          startDate: input.startDate,
+          endDate: input.endDate,
+          granularity: input.granularity,
+          comparison: input.comparison || false,
+          zoneFilter: input.zoneFilter,
+          delivererFilter: input.delivererFilter,
+        });
+      } catch (error) {
+        console.error('Erreur dans le rapport de performance de livraison:', error);
+        throw error;
+      }
+    }),
 });

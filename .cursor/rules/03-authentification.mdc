@@ -1,0 +1,26 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Authentification et Autorisations
+
+## Configuration NextAuth
+- [src/app/api/auth/[...nextauth]/route.ts](mdc:src/app/api/auth/[...nextauth]/route.ts) - API routes NextAuth
+- [src/server/auth.ts](mdc:src/server/auth.ts) - Configuration des providers et callbacks
+
+## Flux d'authentification
+- [src/app/[locale]/(auth)/login](mdc:src/app/[locale]/(auth)/login) - Connexion
+- [src/app/[locale]/(auth)/register](mdc:src/app/[locale]/(auth)/register) - Inscription par rôle
+- [src/app/[locale]/(auth)/forgot-password](mdc:src/app/[locale]/(auth)/forgot-password) - Récupération de mot de passe
+- [src/app/[locale]/(auth)/verify-email](mdc:src/app/[locale]/(auth)/verify-email) - Vérification d'email
+
+## Formulaires d'authentification
+- [src/components/auth](mdc:src/components/auth) - Composants de formulaires d'authentification
+- [src/schemas/auth](mdc:src/schemas/auth) - Schémas de validation pour l'authentification
+
+## Protection des routes
+- Middleware Next.js pour vérifier l'authentification
+- Protection des routes par rôle (client, deliverer, merchant, provider, admin)
+- Redirections automatiques vers la page de connexion pour les utilisateurs non authentifiés
+

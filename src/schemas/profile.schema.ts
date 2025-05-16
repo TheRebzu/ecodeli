@@ -23,11 +23,13 @@ export const addressSchema = z.object({
 // Schéma de préférences utilisateur
 export const userPreferencesSchema = z.object({
   theme: z.enum(['light', 'dark', 'system']).optional(),
-  notifications: z.object({
-    email: z.boolean().default(true),
-    push: z.boolean().default(true),
-    sms: z.boolean().default(false),
-  }).optional(),
+  notifications: z
+    .object({
+      email: z.boolean().default(true),
+      push: z.boolean().default(true),
+      sms: z.boolean().default(false),
+    })
+    .optional(),
   language: z.string().optional(),
 });
 
@@ -71,8 +73,8 @@ export const updateDelivererProfileSchema = delivererProfileSchema.partial();
 
 // Schéma du profil commerçant
 export const merchantProfileSchema = baseUserProfileSchema.extend({
-  companyName: z.string().min(1, { message: 'Le nom de l\'entreprise est requis' }),
-  address: z.string().min(1, { message: 'L\'adresse est requise' }),
+  companyName: z.string().min(1, { message: "Le nom de l'entreprise est requis" }),
+  address: z.string().min(1, { message: "L'adresse est requise" }),
   phone: z.string().min(1, { message: 'Le numéro de téléphone est requis' }),
   businessType: z.string().optional(),
   vatNumber: z.string().optional(),
@@ -102,7 +104,7 @@ export const updateMerchantProfileSchema = merchantProfileSchema.partial();
 // Schéma du profil prestataire
 export const providerProfileSchema = baseUserProfileSchema.extend({
   companyName: z.string().optional(),
-  address: z.string().min(1, { message: 'L\'adresse est requise' }),
+  address: z.string().min(1, { message: "L'adresse est requise" }),
   phone: z.string().min(1, { message: 'Le numéro de téléphone est requis' }),
   services: z.array(z.string()).optional(),
   serviceType: z.string().optional(),
@@ -140,4 +142,4 @@ export type ProviderProfile = z.infer<typeof providerProfileSchema>;
 export type UpdateClientProfile = z.infer<typeof updateClientProfileSchema>;
 export type UpdateDelivererProfile = z.infer<typeof updateDelivererProfileSchema>;
 export type UpdateMerchantProfile = z.infer<typeof updateMerchantProfileSchema>;
-export type UpdateProviderProfile = z.infer<typeof updateProviderProfileSchema>; 
+export type UpdateProviderProfile = z.infer<typeof updateProviderProfileSchema>;

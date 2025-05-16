@@ -4,15 +4,7 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { 
-  FileText, 
-  Download, 
-  Search, 
-  AlertCircle, 
-  CheckCircle2, 
-  Clock, 
-  Ban
-} from 'lucide-react';
+import { FileText, Download, Search, AlertCircle, CheckCircle2, Clock, Ban } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -80,7 +72,7 @@ export function InvoiceList({
   invoices,
   isLoading = false,
   onDownload,
-  onViewDetails
+  onViewDetails,
 }: InvoiceListProps) {
   const t = useTranslations('invoices');
   const [searchQuery, setSearchQuery] = useState('');
@@ -112,39 +104,39 @@ export function InvoiceList({
   const getStatusBadgeStyle = (status: InvoiceStatus) => {
     switch (status) {
       case 'PAID':
-        return "bg-green-50 text-green-700 border-green-200";
+        return 'bg-green-50 text-green-700 border-green-200';
       case 'SENT':
-        return "bg-amber-50 text-amber-700 border-amber-200";
+        return 'bg-amber-50 text-amber-700 border-amber-200';
       case 'OVERDUE':
-        return "bg-red-50 text-red-700 border-red-200";
+        return 'bg-red-50 text-red-700 border-red-200';
       case 'DRAFT':
-        return "bg-slate-50 text-slate-700 border-slate-200";
+        return 'bg-slate-50 text-slate-700 border-slate-200';
       case 'VOIDED':
-        return "bg-gray-50 text-gray-700 border-gray-200";
+        return 'bg-gray-50 text-gray-700 border-gray-200';
       default:
-        return "";
+        return '';
     }
   };
 
   // Filtrer les factures
   const filteredInvoices = invoices.filter(invoice => {
     // Filtre de recherche
-    const matchesSearch = 
+    const matchesSearch =
       invoice.number.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (invoice.items.some(item => item.description.toLowerCase().includes(searchQuery.toLowerCase())));
-      
+      invoice.items.some(item =>
+        item.description.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+
     // Filtre de statut
     const matchesStatus = statusFilter === 'ALL' || invoice.status === statusFilter;
-    
+
     return matchesSearch && matchesStatus;
   });
 
   // Trier les factures
   const sortedInvoices = [...filteredInvoices].sort((a, b) => {
     if (sortBy === 'amount') {
-      return sortOrder === 'asc' 
-        ? a.amount - b.amount
-        : b.amount - a.amount;
+      return sortOrder === 'asc' ? a.amount - b.amount : b.amount - a.amount;
     } else {
       const dateA = new Date(sortBy === 'issuedDate' ? a.issuedDate : a.dueDate);
       const dateB = new Date(sortBy === 'issuedDate' ? b.issuedDate : b.dueDate);
@@ -168,21 +160,21 @@ export function InvoiceList({
       <Pagination className="mt-4">
         <PaginationContent>
           <PaginationItem>
-            <PaginationPrevious 
-              href="#" 
-              onClick={(e) => { 
+            <PaginationPrevious
+              href="#"
+              onClick={e => {
                 e.preventDefault();
                 if (currentPage > 1) setCurrentPage(currentPage - 1);
-              }} 
+              }}
               disabled={currentPage === 1}
             />
           </PaginationItem>
-          
+
           {Array.from({ length: totalPages }, (_, i) => (
             <PaginationItem key={i}>
-              <PaginationLink 
-                href="#" 
-                onClick={(e) => { 
+              <PaginationLink
+                href="#"
+                onClick={e => {
                   e.preventDefault();
                   setCurrentPage(i + 1);
                 }}
@@ -192,14 +184,14 @@ export function InvoiceList({
               </PaginationLink>
             </PaginationItem>
           ))}
-          
+
           <PaginationItem>
-            <PaginationNext 
-              href="#" 
-              onClick={(e) => { 
+            <PaginationNext
+              href="#"
+              onClick={e => {
                 e.preventDefault();
                 if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-              }} 
+              }}
               disabled={currentPage === totalPages}
             />
           </PaginationItem>
@@ -225,15 +217,15 @@ export function InvoiceList({
             placeholder={t('searchPlaceholder')}
             className="pl-8"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={e => setSearchQuery(e.target.value)}
           />
         </div>
 
         {/* Filtre par statut */}
         <div className="w-full md:w-auto">
-          <Select 
-            value={statusFilter} 
-            onValueChange={(value) => setStatusFilter(value as InvoiceStatus | 'ALL')}
+          <Select
+            value={statusFilter}
+            onValueChange={value => setStatusFilter(value as InvoiceStatus | 'ALL')}
           >
             <SelectTrigger className="w-full md:w-[180px]">
               <SelectValue placeholder={t('statusFilter')} />
@@ -251,9 +243,9 @@ export function InvoiceList({
 
         {/* Tri */}
         <div className="w-full md:w-auto flex gap-2">
-          <Select 
-            value={sortBy} 
-            onValueChange={(value) => setSortBy(value as 'issuedDate' | 'dueDate' | 'amount')}
+          <Select
+            value={sortBy}
+            onValueChange={value => setSortBy(value as 'issuedDate' | 'dueDate' | 'amount')}
           >
             <SelectTrigger className="w-full md:w-[180px]">
               <SelectValue placeholder={t('sortBy')} />
@@ -264,11 +256,8 @@ export function InvoiceList({
               <SelectItem value="amount">{t('sortByAmount')}</SelectItem>
             </SelectContent>
           </Select>
-          
-          <Select 
-            value={sortOrder} 
-            onValueChange={(value) => setSortOrder(value as 'asc' | 'desc')}
-          >
+
+          <Select value={sortOrder} onValueChange={value => setSortOrder(value as 'asc' | 'desc')}>
             <SelectTrigger className="w-[120px]">
               <SelectValue placeholder={t('sortOrder')} />
             </SelectTrigger>
@@ -304,16 +293,26 @@ export function InvoiceList({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {paginatedInvoices.map((invoice) => (
-                <TableRow key={invoice.id} className="cursor-pointer hover:bg-muted/50" onClick={() => onViewDetails(invoice.id)}>
+              {paginatedInvoices.map(invoice => (
+                <TableRow
+                  key={invoice.id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => onViewDetails(invoice.id)}
+                >
                   <TableCell className="font-medium">{invoice.number}</TableCell>
-                  <TableCell>{format(new Date(invoice.issuedDate), 'dd MMM yyyy', { locale: fr })}</TableCell>
-                  <TableCell>{format(new Date(invoice.dueDate), 'dd MMM yyyy', { locale: fr })}</TableCell>
+                  <TableCell>
+                    {format(new Date(invoice.issuedDate), 'dd MMM yyyy', { locale: fr })}
+                  </TableCell>
+                  <TableCell>
+                    {format(new Date(invoice.dueDate), 'dd MMM yyyy', { locale: fr })}
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       {getStatusIcon(invoice.status)}
                       <Badge className={getStatusBadgeStyle(invoice.status)} variant="outline">
-                        {t(`status${invoice.status.charAt(0) + invoice.status.slice(1).toLowerCase()}`)}
+                        {t(
+                          `status${invoice.status.charAt(0) + invoice.status.slice(1).toLowerCase()}`
+                        )}
                       </Badge>
                     </div>
                   </TableCell>
@@ -325,7 +324,7 @@ export function InvoiceList({
                       <Button
                         size="icon"
                         variant="ghost"
-                        onClick={(e) => {
+                        onClick={e => {
                           e.stopPropagation();
                           onViewDetails(invoice.id);
                         }}
@@ -333,12 +332,12 @@ export function InvoiceList({
                         <FileText className="h-4 w-4" />
                         <span className="sr-only">{t('view')}</span>
                       </Button>
-                      
+
                       {invoice.pdfUrl && (
                         <Button
                           size="icon"
                           variant="ghost"
-                          onClick={(e) => {
+                          onClick={e => {
                             e.stopPropagation();
                             onDownload(invoice.id);
                           }}
@@ -354,10 +353,10 @@ export function InvoiceList({
             </TableBody>
           </Table>
         )}
-        
+
         {/* Pagination */}
         {renderPagination()}
       </Card>
     </div>
   );
-} 
+}

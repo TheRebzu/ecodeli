@@ -1,4 +1,8 @@
-import { User as PrismaUser, UserRole as PrismaUserRole, UserStatus as PrismaUserStatus } from '@prisma/client';
+import {
+  User as PrismaUser,
+  UserRole as PrismaUserRole,
+  UserStatus as PrismaUserStatus,
+} from '@prisma/client';
 
 // Ré-exporter les types
 export type User = PrismaUser;
@@ -203,7 +207,18 @@ export type UserFilters = {
 };
 
 export type UserSortOptions = {
-  field: 'name' | 'email' | 'role' | 'status' | 'createdAt' | 'lastLoginAt' | 'lastActivityAt' | 'documentsCount' | 'isVerified' | 'country' | 'subscriptionStatus';
+  field:
+    | 'name'
+    | 'email'
+    | 'role'
+    | 'status'
+    | 'createdAt'
+    | 'lastLoginAt'
+    | 'lastActivityAt'
+    | 'documentsCount'
+    | 'isVerified'
+    | 'country'
+    | 'subscriptionStatus';
   direction: 'asc' | 'desc';
 };
 

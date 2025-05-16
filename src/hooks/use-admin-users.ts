@@ -3,7 +3,14 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { UserRole, UserStatus } from '@prisma/client';
 import { api } from '@/trpc/react';
-import { UserFilters, UserSortOptions, ActivityType, UserActionType, NoteCategory, NoteVisibility } from '@/types/admin';
+import {
+  UserFilters,
+  UserSortOptions,
+  ActivityType,
+  UserActionType,
+  NoteCategory,
+  NoteVisibility,
+} from '@/types/admin';
 
 export function useAdminUsers() {
   const router = useRouter();
@@ -47,11 +54,14 @@ export function useAdminUsers() {
   );
 
   // Query to fetch a specific user
-  const getUserDetail = (userId: string, options = { 
-    includeActivityLogs: false,
-    includeLoginHistory: false,
-    includeNotes: false
-  }) => {
+  const getUserDetail = (
+    userId: string,
+    options = {
+      includeActivityLogs: false,
+      includeLoginHistory: false,
+      includeNotes: false,
+    }
+  ) => {
     return api.adminUser.getUserDetail.useQuery(
       { userId, ...options },
       {
@@ -122,7 +132,7 @@ export function useAdminUsers() {
   // Mutation to add activity log
   const addActivityLogMutation = api.adminUser.addUserActivityLog.useMutation({
     onSuccess: () => {
-      toast.success('Journal d\'activité ajouté avec succès');
+      toast.success("Journal d'activité ajouté avec succès");
     },
     onError: error => {
       toast.error(`Erreur d'ajout de journal d'activité: ${error.message}`);
@@ -149,7 +159,7 @@ export function useAdminUsers() {
       toast.error(`Erreur d'exportation: ${error.message}`);
     },
   });
-  
+
   // Mutation for force password reset
   const forcePasswordResetMutation = api.adminUser.forcePasswordReset.useMutation({
     onSuccess: () => {
@@ -160,19 +170,19 @@ export function useAdminUsers() {
       toast.error(`Erreur de réinitialisation du mot de passe: ${error.message}`);
     },
   });
-  
+
   // Mutation for bulk user actions
   const bulkUserActionMutation = api.adminUser.bulkUserAction.useMutation({
     onSuccess: data => {
       toast.success(`Action en masse effectuée sur ${data.processed} utilisateurs`);
-      setSelectedUsers([]);  // Clear selections after action
+      setSelectedUsers([]); // Clear selections after action
       refetchUsers();
     },
     onError: error => {
       toast.error(`Erreur lors de l'action en masse: ${error.message}`);
     },
   });
-  
+
   // Mutation for permanently deleting a user
   const permanentlyDeleteUserMutation = api.adminUser.permanentlyDeleteUser.useMutation({
     onSuccess: () => {
@@ -226,12 +236,12 @@ export function useAdminUsers() {
     createRoleSpecificProfile = true,
     transferExistingData = false
   ) => {
-    updateUserRoleMutation.mutate({ 
-      userId, 
-      role, 
-      reason, 
+    updateUserRoleMutation.mutate({
+      userId,
+      role,
+      reason,
       createRoleSpecificProfile,
-      transferExistingData
+      transferExistingData,
     });
   };
 
@@ -242,8 +252,8 @@ export function useAdminUsers() {
 
   // Function to add a note to a user
   const addUserNote = (
-    userId: string, 
-    note: string, 
+    userId: string,
+    note: string,
     category: NoteCategory = NoteCategory.GENERAL,
     visibility: NoteVisibility = NoteVisibility.ADMIN_ONLY
   ) => {
@@ -252,8 +262,8 @@ export function useAdminUsers() {
 
   // Function to add activity log
   const addActivityLog = (
-    userId: string, 
-    activityType: ActivityType, 
+    userId: string,
+    activityType: ActivityType,
     details?: string,
     importance: 'LOW' | 'MEDIUM' | 'HIGH' = 'MEDIUM'
   ) => {
@@ -284,10 +294,10 @@ export function useAdminUsers() {
   ) => {
     forcePasswordResetMutation.mutate({
       userId,
-      ...options
+      ...options,
     });
   };
-  
+
   // Function to execute bulk action on selected users
   const executeBulkAction = (
     action: UserActionType,
@@ -301,40 +311,34 @@ export function useAdminUsers() {
       toast.error('Aucun utilisateur sélectionné pour cette action.');
       return;
     }
-    
+
     bulkUserActionMutation.mutate({
       userIds: selectedUsers,
       action,
-      ...options
+      ...options,
     });
   };
-  
+
   // Function to permanently delete a user (with admin password confirmation)
-  const permanentlyDeleteUser = (
-    userId: string,
-    adminPassword: string,
-    reason: string
-  ) => {
+  const permanentlyDeleteUser = (userId: string, adminPassword: string, reason: string) => {
     permanentlyDeleteUserMutation.mutate({
       userId,
       adminPassword,
-      reason
+      reason,
     });
   };
-  
+
   // Function to handle user selection for bulk actions
   const toggleUserSelection = (userId: string) => {
-    setSelectedUsers(prev => 
-      prev.includes(userId)
-        ? prev.filter(id => id !== userId)
-        : [...prev, userId]
+    setSelectedUsers(prev =>
+      prev.includes(userId) ? prev.filter(id => id !== userId) : [...prev, userId]
     );
   };
-  
+
   // Function to select/deselect all users on current page
   const toggleSelectAllUsers = (selectAll: boolean) => {
     if (!usersData?.users) return;
-    
+
     if (selectAll) {
       const currentPageUserIds = usersData.users.map(user => user.id);
       setSelectedUsers(prev => {
@@ -364,7 +368,7 @@ export function useAdminUsers() {
     selectedUsers,
     isLoadingUsers,
     isLoadingStats,
-    
+
     // Loading states
     isUpdatingStatus: updateUserStatusMutation.isLoading,
     isUpdatingRole: updateUserRoleMutation.isLoading,
@@ -394,7 +398,7 @@ export function useAdminUsers() {
     permanentlyDeleteUser,
     toggleUserSelection,
     toggleSelectAllUsers,
-    
+
     // Helpers
     getUserDetail,
     getUserActivityLogs,

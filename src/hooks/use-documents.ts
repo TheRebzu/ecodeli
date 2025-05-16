@@ -102,7 +102,9 @@ export function useDocuments(userId?: string, status: DocumentStatus | 'ALL' = '
       // Convertir le fichier en base64 avant de l'envoyer
       const base64File = await fileToBase64(file);
 
-      console.log(`Envoi du fichier ${file.name} en base64, taille: ${base64File.length}, type: ${file.type}`);
+      console.log(
+        `Envoi du fichier ${file.name} en base64, taille: ${base64File.length}, type: ${file.type}`
+      );
 
       // Utiliser la mutation pour télécharger le document
       await uploadMutation.mutateAsync({

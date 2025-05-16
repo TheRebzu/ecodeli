@@ -133,26 +133,28 @@ export function UserDocumentVerification({
 
       // Construire l'URL complète pour le téléchargement
       const downloadUrl = getFullDocumentUrl(doc.fileUrl);
-      
+
       // Créer un élément de lien temporaire pour le téléchargement
       const link = document.createElement('a');
       link.href = downloadUrl;
-      
+
       // Extraire le nom original du fichier
       const originalFilename = doc.filename;
       // Utiliser le nom original ou générer un nom basé sur le type de document
-      const fileName = originalFilename || `${documentTypeLabels[doc.type] || doc.type}.${doc.mimeType?.split('/').pop() || 'pdf'}`;
+      const fileName =
+        originalFilename ||
+        `${documentTypeLabels[doc.type] || doc.type}.${doc.mimeType?.split('/').pop() || 'pdf'}`;
       link.setAttribute('download', fileName);
-      
+
       // Cliquer sur le lien pour déclencher le téléchargement
       document.body.appendChild(link);
       link.click();
-      
+
       // Nettoyer
       setTimeout(() => {
         document.body.removeChild(link);
       }, 100);
-      
+
       toast({
         title: 'Téléchargement lancé',
         children: 'Le document est en cours de téléchargement.',

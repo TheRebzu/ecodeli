@@ -41,7 +41,7 @@ export const notificationRouter = router({
     .query(async ({ ctx, input }) => {
       try {
         const result = await NotificationService.getUserNotifications(ctx.session.user.id, {
-          unreadOnly: true
+          unreadOnly: true,
         });
         return result.notifications;
       } catch (error) {
@@ -65,7 +65,7 @@ export const notificationRouter = router({
     .query(async ({ ctx, input }) => {
       try {
         const result = await NotificationService.getUserNotifications(ctx.session.user.id, {
-          unreadOnly: true
+          unreadOnly: true,
         });
         return result.unreadCount;
       } catch (error) {
@@ -121,18 +121,18 @@ export const notificationRouter = router({
         // Si la méthode deleteNotification n'existe pas dans NotificationService,
         // nous utiliserons une alternative
         const notification = await ctx.db.notification.findUnique({
-          where: { id: input.id }
+          where: { id: input.id },
         });
-        
+
         if (!notification || notification.userId !== ctx.session.user.id) {
           throw new TRPCError({
             code: 'FORBIDDEN',
             message: 'You do not have permission to delete this notification',
           });
         }
-        
+
         return await ctx.db.notification.delete({
-          where: { id: input.id }
+          where: { id: input.id },
         });
       } catch (error) {
         console.error('Error deleting notification:', error);
@@ -158,11 +158,11 @@ export const notificationRouter = router({
         // nous utiliserons une alternative
         const where = {
           userId: ctx.session.user.id,
-          ...(input?.types && input.types.length > 0 ? { type: { in: input.types } } : {})
+          ...(input?.types && input.types.length > 0 ? { type: { in: input.types } } : {}),
         };
-        
+
         return await ctx.db.notification.deleteMany({
-          where
+          where,
         });
       } catch (error) {
         console.error('Error deleting all notifications:', error);

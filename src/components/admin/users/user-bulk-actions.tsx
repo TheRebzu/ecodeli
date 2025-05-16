@@ -78,7 +78,7 @@ export default function UserBulkActions({
       onActionComplete();
       resetForm();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         variant: 'destructive',
         title: t('error.title'),
@@ -144,7 +144,7 @@ export default function UserBulkActions({
             <Checkbox
               id="notify-users"
               checked={notifyUsers}
-              onCheckedChange={(checked) => setNotifyUsers(!!checked)}
+              onCheckedChange={checked => setNotifyUsers(!!checked)}
             />
             <Label htmlFor="notify-users">{t('common.notifyUsers')}</Label>
           </div>
@@ -158,7 +158,7 @@ export default function UserBulkActions({
             <Textarea
               id="reason"
               value={reason}
-              onChange={(e) => setReason(e.target.value)}
+              onChange={e => setReason(e.target.value)}
               placeholder={t('placeholders.reason')}
             />
           </div>
@@ -166,7 +166,7 @@ export default function UserBulkActions({
             <Checkbox
               id="notify-users"
               checked={notifyUsers}
-              onCheckedChange={(checked) => setNotifyUsers(!!checked)}
+              onCheckedChange={checked => setNotifyUsers(!!checked)}
             />
             <Label htmlFor="notify-users">{t('common.notifyUsers')}</Label>
           </div>
@@ -174,15 +174,13 @@ export default function UserBulkActions({
       ),
       SUSPEND: (
         <div className="space-y-4">
-          <p className="text-amber-600 dark:text-amber-400">
-            {t('actions.SUSPEND.warning')}
-          </p>
+          <p className="text-amber-600 dark:text-amber-400">{t('actions.SUSPEND.warning')}</p>
           <div className="space-y-2">
             <Label htmlFor="reason">{t('common.reason')}</Label>
             <Textarea
               id="reason"
               value={reason}
-              onChange={(e) => setReason(e.target.value)}
+              onChange={e => setReason(e.target.value)}
               placeholder={t('placeholders.reason')}
               required
             />
@@ -191,10 +189,7 @@ export default function UserBulkActions({
             <Label>{t('common.suspensionDuration')}</Label>
             <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
               <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="w-full justify-start text-left font-normal"
-                >
+                <Button variant="outline" className="w-full justify-start text-left font-normal">
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {scheduledDate ? (
                     format(scheduledDate, 'PPP', { locale: fr })
@@ -207,24 +202,22 @@ export default function UserBulkActions({
                 <Calendar
                   mode="single"
                   selected={scheduledDate}
-                  onSelect={(date) => {
+                  onSelect={date => {
                     setScheduledDate(date);
                     setIsCalendarOpen(false);
                   }}
                   initialFocus
-                  disabled={(date) => date < new Date()}
+                  disabled={date => date < new Date()}
                 />
               </PopoverContent>
             </Popover>
-            <p className="text-xs text-muted-foreground">
-              {t('common.suspensionExplanation')}
-            </p>
+            <p className="text-xs text-muted-foreground">{t('common.suspensionExplanation')}</p>
           </div>
           <div className="flex items-center space-x-2">
             <Checkbox
               id="notify-users"
               checked={notifyUsers}
-              onCheckedChange={(checked) => setNotifyUsers(!!checked)}
+              onCheckedChange={checked => setNotifyUsers(!!checked)}
             />
             <Label htmlFor="notify-users">{t('common.notifyUsers')}</Label>
           </div>
@@ -236,14 +229,12 @@ export default function UserBulkActions({
             <Input
               id="confirmation-code"
               value={confirmationCode}
-              onChange={(e) => setConfirmationCode(e.target.value.toUpperCase())}
+              onChange={e => setConfirmationCode(e.target.value.toUpperCase())}
               placeholder="CONFIRM"
               className="border-red-200"
               required
             />
-            <p className="text-xs text-red-500">
-              {t('common.confirmationHelp')}
-            </p>
+            <p className="text-xs text-red-500">{t('common.confirmationHelp')}</p>
           </div>
         </div>
       ),
@@ -255,7 +246,7 @@ export default function UserBulkActions({
             <Textarea
               id="reason"
               value={reason}
-              onChange={(e) => setReason(e.target.value)}
+              onChange={e => setReason(e.target.value)}
               placeholder={t('placeholders.reason')}
             />
           </div>
@@ -263,7 +254,7 @@ export default function UserBulkActions({
             <Checkbox
               id="notify-users"
               checked={notifyUsers}
-              onCheckedChange={(checked) => setNotifyUsers(!!checked)}
+              onCheckedChange={checked => setNotifyUsers(!!checked)}
             />
             <Label htmlFor="notify-users">{t('common.notifyUsers')}</Label>
           </div>
@@ -271,7 +262,7 @@ export default function UserBulkActions({
             <Checkbox
               id="expire-tokens"
               checked={additionalData.expireExistingTokens ?? true}
-              onCheckedChange={(checked) =>
+              onCheckedChange={checked =>
                 setAdditionalData({
                   ...additionalData,
                   expireExistingTokens: !!checked,
@@ -284,7 +275,7 @@ export default function UserBulkActions({
             <Checkbox
               id="require-strong"
               checked={additionalData.requireStrongPassword ?? true}
-              onCheckedChange={(checked) =>
+              onCheckedChange={checked =>
                 setAdditionalData({
                   ...additionalData,
                   requireStrongPassword: !!checked,
@@ -302,7 +293,7 @@ export default function UserBulkActions({
             <Checkbox
               id="force-resend"
               checked={additionalData.forceResend ?? true}
-              onCheckedChange={(checked) =>
+              onCheckedChange={checked =>
                 setAdditionalData({
                   ...additionalData,
                   forceResend: !!checked,
@@ -323,7 +314,7 @@ export default function UserBulkActions({
             <Textarea
               id="reason"
               value={reason}
-              onChange={(e) => setReason(e.target.value)}
+              onChange={e => setReason(e.target.value)}
               placeholder={t('placeholders.reason')}
               required
             />
@@ -332,7 +323,7 @@ export default function UserBulkActions({
             <Checkbox
               id="notify-users"
               checked={notifyUsers}
-              onCheckedChange={(checked) => setNotifyUsers(!!checked)}
+              onCheckedChange={checked => setNotifyUsers(!!checked)}
             />
             <Label htmlFor="notify-users">{t('common.notifyUsers')}</Label>
           </div>
@@ -344,14 +335,12 @@ export default function UserBulkActions({
             <Input
               id="confirmation-code"
               value={confirmationCode}
-              onChange={(e) => setConfirmationCode(e.target.value.toUpperCase())}
+              onChange={e => setConfirmationCode(e.target.value.toUpperCase())}
               placeholder="CONFIRM"
               className="border-red-200"
               required
             />
-            <p className="text-xs text-red-500">
-              {t('common.confirmationHelp')}
-            </p>
+            <p className="text-xs text-red-500">{t('common.confirmationHelp')}</p>
           </div>
         </div>
       ),
@@ -363,7 +352,7 @@ export default function UserBulkActions({
             <Input
               id="tag"
               value={additionalData.tag || ''}
-              onChange={(e) =>
+              onChange={e =>
                 setAdditionalData({
                   ...additionalData,
                   tag: e.target.value,
@@ -383,7 +372,7 @@ export default function UserBulkActions({
             <Input
               id="tag"
               value={additionalData.tag || ''}
-              onChange={(e) =>
+              onChange={e =>
                 setAdditionalData({
                   ...additionalData,
                   tag: e.target.value,
@@ -402,7 +391,7 @@ export default function UserBulkActions({
             <Label htmlFor="role">{t('common.role')}</Label>
             <Select
               value={additionalData.role || ''}
-              onValueChange={(value) =>
+              onValueChange={value =>
                 setAdditionalData({
                   ...additionalData,
                   role: value,
@@ -425,7 +414,7 @@ export default function UserBulkActions({
             <Checkbox
               id="notify-users"
               checked={notifyUsers}
-              onCheckedChange={(checked) => setNotifyUsers(!!checked)}
+              onCheckedChange={checked => setNotifyUsers(!!checked)}
             />
             <Label htmlFor="notify-users">{t('common.notifyUsers')}</Label>
           </div>
@@ -433,7 +422,7 @@ export default function UserBulkActions({
             <Checkbox
               id="create-profile"
               checked={additionalData.createRoleSpecificProfile ?? true}
-              onCheckedChange={(checked) =>
+              onCheckedChange={checked =>
                 setAdditionalData({
                   ...additionalData,
                   createRoleSpecificProfile: !!checked,
@@ -447,7 +436,7 @@ export default function UserBulkActions({
             <Textarea
               id="reason"
               value={reason}
-              onChange={(e) => setReason(e.target.value)}
+              onChange={e => setReason(e.target.value)}
               placeholder={t('placeholders.reason')}
             />
           </div>
@@ -461,7 +450,7 @@ export default function UserBulkActions({
             <Input
               id="permission"
               value={additionalData.permission || ''}
-              onChange={(e) =>
+              onChange={e =>
                 setAdditionalData({
                   ...additionalData,
                   permission: e.target.value,
@@ -476,7 +465,7 @@ export default function UserBulkActions({
             <Input
               id="permission-group"
               value={additionalData.permissionGroup || ''}
-              onChange={(e) =>
+              onChange={e =>
                 setAdditionalData({
                   ...additionalData,
                   permissionGroup: e.target.value,
@@ -484,15 +473,13 @@ export default function UserBulkActions({
               }
               placeholder={t('placeholders.permissionGroup')}
             />
-            <p className="text-xs text-muted-foreground">
-              {t('common.permissionGroupHelp')}
-            </p>
+            <p className="text-xs text-muted-foreground">{t('common.permissionGroupHelp')}</p>
           </div>
           <div className="flex items-center space-x-2">
             <Checkbox
               id="notify-users"
               checked={notifyUsers}
-              onCheckedChange={(checked) => setNotifyUsers(!!checked)}
+              onCheckedChange={checked => setNotifyUsers(!!checked)}
             />
             <Label htmlFor="notify-users">{t('common.notifyUsers')}</Label>
           </div>
@@ -506,7 +493,7 @@ export default function UserBulkActions({
             <Input
               id="permission"
               value={additionalData.permission || ''}
-              onChange={(e) =>
+              onChange={e =>
                 setAdditionalData({
                   ...additionalData,
                   permission: e.target.value,
@@ -521,7 +508,7 @@ export default function UserBulkActions({
             <Input
               id="permission-group"
               value={additionalData.permissionGroup || ''}
-              onChange={(e) =>
+              onChange={e =>
                 setAdditionalData({
                   ...additionalData,
                   permissionGroup: e.target.value,
@@ -534,7 +521,7 @@ export default function UserBulkActions({
             <Checkbox
               id="notify-users"
               checked={notifyUsers}
-              onCheckedChange={(checked) => setNotifyUsers(!!checked)}
+              onCheckedChange={checked => setNotifyUsers(!!checked)}
             />
             <Label htmlFor="notify-users">{t('common.notifyUsers')}</Label>
           </div>
@@ -548,7 +535,7 @@ export default function UserBulkActions({
             <Input
               id="title"
               value={additionalData.title || ''}
-              onChange={(e) =>
+              onChange={e =>
                 setAdditionalData({
                   ...additionalData,
                   title: e.target.value,
@@ -563,7 +550,7 @@ export default function UserBulkActions({
             <Textarea
               id="message"
               value={additionalData.message || ''}
-              onChange={(e) =>
+              onChange={e =>
                 setAdditionalData({
                   ...additionalData,
                   message: e.target.value,
@@ -577,7 +564,7 @@ export default function UserBulkActions({
             <Label htmlFor="notification-type">{t('common.notificationType')}</Label>
             <Select
               value={additionalData.type || 'INFO'}
-              onValueChange={(value) =>
+              onValueChange={value =>
                 setAdditionalData({
                   ...additionalData,
                   type: value,
@@ -599,7 +586,7 @@ export default function UserBulkActions({
             <Label htmlFor="notification-channel">{t('common.notificationChannel')}</Label>
             <Select
               value={additionalData.channel || 'EMAIL'}
-              onValueChange={(value) =>
+              onValueChange={value =>
                 setAdditionalData({
                   ...additionalData,
                   channel: value,
@@ -626,7 +613,7 @@ export default function UserBulkActions({
             <Label htmlFor="export-format">{t('common.format')}</Label>
             <Select
               value={additionalData.format || 'csv'}
-              onValueChange={(value) =>
+              onValueChange={value =>
                 setAdditionalData({
                   ...additionalData,
                   format: value,
@@ -648,7 +635,7 @@ export default function UserBulkActions({
             <Checkbox
               id="include-headers"
               checked={additionalData.includeHeaders ?? true}
-              onCheckedChange={(checked) =>
+              onCheckedChange={checked =>
                 setAdditionalData({
                   ...additionalData,
                   includeHeaders: !!checked,
@@ -661,7 +648,7 @@ export default function UserBulkActions({
             <Checkbox
               id="include-sensitive"
               checked={additionalData.includeSensitiveData ?? false}
-              onCheckedChange={(checked) =>
+              onCheckedChange={checked =>
                 setAdditionalData({
                   ...additionalData,
                   includeSensitiveData: !!checked,
@@ -749,9 +736,10 @@ export default function UserBulkActions({
         <AlertDialogContent className="max-h-[90vh] overflow-y-auto">
           <AlertDialogHeader>
             <AlertDialogTitle>
-              {selectedAction && t(`actions.${selectedAction}.title`, {
-                count: selectedUserIds.length,
-              })}
+              {selectedAction &&
+                t(`actions.${selectedAction}.title`, {
+                  count: selectedUserIds.length,
+                })}
             </AlertDialogTitle>
             <AlertDialogDescription>
               {t('confirmationText', { count: selectedUserIds.length })}
@@ -761,9 +749,7 @@ export default function UserBulkActions({
           {getActionConfig()}
 
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleCloseDialog}>
-              {t('cancel')}
-            </AlertDialogCancel>
+            <AlertDialogCancel onClick={handleCloseDialog}>{t('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleSubmit}
               disabled={isLoading}
@@ -787,4 +773,4 @@ export default function UserBulkActions({
       </AlertDialog>
     </>
   );
-} 
+}

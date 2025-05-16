@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from 'zod';
 import { WithdrawalStatus } from '@prisma/client';
 
 /**
@@ -8,8 +8,8 @@ export const WithdrawalSchema = z.object({
   id: z.string().cuid().optional(),
   walletId: z.string(),
   amount: z.number().positive(),
-  currency: z.string().default("EUR"),
-  status: z.enum(["PENDING", "PROCESSING", "COMPLETED", "FAILED", "CANCELLED"]).default("PENDING"),
+  currency: z.string().default('EUR'),
+  status: z.enum(['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'CANCELLED']).default('PENDING'),
   stripePayoutId: z.string().optional(),
   requestedAt: z.date().optional(),
   processedAt: z.date().optional(),
@@ -17,7 +17,10 @@ export const WithdrawalSchema = z.object({
   bankAccountLast4: z.string().optional(),
   adminNote: z.string().optional(),
   stripeTransferId: z.string().optional(),
-  preferredMethod: z.enum(["SEPA", "STRIPE_CONNECT", "BANK_TRANSFER"]).optional().default("STRIPE_CONNECT"),
+  preferredMethod: z
+    .enum(['SEPA', 'STRIPE_CONNECT', 'BANK_TRANSFER'])
+    .optional()
+    .default('STRIPE_CONNECT'),
   reference: z.string().optional(),
   notifiedAt: z.date().optional(),
   relatedInvoiceId: z.string().optional(),
@@ -30,9 +33,12 @@ export const WithdrawalSchema = z.object({
  * Schéma pour la création d'une demande de retrait
  */
 export const CreateWithdrawalSchema = z.object({
-  amount: z.number().positive("Le montant doit être supérieur à 0"),
-  currency: z.string().default("EUR"),
-  preferredMethod: z.enum(["SEPA", "STRIPE_CONNECT", "BANK_TRANSFER"]).optional().default("STRIPE_CONNECT"),
+  amount: z.number().positive('Le montant doit être supérieur à 0'),
+  currency: z.string().default('EUR'),
+  preferredMethod: z
+    .enum(['SEPA', 'STRIPE_CONNECT', 'BANK_TRANSFER'])
+    .optional()
+    .default('STRIPE_CONNECT'),
   reference: z.string().optional(),
 });
 
@@ -41,7 +47,7 @@ export const CreateWithdrawalSchema = z.object({
  */
 export const UpdateWithdrawalStatusSchema = z.object({
   id: z.string(),
-  status: z.enum(["PENDING", "PROCESSING", "COMPLETED", "FAILED", "CANCELLED"]),
+  status: z.enum(['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'CANCELLED']),
   rejectionReason: z.string().optional(),
   stripePayoutId: z.string().optional(),
 });
@@ -50,13 +56,13 @@ export const UpdateWithdrawalStatusSchema = z.object({
  * Schéma pour les filtres de liste des retraits
  */
 export const WithdrawalListFilterSchema = z.object({
-  status: z.enum(["PENDING", "PROCESSING", "COMPLETED", "FAILED", "CANCELLED"]).optional(),
+  status: z.enum(['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'CANCELLED']).optional(),
   dateFrom: z.date().optional(),
   dateTo: z.date().optional(),
   minAmount: z.number().optional(),
   maxAmount: z.number().optional(),
-  sortBy: z.enum(["amount", "requestedAt", "processedAt", "status"]).optional(),
-  sortOrder: z.enum(["asc", "desc"]).optional(),
+  sortBy: z.enum(['amount', 'requestedAt', 'processedAt', 'status']).optional(),
+  sortOrder: z.enum(['asc', 'desc']).optional(),
   page: z.number().int().positive().optional(),
   limit: z.number().int().positive().max(100).optional(),
 });
@@ -69,8 +75,8 @@ export const WithdrawalSummarySchema = z.object({
   pendingAmount: z.number().nonnegative(),
   failedAmount: z.number().nonnegative(),
   lastWithdrawalDate: z.date().optional(),
-  currency: z.string().default("EUR"),
-  withdrawalsCount: z.number().nonnegative()
+  currency: z.string().default('EUR'),
+  withdrawalsCount: z.number().nonnegative(),
 });
 
 /**
@@ -78,15 +84,15 @@ export const WithdrawalSummarySchema = z.object({
  */
 export const ProcessWithdrawalSchema = z.object({
   withdrawalId: z.string(),
-  action: z.enum(["APPROVE", "REJECT", "CANCEL"]),
+  action: z.enum(['APPROVE', 'REJECT', 'CANCEL']),
   adminNote: z.string().optional(),
-  rejectionReason: z.string().optional().refine(
-    (data) => data !== undefined && data.length > 0,
-    {
-      message: "Une raison de rejet est requise",
-      path: ["rejectionReason"],
-    }
-  ),
+  rejectionReason: z
+    .string()
+    .optional()
+    .refine(data => data !== undefined && data.length > 0, {
+      message: 'Une raison de rejet est requise',
+      path: ['rejectionReason'],
+    }),
 });
 
 /**
@@ -94,7 +100,7 @@ export const ProcessWithdrawalSchema = z.object({
  */
 export const WithdrawalSearchSchema = z.object({
   userId: z.string().optional(),
-  status: z.enum(["PENDING", "PROCESSING", "COMPLETED", "FAILED", "CANCELLED"]).optional(),
+  status: z.enum(['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED', 'CANCELLED']).optional(),
   dateFrom: z.string().optional(),
   dateTo: z.string().optional(),
   minAmount: z.number().optional(),
@@ -110,7 +116,7 @@ export const AutomaticWithdrawalConfigSchema = z.object({
   enabled: z.boolean().default(false),
   threshold: z.number().min(10).default(100),
   day: z.number().min(1).max(31).nullable().optional(),
-  preferredMethod: z.enum(["SEPA", "STRIPE_CONNECT", "BANK_TRANSFER"]).default("STRIPE_CONNECT"),
+  preferredMethod: z.enum(['SEPA', 'STRIPE_CONNECT', 'BANK_TRANSFER']).default('STRIPE_CONNECT'),
 });
 
 // Exports des types
@@ -194,8 +200,16 @@ export const withdrawalDetailsSchema = z.object({
  * Schéma pour les informations bancaires
  */
 export const bankInfoSchema = z.object({
-  iban: z.string().min(15).max(34).regex(/^[A-Z0-9]+$/),
-  bic: z.string().min(8).max(11).regex(/^[A-Z0-9]+$/),
+  iban: z
+    .string()
+    .min(15)
+    .max(34)
+    .regex(/^[A-Z0-9]+$/),
+  bic: z
+    .string()
+    .min(8)
+    .max(11)
+    .regex(/^[A-Z0-9]+$/),
   bankName: z.string().min(2),
   accountHolder: z.string().min(2),
   accountHolderType: z.enum(['individual', 'company']),
@@ -216,4 +230,4 @@ export type WithdrawalSearchInput = z.infer<typeof withdrawalSearchSchema>;
 export type PendingWithdrawalsInput = z.infer<typeof pendingWithdrawalsSchema>;
 export type WithdrawalDetailsInput = z.infer<typeof withdrawalDetailsSchema>;
 export type BankInfoInput = z.infer<typeof bankInfoSchema>;
-export type WithdrawalStatsInput = z.infer<typeof withdrawalStatsSchema>; 
+export type WithdrawalStatsInput = z.infer<typeof withdrawalStatsSchema>;

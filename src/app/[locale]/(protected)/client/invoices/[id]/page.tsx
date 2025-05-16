@@ -16,7 +16,7 @@ const mockInvoices: Invoice[] = [
   {
     id: 'inv-001',
     number: 'FAC-2025-001',
-    amount: 42.50,
+    amount: 42.5,
     currency: 'EUR',
     status: 'PAID',
     dueDate: new Date('2025-06-15'),
@@ -28,10 +28,10 @@ const mockInvoices: Invoice[] = [
         id: 'item-001',
         description: 'Livraison éco-responsable',
         quantity: 1,
-        unitPrice: 35.00,
+        unitPrice: 35.0,
         taxRate: 20,
-        taxAmount: 7.00,
-        totalAmount: 42.00,
+        taxAmount: 7.0,
+        totalAmount: 42.0,
       },
     ],
   },
@@ -49,26 +49,26 @@ const mockInvoices: Invoice[] = [
         id: 'item-002',
         description: 'Livraison éco-responsable',
         quantity: 1,
-        unitPrice: 35.00,
+        unitPrice: 35.0,
         taxRate: 20,
-        taxAmount: 7.00,
-        totalAmount: 42.00,
+        taxAmount: 7.0,
+        totalAmount: 42.0,
       },
       {
         id: 'item-003',
         description: 'Service de stockage temporaire',
         quantity: 2,
-        unitPrice: 10.00,
+        unitPrice: 10.0,
         taxRate: 10,
-        taxAmount: 2.00,
-        totalAmount: 22.00,
+        taxAmount: 2.0,
+        totalAmount: 22.0,
       },
     ],
   },
   {
     id: 'inv-003',
     number: 'FAC-2025-003',
-    amount: 35.00,
+    amount: 35.0,
     currency: 'EUR',
     status: 'OVERDUE',
     dueDate: new Date('2025-05-20'),
@@ -82,14 +82,14 @@ const mockInvoices: Invoice[] = [
         unitPrice: 29.17,
         taxRate: 20,
         taxAmount: 5.83,
-        totalAmount: 35.00,
+        totalAmount: 35.0,
       },
     ],
   },
   {
     id: 'inv-004',
     number: 'FAC-2025-004',
-    amount: 19.90,
+    amount: 19.9,
     currency: 'EUR',
     status: 'DRAFT',
     dueDate: new Date('2025-07-15'),
@@ -102,7 +102,7 @@ const mockInvoices: Invoice[] = [
         unitPrice: 16.58,
         taxRate: 20,
         taxAmount: 3.32,
-        totalAmount: 19.90,
+        totalAmount: 19.9,
       },
     ],
   },
@@ -113,7 +113,7 @@ export default function InvoiceDetailsPage() {
   const router = useRouter();
   const params = useParams();
   const invoiceId = params.id as string;
-  
+
   const [isDownloading, setIsDownloading] = useState(false);
   const [isPaymentProcessing, setIsPaymentProcessing] = useState(false);
   const [invoice, setInvoice] = useState<Invoice | null>(null);
@@ -127,10 +127,10 @@ export default function InvoiceDetailsPage() {
       try {
         // Simule un délai réseau
         await new Promise(resolve => setTimeout(resolve, 500));
-        
+
         // Récupère la facture à partir des données mockées
         const foundInvoice = mockInvoices.find(inv => inv.id === invoiceId);
-        
+
         if (foundInvoice) {
           setInvoice(foundInvoice);
         } else {
@@ -156,7 +156,7 @@ export default function InvoiceDetailsPage() {
     try {
       // Simuler un téléchargement pour les tests
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       // Récupérer l'URL du PDF - à remplacer par l'implémentation réelle
       const invoice = mockInvoices.find(inv => inv.id === invoiceId);
       if (invoice?.pdfUrl) {
@@ -167,7 +167,7 @@ export default function InvoiceDetailsPage() {
       // Décommenter pour utiliser tRPC
       // await api.invoices.downloadInvoice.mutate({ invoiceId });
     } catch (err) {
-      console.error("Erreur lors du téléchargement", err);
+      console.error('Erreur lors du téléchargement', err);
     } finally {
       setIsDownloading(false);
     }
@@ -179,14 +179,14 @@ export default function InvoiceDetailsPage() {
     try {
       // Simule un délai de paiement
       await new Promise(resolve => setTimeout(resolve, 1500));
-      
+
       // Simule une redirection vers une page de paiement
       router.push(`/client/payments/process?invoiceId=${invoiceId}`);
-      
+
       // Décommenter pour utiliser tRPC
       // await api.invoices.createPaymentIntent.mutate({ invoiceId });
     } catch (err) {
-      console.error("Erreur lors du paiement", err);
+      console.error('Erreur lors du paiement', err);
     } finally {
       setIsPaymentProcessing(false);
     }
@@ -235,7 +235,9 @@ export default function InvoiceDetailsPage() {
         invoice={invoice}
         onDownload={handleDownload}
         onBack={handleBack}
-        onPay={invoice.status === 'SENT' || invoice.status === 'OVERDUE' ? handlePayInvoice : undefined}
+        onPay={
+          invoice.status === 'SENT' || invoice.status === 'OVERDUE' ? handlePayInvoice : undefined
+        }
       />
     </div>
   );

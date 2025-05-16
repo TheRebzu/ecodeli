@@ -25,13 +25,10 @@ export const financialTaskRouter = router({
       const userId = ctx.session.user.id;
       const { page, limit, sortField, sortDirection, filters } = input;
 
-      return await financialTaskService.getFinancialTasks(
-        userId,
-        page,
-        limit,
-        filters,
-        { field: sortField, direction: sortDirection }
-      );
+      return await financialTaskService.getFinancialTasks(userId, page, limit, filters, {
+        field: sortField,
+        direction: sortDirection,
+      });
     }),
 
   // Récupérer une tâche financière par ID
@@ -83,4 +80,4 @@ export const financialTaskRouter = router({
     const userId = ctx.session.user.id;
     return await financialTaskService.getFinancialTaskStats(userId);
   }),
-}); 
+});

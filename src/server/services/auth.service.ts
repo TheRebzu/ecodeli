@@ -1256,7 +1256,8 @@ export class AuthService {
       await NotificationService.sendNotification({
         userId,
         title: 'Compte vérifié',
-        content: 'Votre compte a été approuvé. Vous pouvez maintenant utiliser toutes les fonctionnalités.',
+        content:
+          'Votre compte a été approuvé. Vous pouvez maintenant utiliser toutes les fonctionnalités.',
         type: 'ACCOUNT',
       });
       await this.emailService.sendAccountVerifiedEmail(user.email, user.name || '', locale);
@@ -1267,7 +1268,12 @@ export class AuthService {
         content: `Votre compte a été refusé${notes ? ': ' + notes : '.'}`,
         type: 'ACCOUNT',
       });
-      await this.emailService.sendAccountRejectedEmail(user.email, user.name || '', notes || '', locale);
+      await this.emailService.sendAccountRejectedEmail(
+        user.email,
+        user.name || '',
+        notes || '',
+        locale
+      );
     }
 
     return {

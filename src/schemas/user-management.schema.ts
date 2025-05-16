@@ -27,17 +27,17 @@ export const userFiltersSchema = z.object({
   limit: z.number().int().min(1).max(100).default(10),
   sortBy: z
     .enum([
-      'name', 
-      'email', 
-      'role', 
-      'status', 
-      'createdAt', 
-      'lastLoginAt', 
+      'name',
+      'email',
+      'role',
+      'status',
+      'createdAt',
+      'lastLoginAt',
       'lastActivityAt',
       'documentsCount',
       'isVerified',
       'country',
-      'subscriptionStatus'
+      'subscriptionStatus',
     ])
     .default('createdAt'),
   sortDirection: z.enum(['asc', 'desc']).default('desc'),
@@ -110,7 +110,9 @@ export const userActivityLogSchema = z.object({
 export const userNoteSchema = z.object({
   userId: z.string(),
   note: z.string().min(1).max(1000),
-  category: z.enum(['GENERAL', 'SUPPORT', 'VERIFICATION', 'BILLING', 'SECURITY']).default('GENERAL'),
+  category: z
+    .enum(['GENERAL', 'SUPPORT', 'VERIFICATION', 'BILLING', 'SECURITY'])
+    .default('GENERAL'),
   visibility: z.enum(['PUBLIC', 'PRIVATE', 'ADMIN_ONLY']).default('ADMIN_ONLY'),
   pinned: z.boolean().default(false),
   reminderDate: z.coerce.date().optional(),
@@ -155,19 +157,19 @@ export const forcePasswordResetSchema = z.object({
 export const bulkUserActionSchema = z.object({
   userIds: z.array(z.string()).min(1),
   action: z.enum([
-    'ACTIVATE', 
-    'DEACTIVATE', 
-    'SUSPEND', 
+    'ACTIVATE',
+    'DEACTIVATE',
+    'SUSPEND',
     'FORCE_PASSWORD_RESET',
     'SEND_VERIFICATION_EMAIL',
-    'DELETE', 
+    'DELETE',
     'ADD_TAG',
     'REMOVE_TAG',
     'ASSIGN_ROLE',
     'ASSIGN_PERMISSION',
     'REVOKE_PERMISSION',
     'SEND_NOTIFICATION',
-    'EXPORT_DATA'
+    'EXPORT_DATA',
   ]),
   reason: z.string().optional(),
   notifyUsers: z.boolean().default(true),

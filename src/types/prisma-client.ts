@@ -7,51 +7,51 @@ import { Decimal } from '@prisma/client/runtime/library';
 
 // Enums
 export enum TransactionType {
-  EARNING = "EARNING",
-  WITHDRAWAL = "WITHDRAWAL",
-  REFUND = "REFUND",
-  SUBSCRIPTION_FEE = "SUBSCRIPTION_FEE",
-  PLATFORM_FEE = "PLATFORM_FEE",
-  ADJUSTMENT = "ADJUSTMENT",
-  BONUS = "BONUS"
+  EARNING = 'EARNING',
+  WITHDRAWAL = 'WITHDRAWAL',
+  REFUND = 'REFUND',
+  SUBSCRIPTION_FEE = 'SUBSCRIPTION_FEE',
+  PLATFORM_FEE = 'PLATFORM_FEE',
+  ADJUSTMENT = 'ADJUSTMENT',
+  BONUS = 'BONUS',
 }
 
 export enum TransactionStatus {
-  PENDING = "PENDING",
-  COMPLETED = "COMPLETED",
-  FAILED = "FAILED",
-  CANCELLED = "CANCELLED"
+  PENDING = 'PENDING',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+  CANCELLED = 'CANCELLED',
 }
 
 export enum WithdrawalStatus {
-  PENDING = "PENDING",
-  PROCESSING = "PROCESSING",
-  COMPLETED = "COMPLETED",
-  FAILED = "FAILED",
-  CANCELLED = "CANCELLED"
+  PENDING = 'PENDING',
+  PROCESSING = 'PROCESSING',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+  CANCELLED = 'CANCELLED',
 }
 
 export enum SubscriptionStatus {
-  ACTIVE = "ACTIVE",
-  PAST_DUE = "PAST_DUE",
-  UNPAID = "UNPAID",
-  CANCELLED = "CANCELLED",
-  TRIAL = "TRIAL",
-  ENDED = "ENDED"
+  ACTIVE = 'ACTIVE',
+  PAST_DUE = 'PAST_DUE',
+  UNPAID = 'UNPAID',
+  CANCELLED = 'CANCELLED',
+  TRIAL = 'TRIAL',
+  ENDED = 'ENDED',
 }
 
 export enum PlanType {
-  FREE = "FREE",
-  STARTER = "STARTER",
-  PREMIUM = "PREMIUM"
+  FREE = 'FREE',
+  STARTER = 'STARTER',
+  PREMIUM = 'PREMIUM',
 }
 
 export enum InvoiceStatus {
-  DRAFT = "DRAFT",
-  SENT = "SENT",
-  PAID = "PAID",
-  OVERDUE = "OVERDUE",
-  VOIDED = "VOIDED"
+  DRAFT = 'DRAFT',
+  SENT = 'SENT',
+  PAID = 'PAID',
+  OVERDUE = 'OVERDUE',
+  VOIDED = 'VOIDED',
 }
 
 // Structure des modèles
@@ -168,7 +168,7 @@ export interface ExtendedPrismaClient {
     count: (args: any) => Promise<number>;
     aggregate: (args: any) => Promise<any>;
   };
-  
+
   walletTransaction: {
     findUnique: (args: any) => Promise<WalletTransaction | null>;
     findFirst: (args: any) => Promise<WalletTransaction | null>;
@@ -180,7 +180,7 @@ export interface ExtendedPrismaClient {
     count: (args: any) => Promise<number>;
     aggregate: (args: any) => Promise<any>;
   };
-  
+
   withdrawalRequest: {
     findUnique: (args: any) => Promise<WithdrawalRequest | null>;
     findFirst: (args: any) => Promise<WithdrawalRequest | null>;
@@ -192,4 +192,4 @@ export interface ExtendedPrismaClient {
     count: (args: any) => Promise<number>;
     aggregate: (args: any) => Promise<any>;
   };
-} 
+}

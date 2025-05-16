@@ -4,10 +4,7 @@ import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import {
-  clientRegisterSchema,
-  ClientRegisterSchemaType,
-} from '@/schemas/client-register.schema';
+import { clientRegisterSchema, ClientRegisterSchemaType } from '@/schemas/client-register.schema';
 import { UserRole } from '@/schemas/register.schema';
 import { Button } from '@/components/ui/button';
 import {

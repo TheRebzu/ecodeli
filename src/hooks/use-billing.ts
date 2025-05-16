@@ -20,27 +20,27 @@ export const useBilling = () => {
       toast.success('Facturation mensuelle exécutée avec succès');
       router.refresh();
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(`Erreur lors de la facturation mensuelle: ${error.message}`);
     },
   });
 
   const scheduleMonthlyCyclesMutation = api.billing.scheduleMonthlyCycles.useMutation({
-    onSuccess: (data) => {
+    onSuccess: data => {
       toast.success(`${data.cyclesCreated} cycles de facturation planifiés`);
       router.refresh();
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(`Erreur lors de la planification: ${error.message}`);
     },
   });
 
   const executeScheduledCyclesMutation = api.billing.executeScheduledCycles.useMutation({
-    onSuccess: (data) => {
+    onSuccess: data => {
       toast.success(`${data.cyclesFound} cycles exécutés`);
       router.refresh();
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(`Erreur lors de l'exécution des cycles: ${error.message}`);
     },
   });
@@ -50,58 +50,61 @@ export const useBilling = () => {
       toast.success('Cycle de facturation réexécuté avec succès');
       router.refresh();
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(`Erreur lors de la réexécution: ${error.message}`);
     },
   });
 
   const sendPaymentRemindersMutation = api.billing.sendPaymentReminders.useMutation({
-    onSuccess: (data) => {
+    onSuccess: data => {
       toast.success(`${data.processedCount} rappels envoyés`);
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(`Erreur lors de l'envoi des rappels: ${error.message}`);
     },
   });
 
   const processAutomaticPayoutsMutation = api.billing.processAutomaticPayouts.useMutation({
-    onSuccess: (data) => {
+    onSuccess: data => {
       toast.success(`${data.processedCount} virements automatiques traités`);
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(`Erreur lors du traitement des virements: ${error.message}`);
     },
   });
 
   const generateProviderInvoiceMutation = api.billing.generateProviderInvoice.useMutation({
-    onSuccess: (data) => {
+    onSuccess: data => {
       toast.success(`Facture générée: ${data.invoice.number}`);
       router.push(`/admin/invoices/${data.invoice.id}`);
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(`Erreur lors de la génération de la facture: ${error.message}`);
     },
   });
 
   const generateMerchantInvoiceMutation = api.billing.generateMerchantInvoice.useMutation({
-    onSuccess: (data) => {
+    onSuccess: data => {
       toast.success(`Facture générée: ${data.invoice.number}`);
       router.push(`/admin/invoices/${data.invoice.id}`);
     },
-    onError: (error) => {
+    onError: error => {
       toast.error(`Erreur lors de la génération de la facture: ${error.message}`);
     },
   });
 
   // Requête pour les statistiques
-  const { data: billingStats, isLoading: isLoadingStats, refetch: refetchStats } = 
-    api.billing.getBillingStats.useQuery(
-      { period: 'MONTH' },
-      { refetchInterval: 60000 * 15 } // Rafraîchir toutes les 15 minutes
-    );
+  const {
+    data: billingStats,
+    isLoading: isLoadingStats,
+    refetch: refetchStats,
+  } = api.billing.getBillingStats.useQuery(
+    { period: 'MONTH' },
+    { refetchInterval: 60000 * 15 } // Rafraîchir toutes les 15 minutes
+  );
 
   // Fonctions exposées
-  
+
   /**
    * Lance la facturation mensuelle
    */
@@ -179,11 +182,7 @@ export const useBilling = () => {
   /**
    * Génère une facture pour un prestataire
    */
-  const generateProviderInvoice = async (
-    providerId: string, 
-    month?: number, 
-    year?: number
-  ) => {
+  const generateProviderInvoice = async (providerId: string, month?: number, year?: number) => {
     setIsLoading(true);
     try {
       await generateProviderInvoiceMutation.mutateAsync({
@@ -199,11 +198,7 @@ export const useBilling = () => {
   /**
    * Génère une facture pour un commerçant
    */
-  const generateMerchantInvoice = async (
-    merchantId: string, 
-    month?: number, 
-    year?: number
-  ) => {
+  const generateMerchantInvoice = async (merchantId: string, month?: number, year?: number) => {
     setIsLoading(true);
     try {
       await generateMerchantInvoiceMutation.mutateAsync({
@@ -228,7 +223,7 @@ export const useBilling = () => {
     isLoading,
     billingStats,
     isLoadingStats,
-    
+
     // Actions
     runMonthlyBilling,
     scheduleMonthlyCycles,
@@ -239,10 +234,10 @@ export const useBilling = () => {
     generateProviderInvoice,
     generateMerchantInvoice,
     refetchStats,
-    
+
     // Formatage
     formatBillingPeriod,
   };
 };
 
-export default useBilling; 
+export default useBilling;

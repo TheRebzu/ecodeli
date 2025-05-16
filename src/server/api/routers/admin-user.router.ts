@@ -72,7 +72,7 @@ export const adminUserRouter = router({
       }
 
       const adminService = new AdminService(ctx.db);
-      
+
       // Journaliser l'action avant de l'effectuer
       await AuditService.createAuditLog(
         'user',
@@ -80,23 +80,23 @@ export const adminUserRouter = router({
         'status_change',
         ctx.session.user.id,
         { previousStatus: 'unknown' }, // Le service récupérera l'état actuel
-        { 
-          newStatus: input.status, 
-          reason: input.reason, 
+        {
+          newStatus: input.status,
+          reason: input.reason,
           expiresAt: input.expiresAt,
-          emailTemplate: input.emailTemplate
+          emailTemplate: input.emailTemplate,
         }
       );
-      
-      return adminService.updateUserStatus(input.userId, input.status, { 
-        reason: input.reason, 
-        notifyUser: input.notifyUser, 
+
+      return adminService.updateUserStatus(input.userId, input.status, {
+        reason: input.reason,
+        notifyUser: input.notifyUser,
         expiresAt: input.expiresAt,
         performedById: ctx.session.user.id,
         sendEmail: input.sendEmail,
         emailTemplate: input.emailTemplate,
         customEmailSubject: input.customEmailSubject,
-        customEmailContent: input.customEmailContent
+        customEmailContent: input.customEmailContent,
       });
     }),
 
@@ -113,7 +113,7 @@ export const adminUserRouter = router({
     }
 
     const adminService = new AdminService(ctx.db);
-    
+
     // Journaliser l'action avant de l'effectuer
     await AuditService.createAuditLog(
       'user',
@@ -121,20 +121,20 @@ export const adminUserRouter = router({
       'role_change',
       ctx.session.user.id,
       { previousRole: 'unknown' }, // Le service récupérera l'état actuel
-      { 
-        newRole: input.role, 
+      {
+        newRole: input.role,
         reason: input.reason,
-        maintainAccessToOldRoleData: input.maintainAccessToOldRoleData
+        maintainAccessToOldRoleData: input.maintainAccessToOldRoleData,
       }
     );
-    
-    return adminService.updateUserRole(input.userId, input.role, { 
-      reason: input.reason, 
+
+    return adminService.updateUserRole(input.userId, input.role, {
+      reason: input.reason,
       createRoleSpecificProfile: input.createRoleSpecificProfile,
       transferExistingData: input.transferExistingData,
       maintainAccessToOldRoleData: input.maintainAccessToOldRoleData,
       notifyUser: input.notifyUser,
-      performedById: ctx.session.user.id 
+      performedById: ctx.session.user.id,
     });
   }),
 
@@ -149,12 +149,13 @@ export const adminUserRouter = router({
       if (!adminUser || adminUser.role !== 'ADMIN') {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: "Vous n'avez pas les permissions nécessaires pour gérer les permissions des utilisateurs",
+          message:
+            "Vous n'avez pas les permissions nécessaires pour gérer les permissions des utilisateurs",
         });
       }
 
       const adminService = new AdminService(ctx.db);
-      
+
       // Journaliser l'action
       await AuditService.createAuditLog(
         'user',
@@ -162,20 +163,20 @@ export const adminUserRouter = router({
         'permissions_change',
         ctx.session.user.id,
         { previousPermissions: 'unknown' }, // Le service récupérera l'état actuel
-        { 
+        {
           newPermissions: input.permissions,
           permissionGroups: input.permissionGroups,
           restrictToIpAddresses: input.restrictToIpAddresses,
-          expiresAt: input.expiresAt
+          expiresAt: input.expiresAt,
         }
       );
-      
+
       return adminService.updateAdminPermissions(input.userId, {
         permissions: input.permissions,
         expiresAt: input.expiresAt,
         permissionGroups: input.permissionGroups,
         restrictToIpAddresses: input.restrictToIpAddresses,
-        notifyUser: input.notifyUser
+        notifyUser: input.notifyUser,
       });
     }),
 
@@ -195,7 +196,7 @@ export const adminUserRouter = router({
       includeDetails: input.includeDetails,
       ipAddress: input.ipAddress,
       importance: input.importance,
-      searchTerm: input.searchTerm
+      searchTerm: input.searchTerm,
     });
   }),
 
@@ -211,11 +212,11 @@ export const adminUserRouter = router({
           message: "Vous n'avez pas les permissions nécessaires pour effectuer cette action.",
         });
       }
-      
+
       const adminService = new AdminService(ctx.db);
       return adminService.addUserActivityLog({
         ...input,
-        performedById: ctx.session.user.id
+        performedById: ctx.session.user.id,
       });
     }),
 
@@ -226,10 +227,10 @@ export const adminUserRouter = router({
     if (!ctx.session?.user) {
       throw new TRPCError({
         code: 'UNAUTHORIZED',
-        message: "Vous devez être connecté pour effectuer cette action.",
+        message: 'Vous devez être connecté pour effectuer cette action.',
       });
     }
-    
+
     const adminService = new AdminService(ctx.db);
     return adminService.addUserNote(input.userId, {
       note: input.note,
@@ -237,7 +238,7 @@ export const adminUserRouter = router({
       visibility: input.visibility,
       pinned: input.pinned,
       reminderDate: input.reminderDate,
-      createdById: ctx.session.user.id
+      createdById: ctx.session.user.id,
     });
   }),
 
@@ -251,9 +252,9 @@ export const adminUserRouter = router({
         message: "Vous n'avez pas les permissions nécessaires pour exporter les données.",
       });
     }
-    
+
     const adminService = new AdminService(ctx.db);
-    
+
     // Journaliser l'action d'export
     await AuditService.createAuditLog(
       'system',
@@ -261,14 +262,14 @@ export const adminUserRouter = router({
       'data_export',
       ctx.session.user.id,
       null,
-      { 
-        format: input.format, 
-        fields: input.fields, 
+      {
+        format: input.format,
+        fields: input.fields,
         filters: input.filters,
-        includeSensitiveData: input.includeSensitiveData
+        includeSensitiveData: input.includeSensitiveData,
       }
     );
-    
+
     return adminService.exportUsers({
       format: input.format,
       fields: input.fields,
@@ -277,7 +278,7 @@ export const adminUserRouter = router({
       encryptionPassword: input.encryptionPassword,
       includeHeaders: input.includeHeaders,
       dateFormat: input.dateFormat,
-      fileName: input.fileName
+      fileName: input.fileName,
     });
   }),
 
@@ -291,11 +292,11 @@ export const adminUserRouter = router({
         message: "Vous n'avez pas les permissions nécessaires pour accéder aux statistiques.",
       });
     }
-    
+
     const adminService = new AdminService(ctx.db);
     return adminService.getUserStats();
   }),
-  
+
   /**
    * Get advanced user statistics
    */
@@ -305,10 +306,11 @@ export const adminUserRouter = router({
       if (!ctx.session?.user || ctx.session.user.role !== 'ADMIN') {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: "Vous n'avez pas les permissions nécessaires pour accéder aux statistiques avancées.",
+          message:
+            "Vous n'avez pas les permissions nécessaires pour accéder aux statistiques avancées.",
         });
       }
-      
+
       const adminService = new AdminService(ctx.db);
       return adminService.getUserStatsAdvanced({
         period: input.period,
@@ -320,10 +322,10 @@ export const adminUserRouter = router({
         includeChurnRate: input.includeChurnRate,
         includeGrowthRate: input.includeGrowthRate,
         includeConversionRates: input.includeConversionRates,
-        customMetrics: input.customMetrics
+        customMetrics: input.customMetrics,
       });
     }),
-  
+
   /**
    * Force the password reset of a user
    */
@@ -333,12 +335,13 @@ export const adminUserRouter = router({
       if (!ctx.session?.user || ctx.session.user.role !== 'ADMIN') {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: "Vous n'avez pas les permissions nécessaires pour réinitialiser un mot de passe.",
+          message:
+            "Vous n'avez pas les permissions nécessaires pour réinitialiser un mot de passe.",
         });
       }
-      
+
       const adminService = new AdminService(ctx.db);
-      
+
       // Journaliser l'action
       await AuditService.createAuditLog(
         'user',
@@ -346,16 +349,16 @@ export const adminUserRouter = router({
         'force_password_reset',
         ctx.session.user.id,
         null,
-        { 
-          reason: input.reason, 
-          notifyUser: input.notifyUser, 
+        {
+          reason: input.reason,
+          notifyUser: input.notifyUser,
           expireExistingTokens: input.expireExistingTokens,
           expiresIn: input.expiresIn,
           requireStrongPassword: input.requireStrongPassword,
-          blockLoginUntilReset: input.blockLoginUntilReset
+          blockLoginUntilReset: input.blockLoginUntilReset,
         }
       );
-      
+
       return adminService.forcePasswordReset(input.userId, {
         reason: input.reason,
         notifyUser: input.notifyUser,
@@ -363,113 +366,113 @@ export const adminUserRouter = router({
         expiresIn: input.expiresIn,
         requireStrongPassword: input.requireStrongPassword,
         blockLoginUntilReset: input.blockLoginUntilReset,
-        performedById: ctx.session.user.id
+        performedById: ctx.session.user.id,
       });
     }),
-    
+
   /**
    * Perform bulk actions on multiple users
    */
-  bulkUserAction: adminProcedure
-    .input(bulkUserActionSchema)
-    .mutation(async ({ ctx, input }) => {
-      if (!ctx.session?.user || ctx.session.user.role !== 'ADMIN') {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: "Vous n'avez pas les permissions nécessaires pour effectuer des actions en masse.",
-        });
-      }
-      
-      const adminService = new AdminService(ctx.db);
-      
-      // Journaliser l'action en masse
-      await AuditService.createAuditLog(
-        'system',
-        'bulk_user_action',
-        input.action.toLowerCase(),
-        ctx.session.user.id,
-        null,
-        { 
-          userIds: input.userIds, 
-          action: input.action, 
-          reason: input.reason, 
-          notifyUsers: input.notifyUsers,
-          scheduledFor: input.scheduledFor
-        }
-      );
-      
-      return adminService.bulkUserAction({
+  bulkUserAction: adminProcedure.input(bulkUserActionSchema).mutation(async ({ ctx, input }) => {
+    if (!ctx.session?.user || ctx.session.user.role !== 'ADMIN') {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: "Vous n'avez pas les permissions nécessaires pour effectuer des actions en masse.",
+      });
+    }
+
+    const adminService = new AdminService(ctx.db);
+
+    // Journaliser l'action en masse
+    await AuditService.createAuditLog(
+      'system',
+      'bulk_user_action',
+      input.action.toLowerCase(),
+      ctx.session.user.id,
+      null,
+      {
         userIds: input.userIds,
         action: input.action,
         reason: input.reason,
         notifyUsers: input.notifyUsers,
-        additionalData: input.additionalData,
         scheduledFor: input.scheduledFor,
-        confirmationCode: input.confirmationCode,
-        performedById: ctx.session.user.id
-      });
-    }),
-    
+      }
+    );
+
+    return adminService.bulkUserAction({
+      userIds: input.userIds,
+      action: input.action,
+      reason: input.reason,
+      notifyUsers: input.notifyUsers,
+      additionalData: input.additionalData,
+      scheduledFor: input.scheduledFor,
+      confirmationCode: input.confirmationCode,
+      performedById: ctx.session.user.id,
+    });
+  }),
+
   /**
    * Get filtered audit logs
    */
-  getAuditLogs: adminProcedure
-    .input(auditLogFiltersSchema)
-    .query(async ({ ctx, input }) => {
-      if (!ctx.session?.user || ctx.session.user.role !== 'ADMIN') {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: "Vous n'avez pas les permissions nécessaires pour accéder aux journaux d'audit.",
-        });
-      }
-      
-      return AuditService.getAllAuditLogs({
-        entityType: input.entityType,
-        entityId: input.entityId,
-        performedById: input.performedById,
-        action: input.action,
-        fromDate: input.fromDate,
-        toDate: input.toDate,
-        severity: input.severity,
-        status: input.status,
-        ipAddress: input.ipAddress,
-        limit: input.limit,
-        offset: (input.page - 1) * input.limit
+  getAuditLogs: adminProcedure.input(auditLogFiltersSchema).query(async ({ ctx, input }) => {
+    if (!ctx.session?.user || ctx.session.user.role !== 'ADMIN') {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: "Vous n'avez pas les permissions nécessaires pour accéder aux journaux d'audit.",
       });
-    }),
-    
+    }
+
+    return AuditService.getAllAuditLogs({
+      entityType: input.entityType,
+      entityId: input.entityId,
+      performedById: input.performedById,
+      action: input.action,
+      fromDate: input.fromDate,
+      toDate: input.toDate,
+      severity: input.severity,
+      status: input.status,
+      ipAddress: input.ipAddress,
+      limit: input.limit,
+      offset: (input.page - 1) * input.limit,
+    });
+  }),
+
   /**
    * Permanently delete a user (with admin password confirmation)
    */
   permanentlyDeleteUser: adminProcedure
-    .input(z.object({
-      userId: z.string(),
-      adminPassword: z.string(),
-      reason: z.string()
-    }))
+    .input(
+      z.object({
+        userId: z.string(),
+        adminPassword: z.string(),
+        reason: z.string(),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       if (!ctx.session?.user || ctx.session.user.role !== 'ADMIN') {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: "Vous n'avez pas les permissions nécessaires pour supprimer définitivement un utilisateur.",
+          message:
+            "Vous n'avez pas les permissions nécessaires pour supprimer définitivement un utilisateur.",
         });
       }
-      
+
       const adminService = new AdminService(ctx.db);
-      
+
       // Vérifier que l'admin a fourni un mot de passe valide (extra sécurité)
       const isPasswordValid = await adminService.verifyAdminPassword(
         ctx.session.user.id,
         input.adminPassword
       );
-      
+
       if (!isPasswordValid) {
         throw new TRPCError({
           code: 'UNAUTHORIZED',
-          message: "Mot de passe administrateur incorrect. Cette action nécessite une vérification.",
+          message:
+            'Mot de passe administrateur incorrect. Cette action nécessite une vérification.',
         });
       }
-      
+
       // Journaliser l'action de suppression définitive
       await AuditService.createAuditLog(
         'user',
@@ -479,10 +482,10 @@ export const adminUserRouter = router({
         null,
         { reason: input.reason }
       );
-      
+
       return adminService.permanentlyDeleteUser(input.userId, {
         reason: input.reason,
-        performedById: ctx.session.user.id
+        performedById: ctx.session.user.id,
       });
     }),
 
@@ -495,7 +498,8 @@ export const adminUserRouter = router({
       if (!ctx.session?.user || ctx.session.user.role !== 'ADMIN') {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: "Vous n'avez pas les permissions nécessaires pour voir les paramètres de notification.",
+          message:
+            "Vous n'avez pas les permissions nécessaires pour voir les paramètres de notification.",
         });
       }
 
@@ -512,12 +516,13 @@ export const adminUserRouter = router({
       if (!ctx.session?.user || ctx.session.user.role !== 'ADMIN') {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: "Vous n'avez pas les permissions nécessaires pour modifier les paramètres de notification.",
+          message:
+            "Vous n'avez pas les permissions nécessaires pour modifier les paramètres de notification.",
         });
       }
 
       const notificationService = new NotificationService(ctx.db);
-      
+
       // Journaliser l'action
       await AuditService.createAuditLog(
         'user',
@@ -545,7 +550,7 @@ export const adminUserRouter = router({
       }
 
       const notificationService = new NotificationService(ctx.db);
-      
+
       // Journaliser l'action
       await AuditService.createAuditLog(
         'notification',
@@ -553,51 +558,50 @@ export const adminUserRouter = router({
         'notification_sent',
         ctx.session.user.id,
         null,
-        { 
+        {
           recipient: input.userId,
           title: input.title,
           type: input.type,
-          channel: input.channel
+          channel: input.channel,
         }
       );
 
       return notificationService.sendUserNotification({
         ...input,
-        sentById: ctx.session.user.id
+        sentById: ctx.session.user.id,
       });
     }),
 
   /**
    * Manage user devices
    */
-  manageUserDevices: adminProcedure
-    .input(userDevicesSchema)
-    .mutation(async ({ ctx, input }) => {
-      if (!ctx.session?.user || ctx.session.user.role !== 'ADMIN') {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: "Vous n'avez pas les permissions nécessaires pour gérer les appareils des utilisateurs.",
-        });
+  manageUserDevices: adminProcedure.input(userDevicesSchema).mutation(async ({ ctx, input }) => {
+    if (!ctx.session?.user || ctx.session.user.role !== 'ADMIN') {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message:
+          "Vous n'avez pas les permissions nécessaires pour gérer les appareils des utilisateurs.",
+      });
+    }
+
+    const adminService = new AdminService(ctx.db);
+
+    // Journaliser l'action
+    await AuditService.createAuditLog(
+      'user_device',
+      input.deviceId || input.userId,
+      `device_${input.action.toLowerCase()}`,
+      ctx.session.user.id,
+      null,
+      {
+        userId: input.userId,
+        action: input.action,
+        deviceId: input.deviceId,
       }
+    );
 
-      const adminService = new AdminService(ctx.db);
-      
-      // Journaliser l'action
-      await AuditService.createAuditLog(
-        'user_device',
-        input.deviceId || input.userId,
-        `device_${input.action.toLowerCase()}`,
-        ctx.session.user.id,
-        null,
-        { 
-          userId: input.userId,
-          action: input.action,
-          deviceId: input.deviceId
-        }
-      );
-
-      return adminService.manageUserDevices(input);
-    }),
+    return adminService.manageUserDevices(input);
+  }),
 
   /**
    * Get user devices
@@ -608,7 +612,8 @@ export const adminUserRouter = router({
       if (!ctx.session?.user || ctx.session.user.role !== 'ADMIN') {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: "Vous n'avez pas les permissions nécessaires pour voir les appareils des utilisateurs.",
+          message:
+            "Vous n'avez pas les permissions nécessaires pour voir les appareils des utilisateurs.",
         });
       }
 
@@ -623,7 +628,8 @@ export const adminUserRouter = router({
     if (!ctx.session?.user || ctx.session.user.role !== 'ADMIN') {
       throw new TRPCError({
         code: 'FORBIDDEN',
-        message: "Vous n'avez pas les permissions nécessaires pour accéder aux groupes de permissions.",
+        message:
+          "Vous n'avez pas les permissions nécessaires pour accéder aux groupes de permissions.",
       });
     }
 
@@ -635,23 +641,26 @@ export const adminUserRouter = router({
    * Create or update permission group
    */
   upsertPermissionGroup: adminProcedure
-    .input(z.object({
-      id: z.string().optional(), // Si fourni, c'est une mise à jour
-      name: z.string().min(1),
-      description: z.string(),
-      permissions: z.array(z.string()),
-      isPreDefined: z.boolean().default(false)
-    }))
+    .input(
+      z.object({
+        id: z.string().optional(), // Si fourni, c'est une mise à jour
+        name: z.string().min(1),
+        description: z.string(),
+        permissions: z.array(z.string()),
+        isPreDefined: z.boolean().default(false),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       if (!ctx.session?.user || ctx.session.user.role !== 'ADMIN') {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: "Vous n'avez pas les permissions nécessaires pour gérer les groupes de permissions.",
+          message:
+            "Vous n'avez pas les permissions nécessaires pour gérer les groupes de permissions.",
         });
       }
 
       const adminService = new AdminService(ctx.db);
-      
+
       // Journaliser l'action
       await AuditService.createAuditLog(
         'permission_group',
@@ -659,15 +668,15 @@ export const adminUserRouter = router({
         input.id ? 'permission_group_update' : 'permission_group_create',
         ctx.session.user.id,
         null,
-        { 
+        {
           name: input.name,
-          permissions: input.permissions
+          permissions: input.permissions,
         }
       );
 
       return adminService.upsertPermissionGroup({
         ...input,
-        createdBy: ctx.session.user.id
+        createdBy: ctx.session.user.id,
       });
     }),
 });

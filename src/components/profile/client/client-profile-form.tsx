@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import React from 'react';
 import { useForm } from 'react-hook-form';
@@ -6,7 +6,15 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 import { Checkbox } from '@/components/ui/checkbox';
 import { SaveIcon, XIcon } from 'lucide-react';
 import { useProfile } from '@/hooks/use-profile';
@@ -16,7 +24,7 @@ import { updateClientProfileSchema, type UpdateClientProfile } from '@/schemas/p
 export function ClientProfileForm() {
   const { profile, roleSpecificProfile, updateProfile, isUpdatingProfile } = useProfile();
   const { setIsEditingProfile } = useProfileStore();
-  
+
   const form = useForm<UpdateClientProfile>({
     resolver: zodResolver(updateClientProfileSchema),
     defaultValues: {
@@ -32,16 +40,16 @@ export function ClientProfileForm() {
       newsletterOptIn: roleSpecificProfile?.newsletterOptIn || false,
     },
   });
-  
+
   const onSubmit = (data: UpdateClientProfile) => {
     updateProfile(data);
     setIsEditingProfile(false);
   };
-  
+
   const handleCancel = () => {
     setIsEditingProfile(false);
   };
-  
+
   return (
     <Card>
       <CardHeader>
@@ -64,7 +72,7 @@ export function ClientProfileForm() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="email"
@@ -79,7 +87,7 @@ export function ClientProfileForm() {
                 )}
               />
             </div>
-            
+
             <FormField
               control={form.control}
               name="phoneNumber"
@@ -93,7 +101,7 @@ export function ClientProfileForm() {
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="address"
@@ -107,7 +115,7 @@ export function ClientProfileForm() {
                 </FormItem>
               )}
             />
-            
+
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
@@ -122,7 +130,7 @@ export function ClientProfileForm() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="postalCode"
@@ -137,7 +145,7 @@ export function ClientProfileForm() {
                 )}
               />
             </div>
-            
+
             <div className="grid gap-4 sm:grid-cols-2">
               <FormField
                 control={form.control}
@@ -152,7 +160,7 @@ export function ClientProfileForm() {
                   </FormItem>
                 )}
               />
-              
+
               <FormField
                 control={form.control}
                 name="country"
@@ -167,7 +175,7 @@ export function ClientProfileForm() {
                 )}
               />
             </div>
-            
+
             <FormField
               control={form.control}
               name="preferredLanguage"
@@ -177,29 +185,22 @@ export function ClientProfileForm() {
                   <FormControl>
                     <Input placeholder="fr" {...field} />
                   </FormControl>
-                  <FormDescription>
-                    Code langue (ex: fr, en, es)
-                  </FormDescription>
+                  <FormDescription>Code langue (ex: fr, en, es)</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            
+
             <FormField
               control={form.control}
               name="newsletterOptIn"
               render={({ field }) => (
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                   <FormControl>
-                    <Checkbox
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
-                    />
+                    <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                   </FormControl>
                   <div className="space-y-1 leading-none">
-                    <FormLabel>
-                      Abonnement à la newsletter
-                    </FormLabel>
+                    <FormLabel>Abonnement à la newsletter</FormLabel>
                     <FormDescription>
                       Recevez nos actualités et promotions par email.
                     </FormDescription>
@@ -209,18 +210,11 @@ export function ClientProfileForm() {
             />
           </CardContent>
           <CardFooter className="flex justify-end space-x-2">
-            <Button 
-              variant="outline" 
-              type="button" 
-              onClick={handleCancel}
-            >
+            <Button variant="outline" type="button" onClick={handleCancel}>
               <XIcon className="h-4 w-4 mr-2" />
               Annuler
             </Button>
-            <Button 
-              type="submit"
-              disabled={isUpdatingProfile}
-            >
+            <Button type="submit" disabled={isUpdatingProfile}>
               <SaveIcon className="h-4 w-4 mr-2" />
               Enregistrer
             </Button>
@@ -229,4 +223,4 @@ export function ClientProfileForm() {
       </Form>
     </Card>
   );
-} 
+}

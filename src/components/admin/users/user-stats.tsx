@@ -1,14 +1,20 @@
 import { UserRole, UserStatus } from '@prisma/client';
 import { BarChart, PieChart, MapPin } from 'lucide-react';
-import { Bar, BarChart as RechartsBarChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Pie, PieChart as RechartsPieChart, Cell, Legend } from 'recharts';
+import {
+  Bar,
+  BarChart as RechartsBarChart,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Pie,
+  PieChart as RechartsPieChart,
+  Cell,
+  Legend,
+} from 'recharts';
 
-import { 
-  Card, 
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription 
-} from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { UserStatsData } from '@/types/admin';
 
@@ -19,18 +25,18 @@ interface UserStatsProps {
 export function UserStats({ data }: UserStatsProps) {
   // Couleurs pour les graphiques
   const COLORS = {
-    CLIENT: '#3b82f6',  // bleu
+    CLIENT: '#3b82f6', // bleu
     DELIVERER: '#22c55e', // vert
     MERCHANT: '#f97316', // orange
     PROVIDER: '#0ea5e9', // bleu ciel
-    ADMIN: '#a855f7',    // violet
-    
-    ACTIVE: '#22c55e',   // vert
+    ADMIN: '#a855f7', // violet
+
+    ACTIVE: '#22c55e', // vert
     INACTIVE: '#94a3b8', // gris
     SUSPENDED: '#ef4444', // rouge
     PENDING_VERIFICATION: '#f59e0b', // ambre
-    
-    verified: '#10b981',  // vert émeraude
+
+    verified: '#10b981', // vert émeraude
     unverified: '#f59e0b', // ambre
   };
 
@@ -126,8 +132,8 @@ export function UserStats({ data }: UserStatsProps) {
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value) => [`${value} utilisateurs`, 'Nombre']} />
-                      <Legend formatter={(value) => translateRole(value)} />
+                      <Tooltip formatter={value => [`${value} utilisateurs`, 'Nombre']} />
+                      <Legend formatter={value => translateRole(value)} />
                     </RechartsPieChart>
                   </ResponsiveContainer>
                 </div>
@@ -151,15 +157,17 @@ export function UserStats({ data }: UserStatsProps) {
                         outerRadius={80}
                         paddingAngle={2}
                         dataKey="value"
-                        label={({ name, percent }) => `${translateStatus(name)} (${(percent * 100).toFixed(0)}%)`}
+                        label={({ name, percent }) =>
+                          `${translateStatus(name)} (${(percent * 100).toFixed(0)}%)`
+                        }
                         labelLine={false}
                       >
                         {statusData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value) => [`${value} utilisateurs`, 'Nombre']} />
-                      <Legend formatter={(value) => translateStatus(value)} />
+                      <Tooltip formatter={value => [`${value} utilisateurs`, 'Nombre']} />
+                      <Legend formatter={value => translateStatus(value)} />
                     </RechartsPieChart>
                   </ResponsiveContainer>
                 </div>
@@ -190,7 +198,7 @@ export function UserStats({ data }: UserStatsProps) {
                           <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                       </Pie>
-                      <Tooltip formatter={(value) => [`${value} utilisateurs`, 'Nombre']} />
+                      <Tooltip formatter={value => [`${value} utilisateurs`, 'Nombre']} />
                       <Legend />
                     </RechartsPieChart>
                   </ResponsiveContainer>
@@ -205,9 +213,7 @@ export function UserStats({ data }: UserStatsProps) {
           <Card>
             <CardHeader>
               <CardTitle>Inscriptions mensuelles</CardTitle>
-              <CardDescription>
-                Tendance des inscriptions dans le temps
-              </CardDescription>
+              <CardDescription>Tendance des inscriptions dans le temps</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-80">
@@ -222,20 +228,20 @@ export function UserStats({ data }: UserStatsProps) {
                     }}
                   >
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="date" 
-                      angle={-45} 
+                    <XAxis
+                      dataKey="date"
+                      angle={-45}
                       textAnchor="end"
                       tick={{ fontSize: 12 }}
-                      tickFormatter={(date) => {
+                      tickFormatter={date => {
                         const d = new Date(date);
                         return `${d.toLocaleString('fr-FR', { month: 'short' })} ${d.getFullYear()}`;
                       }}
                     />
                     <YAxis />
-                    <Tooltip 
-                      formatter={(value) => [`${value} utilisateurs`, 'Inscriptions']}
-                      labelFormatter={(date) => {
+                    <Tooltip
+                      formatter={value => [`${value} utilisateurs`, 'Inscriptions']}
+                      labelFormatter={date => {
                         const d = new Date(date);
                         return `${d.toLocaleString('fr-FR', { month: 'long', year: 'numeric' })}`;
                       }}
@@ -253,9 +259,7 @@ export function UserStats({ data }: UserStatsProps) {
           <Card>
             <CardHeader>
               <CardTitle>Principaux pays</CardTitle>
-              <CardDescription>
-                Répartition des utilisateurs par pays
-              </CardDescription>
+              <CardDescription>Répartition des utilisateurs par pays</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="h-80">
@@ -272,13 +276,8 @@ export function UserStats({ data }: UserStatsProps) {
                   >
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis type="number" />
-                    <YAxis 
-                      dataKey="country" 
-                      type="category" 
-                      tick={{ fontSize: 12 }}
-                      width={100}
-                    />
-                    <Tooltip formatter={(value) => [`${value} utilisateurs`, 'Nombre']} />
+                    <YAxis dataKey="country" type="category" tick={{ fontSize: 12 }} width={100} />
+                    <Tooltip formatter={value => [`${value} utilisateurs`, 'Nombre']} />
                     <Bar dataKey="count" fill="#10b981" name="Utilisateurs" />
                   </RechartsBarChart>
                 </ResponsiveContainer>
@@ -292,7 +291,15 @@ export function UserStats({ data }: UserStatsProps) {
 }
 
 // Composant de carte statistique simple
-function StatCard({ title, value, description }: { title: string; value: number; description: string }) {
+function StatCard({
+  title,
+  value,
+  description,
+}: {
+  title: string;
+  value: number;
+  description: string;
+}) {
   return (
     <Card>
       <CardContent className="p-6">
@@ -325,4 +332,4 @@ function translateStatus(status: string): string {
     PENDING_VERIFICATION: 'En attente',
   };
   return translations[status] || status;
-} 
+}

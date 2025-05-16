@@ -1,22 +1,14 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 /**
  * Types de service pour les commissions
  */
-export const CommissionServiceTypeEnum = z.enum([
-  "DELIVERY",
-  "SERVICE",
-  "SUBSCRIPTION"
-]);
+export const CommissionServiceTypeEnum = z.enum(['DELIVERY', 'SERVICE', 'SUBSCRIPTION']);
 
 /**
  * Statuts des commissions
  */
-export const CommissionStatusEnum = z.enum([
-  "PENDING",
-  "PROCESSED",
-  "FAILED"
-]);
+export const CommissionStatusEnum = z.enum(['PENDING', 'PROCESSED', 'FAILED']);
 
 /**
  * Schéma principal pour les commissions
@@ -29,8 +21,8 @@ export const CommissionSchema = z.object({
   type: CommissionServiceTypeEnum,
   calculatedAt: z.date().default(() => new Date()),
   paidAt: z.date().optional(),
-  status: CommissionStatusEnum.default("PENDING"),
-  
+  status: CommissionStatusEnum.default('PENDING'),
+
   // Détails de la promotion
   promotionId: z.string().optional(),
   originalRate: z.number().min(0).max(1).optional(),
@@ -59,11 +51,11 @@ export const ApplyCommissionSchema = z.object({
  * Schéma pour la création d'une promotion temporaire
  */
 export const CreatePromotionSchema = z.object({
-  serviceType: z.enum(["DELIVERY", "SERVICE"]),
+  serviceType: z.enum(['DELIVERY', 'SERVICE']),
   promotionRate: z.number().min(0).max(1),
   startDate: z.date(),
   endDate: z.date().refine(date => date > new Date(), {
-    message: 'La date de fin doit être future'
+    message: 'La date de fin doit être future',
   }),
   description: z.string().optional(),
 });
@@ -71,13 +63,15 @@ export const CreatePromotionSchema = z.object({
 /**
  * Schéma pour la période de rapport
  */
-export const CommissionReportPeriodSchema = z.object({
-  startDate: z.date(),
-  endDate: z.date(),
-}).refine(data => data.endDate > data.startDate, {
-  message: "La date de fin doit être supérieure à la date de début",
-  path: ["endDate"],
-});
+export const CommissionReportPeriodSchema = z
+  .object({
+    startDate: z.date(),
+    endDate: z.date(),
+  })
+  .refine(data => data.endDate > data.startDate, {
+    message: 'La date de fin doit être supérieure à la date de début',
+    path: ['endDate'],
+  });
 
 /**
  * Schéma pour la recherche de commissions
@@ -210,4 +204,4 @@ export type SearchCommissionsInput = z.infer<typeof searchCommissionsSchema>;
 export type GetCommissionInput = z.infer<typeof getCommissionSchema>;
 export type CreatePromotionInput = z.infer<typeof createPromotionSchema>;
 export type CommissionReportInput = z.infer<typeof commissionReportSchema>;
-export type CommissionTierInput = z.infer<typeof commissionTierSchema>; 
+export type CommissionTierInput = z.infer<typeof commissionTierSchema>;

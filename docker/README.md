@@ -128,6 +128,7 @@ Conformément au cahier des charges, cette configuration Docker permet un déplo
 2. Sur le site de Lyon pour le backup des serveurs
 
 La configuration assure :
+
 - Une haute disponibilité de l'application
 - Des sauvegardes automatiques journalières
 - Une restauration rapide en cas de panne
@@ -152,4 +153,4 @@ docker exec ecodeli-postgres pg_isready -U postgres
 
 ### Problèmes de performances
 
-Ajustez les limites de ressources dans le fichier `docker-compose.prod.yml` selon votre infrastructure. 
+Ajustez les limites de ressources dans le fichier `docker-compose.prod.yml` selon votre infrastructure.

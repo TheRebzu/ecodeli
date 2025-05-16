@@ -1,0 +1,25 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# Internationalisation (i18n)
+
+## Configuration
+- [src/i18n](mdc:src/i18n) - Configuration de l'internationalisation
+- [src/messages](mdc:src/messages) - Fichiers de traduction par langue
+
+## Structure des Routes
+- [src/app/[locale]](mdc:src/app/[locale]) - Toutes les routes avec paramètre de langue
+- Utilisation de next-intl pour la gestion des locales
+
+## Utilisation dans les Composants
+- Utilisation du hook `useTranslations` pour accéder aux traductions
+- Format des clés de traduction: `domaine.sous-domaine.cle`
+- Paramètres dynamiques dans les traductions
+
+## Langues Supportées
+- Français (fr) - Langue par défaut
+- Anglais (en)
+- Possibilité d'ajouter d'autres langues facilement
+

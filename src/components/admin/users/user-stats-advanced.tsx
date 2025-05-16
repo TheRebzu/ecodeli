@@ -2,19 +2,8 @@
 
 import { useState, useMemo } from 'react';
 import { useTranslations } from 'next-intl';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from '@/components/ui/tabs';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   Select,
   SelectContent,
@@ -30,7 +19,13 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import { Switch } from '@/components/ui/switch';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { InfoIcon, TrendingUpIcon, TrendingDownIcon, UsersIcon, AlertTriangleIcon } from 'lucide-react';
+import {
+  InfoIcon,
+  TrendingUpIcon,
+  TrendingDownIcon,
+  UsersIcon,
+  AlertTriangleIcon,
+} from 'lucide-react';
 import { UserAdvancedStatsData } from '@/types/admin';
 import { UserRole, UserStatus } from '@prisma/client';
 import { api } from '@/trpc/react';
@@ -53,7 +48,16 @@ import {
   YAxis,
 } from 'recharts';
 
-const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#A569BD', '#EC7063', '#5D6D7E', '#45B39D'];
+const COLORS = [
+  '#0088FE',
+  '#00C49F',
+  '#FFBB28',
+  '#FF8042',
+  '#A569BD',
+  '#EC7063',
+  '#5D6D7E',
+  '#45B39D',
+];
 const STATUS_COLORS = {
   ACTIVE: '#10b981',
   INACTIVE: '#6b7280',
@@ -107,14 +111,14 @@ export default function UserStatsAdvanced({ initialFilters }: UserStatsAdvancedP
   };
 
   const handlePeriodChange = (value: string) => {
-    setFilters((prev) => ({
+    setFilters(prev => ({
       ...prev,
       period: value as UserStatsAdvancedSchemaType['period'],
     }));
   };
 
   const handleToggleChange = (key: keyof UserStatsAdvancedSchemaType) => {
-    setFilters((prev) => ({
+    setFilters(prev => ({
       ...prev,
       [key]: !prev[key],
     }));
@@ -281,7 +285,14 @@ export default function UserStatsAdvanced({ initialFilters }: UserStatsAdvancedP
                   <YAxis />
                   <Tooltip />
                   <Legend />
-                  <Area type="monotone" dataKey="count" stroke="#3b82f6" fill="#3b82f6" fillOpacity={0.3} name={t('newUsers')} />
+                  <Area
+                    type="monotone"
+                    dataKey="count"
+                    stroke="#3b82f6"
+                    fill="#3b82f6"
+                    fillOpacity={0.3}
+                    name={t('newUsers')}
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             </CardContent>
@@ -305,7 +316,14 @@ export default function UserStatsAdvanced({ initialFilters }: UserStatsAdvancedP
                     <YAxis />
                     <Tooltip />
                     <Legend />
-                    <Line type="monotone" dataKey="count" stroke="#10b981" strokeWidth={2} dot={{ r: 4 }} name={t('activeUsers')} />
+                    <Line
+                      type="monotone"
+                      dataKey="count"
+                      stroke="#10b981"
+                      strokeWidth={2}
+                      dot={{ r: 4 }}
+                      name={t('activeUsers')}
+                    />
                   </LineChart>
                 </ResponsiveContainer>
               </CardContent>
@@ -376,7 +394,10 @@ export default function UserStatsAdvanced({ initialFilters }: UserStatsAdvancedP
                       label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                     >
                       {Object.entries(stats.usersByRole).map(([role, _], index) => (
-                        <Cell key={`cell-${index}`} fill={ROLE_COLORS[role as UserRole] || COLORS[index % COLORS.length]} />
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={ROLE_COLORS[role as UserRole] || COLORS[index % COLORS.length]}
+                        />
                       ))}
                     </Pie>
                     <Tooltip />
@@ -409,7 +430,12 @@ export default function UserStatsAdvanced({ initialFilters }: UserStatsAdvancedP
                       label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                     >
                       {Object.entries(stats.usersByStatus).map(([status, _], index) => (
-                        <Cell key={`cell-${index}`} fill={STATUS_COLORS[status as UserStatus] || COLORS[index % COLORS.length]} />
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={
+                            STATUS_COLORS[status as UserStatus] || COLORS[index % COLORS.length]
+                          }
+                        />
                       ))}
                     </Pie>
                     <Tooltip />
@@ -498,7 +524,7 @@ export default function UserStatsAdvanced({ initialFilters }: UserStatsAdvancedP
                     <CartesianGrid strokeDasharray="3 3" />
                     <XAxis dataKey="period" />
                     <YAxis domain={[0, 100]} />
-                    <Tooltip formatter={(value) => [`${value}%`, t('retentionRate')]} />
+                    <Tooltip formatter={value => [`${value}%`, t('retentionRate')]} />
                     <Bar dataKey="rate" fill="#3b82f6" name={t('retentionRate')} />
                   </BarChart>
                 </ResponsiveContainer>
@@ -555,21 +581,27 @@ export default function UserStatsAdvanced({ initialFilters }: UserStatsAdvancedP
                 {stats.averageTimeToVerification !== undefined && (
                   <div className="flex flex-col space-y-1">
                     <span className="text-sm text-gray-500">{t('avgTimeVerification')}</span>
-                    <span className="text-2xl font-bold">{stats.averageTimeToVerification.toFixed(1)}</span>
+                    <span className="text-2xl font-bold">
+                      {stats.averageTimeToVerification.toFixed(1)}
+                    </span>
                     <span className="text-xs text-gray-400">{t('hours')}</span>
                   </div>
                 )}
                 {stats.averageSessionDuration !== undefined && (
                   <div className="flex flex-col space-y-1">
                     <span className="text-sm text-gray-500">{t('avgSessionDuration')}</span>
-                    <span className="text-2xl font-bold">{stats.averageSessionDuration.toFixed(1)}</span>
+                    <span className="text-2xl font-bold">
+                      {stats.averageSessionDuration.toFixed(1)}
+                    </span>
                     <span className="text-xs text-gray-400">{t('minutes')}</span>
                   </div>
                 )}
                 {stats.userRetentionRate !== undefined && (
                   <div className="flex flex-col space-y-1">
                     <span className="text-sm text-gray-500">{t('overallRetention')}</span>
-                    <span className="text-2xl font-bold">{stats.userRetentionRate.toFixed(1)}%</span>
+                    <span className="text-2xl font-bold">
+                      {stats.userRetentionRate.toFixed(1)}%
+                    </span>
                   </div>
                 )}
               </div>
@@ -623,7 +655,9 @@ export default function UserStatsAdvanced({ initialFilters }: UserStatsAdvancedP
                   {Object.entries(stats.customMetrics).map(([key, value]) => (
                     <div key={key} className="flex flex-col space-y-1">
                       <span className="text-sm text-gray-500">{t(`customMetrics.${key}`)}</span>
-                      <span className="text-2xl font-bold">{typeof value === 'number' ? value.toFixed(1) : value}</span>
+                      <span className="text-2xl font-bold">
+                        {typeof value === 'number' ? value.toFixed(1) : value}
+                      </span>
                     </div>
                   ))}
                 </div>
@@ -642,9 +676,7 @@ export default function UserStatsAdvanced({ initialFilters }: UserStatsAdvancedP
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">
-            {t('methodologyNote.content')}
-          </p>
+          <p className="text-sm text-muted-foreground">{t('methodologyNote.content')}</p>
         </CardContent>
       </Card>
     </div>
@@ -693,4 +725,4 @@ function UserStatsAdvancedSkeleton() {
       </div>
     </div>
   );
-} 
+}
