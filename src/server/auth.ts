@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { type GetServerSidePropsContext } from "next";
 import {
   getServerSession,
@@ -128,3 +129,6 @@ export const getServerAuthSession = (ctx?: {
   // App Router: utilisation sans contexte spécifique
   return getServerSession(authOptions);
 }; 
+=======
+export { authOptions } from './auth/next-auth';
+>>>>>>> 1b63c146c3df5c00cc1ce2e81d59f8f5633cf417

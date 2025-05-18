@@ -1989,12 +1989,125 @@ model UserActivityLog {
 // ===== MODÈLES DE MESSAGERIE =====
 // Ce fichier contient les modèles pour les conversations et messages entre utilisateurs.
 
+<<<<<<< HEAD
 /// Conversation entre deux utilisateurs
 model Conversation {
   id          String    @id @default(cuid())
   title       String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+=======
+enum VerificationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum DocumentType {
+  ID_CARD
+  DRIVING_LICENSE
+  VEHICLE_REGISTRATION
+  INSURANCE
+  QUALIFICATION_CERTIFICATE
+  PROOF_OF_ADDRESS
+  BUSINESS_REGISTRATION
+  SELFIE
+  OTHER
+}
+
+enum ContractStatus {
+  DRAFT
+  PENDING_SIGNATURE
+  ACTIVE
+  TERMINATED
+  EXPIRED
+}
+
+enum TokenType {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+  TWO_FACTOR_AUTH
+}
+
+enum DocumentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+enum ActivityType {
+  LOGIN
+  LOGOUT
+  PROFILE_UPDATE
+  PASSWORD_CHANGE
+  STATUS_CHANGE
+  ROLE_CHANGE
+  VERIFICATION_SUBMIT
+  VERIFICATION_REVIEW
+  DOCUMENT_UPLOAD
+  ACCOUNT_CREATION
+  OTHER
+}
+
+enum AnnouncementStatus {
+  DRAFT
+  PENDING
+  PUBLISHED
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum AnnouncementType {
+  PACKAGE
+  GROCERIES
+  DOCUMENTS
+  MEAL
+  FURNITURE
+  OTHER
+}
+
+enum AnnouncementPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum BookingStatus {
+  PENDING    // En attente de confirmation
+  CONFIRMED  // Confirmé par le prestataire
+  COMPLETED  // Service effectué
+  CANCELLED  // Annulé
+  RESCHEDULED // Reprogrammé
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum DeliveryStatus {
+  PENDING
+  ACCEPTED
+  PICKED_UP
+  IN_TRANSIT
+  DELIVERED
+  CONFIRMED
+  CANCELLED
+  DISPUTED
+}
+
+model Delivery {
+  id                String         @id @default(cuid())
+  status            DeliveryStatus @default(PENDING)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+>>>>>>> 1b63c146c3df5c00cc1ce2e81d59f8f5633cf417
   
   // Participants à la conversation
   participantIds String[]
