@@ -8,11 +8,7 @@ import {
   updateDocumentSchema,
   createVerificationSchema,
   updateVerificationSchema,
-<<<<<<< HEAD
 } from '@/schemas/document.schema';
-=======
-} from '../../../schemas/auth/document.schema';
->>>>>>> 1b63c146c3df5c00cc1ce2e81d59f8f5633cf417
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
@@ -23,7 +19,6 @@ export const documentRouter = router({
   /**
    * Obtenir les documents de l'utilisateur connecté
    */
-<<<<<<< HEAD
   getMyDocuments: protectedProcedure.query(async ({ ctx }) => {
     try {
       const userId = ctx.session.user.id;
@@ -40,55 +35,6 @@ export const documentRouter = router({
       });
     }
   }),
-=======
-  getUserDocuments: protectedProcedure
-    .input(
-      z
-        .object({
-          status: z.string().optional(),
-          userId: z.string().optional(),
-        })
-        .optional()
-    )
-    .query(async ({ ctx, input }) => {
-      try {
-        // Utilisation de l'instance documentService plutôt que de la classe DocumentService
-        const userId = input?.userId || ctx.session.user.id;
-        const status = input?.status;
-        const documents = await documentService.getUserDocuments(userId);
-        return documents;
-      } catch (error: any) {
-        console.error('Erreur lors de la récupération des documents:', error);
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la récupération des documents',
-          cause: error,
-        });
-      }
-    }),
-
-  /**
-   * Obtenir les types de documents requis pour un rôle d'utilisateur
-   */
-  getRequiredDocumentTypes: protectedProcedure
-    .input(
-      z.object({
-        userRole: z.enum(['DELIVERER', 'PROVIDER', 'MERCHANT', 'CLIENT']),
-      })
-    )
-    .query(async ({ input }) => {
-      try {
-        const types = documentService.getRequiredDocumentTypesByRole(input.userRole.toLowerCase());
-        return types;
-      } catch (error: any) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la récupération des types de documents requis',
-          cause: error,
-        });
-      }
-    }),
->>>>>>> 1b63c146c3df5c00cc1ce2e81d59f8f5633cf417
 
   /**
    * Obtenir les documents d'un utilisateur
@@ -226,15 +172,6 @@ export const documentRouter = router({
           });
         }
 
-<<<<<<< HEAD
-=======
-        let docType = input.type;
-        let documentNotes = input.notes || '';
-
-        // SELFIE is now a valid enum type in the Prisma schema, no need to convert
-        // Keep documentNotes as is
-
->>>>>>> 1b63c146c3df5c00cc1ce2e81d59f8f5633cf417
         let fileUrl = '';
         let fileName = '';
         let mimeType = '';
@@ -288,28 +225,16 @@ export const documentRouter = router({
 
           // Construire l'URL du fichier
           fileUrl = `/uploads/${userId}/${uniqueFilename}`;
-<<<<<<< HEAD
-=======
-          fileName = uniqueFilename;
->>>>>>> 1b63c146c3df5c00cc1ce2e81d59f8f5633cf417
 
           // Enregistrer les métadonnées dans la base de données
           const result = await documentService.uploadDocument({
             userId,
-<<<<<<< HEAD
             type: input.type,
-=======
-            type: docType,
->>>>>>> 1b63c146c3df5c00cc1ce2e81d59f8f5633cf417
             filename: uniqueFilename,
             fileUrl,
             mimeType,
             fileSize: buffer.length,
-<<<<<<< HEAD
             notes: input.notes,
-=======
-            notes: documentNotes,
->>>>>>> 1b63c146c3df5c00cc1ce2e81d59f8f5633cf417
             expiryDate: input.expiryDate,
           });
 
@@ -404,21 +329,12 @@ export const documentRouter = router({
         // Enregistrer les métadonnées dans la base de données
         const result = await documentService.uploadDocument({
           userId,
-<<<<<<< HEAD
           type: input.type,
           filename: fileName,
           fileUrl: fileUrl,
           mimeType: mimeType,
           fileSize: fileSize,
           notes: input.notes,
-=======
-          type: docType,
-          filename: fileName,
-          fileUrl,
-          mimeType,
-          fileSize: fileSize,
-          notes: documentNotes,
->>>>>>> 1b63c146c3df5c00cc1ce2e81d59f8f5633cf417
           expiryDate: input.expiryDate,
         });
 
@@ -592,11 +508,7 @@ export const documentRouter = router({
       return await documentService.updateVerification({
         verificationId: input.verificationId,
         verifierId: ctx.session.user.id,
-<<<<<<< HEAD
         status: input.status as DocumentStatus,
-=======
-        status: input.status as unknown as VerificationStatus,
->>>>>>> 1b63c146c3df5c00cc1ce2e81d59f8f5633cf417
         notes: input.notes,
       });
     }),

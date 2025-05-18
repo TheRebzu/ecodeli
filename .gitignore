@@ -39,8 +39,4 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-<<<<<<< HEAD
 public/uploads/
-=======
-public/uploads/
->>>>>>> 1b63c146c3df5c00cc1ce2e81d59f8f5633cf417
