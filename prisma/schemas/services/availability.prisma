@@ -1,0 +1,18 @@
+// ===== MODÈLES DE DISPONIBILITÉ DES PRESTATAIRES =====
+// Ce fichier contient le modèle pour gérer les disponibilités des prestataires de services.
+
+/// Disponibilité d'un prestataire de service par jour et créneau horaire
+model ProviderAvailability {
+  id         String   @id @default(cuid())
+  providerId String
+  dayOfWeek  Int
+  startTime  DateTime
+  endTime    DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  // Relation avec User
+  provider   User     @relation(fields: [providerId], references: [id])
+
+  @@index([providerId])
+} 

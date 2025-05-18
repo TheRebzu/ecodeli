@@ -1,177 +1,193 @@
 'use client';
 
-import { useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { api } from '@/trpc/react';
+import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
+import { useSession } from 'next-auth/react';
+import { FileText, RefreshCw, Download, FileDown } from 'lucide-react';
 
-import { InvoiceList, Invoice } from '@/components/payments/invoice-list';
+import { api } from '@/trpc/react';
+import { useToast } from '@/components/ui/use-toast';
+
+import { 
+  Card, 
+  CardContent, 
+  CardDescription, 
+  CardHeader, 
+  CardTitle 
+} from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, Download } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Separator } from '@/components/ui/separator';
+import { InvoiceList } from '@/components/payments/invoice-list';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-// Données de test des factures
-const mockInvoices: Invoice[] = [
-  {
-    id: 'inv-001',
-    number: 'FAC-2025-001',
-    amount: 42.5,
-    currency: 'EUR',
-    status: 'PAID',
-    dueDate: new Date('2025-06-15'),
-    issuedDate: new Date('2025-05-15'),
-    paidDate: new Date('2025-05-20'),
-    pdfUrl: '/invoices/fac-2025-001.pdf',
-    items: [
-      {
-        id: 'item-001',
-        description: 'Livraison éco-responsable',
-        quantity: 1,
-        unitPrice: 35.0,
-        taxRate: 20,
-        taxAmount: 7.0,
-        totalAmount: 42.0,
-      },
-    ],
-  },
-  {
-    id: 'inv-002',
-    number: 'FAC-2025-002',
-    amount: 68.75,
-    currency: 'EUR',
-    status: 'SENT',
-    dueDate: new Date('2025-06-30'),
-    issuedDate: new Date('2025-05-30'),
-    pdfUrl: '/invoices/fac-2025-002.pdf',
-    items: [
-      {
-        id: 'item-002',
-        description: 'Livraison éco-responsable',
-        quantity: 1,
-        unitPrice: 35.0,
-        taxRate: 20,
-        taxAmount: 7.0,
-        totalAmount: 42.0,
-      },
-      {
-        id: 'item-003',
-        description: 'Service de stockage temporaire',
-        quantity: 2,
-        unitPrice: 10.0,
-        taxRate: 10,
-        taxAmount: 2.0,
-        totalAmount: 22.0,
-      },
-    ],
-  },
-  {
-    id: 'inv-003',
-    number: 'FAC-2025-003',
-    amount: 35.0,
-    currency: 'EUR',
-    status: 'OVERDUE',
-    dueDate: new Date('2025-05-20'),
-    issuedDate: new Date('2025-05-05'),
-    pdfUrl: '/invoices/fac-2025-003.pdf',
-    items: [
-      {
-        id: 'item-004',
-        description: 'Abonnement mensuel',
-        quantity: 1,
-        unitPrice: 29.17,
-        taxRate: 20,
-        taxAmount: 5.83,
-        totalAmount: 35.0,
-      },
-    ],
-  },
-  {
-    id: 'inv-004',
-    number: 'FAC-2025-004',
-    amount: 19.9,
-    currency: 'EUR',
-    status: 'DRAFT',
-    dueDate: new Date('2025-07-15'),
-    issuedDate: new Date('2025-06-15'),
-    items: [
-      {
-        id: 'item-005',
-        description: 'Frais de service',
-        quantity: 1,
-        unitPrice: 16.58,
-        taxRate: 20,
-        taxAmount: 3.32,
-        totalAmount: 19.9,
-      },
-    ],
-  },
-];
-
-export default function ClientInvoicesPage() {
+export default function InvoicesPage() {
   const t = useTranslations('invoices');
   const router = useRouter();
-  const [isDownloading, setIsDownloading] = useState<string | null>(null);
-
-  // À remplacer par un appel tRPC réel
-  const {
-    data: invoices,
-    isLoading,
-    error,
-  } = {
-    data: mockInvoices,
-    isLoading: false,
-    error: null,
-  };
-  // Décommenter pour utiliser tRPC
-  // const { data: invoices, isLoading, error } = api.invoices.getClientInvoices.useQuery();
-
-  // Gérer le téléchargement de la facture
-  const handleDownload = async (invoiceId: string) => {
-    setIsDownloading(invoiceId);
+  const { data: session } = useSession();
+  const { toast } = useToast();
+  const [isDownloading, setIsDownloading] = useState(false);
+  const [activeTab, setActiveTab] = useState<string>('all');
+  
+  // Requête pour récupérer les statistiques des factures
+  const { data: invoiceStats, isLoading: isLoadingStats } = api.invoice.getInvoiceStats.useQuery();
+  
+  // Fonction pour télécharger une facture
+  const handleDownloadInvoice = async (invoiceId: string) => {
     try {
-      // Simuler un téléchargement pour les tests
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Récupérer l'URL du PDF - à remplacer par l'implémentation réelle
-      const invoice = mockInvoices.find(inv => inv.id === invoiceId);
-      if (invoice?.pdfUrl) {
-        // Dans une implémentation réelle, on redirigerait vers l'URL ou on déclencherait le téléchargement
-        console.log(`Téléchargement de ${invoice.pdfUrl}`);
-      }
-
-      // Décommenter pour utiliser tRPC
-      // await api.invoices.downloadInvoice.mutate({ invoiceId });
-    } catch (err) {
-      console.error('Erreur lors du téléchargement', err);
+      setIsDownloading(true);
+      
+      // Dans une implémentation réelle, appelez l'API pour télécharger la facture
+      await api.invoice.downloadInvoice.mutate({ invoiceId });
+      
+      toast({
+        variant: "default",
+        title: t('downloadStarted'),
+        description: t('invoiceDownloadStarted'),
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: t('downloadError'),
+        description: typeof error === 'string' ? error : t('genericError'),
+      });
     } finally {
-      setIsDownloading(null);
+      setIsDownloading(false);
     }
   };
-
-  // Rediriger vers la page de détail
-  const handleViewDetails = (invoiceId: string) => {
+  
+  // Fonction pour voir les détails d'une facture
+  const handleViewInvoice = (invoiceId: string) => {
     router.push(`/client/invoices/${invoiceId}`);
   };
-
-  // Gérer les erreurs
-  if (error) {
-    return (
-      <Alert variant="destructive" className="mb-4">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>{t('error')}</AlertTitle>
-        <AlertDescription>{error.message}</AlertDescription>
-      </Alert>
-    );
-  }
-
+  
   return (
-    <div className="container py-8">
-      <InvoiceList
-        invoices={invoices || []}
-        isLoading={isLoading}
-        onDownload={handleDownload}
-        onViewDetails={handleViewDetails}
-      />
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">{t('pageTitle')}</h1>
+          <p className="text-muted-foreground">{t('pageDescription')}</p>
+        </div>
+        <Button className="w-full sm:w-auto" onClick={() => router.push('/client/invoices/demo')}>
+          <FileDown className="h-4 w-4 mr-2" />
+          {t('downloadAll')}
+        </Button>
+      </div>
+      
+      {/* Statistiques des factures */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base">{t('invoiceStatistics')}</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {isLoadingStats ? (
+              <>
+                <Skeleton className="h-20" />
+                <Skeleton className="h-20" />
+                <Skeleton className="h-20" />
+                <Skeleton className="h-20" />
+              </>
+            ) : (
+              <>
+                <div className="bg-muted/50 p-3 rounded-md">
+                  <div className="text-sm text-muted-foreground">{t('totalInvoices')}</div>
+                  <div className="text-2xl font-bold mt-1">{invoiceStats?.total || 0}</div>
+                </div>
+                <div className="bg-muted/50 p-3 rounded-md">
+                  <div className="text-sm text-muted-foreground">{t('paidInvoices')}</div>
+                  <div className="text-2xl font-bold mt-1 text-green-600">{invoiceStats?.paid || 0}</div>
+                </div>
+                <div className="bg-muted/50 p-3 rounded-md">
+                  <div className="text-sm text-muted-foreground">{t('pendingInvoices')}</div>
+                  <div className="text-2xl font-bold mt-1 text-amber-600">{invoiceStats?.pending || 0}</div>
+                </div>
+                <div className="bg-muted/50 p-3 rounded-md">
+                  <div className="text-sm text-muted-foreground">{t('overdueInvoices')}</div>
+                  <div className="text-2xl font-bold mt-1 text-red-600">{invoiceStats?.overdue || 0}</div>
+                </div>
+              </>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+      
+      <Tabs defaultValue="all" value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="grid grid-cols-4 mb-4">
+          <TabsTrigger value="all">{t('allInvoices')}</TabsTrigger>
+          <TabsTrigger value="paid">{t('paidInvoices')}</TabsTrigger>
+          <TabsTrigger value="pending">{t('pendingInvoices')}</TabsTrigger>
+          <TabsTrigger value="overdue">{t('overdueInvoices')}</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="all" className="m-0">
+          <InvoiceList
+            userId={session?.user?.id}
+            onViewInvoice={handleViewInvoice}
+            onDownloadInvoice={handleDownloadInvoice}
+          />
+        </TabsContent>
+        
+        <TabsContent value="paid" className="m-0">
+          <InvoiceList
+            userId={session?.user?.id}
+            onViewInvoice={handleViewInvoice}
+            onDownloadInvoice={handleDownloadInvoice}
+            statusFilter="PAID"
+          />
+        </TabsContent>
+        
+        <TabsContent value="pending" className="m-0">
+          <InvoiceList
+            userId={session?.user?.id}
+            onViewInvoice={handleViewInvoice}
+            onDownloadInvoice={handleDownloadInvoice}
+            statusFilter="ISSUED"
+          />
+        </TabsContent>
+        
+        <TabsContent value="overdue" className="m-0">
+          <InvoiceList
+            userId={session?.user?.id}
+            onViewInvoice={handleViewInvoice}
+            onDownloadInvoice={handleDownloadInvoice}
+            statusFilter="OVERDUE"
+          />
+        </TabsContent>
+      </Tabs>
+      
+      {/* Mode démo */}
+      <Separator />
+      <div className="pt-2">
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base">{t('demoMode')}</CardTitle>
+            <CardDescription>{t('demoModeDescription')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <Button 
+                variant="outline" 
+                className="flex-1"
+                onClick={() => router.push('/client/invoices/demo')}
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                {t('viewDemoInvoices')}
+              </Button>
+              <Button
+                variant="secondary"
+                className="flex-1"
+                onClick={() => handleDownloadInvoice('demo-invoice')}
+                disabled={isDownloading}
+              >
+                <Download className="h-4 w-4 mr-2" />
+                {t('downloadSampleInvoice')}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

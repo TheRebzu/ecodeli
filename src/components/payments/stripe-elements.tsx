@@ -5,11 +5,14 @@ import { loadStripe, StripeElementsOptions } from '@stripe/stripe-js';
 import { Elements, PaymentElement, useStripe, useElements } from '@stripe/react-stripe-js';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Loader2, AlertCircle, Check, CreditCard } from 'lucide-react';
+import { Loader2, AlertCircle, Check, CreditCard, Zap, Info } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { api } from '@/trpc/react';
 import { formatCurrency } from '@/lib/utils';
+import { Badge } from '@/components/ui/badge';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { usePaymentConfirmation } from '@/hooks/use-payment';
 
 // Initialiser Stripe avec la clé publique
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
@@ -20,6 +23,7 @@ interface CheckoutFormProps {
   currency?: string;
   onSuccess?: (paymentIntentId: string) => void;
   onCancel?: () => void;
+  isDemoMode?: boolean;
 }
 
 // Formulaire de paiement Stripe
@@ -29,6 +33,7 @@ function CheckoutForm({
   currency = 'EUR',
   onSuccess,
   onCancel,
+  isDemoMode = false,
 }: CheckoutFormProps) {
   const t = useTranslations('payment');
   const stripe = useStripe();
@@ -51,6 +56,16 @@ function CheckoutForm({
     setPaymentStatus('processing');
 
     try {
+      // En mode démo, simuler un paiement réussi après un court délai
+      if (isDemoMode) {
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        setPaymentStatus('success');
+        if (onSuccess) {
+          onSuccess('demo_pi_' + Math.random().toString(36).substring(2, 15));
+        }
+        return;
+      }
+
       // Confirmer le paiement avec les éléments Stripe
       const { error, paymentIntent } = await stripe.confirmPayment({
         elements,
@@ -80,6 +95,38 @@ function CheckoutForm({
     }
   };
 
+  // Simuler un paiement réussi (pour le mode démo)
+  const handleDemoSuccess = () => {
+    if (!isDemoMode) return;
+    
+    setIsProcessing(true);
+    setPaymentStatus('processing');
+    
+    // Simuler un délai de traitement
+    setTimeout(() => {
+      setPaymentStatus('success');
+      setIsProcessing(false);
+      if (onSuccess) {
+        onSuccess('demo_pi_' + Math.random().toString(36).substring(2, 15));
+      }
+    }, 1500);
+  };
+
+  // Simuler un paiement échoué (pour le mode démo)
+  const handleDemoFailure = () => {
+    if (!isDemoMode) return;
+    
+    setIsProcessing(true);
+    setPaymentStatus('processing');
+    
+    // Simuler un délai de traitement
+    setTimeout(() => {
+      setPaymentStatus('error');
+      setErrorMessage(t('demoPaymentFailure'));
+      setIsProcessing(false);
+    }, 1500);
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {paymentStatus === 'success' && (
@@ -98,7 +145,38 @@ function CheckoutForm({
         </Alert>
       )}
 
-      <PaymentElement />
+      {isDemoMode && paymentStatus === 'idle' && (
+        <Alert className="mb-4 bg-blue-50 text-blue-800 border-blue-200">
+          <Info className="h-4 w-4" />
+          <AlertTitle>{t('demoPayment')}</AlertTitle>
+          <AlertDescription>{t('demoStripeDescription')}</AlertDescription>
+        </Alert>
+      )}
+
+      <PaymentElement 
+        options={{
+          // Rendre les champs plus accessibles
+          fields: {
+            billingDetails: {
+              name: 'auto',
+              email: 'auto',
+              phone: 'auto',
+              address: {
+                country: 'auto',
+                postalCode: 'auto',
+                line1: 'auto',
+                line2: 'never',
+                city: 'auto',
+                state: 'auto',
+              },
+            },
+          },
+          // Ajouter des messages d'erreur en français
+          terms: {
+            card: t('cardTerms'),
+          }
+        }} 
+      />
 
       <div className="flex justify-between gap-4 mt-6">
         <Button
@@ -111,8 +189,9 @@ function CheckoutForm({
         </Button>
         <Button
           type="submit"
-          disabled={!stripe || isProcessing || paymentStatus === 'success'}
+          disabled={(!stripe && !isDemoMode) || isProcessing || paymentStatus === 'success'}
           className="flex-1"
+          aria-live="polite"
         >
           {isProcessing ? (
             <>
@@ -126,6 +205,35 @@ function CheckoutForm({
           )}
         </Button>
       </div>
+
+      {/* Options de démonstration */}
+      {isDemoMode && paymentStatus === 'idle' && (
+        <div className="mt-4 border-t pt-4">
+          <p className="text-xs text-muted-foreground mb-2">{t('demoOptions')}</p>
+          <div className="grid grid-cols-2 gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleDemoSuccess}
+              className="text-xs bg-green-50 text-green-700 border-green-200 hover:bg-green-100"
+            >
+              <Check className="mr-1 h-3 w-3" />
+              {t('simulateSuccess')}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleDemoFailure}
+              className="text-xs bg-red-50 text-red-700 border-red-200 hover:bg-red-100"
+            >
+              <AlertCircle className="mr-1 h-3 w-3" />
+              {t('simulateFailure')}
+            </Button>
+          </div>
+        </div>
+      )}
     </form>
   );
 }
@@ -137,6 +245,7 @@ interface StripeElementsProps {
   currency?: string;
   onSuccess?: (paymentIntentId: string) => void;
   onCancel?: () => void;
+  demo?: boolean;
 }
 
 export function StripeElements({
@@ -146,9 +255,14 @@ export function StripeElements({
   currency = 'EUR',
   onSuccess,
   onCancel,
+  demo = false,
 }: StripeElementsProps) {
   const t = useTranslations('payment');
   const [stripeReady, setStripeReady] = useState(false);
+  const { isDemoMode } = usePaymentConfirmation();
+
+  // Déterminer si on est en mode démo
+  const isInDemoMode = demo || isDemoMode || process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
 
   useEffect(() => {
     // Marquer Stripe comme prêt une fois le client secret disponible
@@ -177,15 +291,33 @@ export function StripeElements({
         borderRadius: '0.375rem',
       },
     },
+    locale: 'fr',
   };
 
   return (
     <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <CreditCard className="h-5 w-5" />
-          {t('securePayment')}
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <CreditCard className="h-5 w-5" />
+            {t('securePayment')}
+          </CardTitle>
+          {isInDemoMode && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1">
+                    <Zap className="h-3 w-3" />
+                    {t('demoMode')}
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{t('demoPaymentDescription')}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
         <CardDescription>
           {t('amountToPay', { amount: formatCurrency(amount, currency) })}
         </CardDescription>
@@ -198,6 +330,7 @@ export function StripeElements({
             currency={currency}
             onSuccess={onSuccess}
             onCancel={onCancel}
+            isDemoMode={isInDemoMode}
           />
         </Elements>
       </CardContent>
@@ -220,19 +353,48 @@ interface PaymentMethod {
 export function StripePaymentMethodSelector({
   selectedPaymentMethodId,
   onPaymentMethodSelected,
+  demo = false
 }: {
   selectedPaymentMethodId?: string;
   onPaymentMethodSelected: (paymentMethodId: string) => void;
+  demo?: boolean;
 }) {
   const t = useTranslations('payment');
   const [isLoading, setIsLoading] = useState(true);
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const { isDemoMode } = usePaymentConfirmation();
+
+  // Déterminer si on est en mode démo
+  const isInDemoMode = demo || isDemoMode || process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
 
   // Récupérer les méthodes de paiement sauvegardées via l'API tRPC
   const paymentMethodsQuery = api.payment.getPaymentMethods.useQuery();
 
   // Mise à jour des données lorsque la requête est terminée
   useEffect(() => {
+    // En mode démo, créer des méthodes de paiement factices
+    if (isInDemoMode) {
+      setIsLoading(false);
+      
+      const demoMethods: PaymentMethod[] = [
+        {
+          id: 'pm_demo_visa',
+          card: { brand: 'visa', last4: '4242', exp_month: 12, exp_year: 2030 }
+        },
+        {
+          id: 'pm_demo_mastercard',
+          card: { brand: 'mastercard', last4: '5555', exp_month: 10, exp_year: 2028 }
+        },
+        {
+          id: 'pm_demo_amex',
+          card: { brand: 'amex', last4: '0005', exp_month: 8, exp_year: 2026 }
+        }
+      ];
+      
+      setPaymentMethods(demoMethods);
+      return;
+    }
+    
     if (!paymentMethodsQuery.isLoading) {
       setIsLoading(false);
       if (paymentMethodsQuery.data?.success && paymentMethodsQuery.data.paymentMethods) {
@@ -240,9 +402,9 @@ export function StripePaymentMethodSelector({
         setPaymentMethods(paymentMethodsQuery.data.paymentMethods as unknown as PaymentMethod[]);
       }
     }
-  }, [paymentMethodsQuery.isLoading, paymentMethodsQuery.data]);
+  }, [paymentMethodsQuery.isLoading, paymentMethodsQuery.data, isInDemoMode]);
 
-  if (isLoading || paymentMethodsQuery.isLoading) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center p-4">
         <Loader2 className="h-6 w-6 animate-spin" />
@@ -250,7 +412,7 @@ export function StripePaymentMethodSelector({
     );
   }
 
-  if (paymentMethodsQuery.isError) {
+  if (paymentMethodsQuery.isError && !isInDemoMode) {
     return (
       <Alert className="border-red-200 bg-red-50 text-red-800">
         <AlertCircle className="h-4 w-4" />
@@ -272,7 +434,15 @@ export function StripePaymentMethodSelector({
 
   return (
     <div className="space-y-2">
-      <h3 className="text-sm font-medium">{t('selectSavedPaymentMethod')}</h3>
+      <div className="flex items-center justify-between mb-2">
+        <h3 className="text-sm font-medium">{t('selectSavedPaymentMethod')}</h3>
+        {isInDemoMode && (
+          <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1">
+            <Zap className="h-3 w-3" />
+            {t('demoMode')}
+          </Badge>
+        )}
+      </div>
       <div className="space-y-2">
         {paymentMethods.map(method => (
           <div
@@ -283,6 +453,15 @@ export function StripePaymentMethodSelector({
                 : 'hover:bg-muted/50'
             }`}
             onClick={() => onPaymentMethodSelected(method.id)}
+            role="radio"
+            aria-checked={selectedPaymentMethodId === method.id}
+            tabIndex={0}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                onPaymentMethodSelected(method.id);
+                e.preventDefault();
+              }
+            }}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">

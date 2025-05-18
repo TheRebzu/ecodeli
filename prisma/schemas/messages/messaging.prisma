@@ -1,0 +1,49 @@
+// ===== MODÈLES DE MESSAGERIE =====
+// Ce fichier contient les modèles pour les conversations et messages entre utilisateurs.
+
+/// Conversation entre deux utilisateurs
+model Conversation {
+  id          String    @id @default(cuid())
+  title       String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Participants à la conversation
+  participantIds String[]
+  
+  // Métadonnées
+  isArchived  Boolean   @default(false)
+  lastMessageAt DateTime?
+  status      String    @default("ACTIVE") // ACTIVE, PENDING, ARCHIVED
+  
+  // Relations
+  messages    Message[]
+
+  @@map("conversations")
+}
+
+/// Message dans une conversation
+model Message {
+  id              String    @id @default(cuid())
+  conversationId  String
+  senderId        String
+  content         String
+  createdAt       DateTime  @default(now())
+  
+  // Statut de lecture
+  status          String    @default("UNREAD") // READ, UNREAD, DELETED
+  readAt          DateTime?
+  
+  // Métadonnées
+  attachments     Json?
+  replyToId       String?
+  
+  // Relations
+  conversation    Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender          User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([status])
+  @@map("messages")
+} 

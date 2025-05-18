@@ -1,0 +1,28 @@
+// ===== MODÈLES D'ABONNEMENT AUX BOXES =====
+// Ce fichier contient le modèle pour les abonnements aux notifications de disponibilité.
+
+/// Abonnement pour être notifié quand une box devient disponible
+model BoxAvailabilitySubscription {
+  id                      String    @id @default(cuid())
+  boxId                   String
+  clientId                String
+  startDate               DateTime?
+  endDate                 DateTime?
+  minSize                 Float?
+  maxPrice                Float?
+  boxType                 BoxType?
+  warehouseId             String?
+  isActive                Boolean   @default(true)
+  notificationPreferences Json?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+  lastNotified            DateTime?
+  
+  // Relations
+  box                     Box       @relation(fields: [boxId], references: [id], onDelete: Cascade)
+  client                  User      @relation(fields: [clientId], references: [id])
+
+  @@index([boxId])
+  @@index([clientId])
+  @@map("box_availability_subscriptions")
+} 

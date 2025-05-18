@@ -1,7 +1,49 @@
 {
-  "totalFiles": 604,
-  "totalStrings": 20356,
-  "alreadyTranslated": 20356,
-  "newTranslations": 0,
-  "topFiles": []
+  "timestamp": "2025-05-18T13:23:55.035Z",
+  "totalFiles": 705,
+  "totalStrings": 2952,
+  "alreadyTranslated": 226925,
+  "newTranslations": 2585,
+  "topFiles": [
+    {
+      "path": "src\\emails\\templates.ts",
+      "count": 224
+    },
+    {
+      "path": "src\\server\\services\\notification.service.ts",
+      "count": 78
+    },
+    {
+      "path": "src\\server\\services\\delivery-tracking.service.ts",
+      "count": 68
+    },
+    {
+      "path": "src\\server\\api\\routers\\announcement.router.ts",
+      "count": 51
+    },
+    {
+      "path": "src\\app\\[locale]\\(public)\\home\\page.tsx",
+      "count": 51
+    },
+    {
+      "path": "src\\app\\[locale]\\(public)\\pricing\\page.tsx",
+      "count": 50
+    },
+    {
+      "path": "src\\app\\[locale]\\(public)\\faq\\page.tsx",
+      "count": 46
+    },
+    {
+      "path": "src\\server\\services\\subscription.service.ts",
+      "count": 45
+    },
+    {
+      "path": "src\\server\\services\\payment.service.ts",
+      "count": 45
+    },
+    {
+      "path": "src\\server\\services\\billing.service.ts",
+      "count": 42
+    }
+  ]
 }

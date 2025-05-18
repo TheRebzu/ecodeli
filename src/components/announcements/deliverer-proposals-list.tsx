@@ -56,7 +56,7 @@ import {
   Filter,
   Search,
   Euro,
-  Loader2,
+  Loader,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -87,12 +87,14 @@ interface DelivererProposal {
 
 interface DelivererProposalsListProps {
   proposals: DelivererProposal[];
+  announcementId: string;
   announcementTitle: string;
   suggestedPrice: number;
-  onAccept: (proposalId: string) => Promise<void>;
-  onReject: (proposalId: string) => Promise<void>;
-  onSendMessage: (delivererId: string) => void;
-  onViewDelivererProfile: (delivererId: string) => void;
+  onProposalAccepted?: () => void;
+  onAccept?: (proposalId: string) => Promise<void>;
+  onReject?: (proposalId: string) => Promise<void>;
+  onSendMessage?: (delivererId: string) => void;
+  onViewDelivererProfile?: (delivererId: string) => void;
   isLoading?: boolean;
   error?: string;
 }
@@ -100,14 +102,16 @@ interface DelivererProposalsListProps {
 /**
  * Liste des propositions des livreurs pour une annonce
  */
-export function DelivererProposalsList({
+export default function DelivererProposalsList({
   proposals,
+  announcementId,
   announcementTitle,
   suggestedPrice,
   onAccept,
   onReject,
   onSendMessage,
   onViewDelivererProfile,
+  onProposalAccepted,
   isLoading = false,
   error,
 }: DelivererProposalsListProps) {
@@ -172,7 +176,7 @@ export function DelivererProposalsList({
   const handleAccept = async (proposal: DelivererProposal) => {
     try {
       setProcessingProposalId(proposal.id);
-      await onAccept(proposal.id);
+      await onAccept?.(proposal.id);
     } finally {
       setProcessingProposalId(null);
       setIsDialogOpen(false);
@@ -183,7 +187,7 @@ export function DelivererProposalsList({
   const handleReject = async (proposal: DelivererProposal) => {
     try {
       setProcessingProposalId(proposal.id);
-      await onReject(proposal.id);
+      await onReject?.(proposal.id);
     } finally {
       setProcessingProposalId(null);
       setIsDialogOpen(false);
@@ -298,7 +302,7 @@ export function DelivererProposalsList({
         {/* État de chargement */}
         {isLoading ? (
           <div className="flex items-center justify-center p-8">
-            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <Loader className="h-8 w-8 animate-spin text-primary" />
           </div>
         ) : filteredProposals.length === 0 ? (
           <div className="text-center py-8 text-muted-foreground">
@@ -436,7 +440,7 @@ export function DelivererProposalsList({
                           <DropdownMenuItem
                             onClick={e => {
                               e.stopPropagation();
-                              onSendMessage(proposal.deliverer.id);
+                              onSendMessage?.(proposal.deliverer.id);
                             }}
                           >
                             <MessageSquare className="mr-2 h-4 w-4" />
@@ -445,7 +449,7 @@ export function DelivererProposalsList({
                           <DropdownMenuItem
                             onClick={e => {
                               e.stopPropagation();
-                              onViewDelivererProfile(proposal.deliverer.id);
+                              onViewDelivererProfile?.(proposal.deliverer.id);
                             }}
                           >
                             <User className="mr-2 h-4 w-4" />
@@ -598,7 +602,7 @@ export function DelivererProposalsList({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => onSendMessage(selectedDeliverer.deliverer.id)}
+                  onClick={() => onSendMessage?.(selectedDeliverer.deliverer.id)}
                 >
                   <MessageSquare className="mr-2 h-4 w-4" />
                   {t('sendMessage')}
@@ -614,7 +618,7 @@ export function DelivererProposalsList({
                     onClick={() => handleReject(selectedDeliverer)}
                   >
                     {processingProposalId === selectedDeliverer.id ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
                       <ThumbsDown className="mr-2 h-4 w-4" />
                     )}
@@ -627,7 +631,7 @@ export function DelivererProposalsList({
                     onClick={() => handleAccept(selectedDeliverer)}
                   >
                     {processingProposalId === selectedDeliverer.id ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      <Loader className="mr-2 h-4 w-4 animate-spin" />
                     ) : (
                       <ThumbsUp className="mr-2 h-4 w-4" />
                     )}
@@ -642,5 +646,3 @@ export function DelivererProposalsList({
     </Card>
   );
 }
-
-export default DelivererProposalsList;

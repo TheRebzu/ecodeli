@@ -6,7 +6,7 @@ import { ZodError } from 'zod';
 import { getServerAuthSession } from '@/server/auth';
 import { db } from '@/server/db';
 import { UserRole } from '@prisma/client';
-import { headers as getHeaders, type ReadonlyHeaders } from 'next/headers';
+import { headers as getHeaders } from 'next/headers';
 
 /**
  * 1. CONTEXT
@@ -45,17 +45,40 @@ export const createInnerTRPCContext = (opts: CreateContextOptions) => {
  *
  * @see https://trpc.io/docs/context
  */
-export const createTRPCContext = async (opts: CreateNextContextOptions) => {
-  const { req, res } = opts;
-
-  // Get the session from the server using the getServerSession wrapper function
-  const session = await getServerAuthSession({ req, res });
-
-  return createInnerTRPCContext({
-    session,
-    headers: req.headers,
-  });
+export const createTRPCContext = async (opts?: CreateNextContextOptions) => {
+  // Version adaptée à l'App Router de Next.js
+  // Si opts existe, nous sommes dans un contexte Pages Router
+  if (opts) {
+    const { req, res } = opts;
+    const session = await getServerAuthSession({ req, res });
+    return createInnerTRPCContext({
+      session,
+      headers: req.headers,
+    });
+  }
+  
+  // Sinon, nous sommes dans un contexte App Router
+  try {
+    const headers = getHeaders();
+    // Récupérer la session sans req/res avec Next.js App Router
+    const session = await getServerAuthSession();
+    
+    return createInnerTRPCContext({
+      session,
+      headers,
+    });
+  } catch (error) {
+    // Fallback si une erreur se produit
+    console.error("Erreur lors de la création du contexte tRPC:", error);
+    return createInnerTRPCContext({
+      session: null,
+      headers: {},
+    });
+  }
 };
+
+// Exporter le type Context pour la réutilisation dans d'autres fichiers
+export type Context = Awaited<ReturnType<typeof createTRPCContext>>;
 
 /**
  * 2. INITIALIZATION
@@ -105,7 +128,7 @@ export const publicProcedure = t.procedure;
 /** Reusable middleware that enforces users are logged in before running the procedure. */
 const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
   if (!ctx.session || !ctx.session.user) {
-    throw new TRPCError({ code: 'UNAUTHORIZED' });
+    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Vous devez être connecté pour accéder à cette ressource' });
   }
   return next({
     ctx: {
@@ -158,7 +181,7 @@ export const verifiedDelivererProcedure = t.procedure.use(enforceUserIsVerifiedD
 /** Middleware qui vérifie que l'utilisateur est un administrateur */
 const enforceUserIsAdmin = t.middleware(({ ctx, next }) => {
   if (!ctx.session || !ctx.session.user) {
-    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Vous devez être connecté' });
+    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Vous devez être connecté pour accéder à cette ressource' });
   }
 
   if (ctx.session.user.role !== UserRole.ADMIN) {
@@ -223,3 +246,41 @@ const enforceUserIsMerchant = t.middleware(({ ctx, next }) => {
 
 /** Procédure protégée pour les commerçants uniquement */
 export const merchantProcedure = t.procedure.use(enforceUserIsMerchant);
+
+/**
+ * Middleware pour les routes financières protégées
+ */
+const enforceFinancialAccess = t.middleware(async ({ ctx, next }) => {
+  if (!ctx.session || !ctx.session.user) {
+    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Vous devez être connecté pour accéder à cette ressource' });
+  }
+
+  // Vérifier que l'utilisateur a un compte actif
+  const user = await ctx.db.user.findUnique({
+    where: { id: ctx.session.user.id },
+  });
+
+  if (!user || user.status !== 'ACTIVE') {
+    throw new TRPCError({ 
+      code: 'FORBIDDEN', 
+      message: 'Votre compte est inactif ou suspendu' 
+    });
+  }
+
+  // Vérifier l'existence du portefeuille
+  const wallet = await ctx.db.wallet.findUnique({
+    where: { userId: user.id },
+  });
+
+  return next({
+    ctx: {
+      session: { ...ctx.session, user: ctx.session.user },
+      wallet,
+    },
+  });
+});
+
+/**
+ * Procédures financières (authentification, compte actif et portefeuille vérifié)
+ */
+export const financialProcedure = t.procedure.use(enforceUserIsAuthed).use(enforceFinancialAccess);

@@ -659,10 +659,17 @@ export const useClientAnnouncements = (options: UseAnnouncementOptions = {}) => 
     return fetchMyAnnouncements(1);
   }, [filters, fetchMyAnnouncements]);
 
+  // On utilise useEffect avec une dépendance vide pour ne charger qu'une seule fois au montage
+  // La fonction fetchMyAnnouncements contient des dépendances qui changent à chaque rendu
   useEffect(() => {
-    // Charger les annonces du client au montage
-    fetchMyAnnouncements(1);
-  }, [fetchMyAnnouncements]);
+    // Charger les annonces du client au montage uniquement
+    const initialLoad = async () => {
+      await fetchMyAnnouncements(1);
+    };
+    
+    initialLoad();
+    // Tableau de dépendances vide pour éviter les rechargements en boucle
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   return {
     myAnnouncements,

@@ -1,0 +1,21 @@
+// Ce fichier est généré automatiquement à partir des fichiers fragmentés dans /prisma/schemas/
+// Ne pas modifier directement - éditer les fichiers sources puis reconstruire avec pnpm db:schema:build
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Import schémas du domaine shared
+// Import schémas du domaine users
+// Import schémas du domaine deliveries
+// Import schémas du domaine services
+// Import schémas du domaine storage
+// Import schémas du domaine payments
+// Import schémas du domaine billing
+// Import schémas du domaine admin
+

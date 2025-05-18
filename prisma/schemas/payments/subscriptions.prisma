@@ -1,0 +1,85 @@
+// ===== MODÈLES D'ABONNEMENT ET MOYENS DE PAIEMENT =====
+// Ce fichier contient les modèles pour les abonnements et méthodes de paiement.
+
+/// Abonnement à un plan de la plateforme
+model Subscription {
+  id                     String             @id @default(cuid())
+  userId                 String
+  status                 SubscriptionStatus
+  planType               PlanType
+  stripeSubscriptionId   String?
+  startDate              DateTime
+  endDate                DateTime?
+  autoRenew              Boolean            @default(true)
+  cancelAtPeriodEnd      Boolean            @default(false)
+  cancelledAt            DateTime?
+  currentPeriodStart     DateTime?
+  currentPeriodEnd       DateTime?
+  discountPercent        Decimal?
+  previousPlanType       PlanType?
+  billingCycleAnchor     Int?
+  couponApplied          String?
+  createdAt              DateTime           @default(now())
+  currency               String             @default("EUR")
+  customPlanFeatures     Json?
+  discountAmount         Decimal?
+  discountDuration       String?
+  discountDurationMonths Int?
+  downgradedAt           DateTime?
+  gracePeriodEnd         DateTime?
+  lastPaymentFailure     DateTime?
+  metadata               Json?
+  nextInvoiceDate        DateTime?
+  pausedAt               DateTime?
+  paymentFailureCount    Int                @default(0)
+  price                  Decimal?
+  resumeAt               DateTime?
+  trialEnd               DateTime?
+  trialStart             DateTime?
+  updatedAt              DateTime           @updatedAt
+  upgradedAt             DateTime?
+  
+  // Relations
+  payments               Payment[]
+  user                   User               @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+/// Moyen de paiement enregistré par un utilisateur
+model PaymentMethod {
+  id               String    @id @default(cuid())
+  userId           String
+  type             String
+  isDefault        Boolean   @default(false)
+  brand            String?
+  last4            String?
+  expiryMonth      Int?
+  expiryYear       Int?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  billingAddress   String?
+  billingCity      String?
+  billingCountry   String?
+  billingEmail     String?
+  billingName      String?
+  billingPostal    String?
+  billingState     String?
+  deletedAt        DateTime?
+  fingerprint      String?
+  isDeleted        Boolean   @default(false)
+  mandateCreatedAt DateTime?
+  mandateId        String?
+  mandateStatus    String?
+  provider         String    @default("STRIPE")
+  token            String
+  
+  // Relations
+  user             User      @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([isDefault])
+  @@map("payment_methods")
+} 

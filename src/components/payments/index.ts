@@ -9,7 +9,7 @@ import { SubscriptionPlans } from './subscription-plans';
 import { CommissionDashboard } from './commission-dashboard';
 import { InvoiceList } from './invoice-list';
 import { InvoiceDetails } from './invoice-details';
-import { StripeElements } from './stripe-elements';
+import { StripeElements, StripePaymentMethodSelector } from './stripe-elements';
 
 // Exporter tous les composants
 export {
@@ -24,4 +24,5 @@ export {
   InvoiceList,
   InvoiceDetails,
   StripeElements,
+  StripePaymentMethodSelector,
 };

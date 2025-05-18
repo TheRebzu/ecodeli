@@ -60,14 +60,27 @@ export const subscriptionBaseSchema = z.object({
 /**
  * Schéma pour la création d'un abonnement
  */
-export const createSubscriptionSchema = subscriptionBaseSchema.extend({
+export const subscriptionCreateSchema = z.object({
+  userId: z.string().cuid('ID utilisateur invalide'),
+  planType: z.nativeEnum(PlanType),
   startDate: z.date().default(() => new Date()),
-  paymentMethodId: z.string().optional(),
   autoRenew: z.boolean().default(true),
-  metadata: z.record(z.string()).optional(),
+  currency: z.string().default('EUR'),
   couponCode: z.string().optional(),
-  trialDays: z.number().int().min(0).max(30).optional(),
-  billingCycleAnchor: z.number().int().min(1).max(31).optional(),
+  paymentMethodId: z.string().optional(),
+  
+  // Si un plan Custom est choisi, ces champs sont obligatoires
+  customPlanFeatures: z.record(z.any()).optional(),
+  
+  // Champs spécifiques pour le mode démonstration
+  isDemo: z.boolean().default(true),
+  demoSuccessScenario: z.boolean().default(true).optional(),
+}).refine((data) => {
+  // Vérification que customPlanFeatures est défini si planType est CUSTOM
+  return data.customPlanFeatures !== undefined || data.planType !== PlanType.CUSTOM;
+}, {
+  message: 'Les caractéristiques du plan personnalisé sont requises pour un abonnement Custom',
+  path: ['customPlanFeatures']
 });
 
 /**
@@ -85,27 +98,50 @@ export const updateSubscriptionSchema = z.object({
 /**
  * Schéma pour l'annulation d'un abonnement
  */
-export const cancelSubscriptionSchema = z.object({
-  subscriptionId: z.string().cuid(),
-  cancelImmediately: z.boolean().default(false),
+export const subscriptionCancelSchema = z.object({
+  subscriptionId: z.string().cuid('ID abonnement invalide'),
+  cancelAtPeriodEnd: z.boolean().default(true),
   reason: z.string().optional(),
+  provideFeedback: z.boolean().default(false),
+  feedbackContent: z.string().optional(),
+  
+  // Champs spécifiques pour le mode démonstration
+  isDemo: z.boolean().default(true),
 });
 
 /**
  * Schéma pour la réactivation d'un abonnement
  */
-export const reactivateSubscriptionSchema = z.object({
-  subscriptionId: z.string().cuid(),
+export const subscriptionReactivateSchema = z.object({
+  subscriptionId: z.string().cuid('ID abonnement invalide'),
+  
+  // Champs spécifiques pour le mode démonstration
+  isDemo: z.boolean().default(true),
+  demoSuccessScenario: z.boolean().default(true).optional(),
 });
 
 /**
  * Schéma pour le changement de plan
  */
-export const changePlanSchema = z.object({
-  subscriptionId: z.string().cuid(),
+export const subscriptionChangeSchema = z.object({
+  subscriptionId: z.string().cuid('ID abonnement invalide'),
   newPlanType: z.nativeEnum(PlanType),
-  prorateMidCycle: z.boolean().default(true),
-  effectiveDate: z.date().optional(),
+  effectiveDate: z.date().optional().default(() => new Date()),
+  prorated: z.boolean().default(true),
+  keepExistingFeatures: z.boolean().default(false),
+  
+  // Pour les plans Custom
+  customPlanFeatures: z.record(z.any()).optional(),
+  
+  // Champs spécifiques pour le mode démonstration
+  isDemo: z.boolean().default(true),
+  demoSuccessScenario: z.boolean().default(true).optional(),
+}).refine((data) => {
+  // Vérification que customPlanFeatures est défini si newPlanType est CUSTOM
+  return data.customPlanFeatures !== undefined || data.newPlanType !== PlanType.CUSTOM;
+}, {
+  message: 'Les caractéristiques du plan personnalisé sont requises pour un abonnement Custom',
+  path: ['customPlanFeatures']
 });
 
 /**
@@ -135,14 +171,9 @@ export const resumeSubscriptionSchema = z.object({
 /**
  * Schéma pour récupérer les détails d'un abonnement
  */
-export const getSubscriptionSchema = z
-  .object({
-    subscriptionId: z.string().cuid().optional(),
-    userId: z.string().cuid().optional(),
-  })
-  .refine(data => data.subscriptionId || data.userId, {
-    message: "Soit l'ID d'abonnement, soit l'ID utilisateur doit être fourni",
-  });
+export const getSubscriptionSchema = z.object({
+  subscriptionId: z.string().cuid('ID abonnement invalide'),
+});
 
 /**
  * Schéma pour la recherche d'abonnements
@@ -253,11 +284,11 @@ export const SUBSCRIPTION_PLANS = {
 export type PlanTypeEnum = z.infer<typeof PlanTypeEnum>;
 export type SubscriptionStatusEnum = z.infer<typeof SubscriptionStatusEnum>;
 export type SubscriptionSchemaType = z.infer<typeof SubscriptionSchema>;
-export type CreateSubscriptionInput = z.infer<typeof createSubscriptionSchema>;
+export type CreateSubscriptionInput = z.infer<typeof subscriptionCreateSchema>;
 export type UpdateSubscriptionInput = z.infer<typeof updateSubscriptionSchema>;
-export type CancelSubscriptionInput = z.infer<typeof cancelSubscriptionSchema>;
-export type ReactivateSubscriptionInput = z.infer<typeof reactivateSubscriptionSchema>;
-export type ChangePlanInput = z.infer<typeof changePlanSchema>;
+export type CancelSubscriptionInput = z.infer<typeof subscriptionCancelSchema>;
+export type ReactivateSubscriptionInput = z.infer<typeof subscriptionReactivateSchema>;
+export type ChangePlanInput = z.infer<typeof subscriptionChangeSchema>;
 export type ApplyCouponInput = z.infer<typeof applyCouponSchema>;
 export type PauseSubscriptionInput = z.infer<typeof pauseSubscriptionSchema>;
 export type ResumeSubscriptionInput = z.infer<typeof resumeSubscriptionSchema>;
@@ -323,3 +354,29 @@ export const subscriptionPlans = [
     isPublic: false,
   },
 ];
+
+// Schéma pour filtrer les abonnements
+export const subscriptionFilterSchema = z.object({
+  userId: z.string().cuid('ID utilisateur invalide').optional(),
+  planType: z.nativeEnum(PlanType).optional(),
+  status: z.nativeEnum(SubscriptionStatus).optional(),
+  startDateFrom: z.date().optional(),
+  startDateTo: z.date().optional(),
+  endDateFrom: z.date().optional(),
+  endDateTo: z.date().optional(),
+  autoRenew: z.boolean().optional(),
+  page: z.number().int().min(1).default(1),
+  limit: z.number().int().min(1).max(100).default(10),
+});
+
+// Schéma pour appliquer une réduction à un abonnement
+export const applyDiscountSchema = z.object({
+  subscriptionId: z.string().cuid('ID abonnement invalide'),
+  discountPercent: z.number().min(1).max(100),
+  discountDurationMonths: z.number().int().min(1).max(12).optional(),
+  reason: z.string().optional(),
+  
+  // Champs spécifiques pour le mode démonstration
+  isDemo: z.boolean().default(true),
+  demoSuccessScenario: z.boolean().default(true).optional(),
+});

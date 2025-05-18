@@ -1,0 +1,78 @@
+// ===== MODÈLES D'ANNONCES DE LIVRAISON =====
+// Ce fichier contient les modèles pour les annonces de livraison publiées sur la plateforme.
+
+/// Annonce de livraison publiée par un client
+model Announcement {
+  id                String              @id @default(cuid())
+  title             String
+  description       String
+  status            AnnouncementStatus  @default(DRAFT)
+  type              AnnouncementType
+  priority          AnnouncementPriority @default(MEDIUM)
+  
+  // Informations géographiques
+  pickupAddress     String
+  pickupCity        String
+  pickupPostalCode  String
+  pickupCountry     String
+  pickupLatitude    Float?
+  pickupLongitude   Float?
+  
+  deliveryAddress   String
+  deliveryCity      String
+  deliveryPostalCode String
+  deliveryCountry   String
+  deliveryLatitude  Float?
+  deliveryLongitude Float?
+  
+  // Planification
+  pickupDate        DateTime?
+  deliveryDate      DateTime?
+  flexibleDate      Boolean             @default(false)
+  
+  // Tarification
+  suggestedPrice    Float?
+  priceType         String?             // "fixed", "negotiable", "hourly"
+  currency          String              @default("EUR")
+  
+  // Relations
+  clientId          String
+  delivererId       String?
+  
+  // Relations avec User
+  client            User                @relation("ClientAnnouncements", fields: [clientId], references: [id])
+  deliverer         User?               @relation("DelivererAnnouncements", fields: [delivererId], references: [id])
+  
+  // Relations avec d'autres modèles
+  applications      DeliveryApplication[]
+  favorites         DelivererFavorite[]
+  deliveries        Delivery[]
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([clientId])
+  @@index([delivererId])
+  @@index([status])
+  @@index([type])
+  @@index([pickupCity])
+  @@index([deliveryCity])
+  @@map("announcements")
+}
+
+/// Favoris des livreurs pour des annonces spécifiques
+model DelivererFavorite {
+  id              String       @id @default(cuid())
+  delivererId     String
+  announcementId  String
+  createdAt       DateTime     @default(now())
+  
+  // Relations avec User et Announcement
+  deliverer       User         @relation(fields: [delivererId], references: [id], onDelete: Cascade)
+  announcement    Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+
+  @@unique([delivererId, announcementId])
+  @@index([delivererId])
+  @@index([announcementId])
+  @@map("deliverer_favorites")
+} 

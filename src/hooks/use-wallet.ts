@@ -51,6 +51,559 @@ export interface WalletStats {
   lastTransactionDate?: Date;
 }
 
+/**
+ * Type pour les options du hook useWalletBalance
+ */
+interface UseWalletBalanceOptions {
+  refreshInterval?: number;
+  initialFetch?: boolean;
+}
+
+/**
+ * Type pour les options du hook useWalletTransactions
+ */
+interface UseWalletTransactionsOptions {
+  initialPage?: number;
+  pageSize?: number;
+  transactionType?: string;
+  refreshInterval?: number;
+  initialFetch?: boolean;
+}
+
+/**
+ * Type pour les options du hook useWithdrawalRequest
+ */
+interface UseWithdrawalRequestOptions {
+  onSuccess?: (data: any) => void;
+  onError?: (error: Error) => void;
+  redirectPath?: string;
+}
+
+/**
+ * Hook pour consulter et gérer le solde du portefeuille
+ * @param options Options de configuration
+ * @returns Données et fonctions pour manipuler le solde du portefeuille
+ */
+export function useWalletBalance(options: UseWalletBalanceOptions = {}) {
+  const { refreshInterval = 0, initialFetch = true } = options;
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Requête pour récupérer le solde
+  const {
+    data: balanceData,
+    isLoading,
+    error,
+    refetch
+  } = trpc.wallet.getBalance.useQuery(undefined, {
+    enabled: initialFetch,
+    refetchInterval: refreshInterval > 0 ? refreshInterval : undefined
+  });
+
+  // Requête pour récupérer les statistiques
+  const {
+    data: statsData,
+    isLoading: isLoadingStats,
+    refetch: refetchStats
+  } = trpc.wallet.getWalletStats.useQuery(undefined, {
+    enabled: initialFetch,
+    refetchInterval: refreshInterval > 0 ? refreshInterval : undefined
+  });
+
+  /**
+   * Rafraîchit manuellement les données du solde
+   */
+  const refreshBalance = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      const result = await refetch();
+      await refetchStats();
+      return result.data;
+    } catch (error) {
+      console.error('Erreur lors du rafraîchissement du solde:', error);
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Une erreur est survenue lors du rafraîchissement du solde';
+      
+      toast({
+        variant: 'destructive',
+        title: 'Erreur',
+        description: errorMessage
+      });
+      
+      throw error;
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [refetch, refetchStats]);
+
+  /**
+   * Réinitialise le solde en mode démonstration
+   */
+  const resetDemoWallet = useCallback(async () => {
+    try {
+      const resetMutation = trpc.wallet.resetDemo.useMutation();
+      const result = await resetMutation.mutateAsync();
+      
+      if (result.success) {
+        toast({
+          title: 'Portefeuille réinitialisé',
+          description: 'Le portefeuille de démonstration a été réinitialisé avec succès'
+        });
+        
+        // Rafraîchir les données
+        await refreshBalance();
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Erreur lors de la réinitialisation du portefeuille:', error);
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Une erreur est survenue lors de la réinitialisation du portefeuille';
+      
+      toast({
+        variant: 'destructive',
+        title: 'Erreur',
+        description: errorMessage
+      });
+      
+      return false;
+    }
+  }, [refreshBalance]);
+
+  /**
+   * Génère des données de démonstration
+   */
+  const generateDemoData = useCallback(async (options: {
+    numTransactions?: number;
+    maxAmount?: number;
+    includeWithdrawals?: boolean;
+    periodDays?: number;
+  } = {}) => {
+    try {
+      const demoDataMutation = trpc.wallet.generateDemoData.useMutation();
+      const result = await demoDataMutation.mutateAsync({
+        numTransactions: options.numTransactions || 10,
+        maxAmount: options.maxAmount || 100,
+        includeWithdrawals: options.includeWithdrawals !== false,
+        periodDays: options.periodDays || 30
+      });
+      
+      if (result.success) {
+        toast({
+          title: 'Données générées',
+          description: `${result.transactionsGenerated} transactions de démonstration ont été créées`
+        });
+        
+        // Rafraîchir les données
+        await refreshBalance();
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Erreur lors de la génération des données de démonstration:', error);
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Une erreur est survenue lors de la génération des données';
+      
+      toast({
+        variant: 'destructive',
+        title: 'Erreur',
+        description: errorMessage
+      });
+      
+      return false;
+    }
+  }, [refreshBalance]);
+
+  return {
+    balance: balanceData,
+    stats: statsData,
+    isLoading,
+    isLoadingStats,
+    isRefreshing,
+    error,
+    refreshBalance,
+    resetDemoWallet,
+    generateDemoData,
+    isDemoMode: process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
+  };
+}
+
+/**
+ * Hook pour consulter l'historique des transactions du portefeuille
+ * @param options Options de configuration
+ * @returns Données et fonctions pour manipuler l'historique des transactions
+ */
+export function useWalletTransactions(options: UseWalletTransactionsOptions = {}) {
+  const {
+    initialPage = 1,
+    pageSize = 10,
+    transactionType,
+    refreshInterval = 0,
+    initialFetch = true
+  } = options;
+
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [currentLimit, setCurrentLimit] = useState(pageSize);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [filters, setFilters] = useState<{
+    type?: string;
+    startDate?: Date;
+    endDate?: Date;
+    sortOrder?: 'asc' | 'desc';
+  }>({
+    type: transactionType,
+    sortOrder: 'desc'
+  });
+
+  // Requête pour récupérer les transactions
+  const {
+    data,
+    isLoading,
+    error,
+    refetch
+  } = trpc.wallet.getTransactionHistory.useQuery({
+    page: currentPage,
+    limit: currentLimit,
+    type: filters.type as any,
+    startDate: filters.startDate,
+    endDate: filters.endDate,
+    sortOrder: filters.sortOrder
+  }, {
+    enabled: initialFetch,
+    refetchInterval: refreshInterval > 0 ? refreshInterval : undefined
+  });
+
+  /**
+   * Rafraîchit les transactions
+   */
+  const refreshTransactions = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      const result = await refetch();
+      return result.data;
+    } catch (error) {
+      console.error('Erreur lors du rafraîchissement des transactions:', error);
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Une erreur est survenue lors du rafraîchissement des transactions';
+      
+      toast({
+        variant: 'destructive',
+        title: 'Erreur',
+        description: errorMessage
+      });
+      
+      throw error;
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [refetch]);
+
+  /**
+   * Change de page
+   */
+  const goToPage = useCallback((page: number) => {
+    setCurrentPage(page);
+  }, []);
+
+  /**
+   * Change la taille de la page
+   */
+  const setPageSize = useCallback((size: number) => {
+    setCurrentLimit(size);
+    setCurrentPage(1); // Retour à la première page lors du changement de taille
+  }, []);
+
+  /**
+   * Filtre les transactions
+   */
+  const filterTransactions = useCallback((newFilters: {
+    type?: string;
+    startDate?: Date;
+    endDate?: Date;
+    sortOrder?: 'asc' | 'desc';
+  }) => {
+    setFilters(prev => ({ ...prev, ...newFilters }));
+    setCurrentPage(1); // Retour à la première page lors du filtrage
+  }, []);
+
+  /**
+   * Exporte les transactions au format CSV
+   */
+  const exportTransactions = useCallback(async () => {
+    try {
+      const exportMutation = trpc.wallet.exportTransactions.useMutation();
+      const result = await exportMutation.mutateAsync({
+        format: 'CSV',
+        filters: {
+          type: filters.type,
+          startDate: filters.startDate,
+          endDate: filters.endDate
+        }
+      });
+      
+      if (result.downloadUrl) {
+        // Déclencher le téléchargement
+        const link = document.createElement('a');
+        link.href = result.downloadUrl;
+        link.download = `transactions-${new Date().toISOString().slice(0, 10)}.csv`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        toast({
+          title: 'Export réussi',
+          description: 'Vos transactions ont été exportées avec succès'
+        });
+        
+        return true;
+      }
+      
+      return false;
+    } catch (error) {
+      console.error('Erreur lors de l\'export des transactions:', error);
+      const errorMessage = error instanceof Error 
+        ? error.message 
+        : 'Une erreur est survenue lors de l\'export des transactions';
+      
+      toast({
+        variant: 'destructive',
+        title: 'Erreur d\'export',
+        description: errorMessage
+      });
+      
+      return false;
+    }
+  }, [filters]);
+
+  return {
+    transactions: data?.transactions || [],
+    pagination: data?.pagination || {
+      total: 0,
+      page: currentPage,
+      limit: currentLimit,
+      totalPages: 0
+    },
+    isLoading,
+    isRefreshing,
+    error,
+    filters,
+    currentPage,
+    pageSize: currentLimit,
+    refreshTransactions,
+    goToPage,
+    setPageSize,
+    filterTransactions,
+    exportTransactions,
+    isDemoMode: process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
+  };
+}
+
+/**
+ * Hook pour gérer les demandes de retrait
+ * @param options Options de configuration
+ * @returns Fonctions et états pour gérer les demandes de retrait
+ */
+export function useWithdrawalRequest(options: UseWithdrawalRequestOptions = {}) {
+  const { onSuccess, onError, redirectPath } = options;
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [withdrawalError, setWithdrawalError] = useState<string | null>(null);
+  
+  // Récupérer les retraits en cours
+  const {
+    data: withdrawalsData,
+    isLoading: isLoadingWithdrawals,
+    refetch: refetchWithdrawals
+  } = trpc.wallet.getWithdrawals.useQuery({ page: 1, limit: 10 }, {
+    enabled: true
+  });
+
+  // Récupérer le statut du compte bancaire
+  const {
+    data: bankAccountStatus,
+    isLoading: isCheckingBankAccount,
+    refetch: refetchBankAccountStatus
+  } = trpc.wallet.checkBankAccountStatus.useQuery(undefined, {
+    enabled: true
+  });
+
+  // Mutation pour créer une demande de retrait
+  const withdrawalMutation = trpc.wallet.createWithdrawalRequest.useMutation({
+    onSuccess: data => {
+      toast({
+        title: 'Demande de retrait soumise',
+        description: `Votre demande de retrait de ${data.amount} ${data.currency} a été soumise avec succès`
+      });
+
+      if (onSuccess) {
+        onSuccess(data);
+      }
+
+      if (redirectPath) {
+        router.push(redirectPath);
+      }
+    },
+    onError: error => {
+      const errorMessage = error.message || 'Une erreur est survenue lors de la demande de retrait';
+      setWithdrawalError(errorMessage);
+      
+      toast({
+        variant: 'destructive',
+        title: 'Erreur de retrait',
+        description: errorMessage
+      });
+
+      if (onError) {
+        onError(error as Error);
+      }
+    }
+  });
+
+  // Mutation pour annuler une demande de retrait
+  const cancelWithdrawalMutation = trpc.wallet.cancelWithdrawal.useMutation({
+    onSuccess: data => {
+      toast({
+        title: 'Retrait annulé',
+        description: 'Votre demande de retrait a été annulée avec succès'
+      });
+      
+      // Rafraîchir la liste des retraits
+      refetchWithdrawals();
+    },
+    onError: error => {
+      const errorMessage = error.message || 'Une erreur est survenue lors de l\'annulation du retrait';
+      
+      toast({
+        variant: 'destructive',
+        title: 'Erreur d\'annulation',
+        description: errorMessage
+      });
+    }
+  });
+
+  /**
+   * Soumet une demande de retrait
+   */
+  const submitWithdrawal = useCallback(async (amount: number, currency: string = 'EUR') => {
+    setIsSubmitting(true);
+    setWithdrawalError(null);
+    
+    try {
+      await withdrawalMutation.mutateAsync({ amount, currency });
+      await refetchWithdrawals();
+      return true;
+    } catch (error) {
+      // L'erreur est déjà gérée par onError de la mutation
+      return false;
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [withdrawalMutation, refetchWithdrawals]);
+
+  /**
+   * Annule une demande de retrait
+   */
+  const cancelWithdrawal = useCallback(async (withdrawalId: string) => {
+    try {
+      await cancelWithdrawalMutation.mutateAsync({ withdrawalId });
+      return true;
+    } catch (error) {
+      // L'erreur est déjà gérée par onError de la mutation
+      return false;
+    }
+  }, [cancelWithdrawalMutation]);
+
+  /**
+   * Vérifie si une demande de retrait peut être soumise
+   */
+  const canRequestWithdrawal = useCallback((amount: number): { 
+    canRequest: boolean; 
+    reason?: string;
+  } => {
+    // Vérifier si le compte bancaire est configuré
+    if (!bankAccountStatus?.isValid) {
+      return { 
+        canRequest: false, 
+        reason: 'Vous devez configurer vos informations bancaires avant de pouvoir demander un retrait'
+      };
+    }
+    
+    // Vérifier s'il y a des demandes en cours
+    const hasPendingWithdrawals = withdrawalsData?.withdrawals.some(w => w.status === 'PENDING');
+    if (hasPendingWithdrawals) {
+      return { 
+        canRequest: false, 
+        reason: 'Vous avez déjà une demande de retrait en cours'
+      };
+    }
+    
+    // Vérifier le solde disponible
+    const availableBalance = withdrawalsData?.balance?.availableBalance || 0;
+    if (amount > availableBalance) {
+      return { 
+        canRequest: false, 
+        reason: `Le montant demandé (${amount} €) est supérieur à votre solde disponible (${availableBalance} €)`
+      };
+    }
+    
+    // Vérifier le montant minimum
+    const minimumAmount = withdrawalsData?.minimumWithdrawal || 10;
+    if (amount < minimumAmount) {
+      return { 
+        canRequest: false, 
+        reason: `Le montant minimum pour un retrait est de ${minimumAmount} €`
+      };
+    }
+    
+    return { canRequest: true };
+  }, [bankAccountStatus, withdrawalsData]);
+
+  /**
+   * Calcule l'estimation de la date d'arrivée du retrait
+   */
+  const getEstimatedArrivalDate = useCallback((withdrawalDate: Date = new Date()): Date => {
+    // Par défaut, estimation de 2-3 jours ouvrables
+    const estimatedDate = new Date(withdrawalDate);
+    estimatedDate.setDate(estimatedDate.getDate() + 3);
+    
+    // Ajuster si c'est un week-end
+    const day = estimatedDate.getDay();
+    if (day === 0) { // Dimanche
+      estimatedDate.setDate(estimatedDate.getDate() + 1);
+    } else if (day === 6) { // Samedi
+      estimatedDate.setDate(estimatedDate.getDate() + 2);
+    }
+    
+    return estimatedDate;
+  }, []);
+
+  return {
+    withdrawals: withdrawalsData?.withdrawals || [],
+    balance: withdrawalsData?.balance,
+    minimumWithdrawal: withdrawalsData?.minimumWithdrawal || 10,
+    bankAccountStatus,
+    isSubmitting,
+    isLoadingWithdrawals,
+    isCheckingBankAccount,
+    withdrawalError,
+    submitWithdrawal,
+    cancelWithdrawal,
+    canRequestWithdrawal,
+    getEstimatedArrivalDate,
+    refetchWithdrawals,
+    refetchBankAccountStatus,
+    isDemoMode: process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
+  };
+}
+
+/**
+ * Hook principal pour gérer les opérations du portefeuille (compatible avec l'existant)
+ */
 export function useWallet(options: UseWalletOptions = {}) {
   const { toast } = useToast();
   const router = useRouter();

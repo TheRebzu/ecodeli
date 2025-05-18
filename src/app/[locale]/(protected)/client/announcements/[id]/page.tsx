@@ -11,7 +11,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import AnnouncementDetail from '@/components/announcements/announcement-detail';
+import { AnnouncementDetail } from '@/components/announcements/announcement-detail';
 import DelivererProposalsList from '@/components/announcements/deliverer-proposals-list';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -26,6 +26,7 @@ import {
   Trash2,
   ArrowUpRight,
   Truck,
+  Loader,
 } from 'lucide-react';
 import {
   Dialog,
@@ -38,6 +39,30 @@ import {
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { useRoleProtection } from '@/hooks/use-role-protection';
+import { UserRole } from '@prisma/client';
+
+// Définition précise du type d'application pour l'annonce
+interface DelivererApplication {
+  id: string;
+  announcementId: string;
+  delivererId: string;
+  deliverer: {
+    id: string;
+    name: string;
+    image?: string | null;
+    rating?: number;
+    completedDeliveries?: number;
+    averageResponseTime?: number;
+    verificationStatus?: string;
+  };
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED';
+  proposedPrice: number;
+  estimatedDeliveryTime?: string | Date;
+  message: string;
+  hasRequiredEquipment: boolean;
+  canPickupAtScheduledTime: boolean;
+  createdAt: Date;
+}
 
 export default function AnnouncementDetailsPage() {
   useRoleProtection(['CLIENT']);
@@ -137,6 +162,34 @@ export default function AnnouncementDetailsPage() {
   // Vérifier si l'annonce a des applications/propositions
   const hasProposals =
     currentAnnouncement.applications && currentAnnouncement.applications.length > 0;
+    
+  // Adapter les données des applications pour le composant DelivererProposalsList
+  const formattedProposals = currentAnnouncement.applications?.map(app => {
+    // Cas par défaut si l'application n'a pas toutes les données attendues
+    const application: DelivererApplication = {
+      id: app.id,
+      announcementId: params.id as string,
+      delivererId: app.delivererId,
+      deliverer: {
+        id: app.delivererId,
+        name: (app as any)?.deliverer?.name || 'Livreur inconnu',
+        image: (app as any)?.deliverer?.image || null,
+        rating: (app as any)?.deliverer?.rating || 0,
+        completedDeliveries: (app as any)?.deliverer?.completedDeliveries || 0,
+        averageResponseTime: (app as any)?.deliverer?.averageResponseTime,
+        verificationStatus: (app as any)?.deliverer?.verificationStatus || 'PENDING'
+      },
+      status: (app.status as 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED') || 'PENDING',
+      proposedPrice: app.proposedPrice,
+      estimatedDeliveryTime: (app as any)?.estimatedDeliveryTime,
+      message: (app as any)?.message || '',
+      hasRequiredEquipment: (app as any)?.hasRequiredEquipment || false,
+      canPickupAtScheduledTime: (app as any)?.canPickupAtScheduledTime || false,
+      createdAt: app.createdAt
+    };
+    
+    return application;
+  }) || [];
 
   return (
     <div className="container py-6 space-y-6">
@@ -190,7 +243,11 @@ export default function AnnouncementDetailsPage() {
             <TabsContent value="details" className="space-y-6">
               <Card>
                 <CardContent className="pt-6">
-                  <AnnouncementDetail announcement={currentAnnouncement} showActions={false} />
+                  <AnnouncementDetail 
+                    announcement={currentAnnouncement} 
+                    userRole="CLIENT"
+                    className="space-y-4" 
+                  />
                 </CardContent>
               </Card>
             </TabsContent>
@@ -198,9 +255,25 @@ export default function AnnouncementDetailsPage() {
             <TabsContent value="proposals" className="space-y-6">
               {hasProposals ? (
                 <DelivererProposalsList
-                  announcementId={params.id}
-                  proposals={currentAnnouncement.applications || []}
-                  onProposalAccepted={() => fetchAnnouncementById(params.id)}
+                  announcementId={params.id as string}
+                  proposals={formattedProposals}
+                  announcementTitle={currentAnnouncement.title}
+                  suggestedPrice={currentAnnouncement.suggestedPrice || 0}
+                  onAccept={(proposalId) => {
+                    // Implémenter ultérieurement
+                    return Promise.resolve();
+                  }}
+                  onReject={(proposalId) => {
+                    // Implémenter ultérieurement
+                    return Promise.resolve();
+                  }}
+                  onSendMessage={(delivererId) => {
+                    // Implémenter ultérieurement
+                  }}
+                  onViewDelivererProfile={(delivererId) => {
+                    // Implémenter ultérieurement
+                  }}
+                  onProposalAccepted={() => fetchAnnouncementById(params.id as string)}
                 />
               ) : (
                 <Card>
@@ -275,12 +348,14 @@ export default function AnnouncementDetailsPage() {
                   <div>
                     <p className="font-medium">{t('dates')}</p>
                     <p className="text-sm text-muted-foreground">
-                      {t('pickupDate')}:{' '}
-                      {new Date(currentAnnouncement.pickupDate).toLocaleDateString()}
+                      {t('pickupDate')}: {currentAnnouncement.pickupDate ? 
+                        new Date(currentAnnouncement.pickupDate).toLocaleDateString() : 
+                        t('notSpecified')}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {t('deliveryDate')}:{' '}
-                      {new Date(currentAnnouncement.deliveryDate).toLocaleDateString()}
+                      {t('deliveryDate')}: {currentAnnouncement.deliveryDate ?
+                        new Date(currentAnnouncement.deliveryDate).toLocaleDateString() : 
+                        t('notSpecified')}
                     </p>
                   </div>
                 </div>
@@ -288,9 +363,9 @@ export default function AnnouncementDetailsPage() {
                 <div className="flex items-start">
                   <CreditCard className="h-5 w-5 text-muted-foreground mr-2 mt-0.5" />
                   <div>
-                    <p className="font-medium">{t('budget')}</p>
+                    <p className="font-medium">{t('price')}</p>
                     <p className="text-sm font-semibold">
-                      €{currentAnnouncement.budget.toFixed(2)}
+                      €{(currentAnnouncement.suggestedPrice || 0).toFixed(2)}
                     </p>
                   </div>
                 </div>
@@ -313,7 +388,7 @@ export default function AnnouncementDetailsPage() {
               {t('cancel')}
             </Button>
             <Button variant="destructive" onClick={handleDeleteAnnouncement} disabled={isDeleting}>
-              {isDeleting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              {isDeleting && <Loader className="mr-2 h-4 w-4 animate-spin" />}
               {t('confirmDelete')}
             </Button>
           </DialogFooter>

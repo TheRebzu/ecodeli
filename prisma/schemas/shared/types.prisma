@@ -1,0 +1,15 @@
+// ===== TYPES PARTAGÉS =====
+// Ce fichier est réservé aux types communs qui seront utilisés par plusieurs domaines.
+// Par exemple des définitions de types Prisma personnalisés ou des composants JSON partagés.
+
+// Pour le moment, ce fichier reste vide car nous n'avons pas encore défini de types partagés.
+// Il servira de point d'extension pour ajouter des types communs à l'avenir.
+
+// Exemple de comment définir un type personnalisé (commenté pour l'instant):
+/*
+/// Type pour une coordonnée géographique
+type GeoCoordinates {
+  latitude  Float
+  longitude Float
+}
+*/ 
