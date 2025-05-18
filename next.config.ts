@@ -30,7 +30,19 @@ const nextConfig: NextConfig = {
         os: false,
         constants: false,
         buffer: false,
+        child_process: false,
+        dns: false,
+        dgram: false,
+        worker_threads: false,
+        events: require.resolve('events/'),
       };
+      
+      // Ajouter socket.io-client au client uniquement
+      config.externals = [
+        ...(config.externals || []),
+        // Exclure socket.io du bundle client (on n'utilise que socket.io-client)
+        {'socket.io': 'commonjs socket.io'},
+      ];
     }
     
     return config;
