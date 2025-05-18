@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -19,6 +19,7 @@ import {
   CheckCircle2,
   XCircle,
   ArrowRightLeft,
+  RefreshCw,
 } from 'lucide-react';
 
 import { api } from '@/trpc/react';

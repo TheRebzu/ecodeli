@@ -12,6 +12,9 @@ const ioConfig = {
   maxHttpBufferSize: 1e6, // 1MB
 };
 
+// Variable globale pour stocker l'instance du serveur Socket.IO
+let globalSocketServer: Server | null = null;
+
 export async function initializeSocketServer(httpServer) {
   // Création des clients Redis pour PubSub
   const pubClient = createClient({
@@ -24,6 +27,9 @@ export async function initializeSocketServer(httpServer) {
 
   // Création du serveur Socket.IO
   const io = new Server(httpServer, ioConfig);
+  
+  // Stocker l'instance dans la variable globale
+  globalSocketServer = io;
 
   // Configurer l'adaptateur Redis pour le scaling horizontal
   io.adapter(createAdapter(pubClient, subClient));
@@ -65,6 +71,14 @@ export async function initializeSocketServer(httpServer) {
   });
 
   return io;
+}
+
+/**
+ * Obtient l'instance actuelle du serveur Socket.IO
+ * @returns L'instance actuelle ou null si non initialisée
+ */
+export function getSocketServer(): Server | null {
+  return globalSocketServer;
 }
 
 // Configurer les chambres selon le rôle de l'utilisateur
