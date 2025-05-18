@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { TransactionType } from '@prisma/client';
+import { TransactionStatus, TransactionType, WithdrawalStatus } from '@prisma/client';
 
 /**
  * Schéma de base du portefeuille
@@ -214,10 +214,18 @@ export const walletBaseSchema = z.object({
   currency: z.string().default('EUR'),
 });
 
-// Schéma pour la création d'un portefeuille
-export const createWalletSchema = walletBaseSchema.extend({
+// Schéma pour créer un portefeuille
+export const createWalletSchema = z.object({
+  userId: z.string().cuid('ID utilisateur invalide'),
+  currency: z.string().default('EUR'),
   initialBalance: z.number().default(0),
-  isActive: z.boolean().default(true),
+  accountType: z.string().optional(),
+  minimumWithdrawalAmount: z.number().positive().default(10),
+  automaticWithdrawal: z.boolean().default(false),
+  withdrawalThreshold: z.number().positive().optional(),
+  withdrawalDay: z.number().int().min(1).max(28).optional(),
+  notificationThreshold: z.number().positive().optional(),
+  notificationsEnabled: z.boolean().default(true),
 });
 
 // Schéma pour les opérations d'ajout de fonds
@@ -307,9 +315,20 @@ export const requestWithdrawalSchema = z.object({
 
 // Schéma pour le traitement d'une demande de virement
 export const processWithdrawalSchema = z.object({
-  withdrawalRequestId: z.string().cuid(),
-  action: z.enum(['APPROVE', 'REJECT']),
-  note: z.string().optional(),
+  withdrawalId: z.string().cuid('ID retrait invalide'),
+  status: z.nativeEnum(WithdrawalStatus),
+  processorComments: z.string().optional(),
+  reference: z.string().optional(),
+  rejectionReason: z.string().optional(),
+}).refine((data) => {
+  // La raison de rejet est obligatoire si le statut est REJECTED
+  if (data.status === WithdrawalStatus.REJECTED && !data.rejectionReason) {
+    return false;
+  }
+  return true;
+}, {
+  message: 'La raison de rejet est requise pour un retrait rejeté',
+  path: ['rejectionReason']
 });
 
 // Schéma pour la mise à jour des paramètres de virement automatique
@@ -352,3 +371,54 @@ export type UpdateAutomaticWithdrawalSettingsInput = z.infer<
 >;
 export type GenerateEarningsReportInput = z.infer<typeof generateEarningsReportSchema>;
 export type GetWalletStatsInput = z.infer<typeof getWalletStatsSchema>;
+
+// Schéma de base pour les transactions de portefeuille
+export const walletTransactionSchema = z.object({
+  walletId: z.string().cuid('ID portefeuille invalide'),
+  amount: z.number().min(0.01, 'Le montant minimum est de 0,01 €'),
+  currency: z.string().default('EUR'),
+  type: z.nativeEnum(TransactionType),
+  description: z.string().optional(),
+  reference: z.string().optional(),
+  metadata: z.record(z.any()).optional(),
+  
+  // Relations optionnelles
+  deliveryId: z.string().cuid('ID livraison invalide').optional(),
+  paymentId: z.string().cuid('ID paiement invalide').optional(),
+  serviceId: z.string().cuid('ID service invalide').optional(),
+  
+  // Champs spécifiques au mode démonstration
+  isDemo: z.boolean().default(true).optional(),
+  demoSuccessScenario: z.boolean().default(true).optional(),
+  demoDelayMs: z.number().min(0).max(3000).optional(),
+});
+
+// Schéma pour rechercher les transactions d'un portefeuille
+export const walletTransactionFilterSchema = z.object({
+  walletId: z.string().cuid('ID portefeuille invalide'),
+  type: z.nativeEnum(TransactionType).optional(),
+  status: z.nativeEnum(TransactionStatus).optional(),
+  minAmount: z.number().optional(),
+  maxAmount: z.number().optional(),
+  startDate: z.date().optional(),
+  endDate: z.date().optional(),
+  page: z.number().int().min(1).default(1),
+  limit: z.number().int().min(1).max(100).default(20),
+});
+
+// Schéma pour obtenir le solde d'un portefeuille
+export const getWalletBalanceSchema = z.object({
+  walletId: z.string().cuid('ID portefeuille invalide'),
+});
+
+// Schéma pour mettre à jour les préférences de portefeuille
+export const updateWalletPreferencesSchema = z.object({
+  walletId: z.string().cuid('ID portefeuille invalide'),
+  minimumWithdrawalAmount: z.number().positive().optional(),
+  automaticWithdrawal: z.boolean().optional(),
+  withdrawalThreshold: z.number().positive().optional(),
+  withdrawalDay: z.number().int().min(1).max(28).optional(),
+  notificationThreshold: z.number().positive().optional(),
+  notificationsEnabled: z.boolean().optional(),
+  taxReportingEnabled: z.boolean().optional(),
+});

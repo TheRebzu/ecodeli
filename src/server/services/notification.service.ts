@@ -1,15 +1,10 @@
-import {
-  PrismaClient,
-  NotificationType as PrismaNotificationType,
-  UserRole,
-  AnnouncementStatus,
-} from '@prisma/client';
+import { PrismaClient, NotificationType as PrismaNotificationType, UserRole, AnnouncementStatus } from "@prisma/client";
 import { TRPCError } from '@trpc/server';
-import {
-  UserNotificationSettings,
+import { 
+  UserNotificationSettings, 
   SendUserNotificationOptions,
   NotificationChannel,
-  SupportedLanguage,
+  SupportedLanguage
 } from '@/types/notifications';
 import { db } from '@/server/db';
 import { sendEmailNotification } from '@/lib/email';
@@ -21,25 +16,25 @@ import { DeliveryStatus } from '@prisma/client';
  * Types de notification personnalisés
  */
 export enum NotificationType {
-  INFO = 'INFO',
-  WARNING = 'WARNING',
-  ERROR = 'ERROR',
-  SUCCESS = 'SUCCESS',
-  NEW_ANNOUNCEMENT = 'NEW_ANNOUNCEMENT',
-  NEW_APPLICATION = 'NEW_APPLICATION',
-  ANNOUNCEMENT_ACCEPTED = 'ANNOUNCEMENT_ACCEPTED',
-  DELIVERY_STARTED = 'DELIVERY_STARTED',
-  DELIVERY_COMPLETED = 'DELIVERY_COMPLETED',
-  DELIVERY_CONFIRMED = 'DELIVERY_CONFIRMED',
-  PAYMENT_RECEIVED = 'PAYMENT_RECEIVED',
-  DELIVERY_PROBLEM = 'DELIVERY_PROBLEM',
-  ANNOUNCEMENT_CANCELLED = 'ANNOUNCEMENT_CANCELLED',
-  ROUTE_MATCHING = 'ROUTE_MATCHING',
-  PAYMENT_INFO = 'PAYMENT_INFO',
-  PAYMENT_CONFIRMED = 'PAYMENT_CONFIRMED',
-  PAYMENT_REFUNDED = 'PAYMENT_REFUNDED',
-  DELIVERY_UPDATE = 'DELIVERY_UPDATE',
-  ADMIN_ALERT = 'ADMIN_ALERT',
+  INFO = "INFO",
+  WARNING = "WARNING",
+  ERROR = "ERROR",
+  SUCCESS = "SUCCESS",
+  NEW_ANNOUNCEMENT = "NEW_ANNOUNCEMENT",
+  NEW_APPLICATION = "NEW_APPLICATION",
+  ANNOUNCEMENT_ACCEPTED = "ANNOUNCEMENT_ACCEPTED",
+  DELIVERY_STARTED = "DELIVERY_STARTED",
+  DELIVERY_COMPLETED = "DELIVERY_COMPLETED",
+  DELIVERY_CONFIRMED = "DELIVERY_CONFIRMED",
+  PAYMENT_RECEIVED = "PAYMENT_RECEIVED",
+  DELIVERY_PROBLEM = "DELIVERY_PROBLEM",
+  ANNOUNCEMENT_CANCELLED = "ANNOUNCEMENT_CANCELLED",
+  ROUTE_MATCHING = "ROUTE_MATCHING",
+  PAYMENT_INFO = "PAYMENT_INFO",
+  PAYMENT_CONFIRMED = "PAYMENT_CONFIRMED",
+  PAYMENT_REFUNDED = "PAYMENT_REFUNDED",
+  DELIVERY_UPDATE = "DELIVERY_UPDATE",
+  ADMIN_ALERT = "ADMIN_ALERT"
 }
 
 /**
@@ -60,10 +55,10 @@ export class NotificationService {
       // Vérifier si l'utilisateur existe
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
-        select: {
+        select: { 
           id: true,
-          notificationPreferences: true,
-        },
+          notificationPreferences: true
+        }
       });
 
       if (!user) {
@@ -91,7 +86,7 @@ export class NotificationService {
       return user.notificationPreferences as unknown as UserNotificationSettings;
     } catch (error) {
       if (error instanceof TRPCError) throw error;
-
+      
       console.error('Erreur lors de la récupération des paramètres de notification:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
@@ -110,7 +105,7 @@ export class NotificationService {
       // Vérifier si l'utilisateur existe
       const user = await this.prisma.user.findUnique({
         where: { id: data.userId },
-        select: { id: true },
+        select: { id: true }
       });
 
       if (!user) {
@@ -134,8 +129,8 @@ export class NotificationService {
             paymentAlerts: data.paymentAlerts,
             weeklyDigest: data.weeklyDigest,
             notificationCategories: data.notificationCategories || [],
-          },
-        },
+          }
+        }
       });
 
       return {
@@ -151,7 +146,7 @@ export class NotificationService {
       };
     } catch (error) {
       if (error instanceof TRPCError) throw error;
-
+      
       console.error('Erreur lors de la mise à jour des paramètres de notification:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
@@ -163,35 +158,33 @@ export class NotificationService {
   /**
    * Envoie une notification à un utilisateur
    */
-  async sendUserNotification(
-    options: SendUserNotificationOptions & { sentById?: string }
-  ): Promise<{ success: boolean; id?: string }> {
+  async sendUserNotification(options: SendUserNotificationOptions & { sentById?: string }): Promise<{ success: boolean; id?: string }> {
     try {
-      const {
-        userId,
-        title,
-        message,
-        type = NotificationType.INFO,
+      const { 
+        userId, 
+        title, 
+        message, 
+        type = NotificationType.INFO, 
         channel = NotificationChannel.EMAIL,
-        actionUrl,
+        actionUrl, 
         actionLabel,
         attachmentUrl,
         deliverAt,
         expiresAt,
         requiresConfirmation,
-        sentById,
+        sentById
       } = options;
 
       // Vérifier si l'utilisateur existe
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
-        select: {
-          id: true,
-          email: true,
+        select: { 
+          id: true, 
+          email: true, 
           name: true,
           notificationPreferences: true,
-          deviceTokens: true,
-        },
+          deviceTokens: true
+        }
       });
 
       if (!user) {
@@ -202,11 +195,10 @@ export class NotificationService {
       }
 
       // Vérifier les paramètres de notification de l'utilisateur
-      const userSettings =
-        (user.notificationPreferences as unknown as UserNotificationSettings) || {
-          emailNotifications: true,
-          pushNotifications: true,
-        };
+      const userSettings = user.notificationPreferences as unknown as UserNotificationSettings || {
+        emailNotifications: true,
+        pushNotifications: true,
+      };
 
       // Créer l'enregistrement de notification dans la base de données
       const notification = await this.prisma.notification.create({
@@ -224,8 +216,8 @@ export class NotificationService {
           scheduledFor: deliverAt,
           sentById,
           read: false,
-          confirmed: false,
-        },
+          confirmed: false
+        }
       });
 
       // Envoyer la notification selon le canal choisi
@@ -236,7 +228,7 @@ export class NotificationService {
               type,
               actionUrl,
               actionLabel,
-              attachmentUrl,
+              attachmentUrl
             });
           }
           break;
@@ -246,7 +238,7 @@ export class NotificationService {
             await this.sendPushNotification(user, title, message, {
               type,
               actionUrl,
-              notificationId: notification.id,
+              notificationId: notification.id
             });
           }
           break;
@@ -269,11 +261,11 @@ export class NotificationService {
       return { success: true, id: notification.id };
     } catch (error) {
       if (error instanceof TRPCError) throw error;
-
-      console.error("Erreur lors de l'envoi de la notification:", error);
+      
+      console.error('Erreur lors de l\'envoi de la notification:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: "Erreur lors de l'envoi de la notification",
+        message: 'Erreur lors de l\'envoi de la notification',
       });
     }
   }
@@ -293,14 +285,14 @@ export class NotificationService {
     }
   ): Promise<void> {
     try {
-      const locale = (await getUserPreferredLocale(user.id)) || 'fr';
-
+      const locale = await getUserPreferredLocale(user.id) || 'fr';
+      
       // Sélectionner le template en fonction du type de notification
       let templateName = 'notification-default';
       if (options.actionUrl) {
         templateName = 'notification-with-action';
       }
-
+      
       await sendEmailNotification({
         to: user.email,
         subject: subject,
@@ -312,12 +304,12 @@ export class NotificationService {
           actionUrl: options.actionUrl,
           actionLabel: options.actionLabel || (locale === 'fr' ? 'Voir plus' : 'See more'),
           attachmentUrl: options.attachmentUrl,
-          notificationType: options.type.toLowerCase(),
+          notificationType: options.type.toLowerCase()
         },
-        locale: locale as SupportedLanguage,
+        locale: locale as SupportedLanguage
       });
     } catch (error) {
-      console.error("Erreur lors de l'envoi de l'email de notification:", error);
+      console.error('Erreur lors de l\'envoi de l\'email de notification:', error);
       // Ne pas faire échouer le processus si l'email échoue
     }
   }
@@ -356,7 +348,7 @@ export class NotificationService {
       //     headings: { en: title, fr: title },
       //     contents: { en: message, fr: message },
       //     url: options.actionUrl,
-      //     data: {
+      //     data: { 
       //       notificationId: options.notificationId,
       //       type: options.type
       //     }
@@ -365,7 +357,7 @@ export class NotificationService {
 
       console.log(`Notification push envoyée à l'utilisateur ${user.id}`);
     } catch (error) {
-      console.error("Erreur lors de l'envoi de la notification push:", error);
+      console.error('Erreur lors de l\'envoi de la notification push:', error);
       // Ne pas faire échouer le processus si la notification push échoue
     }
   }
@@ -373,18 +365,19 @@ export class NotificationService {
   /**
    * Envoie une notification SMS
    */
-  private async sendSmsNotification(user: { id: string }, message: string): Promise<void> {
+  private async sendSmsNotification(
+    user: { id: string },
+    message: string
+  ): Promise<void> {
     try {
       // Récupérer le numéro de téléphone de l'utilisateur
       const userData = await this.prisma.user.findUnique({
         where: { id: user.id },
-        select: { phoneNumber: true },
+        select: { phoneNumber: true }
       });
 
       if (!userData?.phoneNumber) {
-        console.warn(
-          `Impossible d'envoyer un SMS à l'utilisateur ${user.id} : numéro de téléphone manquant`
-        );
+        console.warn(`Impossible d'envoyer un SMS à l'utilisateur ${user.id} : numéro de téléphone manquant`);
         return;
       }
 
@@ -401,7 +394,7 @@ export class NotificationService {
 
       console.log(`SMS envoyé à l'utilisateur ${user.id}`);
     } catch (error) {
-      console.error("Erreur lors de l'envoi du SMS:", error);
+      console.error('Erreur lors de l\'envoi du SMS:', error);
       // Ne pas faire échouer le processus si le SMS échoue
     }
   }
@@ -419,17 +412,22 @@ export class NotificationService {
     } = {}
   ) {
     try {
-      const { page = 1, limit = 10, includeRead = false, types } = options;
+      const { 
+        page = 1, 
+        limit = 10, 
+        includeRead = false,
+        types
+      } = options;
 
       const skip = (page - 1) * limit;
 
       // Construire la requête
       const where: any = { userId };
-
+      
       if (!includeRead) {
         where.read = false;
       }
-
+      
       if (types && types.length > 0) {
         where.type = { in: types };
       }
@@ -454,8 +452,8 @@ export class NotificationService {
           actionUrl: true,
           actionLabel: true,
           requiresConfirmation: true,
-          confirmed: true,
-        },
+          confirmed: true
+        }
       });
 
       return {
@@ -463,7 +461,7 @@ export class NotificationService {
         total,
         page,
         limit,
-        totalPages: Math.ceil(total / limit),
+        totalPages: Math.ceil(total / limit)
       };
     } catch (error) {
       console.error('Erreur lors de la récupération des notifications:', error);
@@ -477,14 +475,11 @@ export class NotificationService {
   /**
    * Marque une notification comme lue
    */
-  async markNotificationAsRead(
-    notificationId: string,
-    userId: string
-  ): Promise<{ success: boolean }> {
+  async markNotificationAsRead(notificationId: string, userId: string): Promise<{ success: boolean }> {
     try {
       // Vérifier si la notification existe et appartient à l'utilisateur
       const notification = await this.prisma.notification.findFirst({
-        where: { id: notificationId, userId },
+        where: { id: notificationId, userId }
       });
 
       if (!notification) {
@@ -497,13 +492,13 @@ export class NotificationService {
       // Marquer comme lue
       await this.prisma.notification.update({
         where: { id: notificationId },
-        data: { read: true },
+        data: { read: true }
       });
 
       return { success: true };
     } catch (error) {
       if (error instanceof TRPCError) throw error;
-
+      
       console.error('Erreur lors du marquage de la notification comme lue:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
@@ -519,11 +514,11 @@ export class NotificationService {
     try {
       // Vérifier si la notification existe, appartient à l'utilisateur et nécessite une confirmation
       const notification = await this.prisma.notification.findFirst({
-        where: {
-          id: notificationId,
+        where: { 
+          id: notificationId, 
           userId,
-          requiresConfirmation: true,
-        },
+          requiresConfirmation: true
+        }
       });
 
       if (!notification) {
@@ -536,16 +531,16 @@ export class NotificationService {
       // Marquer comme confirmée et lue
       await this.prisma.notification.update({
         where: { id: notificationId },
-        data: {
+        data: { 
           confirmed: true,
-          read: true,
-        },
+          read: true
+        }
       });
 
       return { success: true };
     } catch (error) {
       if (error instanceof TRPCError) throw error;
-
+      
       console.error('Erreur lors de la confirmation de la notification:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
@@ -561,7 +556,7 @@ export class NotificationService {
     try {
       // Vérifier si la notification existe et appartient à l'utilisateur
       const notification = await this.prisma.notification.findFirst({
-        where: { id: notificationId, userId },
+        where: { id: notificationId, userId }
       });
 
       if (!notification) {
@@ -573,12 +568,12 @@ export class NotificationService {
 
       // Supprimer la notification
       await this.prisma.notification.delete({
-        where: { id: notificationId },
+        where: { id: notificationId }
       });
 
       return { success: true };
     } catch (error) {
-      console.error('Erreur lors de la suppression de la notification:', error);
+      console.error("Erreur lors de la suppression de la notification:", error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Erreur lors de la suppression de la notification',
@@ -640,7 +635,7 @@ export class NotificationService {
           where: {
             role: UserRole.DELIVERER,
             isVerified: true,
-            status: 'ACTIVE',
+            status: "ACTIVE",
             deliverer: {
               isActive: true,
             },
@@ -648,10 +643,10 @@ export class NotificationService {
         });
 
         // Créer des notifications pour chaque livreur
-        const notificationPromises = eligibleDeliverers.map(deliverer =>
+        const notificationPromises = eligibleDeliverers.map((deliverer) =>
           this.send(
             deliverer.id,
-            'Nouvelle annonce disponible',
+            "Nouvelle annonce disponible",
             `${announcement.client.name || 'Un client'} a publié une nouvelle annonce: "${announcement.title}"`,
             NotificationType.NEW_ANNOUNCEMENT,
             `/deliverer/announcements/${announcementId}`,
@@ -662,7 +657,7 @@ export class NotificationService {
         await Promise.all(notificationPromises);
       }
     } catch (error) {
-      console.error('Erreur lors de la notification des livreurs:', error);
+      console.error("Erreur lors de la notification des livreurs:", error);
     }
   }
 
@@ -691,7 +686,7 @@ export class NotificationService {
       // Notifier le client
       await this.send(
         announcement.clientId,
-        'Nouvelle proposition pour votre annonce',
+        "Nouvelle proposition pour votre annonce",
         `${deliverer.name || 'Un livreur'} a postulé pour votre annonce "${announcement.title}"`,
         NotificationType.NEW_APPLICATION,
         `/client/announcements/${announcementId}`,
@@ -706,11 +701,11 @@ export class NotificationService {
         });
       }
     } catch (error) {
-      console.error('Erreur lors de la notification du client:', error);
-    }
+      console.error("Erreur lors de la notification du client:", error);
   }
+}
 
-  /**
+/**
    * Informe les utilisateurs concernés des changements de statut d'une annonce
    */
   async notifyAnnouncementStatusChange(
@@ -737,7 +732,7 @@ export class NotificationService {
             // Notifier le livreur qu'il a été sélectionné
             await this.send(
               announcement.deliverer.userId,
-              'Vous avez été sélectionné pour une annonce',
+              "Vous avez été sélectionné pour une annonce",
               `Votre proposition pour "${announcement.title}" a été acceptée`,
               NotificationType.ANNOUNCEMENT_ACCEPTED,
               `/deliverer/announcements/${announcementId}`,
@@ -751,8 +746,8 @@ export class NotificationService {
           if (announcement.client?.id) {
             await this.send(
               announcement.client.id,
-              'Livraison en cours',
-              `Le livreur ${announcement.deliverer?.name || 'sélectionné'} a commencé la livraison pour "${announcement.title}"`,
+              "Livraison en cours",
+              `Le livreur ${announcement.deliverer?.name || "sélectionné"} a commencé la livraison pour "${announcement.title}"`,
               NotificationType.DELIVERY_STARTED,
               `/client/announcements/${announcementId}`,
               { announcementId }
@@ -761,11 +756,11 @@ export class NotificationService {
           break;
 
         // Quand la livraison est effectuée mais pas encore confirmée
-        case 'DELIVERED' as AnnouncementStatus:
+        case "DELIVERED" as AnnouncementStatus:
           if (announcement.client?.id) {
             await this.send(
               announcement.client.id,
-              'Livraison terminée - À confirmer',
+              "Livraison terminée - À confirmer",
               `Le livreur indique avoir livré votre commande "${announcement.title}". Veuillez confirmer la réception.`,
               NotificationType.DELIVERY_COMPLETED,
               `/client/announcements/${announcementId}/confirm`,
@@ -779,7 +774,7 @@ export class NotificationService {
           if (announcement.deliverer?.userId) {
             await this.send(
               announcement.deliverer.userId,
-              'Livraison confirmée',
+              "Livraison confirmée",
               `${announcement.client.name} a confirmé la réception de la livraison "${announcement.title}"`,
               NotificationType.DELIVERY_CONFIRMED,
               `/deliverer/announcements/${announcementId}`,
@@ -789,11 +784,11 @@ export class NotificationService {
           break;
 
         // Quand le paiement est libéré au livreur
-        case 'PAID' as AnnouncementStatus:
+        case "PAID" as AnnouncementStatus:
           if (announcement.deliverer?.userId) {
             await this.send(
               announcement.deliverer.userId,
-              'Paiement reçu',
+              "Paiement reçu",
               `Le paiement pour la livraison "${announcement.title}" a été effectué`,
               NotificationType.PAYMENT_RECEIVED,
               `/deliverer/payments`,
@@ -803,23 +798,23 @@ export class NotificationService {
           break;
 
         // En cas de problème
-        case 'PROBLEM' as AnnouncementStatus:
+        case "PROBLEM" as AnnouncementStatus:
           // Notifier les deux parties
           if (announcement.client?.id) {
             await this.send(
               announcement.client.id,
-              'Problème signalé',
+              "Problème signalé",
               `Un problème a été signalé pour la livraison "${announcement.title}"`,
               NotificationType.DELIVERY_PROBLEM,
               `/client/announcements/${announcementId}`,
               { announcementId }
             );
           }
-
+          
           if (announcement.deliverer?.userId) {
             await this.send(
               announcement.deliverer.userId,
-              'Problème signalé',
+              "Problème signalé",
               `Un problème a été signalé pour la livraison "${announcement.title}"`,
               NotificationType.DELIVERY_PROBLEM,
               `/deliverer/announcements/${announcementId}`,
@@ -833,7 +828,7 @@ export class NotificationService {
           if (oldStatus === AnnouncementStatus.ASSIGNED && announcement.deliverer?.userId) {
             await this.send(
               announcement.deliverer.userId,
-              'Annonce annulée',
+              "Annonce annulée",
               `L'annonce "${announcement.title}" a été annulée`,
               NotificationType.ANNOUNCEMENT_CANCELLED,
               `/deliverer/announcements`,
@@ -843,7 +838,7 @@ export class NotificationService {
           break;
       }
     } catch (error) {
-      console.error('Erreur lors de la notification du changement de statut:', error);
+      console.error("Erreur lors de la notification du changement de statut:", error);
     }
   }
 
@@ -867,13 +862,8 @@ export class NotificationService {
         },
       });
 
-      if (
-        !announcement ||
-        !announcement.pickupLatitude ||
-        !announcement.pickupLongitude ||
-        !announcement.deliveryLatitude ||
-        !announcement.deliveryLongitude
-      ) {
+      if (!announcement || !announcement.pickupLatitude || !announcement.pickupLongitude 
+          || !announcement.deliveryLatitude || !announcement.deliveryLongitude) {
         return;
       }
 
@@ -904,7 +894,7 @@ export class NotificationService {
       for (const route of matchingRoutes as any[]) {
         await this.send(
           route.delivererId,
-          'Annonce sur votre itinéraire',
+          "Annonce sur votre itinéraire",
           `Une nouvelle annonce "${announcement.title}" correspond à votre itinéraire planifié`,
           NotificationType.ROUTE_MATCHING,
           `/deliverer/announcements/${announcementId}`,
@@ -912,7 +902,7 @@ export class NotificationService {
         );
       }
     } catch (error) {
-      console.error('Erreur lors de la notification des livreurs correspondants:', error);
+      console.error("Erreur lors de la notification des livreurs correspondants:", error);
     }
   }
 }
@@ -958,7 +948,7 @@ export const sendNotification = async ({
 
     return true;
   } catch (error) {
-    console.error("Erreur lors de l'envoi de la notification:", error);
+    console.error('Erreur lors de l\'envoi de la notification:', error);
     return false;
   }
 };
@@ -1020,7 +1010,7 @@ export const notifyDeliveryStatusChange = async (
         break;
       case 'ARRIVED':
         title = 'Livreur arrivé';
-        message = "Votre livreur est arrivé à l'adresse de livraison";
+        message = 'Votre livreur est arrivé à l\'adresse de livraison';
         break;
       case 'DELIVERED':
         title = 'Livraison effectuée';
@@ -1028,7 +1018,7 @@ export const notifyDeliveryStatusChange = async (
         break;
       case 'NOT_DELIVERED':
         title = 'Livraison impossible';
-        message = notes || "La livraison n'a pas pu être effectuée";
+        message = notes || 'La livraison n\'a pas pu être effectuée';
         break;
       case 'CANCELLED':
         title = 'Livraison annulée';
@@ -1053,13 +1043,7 @@ export const notifyDeliveryStatusChange = async (
       });
 
       // Envoyer un email pour certains statuts importants
-      const importantStatuses: DeliveryStatus[] = [
-        'PICKED_UP',
-        'IN_TRANSIT',
-        'DELIVERED',
-        'NOT_DELIVERED',
-        'CANCELLED',
-      ];
+      const importantStatuses: DeliveryStatus[] = ['PICKED_UP', 'IN_TRANSIT', 'DELIVERED', 'NOT_DELIVERED', 'CANCELLED'];
       if (importantStatuses.includes(newStatus)) {
         await sendDeliveryStatusEmail(
           delivery.client.user.email,
@@ -1109,8 +1093,8 @@ export const notifyDeliveryStatusChange = async (
  * Notifie le client que le livreur s'approche de la destination
  */
 export const notifyDeliveryApproaching = async (
-  deliveryId: string,
-  distanceInMeters: number,
+  deliveryId: string, 
+  distanceInMeters: number, 
   etaInMinutes: number
 ) => {
   try {
@@ -1138,12 +1122,13 @@ export const notifyDeliveryApproaching = async (
     if (!delivery || !delivery.client?.user) return false;
 
     // Formater la distance et le temps de façon lisible
-    const distanceText =
-      distanceInMeters < 1000
-        ? `${Math.round(distanceInMeters)} mètres`
-        : `${(distanceInMeters / 1000).toFixed(1)} km`;
-
-    const etaText = etaInMinutes === 1 ? '1 minute' : `${Math.round(etaInMinutes)} minutes`;
+    const distanceText = distanceInMeters < 1000 
+      ? `${Math.round(distanceInMeters)} mètres` 
+      : `${(distanceInMeters / 1000).toFixed(1)} km`;
+    
+    const etaText = etaInMinutes === 1 
+      ? '1 minute' 
+      : `${Math.round(etaInMinutes)} minutes`;
 
     // Préparer le titre et le message
     const title = 'Votre livraison arrive bientôt';
@@ -1180,7 +1165,7 @@ export const notifyDeliveryApproaching = async (
 
     return true;
   } catch (error) {
-    console.error("Erreur lors de la notification d'approche:", error);
+    console.error('Erreur lors de la notification d\'approche:', error);
     return false;
   }
 };
@@ -1230,7 +1215,7 @@ export const notifyDeliveryDelayed = async (
 
     // Préparer le titre et le message
     const title = 'Retard de livraison';
-    const message = reason
+    const message = reason 
       ? `Votre livraison est retardée de ${delayText}. Nouvelle heure d'arrivée prévue : ${etaFormatted}. Raison : ${reason}`
       : `Votre livraison est retardée de ${delayText}. Nouvelle heure d'arrivée prévue : ${etaFormatted}`;
 
@@ -1412,8 +1397,8 @@ export const notifyDeliveryCompleted = async (
       title,
       message,
       type: 'DELIVERY_COMPLETED',
-      link: requireConfirmation
-        ? `/client/deliveries/${deliveryId}/confirm`
+      link: requireConfirmation 
+        ? `/client/deliveries/${deliveryId}/confirm` 
         : `/client/deliveries/${deliveryId}`,
       data: {
         deliveryId,
@@ -1455,14 +1440,14 @@ const sendDeliveryStatusEmail = async (
 ) => {
   try {
     const statusColorMap: Record<string, string> = {
-      ASSIGNED: '#3498db', // Bleu
-      PICKED_UP: '#2ecc71', // Vert
-      IN_TRANSIT: '#f39c12', // Orange
-      NEARBY: '#9b59b6', // Violet
-      ARRIVED: '#1abc9c', // Turquoise
-      DELIVERED: '#27ae60', // Vert foncé
+      ASSIGNED: '#3498db',     // Bleu
+      PICKED_UP: '#2ecc71',    // Vert
+      IN_TRANSIT: '#f39c12',   // Orange
+      NEARBY: '#9b59b6',       // Violet
+      ARRIVED: '#1abc9c',      // Turquoise
+      DELIVERED: '#27ae60',    // Vert foncé
       NOT_DELIVERED: '#e74c3c', // Rouge
-      CANCELLED: '#7f8c8d', // Gris
+      CANCELLED: '#7f8c8d',    // Gris
     };
 
     const statusColor = statusColorMap[status] || '#3498db';
@@ -1481,10 +1466,10 @@ const sendDeliveryStatusEmail = async (
         trackingUrl: `${process.env.NEXT_PUBLIC_APP_URL}/client/deliveries/${deliveryId}`,
         date: new Date().toLocaleDateString('fr-FR'),
       },
-      locale: 'fr',
+      locale: 'fr'
     });
   } catch (error) {
-    console.error("Erreur lors de l'envoi de l'email de statut de livraison:", error);
+    console.error('Erreur lors de l\'envoi de l\'email de statut de livraison:', error);
   }
 };
 
@@ -1511,10 +1496,10 @@ const sendDeliveryApproachingEmail = async (
         delivererPhone: delivererPhone || 'Non disponible',
         trackingUrl: `${process.env.NEXT_PUBLIC_APP_URL}/client/deliveries/${deliveryId}`,
       },
-      locale: 'fr',
+      locale: 'fr'
     });
   } catch (error) {
-    console.error("Erreur lors de l'envoi de l'email d'approche de livraison:", error);
+    console.error('Erreur lors de l\'envoi de l\'email d\'approche de livraison:', error);
   }
 };
 
@@ -1542,10 +1527,10 @@ const sendDeliveryDelayedEmail = async (
         trackingUrl: `${process.env.NEXT_PUBLIC_APP_URL}/client/deliveries/${deliveryId}`,
         supportEmail: process.env.SUPPORT_EMAIL || 'support@ecodeli.com',
       },
-      locale: 'fr',
+      locale: 'fr'
     });
   } catch (error) {
-    console.error("Erreur lors de l'envoi de l'email de retard de livraison:", error);
+    console.error('Erreur lors de l\'envoi de l\'email de retard de livraison:', error);
   }
 };
 
@@ -1573,10 +1558,10 @@ const sendCheckpointReachedEmail = async (
         trackingUrl: `${process.env.NEXT_PUBLIC_APP_URL}/client/deliveries/${deliveryId}`,
         date: new Date().toLocaleDateString('fr-FR'),
       },
-      locale: 'fr',
+      locale: 'fr'
     });
   } catch (error) {
-    console.error("Erreur lors de l'envoi de l'email de point de passage:", error);
+    console.error('Erreur lors de l\'envoi de l\'email de point de passage:', error);
   }
 };
 
@@ -1603,18 +1588,18 @@ const sendDeliveryCompletedEmail = async (
         requireConfirmation,
         photoProofUrl,
         signatureProofUrl,
-        confirmationUrl: deliveryId
-          ? `${process.env.NEXT_PUBLIC_APP_URL}/client/deliveries/${deliveryId}/confirm`
+        confirmationUrl: deliveryId 
+          ? `${process.env.NEXT_PUBLIC_APP_URL}/client/deliveries/${deliveryId}/confirm` 
           : '',
-        detailsUrl: deliveryId
-          ? `${process.env.NEXT_PUBLIC_APP_URL}/client/deliveries/${deliveryId}`
+        detailsUrl: deliveryId 
+          ? `${process.env.NEXT_PUBLIC_APP_URL}/client/deliveries/${deliveryId}` 
           : '',
         feedbackUrl: `${process.env.NEXT_PUBLIC_APP_URL}/feedback`,
       },
-      locale: 'fr',
+      locale: 'fr'
     });
   } catch (error) {
-    console.error("Erreur lors de l'envoi de l'email de livraison terminée:", error);
+    console.error('Erreur lors de l\'envoi de l\'email de livraison terminée:', error);
   }
 };
 

@@ -1,0 +1,23 @@
+// ===== MODÈLES DE CONTRATS =====
+// Ce fichier contient le modèle pour les contrats entre commerçants et la plateforme.
+
+/// Contrat conclu avec un commerçant
+model Contract {
+  id         String         @id @default(cuid())
+  merchantId String
+  title      String
+  content    String
+  status     ContractStatus @default(DRAFT)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  signedAt   DateTime?
+  expiresAt  DateTime?
+  fileUrl    String?
+  
+  // Relations avec le profil Merchant
+  merchant   Merchant       @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@index([merchantId])
+  @@index([status])
+  @@map("contracts")
+} 

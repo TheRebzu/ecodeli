@@ -1,27 +1,43 @@
 import { z } from 'zod';
+import { PaymentStatus } from '@prisma/client';
+
+// Définition de ServiceType (non importé de Prisma car pas encore généré)
+export const ServiceType = {
+  DELIVERY: 'DELIVERY',
+  SERVICE: 'SERVICE',
+  STORAGE: 'STORAGE',
+  CUSTOM: 'CUSTOM',
+} as const;
 
 /**
  * Schéma de base pour les paiements
  */
 export const paymentBaseSchema = z.object({
-  amount: z.number().positive().min(0.5, { message: 'Le montant minimum est de 0,50 €' }),
+  amount: z.number().positive('Le montant doit être positif'),
   currency: z.string().default('EUR'),
   description: z.string().optional(),
   metadata: z.record(z.string()).optional(),
 });
 
 /**
- * Schéma pour la création d'un paiement standard
+ * Schéma pour la création d'un paiement (simulation)
  */
 export const createPaymentSchema = paymentBaseSchema.extend({
-  userId: z.string().cuid(),
-  deliveryId: z.string().cuid().optional(),
-  serviceId: z.string().cuid().optional(),
-  subscriptionId: z.string().cuid().optional(),
+  userId: z.string().cuid('ID utilisateur invalide'),
+  isEscrow: z.boolean().optional().default(false),
+  serviceType: z.enum([ServiceType.DELIVERY, ServiceType.SERVICE, ServiceType.STORAGE, ServiceType.CUSTOM]),
+  deliveryId: z.string().cuid('ID livraison invalide').optional(),
+  serviceId: z.string().cuid('ID service invalide').optional(),
+  subscriptionId: z.string().cuid('ID abonnement invalide').optional(),
   paymentMethodId: z.string().optional(),
-  isEscrow: z.boolean().default(false),
-  generateReleaseCode: z.boolean().default(false),
-  releaseAfterDays: z.number().int().min(1).max(30).optional(),
+  metadata: z.record(z.any()).optional(),
+  source: z.string().optional(),
+  notes: z.string().optional(),
+  
+  // Champs spécifiques au mode démonstration
+  isDemo: z.boolean().default(true),
+  demoSuccessScenario: z.boolean().default(true).optional(),
+  demoDelayMs: z.number().min(0).max(5000).optional(),
 });
 
 /**
@@ -36,12 +52,46 @@ export const createEscrowPaymentSchema = paymentBaseSchema.extend({
 });
 
 /**
+ * Schéma pour le traitement d'un paiement
+ */
+export const processPaymentSchema = z.object({
+  paymentId: z.string().cuid('ID paiement invalide'),
+  action: z.enum(['capture', 'cancel', 'refund', 'dispute']),
+  amount: z.number().positive('Le montant doit être positif').optional(),
+  reason: z.string().optional(),
+  
+  // Champs spécifiques au mode démonstration
+  demoSuccessScenario: z.boolean().default(true).optional(),
+});
+
+/**
+ * Schéma pour filtrer les paiements
+ */
+export const paymentFilterSchema = z.object({
+  userId: z.string().cuid('ID utilisateur invalide').optional(),
+  status: z.nativeEnum(PaymentStatus).optional(),
+  minAmount: z.number().optional(),
+  maxAmount: z.number().optional(),
+  startDate: z.date().optional(),
+  endDate: z.date().optional(),
+  serviceType: z.enum([ServiceType.DELIVERY, ServiceType.SERVICE, ServiceType.STORAGE, ServiceType.CUSTOM]).optional(),
+  deliveryId: z.string().cuid('ID livraison invalide').optional(),
+  serviceId: z.string().cuid('ID service invalide').optional(),
+  subscriptionId: z.string().cuid('ID abonnement invalide').optional(),
+  page: z.number().int('La page doit être un nombre entier').min(1).default(1),
+  limit: z.number().int('La limite doit être un nombre entier').min(1).max(100).default(10),
+});
+
+/**
  * Schéma pour le remboursement d'un paiement
  */
 export const refundPaymentSchema = z.object({
-  paymentId: z.string().cuid(),
-  amount: z.number().positive().optional(),
-  reason: z.string().max(255).optional(),
+  paymentId: z.string().cuid('ID paiement invalide'),
+  amount: z.number().positive('Le montant doit être positif').optional(),
+  reason: z.string().min(3, 'La raison doit contenir au moins 3 caractères'),
+  
+  // Champs spécifiques au mode démonstration
+  demoSuccessScenario: z.boolean().default(true).optional(),
 });
 
 /**
@@ -133,10 +183,10 @@ export const paymentReportSchema = z.object({
 });
 
 /**
- * Schéma pour la récupération des informations d'un paiement
+ * Schéma pour la récupération d'un paiement
  */
 export const getPaymentSchema = z.object({
-  paymentId: z.string().cuid(),
+  paymentId: z.string().cuid('ID paiement invalide'),
 });
 
 /**
@@ -153,6 +203,15 @@ export const createDisputeSchema = z.object({
   ]),
   description: z.string().min(10).max(1000),
   evidenceFiles: z.array(z.string()).optional(),
+});
+
+/**
+ * Schéma pour la facturation d'un paiement
+ */
+export const createInvoiceForPaymentSchema = z.object({
+  paymentId: z.string().cuid('ID paiement invalide'),
+  customInvoiceNumber: z.string().optional(),
+  additionalNotes: z.string().optional(),
 });
 
 /**

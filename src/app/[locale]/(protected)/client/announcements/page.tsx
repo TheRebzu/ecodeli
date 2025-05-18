@@ -8,13 +8,14 @@ import { Plus, Filter, RefreshCw, AlertCircle } from 'lucide-react';
 import { Link } from '@/navigation';
 import { useClientAnnouncements } from '@/hooks/use-announcement';
 import AnnouncementList from '@/components/announcements/announcement-list';
-import AnnouncementFilter from '@/components/announcements/announcement-filter';
+import { AnnouncementFilter } from '@/components/announcements/announcement-filter';
 import { ClientStatusDashboard } from '@/components/announcements/client-status-dashboard';
-import { DeliveryStatus } from '@prisma/client';
+import { DeliveryStatus, UserRole } from '@prisma/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDescription, AlertTitle, Alert } from '@/components/ui/alert';
 import { useRoleProtection } from '@/hooks/use-role-protection';
 import { Separator } from '@/components/ui/separator';
+import { type Announcement } from '@/types/announcement';
 
 export default function ClientAnnouncementsPage() {
   useRoleProtection(['CLIENT']);
@@ -38,14 +39,20 @@ export default function ClientAnnouncementsPage() {
     },
   });
 
-  // Charger les annonces actives ou historiques selon l'onglet
+  // Charger les annonces actives ou historiques selon l'onglet, mais en évitant la boucle infinie
   useEffect(() => {
-    if (activeTab === 'active') {
-      fetchActiveAnnouncements();
-    } else {
-      fetchAnnouncementHistory();
-    }
-  }, [activeTab, fetchActiveAnnouncements, fetchAnnouncementHistory]);
+    const loadAnnouncements = async () => {
+      if (activeTab === 'active') {
+        await fetchActiveAnnouncements();
+      } else {
+        await fetchAnnouncementHistory();
+      }
+    };
+    
+    loadAnnouncements();
+    // Ne pas inclure fetchActiveAnnouncements et fetchAnnouncementHistory dans les dépendances
+    // car ces fonctions peuvent changer à chaque rendu, créant une boucle infinie
+  }, [activeTab]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const refreshAnnouncements = () => {
     if (activeTab === 'active') {
@@ -54,6 +61,39 @@ export default function ClientAnnouncementsPage() {
       fetchAnnouncementHistory();
     }
   };
+
+  // Adapter les données pour les composants
+  // Conversion du type AnnouncementWithDetails vers Announcement pour ClientStatusDashboard
+  const announcementsForDashboard = myAnnouncements.map(announcement => {
+    return {
+      id: announcement.id,
+      title: announcement.title,
+      description: announcement.description,
+      type: announcement.type,
+      status: announcement.status,
+      priority: announcement.priority || 'MEDIUM',
+      pickupAddress: announcement.pickupAddress,
+      deliveryAddress: announcement.deliveryAddress,
+      isFragile: announcement.isFragile || false,
+      needsCooling: announcement.needsCooling || false,
+      isFlexible: announcement.isFlexible || false,
+      isNegotiable: announcement.isNegotiable || false,
+      clientId: announcement.clientId,
+      client: announcement.client,
+      delivererId: announcement.delivererId,
+      deliverer: announcement.deliverer,
+      createdAt: announcement.createdAt,
+      updatedAt: announcement.updatedAt,
+      viewCount: announcement.viewCount || 0,
+      applicationsCount: announcement.applications?.length || 0,
+      tags: announcement.tags || [],
+      photos: announcement.photos || [],
+      requiresSignature: announcement.requiresSignature || false,
+      requiresId: announcement.requiresId || false,
+      isFavorite: announcement.isFavorite || false,
+      applications: announcement.applications
+    } as Announcement;
+  });
 
   return (
     <div className="container py-6 space-y-6">
@@ -83,8 +123,8 @@ export default function ClientAnnouncementsPage() {
         </div>
       </div>
 
-      {/* Dashboard de statistiques */}
-      <ClientStatusDashboard announcements={myAnnouncements} />
+      {/* Dashboard de statistiques - adapté aux types attendus */}
+      <ClientStatusDashboard announcements={announcementsForDashboard} />
 
       <Separator className="my-6" />
 
@@ -96,11 +136,12 @@ export default function ClientAnnouncementsPage() {
         </Alert>
       )}
 
-      {/* Filtres conditionnels */}
+      {/* Filtres conditionnels avec props corrects */}
       {showFilters && (
         <div className="mb-6">
           <AnnouncementFilter
-            onFilter={filters => {
+            onFilterChange={() => {
+              // Appliquer le filtre (ajuster selon les props attendus)
               if (activeTab === 'active') {
                 fetchActiveAnnouncements();
               } else {
@@ -142,12 +183,17 @@ export default function ClientAnnouncementsPage() {
               </Button>
             </div>
           ) : (
-            // Liste des annonces
+            // Liste des annonces avec props corrects
             <AnnouncementList
               announcements={myAnnouncements}
-              displayMode="card"
+              isLoading={isLoading}
+              userRole={"CLIENT" as UserRole}
+              totalCount={myAnnouncements.length}
+              currentPage={1}
+              totalPages={1}
               onPageChange={page => fetchMyAnnouncements(page)}
-              viewType="client"
+              emptyStateTitle={t('noActiveAnnouncements')}
+              emptyStateMessage={t('createAnnouncementPrompt')}
             />
           )}
         </TabsContent>
@@ -169,12 +215,17 @@ export default function ClientAnnouncementsPage() {
               </p>
             </div>
           ) : (
-            // Liste des annonces
+            // Liste des annonces avec props corrects
             <AnnouncementList
               announcements={myAnnouncements}
-              displayMode="card"
+              isLoading={isLoading}
+              userRole={"CLIENT" as UserRole}
+              totalCount={myAnnouncements.length}
+              currentPage={1}
+              totalPages={1}
               onPageChange={page => fetchMyAnnouncements(page)}
-              viewType="client"
+              emptyStateTitle={t('noAnnouncementHistory')}
+              emptyStateMessage={t('completedAnnouncementsWillAppearHere')}
             />
           )}
         </TabsContent>

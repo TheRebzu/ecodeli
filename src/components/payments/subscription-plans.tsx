@@ -1,8 +1,22 @@
 'use client';
 
-import React from 'react';
-import { Check, X } from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import React, { useState } from 'react';
+import { useTranslations } from 'next-intl';
+import {
+  Check,
+  CreditCard,
+  Gem,
+  Info,
+  Rocket,
+  Sparkles,
+  Star,
+  X,
+  Zap,
+} from 'lucide-react';
+
+import { cn } from '@/lib/utils';
+import { useSubscriptionStore } from '@/store/use-subscription-store';
+
 import {
   Card,
   CardContent,
@@ -11,223 +25,513 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
-import { useTranslations } from 'next-intl';
-import { SUBSCRIPTION_PLANS } from '@/schemas/subscription.schema';
+import { 
+  Tooltip, 
+  TooltipContent, 
+  TooltipProvider, 
+  TooltipTrigger 
+} from '@/components/ui/tooltip';
+import { Separator } from '@/components/ui/separator';
 
-// Types pour les plans d'abonnement
-export type SubscriptionFeature = {
-  name: string;
-  included: boolean | string;
-};
-
-export type SubscriptionPlan = {
+// Type d'une fonctionnalité dans un plan
+interface PlanFeature {
   id: string;
+  name: string;
+  description?: string;
+  included: boolean;
+  limit?: number | string;
+  highlight?: boolean;
+}
+
+// Type d'un plan d'abonnement
+export interface SubscriptionPlan {
+  id: string;
+  type: 'FREE' | 'BASIC' | 'PREMIUM' | 'BUSINESS' | 'ENTERPRISE' | 'CUSTOM';
   name: string;
   description: string;
   price: {
     monthly: number;
-    annually: number;
+    annual: number;
   };
-  features: SubscriptionFeature[];
-  popular?: boolean;
+  currency: string;
+  features: PlanFeature[];
+  mostPopular?: boolean;
+  recommended?: boolean;
+  icon?: React.ReactNode;
   badge?: string;
-};
-
-// Définition des plans d'abonnement
-const SUBSCRIPTION_PLANS_ARRAY: SubscriptionPlan[] = [
-  {
-    id: 'free',
-    name: 'Free',
-    description: 'Plan gratuit avec fonctionnalités essentielles',
-    price: {
-      monthly: 0,
-      annually: 0,
-    },
-    features: [
-      { name: 'Accès basic à la plateforme', included: true },
-      { name: 'Recherche de livraisons', included: true },
-      { name: '3 livraisons par mois', included: true },
-      { name: 'Assistance par email', included: true },
-      { name: 'Notifications de livraison', included: true },
-      { name: 'Historique de paiement', included: '30 jours' },
-      { name: 'Livraisons prioritaires', included: false },
-      { name: 'Support client prioritaire', included: false },
-      { name: 'Facturation personnalisée', included: false },
-      { name: 'API access', included: false },
-    ],
-  },
-  {
-    id: 'starter',
-    name: 'Starter',
-    description: 'Pour les clients réguliers avec besoins modérés',
-    price: {
-      monthly: 9.9,
-      annually: 99.0,
-    },
-    popular: true,
-    badge: 'Populaire',
-    features: [
-      { name: 'Accès basic à la plateforme', included: true },
-      { name: 'Recherche de livraisons', included: true },
-      { name: 'Livraisons illimitées', included: true },
-      { name: 'Assistance par email', included: true },
-      { name: 'Notifications de livraison', included: true },
-      { name: 'Historique de paiement', included: '1 an' },
-      { name: 'Livraisons prioritaires', included: true },
-      { name: 'Support client prioritaire', included: false },
-      { name: 'Facturation personnalisée', included: false },
-      { name: 'API access', included: false },
-    ],
-  },
-  {
-    id: 'premium',
-    name: 'Premium',
-    description: 'Plan complet pour les utilisateurs professionnels',
-    price: {
-      monthly: 19.99,
-      annually: 199.9,
-    },
-    features: [
-      { name: 'Accès basic à la plateforme', included: true },
-      { name: 'Recherche de livraisons', included: true },
-      { name: 'Livraisons illimitées', included: true },
-      { name: 'Assistance par email', included: true },
-      { name: 'Notifications de livraison', included: true },
-      { name: 'Historique de paiement', included: 'Illimité' },
-      { name: 'Livraisons prioritaires', included: true },
-      { name: 'Support client prioritaire', included: true },
-      { name: 'Facturation personnalisée', included: true },
-      { name: 'API access', included: true },
-    ],
-  },
-];
+  cta: string;
+  details?: string;
+}
 
 interface SubscriptionPlansProps {
-  currentPlan?: 'FREE' | 'STARTER' | 'PREMIUM';
-  onSelectPlan: (planType: 'FREE' | 'STARTER' | 'PREMIUM') => void;
-  isLoading?: boolean;
+  isDemo?: boolean;
+  currentPlanId?: string;
+  onSelectPlan: (planId: string) => void;
   className?: string;
 }
 
-export const SubscriptionPlans = ({
-  currentPlan = 'FREE',
+export function SubscriptionPlans({
+  isDemo = false,
+  currentPlanId,
   onSelectPlan,
-  isLoading = false,
   className,
-}: SubscriptionPlansProps) => {
+}: SubscriptionPlansProps) {
   const t = useTranslations('subscription');
-
-  // Formatage des plans depuis le schema
-  const plans = [
+  const [billingInterval, setBillingInterval] = useState<'monthly' | 'annual'>('monthly');
+  
+  // Récupérer les plans depuis le store en mode non démo
+  const { availablePlans } = useSubscriptionStore((state) => ({
+    availablePlans: state.availablePlans,
+  }));
+  
+  // Plans d'abonnement démo
+  const demoPlans: SubscriptionPlan[] = [
     {
-      type: 'FREE' as const,
-      ...SUBSCRIPTION_PLANS.FREE,
-      recommended: false,
+      id: 'free',
+      type: 'FREE',
+      name: t('plans.free.name'),
+      description: t('plans.free.description'),
+      price: {
+        monthly: 0,
+        annual: 0,
+      },
+      currency: 'EUR',
+      features: [
+        {
+          id: 'deliveries',
+          name: t('features.deliveries'),
+          included: true,
+          limit: '5',
+        },
+        {
+          id: 'tracking',
+          name: t('features.tracking'),
+          included: true,
+        },
+        {
+          id: 'reports',
+          name: t('features.reports'),
+          included: false,
+        },
+        {
+          id: 'support',
+          name: t('features.support'),
+          included: true,
+          limit: t('support.basic'),
+        },
+        {
+          id: 'storage',
+          name: t('features.storage'),
+          included: false,
+        },
+      ],
+      cta: t('plans.free.cta'),
+      icon: <Zap className="h-5 w-5" />,
     },
     {
-      type: 'STARTER' as const,
-      ...SUBSCRIPTION_PLANS.STARTER,
-      recommended: false,
+      id: 'basic',
+      type: 'BASIC',
+      name: t('plans.basic.name'),
+      description: t('plans.basic.description'),
+      price: {
+        monthly: 29,
+        annual: 290,
+      },
+      currency: 'EUR',
+      features: [
+        {
+          id: 'deliveries',
+          name: t('features.deliveries'),
+          included: true,
+          limit: '25',
+        },
+        {
+          id: 'tracking',
+          name: t('features.tracking'),
+          included: true,
+        },
+        {
+          id: 'reports',
+          name: t('features.reports'),
+          included: true,
+          limit: t('reports.basic'),
+        },
+        {
+          id: 'support',
+          name: t('features.support'),
+          included: true,
+          limit: t('support.email'),
+        },
+        {
+          id: 'storage',
+          name: t('features.storage'),
+          included: true,
+          limit: '5 GB',
+        },
+        {
+          id: 'api',
+          name: t('features.api'),
+          included: false,
+        },
+      ],
+      cta: t('plans.basic.cta'),
+      icon: <Star className="h-5 w-5" />,
     },
     {
-      type: 'PREMIUM' as const,
-      ...SUBSCRIPTION_PLANS.PREMIUM,
+      id: 'premium',
+      type: 'PREMIUM',
+      name: t('plans.premium.name'),
+      description: t('plans.premium.description'),
+      price: {
+        monthly: 79,
+        annual: 790,
+      },
+      currency: 'EUR',
+      features: [
+        {
+          id: 'deliveries',
+          name: t('features.deliveries'),
+          included: true,
+          limit: '100',
+        },
+        {
+          id: 'tracking',
+          name: t('features.tracking'),
+          included: true,
+          highlight: true,
+        },
+        {
+          id: 'reports',
+          name: t('features.reports'),
+          included: true,
+          limit: t('reports.advanced'),
+          highlight: true,
+        },
+        {
+          id: 'support',
+          name: t('features.support'),
+          included: true,
+          limit: t('support.priority'),
+        },
+        {
+          id: 'storage',
+          name: t('features.storage'),
+          included: true,
+          limit: '25 GB',
+        },
+        {
+          id: 'api',
+          name: t('features.api'),
+          included: true,
+          limit: '1000 ' + t('api.requests'),
+        },
+        {
+          id: 'customization',
+          name: t('features.customization'),
+          included: true,
+          limit: t('customization.basic'),
+        },
+      ],
+      mostPopular: true,
+      cta: t('plans.premium.cta'),
+      badge: t('mostPopular'),
+      icon: <Gem className="h-5 w-5" />,
+    },
+    {
+      id: 'business',
+      type: 'BUSINESS',
+      name: t('plans.business.name'),
+      description: t('plans.business.description'),
+      price: {
+        monthly: 199,
+        annual: 1990,
+      },
+      currency: 'EUR',
+      features: [
+        {
+          id: 'deliveries',
+          name: t('features.deliveries'),
+          included: true,
+          limit: t('unlimited'),
+          highlight: true,
+        },
+        {
+          id: 'tracking',
+          name: t('features.tracking'),
+          included: true,
+          highlight: true,
+        },
+        {
+          id: 'reports',
+          name: t('features.reports'),
+          included: true,
+          limit: t('reports.premium'),
+          highlight: true,
+        },
+        {
+          id: 'support',
+          name: t('features.support'),
+          included: true,
+          limit: t('support.dedicated'),
+          highlight: true,
+        },
+        {
+          id: 'storage',
+          name: t('features.storage'),
+          included: true,
+          limit: '100 GB',
+        },
+        {
+          id: 'api',
+          name: t('features.api'),
+          included: true,
+          limit: t('unlimited'),
+        },
+        {
+          id: 'customization',
+          name: t('features.customization'),
+          included: true,
+          limit: t('customization.advanced'),
+        },
+        {
+          id: 'integration',
+          name: t('features.integration'),
+          included: true,
+        },
+      ],
       recommended: true,
+      cta: t('plans.business.cta'),
+      badge: t('recommended'),
+      icon: <Rocket className="h-5 w-5" />,
+    },
+    {
+      id: 'enterprise',
+      type: 'ENTERPRISE',
+      name: t('plans.enterprise.name'),
+      description: t('plans.enterprise.description'),
+      price: {
+        monthly: 499,
+        annual: 4990,
+      },
+      currency: 'EUR',
+      features: [
+        {
+          id: 'custom',
+          name: t('features.custom'),
+          included: true,
+          description: t('features.customDescription'),
+        },
+      ],
+      cta: t('plans.enterprise.cta'),
+      details: t('plans.enterprise.details'),
+      icon: <Sparkles className="h-5 w-5" />,
     },
   ];
-
+  
+  // Utiliser les plans démo ou réels
+  const plans = isDemo ? demoPlans : availablePlans;
+  
+  // Formatage du prix
+  const formatPrice = (amount: number, currency: string): string => {
+    return new Intl.NumberFormat('fr-FR', {
+      style: 'currency',
+      currency,
+      minimumFractionDigits: amount === 0 ? 0 : 2,
+    }).format(amount);
+  };
+  
+  // Remise en pourcentage pour abonnement annuel
+  const getAnnualDiscount = (plan: SubscriptionPlan): number => {
+    if (plan.price.monthly === 0 || plan.price.annual === 0) return 0;
+    
+    const monthlyTotal = plan.price.monthly * 12;
+    const discount = ((monthlyTotal - plan.price.annual) / monthlyTotal) * 100;
+    
+    return Math.round(discount);
+  };
+  
   return (
-    <div className={cn('grid gap-6 md:grid-cols-3', className)}>
-      {plans.map(plan => (
-        <Card
-          key={plan.type}
-          className={cn('flex flex-col', plan.recommended && 'border-primary shadow-md')}
-        >
-          <CardHeader className="flex flex-col space-y-1">
-            {plan.recommended && <Badge className="w-fit mb-2">{t('recommended')}</Badge>}
-            <CardTitle className="text-xl">{plan.name}</CardTitle>
-            <CardDescription className="flex items-baseline">
-              <span className="text-3xl font-bold">{plan.priceFormatted}</span>
-              {plan.type !== 'FREE' && (
-                <span className="text-sm text-muted-foreground ml-1">/{t('month')}</span>
+    <div className={cn("space-y-8", className)}>
+      <div className="text-center space-y-4">
+        <h2 className="text-3xl font-bold tracking-tight">{t('title')}</h2>
+        <p className="text-muted-foreground max-w-2xl mx-auto">{t('description')}</p>
+        
+        {/* Toggle mensuel/annuel */}
+        <div className="flex items-center justify-center space-x-3 mt-6">
+          <Label htmlFor="billing-toggle" className="font-medium">
+            {t('billingMonthly')}
+          </Label>
+          <Switch
+            id="billing-toggle"
+            checked={billingInterval === 'annual'}
+            onCheckedChange={() => setBillingInterval(billingInterval === 'monthly' ? 'annual' : 'monthly')}
+          />
+          <Label htmlFor="billing-toggle" className="flex items-center space-x-2 font-medium">
+            <span>{t('billingAnnual')}</span>
+            <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+              {t('savePercent', { percent: '20' })}
+            </Badge>
+          </Label>
+        </div>
+        
+        {isDemo && (
+          <div className="mt-2">
+            <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1 mx-auto">
+              <Info className="h-3.5 w-3.5 mr-1" />
+              {t('demoMode')}
+            </Badge>
+          </div>
+        )}
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 max-w-7xl mx-auto">
+        {plans.map((plan) => {
+          const isCurrentPlan = currentPlanId === plan.id;
+          const discount = getAnnualDiscount(plan);
+          const price = billingInterval === 'monthly' ? plan.price.monthly : plan.price.annual / 12;
+          
+          return (
+            <Card
+              key={plan.id}
+              className={cn(
+                "flex flex-col h-full",
+                plan.mostPopular && "border-primary shadow-md",
+                isCurrentPlan && "border-primary bg-primary/5"
               )}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex-1">
-            <ul className="space-y-2 text-sm">
-              {plan.features.map((feature, i) => (
-                <li key={i} className="flex items-center">
-                  <Check className="h-4 w-4 text-primary mr-2" />
-                  <span>{feature}</span>
-                </li>
-              ))}
-
-              {/* Limites spécifiques avec détails */}
-              <li className="flex items-center mt-4">
-                <span className="text-sm font-medium">
-                  {t('assuranceLimit')}:
-                  {plan.limits.insurance > 0 ? (
-                    <span className="text-primary font-bold ml-1">{plan.limits.insurance}€</span>
-                  ) : (
-                    <span className="text-muted-foreground ml-1">{t('none')}</span>
-                  )}
-                </span>
-              </li>
-
-              <li className="flex items-center">
-                <span className="text-sm font-medium">
-                  {t('discount')}:
-                  {plan.limits.discount > 0 ? (
-                    <span className="text-primary font-bold ml-1">
-                      {plan.limits.discount * 100}%
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground ml-1">{t('none')}</span>
-                  )}
-                </span>
-              </li>
-
-              <li className="flex items-center">
-                <span className="text-sm font-medium">
-                  {t('deliveryLimit')}:
-                  {plan.limits.deliveriesPerMonth < 0 ? (
-                    <span className="text-primary font-bold ml-1">{t('unlimited')}</span>
-                  ) : (
-                    <span className="text-primary font-bold ml-1">
-                      {plan.limits.deliveriesPerMonth}
-                    </span>
-                  )}
-                </span>
-              </li>
-
-              <li className="flex items-center">
-                <span className="text-sm font-medium">
-                  {t('priorityDelivery')}:
-                  {plan.limits.priority ? (
-                    <Check className="h-4 w-4 text-primary ml-1" />
-                  ) : (
-                    <X className="h-4 w-4 text-muted-foreground ml-1" />
-                  )}
-                </span>
-              </li>
-            </ul>
-          </CardContent>
-          <CardFooter>
-            <Button
-              className="w-full"
-              variant={currentPlan === plan.type ? 'outline' : 'default'}
-              onClick={() => onSelectPlan(plan.type)}
-              disabled={isLoading || currentPlan === plan.type}
             >
-              {currentPlan === plan.type ? t('currentPlan') : t('selectPlan')}
-            </Button>
-          </CardFooter>
-        </Card>
-      ))}
+              <CardHeader className="pb-6">
+                {plan.badge && (
+                  <Badge
+                    className={cn(
+                      "absolute right-4 top-4 whitespace-nowrap",
+                      plan.mostPopular && "bg-primary",
+                      plan.recommended && "bg-green-600"
+                    )}
+                  >
+                    {plan.badge}
+                  </Badge>
+                )}
+                
+                <div className="flex items-center gap-2">
+                  {plan.icon}
+                  <CardTitle>{plan.name}</CardTitle>
+                </div>
+                <CardDescription>{plan.description}</CardDescription>
+              </CardHeader>
+              
+              <CardContent className="flex-grow space-y-6">
+                <div className="space-y-2">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-3xl font-bold">
+                      {formatPrice(price, plan.currency)}
+                    </span>
+                    <span className="text-muted-foreground">
+                      /{t('perMonth')}
+                    </span>
+                  </div>
+                  {billingInterval === 'annual' && plan.price.monthly > 0 && (
+                    <div className="text-sm text-muted-foreground">
+                      {t('billedAnnuallyAs', { 
+                        amount: formatPrice(plan.price.annual, plan.currency)
+                      })}
+                      {discount > 0 && (
+                        <Badge variant="outline" className="ml-2 bg-green-50 text-green-700 border-green-200">
+                          {t('savePercent', { percent: discount.toString() })}
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+                </div>
+                
+                <Separator />
+                
+                <div className="space-y-4">
+                  <h4 className="text-sm font-medium leading-none">{t('features.title')}</h4>
+                  <ul className="space-y-3">
+                    {plan.features.map((feature) => (
+                      <li key={feature.id} className="flex items-start gap-2">
+                        {feature.included ? (
+                          <Check className={cn(
+                            "h-5 w-5 text-green-500 mt-0.5", 
+                            feature.highlight && "text-primary"
+                          )} />
+                        ) : (
+                          <X className="h-5 w-5 text-muted-foreground mt-0.5" />
+                        )}
+                        <div>
+                          <div className="text-sm">
+                            {feature.name}
+                            {feature.limit && (
+                              <span className={cn(
+                                "ml-1.5 text-xs text-muted-foreground",
+                                feature.highlight && "text-primary font-medium"
+                              )}>
+                                ({feature.limit})
+                              </span>
+                            )}
+                          </div>
+                          {feature.description && (
+                            <p className="text-xs text-muted-foreground mt-0.5">
+                              {feature.description}
+                            </p>
+                          )}
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </CardContent>
+              
+              <CardFooter className="pt-6">
+                <Button
+                  onClick={() => onSelectPlan(plan.id)}
+                  className="w-full"
+                  variant={isCurrentPlan ? "outline" : plan.mostPopular || plan.recommended ? "default" : "outline"}
+                  disabled={isCurrentPlan}
+                >
+                  {isCurrentPlan ? (
+                    <>
+                      <Check className="h-4 w-4 mr-2" />
+                      {t('currentPlan')}
+                    </>
+                  ) : (
+                    <>
+                      {plan.price.monthly === 0 ? null : <CreditCard className="h-4 w-4 mr-2" />}
+                      {plan.cta}
+                    </>
+                  )}
+                </Button>
+                
+                {plan.details && (
+                  <p className="text-xs text-muted-foreground text-center mt-4">
+                    {plan.details}
+                  </p>
+                )}
+              </CardFooter>
+            </Card>
+          );
+        })}
+      </div>
+      
+      <div className="max-w-3xl mx-auto text-center text-sm text-muted-foreground mt-12">
+        <p>{t('planFooterDescription')}</p>
+        <p className="mt-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger className="underline cursor-help">
+                {t('termsApply')}
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p>{t('termsTooltip')}</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </p>
+      </div>
     </div>
   );
-};
+}

@@ -1,0 +1,43 @@
+// ===== MODÈLES DE RÉSERVATION DE SERVICES =====
+// Ce fichier contient les modèles pour les réservations de services et évaluations.
+
+/// Réservation d'un service
+model ServiceBooking {
+  id         String         @id @default(cuid())
+  clientId   String
+  providerId String
+  serviceId  String
+  startTime  DateTime
+  endTime    DateTime
+  status     BookingStatus  @default(PENDING)
+  totalPrice Decimal
+  paymentId  String?
+  notes      String?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  
+  // Relations avec User, Service et Payment
+  client     User           @relation("ClientBookings", fields: [clientId], references: [id])
+  provider   User           @relation("ProviderBookings", fields: [providerId], references: [id])
+  service    Service        @relation(fields: [serviceId], references: [id])
+  payment    Payment?       @relation(fields: [paymentId], references: [id])
+  review     ServiceReview?
+
+  @@index([clientId])
+  @@index([providerId])
+  @@index([serviceId])
+  @@index([paymentId])
+}
+
+/// Évaluation d'un service après réservation
+model ServiceReview {
+  id        String         @id @default(cuid())
+  bookingId String         @unique
+  rating    Int
+  comment   String?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  
+  // Relation avec la réservation
+  booking   ServiceBooking @relation(fields: [bookingId], references: [id])
+} 

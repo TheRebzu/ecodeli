@@ -1,0 +1,64 @@
+// ===== MODÈLES DE PAIEMENT =====
+// Ce fichier contient le modèle pour les paiements effectués sur la plateforme.
+
+/// Paiement réalisé sur la plateforme
+model Payment {
+  id                 String           @id @default(cuid())
+  amount             Decimal
+  currency           String
+  status             PaymentStatus
+  description        String?
+  userId             String
+  isEscrow           Boolean          @default(false)
+  escrowReleaseCode  String?
+  escrowReleaseDate  DateTime?
+  escrowReleasedAt   DateTime?
+  stripePaymentId    String?
+  paymentIntentId    String?
+  deliveryId         String?          @unique
+  serviceId          String?
+  subscriptionId     String?
+  invoiceId          String?
+  commissionAmount   Decimal?
+  commissionId       String?
+  refundId           String?
+  refundedAmount     Decimal?
+  refundedAt         DateTime?
+  disputeId          String?
+  disputeStatus      String?
+  metadata           Json?
+  capturedAt         DateTime?
+  paymentMethodType  String?
+  paymentMethodId    String?
+  receiptUrl         String?
+  errorMessage       String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  source             String?
+  notes              String?
+  paymentProvider    String           @default("STRIPE")
+  isRecurring        Boolean          @default(false)
+  recurringFrequency String?
+  processingFee      Decimal?
+  taxAmount          Decimal?
+  taxRate            Decimal?
+  paymentReference   String?
+  ipAddress          String?
+  
+  // Relations
+  bookings           ServiceBooking[]
+  commission         Commission?      @relation(fields: [commissionId], references: [id])
+  delivery           Delivery?        @relation("PaymentToDelivery", fields: [deliveryId], references: [id])
+  invoice            Invoice?         @relation(fields: [invoiceId], references: [id])
+  service            Service?         @relation(fields: [serviceId], references: [id])
+  subscription       Subscription?    @relation(fields: [subscriptionId], references: [id])
+  user               User             @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([deliveryId])
+  @@index([serviceId])
+  @@index([subscriptionId])
+  @@index([invoiceId])
+  @@index([commissionId])
+  @@map("payments")
+} 

@@ -38,9 +38,10 @@ export function generateMetadata(): Metadata {
 }
 
 export default async function HomePage({ params }: { params: { locale: string } }) {
-  // Use the locale directly without awaiting - it's a static value provided by Next.js
+  // Locale est une valeur statique fournie par Next.js, pas besoin d'await
   const locale = params.locale;
-  setRequestLocale(locale);
+  // Utiliser la fonction pour configurer la locale pour cette requête
+  await setRequestLocale(locale);
 
   // Log pour débogage
   console.log('PublicHomePage rendering in (public) group, locale:', locale);

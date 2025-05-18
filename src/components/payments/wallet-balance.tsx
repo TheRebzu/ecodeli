@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Card,
   CardContent,
@@ -13,11 +13,23 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTranslations } from 'next-intl';
 import { formatCurrency, formatDate } from '@/lib/utils';
-import { ArrowUpRight, ArrowDownLeft, Clock, AlertCircle, Check } from 'lucide-react';
+import { 
+  ArrowUpRight, 
+  ArrowDownLeft, 
+  Clock, 
+  AlertCircle, 
+  Check, 
+  CreditCard, 
+  ArrowUp,
+  Zap,
+  RefreshCw,
+  Info,
+} from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
-import { CreditCard, ArrowUp } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 // Types pour les transactions
 export type TransactionStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
@@ -52,6 +64,11 @@ interface WalletBalanceProps {
   pendingAmount?: number;
   reservedAmount?: number;
   availableAmount?: number;
+  isDemo?: boolean;
+  onRefresh?: () => void;
+  error?: string;
+  userId?: string;
+  className?: string;
 }
 
 export const WalletBalance = ({
@@ -65,8 +82,14 @@ export const WalletBalance = ({
   pendingAmount = 0,
   reservedAmount = 0,
   availableAmount,
+  isDemo = false,
+  onRefresh,
+  error,
+  userId,
+  className,
 }: WalletBalanceProps) => {
   const t = useTranslations('wallet');
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Convertir les transactions entre entrées et sorties pour l'affichage par onglets
   const incomingTransactions = transactions.filter(tx =>
@@ -98,30 +121,30 @@ export const WalletBalance = ({
     }
   };
 
-  // Fonction d'affichage du status
+  // Fonction d'affichage du statut
   const getStatusBadge = (status: TransactionStatus) => {
     switch (status) {
       case 'COMPLETED':
         return (
-          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 text-xs">
             {t('completed')}
           </Badge>
         );
       case 'PENDING':
         return (
-          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 text-xs">
             {t('pending')}
           </Badge>
         );
       case 'FAILED':
         return (
-          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+          <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200 text-xs">
             {t('failed')}
           </Badge>
         );
       case 'CANCELLED':
         return (
-          <Badge variant="outline" className="bg-slate-50 text-slate-700 border-slate-200">
+          <Badge variant="outline" className="bg-slate-50 text-slate-700 border-slate-200 text-xs">
             {t('cancelled')}
           </Badge>
         );
@@ -133,13 +156,124 @@ export const WalletBalance = ({
   // Si disponible n'est pas fourni, calculer à partir du solde et des montants réservés/en attente
   const available = availableAmount ?? balance - pendingAmount - reservedAmount;
 
+  // Gérer le rafraîchissement des données
+  const handleRefresh = async () => {
+    if (onRefresh) {
+      setIsRefreshing(true);
+      try {
+        await onRefresh();
+      } finally {
+        setIsRefreshing(false);
+      }
+    }
+  };
+
+  // Générer des données de démonstration si nécessaire
+  const renderTransactions = (transactions: Transaction[]) => {
+    if (isLoading) {
+      return (
+        <>
+          <Skeleton className="h-16 w-full mb-3" />
+          <Skeleton className="h-16 w-full mb-3" />
+          <Skeleton className="h-16 w-full" />
+        </>
+      );
+    }
+    
+    if (transactions.length === 0) {
+      return (
+        <div className="text-center py-4 text-muted-foreground">
+          <AlertCircle className="h-5 w-5 mx-auto mb-2" />
+          <p>{t('noTransactions')}</p>
+        </div>
+      );
+    }
+    
+    return transactions.slice(0, 5).map(transaction => (
+      <div
+        key={transaction.id}
+        className="flex items-center justify-between border-b pb-3 mb-3 last:mb-0 last:border-0"
+      >
+        <div className="flex items-center space-x-3">
+          <div className="bg-slate-100 p-2 rounded-full">
+            {getTransactionIcon(transaction.type)}
+          </div>
+          <div>
+            <div className="flex items-center">
+              <p className="font-medium text-sm">
+                {t(`transactionTypes.${transaction.type.toLowerCase()}`)}
+              </p>
+              {isDemo && (
+                <TooltipProvider>
+                  <Tooltip delayDuration={300}>
+                    <TooltipTrigger asChild>
+                      <span>
+                        <Info className="h-3 w-3 ml-1 text-blue-500" />
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-xs">{t('demoTransaction')}</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {format(transaction.createdAt, 'dd/MM/yyyy HH:mm')}
+            </p>
+            {transaction.description && (
+              <p className="text-xs text-muted-foreground truncate max-w-[200px]" title={transaction.description}>
+                {transaction.description}
+              </p>
+            )}
+          </div>
+        </div>
+        <div className="flex flex-col items-end">
+          <p className={`font-medium ${transaction.type === 'WITHDRAWAL' || transaction.type === 'PLATFORM_FEE' || transaction.type === 'SUBSCRIPTION_FEE' ? 'text-red-600' : 'text-green-600'}`}>
+            {transaction.type === 'WITHDRAWAL' || transaction.type === 'PLATFORM_FEE' || transaction.type === 'SUBSCRIPTION_FEE' ? '-' : '+'}
+            {formatCurrency(transaction.amount, transaction.currency)}
+          </p>
+          {getStatusBadge(transaction.status)}
+        </div>
+      </div>
+    ));
+  };
+
   return (
-    <Card className="w-full">
+    <Card className={`w-full ${className}`}>
       <CardHeader>
-        <CardTitle>{t('walletBalance')}</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <CreditCard className="h-5 w-5" />
+            {t('walletBalance')}
+          </CardTitle>
+          {isDemo && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1">
+                    <Zap className="h-3 w-3" />
+                    {t('demoMode')}
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{t('demoWalletDescription')}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
         <CardDescription>{t('walletDescription')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
+        {error && (
+          <Alert variant="destructive" className="mb-4">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>{t('error')}</AlertTitle>
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+        )}
+
         {isLoading ? (
           <Skeleton className="h-20 w-full" />
         ) : (
@@ -156,109 +290,42 @@ export const WalletBalance = ({
           </TabsList>
 
           <TabsContent value="incoming" className="mt-4 space-y-4">
-            {isLoading ? (
-              <>
-                <Skeleton className="h-16 w-full" />
-                <Skeleton className="h-16 w-full" />
-              </>
-            ) : (
-              <>
-                {incomingTransactions.length === 0 ? (
-                  <div className="text-center py-4 text-muted-foreground">
-                    <AlertCircle className="h-5 w-5 mx-auto mb-2" />
-                    <p>{t('noIncomingTransactions')}</p>
-                  </div>
-                ) : (
-                  incomingTransactions.slice(0, 5).map(transaction => (
-                    <div
-                      key={transaction.id}
-                      className="flex items-center justify-between border-b pb-3"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="bg-slate-100 p-2 rounded-full">
-                          {getTransactionIcon(transaction.type)}
-                        </div>
-                        <div>
-                          <p className="font-medium text-sm">
-                            {t(`transactionTypes.${transaction.type.toLowerCase()}`)}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {format(transaction.createdAt, 'dd/MM/yyyy HH:mm')}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end">
-                        <p className="font-medium text-green-600">
-                          +{formatCurrency(transaction.amount, transaction.currency)}
-                        </p>
-                        {getStatusBadge(transaction.status)}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </>
-            )}
+            {renderTransactions(incomingTransactions)}
           </TabsContent>
 
           <TabsContent value="outgoing" className="mt-4 space-y-4">
-            {isLoading ? (
-              <>
-                <Skeleton className="h-16 w-full" />
-                <Skeleton className="h-16 w-full" />
-              </>
-            ) : (
-              <>
-                {outgoingTransactions.length === 0 ? (
-                  <div className="text-center py-4 text-muted-foreground">
-                    <AlertCircle className="h-5 w-5 mx-auto mb-2" />
-                    <p>{t('noOutgoingTransactions')}</p>
-                  </div>
-                ) : (
-                  outgoingTransactions.slice(0, 5).map(transaction => (
-                    <div
-                      key={transaction.id}
-                      className="flex items-center justify-between border-b pb-3"
-                    >
-                      <div className="flex items-center space-x-3">
-                        <div className="bg-slate-100 p-2 rounded-full">
-                          {getTransactionIcon(transaction.type)}
-                        </div>
-                        <div>
-                          <p className="font-medium text-sm">
-                            {t(`transactionTypes.${transaction.type.toLowerCase()}`)}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {format(transaction.createdAt, 'dd/MM/yyyy HH:mm')}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="flex flex-col items-end">
-                        <p className="font-medium text-red-600">
-                          -{formatCurrency(transaction.amount, transaction.currency)}
-                        </p>
-                        {getStatusBadge(transaction.status)}
-                      </div>
-                    </div>
-                  ))
-                )}
-              </>
-            )}
+            {renderTransactions(outgoingTransactions)}
           </TabsContent>
         </Tabs>
 
         <div className="space-y-4">
-          <div className="flex flex-col items-center justify-center py-6">
-            <p className="text-sm font-medium text-muted-foreground mb-2">{t('currentBalance')}</p>
-            <h2 className="text-3xl font-bold">{formatCurrency(balance, currency)}</h2>
-            {lastUpdated && (
-              <p className="text-xs text-muted-foreground mt-1 flex items-center">
-                <Clock className="h-3 w-3 mr-1" />
-                {t('lastUpdated')}: {formatDate(lastUpdated)}
-              </p>
+          <div className="flex flex-col sm:flex-row items-center justify-between py-4 gap-4 border-t border-b">
+            <div className="flex flex-col items-center sm:items-start">
+              <p className="text-sm font-medium text-muted-foreground">{t('currentBalance')}</p>
+              <h2 className="text-3xl font-bold">{formatCurrency(balance, currency)}</h2>
+              {lastUpdated && (
+                <p className="text-xs text-muted-foreground mt-1 flex items-center">
+                  <Clock className="h-3 w-3 mr-1" />
+                  {t('lastUpdated')}: {formatDate(lastUpdated)}
+                </p>
+              )}
+            </div>
+
+            {onRefresh && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleRefresh} 
+                disabled={isRefreshing}
+                className="flex items-center gap-1"
+              >
+                <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+                {t('refresh')}
+              </Button>
             )}
           </div>
 
-          <div className="grid grid-cols-1 gap-2">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
             <Card className="bg-primary/5 border-primary/10">
               <CardContent className="p-4">
                 <div className="flex justify-between items-center">
@@ -305,11 +372,13 @@ export const WalletBalance = ({
           </div>
         </div>
       </CardContent>
-      <CardFooter className="flex justify-between">
-        <Button variant="outline" onClick={onViewAllTransactions}>
+      <CardFooter className="flex flex-col sm:flex-row gap-2 justify-between">
+        <Button variant="outline" onClick={onViewAllTransactions} className="w-full sm:w-auto">
           {t('viewAllTransactions')}
         </Button>
-        <Button onClick={onRequestWithdrawal}>{t('requestWithdrawal')}</Button>
+        <Button onClick={onRequestWithdrawal} className="w-full sm:w-auto">
+          {t('requestWithdrawal')}
+        </Button>
       </CardFooter>
     </Card>
   );

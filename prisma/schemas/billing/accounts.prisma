@@ -1,0 +1,41 @@
+// ===== MODÈLES DE COMPTES FINANCIERS =====
+// Ce fichier contient les modèles pour les comptes financiers et taux de taxes.
+
+/// Compte financier de la plateforme
+model FinancialAccount {
+  id                 String    @id @default(cuid())
+  name               String
+  accountType        String
+  balance            Decimal   @default(0)
+  currency           String    @default("EUR")
+  description        String?
+  isActive           Boolean   @default(true)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  reconciliationDate DateTime?
+  bankAccount        String?
+  accountNumber      String?
+  notes              String?
+
+  @@map("financial_accounts")
+}
+
+/// Taux de taxe applicable
+model TaxRate {
+  id          String    @id @default(cuid())
+  name        String
+  rate        Decimal
+  countryCode String
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  taxType     String    @default("VAT")
+  region      String?
+  startDate   DateTime?
+  endDate     DateTime?
+
+  @@index([countryCode])
+  @@index([isActive])
+  @@map("tax_rates")
+} 

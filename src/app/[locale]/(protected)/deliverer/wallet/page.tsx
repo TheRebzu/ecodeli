@@ -1,236 +1,264 @@
 'use client';
 
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { useSession } from 'next-auth/react';
+import { useRouter } from 'next/navigation';
+import { 
+  Wallet, 
+  BanknoteIcon, 
+  ArrowUpFromLine, 
+  FileText, 
+  BarChart, 
+  RefreshCw, 
+  CheckCircle, 
+  Clock 
+} from 'lucide-react';
+
 import { api } from '@/trpc/react';
-import { redirect } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
+import { cn, formatCurrency } from '@/lib/utils';
 
-import { WalletBalance } from '@/components/payments/wallet-balance';
-import { WithdrawalForm } from '@/components/payments/withdrawal-form';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { DelivererWalletDashboard } from '@/components/payments/deliverer/deliverer-wallet-dashboard';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Wallet, ArrowUpRight, BanknoteIcon, HistoryIcon, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-
-// Mock data pour les transactions (à remplacer par les données réelles)
-const mockTransactions = [
-  {
-    id: '1',
-    amount: 25.5,
-    currency: 'EUR',
-    type: 'EARNING',
-    status: 'COMPLETED',
-    description: 'Livraison #D2305-001',
-    createdAt: new Date('2025-05-01T10:30:00'),
-  },
-  {
-    id: '2',
-    amount: 18.75,
-    currency: 'EUR',
-    type: 'EARNING',
-    status: 'COMPLETED',
-    description: 'Livraison #D2305-002',
-    createdAt: new Date('2025-05-02T14:15:00'),
-  },
-  {
-    id: '3',
-    amount: 50,
-    currency: 'EUR',
-    type: 'WITHDRAWAL',
-    status: 'PENDING',
-    description: 'Retrait vers compte bancaire',
-    createdAt: new Date('2025-05-03T09:45:00'),
-  },
-  {
-    id: '4',
-    amount: 21.25,
-    currency: 'EUR',
-    type: 'EARNING',
-    status: 'COMPLETED',
-    description: 'Livraison #D2305-003',
-    createdAt: new Date('2025-05-04T16:20:00'),
-  },
-  {
-    id: '5',
-    amount: 2.5,
-    currency: 'EUR',
-    type: 'PLATFORM_FEE',
-    status: 'COMPLETED',
-    description: 'Frais de plateforme',
-    createdAt: new Date('2025-05-04T16:20:00'),
-  },
-];
+import { Badge } from '@/components/ui/badge';
 
 export default function DelivererWalletPage() {
-  const { toast } = useToast();
   const t = useTranslations('wallet');
-  const [activeTab, setActiveTab] = useState<string>('balance');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [showWithdrawalForm, setShowWithdrawalForm] = useState(false);
+  const { data: session } = useSession();
+  const router = useRouter();
+  const { toast } = useToast();
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  // Utiliser l'API tRPC pour récupérer les données du portefeuille
-  const { data: walletData, isLoading, error } = api.wallet.getDelivererWallet.useQuery();
+  // Récupérer les données du portefeuille
+  const { data: walletData, isLoading: isLoadingWallet } = api.wallet.getMyWallet.useQuery(
+    undefined,
+    {
+      refetchOnWindowFocus: false,
+    }
+  );
 
-  // Pour soumettre une demande de retrait
-  const withdrawalMutation = api.wallet.requestWithdrawal.useMutation({
-    onSuccess: () => {
-      toast({
-        title: t('withdrawalRequestSuccess'),
-        description: t('withdrawalRequestProcessing'),
-      });
-      setShowWithdrawalForm(false);
-    },
-    onError: error => {
-      toast({
-        title: t('withdrawalRequestFailed'),
-        description: error.message,
-        variant: 'destructive',
-      });
-    },
-  });
+  // Récupérer les demandes de retrait en attente
+  const { data: pendingWithdrawals, isLoading: isLoadingWithdrawals } = api.withdrawal.getMyWithdrawals.useQuery(
+    { status: 'PENDING', limit: 5 },
+    {
+      refetchOnWindowFocus: false,
+    }
+  );
 
-  if (error) {
-    return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle>{t('error')}</AlertTitle>
-        <AlertDescription>{error.message}</AlertDescription>
-      </Alert>
-    );
-  }
-
-  // Gérer la demande de retrait
-  const handleRequestWithdrawal = async (data: any) => {
-    setIsSubmitting(true);
+  // Rafraîchir les données
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
     try {
-      await withdrawalMutation.mutateAsync({
-        amount: parseFloat(data.amount),
-        bankDetails: data.bankDetails,
+      await Promise.all([
+        api.wallet.getMyWallet.refetch(),
+        api.withdrawal.getMyWithdrawals.refetch(),
+      ]);
+      
+      toast({
+        title: t('refreshSuccess'),
+        description: t('dataRefreshed'),
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: t('refreshError'),
+        description: typeof error === 'string' ? error : t('genericError'),
       });
     } finally {
-      setIsSubmitting(false);
+      setIsRefreshing(false);
     }
   };
 
-  // Gérer l'affichage de toutes les transactions
-  const handleViewAllTransactions = () => {
-    setActiveTab('transactions');
+  // Accéder à la page de retrait
+  const handleRequestWithdrawal = () => {
+    router.push('/deliverer/wallet/withdrawal');
   };
 
-  // Valeur du portefeuille depuis l'API ou mock
-  const walletBalance = walletData?.balance || 115.5;
+  // Accéder à l'historique des paiements
+  const handleViewPayments = () => {
+    router.push('/deliverer/payments');
+  };
 
-  return (
-    <div className="container py-8">
-      <div className="flex flex-col md:flex-row md:items-center md:justify-between space-y-4 md:space-y-0 mb-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
-          <p className="text-muted-foreground mt-1">{t('description')}</p>
+  // Afficher un écran de chargement
+  if (isLoadingWallet && !walletData) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold tracking-tight">{t('dashboardTitle')}</h1>
+          <Button variant="outline" size="sm" disabled={true}>
+            <RefreshCw className="h-4 w-4 mr-2" />
+            {t('refresh')}
+          </Button>
         </div>
-      </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid grid-cols-2">
-          <TabsTrigger value="balance" className="flex items-center gap-2">
-            <Wallet className="h-4 w-4" />
-            {t('balance')}
-          </TabsTrigger>
-          <TabsTrigger value="transactions" className="flex items-center gap-2">
-            <HistoryIcon className="h-4 w-4" />
-            {t('transactions')}
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="balance" className="space-y-6">
-          {showWithdrawalForm ? (
-            <WithdrawalForm
-              walletBalance={walletBalance}
-              minimumAmount={10}
-              onSubmit={handleRequestWithdrawal}
-              isLoading={isSubmitting}
-              savedBankDetails={walletData?.bankDetails || null}
-            />
-          ) : (
-            <WalletBalance
-              balance={walletBalance}
-              transactions={mockTransactions}
-              isLoading={isLoading}
-              onRequestWithdrawal={() => setShowWithdrawalForm(true)}
-              onViewAllTransactions={handleViewAllTransactions}
-            />
-          )}
-        </TabsContent>
-
-        <TabsContent value="transactions" className="space-y-6">
+        
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card>
-            <CardHeader>
-              <CardTitle>{t('transactionHistory')}</CardTitle>
-              <CardDescription>{t('transactionHistoryDescription')}</CardDescription>
+            <CardHeader className="pb-2">
+              <Skeleton className="h-4 w-24" />
             </CardHeader>
             <CardContent>
-              {isLoading ? (
-                <div className="flex justify-center p-6">
-                  <p>{t('loading')}</p>
-                </div>
-              ) : mockTransactions.length === 0 ? (
-                <div className="text-center p-6">
-                  <AlertCircle className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
-                  <p className="text-muted-foreground">{t('noTransactions')}</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {mockTransactions.map(transaction => (
-                    <div
-                      key={transaction.id}
-                      className="flex items-center justify-between p-4 border rounded-md"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`p-2 rounded-full ${
-                            transaction.type === 'EARNING'
-                              ? 'bg-green-100'
-                              : transaction.type === 'WITHDRAWAL'
-                                ? 'bg-amber-100'
-                                : 'bg-red-100'
-                          }`}
-                        >
-                          {transaction.type === 'EARNING' ? (
-                            <BanknoteIcon className="h-5 w-5 text-green-600" />
-                          ) : transaction.type === 'WITHDRAWAL' ? (
-                            <ArrowUpRight className="h-5 w-5 text-amber-600" />
-                          ) : (
-                            <AlertCircle className="h-5 w-5 text-red-600" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-medium">{transaction.description}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {new Date(transaction.createdAt).toLocaleDateString('fr-FR')} •{' '}
-                            {t(`transactionStatus.${transaction.status.toLowerCase()}`)}
-                          </p>
-                        </div>
-                      </div>
-                      <p
-                        className={`font-medium ${
-                          transaction.type === 'EARNING'
-                            ? 'text-green-600'
-                            : transaction.type === 'WITHDRAWAL'
-                              ? 'text-amber-600'
-                              : 'text-red-600'
-                        }`}
-                      >
-                        {transaction.type === 'EARNING' ? '+' : '-'}
-                        {transaction.amount.toFixed(2)} €
-                      </p>
-                    </div>
-                  ))}
-                </div>
-              )}
+              <Skeleton className="h-10 w-32" />
+              <Skeleton className="h-4 w-24 mt-2" />
             </CardContent>
           </Card>
-        </TabsContent>
-      </Tabs>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <Skeleton className="h-4 w-24" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-10 w-32" />
+              <Skeleton className="h-4 w-24 mt-2" />
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <Skeleton className="h-4 w-24" />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className="h-10 w-32" />
+              <Skeleton className="h-4 w-24 mt-2" />
+            </CardContent>
+          </Card>
+        </div>
+        
+        <Skeleton className="h-[400px] w-full" />
+      </div>
+    );
+  }
+
+  // Contenu principal
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
+          <Wallet className="h-8 w-8" />
+          {t('dashboardTitle')}
+        </h1>
+        
+        <div className="flex items-center gap-2">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {t('refresh')}
+          </Button>
+          
+          <Button 
+            size="sm" 
+            onClick={handleRequestWithdrawal}
+          >
+            <ArrowUpFromLine className="h-4 w-4 mr-2" />
+            {t('requestWithdrawal')}
+          </Button>
+        </div>
+      </div>
+      
+      {/* Cartes d'aperçu rapide */}
+      {walletData && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <BanknoteIcon className="h-4 w-4 text-primary" />
+                {t('availableBalance')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">
+                {formatCurrency(walletData.wallet.balance, walletData.wallet.currency)}
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                {t('withdrawalAvailable')}
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <BarChart className="h-4 w-4 text-green-500" />
+                {t('totalEarned')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-green-600">
+                {formatCurrency(walletData.wallet.totalEarned || 0, walletData.wallet.currency)}
+              </div>
+              <p className="text-sm text-muted-foreground mt-1">
+                {t('sinceJoining')}
+              </p>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-base flex items-center gap-2">
+                <Clock className="h-4 w-4 text-amber-500" />
+                {t('pendingWithdrawals')}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-baseline gap-2">
+                <div className="text-3xl font-bold text-amber-600">
+                  {pendingWithdrawals ? pendingWithdrawals.withdrawals.length : 0}
+                </div>
+                {pendingWithdrawals && pendingWithdrawals.withdrawals.length > 0 && (
+                  <div className="text-sm text-muted-foreground">
+                    ({formatCurrency(
+                      pendingWithdrawals.withdrawals.reduce((sum, w) => sum + w.amount, 0), 
+                      walletData.wallet.currency
+                    )})
+                  </div>
+                )}
+              </div>
+              <div className="flex gap-2 mt-1">
+                {pendingWithdrawals && pendingWithdrawals.withdrawals.length > 0 ? (
+                  <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                    <Clock className="h-3 w-3 mr-1" />
+                    {t('processing')}
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    {t('allProcessed')}
+                  </Badge>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+      
+      {/* Afficher le contenu du tableau de bord */}
+      {session?.user ? (
+        <DelivererWalletDashboard
+          userId={session.user.id}
+          isDemo={walletData?.isDemoMode}
+        />
+      ) : (
+        <Alert variant="destructive">
+          <AlertTitle>{t('notAuthenticated')}</AlertTitle>
+          <AlertDescription>
+            {t('loginRequired')}
+          </AlertDescription>
+        </Alert>
+      )}
+      
+      <div className="flex flex-col sm:flex-row gap-2 justify-end mt-4">
+        <Button variant="outline" onClick={handleViewPayments}>
+          <FileText className="h-4 w-4 mr-2" />
+          {t('viewPaymentHistory')}
+        </Button>
+      </div>
     </div>
   );
 }

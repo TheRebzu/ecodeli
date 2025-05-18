@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 import { headers } from 'next/headers';
+import { buffer } from 'node:stream/consumers';
 import { db } from '@/server/db';
 import { PaymentStatus, InvoiceStatus, SubscriptionStatus } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
+import { sendNotification } from '@/server/services/notification.service';
+import { paymentService } from '@/server/services/payment.service';
 
 // Initialiser Stripe avec la clé secrète
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -17,6 +20,17 @@ const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
  * Gère les requêtes POST du webhook Stripe
  */
 export async function POST(req: NextRequest) {
+  // Si nous sommes en mode démo et que la demande n'est pas un événement simulé,
+  // nous la redirigeons vers une réponse simulée
+  if (process.env.DEMO_MODE === 'true' && !req.headers.get('x-stripe-demo-webhook')) {
+    console.log('[DÉMO] Redirection vers une réponse simulée');
+    return NextResponse.json({ 
+      received: true, 
+      demo: true, 
+      message: 'Mode démonstration activé. Utilisez /api/webhooks/stripe/demo pour les tests.' 
+    });
+  }
+
   try {
     const body = await req.text();
     const headersList = headers();
@@ -24,16 +38,41 @@ export async function POST(req: NextRequest) {
 
     let event: Stripe.Event;
 
-    // Vérifier la signature du webhook
-    try {
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-    } catch (err) {
-      console.error('Erreur de signature webhook:', err);
-      return NextResponse.json({ error: 'Signature invalide' }, { status: 400 });
+    // En mode démo, nous pouvons accepter un payload direct sans vérification de signature
+    if (process.env.DEMO_MODE === 'true' && req.headers.get('x-stripe-demo-webhook')) {
+      try {
+        event = JSON.parse(body) as Stripe.Event;
+      } catch (err) {
+        console.error('Erreur de parsing JSON:', err);
+        return NextResponse.json({ error: 'Payload JSON invalide' }, { status: 400 });
+      }
+    } else {
+      // Vérifier la signature du webhook
+      try {
+        event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+      } catch (err) {
+        console.error('Erreur de signature webhook:', err);
+        return NextResponse.json({ error: 'Signature invalide' }, { status: 400 });
+      }
     }
 
     // Traiter l'événement selon son type
     try {
+      // Journal d'audit pour traçabilité
+      await db.auditLog.create({
+        data: {
+          entityType: 'STRIPE_WEBHOOK',
+          entityId: event.id,
+          action: event.type,
+          performedById: 'system',
+          changes: {
+            eventType: event.type,
+            eventId: event.id,
+            demoMode: process.env.DEMO_MODE === 'true' ? 'true' : 'false'
+          }
+        }
+      });
+      
       await handleStripeEvent(event);
       return NextResponse.json({ received: true });
     } catch (error) {
@@ -88,6 +127,19 @@ async function handleStripeEvent(event: Stripe.Event) {
     case 'payout.failed':
       await handlePayoutFailed(event.data.object as Stripe.Payout);
       break;
+      
+    // Événements liés aux disputes (contestations)
+    case 'charge.dispute.created':
+      await handleDisputeCreated(event.data.object as Stripe.Dispute);
+      break;
+    case 'charge.dispute.closed':
+      await handleDisputeClosed(event.data.object as Stripe.Dispute);
+      break;
+      
+    // Événements liés aux remboursements
+    case 'charge.refunded':
+      await handleChargeRefunded(event.data.object as Stripe.Charge);
+      break;
 
     default:
       console.log(`Événement non géré: ${event.type}`);
@@ -118,7 +170,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
 
   if (existingPayment) {
     // Mettre à jour le paiement existant
-    await db.payment.update({
+    const updatedPayment = await db.payment.update({
       where: { id: existingPayment.id },
       data: {
         status: PaymentStatus.COMPLETED,
@@ -133,6 +185,15 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
       // Ici, nous ne changeons pas le statut de la livraison automatiquement
       // car il faut attendre la confirmation de réception
       console.log(`Paiement réussi pour la livraison ${deliveryId}`);
+      
+      // Notifier le client que le paiement a été accepté
+      await sendNotification({
+        userId,
+        title: 'Paiement de livraison accepté',
+        message: `Votre paiement de ${amount / 100}${currency.toUpperCase()} pour la livraison a été accepté.`,
+        type: 'PAYMENT_CONFIRMED',
+        link: `/client/deliveries/${deliveryId}`
+      });
     }
 
     // Si c'est lié à un service, mettre à jour le statut
@@ -148,10 +209,30 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
           },
         },
       });
+      
+      // Notifier le client que le service a été confirmé
+      await sendNotification({
+        userId,
+        title: 'Réservation de service confirmée',
+        message: `Votre paiement de ${amount / 100}${currency.toUpperCase()} a été accepté. Votre réservation est confirmée.`,
+        type: 'PAYMENT_CONFIRMED',
+        link: `/client/services/bookings`
+      });
+    }
+    
+    // Si c'est lié à un abonnement
+    if (subscriptionId) {
+      await sendNotification({
+        userId,
+        title: 'Abonnement renouvelé',
+        message: `Votre abonnement a été renouvelé avec succès pour un montant de ${amount / 100}${currency.toUpperCase()}.`,
+        type: 'PAYMENT_CONFIRMED',
+        link: `/client/subscription`
+      });
     }
   } else {
     // Créer un nouveau paiement
-    await db.payment.create({
+    const newPayment = await db.payment.create({
       data: {
         amount: new Decimal(amount / 100), // Convertir les centimes en unités
         currency: currency.toUpperCase(),
@@ -165,6 +246,15 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
         metadata: metadata || {},
       },
     });
+    
+    // Notifier l'utilisateur du nouveau paiement
+    await sendNotification({
+      userId,
+      title: 'Paiement effectué',
+      message: `Votre paiement de ${amount / 100}${currency.toUpperCase()} a été traité avec succès.`,
+      type: 'PAYMENT_CONFIRMED',
+      link: `/payments/${newPayment.id}`
+    });
   }
 }
 
@@ -172,7 +262,7 @@ async function handlePaymentIntentSucceeded(paymentIntent: Stripe.PaymentIntent)
  * Gère un PaymentIntent échoué
  */
 async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
-  const { id } = paymentIntent;
+  const { id, metadata, amount, currency } = paymentIntent;
 
   // Mettre à jour le paiement en échec
   const existingPayment = await db.payment.findFirst({
@@ -185,19 +275,36 @@ async function handlePaymentIntentFailed(paymentIntent: Stripe.PaymentIntent) {
       data: {
         status: PaymentStatus.FAILED,
         updatedAt: new Date(),
+        errorMessage: paymentIntent.last_payment_error?.message || 'Paiement refusé'
       },
     });
 
     // Notifier l'utilisateur de l'échec du paiement
-    await db.notification.create({
-      data: {
-        userId: existingPayment.userId,
-        title: 'Échec de paiement',
-        content: `Le paiement de ${existingPayment.amount}${existingPayment.currency} a échoué. Veuillez vérifier votre moyen de paiement.`,
-        type: 'PAYMENT_FAILED',
-        isRead: false,
-      },
+    await sendNotification({
+      userId: existingPayment.userId,
+      title: 'Échec de paiement',
+      message: `Le paiement de ${existingPayment.amount}${existingPayment.currency} a échoué. Veuillez vérifier votre moyen de paiement.`,
+      type: 'ERROR',
+      link: `/payments/${existingPayment.id}`
     });
+    
+    // Si le paiement est lié à une livraison, notifier également
+    if (existingPayment.deliveryId) {
+      const delivery = await db.delivery.findUnique({
+        where: { id: existingPayment.deliveryId },
+        select: { id: true }
+      });
+      
+      if (delivery) {
+        await sendNotification({
+          userId: existingPayment.userId,
+          title: 'Problème de paiement pour votre livraison',
+          message: `Votre paiement pour la livraison a échoué. Veuillez mettre à jour votre moyen de paiement pour poursuivre.`,
+          type: 'DELIVERY_PROBLEM',
+          link: `/client/deliveries/${delivery.id}`
+        });
+      }
+    }
   }
 }
 
@@ -221,7 +328,7 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
   const planType = getPlanTypeFromStripePriceId(subscription.items.data[0]?.price.id);
 
   // Créer l'abonnement dans notre base de données
-  await db.subscription.create({
+  const newSubscription = await db.subscription.create({
     data: {
       userId: user.id,
       stripeSubscriptionId: id,
@@ -234,6 +341,15 @@ async function handleSubscriptionCreated(subscription: Stripe.Subscription) {
       currentPeriodEnd: new Date(subscription.current_period_end * 1000),
       stripePriceId: subscription.items.data[0]?.price.id,
     },
+  });
+  
+  // Notifier l'utilisateur de la création de l'abonnement
+  await sendNotification({
+    userId: user.id,
+    title: 'Abonnement créé',
+    message: `Votre abonnement ${planType} a été créé avec succès.`,
+    type: 'PAYMENT_CONFIRMED',
+    link: `/client/subscription`
   });
 }
 
@@ -608,4 +724,186 @@ function getPlanTypeFromStripePriceId(priceId?: string) {
   }
 
   return 'FREE';
+}
+
+/**
+ * Gère la création d'un litige (dispute)
+ */
+async function handleDisputeCreated(dispute: any) {
+  // Le payment_intent est disponible dans dispute.payment_intent
+  const paymentIntentId = dispute.payment_intent;
+  
+  if (!paymentIntentId) {
+    console.error('PaymentIntent manquant dans le litige');
+    return;
+  }
+  
+  // Récupérer le paiement associé au PaymentIntent
+  const payment = await db.payment.findFirst({
+    where: { paymentIntentId },
+    include: { user: true }
+  });
+  
+  if (!payment) {
+    console.error(`Paiement non trouvé pour PaymentIntent: ${paymentIntentId}`);
+    return;
+  }
+  
+  // Mettre à jour le paiement avec le statut DISPUTED
+  await db.payment.update({
+    where: { id: payment.id },
+    data: {
+      status: 'DISPUTED',
+      metadata: {
+        ...payment.metadata,
+        disputeId: dispute.id,
+        disputeReason: dispute.reason,
+        disputeAmount: dispute.amount,
+        disputeCreatedAt: new Date().toISOString(),
+        disputeStatus: dispute.status
+      }
+    }
+  });
+  
+  // Notifier l'utilisateur du litige
+  await sendNotification({
+    userId: payment.userId,
+    title: 'Paiement contesté',
+    message: `Votre paiement de ${payment.amount}${payment.currency} fait l'objet d'une contestation. Notre équipe étudie le dossier.`,
+    type: 'WARNING',
+    link: `/payments/${payment.id}`
+  });
+  
+  // Notifier également les administrateurs
+  const admins = await db.user.findMany({
+    where: { role: 'ADMIN' }
+  });
+  
+  for (const admin of admins) {
+    await sendNotification({
+      userId: admin.id,
+      title: 'Litige de paiement',
+      message: `Un paiement de ${payment.amount}${payment.currency} a été contesté. Raison: ${dispute.reason || 'Non spécifiée'}`,
+      type: 'ADMIN_ALERT',
+      link: `/admin/payments/${payment.id}`
+    });
+  }
+}
+
+/**
+ * Gère la fermeture d'un litige (dispute)
+ */
+async function handleDisputeClosed(dispute: any) {
+  // Le payment_intent est disponible dans dispute.payment_intent
+  const paymentIntentId = dispute.payment_intent;
+  
+  if (!paymentIntentId) {
+    console.error('PaymentIntent manquant dans le litige');
+    return;
+  }
+  
+  // Récupérer le paiement associé au PaymentIntent
+  const payment = await db.payment.findFirst({
+    where: { paymentIntentId },
+    include: { user: true }
+  });
+  
+  if (!payment) {
+    console.error(`Paiement non trouvé pour PaymentIntent: ${paymentIntentId}`);
+    return;
+  }
+  
+  // Déterminer le statut final en fonction du résultat du litige
+  const finalStatus = dispute.status === 'lost' ? 'REFUNDED' : 'COMPLETED';
+  
+  // Mettre à jour le paiement avec le statut final
+  await db.payment.update({
+    where: { id: payment.id },
+    data: {
+      status: finalStatus,
+      metadata: {
+        ...payment.metadata,
+        disputeId: dispute.id,
+        disputeStatus: dispute.status,
+        disputeClosedAt: new Date().toISOString(),
+        disputeOutcome: dispute.status
+      }
+    }
+  });
+  
+  // Notifier l'utilisateur du résultat du litige
+  await sendNotification({
+    userId: payment.userId,
+    title: dispute.status === 'lost' ? 'Remboursement effectué suite à litige' : 'Paiement confirmé',
+    message: dispute.status === 'lost' 
+      ? `Suite à votre contestation, le paiement de ${payment.amount}${payment.currency} a été remboursé.`
+      : `La contestation concernant votre paiement de ${payment.amount}${payment.currency} a été résolue en notre faveur. Le paiement est confirmé.`,
+    type: dispute.status === 'lost' ? 'PAYMENT_REFUNDED' : 'PAYMENT_CONFIRMED',
+    link: `/payments/${payment.id}`
+  });
+}
+
+/**
+ * Gère un remboursement
+ */
+async function handleChargeRefunded(charge: any) {
+  // Récupérer le paiement associé
+  const payment = await db.payment.findFirst({
+    where: { stripePaymentId: charge.payment_intent || charge.id },
+    include: { user: true }
+  });
+  
+  if (!payment) {
+    console.error(`Paiement non trouvé pour charge: ${charge.id}`);
+    return;
+  }
+  
+  // Déterminer si c'est un remboursement total ou partiel
+  const isFullRefund = charge.amount_refunded === charge.amount;
+  
+  // Mettre à jour le paiement
+  await db.payment.update({
+    where: { id: payment.id },
+    data: {
+      status: isFullRefund ? 'REFUNDED' : 'PARTIALLY_REFUNDED',
+      refundedAmount: new Decimal(charge.amount_refunded / 100),
+      metadata: {
+        ...payment.metadata,
+        refundId: charge.refunds?.data[0]?.id,
+        refundedAt: new Date().toISOString(),
+        refundReason: charge.refunds?.data[0]?.reason || 'Demande client',
+        isFullRefund: isFullRefund
+      }
+    }
+  });
+  
+  // Notifier l'utilisateur du remboursement
+  await sendNotification({
+    userId: payment.userId,
+    title: 'Remboursement effectué',
+    message: isFullRefund
+      ? `Votre paiement de ${payment.amount}${payment.currency} a été intégralement remboursé.`
+      : `Un remboursement partiel de ${charge.amount_refunded / 100}${charge.currency.toUpperCase()} a été effectué sur votre paiement.`,
+    type: 'PAYMENT_REFUNDED',
+    link: `/payments/${payment.id}`
+  });
+  
+  // Si le paiement est lié à une livraison ou un service, envoyer une notification supplémentaire
+  if (payment.deliveryId) {
+    await sendNotification({
+      userId: payment.userId,
+      title: 'Livraison remboursée',
+      message: `Votre livraison a été remboursée. Consultez votre compte pour plus d'informations.`,
+      type: 'DELIVERY_PROBLEM',
+      link: `/client/deliveries/${payment.deliveryId}`
+    });
+  } else if (payment.serviceId) {
+    await sendNotification({
+      userId: payment.userId,
+      title: 'Service remboursé',
+      message: `Votre réservation de service a été remboursée. Consultez votre compte pour plus d'informations.`,
+      type: 'INFO',
+      link: `/client/services/bookings`
+    });
+  }
 }

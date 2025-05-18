@@ -24,7 +24,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { CreditCard, AlertCircle, Check, Euro } from 'lucide-react';
+import { CreditCard, AlertCircle, Check, Euro, Banknote, Zap } from 'lucide-react';
 import {
   Select,
   SelectContent,
@@ -37,9 +37,12 @@ import { useToast } from '@/components/ui/use-toast';
 import { useTranslations } from 'next-intl';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2 } from 'lucide-react';
-import { api } from '@/trpc/react';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { PaymentMethodSelector, type SavedCard } from './payment-method-selector';
+import { useInitiatePayment } from '@/hooks/use-payment';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Badge } from '@/components/ui/badge';
 
 // Type d'objet pour représenter une méthode de paiement sauvegardée
 export interface PaymentFormProps {
@@ -50,6 +53,9 @@ export interface PaymentFormProps {
   destinationId?: string;
   destinationType?: 'DELIVERY' | 'SERVICE' | 'SUBSCRIPTION';
   walletBalance?: number;
+  redirectUrl?: string;
+  description?: string;
+  metadata?: Record<string, any>;
 }
 
 export function PaymentForm({
@@ -60,45 +66,34 @@ export function PaymentForm({
   destinationId,
   destinationType,
   walletBalance,
+  redirectUrl,
+  description: initialDescription = '',
+  metadata = {},
 }: PaymentFormProps) {
   const t = useTranslations('payment');
   const { toast } = useToast();
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [useExistingCard, setUseExistingCard] = useState(savedPaymentMethods.length > 0);
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<
     'card' | 'wallet' | 'sepa' | 'saved_card'
-  >('card');
+  >(savedPaymentMethods.length > 0 ? 'saved_card' : 'card');
   const [selectedCardId, setSelectedCardId] = useState<string | undefined>(
     savedPaymentMethods.length > 0 ? savedPaymentMethods[0].id : undefined
   );
 
-  // Créer un intent de paiement via tRPC
-  const createPaymentIntent = api.payment.createPaymentIntent.useMutation({
-    onSuccess: data => {
-      setIsProcessing(false);
-      setStatus('success');
-      toast({
-        title: t('paymentSuccessful'),
-        description: t('paymentProcessed'),
-      });
-      if (onSuccess) {
-        onSuccess(data.paymentIntentId);
-      }
-    },
-    onError: error => {
-      setIsProcessing(false);
-      setStatus('error');
-      setErrorMessage(error.message);
-      toast({
-        variant: 'destructive',
-        title: t('paymentFailed'),
-        description: error.message,
-      });
-    },
-  });
+  // Utiliser notre hook personnalisé pour l'initialisation du paiement
+  const {
+    initiatePayment,
+    resetPayment,
+    isProcessing,
+    errors,
+    clientSecret,
+    PaymentElementsProvider,
+    isDemoMode
+  } = useInitiatePayment();
 
+  // État local pour afficher les messages de succès/erreur
+  const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  
   // Schéma de validation avec Zod
   const paymentSchema = z.object({
     amount: z
@@ -116,49 +111,53 @@ export function PaymentForm({
     resolver: zodResolver(paymentSchema),
     defaultValues: {
       amount: initialAmount || 0,
-      description: '',
+      description: initialDescription,
       savePaymentMethod: false,
     },
-  });
-
-  // Mois pour le champ d'expiration
-  const months = Array.from({ length: 12 }, (_, i) => {
-    const month = i + 1;
-    return { value: month.toString().padStart(2, '0'), label: month.toString().padStart(2, '0') };
-  });
-
-  // Années pour le champ d'expiration (année courante + 10 ans)
-  const currentYear = new Date().getFullYear();
-  const years = Array.from({ length: 10 }, (_, i) => {
-    const year = currentYear + i;
-    return { value: year.toString(), label: year.toString() };
   });
 
   // Fonction pour gérer la soumission du formulaire
   const onSubmit = async (values: PaymentFormValues) => {
     try {
-      setIsProcessing(true);
       setStatus('idle');
       setErrorMessage(null);
 
-      // Construire les paramètres de paiement en fonction du contexte
+      // Construire les paramètres de paiement
       const paymentParams = {
-        amount: values.useExistingCard ? initialAmount || 0 : values.amount,
+        amount: values.amount,
         currency: 'EUR',
-        description: values.description || 'Paiement EcoDeli',
-        ...(destinationId ? { deliveryId: destinationId } : {}),
-        ...(destinationType === 'SERVICE' ? { serviceId: destinationId } : {}),
-        ...(values.useExistingCard && values.paymentMethodId
-          ? { paymentMethodId: values.paymentMethodId }
+        description: values.description || t('defaultPaymentDescription'),
+        ...(destinationId && destinationType === 'DELIVERY' ? { deliveryId: destinationId } : {}),
+        ...(destinationId && destinationType === 'SERVICE' ? { serviceId: destinationId } : {}),
+        ...(destinationId && destinationType === 'SUBSCRIPTION' ? { subscriptionId: destinationId } : {}),
+        ...(selectedPaymentMethod === 'saved_card' && selectedCardId
+          ? { paymentMethodId: selectedCardId }
           : {}),
-        // Si on n'utilise pas de carte existante, on devrait envoyer les détails de la carte à Stripe
-        // via leur SDK et obtenir un token/PaymentMethod, mais cette partie nécessite StripeElements
+        metadata: {
+          ...metadata,
+          paymentMethod: selectedPaymentMethod,
+          savePaymentMethod: values.savePaymentMethod,
+        }
       };
 
-      // Appel de l'API tRPC pour créer l'intent de paiement
-      createPaymentIntent.mutate(paymentParams);
+      // Appel au hook pour initialiser le paiement
+      const result = await initiatePayment(paymentParams, redirectUrl);
+      
+      if (result.success) {
+        setStatus('success');
+        toast({
+          title: t('paymentInitiated'),
+          description: t('paymentBeingProcessed'),
+        });
+        
+        if (onSuccess && result.paymentIntentId) {
+          onSuccess(result.paymentIntentId);
+        }
+      } else {
+        setStatus('error');
+        setErrorMessage(result.error || t('unknownError'));
+      }
     } catch (error) {
-      setIsProcessing(false);
       setStatus('error');
       setErrorMessage(error instanceof Error ? error.message : t('unknownError'));
     }
@@ -175,190 +174,229 @@ export function PaymentForm({
     }
   };
 
-  // Formatage du numéro de carte (ajout d'espaces tous les 4 chiffres)
-  const formatCardNumber = (value: string) => {
-    return value
-      .replace(/\s/g, '')
-      .replace(/(\d{4})/g, '$1 ')
-      .trim();
+  // Réinitialiser le formulaire
+  const handleCancel = () => {
+    resetPayment();
+    form.reset();
+    setStatus('idle');
+    setErrorMessage(null);
+    if (onCancel) {
+      onCancel();
+    }
   };
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <CreditCard className="h-5 w-5" />
-          {t('processPayment')}
-        </CardTitle>
-        <CardDescription>
-          {initialAmount > 0
-            ? t('amountToPay', { amount: formatCurrency(initialAmount, 'EUR') })
-            : t('enterPaymentDetails')}
-        </CardDescription>
-      </CardHeader>
-      <CardContent>
-        {status === 'success' && (
-          <Alert className="mb-4 bg-green-50 text-green-800 border-green-200">
-            <Check className="h-4 w-4" />
-            <AlertTitle>{t('success')}</AlertTitle>
-            <AlertDescription>{t('paymentSuccessful')}</AlertDescription>
-          </Alert>
-        )}
-
-        {status === 'error' && (
-          <Alert className="mb-4 bg-red-50 text-red-800 border-red-200">
-            <AlertCircle className="h-4 w-4" />
-            <AlertTitle>{t('error')}</AlertTitle>
-            <AlertDescription>{errorMessage || t('paymentFailed')}</AlertDescription>
-          </Alert>
-        )}
-
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-            {/* Montant */}
-            <FormField
-              control={form.control}
-              name="amount"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('amount')}</FormLabel>
-                  <FormControl>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
-                        €
-                      </span>
-                      <Input
-                        {...field}
-                        type="number"
-                        min="0.01"
-                        step="0.01"
-                        placeholder="0.00"
-                        className="pl-8"
-                        value={field.value}
-                        onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
-                        disabled={isProcessing || status === 'success'}
-                      />
-                    </div>
-                  </FormControl>
-                  <FormDescription>{t('enterAmountDesc')}</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Description */}
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('description')}</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      placeholder={t('descriptionPlaceholder')}
-                      disabled={isProcessing || status === 'success'}
-                    />
-                  </FormControl>
-                  <FormDescription>{t('descriptionDesc')}</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Méthode de paiement */}
-            <div className="space-y-4">
-              <Label>{t('paymentMethod')}</Label>
-              <PaymentMethodSelector
-                selectedMethod={selectedPaymentMethod}
-                onSelect={handlePaymentMethodChange}
-                savedCards={savedPaymentMethods}
-                walletBalance={walletBalance}
-                disabled={isProcessing || status === 'success'}
-              />
-            </div>
-
-            {/* Sélection de méthode de paiement enregistrée si disponible */}
-            {savedPaymentMethods.length > 0 && (
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox
-                    id="useExistingCard"
-                    checked={useExistingCard}
-                    onCheckedChange={checked => {
-                      setUseExistingCard(checked === true);
-                      form.setValue('useExistingCard', checked === true);
-                    }}
-                  />
-                  <label
-                    htmlFor="useExistingCard"
-                    className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                  >
-                    {t('useExistingCard')}
-                  </label>
-                </div>
-
-                {useExistingCard && (
-                  <FormField
-                    control={form.control}
-                    name="paymentMethodId"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('selectCard')}</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value || savedPaymentMethods[0]?.id}
-                          disabled={isProcessing || status === 'success'}
-                        >
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder={t('selectCard')} />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {savedPaymentMethods.map(method => (
-                              <SelectItem key={method.id} value={method.id}>
-                                {method.brand.toUpperCase()} •••• {method.last4} (
-                                {method.expiryMonth.toString().padStart(2, '0')}/
-                                {method.expiryYear.toString().substring(2)})
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                )}
-              </div>
+    <PaymentElementsProvider>
+      <Card className="w-full max-w-md mx-auto">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <CreditCard className="h-5 w-5" />
+              {t('processPayment')}
+            </CardTitle>
+            {isDemoMode && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1">
+                      <Zap className="h-3 w-3" />
+                      {t('demoMode')}
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t('demoModeDescription')}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
+          </div>
+          <CardDescription>
+            {initialAmount > 0
+              ? t('amountToPay', { amount: formatCurrency(initialAmount, 'EUR') })
+              : t('enterPaymentDetails')}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {status === 'success' && (
+            <Alert className="mb-4 bg-green-50 text-green-800 border-green-200">
+              <Check className="h-4 w-4" />
+              <AlertTitle>{t('success')}</AlertTitle>
+              <AlertDescription>{t('paymentSuccessful')}</AlertDescription>
+            </Alert>
+          )}
 
-            {/* Boutons d'action */}
-            <div className="flex justify-end gap-4 pt-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onCancel}
-                disabled={isProcessing || status === 'success'}
-              >
-                {t('cancel')}
-              </Button>
-              <Button type="submit" disabled={isProcessing || status === 'success'}>
-                {isProcessing ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    {t('processing')}
-                  </>
-                ) : status === 'success' ? (
-                  t('paymentComplete')
-                ) : (
-                  t('pay')
+          {status === 'error' && (
+            <Alert className="mb-4 bg-red-50 text-red-800 border-red-200">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>{t('error')}</AlertTitle>
+              <AlertDescription>{errorMessage || t('paymentFailed')}</AlertDescription>
+            </Alert>
+          )}
+
+          {isDemoMode && status === 'idle' && (
+            <Alert className="mb-4 bg-blue-50 text-blue-800 border-blue-200">
+              <Banknote className="h-4 w-4" />
+              <AlertTitle>{t('demoPayment')}</AlertTitle>
+              <AlertDescription>{t('demoPaymentDescription')}</AlertDescription>
+            </Alert>
+          )}
+
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {/* Montant - caché si montant initial défini */}
+              {!initialAmount && (
+                <FormField
+                  control={form.control}
+                  name="amount"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('amount')}</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500">
+                            €
+                          </span>
+                          <Input
+                            {...field}
+                            type="number"
+                            min="0.01"
+                            step="0.01"
+                            placeholder="0.00"
+                            className="pl-8"
+                            value={field.value}
+                            onChange={e => field.onChange(parseFloat(e.target.value) || 0)}
+                            disabled={isProcessing || status === 'success'}
+                            aria-describedby="amount-description"
+                          />
+                        </div>
+                      </FormControl>
+                      <FormDescription id="amount-description">{t('enterAmountDesc')}</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {/* Description */}
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('description')}</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        placeholder={t('descriptionPlaceholder')}
+                        disabled={isProcessing || status === 'success'}
+                        aria-describedby="description-help"
+                      />
+                    </FormControl>
+                    <FormDescription id="description-help">{t('descriptionDesc')}</FormDescription>
+                    <FormMessage />
+                  </FormItem>
                 )}
+              />
+
+              {/* Méthode de paiement */}
+              <div className="space-y-4">
+                <Label>{t('paymentMethod')}</Label>
+                <PaymentMethodSelector
+                  selectedMethod={selectedPaymentMethod}
+                  onSelect={handlePaymentMethodChange}
+                  savedCards={savedPaymentMethods}
+                  walletBalance={walletBalance}
+                  disabled={isProcessing || status === 'success'}
+                />
+              </div>
+
+              {/* Option pour sauvegarder la méthode de paiement */}
+              {selectedPaymentMethod === 'card' && (
+                <FormField
+                  control={form.control}
+                  name="savePaymentMethod"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                          disabled={isProcessing || status === 'success'}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>{t('saveCardForFuture')}</FormLabel>
+                        <FormDescription>{t('saveCardDescription')}</FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              )}
+
+              {/* Boutons d'action */}
+              <div className="flex justify-end gap-4 pt-4">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleCancel}
+                  disabled={isProcessing}
+                >
+                  {t('cancel')}
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={isProcessing || status === 'success'}
+                  aria-live="polite"
+                >
+                  {isProcessing ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      {t('processing')}
+                    </>
+                  ) : status === 'success' ? (
+                    t('paymentComplete')
+                  ) : (
+                    t('pay')
+                  )}
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </CardContent>
+        {isDemoMode && status !== 'success' && (
+          <CardFooter className="flex-col gap-2 border-t pt-4">
+            <p className="text-xs text-muted-foreground">{t('demoTipTitle')}</p>
+            <div className="grid grid-cols-2 gap-2 w-full">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  form.setValue('amount', 42.00);
+                  form.setValue('description', t('demoSuccessDescription'));
+                }}
+                disabled={isProcessing}
+                className="text-xs"
+              >
+                <Zap className="mr-1 h-3 w-3" />
+                {t('simulateSuccess')}
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  form.setValue('amount', 666.00);
+                  form.setValue('description', t('demoFailureDescription'));
+                }}
+                disabled={isProcessing}
+                className="text-xs"
+              >
+                <AlertCircle className="mr-1 h-3 w-3" />
+                {t('simulateFailure')}
               </Button>
             </div>
-          </form>
-        </Form>
-      </CardContent>
-    </Card>
+          </CardFooter>
+        )}
+      </Card>
+    </PaymentElementsProvider>
   );
 }

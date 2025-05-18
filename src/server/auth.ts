@@ -115,10 +115,16 @@ export const authOptions: NextAuthOptions = {
 
 /**
  * Fonction pour obtenir la session côté serveur
+ * Compatible avec les deux approches (Pages Router et App Router)
  */
-export const getServerAuthSession = (ctx: {
+export const getServerAuthSession = (ctx?: {
   req: GetServerSidePropsContext["req"];
   res: GetServerSidePropsContext["res"];
 }) => {
-  return getServerSession(ctx.req, ctx.res, authOptions);
+  if (ctx?.req && ctx?.res) {
+    // Pages Router: utilisation des objets req et res
+    return getServerSession(ctx.req, ctx.res, authOptions);
+  }
+  // App Router: utilisation sans contexte spécifique
+  return getServerSession(authOptions);
 }; 

@@ -26,6 +26,11 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Construire le schéma fragmenté avant de générer le client Prisma
+RUN pnpm db:schema:build && \
+    pnpm db:generate && \
+    pnpm build
+
 # Générer les clients Prisma
 RUN npx prisma generate
 
@@ -51,6 +56,9 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder --chown=nextjs:nodejs /app/next.config.ts ./
+
+# Copier les fichiers Prisma
+COPY --from=builder /app/scripts/prisma ./scripts/prisma
 
 # Copier le script d'entrée
 COPY --from=builder /app/docker/entrypoint.sh ./

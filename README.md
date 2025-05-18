@@ -155,3 +155,58 @@ Les fichiers de traduction sont générés dans `src/messages/` avec une structu
 ```
 
 Cette structure permet une organisation claire et facilite la maintenance des traductions au fur et à mesure que l'application évolue.
+
+## Structure du schéma Prisma
+
+Le schéma Prisma du projet est organisé de manière modulaire pour faciliter la maintenance et la lisibilité. Les modèles sont regroupés par domaine fonctionnel dans des fichiers séparés.
+
+### Organisation des schémas
+
+```
+prisma/
+├── schema.prisma              # Schéma principal (généré par fusion)
+├── schemas/                   # Fragments de schéma par domaine
+│   ├── shared/                # Éléments partagés entre domaines
+│   │   ├── enums.prisma       # Énumérations
+│   │   └── types.prisma       # Types communs
+│   ├── users/                 # Domaine utilisateurs
+│   │   ├── user.prisma        # Modèle User principal
+│   │   ├── auth.prisma        # Modèles d'authentification
+│   │   ├── profile.prisma     # Profils par type d'utilisateur
+│   │   ├── verification.prisma # Vérification et documents
+│   │   ├── notification.prisma # Notifications utilisateur 
+│   │   └── contract.prisma    # Contrats marchands
+│   ├── deliveries/            # Domaine livraisons
+│   │   ├── announcement.prisma # Annonces de livraison
+│   │   ├── deliveries.prisma  # Livraisons et suivi
+│   │   ├── addresses.prisma   # Adresses de livraison
+│   │   └── application.prisma # Candidatures de livreurs
+│   ├── storage/               # Domaine stockage
+│   │   ├── warehouse.prisma   # Entrepôts
+│   │   ├── box.prisma         # Boxes de stockage
+│   │   └── reservation.prisma # Réservations
+│   ├── services/              # Domaine services
+│   │   ├── service.prisma     # Services proposés
+│   │   ├── booking.prisma     # Réservations de services
+│   │   └── provider.prisma    # Disponibilités prestataires
+│   └── financial/             # Domaine financier
+│       ├── payment.prisma     # Paiements
+│       ├── wallet.prisma      # Portefeuilles électroniques
+│       ├── invoice.prisma     # Factures
+│       ├── subscription.prisma # Abonnements
+│       ├── commission.prisma  # Commissions et rapports
+│       └── financial_task.prisma # Tâches financières
+```
+
+### Utilisation du schéma fragmenté
+
+1. Pour modifier un modèle, éditez le fichier correspondant dans `prisma/schemas/`
+2. Exécutez `pnpm prisma:merge` pour fusionner les fragments en un seul schéma
+3. Validez le schéma avec `pnpm prisma:validate`
+4. Générez le client Prisma avec `pnpm prisma:generate`
+
+### Relations inter-domaines
+
+Les relations entre modèles de différents domaines sont maintenues dans leurs définitions respectives. Par exemple, un `User` a une relation avec `Wallet` dans le modèle `User`, et inversement dans le modèle `Wallet`.
+
+**Note importante:** Ne modifiez jamais directement `schema.prisma`, car il est généré automatiquement à partir des fragments.

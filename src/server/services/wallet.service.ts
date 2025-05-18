@@ -1,665 +1,793 @@
-import { Decimal } from '@prisma/client/runtime/library';
+// src/server/services/wallet/wallet.service.ts
 import { db } from '@/server/db';
-import Stripe from 'stripe';
-import {
-  TransactionStatus,
-  TransactionType,
-  Wallet,
-  WalletTransaction,
-  WithdrawalRequest,
-} from '@/types/prisma-client';
-import { encryptData, decryptData } from '@/lib/cryptography';
-import { PaymentService } from './payment.service';
-import { NotificationService } from './notification.service';
-import { PrismaClient, UserRole } from '@prisma/client';
+import { Decimal } from '@prisma/client/runtime/library';
 import { TRPCError } from '@trpc/server';
+import { v4 as uuidv4 } from 'uuid';
+import { TransactionStatus, TransactionType, WithdrawalStatus } from '@prisma/client';
+import { addDays, endOfDay, startOfDay, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 
-// Récupérer la clé API Stripe depuis les variables d'environnement
-const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || '';
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'ecodeli_encryption_key';
-
-// Initialiser Stripe uniquement si la clé API est disponible
-let stripe: Stripe | null = null;
-if (STRIPE_SECRET_KEY) {
-  try {
-    stripe = new Stripe(STRIPE_SECRET_KEY, {
-      apiVersion: '2023-10-16',
-      appInfo: {
-        name: 'EcoDeli Financial System',
-        version: '1.0.0',
-      },
+/**
+ * Service de gestion des portefeuilles virtuels
+ */
+export const walletService = {
+  /**
+   * Récupère le portefeuille d'un utilisateur ou le crée s'il n'existe pas
+   */
+  async getOrCreateWallet(userId: string) {
+    let wallet = await db.wallet.findUnique({
+      where: { userId }
     });
-  } catch (error) {
-    console.error("Erreur lors de l'initialisation de Stripe:", error);
-  }
-}
-
-export interface WalletBalanceInfo {
-  balance: number;
-  availableBalance: number;
-  pendingBalance: number;
-  currency: string;
-}
-
-// Exporter la classe WalletService
-export class WalletService {
-  private db: PrismaClient;
-  private stripe: Stripe | null = null;
-
-  constructor(prismaClient: PrismaClient) {
-    this.db = prismaClient;
-
-    // Initialiser Stripe si la clé API est disponible
-    if (process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY.length > 0) {
-      try {
-        this.stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-          apiVersion: '2023-10-16' as any, // Cast pour éviter les erreurs de version
-        });
-      } catch (error) {
-        console.error("Erreur lors de l'initialisation de Stripe:", error);
-        // Continue sans Stripe en mode dégradé
-      }
-    } else {
-      console.warn(
-        'STRIPE_SECRET_KEY manquant ou vide. Les fonctionnalités de paiement seront limitées.'
-      );
-    }
-  }
-
-  // Méthode pour récupérer ou créer un portefeuille pour un utilisateur
-  async getUserWallet(userId: string) {
-    try {
-      // Vérifier si l'utilisateur existe
-      const user = await this.db.user.findUnique({ where: { id: userId } });
-      if (!user) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Utilisateur non trouvé',
-        });
-      }
-
-      // Trouver le portefeuille existant ou en créer un nouveau
-      let wallet = await this.db.wallet.findUnique({ where: { userId } });
-
-      if (!wallet) {
-        wallet = await this.db.wallet.create({
-          data: {
-            userId,
-            balance: 0,
-            currency: 'EUR',
-            isActive: true,
-          },
-        });
-      }
-
-      return wallet;
-    } catch (error) {
-      console.error('Erreur dans getUserWallet:', error);
-      throw error;
-    }
-  }
-
-  // Méthode pour obtenir le montant en attente
-  async getPendingAmount(userId: string): Promise<number> {
-    try {
-      // Exemple: Somme des paiements en attente
-      const pendingPayments = await this.db.payment.findMany({
-        where: {
+    
+    if (!wallet) {
+      wallet = await db.wallet.create({
+        data: {
           userId,
-          status: 'PENDING',
-        },
+          balance: new Decimal(0),
+          currency: 'EUR',
+          isActive: true,
+          minimumWithdrawalAmount: new Decimal(10),
+          totalEarned: new Decimal(0),
+          totalWithdrawn: new Decimal(0),
+          earningsThisMonth: new Decimal(0)
+        }
       });
-
-      return pendingPayments.reduce((total, payment) => total + Number(payment.amount), 0);
-    } catch (error) {
-      console.error('Erreur dans getPendingAmount:', error);
-      return 0;
     }
-  }
-
-  // Méthode pour obtenir le montant réservé
-  async getReservedAmount(userId: string): Promise<number> {
-    try {
-      // Exemple: Somme des paiements avec conservation (escrow)
-      const escrowPayments = await this.db.payment.findMany({
-        where: {
-          userId,
-          status: 'COMPLETED',
-          escrowReleaseDate: {
-            gt: new Date(),
-          },
-        },
+    
+    return wallet;
+  },
+  
+  /**
+   * Récupère le portefeuille d'un utilisateur
+   */
+  async getWallet(userId: string) {
+    const wallet = await db.wallet.findUnique({
+      where: { userId }
+    });
+    
+    if (!wallet) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Portefeuille non trouvé'
       });
-
-      return escrowPayments.reduce((total, payment) => total + Number(payment.amount), 0);
-    } catch (error) {
-      console.error('Erreur dans getReservedAmount:', error);
-      return 0;
     }
-  }
-
-  // Méthode pour obtenir les transactions du portefeuille
-  async getWalletTransactions(
-    userId: string,
-    options: {
-      skip: number;
-      take: number;
-      type?: 'ALL' | 'CREDIT' | 'DEBIT' | 'WITHDRAWAL';
-      startDate?: Date;
-      endDate?: Date;
+    
+    return wallet;
+  },
+  
+  /**
+   * Récupère le solde actuel du portefeuille avec statistiques
+   */
+  async getWalletBalance(walletId: string) {
+    const wallet = await db.wallet.findUnique({
+      where: { id: walletId }
+    });
+    
+    if (!wallet) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Portefeuille non trouvé'
+      });
     }
-  ) {
-    try {
-      const { skip, take, type, startDate, endDate } = options;
 
-      // Construire le filtre de base
-      const whereClause: any = {
-        OR: [{ senderId: userId }, { recipientId: userId }],
-      };
+    // Calculer le solde en attente (retraits en cours)
+    const pendingWithdrawals = await db.withdrawalRequest.aggregate({
+      where: {
+        walletId,
+        status: 'PENDING'
+      },
+      _sum: {
+        amount: true
+      }
+    });
 
-      // Ajouter des filtres supplémentaires si nécessaire
-      if (type && type !== 'ALL') {
-        if (type === 'CREDIT') {
-          whereClause.recipientId = userId;
-        } else if (type === 'DEBIT') {
-          whereClause.senderId = userId;
-        } else if (type === 'WITHDRAWAL') {
-          whereClause.type = 'WITHDRAWAL';
-          whereClause.senderId = userId;
+    // Calcul des transactions du mois en cours
+    const currentMonth = new Date();
+    const firstDayOfMonth = startOfMonth(currentMonth);
+    const lastDayOfMonth = endOfMonth(currentMonth);
+
+    const thisMonthEarnings = await db.walletTransaction.aggregate({
+      where: {
+        walletId,
+        type: 'EARNING',
+        status: 'COMPLETED',
+        createdAt: {
+          gte: firstDayOfMonth,
+          lte: lastDayOfMonth
+        }
+      },
+      _sum: {
+        amount: true
+      }
+    });
+
+    // Obtenir le solde disponible (hors retraits en attente)
+    const pendingAmount = pendingWithdrawals._sum.amount ?? new Decimal(0);
+    const availableBalance = wallet.balance.sub(pendingAmount);
+
+    return {
+      total: wallet.balance,
+      available: availableBalance,
+      pending: pendingAmount,
+      currency: wallet.currency,
+      earningsThisMonth: thisMonthEarnings._sum.amount ?? new Decimal(0),
+      totalEarned: wallet.totalEarned,
+      totalWithdrawn: wallet.totalWithdrawn,
+      lastUpdated: wallet.lastTransactionAt || wallet.updatedAt,
+      demoMode: process.env.DEMO_MODE === 'true',
+      minimumWithdrawalAmount: wallet.minimumWithdrawalAmount
+    };
+  },
+  
+  /**
+   * Récupère les transactions d'un portefeuille avec pagination
+   */
+  async listWalletTransactions(walletId: string, options: {
+    page?: number,
+    limit?: number,
+    type?: TransactionType,
+    startDate?: Date,
+    endDate?: Date,
+    status?: TransactionStatus
+  } = {}) {
+    const {
+      page = 1,
+      limit = 10,
+      type,
+      startDate,
+      endDate,
+      status = 'COMPLETED'
+    } = options;
+    
+    const skip = (page - 1) * limit;
+    
+    // Construire les conditions de recherche
+    const where: any = { walletId };
+    
+    if (type) {
+      where.type = type;
+    }
+    
+    if (status) {
+      where.status = status;
+    }
+    
+    if (startDate || endDate) {
+      where.createdAt = {};
+      
+      if (startDate) {
+        where.createdAt.gte = startOfDay(startDate);
+      }
+      
+      if (endDate) {
+        where.createdAt.lte = endOfDay(endDate);
+      }
+    }
+    
+    // Compter le nombre total de transactions
+    const totalCount = await db.walletTransaction.count({ where });
+    
+    // Récupérer les transactions
+    const transactions = await db.walletTransaction.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      take: limit,
+      skip,
+      include: {
+        delivery: {
+          select: {
+            id: true,
+            trackingNumber: true,
+            currentStatus: true
+          }
+        },
+        service: {
+          select: {
+            id: true,
+            name: true,
+            type: true
+          }
+        },
+        payment: {
+          select: {
+            id: true,
+            status: true,
+            description: true
+          }
         }
       }
-
-      if (startDate) {
-        whereClause.createdAt = { ...(whereClause.createdAt || {}), gte: startDate };
-      }
-
-      if (endDate) {
-        whereClause.createdAt = { ...(whereClause.createdAt || {}), lte: endDate };
-      }
-
-      // Récupérer les transactions
-      const transactions = await this.db.walletTransaction.findMany({
-        where: whereClause,
-        orderBy: { createdAt: 'desc' },
-        skip,
-        take,
-      });
-
-      // Compter le nombre total de transactions pour la pagination
-      const total = await this.db.walletTransaction.count({ where: whereClause });
-
-      return { transactions, total };
-    } catch (error) {
-      console.error('Erreur dans getWalletTransactions:', error);
-      throw error;
-    }
-  }
-
-  // Méthode pour transférer des fonds entre utilisateurs
-  async transferFunds(params: {
-    senderId: string;
-    recipientId: string;
-    amount: number;
-    description?: string;
-  }) {
-    try {
-      const { senderId, recipientId, amount, description } = params;
-
-      // Vérifier que les deux utilisateurs existent et ont des portefeuilles
-      const senderWallet = await this.getUserWallet(senderId);
-      const recipientWallet = await this.getUserWallet(recipientId);
-
-      // Vérifier que le solde est suffisant
-      if (senderWallet.balance < amount) {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Solde insuffisant pour effectuer le transfert',
-        });
-      }
-
-      // Créer la transaction et mettre à jour les soldes
-      return await this.db.$transaction(async tx => {
-        // Mettre à jour le solde de l'expéditeur
-        await tx.wallet.update({
-          where: { id: senderWallet.id },
-          data: {
-            balance: { decrement: amount },
-            lastTransactionAt: new Date(),
-          },
-        });
-
-        // Mettre à jour le solde du destinataire
-        await tx.wallet.update({
-          where: { id: recipientWallet.id },
-          data: {
-            balance: { increment: amount },
-            lastTransactionAt: new Date(),
-          },
-        });
-
-        // Créer la transaction
-        const transaction = await tx.walletTransaction.create({
-          data: {
-            senderId,
-            recipientId,
-            amount,
-            currency: senderWallet.currency,
-            type: 'TRANSFER',
-            status: 'COMPLETED',
-            description: description || 'Transfert de fonds',
-          },
-        });
-
-        return transaction;
-      });
-    } catch (error) {
-      console.error('Erreur dans transferFunds:', error);
-      throw error;
-    }
-  }
-
-  /**
-   * Récupère le solde d'un portefeuille
-   */
-  async getBalance(walletId: string): Promise<WalletBalanceInfo> {
-    const wallet = await this.db.wallet.findUnique({
-      where: { id: walletId },
     });
-
-    if (!wallet) {
-      throw new Error('Portefeuille non trouvé');
-    }
-
-    const pendingTransactions = await this.db.walletTransaction.aggregate({
-      where: {
-        walletId,
-        status: 'PENDING',
-        type: {
-          in: ['EARNING', 'REFUND', 'BONUS'],
-        },
-      },
-      _sum: {
-        amount: true,
-      },
-    });
-
-    const pendingWithdrawals = await this.db.withdrawalRequest.aggregate({
-      where: {
-        walletId,
-        status: 'PENDING',
-      },
-      _sum: {
-        amount: true,
-      },
-    });
-
-    const pendingBalanceOut = (pendingWithdrawals._sum.amount as Decimal) || new Decimal(0);
-    const pendingBalanceIn = (pendingTransactions._sum.amount as Decimal) || new Decimal(0);
-    const pendingBalance = Number(pendingBalanceIn) - Number(pendingBalanceOut);
-    const availableBalance = Number(wallet.balance) - Number(pendingBalanceOut);
-
+    
     return {
-      balance: Number(wallet.balance),
-      availableBalance: availableBalance > 0 ? availableBalance : 0,
-      pendingBalance,
-      currency: wallet.currency,
+      transactions,
+      pagination: {
+        total: totalCount,
+        pages: Math.ceil(totalCount / limit),
+        page,
+        limit
+      }
     };
-  }
-
+  },
+  
   /**
-   * Ajoute des fonds au portefeuille (après une livraison, service, etc.)
+   * Crée une transaction et met à jour le solde du portefeuille
    */
-  async addFunds(
-    walletId: string,
+  async createWalletTransaction(walletId: string, data: {
     amount: number,
-    reference: string,
-    type: TransactionType = 'EARNING',
-    description?: string
-  ) {
-    if (amount <= 0) {
-      throw new Error('Le montant doit être supérieur à 0');
+    type: TransactionType,
+    description?: string,
+    reference?: string,
+    metadata?: Record<string, any>,
+    deliveryId?: string,
+    serviceId?: string,
+    paymentId?: string,
+    demoOptions?: {
+      delayMs?: number,
+      simulateFailure?: boolean
     }
-
-    const wallet = await this.db.wallet.findUnique({ where: { id: walletId } });
-    if (!wallet) {
-      throw new Error('Portefeuille non trouvé');
+  }) {
+    const { demoOptions, ...transactionData } = data;
+    const decimalAmount = new Decimal(transactionData.amount);
+    
+    // Simuler un délai en mode démo si demandé
+    if (process.env.DEMO_MODE === 'true' && demoOptions?.delayMs) {
+      await new Promise(resolve => setTimeout(resolve, demoOptions.delayMs));
     }
-
-    // Convertir en Decimal pour l'opération
-    const amountDecimal = new Decimal(amount);
-
-    // Créer une transaction dans le portefeuille
-    const transaction = await this.db.walletTransaction.create({
-      data: {
-        walletId,
-        amount: amountDecimal,
-        currency: wallet.currency,
-        type,
-        status: 'COMPLETED',
-        description: description || `Ajout de fonds: ${amount} ${wallet.currency}`,
-        reference,
-      },
-    });
-
-    // Mettre à jour le solde du portefeuille
-    const updatedWallet = await this.db.wallet.update({
-      where: { id: walletId },
-      data: {
-        balance: new Decimal(wallet.balance).plus(amountDecimal),
-        totalEarned: new Decimal(wallet.totalEarned || 0).plus(amountDecimal),
-        lastTransactionAt: new Date(),
-        updatedAt: new Date(),
-      },
-    });
-
-    // Notifier l'utilisateur
-    await NotificationService.sendNotification({
-      userId: wallet.userId,
-      title: 'Fonds ajoutés',
-      content: `${amount} ${wallet.currency} ont été ajoutés à votre portefeuille.`,
-      type: 'WALLET_FUNDS_ADDED',
-    });
-
-    return { wallet: updatedWallet, transaction };
-  }
-  /**
-   * Crée un compte Stripe Connect pour un portefeuille
-   */
-  async createConnectAccount(userId: string, userEmail: string, country: string = 'FR') {
-    try {
-      // Récupérer le portefeuille de l'utilisateur
-      const wallet = await this.getUserWallet(userId);
-
-      // Vérifier si le portefeuille a déjà un compte Stripe
-      if (wallet.stripeAccountId) {
-        throw new Error('Ce portefeuille a déjà un compte Stripe Connect');
-      }
-
-      // Vérifier si Stripe est initialisé
-      if (!this.stripe) {
-        console.warn("Stripe n'est pas initialisé. Impossible de créer un compte Connect.");
-        return {
-          success: false,
-          error: new Error("Configuration Stripe manquante. Contactez l'administrateur."),
-        };
-      }
-
-      // Créer le compte en fonction du type
-      const account = await this.stripe.accounts.create({
-        type: 'express',
-        country: country,
-        email: userEmail,
-        capabilities: {
-          transfers: { requested: true },
-          card_payments: { requested: true },
-        },
-        business_type: 'individual',
-        business_profile: {
-          url: 'https://ecodeli.com',
-          mcc: '4215', // Service de livraison
-        },
-        metadata: {
-          walletId: wallet.id,
-          userId: userId,
-        },
+    
+    // Simuler un échec en mode démo si demandé
+    if (process.env.DEMO_MODE === 'true' && demoOptions?.simulateFailure) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Échec simulé de la transaction en mode démonstration'
       });
-
-      if (!account) {
-        throw new Error('Échec de la création du compte Stripe Connect');
-      }
-
-      // Mettre à jour le portefeuille
-      await this.db.wallet.update({
-        where: { id: wallet.id },
+    }
+    
+    const wallet = await db.wallet.findUnique({
+      where: { id: walletId }
+    });
+    
+    if (!wallet) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Portefeuille non trouvé'
+      });
+    }
+    
+    // Vérifier si le solde serait négatif après une opération de débit
+    if (decimalAmount.lt(0) && wallet.balance.add(decimalAmount).lt(0)) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'Solde insuffisant pour cette opération'
+      });
+    }
+    
+    // Calculer le nouveau solde
+    const previousBalance = wallet.balance;
+    const newBalance = previousBalance.add(decimalAmount);
+    
+    // Mettre à jour les statistiques mensuelles
+    let earningsThisMonth = wallet.earningsThisMonth || new Decimal(0);
+    let totalEarned = wallet.totalEarned || new Decimal(0);
+    
+    if (transactionData.type === 'EARNING' && decimalAmount.gt(0)) {
+      earningsThisMonth = earningsThisMonth.add(decimalAmount);
+      totalEarned = totalEarned.add(decimalAmount);
+    }
+    
+    let totalWithdrawn = wallet.totalWithdrawn || new Decimal(0);
+    if (transactionData.type === 'WITHDRAWAL' && decimalAmount.lt(0)) {
+      totalWithdrawn = totalWithdrawn.add(decimalAmount.abs());
+    }
+    
+    // Créer la transaction et mettre à jour le portefeuille en une seule transaction
+    return await db.$transaction(async (tx) => {
+      const transaction = await tx.walletTransaction.create({
         data: {
-          stripeAccountId: account.id,
-          accountType: 'express',
-        },
+          walletId,
+          amount: decimalAmount,
+          type: transactionData.type,
+          status: 'COMPLETED', // Toujours réussi en mode démo (sauf simulation d'erreur)
+          description: transactionData.description,
+          reference: transactionData.reference || uuidv4(),
+          previousBalance,
+          balanceAfter: newBalance,
+          metadata: transactionData.metadata || {},
+          currency: wallet.currency,
+          deliveryId: transactionData.deliveryId,
+          serviceId: transactionData.serviceId,
+          paymentId: transactionData.paymentId
+        }
       });
-
-      return {
-        success: true,
-        accountId: account.id,
-      };
-    } catch (error) {
-      console.error('Erreur lors de la création du compte Connect:', error);
-      return { success: false, error };
+      
+      await tx.wallet.update({
+        where: { id: walletId },
+        data: {
+          balance: newBalance,
+          lastTransactionAt: new Date(),
+          earningsThisMonth,
+          totalEarned,
+          totalWithdrawn
+        }
+      });
+      
+      // Enregistrer dans les logs d'audit
+      await tx.auditLog.create({
+        data: {
+          entityType: 'WALLET_TRANSACTION',
+          entityId: transaction.id,
+          performedById: wallet.userId,
+          action: transactionData.type,
+          changes: {
+            amount: decimalAmount.toString(),
+            previousBalance: previousBalance.toString(),
+            newBalance: newBalance.toString(),
+            description: transactionData.description
+          }
+        }
+      });
+      
+      return transaction;
+    });
+  },
+  
+  /**
+   * Demande un retrait d'argent du portefeuille (méthode renommée pour correspondre à la demande)
+   */
+  async createWithdrawalRequest(userId: string, amount: number, options: {
+    method?: string,
+    accountDetails?: Record<string, string>,
+    expedited?: boolean,
+    notes?: string
+  } = {}) {
+    const {
+      method = 'BANK_TRANSFER',
+      accountDetails = {},
+      expedited = false,
+      notes = ''
+    } = options;
+    
+    const wallet = await this.getWallet(userId);
+    
+    const withdrawalAmount = new Decimal(amount);
+    
+    // Vérifications
+    if (withdrawalAmount.lte(0)) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'Le montant du retrait doit être positif'
+      });
     }
-  }
+    
+    if (withdrawalAmount.lt(wallet.minimumWithdrawalAmount)) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: `Le montant minimum de retrait est de ${wallet.minimumWithdrawalAmount} ${wallet.currency}`
+      });
+    }
+    
+    if (withdrawalAmount.gt(wallet.balance)) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'Solde insuffisant pour ce retrait'
+      });
+    }
+    
+    // En mode démo, on peut simuler un retrait immédiat ou en attente
+    const isDemoModeInstant = process.env.DEMO_MODE === 'true' && process.env.DEMO_INSTANT_WITHDRAWALS === 'true';
+    
+    // Calculer la date estimée d'arrivée selon si c'est accéléré ou non
+    const baseDelay = expedited ? 1 : 3; // 1 jour pour expedited, 3 jours sinon
+    const estimatedArrival = addDays(new Date(), baseDelay);
+    
+    return await db.$transaction(async (tx) => {
+      // Générer une référence unique
+      const reference = `WD-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
+      
+      // Créer la demande de retrait
+      const withdrawalRequest = await tx.withdrawalRequest.create({
+        data: {
+          walletId: wallet.id,
+          amount: withdrawalAmount,
+          currency: wallet.currency,
+          status: isDemoModeInstant ? 'COMPLETED' : 'PENDING',
+          preferredMethod: method,
+          accountVerified: true,
+          expedited,
+          reference,
+          processedAt: isDemoModeInstant ? new Date() : undefined,
+          estimatedArrival,
+          accountDetails: accountDetails,
+          notes
+        }
+      });
+      
+      // Si en mode démo avec retrait instantané, mettre à jour le solde immédiatement
+      if (isDemoModeInstant) {
+        await this.createWalletTransaction(wallet.id, {
+          amount: -amount,
+          type: 'WITHDRAWAL',
+          description: `Retrait instantané (simulation) - Référence: ${reference}`,
+          metadata: {
+            withdrawalId: withdrawalRequest.id,
+            method,
+            demo: true,
+            expedited
+          }
+        });
+      }
+      
+      // Enregistrer dans les logs d'audit
+      await tx.auditLog.create({
+        data: {
+          entityType: 'WITHDRAWAL_REQUEST',
+          entityId: withdrawalRequest.id,
+          performedById: userId,
+          action: 'CREATE_WITHDRAWAL_REQUEST',
+          changes: {
+            amount: withdrawalAmount.toString(),
+            method,
+            status: isDemoModeInstant ? 'COMPLETED' : 'PENDING',
+            expedited: expedited.toString()
+          }
+        }
+      });
+      
+      return withdrawalRequest;
+    });
+  },
+  
+  /**
+   * Valide ou refuse une demande de retrait (admin seulement)
+   */
+  async processWithdrawalRequest(withdrawalId: string, action: 'approve' | 'reject', options: {
+    adminId: string,
+    comments?: string,
+    transferReference?: string
+  }) {
+    const { adminId, comments, transferReference } = options;
+    const approved = action === 'approve';
+    
+    const withdrawal = await db.withdrawalRequest.findUnique({
+      where: { id: withdrawalId },
+      include: { wallet: true }
+    });
+    
+    if (!withdrawal) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Demande de retrait non trouvée'
+      });
+    }
+    
+    if (withdrawal.status !== 'PENDING') {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'Cette demande a déjà été traitée'
+      });
+    }
+    
+    if (approved) {
+      // Créer une transaction pour le retrait effectif
+      await this.createWalletTransaction(withdrawal.walletId, {
+        amount: -Number(withdrawal.amount),
+        type: 'WITHDRAWAL',
+        description: `Retrait approuvé - Référence: ${withdrawal.reference}`,
+        metadata: {
+          withdrawalId,
+          processorId: adminId,
+          comments
+        }
+      });
+      
+      // Simuler un transfert bancaire en mode démo
+      if (process.env.DEMO_MODE === 'true') {
+        await db.bankTransfer.create({
+          data: {
+            withdrawalRequestId: withdrawalId,
+            amount: withdrawal.amount,
+            currency: withdrawal.currency,
+            recipientName: withdrawal.wallet.accountHolder || 'Utilisateur démo',
+            recipientIban: withdrawal.wallet.iban || 'DEMO1234567890',
+            initiatedAt: new Date(),
+            status: 'COMPLETED',
+            transferMethod: withdrawal.preferredMethod || 'SEPA',
+            transferReference: transferReference || `DEMO-TRANSFER-${Math.random().toString(36).substring(2, 10)}`
+          }
+        });
+      }
+      
+      // Mettre à jour le statut de la demande
+      return await db.withdrawalRequest.update({
+        where: { id: withdrawalId },
+        data: {
+          status: 'COMPLETED',
+          processedAt: new Date(),
+          processorId: adminId,
+          processorComments: comments
+        }
+      });
+    } else {
+      // Refuser la demande
+      return await db.withdrawalRequest.update({
+        where: { id: withdrawalId },
+        data: {
+          status: 'REJECTED',
+          processedAt: new Date(),
+          processorId: adminId,
+          processorComments: comments || 'Demande rejetée par administrateur'
+        }
+      });
+    }
+  },
 
   /**
-   * Génère un rapport sur les revenus d'un utilisateur
+   * Calcule les gains sur une période donnée avec des statistiques détaillées
    */
-  async generateEarningsReport(userId: string, startDate: Date, endDate: Date) {
-    const wallet = await this.db.wallet.findUnique({
-      where: { userId },
-      include: {
-        transactions: {
-          where: {
-            createdAt: {
-              gte: startDate,
-              lte: endDate,
-            },
-          },
+  async calculateEarnings(userId: string, options: {
+    startDate?: Date,
+    endDate?: Date,
+    groupBy?: 'day' | 'week' | 'month',
+    includeDetails?: boolean
+  } = {}) {
+    const wallet = await this.getWallet(userId);
+    
+    const {
+      startDate = subMonths(new Date(), 3), // Par défaut: 3 derniers mois
+      endDate = new Date(),
+      groupBy = 'month',
+      includeDetails = false
+    } = options;
+    
+    // Bornes de dates
+    const start = startOfDay(startDate);
+    const end = endOfDay(endDate);
+    
+    // Requête pour les gains par type de transaction
+    const earningsByType = await db.walletTransaction.groupBy({
+      by: ['type'],
+      where: {
+        walletId: wallet.id,
+        status: 'COMPLETED',
+        createdAt: {
+          gte: start,
+          lte: end
         },
+        amount: {
+          gt: 0 // Uniquement les gains positifs
+        }
       },
+      _sum: {
+        amount: true
+      }
     });
-
-    if (!wallet) {
-      throw new Error('Portefeuille non trouvé');
-    }
-
-    // Calculer les statistiques
-    const totalEarnings = wallet.transactions
-      .filter(t => t.type === 'EARNING' && t.status === 'COMPLETED')
-      .reduce((sum, t) => sum.plus(t.amount), new Decimal(0));
-
-    const totalFees = wallet.transactions
-      .filter(t => t.type === 'PLATFORM_FEE' && t.status === 'COMPLETED')
-      .reduce((sum, t) => sum.plus(t.amount), new Decimal(0));
-
-    const totalWithdrawals = wallet.transactions
-      .filter(t => t.type === 'WITHDRAWAL' && t.status === 'COMPLETED')
-      .reduce((sum, t) => sum.plus(t.amount), new Decimal(0));
-
-    // Grouper par jour
-    const dailyEarnings: Record<string, number> = {};
-    wallet.transactions
-      .filter(t => t.type === 'EARNING' && t.status === 'COMPLETED')
-      .forEach(t => {
-        const date = t.createdAt.toISOString().split('T')[0];
-        dailyEarnings[date] = (dailyEarnings[date] || 0) + Number(t.amount);
+    
+    // Requête pour les retraits
+    const withdrawals = await db.walletTransaction.aggregate({
+      where: {
+        walletId: wallet.id,
+        status: 'COMPLETED',
+        type: 'WITHDRAWAL',
+        createdAt: {
+          gte: start,
+          lte: end
+        }
+      },
+      _sum: {
+        amount: true
+      }
+    });
+    
+    // Obtenir les transactions détaillées si demandé
+    let detailedTransactions = [];
+    if (includeDetails) {
+      detailedTransactions = await db.walletTransaction.findMany({
+        where: {
+          walletId: wallet.id,
+          status: 'COMPLETED',
+          createdAt: {
+            gte: start,
+            lte: end
+          }
+        },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          delivery: {
+            select: {
+              id: true,
+              trackingNumber: true,
+              currentStatus: true
+            }
+          },
+          service: {
+            select: {
+              id: true,
+              name: true,
+              type: true
+            }
+          }
+        }
       });
-
-    return {
+    }
+    
+    // Transformations
+    const earnings = earningsByType.map(group => ({
+      type: group.type,
+      amount: Number(group._sum.amount) || 0
+    }));
+    
+    // Calcul du total des gains
+    const totalEarnings = earnings.reduce((sum, item) => sum + item.amount, 0);
+    const totalWithdrawals = Math.abs(Number(withdrawals._sum.amount) || 0);
+    
+    // Construire la réponse
+    const result = {
+      userId,
+      walletId: wallet.id,
+      currency: wallet.currency,
       period: {
-        startDate,
-        endDate,
+        start,
+        end,
+        groupBy
       },
       summary: {
         totalEarnings,
-        totalFees,
         totalWithdrawals,
-        netEarnings: totalEarnings.minus(totalFees),
-        currentBalance: wallet.balance,
+        netIncome: totalEarnings - totalWithdrawals,
+        currentBalance: Number(wallet.balance)
       },
-      dailyEarnings,
-      transactions: wallet.transactions,
+      earnings,
+      demoMode: process.env.DEMO_MODE === 'true'
     };
-  }
-
-  /**
-   * Obtient les statistiques du portefeuille
-   */
-  async getWalletStats(walletId: string) {
-    const wallet = await this.db.wallet.findUnique({ where: { id: walletId } });
-    if (!wallet) throw new Error('Portefeuille non trouvé');
-
-    // Calculer les statistiques
-    const totalEarnings = await this.db.walletTransaction.aggregate({
-      where: {
-        walletId,
-        type: 'EARNING',
-        status: 'COMPLETED',
-      },
-      _sum: { amount: true },
-    });
-
-    const totalWithdrawals = await this.db.withdrawalRequest.aggregate({
-      where: {
-        walletId,
-        status: 'COMPLETED',
-      },
-      _sum: { amount: true },
-    });
-
-    const pendingWithdrawals = await this.db.withdrawalRequest.aggregate({
-      where: {
-        walletId,
-        status: 'PENDING',
-      },
-      _sum: { amount: true },
-    });
-
-    const transactionCount = await this.db.walletTransaction.count({
-      where: { walletId },
-    });
-
-    const lastTransaction = await this.db.walletTransaction.findFirst({
-      where: { walletId },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    // Calculer le taux de croissance mensuel
-    const today = new Date();
-    const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-    const lastMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1);
-    const twoMonthsAgo = new Date(today.getFullYear(), today.getMonth() - 2, 1);
-
-    const currentMonthEarnings = await this.db.walletTransaction.aggregate({
-      where: {
-        walletId,
-        type: 'EARNING',
-        status: 'COMPLETED',
-        createdAt: { gte: firstDayOfMonth },
-      },
-      _sum: { amount: true },
-    });
-
-    const lastMonthEarnings = await this.db.walletTransaction.aggregate({
-      where: {
-        walletId,
-        type: 'EARNING',
-        status: 'COMPLETED',
-        createdAt: {
-          gte: lastMonth,
-          lt: firstDayOfMonth,
-        },
-      },
-      _sum: { amount: true },
-    });
-
-    const previousMonthEarnings = await this.db.walletTransaction.aggregate({
-      where: {
-        walletId,
-        type: 'EARNING',
-        status: 'COMPLETED',
-        createdAt: {
-          gte: twoMonthsAgo,
-          lt: lastMonth,
-        },
-      },
-      _sum: { amount: true },
-    });
-
-    // Calculer le taux de croissance
-    const currentMonthTotal = Number(currentMonthEarnings._sum.amount || 0);
-    const lastMonthTotal = Number(lastMonthEarnings._sum.amount || 0);
-    const previousMonthTotal = Number(previousMonthEarnings._sum.amount || 0);
-
-    // Éviter la division par zéro
-    const monthOverMonthGrowth =
-      lastMonthTotal === 0
-        ? currentMonthTotal > 0
-          ? 100
-          : 0
-        : ((currentMonthTotal - lastMonthTotal) / lastMonthTotal) * 100;
-
-    const previousMonthGrowth =
-      previousMonthTotal === 0
-        ? lastMonthTotal > 0
-          ? 100
-          : 0
-        : ((lastMonthTotal - previousMonthTotal) / previousMonthTotal) * 100;
-
-    return {
-      totalEarnings: Number(totalEarnings._sum.amount || 0),
-      totalWithdrawals: Number(totalWithdrawals._sum.amount || 0),
-      pendingWithdrawals: Number(pendingWithdrawals._sum.amount || 0),
-      currentBalance: Number(wallet.balance),
-      pendingBalance: Number(pendingWithdrawals._sum.amount || 0),
-      currency: wallet.currency,
-      transactionCount,
-      lastTransactionDate: lastTransaction?.createdAt,
-
-      // Données de croissance
-      currentMonthEarnings: currentMonthTotal,
-      lastMonthEarnings: lastMonthTotal,
-      monthOverMonthGrowth: parseFloat(monthOverMonthGrowth.toFixed(2)),
-      previousMonthGrowth: parseFloat(previousMonthGrowth.toFixed(2)),
-
-      // Informations compte Connect
-      hasConnectAccount: !!wallet.stripeAccountId,
-      accountVerified: wallet.accountVerified,
-      accountType: wallet.accountType,
-
-      // Informations de configuration
-      automaticWithdrawal: wallet.automaticWithdrawal,
-      withdrawalThreshold: Number(wallet.withdrawalThreshold || 0),
-      withdrawalDay: wallet.withdrawalDay,
-      minimumWithdrawalAmount: Number(wallet.minimumWithdrawalAmount || 10),
-    };
-  }
-
-  /**
-   * Méthode pour obtenir ou créer un portefeuille
-   */
-  async getOrCreateWallet(userId: string) {
-    try {
-      let wallet = await this.db.wallet.findUnique({ where: { userId } });
-
-      if (!wallet) {
-        wallet = await this.db.wallet.create({
-          data: {
-            userId,
-            balance: 0,
-            currency: 'EUR',
-            isActive: true,
-          },
-        });
-      }
-
-      return wallet;
-    } catch (error) {
-      console.error('Erreur dans getOrCreateWallet:', error);
-      throw error;
+    
+    // Ajouter les détails si demandés
+    if (includeDetails) {
+      Object.assign(result, { transactions: detailedTransactions });
     }
-  }
-}
+    
+    return result;
+  },
 
-// Créer une instance singleton du service avec gestion d'erreurs
-export const walletService = (() => {
-  try {
-    return new WalletService(db);
-  } catch (error) {
-    console.error("Erreur lors de l'initialisation du WalletService:", error);
-    // Retourner une version simplifiée du service pour les opérations de base
-    return {
-      getUserWallet: async (userId: string) => {
-        console.warn('WalletService en mode dégradé. Certaines fonctions ne sont pas disponibles.');
-        // Retourner les données minimales nécessaires
-        return { id: 'unavailable', userId, balance: 0, currency: 'EUR' };
-      },
-    } as unknown as WalletService;
+  /**
+   * Réinitialise un portefeuille en mode démo (utile pour les tests)
+   * Cette fonction ne doit être utilisée qu'en mode démo
+   */
+  async resetDemoWallet(walletId: string) {
+    if (process.env.DEMO_MODE !== 'true') {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Cette fonction n\'est disponible qu\'en mode démonstration'
+      });
+    }
+    
+    const wallet = await db.wallet.findUnique({
+      where: { id: walletId }
+    });
+    
+    if (!wallet) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Portefeuille non trouvé'
+      });
+    }
+    
+    return await db.$transaction(async (tx) => {
+      // Annuler toutes les demandes de retrait en attente
+      await tx.withdrawalRequest.updateMany({
+        where: {
+          walletId,
+          status: 'PENDING'
+        },
+        data: {
+          status: 'CANCELLED',
+          processorComments: 'Réinitialisation du portefeuille de démonstration'
+        }
+      });
+      
+      // Marquer toutes les transactions comme annulées
+      await tx.walletTransaction.updateMany({
+        where: {
+          walletId,
+          status: 'PENDING'
+        },
+        data: {
+          status: 'CANCELLED'
+        }
+      });
+      
+      // Réinitialiser le portefeuille
+      await tx.wallet.update({
+        where: { id: walletId },
+        data: {
+          balance: new Decimal(0),
+          earningsThisMonth: new Decimal(0),
+          lastTransactionAt: new Date()
+        }
+      });
+      
+      // Création d'une transaction d'ajustement pour tracer la réinitialisation
+      await tx.walletTransaction.create({
+      data: {
+          walletId,
+          amount: new Decimal(0),
+          type: 'ADJUSTMENT',
+          status: 'COMPLETED',
+          description: 'Réinitialisation du portefeuille de démonstration',
+          reference: `RESET-${uuidv4()}`,
+          previousBalance: wallet.balance,
+          balanceAfter: new Decimal(0),
+        currency: wallet.currency,
+          metadata: {
+            reason: 'demo_reset',
+            previousBalance: wallet.balance.toString()
+          }
+        }
+      });
+      
+      // Log d'audit
+      await tx.auditLog.create({
+        data: {
+          entityType: 'WALLET',
+          entityId: walletId,
+          performedById: wallet.userId,
+          action: 'RESET_DEMO_WALLET',
+          changes: {
+            previousBalance: wallet.balance.toString(),
+            newBalance: '0'
+          }
+        }
+      });
+      
+      return { success: true, message: 'Portefeuille de démonstration réinitialisé avec succès' };
+    });
   }
-})();
+};
+
+// Fonctions exportées séparément pour faciliter l'utilisation et les tests
+export const {
+  getOrCreateWallet,
+  getWallet,
+  getWalletBalance,
+  listWalletTransactions,
+  createWalletTransaction,
+  createWithdrawalRequest,
+  processWithdrawalRequest,
+  calculateEarnings,
+  resetDemoWallet
+} = walletService;
+
+// Type pour les transactions (pour compatibilité avec payment.service.ts)
+export type Transaction = {
+  id: string;
+  walletId: string;
+  amount: Decimal;
+  type: TransactionType;
+  status: TransactionStatus;
+  description?: string;
+  reference?: string;
+  previousBalance?: Decimal;
+  balanceAfter?: Decimal;
+  createdAt: Date;
+};
+
+// Fonction legacy utilisée par payment.service.ts
+export async function addWalletTransaction(data: {
+  userId: string;
+  amount: number;
+  type: TransactionType;
+  description?: string;
+  reference?: string;
+  paymentId?: string;
+}): Promise<Transaction> {
+  const { userId, amount, type, description, reference, paymentId } = data;
+
+  // Récupérer le portefeuille
+  const wallet = await getOrCreateWallet(userId);
+
+  // Utiliser la nouvelle fonction avec l'ancienne interface
+  return await createWalletTransaction(wallet.id, {
+    amount,
+    type,
+    description,
+    reference,
+    paymentId
+  });
+}

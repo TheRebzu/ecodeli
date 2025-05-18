@@ -1,0 +1,31 @@
+// ===== MODÈLES DE DOCUMENTS =====
+// Ce fichier contient les modèles pour la gestion des documents téléversés par les utilisateurs.
+
+/// Document téléversé par un utilisateur pour vérification
+model Document {
+  id                  String                @id @default(cuid())
+  type                DocumentType
+  userId              String
+  filename            String
+  fileUrl             String
+  mimeType            String
+  fileSize            Int
+  uploadedAt          DateTime              @default(now())
+  expiryDate          DateTime?
+  notes               String?
+  isVerified          Boolean               @default(false)
+  verificationStatus  VerificationStatus    @default(PENDING)
+  rejectionReason     String?
+  reviewerId          String?
+  
+  // Relations avec l'utilisateur et le réviseur
+  reviewer            User?                 @relation("DocumentReviewer", fields: [reviewerId], references: [id])
+  user                User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verificationHistory VerificationHistory[]
+  verifications       Verification[]
+
+  @@index([userId])
+  @@index([type])
+  @@index([verificationStatus])
+  @@map("documents")
+} 

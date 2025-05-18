@@ -1,0 +1,49 @@
+// ===== MODÈLES DE VERIFICATION =====
+// Ce fichier contient les modèles pour la vérification des documents utilisateurs.
+
+/// Demande de vérification d'un document
+model Verification {
+  id              String             @id @default(cuid())
+  status          VerificationStatus @default(PENDING)
+  requestedAt     DateTime           @default(now())
+  verifiedAt      DateTime?
+  documentId      String
+  submitterId     String
+  verifierId      String?
+  notes           String?
+  rejectionReason String?
+  
+  // Relations
+  document        Document           @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  submitter       User               @relation("SubmitterRelation", fields: [submitterId], references: [id])
+  verifier        User?              @relation("VerifierRelation", fields: [verifierId], references: [id])
+
+  @@index([documentId])
+  @@index([submitterId])
+  @@index([verifierId])
+  @@index([status])
+  @@map("verifications")
+}
+
+/// Historique des vérifications effectuées
+model VerificationHistory {
+  id            String             @id @default(cuid())
+  status        VerificationStatus
+  comment       String?
+  createdAt     DateTime           @default(now())
+  documentId    String?
+  userId        String
+  verifiedById  String
+  reason        String?
+  internalNotes String?
+  
+  // Relations
+  document      Document?          @relation(fields: [documentId], references: [id])
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verifiedBy    User               @relation("VerifierRelation", fields: [verifiedById], references: [id])
+
+  @@index([documentId])
+  @@index([userId])
+  @@index([verifiedById])
+  @@map("verification_history")
+} 

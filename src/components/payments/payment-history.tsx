@@ -45,6 +45,8 @@ import {
   AlertCircle,
   CheckCircle,
   Clock,
+  Zap,
+  RefreshCcw,
 } from 'lucide-react';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarComponent } from '@/components/ui/calendar';
@@ -59,6 +61,10 @@ import { formatCurrency, formatDate } from '@/lib/utils';
 import { api } from '@/trpc/react';
 import { Payment, PaymentStatus } from '@prisma/client';
 import { DateRange } from 'react-day-picker';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { usePaymentHistory } from '@/hooks/use-payment';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Skeleton } from '@/components/ui/skeleton';
 
 // Fonction utilitaire pour formater les dates en toute sécurité
 const safeFormatDate = (dateValue: any, formatString: string, fallback: string = '-') => {
@@ -163,6 +169,11 @@ export interface PaymentHistoryProps {
   currentPage?: number;
   pageSize?: number;
   onPageChange?: (page: number) => void;
+  isDemo?: boolean;
+  showEmptyState?: boolean;
+  emptyStateMessage?: string;
+  showRefreshButton?: boolean;
+  onRefresh?: () => void;
 }
 
 // Définir un type personnalisé compatible avec les besoins du composant Calendar
@@ -213,8 +224,22 @@ export function PaymentHistory({
   itemsPerPage = 10,
   className = '',
   onViewDetails,
+  isDemo = false,
+  showEmptyState = true,
+  emptyStateMessage,
+  showRefreshButton = false,
+  onRefresh,
 }: PaymentHistoryProps) {
   const t = useTranslations('payment');
+
+  // Utiliser notre hook personnalisé pour l'historique des paiements
+  const {
+    paymentHistory,
+    isRefreshing,
+    loadPaymentHistory,
+    filterPaymentHistory,
+    isDemoMode,
+  } = usePaymentHistory();
 
   // États pour la pagination, le filtrage et le tri
   const [page, setPage] = useState(1);
@@ -229,6 +254,7 @@ export function PaymentHistory({
     data: apiData,
     isLoading,
     isError,
+    refetch,
   } = api.payment.getPaymentHistory.useQuery(
     {
       page,
@@ -240,34 +266,9 @@ export function PaymentHistory({
     },
     {
       // Désactiver la requête si userId n'est pas défini
-      enabled: !!userId,
+      enabled: !!userId && !(isDemo || isDemoMode),
     }
   );
-
-  // Normaliser les données de l'API si elles existent
-  const normalizedApiData = apiData
-    ? {
-        ...apiData,
-        payments: apiData.payments.map(normalizePayment),
-      }
-    : undefined;
-
-  // Obtenir les données à afficher soit depuis l'API normalisée, soit depuis les props
-  const displayData =
-    normalizedApiData ||
-    (payments.length > 0
-      ? {
-          payments: payments.map(normalizePayment),
-          pagination: {
-            totalCount: payments.length,
-            totalPages: Math.ceil(payments.length / itemsPerPage),
-            currentPage: 1,
-            limit: itemsPerPage,
-            hasNextPage: false,
-            hasPreviousPage: false,
-          },
-        }
-      : undefined);
 
   // Fonction pour déterminer le type de paiement à partir de l'objet payment
   const getPaymentType = (payment: any) => {
@@ -419,26 +420,132 @@ export function PaymentHistory({
     }
   };
 
+  // Fonction de rafraîchissement des données
+  const handleRefresh = async () => {
+    if (isDemo || isDemoMode) {
+      // En mode démo, utiliser notre hook personnalisé
+      await loadPaymentHistory(page, itemsPerPage);
+    } else {
+      // Sinon, rafraîchir les données via tRPC
+      await refetch();
+    }
+
+    // Callback personnalisé si fourni
+    if (onRefresh) {
+      onRefresh();
+    }
+  };
+
+  // Détermine si on est en mode démo
+  const inDemoMode = isDemo || isDemoMode;
+
+  // Générer des données de démonstration si nécessaire
+  const getDisplayData = () => {
+    // Si des données d'API existent et que nous ne sommes pas en mode démo, les utiliser
+    if (apiData && !inDemoMode) {
+      return {
+        ...apiData,
+        payments: apiData.payments.map(normalizePayment),
+      };
+    }
+
+    // Si des paiements sont passés en prop, les utiliser
+    if (payments.length > 0) {
+      return {
+        payments: payments.map(normalizePayment),
+        pagination: {
+          total: payments.length,
+          totalPages: Math.ceil(payments.length / itemsPerPage),
+          page: 1,
+          limit: itemsPerPage,
+          hasNextPage: false,
+          hasPreviousPage: false,
+        },
+      };
+    }
+
+    // En mode démo, utiliser les données de notre hook personnalisé
+    if (inDemoMode && paymentHistory) {
+      return {
+        payments: paymentHistory.data || [],
+        pagination: paymentHistory.pagination || {
+          total: 0,
+          page: page,
+          limit: itemsPerPage,
+          totalPages: 0,
+        },
+      };
+    }
+
+    // Par défaut, retourner un objet vide
+    return {
+      payments: [],
+      pagination: {
+        total: 0,
+        page: 1,
+        limit: itemsPerPage,
+        totalPages: 0,
+        hasNextPage: false,
+        hasPreviousPage: false,
+      },
+    };
+  };
+
+  const displayData = getDisplayData();
+
   return (
     <Card className={`w-full ${className}`}>
       <CardHeader>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <CardTitle>{t('paymentHistory')}</CardTitle>
-            <CardDescription>{t('paymentHistoryDescription')}</CardDescription>
+          <div className="flex items-center gap-2">
+            <div>
+              <CardTitle>{t('paymentHistory')}</CardTitle>
+              <CardDescription>{t('paymentHistoryDescription')}</CardDescription>
+            </div>
+            {inDemoMode && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1">
+                      <Zap className="h-3 w-3" />
+                      {t('demoMode')}
+                    </Badge>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>{t('demoPaymentHistoryDescription')}</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            )}
           </div>
-          {showExportButton && (
-            <Button
-              variant="outline"
-              size="sm"
-              className="mt-2 sm:mt-0"
-              disabled={isLoading || !displayData?.payments?.length}
-              onClick={exportToCsv}
-            >
-              <FileDown className="mr-2 h-4 w-4" />
-              {t('exportToCsv')}
-            </Button>
-          )}
+          <div className="flex mt-2 sm:mt-0 gap-2">
+            {showRefreshButton && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleRefresh}
+                disabled={isLoading || isRefreshing}
+              >
+                {isRefreshing || isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <RefreshCcw className="h-4 w-4" />
+                )}
+                <span className="ml-2 sr-only sm:not-sr-only">{t('refresh')}</span>
+              </Button>
+            )}
+            {showExportButton && (
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={isLoading || !displayData?.payments?.length}
+                onClick={exportToCsv}
+              >
+                <FileDown className="mr-2 h-4 w-4" />
+                {t('exportToCsv')}
+              </Button>
+            )}
+          </div>
         </div>
       </CardHeader>
       <CardContent>
@@ -453,6 +560,7 @@ export function PaymentHistory({
                   className="pl-8"
                   value={searchQuery}
                   onChange={e => setSearchQuery(e.target.value)}
+                  aria-label={t('searchPayments')}
                 />
                 {searchQuery && (
                   <Button
@@ -460,6 +568,7 @@ export function PaymentHistory({
                     size="sm"
                     className="absolute right-0 top-0 h-full px-3"
                     onClick={() => setSearchQuery('')}
+                    aria-label={t('clear')}
                   >
                     <X className="h-4 w-4" />
                     <span className="sr-only">{t('clear')}</span>
@@ -470,7 +579,7 @@ export function PaymentHistory({
                 value={statusFilter || 'ALL'}
                 onValueChange={value => setStatusFilter(value === 'ALL' ? undefined : value)}
               >
-                <SelectTrigger className="w-full sm:w-[150px]">
+                <SelectTrigger className="w-full sm:w-[150px]" aria-label={t('statusFilter')}>
                   <SelectValue placeholder={t('statusFilter')} />
                 </SelectTrigger>
                 <SelectContent>
@@ -486,7 +595,7 @@ export function PaymentHistory({
                 value={typeFilter || 'ALL'}
                 onValueChange={value => setTypeFilter(value === 'ALL' ? undefined : value)}
               >
-                <SelectTrigger className="w-full sm:w-[150px]">
+                <SelectTrigger className="w-full sm:w-[150px]" aria-label={t('typeFilter')}>
                   <SelectValue placeholder={t('typeFilter')} />
                 </SelectTrigger>
                 <SelectContent>
@@ -498,204 +607,232 @@ export function PaymentHistory({
                   <SelectItem value="WITHDRAWAL">{t('typeWithdrawal')}</SelectItem>
                 </SelectContent>
               </Select>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant={dateRange.from ? 'outline' : 'ghost'}
-                    className="w-full sm:w-auto justify-start text-left font-normal flex items-center"
-                  >
-                    <Calendar className="mr-2 h-4 w-4" />
-                    {dateRange.from ? (
-                      dateRange.to ? (
-                        <>
-                          {safeFormatDate(dateRange.from, 'dd/MM/yyyy')} -{' '}
-                          {safeFormatDate(dateRange.to, 'dd/MM/yyyy')}
-                        </>
-                      ) : (
-                        safeFormatDate(dateRange.from, 'dd/MM/yyyy')
-                      )
-                    ) : (
-                      <span>{t('dateRange')}</span>
-                    )}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="end">
-                  <CalendarComponent
-                    initialFocus
-                    mode="range"
-                    selected={dateRange as any} // Cast pour éviter les erreurs de type
-                    onSelect={setDateRange as any} // Cast pour éviter les erreurs de type
-                    numberOfMonths={2}
-                  />
-                </PopoverContent>
-              </Popover>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="text-sm text-muted-foreground">
-                {displayData?.pagination?.totalCount
-                  ? t('showingResults', {
-                      start: (page - 1) * itemsPerPage + 1,
-                      end: Math.min(page * itemsPerPage, displayData.pagination.totalCount),
-                      total: displayData.pagination.totalCount,
-                    })
-                  : t('noResults')}
+
+            {/* Date range picker */}
+            <div className="flex justify-between">
+              <div className="flex items-center space-x-2">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className="h-8 px-2 lg:px-3">
+                      <Calendar className="mr-2 h-4 w-4" />
+                      {dateRange?.from ? (
+                        dateRange.to ? (
+                          <>
+                            {safeFormatDate(dateRange.from, 'dd/MM/yyyy')} -{' '}
+                            {safeFormatDate(dateRange.to, 'dd/MM/yyyy')}
+                          </>
+                        ) : (
+                          safeFormatDate(dateRange.from, 'dd/MM/yyyy')
+                        )
+                      ) : (
+                        <span>{t('dateRange')}</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent
+                      initialFocus
+                      mode="range"
+                      defaultMonth={dateRange?.from}
+                      selected={dateRange as any}
+                      onSelect={value => setDateRange(value || {})}
+                      numberOfMonths={2}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
-              {(statusFilter || typeFilter || dateRange.from || searchQuery) && (
-                <Button variant="ghost" size="sm" onClick={resetFilters} className="h-8 px-2">
-                  <Filter className="mr-2 h-3 w-3" />
-                  {t('resetFilters')}
-                </Button>
-              )}
+
+              <Button variant="ghost" size="sm" onClick={resetFilters}>
+                <X className="mr-2 h-4 w-4" />
+                {t('resetFilters')}
+              </Button>
             </div>
           </div>
         )}
 
-        {isLoading ? (
-          <div className="flex justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+        {/* État de chargement */}
+        {isLoading && (
+          <div className="space-y-3">
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
+            <Skeleton className="h-24 w-full" />
           </div>
-        ) : isError ? (
-          <div className="text-center py-8 text-muted-foreground">{t('errorLoadingPayments')}</div>
-        ) : displayData?.payments?.length ? (
-          <div className="overflow-x-auto">
+        )}
+
+        {/* État d'erreur */}
+        {isError && !inDemoMode && (
+          <Alert variant="destructive" className="mb-6">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>{t('error')}</AlertTitle>
+            <AlertDescription>{t('errorLoadingPayments')}</AlertDescription>
+          </Alert>
+        )}
+
+        {/* Tableau avec les paiements */}
+        {!isLoading && !isError && displayData?.payments?.length > 0 && (
+          <div className="rounded-md border">
             <Table>
-              <TableCaption>{t('paymentHistoryCaption')}</TableCaption>
+              <TableCaption>
+                {t('totalPayments', { count: displayData.pagination?.total || 0 })}
+              </TableCaption>
               <TableHeader>
                 <TableRow>
                   <TableHead>{t('date')}</TableHead>
-                  <TableHead>{t('type')}</TableHead>
-                  <TableHead>{t('amount')}</TableHead>
                   <TableHead>{t('description')}</TableHead>
-                  <TableHead>{t('status')}</TableHead>
-                  {onViewDetails && <TableHead className="text-right">{t('actions')}</TableHead>}
+                  <TableHead className="text-right">{t('amount')}</TableHead>
+                  <TableHead className="text-center">{t('status')}</TableHead>
+                  <TableHead className="text-center">{t('type')}</TableHead>
+                  <TableHead className="text-right">{t('actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {displayData.payments.map(payment => {
-                  const statusBadge = getStatusBadge(
-                    safeGet(payment, 'status', 'PENDING') as PaymentStatus
-                  );
-                  const paymentType = getPaymentType(payment);
+                  const status = safeGet(payment, 'status', 'PENDING');
+                  const type = getPaymentType(payment);
+                  const statusBadge = getStatusBadge(status as PaymentStatus);
+                  const description = getPaymentDescription(payment);
+                  const paymentId = safeGet(payment, 'id', '');
+                  const amount = safeGet(payment, 'amount', 0);
+                  const currency = safeGet(payment, 'currency', 'EUR');
+                  const createdAt = safeGet(payment, 'createdAt', new Date());
+
                   return (
-                    <TableRow
-                      key={safeGet(
-                        payment,
-                        'id',
-                        `payment-${Math.random().toString(36).substring(2, 9)}`
-                      )}
-                    >
+                    <TableRow key={paymentId} data-payment-id={paymentId}>
                       <TableCell className="font-medium">
-                        {safeFormatDate(payment.createdAt, 'dd/MM/yyyy')}
+                        {safeFormatDate(createdAt, 'dd/MM/yyyy')}
                         <div className="text-xs text-muted-foreground">
-                          {safeFormatDate(payment.createdAt, 'HH:mm')}
+                          {safeFormatDate(createdAt, 'HH:mm')}
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Badge className={getTypeBadgeVariant(paymentType)} variant="outline">
-                          {t(`type${paymentType}`)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <span
-                          className={
-                            ['REFUND', 'WITHDRAWAL'].includes(paymentType)
-                              ? 'text-red-600'
-                              : 'text-green-600'
-                          }
-                        >
-                          {['REFUND', 'WITHDRAWAL'].includes(paymentType) ? '-' : '+'}
-                          {safeAmount(payment.amount, safeGet(payment, 'currency', 'EUR'))}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <div
-                          className="max-w-[200px] truncate"
-                          title={getPaymentDescription(payment)}
-                        >
-                          {getPaymentDescription(payment)}
+                        <div className="max-w-[200px] truncate" title={description}>
+                          {description}
                         </div>
-                        {safeGet(payment, 'metadata.reference') && (
+                        {payment.metadata?.reference && (
                           <div className="text-xs text-muted-foreground">
-                            Ref: {safeGet(payment, 'metadata.reference', '')}
+                            {t('reference')}: {payment.metadata.reference}
                           </div>
                         )}
                       </TableCell>
-                      <TableCell>
-                        <Badge variant={statusBadge.variant} className="flex w-fit items-center">
+                      <TableCell className="text-right">
+                        <span
+                          className={
+                            type === 'REFUND' ? 'text-red-600' : amount < 0 ? 'text-red-600' : ''
+                          }
+                        >
+                          {type === 'REFUND' && amount > 0 ? '-' : ''}
+                          {safeAmount(amount, currency)}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge
+                          variant={statusBadge.variant}
+                          className={`flex items-center justify-center ${getStatusBadgeVariant(
+                            status
+                          )}`}
+                        >
                           {statusBadge.icon}
-                          <span>{statusBadge.label}</span>
+                          <span className="hidden sm:inline">{statusBadge.label}</span>
                         </Badge>
                       </TableCell>
-                      {onViewDetails && (
-                        <TableCell className="text-right">
+                      <TableCell className="text-center">
+                        <Badge
+                          variant="outline"
+                          className={`${getTypeBadgeVariant(type)}`}
+                        >
+                          {t(`type${type.charAt(0)}${type.slice(1).toLowerCase()}`)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {onViewDetails && (
                           <Button
                             variant="ghost"
-                            size="icon"
-                            onClick={() => onViewDetails(safeGet(payment, 'id', ''))}
+                            size="sm"
+                            onClick={() => onViewDetails(paymentId)}
+                            aria-label={t('viewDetails')}
                           >
                             <Eye className="h-4 w-4" />
                             <span className="sr-only">{t('viewDetails')}</span>
                           </Button>
-                        </TableCell>
-                      )}
+                        )}
+                      </TableCell>
                     </TableRow>
                   );
                 })}
               </TableBody>
             </Table>
           </div>
-        ) : (
-          <div className="text-center py-8 text-muted-foreground">{t('noPaymentsFound')}</div>
         )}
-      </CardContent>
-      {displayData && displayData.pagination.totalPages > 1 && (
-        <CardFooter className="flex justify-center">
-          <Pagination>
-            <PaginationContent>
-              <PaginationItem>
-                <PaginationPrevious
-                  onClick={() => setPage(p => Math.max(p - 1, 1))}
-                  aria-disabled={page === 1}
-                  href="#"
-                />
-              </PaginationItem>
-              {Array.from({ length: displayData.pagination.totalPages }, (_, i) => i + 1)
-                .filter(
-                  pageNumber =>
-                    pageNumber === 1 ||
-                    pageNumber === displayData.pagination.totalPages ||
-                    Math.abs(pageNumber - page) <= 1
-                )
-                .map((pageNumber, idx, arr) => (
-                  <React.Fragment key={pageNumber}>
-                    {idx > 0 && arr[idx - 1] !== pageNumber - 1 && (
-                      <PaginationItem>
-                        <span className="px-4 py-2">...</span>
-                      </PaginationItem>
-                    )}
-                    <PaginationItem>
+
+        {/* État vide */}
+        {!isLoading && !isError && displayData?.payments?.length === 0 && showEmptyState && (
+          <div className="flex flex-col items-center justify-center py-8 text-center">
+            <CreditCard className="h-12 w-12 text-muted-foreground mb-3" />
+            <h3 className="text-lg font-medium mb-1">{t('noPayments')}</h3>
+            <p className="text-muted-foreground max-w-md mb-6">
+              {emptyStateMessage || t('noPaymentsDescription')}
+            </p>
+            {inDemoMode && (
+              <Button
+                variant="outline"
+                onClick={handleRefresh}
+                disabled={isLoading || isRefreshing}
+              >
+                <Zap className="mr-2 h-4 w-4" />
+                {t('generateDemoPayments')}
+              </Button>
+            )}
+          </div>
+        )}
+
+        {/* Pagination */}
+        {!isLoading &&
+          !isError &&
+          displayData?.payments?.length > 0 &&
+          displayData.pagination &&
+          displayData.pagination.totalPages > 1 && (
+            <div className="mt-4 flex items-center justify-center">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious
+                      onClick={() => setPage(prev => Math.max(prev - 1, 1))}
+                      disabled={page === 1}
+                      aria-label={t('previousPage')}
+                    />
+                  </PaginationItem>
+
+                  {Array.from({ length: displayData.pagination.totalPages }, (_, i) => (
+                    <PaginationItem key={i + 1}>
                       <Button
-                        variant={page === pageNumber ? 'default' : 'outline'}
-                        size="icon"
-                        onClick={() => setPage(pageNumber)}
-                        className="w-9 h-9"
+                        variant={page === i + 1 ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setPage(i + 1)}
+                        className="w-8 h-8"
+                        aria-label={t('goToPage', { page: i + 1 })}
+                        aria-current={page === i + 1 ? 'page' : undefined}
                       >
-                        {pageNumber}
+                        {i + 1}
                       </Button>
                     </PaginationItem>
-                  </React.Fragment>
-                ))}
-              <PaginationItem>
-                <PaginationNext
-                  onClick={() => setPage(p => (p < displayData.pagination.totalPages ? p + 1 : p))}
-                  aria-disabled={page === displayData.pagination.totalPages}
-                  href="#"
-                />
-              </PaginationItem>
-            </PaginationContent>
-          </Pagination>
-        </CardFooter>
-      )}
+                  ))}
+
+                  <PaginationItem>
+                    <PaginationNext
+                      onClick={() =>
+                        setPage(prev => Math.min(prev + 1, displayData.pagination.totalPages))
+                      }
+                      disabled={page === displayData.pagination.totalPages}
+                      aria-label={t('nextPage')}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
+      </CardContent>
     </Card>
   );
 }
