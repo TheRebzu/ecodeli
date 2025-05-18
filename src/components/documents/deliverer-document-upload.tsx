@@ -18,6 +18,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { CheckCircle, AlertCircle, Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useDocuments } from '@/hooks/use-documents';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 
 interface DelivererDocumentUploadProps {
   userId: string;
@@ -28,6 +38,8 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
   const t = useTranslations('documents');
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('id');
+  const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
 
   // Utiliser le hook personnalisé pour gérer les documents
   const { documents, isLoading, uploadDocument, deleteDocument, refreshDocuments } =
@@ -46,12 +58,25 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
 
   // Gestionnaire d'upload pour chaque type de document
   const handleUpload = async (
+<<<<<<< HEAD
     files: File[],
+=======
+    fileData: { base64: string; fileName: string; fileType: string; fileSize: number },
+>>>>>>> 1b63c146c3df5c00cc1ce2e81d59f8f5633cf417
     type: 'ID_CARD' | 'SELFIE' | 'DRIVING_LICENSE',
     notes?: string
   ) => {
     try {
+<<<<<<< HEAD
       await uploadDocument(files[0], type, notes || '');
+=======
+      // Créer un objet File à partir des données reçues
+      const fileBlob = await fetch(fileData.base64).then(r => r.blob());
+      const file = new File([fileBlob], fileData.fileName, { type: fileData.fileType });
+
+      // Simply pass the SELFIE type directly, the backend handles the conversion
+      await uploadDocument(file, type, notes);
+>>>>>>> 1b63c146c3df5c00cc1ce2e81d59f8f5633cf417
 
       // Message de succès
       toast({
@@ -74,25 +99,41 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
 
   // Gestionnaire de suppression de document
   const handleDelete = async (documentId: string) => {
-    try {
-      await deleteDocument(documentId);
+    setDocumentToDelete(documentId);
+    setDeleteDialogOpen(true);
+  };
 
-      // Message de succès
-      toast({
-        title: t('delete.success.title'),
-        description: t('delete.success.description'),
-      });
+  // Confirmer la suppression
+  const confirmDelete = async () => {
+    if (documentToDelete) {
+      try {
+        await deleteDocument(documentToDelete);
 
-      // Rafraîchir la liste des documents
-      refreshDocuments();
-    } catch (error) {
-      // Message d'erreur
-      console.error('Delete error:', error);
-      toast({
-        title: t('delete.error.title'),
-        description: t('delete.error.description'),
-        variant: 'destructive',
-      });
+        // Message de succès
+        toast({
+          title: t('deleteConfirmation.success.title', { defaultValue: 'Document supprimé' }),
+          description: t('deleteConfirmation.success.description', {
+            defaultValue: 'Le document a été supprimé avec succès',
+          }),
+        });
+
+        // Rafraîchir la liste des documents
+        refreshDocuments();
+
+        // Reset state
+        setDocumentToDelete(null);
+        setDeleteDialogOpen(false);
+      } catch (error) {
+        // Message d'erreur
+        console.error('Delete error:', error);
+        toast({
+          title: t('deleteConfirmation.error.title', { defaultValue: 'Erreur' }),
+          description: t('deleteConfirmation.error.description', {
+            defaultValue: 'Impossible de supprimer le document',
+          }),
+          variant: 'destructive',
+        });
+      }
     }
   };
 
@@ -109,7 +150,10 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
     switch (status) {
       case 'approved':
         return (
-          <Badge variant="success" className="flex items-center gap-1 ml-2">
+          <Badge
+            variant="default"
+            className="flex items-center gap-1 ml-2 bg-green-500 hover:bg-green-600"
+          >
             <CheckCircle className="w-3 h-3" />
             {t('status.approved')}
           </Badge>
@@ -155,15 +199,15 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid grid-cols-3 mb-8">
           <TabsTrigger value="id" className="relative">
-            {t('documents.idCard.tab')}
+            {t('idCard.tab')}
             {renderStatusBadge(getDocumentStatus(idDocuments))}
           </TabsTrigger>
           <TabsTrigger value="selfie" className="relative">
-            {t('documents.selfie.tab')}
+            {t('selfie.tab')}
             {renderStatusBadge(getDocumentStatus(selfieDocuments))}
           </TabsTrigger>
           <TabsTrigger value="license" className="relative">
-            {t('documents.drivingLicense.tab')}
+            {t('drivingLicense.tab')}
             {renderStatusBadge(getDocumentStatus(drivingLicenseDocuments))}
           </TabsTrigger>
         </TabsList>
@@ -172,8 +216,8 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
         <TabsContent value="id">
           <Card>
             <CardHeader>
-              <CardTitle>{t('documents.idCard.title')}</CardTitle>
-              <CardDescription>{t('documents.idCard.description')}</CardDescription>
+              <CardTitle>{t('idCard.title')}</CardTitle>
+              <CardDescription>{t('idCard.description')}</CardDescription>
             </CardHeader>
             <CardContent>
               {idDocuments.length > 0 ? (
@@ -185,9 +229,9 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
                 />
               ) : (
                 <DocumentUploadForm
-                  onUpload={files => handleUpload(files, 'ID_CARD')}
+                  onUpload={fileData => handleUpload(fileData, 'ID_CARD')}
                   isLoading={isLoading}
-                  label={t('documents.idCard.uploadLabel')}
+                  label={t('idCard.uploadLabel')}
                   acceptedFileTypes={{ 'image/*': ['.jpeg', '.jpg', '.png'] }}
                   maxFiles={1}
                   maxSize={5 * 1024 * 1024} // 5MB
@@ -219,8 +263,8 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
         <TabsContent value="selfie">
           <Card>
             <CardHeader>
-              <CardTitle>{t('documents.selfie.title')}</CardTitle>
-              <CardDescription>{t('documents.selfie.description')}</CardDescription>
+              <CardTitle>{t('selfie.title')}</CardTitle>
+              <CardDescription>{t('selfie.description')}</CardDescription>
             </CardHeader>
             <CardContent>
               {selfieDocuments.length > 0 ? (
@@ -232,9 +276,9 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
                 />
               ) : (
                 <DocumentUploadForm
-                  onUpload={files => handleUpload(files, 'SELFIE')}
+                  onUpload={fileData => handleUpload(fileData, 'SELFIE')}
                   isLoading={isLoading}
-                  label={t('documents.selfie.uploadLabel')}
+                  label={t('selfie.uploadLabel')}
                   acceptedFileTypes={{ 'image/*': ['.jpeg', '.jpg', '.png'] }}
                   maxFiles={1}
                   maxSize={5 * 1024 * 1024} // 5MB
@@ -265,8 +309,8 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
         <TabsContent value="license">
           <Card>
             <CardHeader>
-              <CardTitle>{t('documents.drivingLicense.title')}</CardTitle>
-              <CardDescription>{t('documents.drivingLicense.description')}</CardDescription>
+              <CardTitle>{t('drivingLicense.title')}</CardTitle>
+              <CardDescription>{t('drivingLicense.description')}</CardDescription>
             </CardHeader>
             <CardContent>
               {drivingLicenseDocuments.length > 0 ? (
@@ -278,9 +322,9 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
                 />
               ) : (
                 <DocumentUploadForm
-                  onUpload={files => handleUpload(files, 'DRIVING_LICENSE')}
+                  onUpload={fileData => handleUpload(fileData, 'DRIVING_LICENSE')}
                   isLoading={isLoading}
-                  label={t('documents.drivingLicense.uploadLabel')}
+                  label={t('drivingLicense.uploadLabel')}
                   acceptedFileTypes={{ 'image/*': ['.jpeg', '.jpg', '.png'] }}
                   maxFiles={1}
                   maxSize={5 * 1024 * 1024} // 5MB
@@ -307,6 +351,25 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('deleteConfirmation.title')}</AlertDialogTitle>
+            <AlertDialogDescription>{t('deleteConfirmation.description')}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t('deleteConfirmation.cancel')}</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={confirmDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {t('deleteConfirmation.confirm')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

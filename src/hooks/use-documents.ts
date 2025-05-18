@@ -97,6 +97,7 @@ export function useDocuments(userId?: string, status: DocumentStatus | 'ALL' = '
   };
 
   // Fonction pour télécharger un document avec un type spécifique
+<<<<<<< HEAD
   const uploadDocument = async (file: File, type: string, notes: string = '') => {
     try {
       // Convertir le fichier en base64 avant de l'envoyer
@@ -111,11 +112,39 @@ export function useDocuments(userId?: string, status: DocumentStatus | 'ALL' = '
         file: base64File, // Envoyer la chaîne base64 au lieu de l'objet File
         type: type as DocumentType,
         notes,
+=======
+  const uploadDocument = async (file: File, type: string, notes?: string) => {
+    try {
+      // Convert the file to base64
+      const reader = new FileReader();
+      const base64Promise = new Promise<string>((resolve, reject) => {
+        reader.onload = () => {
+          const result = reader.result as string;
+          resolve(result);
+        };
+        reader.onerror = () => {
+          reject(new Error('Failed to read file'));
+        };
+      });
+
+      reader.readAsDataURL(file);
+      const base64 = await base64Promise;
+
+      // Use the API to upload the document
+      await uploadMutation.mutateAsync({
+        type: type as DocumentType,
+        file: base64,
+        notes: notes,
+>>>>>>> 1b63c146c3df5c00cc1ce2e81d59f8f5633cf417
       });
 
       return true;
     } catch (error) {
+<<<<<<< HEAD
       console.error('Upload error details:', error);
+=======
+      console.error('Error in uploadDocument:', error);
+>>>>>>> 1b63c146c3df5c00cc1ce2e81d59f8f5633cf417
       throw error;
     }
   };
@@ -133,7 +162,7 @@ export function useDocuments(userId?: string, status: DocumentStatus | 'ALL' = '
 
   return {
     documents,
-    isLoading: isLoading || uploadMutation.isLoading || deleteMutation.isLoading,
+    isLoading: isLoading || uploadMutation.isPending || deleteMutation.isPending,
     uploadDocument,
     deleteDocument,
     refreshDocuments,
