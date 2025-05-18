@@ -249,13 +249,13 @@ export class AdminService {
                 select: {
                   id: true,
                   type: true,
-                  status: true,
-                  createdAt: true,
-                  updatedAt: true,
+                  verificationStatus: true,
+                  uploadedAt: true,
                   fileUrl: true,
+                  notes: true,
                 },
                 orderBy: {
-                  createdAt: 'desc',
+                  uploadedAt: 'desc',
                 },
               }
             : false,
@@ -264,7 +264,7 @@ export class AdminService {
                 select: {
                   id: true,
                   status: true,
-                  timestamp: true,
+                  createdAt: true,
                   reason: true,
                   verifiedBy: {
                     select: {
@@ -274,7 +274,7 @@ export class AdminService {
                   },
                 },
                 orderBy: {
-                  timestamp: 'desc',
+                  createdAt: 'desc',
                 },
               }
             : false,
@@ -303,7 +303,34 @@ export class AdminService {
         });
       }
 
-      return user;
+      // Create a properly typed result object with documents field
+      const result = {
+        ...user,
+        documents: [] as any[],
+      };
+
+      // Transform documents to handle SELFIE documents stored as OTHER
+      if ('documents' in user && Array.isArray(user.documents)) {
+        result.documents = user.documents.map(doc => {
+          // Determine if this is a SELFIE document based on notes field
+          const isSelfie =
+            doc.type === 'OTHER' &&
+            (doc.notes === 'SELFIE' ||
+              (typeof doc.notes === 'string' && doc.notes.toLowerCase().includes('selfie')));
+
+          return {
+            ...doc,
+            // Map uploadedAt to createdAt for frontend compatibility
+            createdAt: doc.uploadedAt,
+            // Map verificationStatus to status for frontend compatibility
+            status: doc.verificationStatus,
+            // If document is OTHER type but has selfie in notes, correct the type for frontend
+            type: isSelfie ? 'SELFIE' : doc.type,
+          };
+        });
+      }
+
+      return result;
     } catch (error) {
       if (error instanceof TRPCError) throw error;
 
