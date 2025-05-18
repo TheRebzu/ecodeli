@@ -35,17 +35,6 @@ import {
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { api } from '@/trpc/react';
-<<<<<<< HEAD
-=======
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
->>>>>>> 1b63c146c3df5c00cc1ce2e81d59f8f5633cf417
 
 // Types pour les documents et utilisateurs
 interface Document {
@@ -92,27 +81,11 @@ export function UserDocumentVerification({
   const router = useRouter();
   const { toast } = useToast();
   const [selectedDocType, setSelectedDocType] = useState<string | null>(null);
-<<<<<<< HEAD
   const [rejectionReason, setRejectionReason] = useState<string>('');
-=======
-  const [rejectionReasons, setRejectionReasons] = useState<Record<string, string>>({});
->>>>>>> 1b63c146c3df5c00cc1ce2e81d59f8f5633cf417
   const [mounted, setMounted] = useState(false);
   const [documentViewerOpen, setDocumentViewerOpen] = useState(false);
   const [selectedDocument, setSelectedDocument] = useState<Document | null>(null);
 
-<<<<<<< HEAD
-=======
-  // Add state for rejection dialog
-  const [rejectionDialogOpen, setRejectionDialogOpen] = useState(false);
-  const [documentToReject, setDocumentToReject] = useState<string | null>(null);
-
-  // Add state for approval dialog
-  const [approvalDialogOpen, setApprovalDialogOpen] = useState(false);
-  const [documentToApprove, setDocumentToApprove] = useState<string | null>(null);
-  const [approvalNotes, setApprovalNotes] = useState<string>('');
-
->>>>>>> 1b63c146c3df5c00cc1ce2e81d59f8f5633cf417
   // Use useEffect to mark when component is mounted on client
   useEffect(() => {
     setMounted(true);
@@ -227,18 +200,7 @@ export function UserDocumentVerification({
         title: 'Document rejeté',
         children: 'Le document a été rejeté avec succès.',
       });
-<<<<<<< HEAD
       setRejectionReason('');
-=======
-      // Reset the rejection reason for the document that was just rejected
-      setRejectionReasons(prev => {
-        const newReasons = { ...prev };
-        if (selectedDocument) {
-          delete newReasons[selectedDocument.id];
-        }
-        return newReasons;
-      });
->>>>>>> 1b63c146c3df5c00cc1ce2e81d59f8f5633cf417
       router.refresh();
     },
     onError: error => {
@@ -266,7 +228,6 @@ export function UserDocumentVerification({
 
   const requiredDocuments = getRequiredDocumentTypes(user.role);
 
-<<<<<<< HEAD
   // Handler pour approuver un document
   const handleApprove = (documentId: string) => {
     approveDocument.mutate({ documentId });
@@ -275,70 +236,6 @@ export function UserDocumentVerification({
   // Handler pour rejeter un document
   const handleReject = (documentId: string) => {
     if (!rejectionReason.trim()) {
-=======
-  // Instead of handling approval directly, open the dialog first
-  const openApproveDialog = (documentId: string) => {
-    setDocumentToApprove(documentId);
-    setApprovalNotes('');
-    setApprovalDialogOpen(true);
-  };
-
-  // Handler pour approuver un document
-  const handleApprove = () => {
-    if (!documentToApprove) return;
-
-    // Call the API to approve the document
-    fetch(`/api/admin/documents/${documentToApprove}/approve`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        notes: approvalNotes,
-      }),
-    })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Failed to approve document');
-        }
-        return response.json();
-      })
-      .then(() => {
-        toast({
-          title: 'Document approuvé',
-          children: 'Le document a été approuvé avec succès.',
-        });
-        // Close the dialog
-        setApprovalDialogOpen(false);
-        setDocumentToApprove(null);
-        setApprovalNotes('');
-        // Refresh the page to show updated document status
-        router.refresh();
-      })
-      .catch(error => {
-        console.error('Error approving document:', error);
-        toast({
-          title: 'Erreur',
-          children: `Impossible d'approuver le document: ${error.message}`,
-          variant: 'destructive',
-        });
-      });
-  };
-
-  // Instead of handling rejection directly, open the dialog first
-  const openRejectDialog = (documentId: string) => {
-    setDocumentToReject(documentId);
-    setRejectionDialogOpen(true);
-  };
-
-  // Handler pour rejeter un document
-  const handleReject = () => {
-    if (!documentToReject) return;
-
-    const reason = rejectionReasons[documentToReject] || '';
-
-    if (!reason.trim()) {
->>>>>>> 1b63c146c3df5c00cc1ce2e81d59f8f5633cf417
       toast({
         title: 'Erreur',
         children: 'Veuillez fournir une raison pour le rejet du document.',
@@ -347,54 +244,10 @@ export function UserDocumentVerification({
       return;
     }
 
-<<<<<<< HEAD
     rejectDocument.mutate({
       documentId,
       reason: rejectionReason,
     });
-=======
-    // Call the API to reject the document with the reason
-    fetch(`/api/admin/documents/${documentToReject}/reject`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        reason: reason,
-      }),
-    })
-      .then(response => {
-        if (!response.ok) {
-          throw new Error('Failed to reject document');
-        }
-        return response.json();
-      })
-      .then(() => {
-        toast({
-          title: 'Document rejeté',
-          children: 'Le document a été rejeté avec succès.',
-        });
-        // Clear the rejection reason after successful rejection
-        setRejectionReasons(prev => {
-          const newReasons = { ...prev };
-          delete newReasons[documentToReject];
-          return newReasons;
-        });
-        // Close the dialog
-        setRejectionDialogOpen(false);
-        setDocumentToReject(null);
-        // Refresh the page to show updated document status
-        router.refresh();
-      })
-      .catch(error => {
-        console.error('Error rejecting document:', error);
-        toast({
-          title: 'Erreur',
-          children: `Impossible de rejeter le document: ${error.message}`,
-          variant: 'destructive',
-        });
-      });
->>>>>>> 1b63c146c3df5c00cc1ce2e81d59f8f5633cf417
   };
 
   // Déterminer si tous les documents requis sont approuvés
@@ -559,18 +412,8 @@ export function UserDocumentVerification({
                       <div className="space-y-2">
                         <Textarea
                           placeholder="Raison du rejet (obligatoire en cas de rejet)"
-<<<<<<< HEAD
                           value={rejectionReason}
                           onChange={e => setRejectionReason(e.target.value)}
-=======
-                          value={rejectionReasons[document.id] || ''}
-                          onChange={e =>
-                            setRejectionReasons(prev => ({
-                              ...prev,
-                              [document.id]: e.target.value,
-                            }))
-                          }
->>>>>>> 1b63c146c3df5c00cc1ce2e81d59f8f5633cf417
                         />
                       </div>
                     )}
@@ -592,11 +435,7 @@ export function UserDocumentVerification({
                   <Button
                     variant="destructive"
                     size="sm"
-<<<<<<< HEAD
                     onClick={() => handleReject(document.id)}
-=======
-                    onClick={() => openRejectDialog(document.id)}
->>>>>>> 1b63c146c3df5c00cc1ce2e81d59f8f5633cf417
                     disabled={rejectDocument.isPending}
                   >
                     <X className="mr-1 h-4 w-4" /> Rejeter
@@ -604,11 +443,7 @@ export function UserDocumentVerification({
                   <Button
                     variant="success"
                     size="sm"
-<<<<<<< HEAD
                     onClick={() => handleApprove(document.id)}
-=======
-                    onClick={() => openApproveDialog(document.id)}
->>>>>>> 1b63c146c3df5c00cc1ce2e81d59f8f5633cf417
                     disabled={approveDocument.isPending}
                   >
                     <Check className="mr-1 h-4 w-4" /> Approuver
@@ -682,101 +517,6 @@ export function UserDocumentVerification({
           </div>
         </div>
       )}
-<<<<<<< HEAD
-=======
-
-      {/* Add Rejection Confirmation Dialog */}
-      <Dialog open={rejectionDialogOpen} onOpenChange={setRejectionDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Rejeter le document</DialogTitle>
-            <DialogDescription>
-              Veuillez fournir une raison pour le rejet de ce document. Cette raison sera
-              communiquée à l'utilisateur.
-            </DialogDescription>
-          </DialogHeader>
-
-          {documentToReject && (
-            <Textarea
-              placeholder="Raison du rejet (obligatoire)"
-              value={rejectionReasons[documentToReject] || ''}
-              onChange={e =>
-                setRejectionReasons(prev => ({
-                  ...prev,
-                  [documentToReject]: e.target.value,
-                }))
-              }
-              className="min-h-[100px]"
-            />
-          )}
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setRejectionDialogOpen(false);
-                setDocumentToReject(null);
-              }}
-            >
-              Annuler
-            </Button>
-            <Button
-              variant="destructive"
-              onClick={handleReject}
-              disabled={
-                rejectDocument.isPending ||
-                !documentToReject ||
-                !rejectionReasons[documentToReject]?.trim()
-              }
-            >
-              {rejectDocument.isPending ? 'Rejet en cours...' : 'Rejeter le document'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Add Approval Confirmation Dialog */}
-      <Dialog open={approvalDialogOpen} onOpenChange={setApprovalDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Approuver le document</DialogTitle>
-            <DialogDescription>
-              Veuillez fournir des notes pour le document. Ces notes seront communiquées à
-              l'utilisateur.
-            </DialogDescription>
-          </DialogHeader>
-
-          {documentToApprove && (
-            <Textarea
-              placeholder="Notes pour le document"
-              value={approvalNotes}
-              onChange={e => setApprovalNotes(e.target.value)}
-              className="min-h-[100px]"
-            />
-          )}
-
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => {
-                setApprovalDialogOpen(false);
-                setDocumentToApprove(null);
-                setApprovalNotes('');
-              }}
-            >
-              Annuler
-            </Button>
-            <Button
-              variant="success"
-              onClick={handleApprove}
-              disabled={approveDocument.isPending || !documentToApprove}
-            >
-              {approveDocument.isPending ? 'Approuver en cours...' : 'Approuver le document'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
->>>>>>> 1b63c146c3df5c00cc1ce2e81d59f8f5633cf417
     </div>
   );
 }

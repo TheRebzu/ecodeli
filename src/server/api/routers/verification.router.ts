@@ -218,12 +218,8 @@ export const verificationRouter = router({
         const updatedDocument = await documentService.updateDocument(documentId, {
           isVerified: true,
           verificationStatus: VerificationStatus.APPROVED,
-<<<<<<< HEAD
           verifiedAt: new Date(),
           verifiedBy: ctx.session?.user.id,
-=======
-          reviewerId: ctx.session?.user.id,
->>>>>>> 1b63c146c3df5c00cc1ce2e81d59f8f5633cf417
           notes: notes || null,
         });
 
@@ -294,12 +290,8 @@ export const verificationRouter = router({
         const updatedDocument = await documentService.updateDocument(documentId, {
           isVerified: false,
           verificationStatus: VerificationStatus.REJECTED,
-<<<<<<< HEAD
           verifiedAt: new Date(),
           verifiedBy: ctx.session?.user.id,
-=======
-          reviewerId: ctx.session?.user.id,
->>>>>>> 1b63c146c3df5c00cc1ce2e81d59f8f5633cf417
           rejectionReason: reason,
         });
 
