@@ -1,7 +1,18 @@
 import { z } from 'zod';
 import { DocumentType, VerificationStatus } from '@prisma/client';
 
-export const documentTypeSchema = z.nativeEnum(DocumentType);
+// Create a custom document type schema that includes SELFIE
+export const documentTypeSchema = z.enum([
+  'ID_CARD',
+  'DRIVING_LICENSE',
+  'VEHICLE_REGISTRATION',
+  'INSURANCE',
+  'QUALIFICATION_CERTIFICATE',
+  'PROOF_OF_ADDRESS',
+  'BUSINESS_REGISTRATION',
+  'SELFIE',
+  'OTHER',
+]);
 
 export const verificationStatusSchema = z.nativeEnum(VerificationStatus);
 
