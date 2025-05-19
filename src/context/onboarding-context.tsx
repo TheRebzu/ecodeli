@@ -37,6 +37,7 @@ type OnboardingContextType = {
   goToStep: (step: number) => Promise<void>;
   isCompleting?: boolean;
   setStepsConfiguration?: (currentStepIndex: number, totalStepsCount: number) => void;
+  setIsActive: (isActive: boolean) => void;
 };
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
@@ -135,11 +136,17 @@ export function OnboardingProvider({ children, t: externalT }: OnboardingProvide
 
   // Pour sauter le tutoriel
   const handleSkipOnboarding = async (options?: { redirectTo?: string }) => {
-    const result = await completion.skipOnboarding(options);
-    if (result) {
+    try {
+      // Fermer immédiatement la fenêtre pour une meilleure expérience utilisateur
       setIsActive(false);
+      
+      // Puis mettre à jour l'état dans la base de données
+      const result = await completion.skipOnboarding(options);
+      return result;
+    } catch (error) {
+      console.error("Erreur lors du saut du tutoriel:", error);
+      return false;
     }
-    return result;
   };
 
   return (
@@ -162,6 +169,7 @@ export function OnboardingProvider({ children, t: externalT }: OnboardingProvide
         goToStep,
         isCompleting: completion.isCompleting,
         setStepsConfiguration,
+        setIsActive,
       }}
     >
       {children}

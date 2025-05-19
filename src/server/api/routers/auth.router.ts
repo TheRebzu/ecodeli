@@ -97,32 +97,26 @@ export const authRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { token } = input;
 
-      const user = await ctx.db.user.findFirst({
-        where: {
-          verificationToken: token,
-        },
-      });
+      try {
+        // Utiliser le service AuthService pour vérifier le token
+        const authService = new AuthService(ctx.db);
+        const success = await authService.verifyEmail(token);
 
-      if (!user) {
+        if (!success) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Token de vérification invalide ou expiré',
+          });
+        }
+
+        return { success: true };
+      } catch (error) {
+        console.error('Erreur lors de la vérification de l\'email:', error);
         throw new TRPCError({
           code: 'NOT_FOUND',
-          message: 'Token de vérification invalide',
+          message: 'Token de vérification invalide ou expiré',
         });
       }
-
-      // Mise à jour de l'utilisateur comme vérifié
-      await ctx.db.user.update({
-        where: { id: user.id },
-        data: {
-          emailVerified: new Date(),
-          verificationToken: null,
-        },
-      });
-
-      // Envoi de l'email de bienvenue
-      await sendWelcomeEmail(user.email, user.name, user.role);
-
-      return { success: true };
     }),
 
   // Demande de réinitialisation de mot de passe
