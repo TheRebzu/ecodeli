@@ -77,7 +77,7 @@ export const documentRouter = router({
     )
     .query(async ({ input }) => {
       try {
-        const types = documentService.getRequiredDocumentTypes(input.userRole as UserRole);
+        const types = documentService.getRequiredDocumentTypesByRole(input.userRole);
         return types;
       } catch (error: any) {
         throw new TRPCError({

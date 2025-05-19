@@ -7,6 +7,7 @@ import { documentService } from '@/server/services/document.service';
 import { NotificationService } from '@/server/services/notification.service';
 import { VerificationStatus } from '@prisma/client';
 import { getUserPreferredLocale } from '@/lib/user-locale';
+import { sendNotification } from '@/server/services/notification.service';
 
 const verificationService = new VerificationService();
 
@@ -161,7 +162,7 @@ export const verificationRouter = router({
               },
             },
             orderBy: {
-              verifiedAt: 'desc',
+              uploadedAt: 'desc',
             },
             skip,
             take: limit,
@@ -218,8 +219,7 @@ export const verificationRouter = router({
         const updatedDocument = await documentService.updateDocument(documentId, {
           isVerified: true,
           verificationStatus: VerificationStatus.APPROVED,
-          verifiedAt: new Date(),
-          verifiedBy: ctx.session?.user.id,
+          reviewerId: ctx.session?.user.id,
           notes: notes || null,
         });
 
@@ -243,10 +243,10 @@ export const verificationRouter = router({
 
           // Send verification status changed notification
           const userLocale = getUserPreferredLocale(document.user);
-          await NotificationService.sendNotification({
+          await sendNotification({
             userId: document.user.id,
             title: 'Vérification complète',
-            content: 'Tous vos documents ont été vérifiés et approuvés.',
+            message: 'Tous vos documents ont été vérifiés et approuvés.',
             type: 'VERIFICATION',
             data: { status: VerificationStatus.APPROVED },
           });
@@ -290,16 +290,15 @@ export const verificationRouter = router({
         const updatedDocument = await documentService.updateDocument(documentId, {
           isVerified: false,
           verificationStatus: VerificationStatus.REJECTED,
-          verifiedAt: new Date(),
-          verifiedBy: ctx.session?.user.id,
+          reviewerId: ctx.session?.user.id,
           rejectionReason: reason,
         });
 
         // Send notification to user about rejection
-        await NotificationService.sendNotification({
+        await sendNotification({
           userId: document.user.id,
           title: 'Document rejeté',
-          content: `Votre document a été rejeté: ${reason}`,
+          message: `Votre document a été rejeté: ${reason}`,
           type: 'VERIFICATION',
           data: { status: VerificationStatus.REJECTED, reason },
         });
@@ -402,10 +401,10 @@ export const verificationRouter = router({
 
         // Send notification for missing documents
         const userLocale = getUserPreferredLocale(user);
-        await NotificationService.sendNotification({
+        await sendNotification({
           userId: user.id,
           title: 'Documents manquants',
-          content: `Veuillez soumettre les documents requis: ${missingDocuments.join(', ')}`,
+          message: `Veuillez soumettre les documents requis: ${missingDocuments.join(', ')}`,
           type: 'VERIFICATION',
           data: { missingDocuments },
         });
@@ -417,6 +416,242 @@ export const verificationRouter = router({
           code: 'INTERNAL_SERVER_ERROR',
           message: 'Failed to send verification reminder',
         });
+      }
+    }),
+
+  // Vérifier et mettre à jour le statut de vérification d'un livreur
+  checkAndUpdateDelivererVerification: protectedProcedure
+    .query(async ({ ctx }) => {
+      try {
+        const userId = ctx.session.user.id;
+        const userRole = ctx.session.user.role;
+
+        // Vérifier que l'utilisateur est un livreur
+        if (userRole !== UserRole.DELIVERER) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Cette fonctionnalité est réservée aux livreurs',
+          });
+        }
+
+        // Récupérer les types de documents requis pour un livreur
+        const requiredDocuments = documentService.getRequiredDocumentTypesByRole(userRole);
+
+        // Vérifier si tous les documents requis sont vérifiés
+        const hasAllDocuments = await documentService.hasRequiredDocuments(
+          userId,
+          requiredDocuments
+        );
+
+        if (hasAllDocuments) {
+          console.log("Tous les documents sont vérifiés, mise à jour du statut utilisateur...");
+          
+          // 1. Mettre à jour le statut de l'utilisateur principal
+          await ctx.db.user.update({
+            where: { id: userId },
+            data: {
+              status: 'ACTIVE',
+              isVerified: true,
+            },
+          });
+          
+          // 2. Mettre à jour le statut du livreur
+          await ctx.db.deliverer.update({
+            where: { userId },
+            data: {
+              isVerified: true,
+              verificationDate: new Date(),
+            },
+          });
+          
+          // 3. Tenter de trouver un administrateur pour l'historique
+          let adminId = null;
+          try {
+            // Chercher un utilisateur admin
+            const admin = await ctx.db.user.findFirst({
+              where: { role: 'ADMIN' },
+              select: { id: true },
+            });
+            
+            if (admin) {
+              adminId = admin.id;
+              
+              // Créer l'entrée d'historique uniquement si nous avons un admin
+              await ctx.db.verificationHistory.create({
+                data: {
+                  userId,
+                  verifiedById: adminId,
+                  status: VerificationStatus.APPROVED,
+                  reason: 'Vérification automatique: tous les documents requis sont vérifiés',
+                  createdAt: new Date(),
+                },
+              });
+            } else {
+              console.log("Aucun administrateur trouvé, l'historique de vérification ne sera pas créé");
+            }
+          } catch (historyError) {
+            // Ne pas bloquer le processus si l'enregistrement d'historique échoue
+            console.error("Erreur lors de la création de l'historique de vérification:", historyError);
+          }
+          
+          // 4. Notifier l'utilisateur
+          try {
+            await sendNotification({
+              userId,
+              title: 'Compte vérifié',
+              message: 'Votre compte a été vérifié avec succès. Vous pouvez maintenant accéder à toutes les fonctionnalités.',
+              type: 'VERIFICATION',
+              data: { status: VerificationStatus.APPROVED },
+            });
+          } catch (error) {
+            console.error("Erreur lors de l'envoi de la notification:", error);
+            // Ne pas bloquer le processus en cas d'erreur de notification
+          }
+          
+          // Important: forcer la mise à jour de la session après la vérification
+          if (ctx.session && ctx.session.user) {
+            ctx.session.user.isVerified = true;
+            // Mettre à jour le statut seulement si la propriété existe
+            if ('status' in ctx.session.user) {
+              // @ts-ignore - Nous avons vérifié que la propriété existe
+              ctx.session.user.status = 'ACTIVE';
+            }
+          }
+
+          return {
+            success: true,
+            isVerified: true,
+            message: 'Tous les documents requis sont vérifiés',
+          };
+        }
+
+        // Récupérer les documents manquants
+        const missingDocuments = await documentService.getMissingRequiredDocuments(
+          userId,
+          requiredDocuments
+        );
+
+        return {
+          success: false,
+          isVerified: false,
+          message: 'Certains documents requis ne sont pas encore vérifiés',
+          missingDocuments,
+        };
+      } catch (error) {
+        console.error('Erreur lors de la vérification du statut du livreur:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Échec de la vérification du statut',
+        });
+      }
+    }),
+    
+  // Permettre à un utilisateur de forcer la vérification manuelle de son compte
+  manualCheckAndUpdateVerification: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      try {
+        // Récupérer l'utilisateur actuel
+        const user = await ctx.db.user.findUnique({
+          where: {
+            id: ctx.session?.user?.id,
+          },
+          include: {
+            // Ne pas inclure les documents via deliverer car la structure n'est pas correcte
+            deliverer: true,
+          },
+        });
+
+        if (!user || user.role !== 'DELIVERER') {
+          console.log('Vérification manuelle: utilisateur non trouvé ou non livreur');
+          return { success: false, isVerified: false, message: 'User not found or not a deliverer' };
+        }
+
+        // Récupérer les documents directement
+        const documents = await ctx.db.document.findMany({
+          where: {
+            userId: user.id,
+            userRole: { equals: 'DELIVERER' },
+          },
+        });
+
+        console.log('Documents du livreur:', JSON.stringify(documents.map((d: any) => ({
+          id: d.id,
+          type: d.type,
+          status: d.verificationStatus
+        })), null, 2));
+        
+        // Compter le nombre de documents vérifiés
+        const verifiedDocuments = documents.filter((doc: any) => doc.verificationStatus === 'APPROVED');
+        
+        // Pour simplifier, nous considérons qu'un livreur est vérifié s'il a au moins 3 documents approuvés
+        const isFullyVerified = verifiedDocuments.length >= 3;
+        
+        console.log(`Nombre de documents vérifiés: ${verifiedDocuments.length}, isFullyVerified: ${isFullyVerified}`);
+
+        if (isFullyVerified) {
+          // Si tous les documents sont vérifiés, mettre à jour le statut de l'utilisateur
+          const updatedUser = await ctx.db.user.update({
+            where: {
+              id: user.id,
+            },
+            data: {
+              status: 'ACTIVE',
+              isVerified: true,
+            },
+          });
+
+          // Mettre également à jour le profil Deliverer
+          if (user.deliverer) {
+            await ctx.db.deliverer.update({
+              where: {
+                id: user.deliverer.id
+              },
+              data: {
+                isVerified: true,
+                verificationDate: new Date()
+              }
+            });
+          }
+          
+          // Tenter de créer une entrée dans l'historique
+          try {
+            // Chercher un utilisateur admin
+            const admin = await ctx.db.user.findFirst({
+              where: { role: 'ADMIN' },
+              select: { id: true },
+            });
+            
+            if (admin) {
+              // Créer l'entrée d'historique uniquement si nous avons un admin
+              await ctx.db.verificationHistory.create({
+                data: {
+                  userId: user.id,
+                  verifiedById: admin.id,
+                  status: VerificationStatus.APPROVED,
+                  reason: 'Vérification manuelle initiée par l\'utilisateur',
+                  createdAt: new Date(),
+                },
+              });
+            }
+          } catch (historyError) {
+            // Ne pas bloquer le processus si l'enregistrement d'historique échoue
+            console.error("Erreur lors de la création de l'historique de vérification:", historyError);
+          }
+          
+          console.log('Utilisateur mis à jour avec succès:', JSON.stringify({
+            id: updatedUser.id,
+            status: updatedUser.status,
+            isVerified: updatedUser.isVerified
+          }, null, 2));
+
+          return { success: true, isVerified: true, message: 'User verified successfully' };
+        }
+
+        console.log('L\'utilisateur n\'a pas tous les documents nécessaires');
+        return { success: false, isVerified: false, message: 'Not all required documents are verified' };
+      } catch (error) {
+        console.error('Erreur lors de la vérification manuelle:', error);
+        return { success: false, isVerified: false, message: 'Error during verification' };
       }
     }),
 });

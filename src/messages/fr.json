@@ -1397,26 +1397,13 @@
 
   "documents": {
     "deliverer": {
-      "title": "Documents du livreur",
-      "subtitle": "Téléchargez vos documents pour vérification",
+      "title": "Vérification de vos documents",
+      "subtitle": "Pour assurer la sécurité de notre plateforme, nous avons besoin de vérifier votre identité et vos documents",
       "pageTitle": "Vérification de Documents | EcoDeli",
       "pageDescription": "Uploadez vos documents pour vérification"
     },
-    "upload": {
-      "dropFiles": "Glissez des fichiers ici ou cliquez pour parcourir"
-    },
-    "form": {
-      "uploading": "Téléchargement en cours...",
-      "submit": "Télécharger"
-    },
-    "selfie": {
-      "tab": "Selfie",
-      "title": "Photo de profil",
-      "description": "Téléchargez une photo de vous clairement identifiable",
-      "uploadLabel": "Télécharger votre selfie"
-    },
     "idCard": {
-      "tab": "Carte d'identité",
+      "tab": "Identité",
       "title": "Carte d'identité",
       "description": "Téléchargez une copie de votre carte d'identité (recto-verso)",
       "uploadLabel": "Télécharger votre carte d'identité"
@@ -1427,28 +1414,23 @@
       "description": "Téléchargez une copie de votre permis de conduire",
       "uploadLabel": "Télécharger votre permis de conduire"
     },
-    "replaceRejected": "Remplacer le document rejeté",
-    "alreadySubmitted": "Document déjà soumis",
-    "verificationRequired": {
-      "title": "Vérification requise",
-      "type": {
-        "label": "Type de document",
-        "placeholder": "Sélectionnez un type de document",
-        "description": "Veuillez sélectionner le type de document que vous souhaitez télécharger"
-      },
-      "file": {
-        "label": "Fichier",
-        "instruction": "Téléchargez votre document",
-        "supportedFormats": "Formats acceptés: JPEG, PNG, PDF (max 5MB)",
-        "description": "Veuillez télécharger un fichier lisible et non altéré"
-      },
-      "expiryDate": {
-        "label": "Date d'expiration",
-        "placeholder": "Sélectionnez une date",
-        "description": "Si applicable, indiquez la date d'expiration du document"
-      },
-      "submitting": "Envoi en cours...",
-      "submit": "Soumettre le document"
+    "selfie": {
+      "tab": "Selfie",
+      "title": "Photo de profil",
+      "description": "Téléchargez une photo de vous clairement identifiable",
+      "uploadLabel": "Télécharger votre selfie"
+    },
+    "status": {
+      "pending": "En attente",
+      "approved": "Approuvé",
+      "rejected": "Rejeté",
+      "missing": "Manquant"
+    },
+    "documentTypes": {
+      "ID_CARD": "Carte d'identité",
+      "DRIVING_LICENSE": "Permis de conduire",
+      "SELFIE": "Photo de profil",
+      "OTHER": "Autre document"
     },
     "verification": {
       "notice": "Tous vos documents doivent être vérifiés avant d'accéder à toutes les fonctionnalités"
@@ -1463,17 +1445,38 @@
       "title": "Tous les documents soumis",
       "description": "Tous vos documents ont été soumis pour vérification. Nous vous informerons lorsqu'ils seront approuvés."
     },
-    "documentTypes": {
-      "ID_CARD": "Carte d'identité",
-      "DRIVING_LICENSE": "Permis de conduire",
-      "SELFIE": "Photo de profil",
-      "OTHER": "Autre document"
+    "verificationRequired": {
+      "title": "Vérification requise",
+      "message": "Vous devez télécharger et faire vérifier vos documents pour accéder à toutes les fonctionnalités."
     },
-    "status": {
-      "pending": "En attente",
-      "approved": "Approuvé",
-      "rejected": "Rejeté",
-      "missing": "Manquant"
+    "pendingVerification": {
+      "title": "Vérification en cours",
+      "message": "Vos documents sont en cours de vérification par notre équipe. Merci de votre patience."
+    },
+    "replaceRejected": "Remplacer le document rejeté",
+    "alreadySubmitted": "Document déjà soumis",
+    "forceVerification": {
+      "title": "Problème de vérification?",
+      "description": "Si tous vos documents ont été approuvés mais que votre compte n'est toujours pas vérifié, vous pouvez essayer de forcer la vérification."
+    },
+    "upload": {
+      "dropFiles": "Déposez vos fichiers ici ou cliquez pour parcourir",
+      "title": "Télécharger un document",
+      "subtitle": "Formats acceptés: PDF, JPG, PNG (max 5MB)",
+      "dropzone": "Déposez votre fichier ici",
+      "orBrowse": "ou parcourir",
+      "maxSize": "Taille maximale: 5MB",
+      "button": "Télécharger",
+      "processing": "Traitement en cours..."
+    },
+    "form": {
+      "documentType": "Type de document",
+      "description": "Description (optionnel)",
+      "uploading": "Téléchargement en cours...",
+      "uploadSuccess": "Document téléchargé avec succès",
+      "uploadError": "Erreur lors du téléchargement",
+      "submit": "Soumettre",
+      "cancel": "Annuler"
     }
   },
   "uploadForm": {
