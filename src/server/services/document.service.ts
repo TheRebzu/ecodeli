@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { TRPCError } from '@trpc/server';
 import { db } from '../db';
 import crypto from 'crypto';
-import { NotificationService } from './notification.service';
+import { NotificationService, sendNotification } from './notification.service';
 import { getUserPreferredLocale } from '@/lib/user-locale';
 
 // Interface Document pour typer les retours
@@ -903,7 +903,7 @@ export class DocumentService {
   async getDocumentsByUserId(userId: string): Promise<Document[]> {
     return await this.prisma.document.findMany({
       where: { userId },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { uploadedAt: 'desc' },
     });
   }
 
@@ -911,7 +911,7 @@ export class DocumentService {
   async getMostRecentDocumentByType(userId: string, type: DocumentType): Promise<Document | null> {
     return await this.prisma.document.findFirst({
       where: { userId, type },
-      orderBy: { createdAt: 'desc' },
+      orderBy: { uploadedAt: 'desc' },
     });
   }
 
@@ -959,34 +959,31 @@ export class DocumentService {
         const locale = getUserPreferredLocale(userWithDocument.user);
 
         if (data.verificationStatus === VerificationStatus.APPROVED) {
-          // Send approval notification
-          await this.notificationService.sendDocumentApprovedNotification(userWithDocument, locale);
+          // Send approval notification using the exported NotificationService function
+          await sendNotification({
+            userId: userWithDocument.user.id,
+            title: 'Document approuvé',
+            message: `Votre document ${userWithDocument.type} a été approuvé.`,
+            type: 'VERIFICATION',
+            data: { status: VerificationStatus.APPROVED },
+          });
 
-          // Send approval email
-          await this.emailService.sendDocumentApprovedEmail(
-            userWithDocument.user.email,
-            userWithDocument.user.name || '',
-            userWithDocument.type,
-            locale
-          );
+          // Send email notification (if integrated with email service)
+          // This will need to be implemented based on your email service
         }
 
         if (data.verificationStatus === VerificationStatus.REJECTED) {
           // Send rejection notification
-          await this.notificationService.sendDocumentRejectedNotification(
-            userWithDocument,
-            data.rejectionReason || 'Document invalide',
-            locale
-          );
+          await sendNotification({
+            userId: userWithDocument.user.id,
+            title: 'Document rejeté',
+            message: `Votre document ${userWithDocument.type} a été rejeté: ${data.rejectionReason || 'Document invalide'}`,
+            type: 'VERIFICATION',
+            data: { status: VerificationStatus.REJECTED, reason: data.rejectionReason },
+          });
 
-          // Send rejection email
-          await this.emailService.sendDocumentRejectedEmail(
-            userWithDocument.user.email,
-            userWithDocument.user.name || '',
-            userWithDocument.type,
-            data.rejectionReason || 'Document invalide',
-            locale
-          );
+          // Send email notification (if integrated with email service)
+          // This will need to be implemented based on your email service
         }
       }
 

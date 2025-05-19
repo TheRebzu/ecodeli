@@ -176,23 +176,70 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger, session }) {
+      // Quand l'utilisateur se connecte, fusionner ses données avec le token
       if (user) {
         token.id = user.id;
+        token.name = user.name;
+        token.email = user.email;
         token.role = user.role;
-        token.profileId = user.profileId;
-        token.isVerified = user.isVerified;
         token.status = user.status;
+        token.isVerified = user.isVerified;
+        token.picture = user.image; // Nextauth utilise 'picture' mais nous avons 'image'
       }
+
+      // Lors d'une mise à jour de session
+      if (trigger === 'update' && session) {
+        Object.assign(token, session);
+      }
+
+      // Vérifier dynamiquement si l'utilisateur est vérifié à chaque requête pour les rôles qui nécessitent une vérification
+      if (token.role === 'DELIVERER' || token.role === 'PROVIDER' || token.role === 'MERCHANT') {
+        try {
+          // Obtenir le statut actuel de l'utilisateur depuis la base de données
+          const currentUser = await db.user.findUnique({
+            where: { id: token.id as string },
+            include: {
+              deliverer: token.role === 'DELIVERER' ? true : undefined,
+              provider: token.role === 'PROVIDER' ? true : undefined,
+              merchant: token.role === 'MERCHANT' ? true : undefined,
+            },
+          });
+
+          if (currentUser) {
+            // Mettre à jour le token avec les informations actuelles
+            token.status = currentUser.status;
+            token.isVerified = currentUser.isVerified;
+            
+            // Mettre à jour également les informations spécifiques au rôle
+            if (token.role === 'DELIVERER' && currentUser.deliverer) {
+              token.isVerified = currentUser.deliverer.isVerified;
+            } else if (token.role === 'PROVIDER' && currentUser.provider) {
+              token.isVerified = currentUser.provider.isVerified;
+            } else if (token.role === 'MERCHANT' && currentUser.merchant) {
+              token.isVerified = currentUser.merchant.isVerified;
+            }
+            
+            console.log(`Session mise à jour pour ${currentUser.email}: status=${token.status}, isVerified=${token.isVerified}`);
+          }
+        } catch (error) {
+          console.error("Erreur lors de la mise à jour dynamique de la session:", error);
+          // Ne pas bloquer le processus en cas d'erreur
+        }
+      }
+
       return token;
     },
+
     async session({ session, token }) {
       if (token) {
-        session.user.id = token.id;
-        session.user.role = token.role;
-        session.user.profileId = token.profileId;
-        session.user.isVerified = token.isVerified as boolean;
-        session.user.status = token.status;
+        session.user.id = token.id as string;
+        session.user.name = token.name as string;
+        session.user.email = token.email as string;
+        session.user.image = token.picture as string | undefined;
+        session.user.role = token.role as UserRole;
+        session.user.status = token.status as UserStatus;
+        session.user.isVerified = token.isVerified as boolean | undefined;
       }
       return session;
     },

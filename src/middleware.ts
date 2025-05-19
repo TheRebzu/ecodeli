@@ -181,6 +181,8 @@ export async function middleware(request: NextRequest) {
     const isVerified = !!token.isVerified;
     const userStatus = (token.status as UserStatus) || UserStatus.ACTIVE;
 
+    console.log(`Middleware - User ${token.email || token.id} - Role: ${userRole}, isVerified: ${isVerified}, Status: ${userStatus}, Path: ${pathname}`);
+
     // Vérifier si l'utilisateur a accès au chemin demandé en fonction de son rôle
     const hasRoleAccess = Object.entries(roleBasedPaths).some(([role, paths]) => {
       return (
@@ -218,6 +220,9 @@ export async function middleware(request: NextRequest) {
         path => pathWithoutLocale === path || pathWithoutLocale.startsWith(`${path}/`)
       );
 
+      console.log(`Middleware - Path Check - Role: ${userRole}, Path: ${pathWithoutLocale}, isAllowedPath: ${isAllowedPath}`);
+      console.log(`Allowed Paths for ${userRole}: ${JSON.stringify(allowedNonVerifiedPaths[userRole])}`);
+
       if (!isAllowedPath) {
         // Rediriger vers la page de vérification appropriée en fonction du rôle
         let verificationPath;
@@ -235,10 +240,12 @@ export async function middleware(request: NextRequest) {
             verificationPath = `/${locale}/login`;
         }
 
-        // Ajouter un message indiquant que la vérification est nécessaire
+        // Ajouter un paramètre pour indiquer qu'une vérification automatique est requise
         const redirectUrl = new URL(verificationPath, request.url);
         redirectUrl.searchParams.set('verification_required', 'true');
+        redirectUrl.searchParams.set('auto_check', 'true');
 
+        console.log(`Middleware - Redirecting to verification path: ${verificationPath}`);
         return NextResponse.redirect(redirectUrl);
       }
     }
