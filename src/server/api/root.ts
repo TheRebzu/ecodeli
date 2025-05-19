@@ -9,8 +9,8 @@ import { serviceRouter } from './routers/service.router';
 import { paymentRouter } from './routers/payment.router';
 import { invoiceRouter } from './routers/invoice.router';
 import { warehouseRouter } from './routers/warehouse.router';
-import { documentRouter } from './routers/document.router';
 import { verificationRouter } from './routers/verification.router';
+import { documentRouter } from './routers/document.router';
 import { userPreferencesRouter } from '@/server/api/routers/user-preferences.router';
 import { notificationRouter } from './routers/notification.router';
 import { adminUserRouter } from './routers/admin/admin-user.router';
@@ -64,8 +64,8 @@ export const appRouter = router({
   invoice: invoiceRouter,
   warehouse: warehouseRouter,
   adminWarehouse: adminWarehouseRouter,
-  document: documentRouter,
   verification: verificationRouter,
+  document: documentRouter,
   userPreferences: userPreferencesRouter,
   notification: notificationRouter,
   adminUser: adminUserRouter,

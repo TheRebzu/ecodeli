@@ -224,6 +224,15 @@ export class VerificationService {
 
     // Si tous les documents requis sont vérifiés
     if (verifiedDocuments.length >= requiredDocuments.length) {
+      // Récupérer le premier administrateur pour l'enregistrer comme vérificateur
+      const systemAdmin = await this.prisma.user.findFirst({
+        where: { role: UserRole.ADMIN },
+        select: { id: true },
+      });
+
+      // Si aucun admin n'est trouvé, utiliser l'ID système
+      const systemId = systemAdmin?.id || 'system';
+
       // Mettre à jour le statut de vérification selon le rôle
       switch (userRole) {
         case UserRole.DELIVERER:
@@ -234,6 +243,18 @@ export class VerificationService {
               verificationDate: new Date(),
             },
           });
+
+          // Ajouter une entrée dans l'historique de vérification
+          await this.prisma.verificationHistory.create({
+            data: {
+              userId,
+              verifiedById: systemId,
+              status: VerificationStatus.APPROVED,
+              reason: 'All required documents verified',
+              createdAt: new Date(),
+            },
+          });
+
           break;
         case UserRole.PROVIDER:
           await this.prisma.provider.update({
@@ -243,6 +264,18 @@ export class VerificationService {
               verificationDate: new Date(),
             },
           });
+
+          // Ajouter une entrée dans l'historique de vérification
+          await this.prisma.verificationHistory.create({
+            data: {
+              userId,
+              verifiedById: systemId,
+              status: VerificationStatus.APPROVED,
+              reason: 'All required documents verified',
+              createdAt: new Date(),
+            },
+          });
+
           break;
         case UserRole.MERCHANT:
           await this.prisma.merchant.update({
@@ -252,6 +285,18 @@ export class VerificationService {
               verificationDate: new Date(),
             },
           });
+
+          // Ajouter une entrée dans l'historique de vérification
+          await this.prisma.verificationHistory.create({
+            data: {
+              userId,
+              verifiedById: systemId,
+              status: VerificationStatus.APPROVED,
+              reason: 'All required documents verified',
+              createdAt: new Date(),
+            },
+          });
+
           break;
       }
 
@@ -315,5 +360,91 @@ export class VerificationService {
         requestedAt: 'desc',
       },
     });
+  }
+
+  /**
+   * Vérifie et met à jour le statut de vérification pour un livreur automatiquement
+   * Utilisé lors de la navigation pour détecter si tous les documents sont vérifiés
+   */
+  async checkAndUpdateVerificationStatus(userId: string, userRole: UserRole): Promise<boolean> {
+    // Vérifier si l'utilisateur est déjà vérifié
+    const alreadyVerified = await this.getUserVerificationStatus(userId, userRole);
+
+    // Si déjà vérifié, on retourne simplement true sans rien faire
+    if (alreadyVerified) {
+      return true;
+    }
+
+    // Obtenir la liste des documents requis en fonction du rôle
+    let requiredDocuments: DocumentType[];
+
+    if (userRole === UserRole.DELIVERER) {
+      requiredDocuments = [
+        DocumentType.ID_CARD,
+        DocumentType.DRIVING_LICENSE,
+        DocumentType.VEHICLE_REGISTRATION,
+        DocumentType.INSURANCE,
+      ];
+    } else if (userRole === UserRole.PROVIDER) {
+      requiredDocuments = [
+        DocumentType.ID_CARD,
+        DocumentType.QUALIFICATION_CERTIFICATE,
+        DocumentType.INSURANCE,
+      ];
+    } else if (userRole === UserRole.MERCHANT) {
+      requiredDocuments = [DocumentType.ID_CARD, DocumentType.OTHER];
+    } else {
+      return false; // Rôle non supporté
+    }
+
+    // Vérifier si tous les documents requis sont téléchargés et vérifiés
+    const verifiedDocuments = await this.prisma.document.findMany({
+      where: {
+        userId,
+        userRole: userRole.toString(),
+        type: { in: requiredDocuments },
+        isVerified: true,
+      },
+    });
+
+    // Si tous les documents requis sont vérifiés, mais que le statut n'est pas encore mis à jour
+    if (verifiedDocuments.length >= requiredDocuments.length) {
+      // Mettre à jour le statut de vérification
+      await this.updateUserVerificationStatus(userId, userRole, requiredDocuments);
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Récupère le statut de vérification actuel d'un utilisateur
+   */
+  private async getUserVerificationStatus(userId: string, userRole: UserRole): Promise<boolean> {
+    switch (userRole) {
+      case UserRole.DELIVERER:
+        const deliverer = await this.prisma.deliverer.findUnique({
+          where: { userId },
+          select: { isVerified: true },
+        });
+        return deliverer?.isVerified || false;
+
+      case UserRole.PROVIDER:
+        const provider = await this.prisma.provider.findUnique({
+          where: { userId },
+          select: { isVerified: true },
+        });
+        return provider?.isVerified || false;
+
+      case UserRole.MERCHANT:
+        const merchant = await this.prisma.merchant.findUnique({
+          where: { userId },
+          select: { isVerified: true },
+        });
+        return merchant?.isVerified || false;
+
+      default:
+        return false;
+    }
   }
 }

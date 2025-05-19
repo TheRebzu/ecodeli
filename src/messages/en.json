@@ -1028,6 +1028,36 @@
       "passwordTooShort": "Password must be at least 8 characters",
       "passwordsDoNotMatch": "Passwords do not match",
       "invalidCode": "Invalid verification code"
+    },
+    "EmailVerification": {
+      "title": "Email Verification",
+      "description": "Validating your email address",
+      "verifying": "Verifying your email...",
+      "success": "Your email has been successfully verified. You will be redirected to the login page.",
+      "defaultError": "An error occurred while verifying your email.",
+      "loginButton": "Go to Login",
+      "backButton": "Back to Login"
+    },
+    "login": {
+      "title": "Login",
+      "signIn": "Sign in",
+      "email": "Email",
+      "password": "Password",
+      "rememberMe": "Remember me",
+      "forgotPassword": "Forgot password?",
+      "connectToAccount": "Connect to your account",
+      "noAccount": "Don't have an account?",
+      "register": "Register",
+      "continueWith": "Or continue with",
+      "resendVerificationEmail": "Resend verification email",
+      "verificationEmailSent": "Verification email sent successfully",
+      "verificationEmailError": "Unable to resend verification email",
+      "2fa": {
+        "codeLabel": "Authentication code",
+        "codePlaceholder": "123456",
+        "enterCode": "Enter the 6-digit code from your authentication app",
+        "verifyButton": "Verify"
+      }
     }
   },
   "navigation": {
@@ -1043,6 +1073,20 @@
     "upload": "Upload document",
     "view": "View document",
     "delete": "Delete document",
+    "deliverer": {
+      "title": "Deliverer Documents",
+      "subtitle": "Upload your documents for verification",
+      "pageTitle": "Document Verification | EcoDeli",
+      "pageDescription": "Upload your documents for verification"
+    },
+    "verificationRequired": {
+      "title": "Verification Required",
+      "message": "Please upload all required documents to activate your deliverer account"
+    },
+    "pendingVerification": {
+      "title": "Documents Under Review",
+      "message": "Your documents have been submitted and are being reviewed by our team. You will receive a notification when the verification is complete."
+    },
     "types": {
       "id_card": "ID Card",
       "driving_license": "Driving License",
@@ -2531,7 +2575,19 @@
       "averageRating": "Average rating",
       "estimatedSavings": "Estimated savings",
       "quickActions": {
-        "title": "Quick actions"
+        "title": "Quick actions",
+        "findDeliveries": "Find deliveries",
+        "findDeliveriesDescription": "Browse available announcements for new deliveries",
+        "manageRoutes": "Manage my routes",
+        "manageRoutesDescription": "Plan and optimize your delivery routes",
+        "activeDeliveries": "Active deliveries",
+        "activeDeliveriesDescription": "Track and manage your ongoing deliveries",
+        "schedule": "My schedule",
+        "scheduleDescription": "Check and update your availability",
+        "notifications": "Notifications",
+        "notificationsDescription": "Check your latest notifications",
+        "statistics": "Statistics",
+        "statisticsDescription": "Check your delivery statistics"
       },
       "actions": {
         "createAnnouncement": "Create announcement",
@@ -2584,7 +2640,49 @@
         "cancelled": "cancelled",
         "completed": "completed"
       }
-    }
+    },
+    "welcome": "Welcome to your dashboard",
+    "welcomeMessage": "Here's a summary of the options available to manage your account.",
+    "quickActions": {
+      "title": "Quick actions",
+      "findDeliveries": "Find deliveries",
+      "findDeliveriesDescription": "Browse available announcements for new deliveries",
+      "manageRoutes": "Manage my routes",
+      "manageRoutesDescription": "Plan and optimize your delivery routes",
+      "activeDeliveries": "Active deliveries",
+      "activeDeliveriesDescription": "Track and manage your ongoing deliveries",
+      "schedule": "My schedule",
+      "scheduleDescription": "Check and update your availability",
+      "notifications": "Notifications",
+      "notificationsDescription": "Check notifications and important messages",
+      "statistics": "Statistics",
+      "statisticsDescription": "View your data and performance"
+    },
+    "verification": {
+      "verified": "Verified",
+      "pendingVerification": "Pending verification",
+      "documentStatus": "Document verification status",
+      "documentsInVerification": "Documents being verified",
+      "allDocumentsVerified": "All documents have been verified",
+      "processingVerification": "Your documents are verified, your account will be activated soon",
+      "viewDocuments": "View my documents"
+    },
+    "stats": {
+      "title": "Statistics",
+      "deliveriesCompleted": "Completed deliveries",
+      "activeDeliveries": "Active deliveries",
+      "rating": "Average rating",
+      "earnings": "Total earnings"
+    },
+    "actions": {
+      "viewMore": "View more",
+      "viewAllAnnouncements": "View all announcements",
+      "viewActiveDeliveries": "View active deliveries"
+    },
+    "availableDeliveries": "Available deliveries",
+    "availableDeliveriesDescription": "Delivery announcements available in your area",
+    "activeDeliveries": "Active deliveries",
+    "activeDeliveriesDescription": "Track and manage your ongoing deliveries"
   },
   "search": {
     "error": "error",

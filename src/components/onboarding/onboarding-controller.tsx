@@ -18,8 +18,14 @@ export function OnboardingController({
   autoStart = true,
   redirectPathAfterCompletion,
 }: OnboardingControllerProps) {
-  const { isActive, startOnboarding, isFirstLogin, hasCompletedOnboarding, isLoading } =
-    useOnboarding();
+  const {
+    isActive,
+    startOnboarding,
+    isFirstLogin,
+    hasCompletedOnboarding,
+    isLoading,
+    closeOnboarding,
+  } = useOnboarding();
 
   const session = useSession();
   const userRole = session.data?.user?.role?.toLowerCase() || '';
@@ -32,7 +38,8 @@ export function OnboardingController({
       !hasCompletedOnboarding &&
       !isLoading &&
       !isActive &&
-      userRole
+      userRole &&
+      userRole !== 'admin' // Ne pas démarrer automatiquement pour les administrateurs
     ) {
       startOnboarding(userRole);
     }
@@ -62,6 +69,12 @@ export function OnboardingController({
         return <MerchantTutorial options={tutorialOptions} />;
       case 'provider':
         return <ProviderTutorial options={tutorialOptions} />;
+      case 'admin':
+        // Pour les administrateurs, ferme automatiquement le tutoriel
+        setTimeout(() => {
+          closeOnboarding();
+        }, 0);
+        return null;
       default:
         return null;
     }

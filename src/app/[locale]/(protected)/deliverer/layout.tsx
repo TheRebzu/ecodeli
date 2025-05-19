@@ -1,6 +1,7 @@
 import { ProtectedHeader } from '@/components/layout/protected-header';
 import { ProtectedFooter } from '@/components/layout/protected-footer';
 import { DelivererSidebar } from '@/components/layout/sidebars/deliverer-sidebar';
+import { AutoVerificationChecker } from '@/components/verification/auto-verification-checker';
 
 interface DelivererLayoutProps {
   children: React.ReactNode;
@@ -15,6 +16,9 @@ export default function DelivererLayout({ children, params }: DelivererLayoutPro
   return (
     <div className="min-h-screen flex flex-col">
       <ProtectedHeader locale={locale} />
+
+      {/* Vérification automatique des documents lors de la navigation */}
+      <AutoVerificationChecker />
 
       <div className="flex-1 flex">
         <div className="hidden md:block w-64 shrink-0">

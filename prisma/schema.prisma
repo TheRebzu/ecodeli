@@ -33,6 +33,10 @@ model User {
   hasCompletedOnboarding Boolean               @default(false)
   lastOnboardingStep     Int                   @default(0)
   onboardingCompletionDate DateTime?
+  verificationToken      String?               // Token pour la vérification d'email
+  verificationTokenExpires DateTime?           // Date d'expiration du token de vérification
+  resetToken             String?               // Token pour la réinitialisation de mot de passe
+  resetTokenExpires      DateTime?             // Date d'expiration du token de réinitialisation
   notifications          Notification[]
   accounts               Account[]
   admin                  Admin?

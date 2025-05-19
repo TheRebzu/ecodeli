@@ -69,16 +69,23 @@ export function OnboardingProvider({ children, t: externalT }: OnboardingProvide
       setIsFirstLogin(isFirstTime);
 
       // Activer automatiquement le tutoriel lors de la première connexion
-      if (isFirstTime && !isActive) {
+      // mais pas pour les administrateurs
+      const userRole = session.data?.user?.role?.toLowerCase();
+      if (isFirstTime && !isActive && userRole && userRole !== 'admin') {
         setIsActive(true);
         // Définir le type de tutoriel en fonction du rôle de l'utilisateur
-        setTutorialType(session.data?.user?.role?.toLowerCase());
+        setTutorialType(userRole);
       }
     }
   }, [session, status, isLoading, isActive]);
 
   // Démarrer le tutoriel d'onboarding
   const startOnboarding = (type?: string) => {
+    // Ne pas démarrer le tutoriel pour les administrateurs
+    if (type === 'admin' || (!type && session.data?.user?.role?.toLowerCase() === 'admin')) {
+      return;
+    }
+
     if (type) {
       setTutorialType(type);
     } else if (!tutorialType && session.data?.user?.role) {
