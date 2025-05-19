@@ -1,7 +1,11 @@
-import { DeliveryStatus } from '@prisma/client';
+import { DeliveryStatus as PrismaDeliveryStatus } from '@prisma/client';
 
-// Réexporter l'enum DeliveryStatus de Prisma pour une meilleure compatibilité
-export { DeliveryStatus };
+// Réexporter avec les valeurs supplémentaires nécessaires
+export type DeliveryStatus = PrismaDeliveryStatus | 
+  'EN_ROUTE_TO_PICKUP' |
+  'AT_PICKUP' |
+  'EN_ROUTE_TO_DROPOFF' |
+  'AT_DROPOFF';
 
 // Type pour les filtres de livraison
 export interface DeliveryFilters {
@@ -22,9 +26,11 @@ export interface DeliveryCoordinatesInput {
 export interface DeliveryStatusUpdate {
   deliveryId: string;
   status: DeliveryStatus;
-  note?: string;
-  latitude?: number;
-  longitude?: number;
+  comment?: string;
+  location?: {
+    latitude: number;
+    longitude: number;
+  };
 }
 
 // Type pour la confirmation de livraison
@@ -99,4 +105,27 @@ export interface DeliveryDetail {
     rating: number;
     comment?: string;
   };
+}
+
+/**
+ * Type pour l'annonce de livraison
+ */
+export interface DeliveryAnnouncement {
+  id: string;
+  title: string;
+  description: string;
+  pickupAddress: string;
+  deliveryAddress: string;
+  pickupDate: Date;
+  deliveryDate: Date;
+  weight: number;
+  volume: number;
+  price: number;
+  requiresSignature: boolean;
+  specialInstructions?: string;
+  status: DeliveryStatus;
+  clientId: string;
+  delivererId?: string;
+  createdAt: Date;
+  updatedAt: Date;
 }

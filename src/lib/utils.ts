@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { format, formatDistance, Locale, addDays } from 'date-fns';
+import { format, formatDistance, Locale, addDays, formatRelative } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
 
 /**
@@ -42,21 +42,27 @@ export function formatDate(
 }
 
 /**
- * Retourne la distance relative entre une date et maintenant
- * @param date Date à comparer
+ * Formate une date relative (aujourd'hui, hier, il y a X jours...)
+ * @param date Date à formater
  * @param locale Locale à utiliser (par défaut: fr)
- * @returns Texte représentant la distance (ex: "il y a 3 jours")
+ * @returns Date relative formatée
  */
 export function formatRelativeDate(
   date: Date | string | null | undefined,
   locale: string = 'fr'
 ): string {
   if (!date) return 'N/A';
+  
   const dateObj = typeof date === 'string' ? new Date(date) : date;
-  return formatDistance(dateObj, new Date(), {
-    addSuffix: true,
-    locale: getDateLocale(locale),
-  });
+  
+  try {
+    return formatRelative(dateObj, new Date(), {
+      locale: getDateLocale(locale)
+    });
+  } catch (error) {
+    // Fallback au format standard
+    return format(dateObj, 'dd/MM/yyyy', { locale: getDateLocale(locale) });
+  }
 }
 
 /**
@@ -220,4 +226,29 @@ export function generateChartColors(count: number): string[] {
   }
 
   return colors;
+}
+
+/**
+ * Formate une distance en kilomètres avec deux décimales
+ * @param distance Distance à formater (en km)
+ * @returns Distance formatée (ex: "3.50")
+ */
+export function formatDistanceValue(distance: number): string {
+  if (distance === null || distance === undefined) return 'N/A';
+  return distance.toFixed(2);
+}
+
+/**
+ * Formate l'heure d'une date
+ * @param date Date à formater
+ * @param locale Locale à utiliser (par défaut: fr)
+ * @returns Heure formatée (ex: "14:30")
+ */
+export function formatTime(
+  date: Date | string | null | undefined,
+  locale: string = 'fr'
+): string {
+  if (!date) return 'N/A';
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  return format(dateObj, 'HH:mm', { locale: getDateLocale(locale) });
 }

@@ -25,6 +25,9 @@ import {
   TrendingDownIcon,
   UsersIcon,
   AlertTriangleIcon,
+  AlertCircle,
+  Download,
+  RefreshCw,
 } from 'lucide-react';
 import { UserAdvancedStatsData } from '@/types/admin';
 import { UserRole, UserStatus } from '@prisma/client';
@@ -47,6 +50,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { Button } from '@/components/ui/button';
 
 const COLORS = [
   '#0088FE',
@@ -74,22 +78,74 @@ const ROLE_COLORS = {
   PROVIDER: '#ec4899',
 };
 
-interface UserStatsAdvancedProps {
-  initialFilters?: Partial<UserStatsAdvancedSchemaType>;
+interface StatsAdvancedFiltersProps {
+  period: 'DAY' | 'WEEK' | 'MONTH' | 'YEAR';
+  compareWithPrevious: boolean;
+  breakdownByRole: boolean;
+  breakdownByStatus: boolean;
+  breakdownByCountry: boolean;
+  includeRetentionRate: boolean;
+  includeChurnRate: boolean;
+  includeGrowthRate: boolean;
 }
 
+interface UserStatsAdvancedProps {
+  initialFilters: Partial<StatsAdvancedFiltersProps>;
+}
+
+// Palette de couleurs pour les graphiques
+const CHART_COLORS = [
+  '#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'
+];
+
+// Données fictives pour les graphiques de démonstration
+const demoRegistrationsData = [
+  { month: 'Jan', count: 65 },
+  { month: 'Fév', count: 78 },
+  { month: 'Mar', count: 90 },
+  { month: 'Avr', count: 81 },
+  { month: 'Mai', count: 56 },
+  { month: 'Juin', count: 55 },
+  { month: 'Juil', count: 40 },
+];
+
+const demoRoleData = [
+  { name: 'Clients', value: 400 },
+  { name: 'Livreurs', value: 300 },
+  { name: 'Commerçants', value: 180 },
+  { name: 'Prestataires', value: 150 },
+  { name: 'Admins', value: 20 },
+];
+
+const demoStatusData = [
+  { name: 'Actifs', value: 650 },
+  { name: 'Inactifs', value: 150 },
+  { name: 'En attente', value: 100 },
+  { name: 'Suspendus', value: 50 },
+];
+
+const demoRetentionData = [
+  { month: 'Jan', rate: 85 },
+  { month: 'Fév', rate: 82 },
+  { month: 'Mar', rate: 78 },
+  { month: 'Avr', rate: 80 },
+  { month: 'Mai', rate: 75 },
+  { month: 'Juin', rate: 80 },
+  { month: 'Juil', rate: 83 },
+];
+
 export default function UserStatsAdvanced({ initialFilters }: UserStatsAdvancedProps) {
-  const t = useTranslations('admin.users.stats');
-  const [filters, setFilters] = useState<UserStatsAdvancedSchemaType>({
-    period: initialFilters?.period || 'MONTH',
-    compareWithPrevious: initialFilters?.compareWithPrevious ?? true,
-    breakdownByRole: initialFilters?.breakdownByRole ?? true,
-    breakdownByStatus: initialFilters?.breakdownByStatus ?? true,
-    breakdownByCountry: initialFilters?.breakdownByCountry ?? false,
-    includeRetentionRate: initialFilters?.includeRetentionRate ?? true,
-    includeChurnRate: initialFilters?.includeChurnRate ?? true,
-    includeGrowthRate: initialFilters?.includeGrowthRate ?? true,
-    includeConversionRates: initialFilters?.includeConversionRates ?? false,
+  const t = useTranslations('Admin.verification.users.stats');
+  const [filters, setFilters] = useState<StatsAdvancedFiltersProps>({
+    period: 'MONTH',
+    compareWithPrevious: true,
+    breakdownByRole: true,
+    breakdownByStatus: true,
+    breakdownByCountry: false,
+    includeRetentionRate: true,
+    includeChurnRate: false,
+    includeGrowthRate: true,
+    ...initialFilters,
   });
 
   const statsQuery = api.adminUser.getUserStatsAdvanced.useQuery(filters, {
@@ -113,11 +169,11 @@ export default function UserStatsAdvanced({ initialFilters }: UserStatsAdvancedP
   const handlePeriodChange = (value: string) => {
     setFilters(prev => ({
       ...prev,
-      period: value as UserStatsAdvancedSchemaType['period'],
+      period: value as StatsAdvancedFiltersProps['period'],
     }));
   };
 
-  const handleToggleChange = (key: keyof UserStatsAdvancedSchemaType) => {
+  const handleToggleChange = (key: keyof StatsAdvancedFiltersProps) => {
     setFilters(prev => ({
       ...prev,
       [key]: !prev[key],
@@ -185,487 +241,222 @@ export default function UserStatsAdvanced({ initialFilters }: UserStatsAdvancedP
 
   return (
     <div className="space-y-6">
-      {/* Contrôles de filtres */}
-      <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:justify-between sm:space-y-0">
-        <div className="flex items-center space-x-4">
-          <Select value={filters.period} onValueChange={handlePeriodChange}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder={t('selectPeriod')} />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="DAY">{t('periods.day')}</SelectItem>
-              <SelectItem value="WEEK">{t('periods.week')}</SelectItem>
-              <SelectItem value="MONTH">{t('periods.month')}</SelectItem>
-              <SelectItem value="QUARTER">{t('periods.quarter')}</SelectItem>
-              <SelectItem value="YEAR">{t('periods.year')}</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="compare-previous"
-              checked={filters.compareWithPrevious}
-              onCheckedChange={() => handleToggleChange('compareWithPrevious')}
-            />
-            <Label htmlFor="compare-previous">{t('comparePrevious')}</Label>
+      <Card>
+        <CardHeader className="space-y-1">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-2xl font-bold">Statistiques avancées</CardTitle>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm">
+                <Download className="mr-2 h-4 w-4" />
+                Exporter
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => statsQuery.refetch()}>
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Actualiser
+              </Button>
+            </div>
           </div>
-        </div>
-
-        <div className="flex flex-wrap gap-4">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="breakdown-role"
-              checked={filters.breakdownByRole}
-              onCheckedChange={() => handleToggleChange('breakdownByRole')}
-            />
-            <Label htmlFor="breakdown-role">{t('byRole')}</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="breakdown-status"
-              checked={filters.breakdownByStatus}
-              onCheckedChange={() => handleToggleChange('breakdownByStatus')}
-            />
-            <Label htmlFor="breakdown-status">{t('byStatus')}</Label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="breakdown-country"
-              checked={filters.breakdownByCountry}
-              onCheckedChange={() => handleToggleChange('breakdownByCountry')}
-            />
-            <Label htmlFor="breakdown-country">{t('byCountry')}</Label>
-          </div>
-        </div>
-      </div>
-
-      {/* Cartes de métriques principales */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {topMetricsData.map((metric, index) => (
-          <Card key={index}>
-            <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">{metric.title}</CardTitle>
-              {metric.icon}
-            </CardHeader>
-            <CardContent>
-              <div className="flex items-center">
-                <div className="text-2xl font-bold">{metric.value}</div>
-                {renderPercentageChange(metric.change)}
+          <CardDescription>
+            Analyse détaillée des données utilisateurs et métriques d'engagement
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {/* Filtres */}
+          <div className="mb-6 grid gap-4 md:grid-cols-3">
+            <div className="space-y-2">
+              <Label htmlFor="period">Période</Label>
+              <Select
+                value={filters.period}
+                onValueChange={(value) => 
+                  handleToggleChange('period')
+                }
+              >
+                <SelectTrigger id="period">
+                  <SelectValue placeholder="Sélectionner une période" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="DAY">Jour</SelectItem>
+                  <SelectItem value="WEEK">Semaine</SelectItem>
+                  <SelectItem value="MONTH">Mois</SelectItem>
+                  <SelectItem value="YEAR">Année</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-end space-x-4">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="compare"
+                  checked={filters.compareWithPrevious}
+                  onCheckedChange={(checked) =>
+                    handleToggleChange('compareWithPrevious')
+                  }
+                />
+                <Label htmlFor="compare">Comparer avec période précédente</Label>
               </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Onglets pour les différents graphiques */}
-      <Tabs defaultValue="trends" className="w-full">
-        <TabsList className="w-full sm:w-auto">
-          <TabsTrigger value="trends">{t('tabs.trends')}</TabsTrigger>
-          <TabsTrigger value="distribution">{t('tabs.distribution')}</TabsTrigger>
-          <TabsTrigger value="retention">{t('tabs.retention')}</TabsTrigger>
-          <TabsTrigger value="activity">{t('tabs.activity')}</TabsTrigger>
-        </TabsList>
-
-        {/* Tendances */}
-        <TabsContent value="trends" className="space-y-4">
-          {/* Graphique d'évolution utilisateurs */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('registrationTrends')}</CardTitle>
-              <CardDescription>{t('registrationTrendsDesc')}</CardDescription>
-            </CardHeader>
-            <CardContent className="h-80">
-              <ResponsiveContainer width="100%" height="100%">
-                <AreaChart
-                  data={stats.registrationsOverTime || []}
-                  margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="date" />
-                  <YAxis />
-                  <Tooltip />
-                  <Legend />
-                  <Area
-                    type="monotone"
-                    dataKey="count"
-                    stroke="#3b82f6"
-                    fill="#3b82f6"
-                    fillOpacity={0.3}
-                    name={t('newUsers')}
-                  />
-                </AreaChart>
-              </ResponsiveContainer>
-            </CardContent>
-          </Card>
-
-          {/* Utilisateurs actifs */}
-          {stats.activeUsersOverTime && (
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('activeUsersTrends')}</CardTitle>
-                <CardDescription>{t('activeUsersTrendsDesc')}</CardDescription>
-              </CardHeader>
-              <CardContent className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
+            </div>
+            <div className="flex items-end space-x-4">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="breakdownByRole"
+                  checked={filters.breakdownByRole}
+                  onCheckedChange={(checked) =>
+                    handleToggleChange('breakdownByRole')
+                  }
+                />
+                <Label htmlFor="breakdownByRole">Répartition par rôle</Label>
+              </div>
+            </div>
+          </div>
+          
+          {statsQuery.isLoading ? (
+            <div className="flex h-[400px] items-center justify-center">
+              <p className="text-muted-foreground">Chargement des statistiques...</p>
+            </div>
+          ) : statsQuery.isError ? (
+            <Alert variant="destructive">
+              <AlertCircle className="h-4 w-4" />
+              <AlertTitle>Erreur</AlertTitle>
+              <AlertDescription>
+                Impossible de charger les statistiques. Veuillez réessayer ultérieurement.
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <div className="space-y-6">
+              {/* Graphique d'évolution des inscriptions */}
+              <div>
+                <h3 className="mb-4 text-lg font-medium">Évolution des inscriptions</h3>
+                <ResponsiveContainer width="100%" height={300}>
                   <LineChart
-                    data={stats.activeUsersOverTime}
-                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
+                    data={stats.registrationsOverTime || demoRegistrationsData}
+                    margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
+                    <XAxis 
+                      dataKey="date" 
+                      tickFormatter={(date) => {
+                        // Simplifie la date pour l'affichage (juste le mois)
+                        return new Date(date).toLocaleDateString('fr', { month: 'short' });
+                      }}
+                    />
                     <YAxis />
                     <Tooltip />
                     <Legend />
                     <Line
                       type="monotone"
                       dataKey="count"
-                      stroke="#10b981"
-                      strokeWidth={2}
-                      dot={{ r: 4 }}
-                      name={t('activeUsers')}
+                      name="Inscriptions"
+                      stroke="#8884d8"
+                      activeDot={{ r: 8 }}
                     />
+                    {filters.compareWithPrevious && (
+                      <Line
+                        type="monotone"
+                        dataKey="previousCount"
+                        name="Période précédente"
+                        stroke="#82ca9d"
+                        strokeDasharray="5 5"
+                      />
+                    )}
                   </LineChart>
                 </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          )}
+              </div>
 
-          {/* Tendances par rôle */}
-          {filters.breakdownByRole && stats.roleDistributionTrend && (
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('roleDistributionTrend')}</CardTitle>
-                <CardDescription>{t('roleDistributionTrendDesc')}</CardDescription>
-              </CardHeader>
-              <CardContent className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart
-                    data={stats.roleDistributionTrend}
-                    margin={{ top: 10, right: 30, left: 0, bottom: 0 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="date" />
-                    <YAxis />
-                    <Tooltip />
-                    <Legend />
-                    {Object.values(UserRole).map((role, index) => (
-                      <Area
-                        key={role}
-                        type="monotone"
-                        dataKey={`${role}`}
-                        stackId="1"
-                        stroke={ROLE_COLORS[role as UserRole] || COLORS[index % COLORS.length]}
-                        stroke={ROLE_COLORS[role] || COLORS[index % COLORS.length]}
-                        fill={ROLE_COLORS[role] || COLORS[index % COLORS.length]}
-                        name={t(`roles.${role.toLowerCase()}`)}
-                      />
-                    ))}
-                  </AreaChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-
-        {/* Distribution */}
-        <TabsContent value="distribution" className="space-y-4">
-          <div className="grid gap-4 md:grid-cols-2">
-            {/* Distribution par rôle */}
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('usersByRole')}</CardTitle>
-                <CardDescription>{t('usersByRoleDesc')}</CardDescription>
-              </CardHeader>
-              <CardContent className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={Object.entries(stats.usersByRole).map(([role, count]) => ({
-                        name: t(`roles.${role.toLowerCase()}`),
-                        value: count,
-                      }))}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={true}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                      nameKey="name"
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                    >
-                      {Object.entries(stats.usersByRole).map(([role, _], index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={ROLE_COLORS[role as UserRole] || COLORS[index % COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            {/* Distribution par statut */}
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('usersByStatus')}</CardTitle>
-                <CardDescription>{t('usersByStatusDesc')}</CardDescription>
-              </CardHeader>
-              <CardContent className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={Object.entries(stats.usersByStatus).map(([status, count]) => ({
-                        name: t(`statuses.${status.toLowerCase()}`),
-                        value: count,
-                      }))}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={true}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                      nameKey="name"
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                    >
-                      {Object.entries(stats.usersByStatus).map(([status, _], index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={
-                            STATUS_COLORS[status as UserStatus] || COLORS[index % COLORS.length]
-                          }
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            {/* Distribution par état de vérification */}
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('usersByVerification')}</CardTitle>
-                <CardDescription>{t('usersByVerificationDesc')}</CardDescription>
-              </CardHeader>
-              <CardContent className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={[
-                        { name: t('verified'), value: stats.usersByVerification.verified },
-                        { name: t('unverified'), value: stats.usersByVerification.unverified },
-                      ]}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={true}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                      nameKey="name"
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
-                    >
-                      <Cell fill="#10b981" />
-                      <Cell fill="#f97316" />
-                    </Pie>
-                    <Tooltip />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-
-            {/* Distribution par pays (conditionnel) */}
-            {filters.breakdownByCountry && stats.topCountries && stats.topCountries.length > 0 && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t('usersByCountry')}</CardTitle>
-                  <CardDescription>{t('usersByCountryDesc')}</CardDescription>
-                </CardHeader>
-                <CardContent className="h-80">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart
-                      data={stats.topCountries.slice(0, 10)}
-                      margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" />
-                      <XAxis dataKey="country" />
-                      <YAxis />
-                      <Tooltip />
-                      <Bar dataKey="count" name={t('users')}>
-                        {stats.topCountries.slice(0, 10).map((_, index) => (
-                          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </TabsContent>
-
-        {/* Rétention */}
-        <TabsContent value="retention" className="space-y-4">
-          {/* Taux de rétention */}
-          {filters.includeRetentionRate && stats.retentionRateByPeriod && (
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('retentionRate')}</CardTitle>
-                <CardDescription>{t('retentionRateDesc')}</CardDescription>
-              </CardHeader>
-              <CardContent className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={stats.retentionRateByPeriod}
-                    margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="period" />
-                    <YAxis domain={[0, 100]} />
-                    <Tooltip formatter={value => [`${value}%`, t('retentionRate')]} />
-                    <Bar dataKey="rate" fill="#3b82f6" name={t('retentionRate')} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Taux d'abandon et de conversion */}
-          <div className="grid gap-4 md:grid-cols-2">
-            {stats.abandonmentRate !== undefined && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t('abandonmentRate')}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col space-y-2">
-                    <span className="text-3xl font-bold">{stats.abandonmentRate.toFixed(1)}%</span>
-                    <Progress value={stats.abandonmentRate} className="h-2 w-full" />
-                    <p className="text-sm text-gray-500">{t('abandonmentRateDesc')}</p>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {filters.includeConversionRates && stats.conversionRates && (
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t('conversionRates')}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {Object.entries(stats.conversionRates).map(([key, rate]) => (
-                      <div key={key} className="space-y-1">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium">{t(`conversions.${key}`)}</span>
-                          <span className="text-sm font-semibold">{rate.toFixed(1)}%</span>
-                        </div>
-                        <Progress value={rate} className="h-2 w-full" />
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-
-          {/* Moyennes diverses */}
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('averageMetrics')}</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {stats.averageTimeToVerification !== undefined && (
-                  <div className="flex flex-col space-y-1">
-                    <span className="text-sm text-gray-500">{t('avgTimeVerification')}</span>
-                    <span className="text-2xl font-bold">
-                      {stats.averageTimeToVerification.toFixed(1)}
-                    </span>
-                    <span className="text-xs text-gray-400">{t('hours')}</span>
+              {/* Graphiques de répartition */}
+              <div className="grid gap-6 md:grid-cols-2">
+                {filters.breakdownByRole && (
+                  <div>
+                    <h3 className="mb-4 text-lg font-medium">Répartition par rôle</h3>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <Pie
+                          data={Object.entries(stats.usersByRole).map(([role, count]) => ({
+                            name: t(`roles.${role.toLowerCase()}`),
+                            value: count,
+                          }))}
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={80}
+                          fill="#8884d8"
+                          dataKey="value"
+                          nameKey="name"
+                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        >
+                          {Object.entries(stats.usersByRole).map(([role, _], index) => (
+                            <Cell 
+                              key={`cell-${index}`} 
+                              fill={ROLE_COLORS[role as UserRole] || COLORS[index % COLORS.length]} 
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
                   </div>
                 )}
-                {stats.averageSessionDuration !== undefined && (
-                  <div className="flex flex-col space-y-1">
-                    <span className="text-sm text-gray-500">{t('avgSessionDuration')}</span>
-                    <span className="text-2xl font-bold">
-                      {stats.averageSessionDuration.toFixed(1)}
-                    </span>
-                    <span className="text-xs text-gray-400">{t('minutes')}</span>
-                  </div>
-                )}
-                {stats.userRetentionRate !== undefined && (
-                  <div className="flex flex-col space-y-1">
-                    <span className="text-sm text-gray-500">{t('overallRetention')}</span>
-                    <span className="text-2xl font-bold">
-                      {stats.userRetentionRate.toFixed(1)}%
-                    </span>
+
+                {filters.breakdownByStatus && (
+                  <div>
+                    <h3 className="mb-4 text-lg font-medium">Répartition par statut</h3>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <PieChart>
+                        <Pie
+                          data={Object.entries(stats.usersByStatus).map(([status, count]) => ({
+                            name: t(`statuses.${status.toLowerCase()}`),
+                            value: count,
+                          }))}
+                          cx="50%"
+                          cy="50%"
+                          outerRadius={80}
+                          fill="#82ca9d"
+                          dataKey="value"
+                          nameKey="name"
+                          label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                        >
+                          {Object.entries(stats.usersByStatus).map(([status, _], index) => (
+                            <Cell 
+                              key={`cell-${index}`} 
+                              fill={
+                                STATUS_COLORS[status as UserStatus] || COLORS[index % COLORS.length]
+                              }
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip />
+                        <Legend />
+                      </PieChart>
+                    </ResponsiveContainer>
                   </div>
                 )}
               </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
-        {/* Activité */}
-        <TabsContent value="activity" className="space-y-4">
-          {/* Appareils */}
-          {stats.loginsByDevice && stats.loginsByDevice.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('loginsByDevice')}</CardTitle>
-                <CardDescription>{t('loginsByDeviceDesc')}</CardDescription>
-              </CardHeader>
-              <CardContent className="h-80">
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
-                    <Pie
-                      data={stats.loginsByDevice}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={true}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="count"
-                      nameKey="device"
-                      label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+              {/* Taux de rétention */}
+              {filters.includeRetentionRate && stats.retentionRateByPeriod && (
+                <div>
+                  <h3 className="mb-4 text-lg font-medium">Taux de rétention</h3>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <BarChart
+                      data={stats.retentionRateByPeriod}
+                      margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                     >
-                      {stats.loginsByDevice.map((_, index) => (
-                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value, name) => [value, name]} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Métriques personnalisées */}
-          {stats.customMetrics && Object.keys(stats.customMetrics).length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle>{t('customMetrics')}</CardTitle>
-                <CardDescription>{t('customMetricsDesc')}</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {Object.entries(stats.customMetrics).map(([key, value]) => (
-                    <div key={key} className="flex flex-col space-y-1">
-                      <span className="text-sm text-gray-500">{t(`customMetrics.${key}`)}</span>
-                      <span className="text-2xl font-bold">
-                        {typeof value === 'number' ? value.toFixed(1) : value}
-                      </span>
-                    </div>
-                  ))}
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="period" />
+                      <YAxis />
+                      <Tooltip />
+                      <Legend />
+                      <Bar 
+                        dataKey="rate" 
+                        name="Taux de rétention (%)" 
+                        fill="#0088FE" 
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
                 </div>
-              </CardContent>
-            </Card>
+              )}
+            </div>
           )}
-        </TabsContent>
-      </Tabs>
+        </CardContent>
+      </Card>
 
       {/* Note méthodologique */}
       <Card className="bg-secondary/50">

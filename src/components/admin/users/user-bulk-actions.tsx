@@ -42,6 +42,25 @@ import { Separator } from '@/components/ui/separator';
 import { CalendarIcon, Loader2Icon } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
+import {
+  Cog,
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  Trash2,
+  Download,
+  Lock,
+  Mail
+} from 'lucide-react';
 
 interface UserBulkActionsProps {
   selectedUserIds: string[];
@@ -54,7 +73,7 @@ export default function UserBulkActions({
   onActionComplete,
   disabled = false,
 }: UserBulkActionsProps) {
-  const t = useTranslations('admin.users.bulkActions');
+  const t = useTranslations('Admin.verification.users.bulkActions');
   const { toast } = useToast();
   const router = useRouter();
 
@@ -66,6 +85,8 @@ export default function UserBulkActions({
   const [scheduledDate, setScheduledDate] = useState<Date | undefined>(undefined);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [additionalData, setAdditionalData] = useState<Record<string, any>>({});
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+  const [currentAction, setCurrentAction] = useState<string | null>(null);
 
   // Mutation tRPC pour exécuter des actions en masse
   const bulkActionMutation = api.adminUser.bulkUserAction.useMutation({
@@ -667,6 +688,62 @@ export default function UserBulkActions({
   const isLoading = bulkActionMutation.isLoading;
   const noUsersSelected = selectedUserIds.length === 0;
 
+  // Fonction pour exécuter l'action
+  const executeAction = () => {
+    if (!currentAction || selectedUserIds.length === 0) return;
+
+    bulkActionMutation.mutate({
+      userIds: selectedUserIds,
+      action: currentAction,
+      notifyUsers: true,
+    });
+  };
+
+  // Fonction pour préparer l'action
+  const prepareAction = (action: string) => {
+    setCurrentAction(action);
+    setIsConfirmDialogOpen(true);
+  };
+
+  // Titre de confirmation dynamique en fonction de l'action
+  const getConfirmationTitle = () => {
+    if (!currentAction) return '';
+    
+    switch (currentAction) {
+      case 'ACTIVATE': return 'Activer les utilisateurs sélectionnés';
+      case 'DEACTIVATE': return 'Désactiver les utilisateurs sélectionnés';
+      case 'SUSPEND': return 'Suspendre les utilisateurs sélectionnés';
+      case 'DELETE': return 'Supprimer les utilisateurs sélectionnés';
+      case 'FORCE_PASSWORD_RESET': return 'Forcer la réinitialisation des mots de passe';
+      case 'SEND_VERIFICATION_EMAIL': return 'Envoyer des emails de vérification';
+      default: return 'Confirmer l\'action';
+    }
+  };
+
+  // Description de confirmation dynamique en fonction de l'action
+  const getConfirmationDescription = () => {
+    if (!currentAction) return '';
+    
+    const userCount = selectedUserIds.length;
+    
+    switch (currentAction) {
+      case 'ACTIVATE': 
+        return `Êtes-vous sûr de vouloir activer les ${userCount} utilisateurs sélectionnés ? Ils pourront se connecter à la plateforme.`;
+      case 'DEACTIVATE': 
+        return `Êtes-vous sûr de vouloir désactiver les ${userCount} utilisateurs sélectionnés ? Ils ne pourront plus se connecter à la plateforme.`;
+      case 'SUSPEND': 
+        return `Êtes-vous sûr de vouloir suspendre les ${userCount} utilisateurs sélectionnés ? Cela restreindra immédiatement leur accès à la plateforme.`;
+      case 'DELETE': 
+        return `Êtes-vous sûr de vouloir supprimer les ${userCount} utilisateurs sélectionnés ? Cette action est irréversible.`;
+      case 'FORCE_PASSWORD_RESET': 
+        return `Êtes-vous sûr de vouloir forcer la réinitialisation des mots de passe pour les ${userCount} utilisateurs sélectionnés ? Ils recevront un email avec un lien de réinitialisation.`;
+      case 'SEND_VERIFICATION_EMAIL': 
+        return `Êtes-vous sûr de vouloir envoyer des emails de vérification aux ${userCount} utilisateurs sélectionnés ?`;
+      default: 
+        return `Êtes-vous sûr de vouloir effectuer cette action sur les ${userCount} utilisateurs sélectionnés ?`;
+    }
+  };
+
   return (
     <>
       <DropdownMenu>
@@ -771,6 +848,27 @@ export default function UserBulkActions({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{getConfirmationTitle()}</DialogTitle>
+            <DialogDescription>{getConfirmationDescription()}</DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsConfirmDialogOpen(false)}>
+              Annuler
+            </Button>
+            <Button 
+              variant={currentAction === 'DELETE' ? 'destructive' : 'default'}
+              onClick={executeAction}
+              disabled={bulkActionMutation.isLoading}
+            >
+              {bulkActionMutation.isLoading ? 'Traitement en cours...' : 'Confirmer'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }
