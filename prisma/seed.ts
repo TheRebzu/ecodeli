@@ -167,15 +167,15 @@ async function createAdminUsers() {
         emailVerified: new Date(),
         phoneNumber: `+33123456${adminUsers.length}`,
         locale: 'fr',
-        twoFactorEnabled: adminUsers.length === 0, // Only first admin has 2FA
-        twoFactorSecret: adminUsers.length === 0 ? generateTwoFactorSecret() : null,
+        twoFactorEnabled: false, // Désactivé pour tous les admins
+        twoFactorSecret: null, // Pas de secret pour le 2FA
         hasCompletedOnboarding: true,
         admin: {
           create: {
             permissions: profile.permissions,
             department: profile.department,
-            twoFactorEnabled: adminUsers.length === 0,
-            twoFactorSecret: adminUsers.length === 0 ? generateTwoFactorSecret() : null,
+            twoFactorEnabled: false, // Désactivé pour tous les admins
+            twoFactorSecret: null, // Pas de secret pour le 2FA
           },
         },
       },

@@ -27,6 +27,8 @@ export function OnboardingController({
     hasCompletedOnboarding,
     isLoading,
     closeOnboarding,
+    skipOnboarding,
+    setIsActive,
   } = useOnboarding();
 
   const session = useSession();
@@ -103,7 +105,12 @@ export function OnboardingController({
       {isActive && (
         <div className="absolute top-3 right-3 z-50">
           <button
-            onClick={closeOnboarding}
+            onClick={() => {
+              // Fermer la fenêtre et marquer le tutoriel comme sauté
+              setIsActive(false);
+              // Puis mettre à jour la base de données
+              skipOnboarding(tutorialOptions);
+            }}
             className="p-1 rounded-full hover:bg-slate-100 transition-colors"
             aria-label="Fermer le tutoriel"
           >
