@@ -10,8 +10,9 @@ interface DelivererLayoutProps {
   };
 }
 
-export default function DelivererLayout({ children, params }: DelivererLayoutProps) {
-  const { locale } = params;
+export default async function DelivererLayout({ children, params }: DelivererLayoutProps) {
+  // Attendre params avant d'utiliser ses propriétés
+  const locale = await Promise.resolve(params.locale);
 
   return (
     <div className="min-h-screen flex flex-col">

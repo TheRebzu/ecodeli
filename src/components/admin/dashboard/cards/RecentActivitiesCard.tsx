@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { RecentActivity } from '@/types/admin/dashboard';
+import { RecentActivity } from '@/types/dashboard';
 import { ActivityIcon, UserPlusIcon, FileTextIcon, TruckIcon, CreditCardIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { UserRole } from '@prisma/client';

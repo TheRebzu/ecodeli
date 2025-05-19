@@ -1,0 +1,1978 @@
+// Ce fichier est généré automatiquement à partir des fichiers fragmentés dans /prisma/schemas/
+// Ne pas modifier directement - éditer les fichiers sources puis reconstruire avec pnpm db:schema:build
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Import schémas du domaine shared
+// Import schémas du domaine users
+// Import schémas du domaine deliveries
+// Import schémas du domaine services
+// Import schémas du domaine storage
+// Import schémas du domaine payments
+// Import schémas du domaine billing
+// Import schémas du domaine admin
+
+
+// ----- DOMAINE: SHARED -----
+
+// ===== TYPES PARTAGÉS =====
+// Ce fichier est réservé aux types communs qui seront utilisés par plusieurs domaines.
+// Par exemple des définitions de types Prisma personnalisés ou des composants JSON partagés.
+
+// Pour le moment, ce fichier reste vide car nous n'avons pas encore défini de types partagés.
+// Il servira de point d'extension pour ajouter des types communs à l'avenir.
+
+// Exemple de comment définir un type personnalisé (commenté pour l'instant):
+/*
+/// Type pour une coordonnée géographique
+type GeoCoordinates {
+  latitude  Float
+  longitude Float
+}
+*/ 
+// ===== ENUMS PARTAGÉS =====
+
+// ===== DOMAINE UTILISATEURS =====
+
+/// Type de rôle utilisateur dans le système
+enum UserRole {
+  CLIENT     // Utilisateur standard qui requiert des services
+  DELIVERER  // Livreur qui effectue les livraisons
+  MERCHANT   // Commerçant qui propose des produits
+  PROVIDER   // Prestataire qui offre des services
+  ADMIN      // Administrateur de la plateforme
+}
+
+/// Statut du compte utilisateur
+enum UserStatus {
+  PENDING_VERIFICATION // En attente de vérification
+  ACTIVE               // Compte actif
+  SUSPENDED            // Compte temporairement suspendu
+  INACTIVE             // Compte inactif
+}
+
+/// Type de document d'identification
+enum DocumentType {
+  ID_CARD                   // Carte d'identité
+  DRIVING_LICENSE           // Permis de conduire
+  VEHICLE_REGISTRATION      // Carte grise
+  INSURANCE                 // Assurance
+  QUALIFICATION_CERTIFICATE // Certificat de qualification
+  PROOF_OF_ADDRESS          // Justificatif de domicile
+  BUSINESS_REGISTRATION     // Extrait K-bis
+  OTHER                     // Autre type de document
+  SELFIE                    // Photo de vérification
+}
+
+/// Statut d'un document
+enum DocumentStatus {
+  PENDING   // En attente de vérification
+  APPROVED  // Document approuvé
+  REJECTED  // Document rejeté
+  EXPIRED   // Document expiré
+}
+
+/// Statut de vérification
+enum VerificationStatus {
+  PENDING   // En attente de vérification
+  APPROVED  // Vérification approuvée
+  REJECTED  // Vérification rejetée
+}
+
+/// Type de token d'authentification
+enum TokenType {
+  EMAIL_VERIFICATION // Vérification d'email
+  PASSWORD_RESET     // Réinitialisation de mot de passe
+  TWO_FACTOR_AUTH    // Authentification à deux facteurs
+}
+
+/// Type d'activité utilisateur pour le journal d'audit
+enum ActivityType {
+  LOGIN               // Connexion
+  LOGOUT              // Déconnexion
+  PROFILE_UPDATE      // Mise à jour du profil
+  PASSWORD_CHANGE     // Changement de mot de passe
+  STATUS_CHANGE       // Changement de statut
+  ROLE_CHANGE         // Changement de rôle
+  VERIFICATION_SUBMIT // Soumission de vérification
+  VERIFICATION_REVIEW // Révision de vérification
+  DOCUMENT_UPLOAD     // Téléversement de document
+  ACCOUNT_CREATION    // Création de compte
+  OTHER               // Autre activité
+}
+
+// ===== DOMAINE LIVRAISONS =====
+
+/// Statut d'une annonce de livraison
+enum AnnouncementStatus {
+  DRAFT        // Brouillon
+  PUBLISHED    // Publiée
+  IN_APPLICATION // En cours de candidature
+  ASSIGNED     // Assignée
+  IN_PROGRESS  // En cours
+  DELIVERED    // Livrée
+  COMPLETED    // Terminée
+  PAID         // Payée
+  PROBLEM      // Problème
+  DISPUTE      // Litige
+  CANCELLED    // Annulée
+}
+
+/// Type d'annonce
+enum AnnouncementType {
+  PACKAGE_DELIVERY   // Livraison de colis
+  GROCERY_SHOPPING   // Courses alimentaires
+  PERSON_TRANSPORT   // Transport de personnes
+  AIRPORT_TRANSFER   // Transfert aéroport
+  FOREIGN_PURCHASE   // Achat à l'étranger
+  PET_CARE           // Garde d'animaux
+  HOME_SERVICES      // Services à domicile
+}
+
+/// Priorité d'une annonce
+enum AnnouncementPriority {
+  LOW     // Basse
+  MEDIUM  // Moyenne
+  HIGH    // Haute
+  URGENT  // Urgente
+}
+
+/// Statut d'une livraison
+enum DeliveryStatus {
+  PENDING   // En attente
+  ACCEPTED  // Acceptée
+  PICKED_UP // Récupérée
+  IN_TRANSIT // En transit
+  DELIVERED // Livrée
+  CONFIRMED // Confirmée
+  CANCELLED // Annulée
+  DISPUTED  // Contestée
+}
+
+/// Statut détaillé d'une livraison (modèle plus complet)
+enum DeliveryStatusEnum {
+  CREATED          // Créée
+  ASSIGNED         // Assignée
+  PENDING_PICKUP   // En attente de récupération
+  PICKED_UP        // Récupérée
+  IN_TRANSIT       // En transit
+  NEARBY           // À proximité
+  ARRIVED          // Arrivée
+  ATTEMPT_DELIVERY // Tentative de livraison
+  DELIVERED        // Livrée
+  NOT_DELIVERED    // Non livrée
+  RESCHEDULED      // Reprogrammée
+  RETURNED         // Retournée
+  CANCELLED        // Annulée
+}
+
+/// Type de point de contrôle pour le suivi
+enum CheckpointType {
+  DEPARTURE        // Départ
+  PICKUP           // Récupération
+  WAYPOINT         // Point de passage
+  DELIVERY_ATTEMPT // Tentative de livraison
+  DELIVERY         // Livraison
+  RETURN_POINT     // Point de retour
+  WAREHOUSE        // Entrepôt
+  CUSTOMS          // Douanes
+  HANDOFF          // Transfert
+  OTHER            // Autre
+}
+
+/// Type de problème de livraison
+enum DeliveryIssueType {
+  ACCESS_PROBLEM    // Problème d'accès
+  ADDRESS_NOT_FOUND // Adresse non trouvée
+  CUSTOMER_ABSENT   // Client absent
+  DAMAGED_PACKAGE   // Colis endommagé
+  DELIVERY_REFUSED  // Livraison refusée
+  VEHICLE_BREAKDOWN // Panne de véhicule
+  TRAFFIC_JAM       // Embouteillage
+  WEATHER_CONDITION // Condition météorologique
+  SECURITY_ISSUE    // Problème de sécurité
+  OTHER             // Autre problème
+}
+
+/// Gravité d'un problème
+enum IssueSeverity {
+  LOW      // Basse
+  MEDIUM   // Moyenne
+  HIGH     // Haute
+  CRITICAL // Critique
+}
+
+/// Statut d'un problème
+enum IssueStatus {
+  OPEN        // Ouvert
+  IN_PROGRESS // En cours
+  RESOLVED    // Résolu
+  ESCALATED   // Escaladé
+  CLOSED      // Fermé
+}
+
+/// Type d'adresse
+enum AddressType {
+  PICKUP   // Récupération
+  DELIVERY // Livraison
+  WAYPOINT // Point de passage
+}
+
+/// Type de colis
+enum PackageType {
+  STANDARD     // Standard
+  FRAGILE      // Fragile
+  REFRIGERATED // Réfrigéré
+  OVERSIZED    // Surdimensionné
+  DOCUMENTS    // Documents
+  FOOD         // Nourriture
+  ELECTRONICS  // Électronique
+}
+
+/// Statut d'une candidature
+enum ApplicationStatus {
+  PENDING   // En attente
+  ACCEPTED  // Acceptée
+  REJECTED  // Rejetée
+  CANCELLED // Annulée
+}
+
+// ===== DOMAINE STOCKAGE =====
+
+/// Type de box de stockage
+enum BoxType {
+  STANDARD           // Standard
+  CLIMATE_CONTROLLED // Contrôle climatique
+  SECURE             // Sécurisé
+  EXTRA_LARGE        // Très large
+  REFRIGERATED       // Réfrigéré
+  FRAGILE            // Pour objets fragiles
+}
+
+/// Statut d'une box
+enum BoxStatus {
+  AVAILABLE   // Disponible
+  RESERVED    // Réservée
+  OCCUPIED    // Occupée
+  MAINTENANCE // En maintenance
+  DAMAGED     // Endommagée
+  INACTIVE    // Inactive
+}
+
+/// Type d'action sur une box
+enum BoxActionType {
+  RESERVATION_CREATED   // Réservation créée
+  RESERVATION_UPDATED   // Réservation mise à jour
+  RESERVATION_CANCELLED // Réservation annulée
+  BOX_ACCESSED          // Box accédée
+  BOX_CLOSED            // Box fermée
+  PAYMENT_PROCESSED     // Paiement traité
+  EXTENDED_RENTAL       // Location prolongée
+  INSPECTION_COMPLETED  // Inspection terminée
+}
+
+/// Statut d'une réservation
+enum ReservationStatus {
+  PENDING   // En attente
+  ACTIVE    // Active
+  COMPLETED // Terminée
+  CANCELLED // Annulée
+  OVERDUE   // En retard
+  EXTENDED  // Prolongée
+}
+
+// ===== DOMAINE SERVICES =====
+
+/// Statut d'une réservation de service
+enum BookingStatus {
+  PENDING     // En attente
+  CONFIRMED   // Confirmée
+  COMPLETED   // Terminée
+  CANCELLED   // Annulée
+  RESCHEDULED // Reprogrammée
+}
+
+/// Statut d'un contrat
+enum ContractStatus {
+  DRAFT             // Brouillon
+  PENDING_SIGNATURE // En attente de signature
+  ACTIVE            // Actif
+  TERMINATED        // Résilié
+  EXPIRED           // Expiré
+}
+
+/// Type de service
+enum ServiceType {
+  DELIVERY // Livraison
+  SERVICE  // Service
+  STORAGE  // Stockage
+  CUSTOM   // Personnalisé
+}
+
+// ===== DOMAINE FINANCIER =====
+
+/// Statut de paiement
+enum PaymentStatus {
+  PENDING     // En attente
+  PROCESSING  // En cours de traitement
+  COMPLETED   // Terminé
+  FAILED      // Échoué
+  REFUNDED    // Remboursé
+  CANCELLED   // Annulé
+}
+
+/// Type de transaction
+enum TransactionType {
+  DEPOSIT              // Dépôt
+  WITHDRAWAL           // Retrait
+  TRANSFER             // Transfert
+  EARNING              // Gain
+  REFUND               // Remboursement
+  PLATFORM_FEE         // Frais de plateforme
+  COMMISSION           // Commission
+  BONUS                // Bonus
+  ADJUSTMENT           // Ajustement
+  TAX                  // Taxe
+  SERVICE_FEE          // Frais de service
+  DELIVERY_PAYOUT      // Paiement de livraison
+  SERVICE_PAYOUT       // Paiement de service
+  SUBSCRIPTION_PAYMENT // Paiement d'abonnement
+  MONTHLY_FEE          // Frais mensuels
+}
+
+/// Statut d'une transaction
+enum TransactionStatus {
+  PENDING    // En attente
+  PROCESSING // En cours de traitement
+  COMPLETED  // Terminée
+  FAILED     // Échouée
+  CANCELLED  // Annulée
+  DISPUTED   // Contestée
+  REFUNDED   // Remboursée
+}
+
+/// Statut d'un retrait
+enum WithdrawalStatus {
+  PENDING    // En attente
+  PROCESSING // En cours de traitement
+  COMPLETED  // Terminé
+  FAILED     // Échoué
+  CANCELLED  // Annulé
+  REJECTED   // Rejeté
+  SCHEDULED  // Programmé
+}
+
+/// Statut d'un abonnement
+enum SubscriptionStatus {
+  ACTIVE    // Actif
+  CANCELLED // Annulé
+  PAST_DUE  // En retard
+  TRIALING  // En période d'essai
+  UNPAID    // Non payé
+}
+
+/// Type de plan d'abonnement
+enum PlanType {
+  FREE     // Gratuit
+  STARTER  // Débutant
+  PREMIUM  // Premium
+  CUSTOM   // Personnalisé
+}
+
+/// Statut d'une facture
+enum InvoiceStatus {
+  DRAFT    // Brouillon
+  ISSUED   // Émise
+  PAID     // Payée
+  OVERDUE  // En retard
+  CANCELLED // Annulée
+}
+
+/// Priorité d'une tâche financière
+enum FinancialTaskPriority {
+  LOW    // Basse
+  MEDIUM // Moyenne
+  HIGH   // Haute
+}
+
+/// Catégorie d'une tâche financière
+enum FinancialTaskCategory {
+  PAYMENT    // Paiement
+  INVOICE    // Facture
+  WITHDRAWAL // Retrait
+  OTHER      // Autre
+}
+
+/// Statut d'une commission
+enum CommissionStatus {
+  PENDING   // En attente
+  PROCESSED // Traitée
+  FAILED    // Échouée
+  INVOICED  // Facturée
+  ACTIVE    // Active
+}
+
+/// Intervalle de temps
+enum Interval {
+  DAY   // Jour
+  WEEK  // Semaine
+  MONTH // Mois
+  YEAR  // Année
+} 
+
+// ----- DOMAINE: USERS -----
+
+// ===== MODÈLES DE VÉRIFICATION =====
+// Ces modèles ont été déplacés dans le domaine admin
+// Voir admin/documents.prisma, admin/verifications.prisma et admin/audit.prisma 
+// ===== MODÈLE UTILISATEUR PRINCIPAL =====
+// Ce modèle est au cœur du système EcoDeli et représente tous les utilisateurs
+// indépendamment de leur rôle (client, livreur, commerçant, prestataire, admin).
+
+/// Utilisateur principal avec authentification et données de profil communes
+model User {
+  id                       String                        @id @default(cuid())
+  name                     String
+  email                    String                        @unique
+  emailVerified            DateTime?
+  password                 String
+  image                    String?
+  role                     UserRole
+  status                   UserStatus                    @default(PENDING_VERIFICATION)
+  createdAt                DateTime                      @default(now())
+  updatedAt                DateTime                      @updatedAt
+  phoneNumber              String?
+  lastLoginAt              DateTime?
+  twoFactorEnabled         Boolean                       @default(false)
+  twoFactorSecret          String?
+  locale                   String?
+  preferences              Json?
+  isVerified               Boolean                       @default(false)
+  lastPasswordChange       DateTime?
+  lockedUntil              DateTime?
+  loginAttempts            Int                           @default(0)
+  notes                    String?
+  hasCompletedOnboarding   Boolean                       @default(false)
+  lastOnboardingStep       Int                           @default(0)
+  onboardingCompletionDate DateTime?
+  isProvider               Boolean                       @default(false)
+  providerBio              String?
+  providerLocationLat      Float?
+  providerLocationLng      Float?
+  providerAddress          String?
+  providerZipCode          String?
+  providerCity             String?
+  providerVerified         Boolean                       @default(false)
+  
+  // Relation avec les livraisons
+  clientDeliveries         Delivery[]                    @relation("ClientDeliveries")
+  delivererDeliveries      Delivery[]                    @relation("DelivererDeliveries")
+  
+  // Relations communes
+  notifications            Notification[]
+  providerAvailability     ProviderAvailability[]
+  providedServices         Service[]
+  clientBookings           ServiceBooking[]              @relation("ClientBookings")
+  providerBookings         ServiceBooking[]              @relation("ProviderBookings")
+  
+  // Relations d'authentification
+  accounts                 Account[]
+  sessions                 Session[]
+  
+  // Relations avec les profils spécifiques
+  admin                    Admin?
+  client                   Client?
+  deliverer                Deliverer?
+  merchant                 Merchant?
+  provider                 Provider?
+  
+  // Relations avec les entités métier
+  clientAnnouncements      Announcement[]                @relation("ClientAnnouncements")
+  delivererAnnouncements   Announcement[]                @relation("DelivererAnnouncements")
+  performedAuditLogs       AuditLog[]                    @relation("AuditLogPerformer")
+  boxSubscriptions         BoxAvailabilitySubscription[]
+  boxUsageHistory          BoxUsageHistory[]
+  boxes                    Box[]
+  favorites                DelivererFavorite[]
+  deliveryApplications     DeliveryApplication[]
+  reviewedDocuments        Document[]                    @relation("DocumentReviewer")
+  documents                Document[]
+  financialTasks           FinancialTask[]
+  invoices                 Invoice[]
+  paymentMethods           PaymentMethod[]
+  payments                 Payment[]
+  reservations             Reservation[]
+  subscriptions            Subscription[]
+  activityLogs             UserActivityLog[]
+  
+  // Relations avec les évaluations
+  givenRatings             DeliveryRating[]              @relation("RatingGiver")
+  receivedRatings          DeliveryRating[]              @relation("RatingReceiver")
+  
+  // Relations avec les vérifications
+  verificationHistory      VerificationHistory[]
+  verifiedHistories        VerificationHistory[]         @relation("VerifierRelation")
+  submittedVerifications   Verification[]                @relation("SubmitterRelation")
+  verifications            Verification[]                @relation("VerifierRelation")
+  
+  // Relation avec le portefeuille
+  wallet                   Wallet?
+
+  @@map("users")
+} 
+// ===== MODÈLES DE PROFILS UTILISATEURS =====
+// Ces modèles définissent les profils spécifiques pour chaque type d'utilisateur,
+// avec leurs attributs et relations propres.
+
+/// Profil client: utilisateur qui demande des livraisons et stockage
+model Client {
+  id                String    @id @default(cuid())
+  userId            String    @unique
+  address           String?
+  phone             String?
+  preferences       Json?
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  city              String?
+  state             String?
+  postalCode        String?
+  country           String?
+  preferredLanguage String?
+  newsletterOptIn   Boolean   @default(false)
+  notificationPrefs Json?
+  avatarUrl         String?
+  
+  // Relations
+  deliveryAddresses Address[]
+  user              User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("clients")
+}
+
+/// Profil livreur: utilisateur qui effectue les livraisons
+model Deliverer {
+  id                  String    @id @default(cuid())
+  userId              String    @unique
+  address             String?
+  phone               String
+  vehicleType         String?
+  licensePlate        String?
+  isVerified          Boolean   @default(false)
+  availableHours      Json?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  verificationDate    DateTime?
+  maxCapacity         Float?
+  currentLocation     String?
+  isActive            Boolean   @default(false)
+  rating              Float?
+  serviceZones        Json?
+  bio                 String?
+  yearsOfExperience   Int?
+  preferredVehicle    String?
+  maxWeightCapacity   Float?
+  availableDays       String[]
+  bankInfo            Json?
+  taxIdentifier       String?
+  deliveryPreferences Json?
+  
+  // Relations
+  user                User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("deliverers")
+}
+
+/// Profil commerçant: utilisateur qui propose des produits
+model Merchant {
+  id               String     @id @default(cuid())
+  userId           String     @unique
+  companyName      String
+  address          String
+  phone            String
+  businessType     String?
+  vatNumber        String?
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  businessName     String?
+  businessAddress  String?
+  businessCity     String?
+  businessState    String?
+  businessPostal   String?
+  businessCountry  String?
+  taxId            String?
+  websiteUrl       String?
+  isVerified       Boolean    @default(false)
+  verificationDate DateTime?
+  logoUrl          String?
+  coverPhotoUrl    String?
+  openingHours     Json?
+  description      String?
+  socialLinks      Json?
+  paymentMethods   String[]
+  deliveryOptions  String[]
+  certifications   String[]
+  foundingYear     Int?
+  employeeCount    Int?
+  
+  // Relations
+  contracts        Contract[]
+  user             User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("merchants")
+}
+
+/// Profil prestataire: utilisateur qui offre des services
+model Provider {
+  id                 String    @id @default(cuid())
+  userId             String    @unique
+  companyName        String?
+  address            String
+  phone              String
+  services           String[]
+  isVerified         Boolean   @default(false)
+  rating             Float?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  serviceType        String?
+  description        String?
+  availability       String?
+  verificationDate   DateTime?
+  professionalBio    String?
+  serviceRadius      Int?
+  portfolioUrls      String[]
+  qualifications     String[]
+  yearsInBusiness    Int?
+  insuranceInfo      Json?
+  workSchedule       Json?
+  serviceFees        Json?
+  cancellationPolicy String?
+  languages          String[]
+  
+  // Relations
+  user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skills             Skill[]
+
+  @@map("providers")
+}
+
+/// Profil administrateur: utilisateur qui gère la plateforme
+model Admin {
+  id               String   @id @default(cuid())
+  userId           String   @unique
+  permissions      String[]
+  department       String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  twoFactorEnabled Boolean  @default(false)
+  twoFactorSecret  String?
+  
+  // Relations
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("admins")
+}
+
+/// Adresses de livraison associées à un client
+model Address {
+  id         String  @id @default(cuid())
+  label      String
+  street     String
+  city       String
+  state      String?
+  postalCode String
+  country    String
+  isDefault  Boolean @default(false)
+  clientId   String
+  
+  // Relations
+  client     Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  @@map("addresses")
+} 
+// ===== MODÈLES DE NOTIFICATIONS =====
+// Ce modèle a été déplacé dans le domaine admin
+// Voir admin/notifications.prisma 
+// ===== MODÈLES DE CONTRATS =====
+// Ce modèle a été déplacé dans le domaine admin
+// Voir admin/contracts.prisma 
+// ===== MODÈLES D'AUTHENTIFICATION =====
+// Ces modèles gèrent les connexions, sessions et tokens d'authentification
+// pour l'ensemble des utilisateurs EcoDeli.
+
+/// Comptes externes associés à un utilisateur (OAuth)
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  
+  // Relation avec l'utilisateur
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+/// Sessions actives des utilisateurs
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  
+  // Relation avec l'utilisateur
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+/// Tokens pour les opérations d'authentification (vérification email, reset mot de passe)
+model VerificationToken {
+  identifier String
+  token      String    @unique
+  expires    DateTime
+  type       TokenType @default(EMAIL_VERIFICATION)
+  used       Boolean   @default(false)
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+} 
+
+// ----- DOMAINE: DELIVERIES -----
+
+// ===== MODÈLES DE LIVRAISONS =====
+// Ce fichier contient les modèles pour les livraisons, leur suivi et évaluations.
+
+/// Livraison assignée à un livreur
+model Delivery {
+  id                 String          @id @default(cuid())
+  announcementId     String
+  delivererId        String
+  clientId           String
+  status             DeliveryStatus  @default(PENDING)
+  startTime          DateTime?
+  completionTime     DateTime?
+  actualPickupTime   DateTime?
+  actualDeliveryTime DateTime?
+  notes              String?
+  trackingCode       String          @unique
+  price              Float
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  
+  // Relations avec Announcement et User
+  announcement       Announcement    @relation(fields: [announcementId], references: [id])
+  deliverer          User            @relation("DelivererDeliveries", fields: [delivererId], references: [id])
+  client             User            @relation("ClientDeliveries", fields: [clientId], references: [id])
+  
+  // Relations avec d'autres modèles
+  logs               DeliveryLog[]
+  coordinates        DeliveryCoordinates[]
+  proofs             DeliveryProof[]
+  ratings            DeliveryRating[]
+  payments           Payment[]       @relation("PaymentToDelivery")
+
+  @@index([announcementId])
+  @@index([delivererId])
+  @@index([clientId])
+  @@index([status])
+  @@index([trackingCode])
+  @@map("deliveries")
+}
+
+/// Journaux d'événements pour une livraison
+model DeliveryLog {
+  id         String         @id @default(cuid())
+  deliveryId String
+  status     DeliveryStatusEnum
+  message    String
+  createdAt  DateTime       @default(now())
+  location   String?
+  
+  // Relation avec Delivery
+  delivery   Delivery       @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryId])
+  @@index([status])
+  @@map("delivery_logs")
+}
+
+/// Coordonnées GPS enregistrées pendant la livraison
+model DeliveryCoordinates {
+  id         String    @id @default(cuid())
+  deliveryId String
+  latitude   Float
+  longitude  Float
+  timestamp  DateTime  @default(now())
+  accuracy   Float?
+  speed      Float?
+  
+  // Relation avec Delivery
+  delivery   Delivery  @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryId])
+  @@map("delivery_coordinates")
+}
+
+/// Preuves de livraison (photos, signatures)
+model DeliveryProof {
+  id           String   @id @default(cuid())
+  deliveryId   String
+  type         String   // "signature", "photo", "document"
+  fileUrl      String
+  mimeType     String?
+  uploadedAt   DateTime @default(now())
+  notes        String?
+  
+  // Relation avec Delivery
+  delivery     Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryId])
+  @@index([type])
+  @@map("delivery_proofs")
+}
+
+/// Évaluations des livraisons
+model DeliveryRating {
+  id         String   @id @default(cuid())
+  deliveryId String
+  ratedById  String   // ID de l'utilisateur qui a donné l'évaluation
+  targetId   String   // ID de l'utilisateur qui est évalué
+  rating     Int      // 1-5
+  comment    String?  // Commentaire en texte libre, pas un type Int
+  createdAt  DateTime @default(now())
+  
+  // Relations avec Delivery et User
+  delivery   Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  ratedBy    User     @relation("RatingGiver", fields: [ratedById], references: [id])
+  target     User     @relation("RatingReceiver", fields: [targetId], references: [id])
+
+  @@index([deliveryId])
+  @@index([ratedById])
+  @@index([targetId])
+  @@map("delivery_ratings")
+} 
+// ===== MODÈLES D'APPLICATIONS DE LIVRAISON =====
+// Ces modèles gèrent les candidatures des livreurs aux annonces
+// et leurs préférences. Ces données sont extraites du fichier announcement.prisma
+// pour respecter la structure demandée.
+
+// NOTE: Voir announcement.prisma pour les modèles:
+// - DeliveryApplication: Candidatures des livreurs
+// - DelivererFavorite: Annonces favorites des livreurs 
+
+// ===== MODÈLES DE CANDIDATURE DE LIVRAISON =====
+// Ce fichier contient le modèle pour les candidatures des livreurs aux annonces.
+
+/// Candidature d'un livreur pour une annonce
+model DeliveryApplication {
+  id             String             @id @default(cuid())
+  delivererId    String
+  announcementId String
+  message        String?
+  status         ApplicationStatus  @default(PENDING)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  proposedPrice  Float?
+  
+  // Relations avec User et Announcement
+  deliverer      User               @relation(fields: [delivererId], references: [id], onDelete: Cascade)
+  announcement   Announcement       @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+
+  @@index([delivererId])
+  @@index([announcementId])
+  @@index([status])
+  @@map("delivery_applications")
+} 
+// ===== MODÈLES D'ANNONCES DE LIVRAISON =====
+// Ce fichier contient les modèles pour les annonces de livraison publiées sur la plateforme.
+
+/// Annonce de livraison publiée par un client
+model Announcement {
+  id                String              @id @default(cuid())
+  title             String
+  description       String
+  status            AnnouncementStatus  @default(DRAFT)
+  type              AnnouncementType
+  priority          AnnouncementPriority @default(MEDIUM)
+  
+  // Informations géographiques
+  pickupAddress     String
+  pickupCity        String
+  pickupPostalCode  String
+  pickupCountry     String
+  pickupLatitude    Float?
+  pickupLongitude   Float?
+  
+  deliveryAddress   String
+  deliveryCity      String
+  deliveryPostalCode String
+  deliveryCountry   String
+  deliveryLatitude  Float?
+  deliveryLongitude Float?
+  
+  // Planification
+  pickupDate        DateTime?
+  deliveryDate      DateTime?
+  flexibleDate      Boolean             @default(false)
+  
+  // Tarification
+  suggestedPrice    Float?
+  priceType         String?             // "fixed", "negotiable", "hourly"
+  currency          String              @default("EUR")
+  
+  // Relations
+  clientId          String
+  delivererId       String?
+  
+  // Relations avec User
+  client            User                @relation("ClientAnnouncements", fields: [clientId], references: [id])
+  deliverer         User?               @relation("DelivererAnnouncements", fields: [delivererId], references: [id])
+  
+  // Relations avec d'autres modèles
+  applications      DeliveryApplication[]
+  favorites         DelivererFavorite[]
+  deliveries        Delivery[]
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+
+  @@index([clientId])
+  @@index([delivererId])
+  @@index([status])
+  @@index([type])
+  @@index([pickupCity])
+  @@index([deliveryCity])
+  @@map("announcements")
+}
+
+/// Favoris des livreurs pour des annonces spécifiques
+model DelivererFavorite {
+  id              String       @id @default(cuid())
+  delivererId     String
+  announcementId  String
+  createdAt       DateTime     @default(now())
+  
+  // Relations avec User et Announcement
+  deliverer       User         @relation(fields: [delivererId], references: [id], onDelete: Cascade)
+  announcement    Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+
+  @@unique([delivererId, announcementId])
+  @@index([delivererId])
+  @@index([announcementId])
+  @@map("deliverer_favorites")
+} 
+// ===== MODÈLES D'ADRESSES =====
+// Ce modèle a été déplacé dans le domaine users
+// Voir users/profile.prisma 
+
+// ----- DOMAINE: SERVICES -----
+
+// ===== MODÈLES DE COMPÉTENCES DES PRESTATAIRES =====
+// Ce fichier contient le modèle pour les compétences des prestataires de services.
+
+/// Compétence d'un prestataire
+model Skill {
+  id          String   @id @default(cuid())
+  providerId  String
+  name        String
+  description String?
+  isVerified  Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relations avec le profil prestataire
+  provider    Provider @relation(fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@index([providerId])
+  @@map("skills")
+} 
+// ===== MODÈLES DE SERVICES =====
+// Ce fichier contient les modèles pour les services proposés par les prestataires.
+
+/// Service proposé par un prestataire
+model Service {
+  id          String           @id @default(cuid())
+  name        String
+  description String
+  price       Decimal
+  duration    Int
+  categoryId  String
+  providerId  String
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  
+  // Relations avec CategoryService, User et ServiceBooking
+  category    ServiceCategory  @relation(fields: [categoryId], references: [id])
+  provider    User             @relation(fields: [providerId], references: [id])
+  bookings    ServiceBooking[]
+  payments    Payment[]
+
+  @@index([providerId])
+  @@index([categoryId])
+}
+
+/// Catégorie de service
+model ServiceCategory {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relation avec Service
+  services    Service[]
+} 
+// ===== MODÈLES DE RÉSERVATION DE SERVICES =====
+// Ce fichier contient les modèles pour les réservations de services et évaluations.
+
+/// Réservation d'un service
+model ServiceBooking {
+  id         String         @id @default(cuid())
+  clientId   String
+  providerId String
+  serviceId  String
+  startTime  DateTime
+  endTime    DateTime
+  status     BookingStatus  @default(PENDING)
+  totalPrice Decimal
+  paymentId  String?
+  notes      String?
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  
+  // Relations avec User, Service et Payment
+  client     User           @relation("ClientBookings", fields: [clientId], references: [id])
+  provider   User           @relation("ProviderBookings", fields: [providerId], references: [id])
+  service    Service        @relation(fields: [serviceId], references: [id])
+  payment    Payment?       @relation(fields: [paymentId], references: [id])
+  review     ServiceReview?
+
+  @@index([clientId])
+  @@index([providerId])
+  @@index([serviceId])
+  @@index([paymentId])
+}
+
+/// Évaluation d'un service après réservation
+model ServiceReview {
+  id        String         @id @default(cuid())
+  bookingId String         @unique
+  rating    Int
+  comment   String?
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  
+  // Relation avec la réservation
+  booking   ServiceBooking @relation(fields: [bookingId], references: [id])
+} 
+// ===== MODÈLES DE DISPONIBILITÉ DES PRESTATAIRES =====
+// Ce fichier contient le modèle pour gérer les disponibilités des prestataires de services.
+
+/// Disponibilité d'un prestataire de service par jour et créneau horaire
+model ProviderAvailability {
+  id         String   @id @default(cuid())
+  providerId String
+  dayOfWeek  Int
+  startTime  DateTime
+  endTime    DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  // Relation avec User
+  provider   User     @relation(fields: [providerId], references: [id])
+
+  @@index([providerId])
+} 
+
+// ----- DOMAINE: STORAGE -----
+
+// ===== MODÈLES D'ENTREPÔT DE STOCKAGE =====
+// Ce fichier contient le modèle principal pour les entrepôts où sont stockées les boxes.
+
+/// Entrepôt physique où se trouvent les boxes de stockage
+model Warehouse {
+  id             String   @id @default(cuid())
+  name           String
+  location       String
+  address        String
+  capacity       Float
+  occupied       Float    @default(0)
+  description    String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  latitude       Float?
+  longitude      Float?
+  openingHours   Json?
+  contactPhone   String?
+  contactEmail   String?
+  imageUrl       String?
+  availableBoxes Int      @default(0)
+  reservedBoxes  Int      @default(0)
+  
+  // Relations
+  boxes          Box[]
+
+  @@map("warehouses")
+} 
+// ===== MODÈLES D'HISTORIQUE D'UTILISATION =====
+// Ce fichier contient le modèle pour le suivi des actions sur les boxes.
+
+/// Historique d'utilisation d'une box
+model BoxUsageHistory {
+  id            String        @id @default(cuid())
+  boxId         String
+  reservationId String?
+  clientId      String
+  actionType    BoxActionType
+  actionTime    DateTime      @default(now())
+  details       String?
+  ipAddress     String?
+  deviceInfo    String?
+  
+  // Relations
+  box           Box           @relation(fields: [boxId], references: [id], onDelete: Cascade)
+  client        User          @relation(fields: [clientId], references: [id])
+  reservation   Reservation?  @relation(fields: [reservationId], references: [id])
+
+  @@index([boxId])
+  @@index([reservationId])
+  @@index([clientId])
+  @@map("box_usage_history")
+} 
+// ===== MODÈLES D'ABONNEMENT AUX BOXES =====
+// Ce fichier contient le modèle pour les abonnements aux notifications de disponibilité.
+
+/// Abonnement pour être notifié quand une box devient disponible
+model BoxAvailabilitySubscription {
+  id                      String    @id @default(cuid())
+  boxId                   String
+  clientId                String
+  startDate               DateTime?
+  endDate                 DateTime?
+  minSize                 Float?
+  maxPrice                Float?
+  boxType                 BoxType?
+  warehouseId             String?
+  isActive                Boolean   @default(true)
+  notificationPreferences Json?
+  createdAt               DateTime  @default(now())
+  updatedAt               DateTime  @updatedAt
+  lastNotified            DateTime?
+  
+  // Relations
+  box                     Box       @relation(fields: [boxId], references: [id], onDelete: Cascade)
+  client                  User      @relation(fields: [clientId], references: [id])
+
+  @@index([boxId])
+  @@index([clientId])
+  @@map("box_availability_subscriptions")
+} 
+// ===== MODÈLES DE RÉSERVATION DE BOX =====
+// Ce fichier contient les modèles pour les réservations de boxes de stockage.
+
+/// Réservation d'une box par un client
+model Reservation {
+  id              String            @id @default(cuid())
+  boxId           String
+  clientId        String
+  startDate       DateTime
+  endDate         DateTime
+  status          ReservationStatus @default(ACTIVE)
+  totalPrice      Float
+  paymentStatus   PaymentStatus     @default(PENDING)
+  paymentId       String?
+  accessCode      String?
+  lastAccessed    DateTime?
+  notes           String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  cancelledAt     DateTime?
+  cancelReason    String?
+  extendedCount   Int               @default(0)
+  originalEndDate DateTime?
+  
+  // Relations
+  usageHistory    BoxUsageHistory[]
+  box             Box               @relation(fields: [boxId], references: [id], onDelete: Cascade)
+  client          User              @relation(fields: [clientId], references: [id])
+
+  @@index([boxId])
+  @@index([clientId])
+  @@index([status])
+  @@map("reservations")
+} 
+// ===== MODÈLES DE BOX DE STOCKAGE =====
+// Ce fichier contient le modèle pour les boxes de stockage disponibles dans les entrepôts.
+
+/// Box de stockage disponible dans un entrepôt
+model Box {
+  id                  String                        @id @default(cuid())
+  warehouseId         String
+  name                String
+  size                Float
+  boxType             BoxType                       @default(STANDARD)
+  isOccupied          Boolean                       @default(false)
+  clientId            String?
+  pricePerDay         Float
+  description         String?
+  locationDescription String?
+  floorLevel          Int                           @default(0)
+  maxWeight           Float?
+  dimensions          Json?
+  features            String[]
+  status              BoxStatus                     @default(AVAILABLE)
+  lastInspectedAt     DateTime?
+  createdAt           DateTime                      @default(now())
+  updatedAt           DateTime                      @updatedAt
+  
+  // Relations avec User, Warehouse et les réservations
+  client              User?                         @relation(fields: [clientId], references: [id])
+  warehouse           Warehouse                     @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+  reservations        Reservation[]
+  subscriptions       BoxAvailabilitySubscription[]
+  usageHistory        BoxUsageHistory[]
+
+  @@index([warehouseId])
+  @@index([clientId])
+  @@index([status])
+  @@map("boxes")
+} 
+
+// ----- DOMAINE: PAYMENTS -----
+
+// ===== MODÈLES DE RETRAIT ET TRANSFERT BANCAIRE =====
+// Ce fichier contient les modèles pour les demandes de retrait et transferts bancaires.
+
+/// Demande de retrait d'argent
+model WithdrawalRequest {
+  id                  String           @id @default(cuid())
+  walletId            String
+  amount              Decimal
+  currency            String
+  status              WithdrawalStatus @default(PENDING)
+  requestedAt         DateTime         @default(now())
+  processedAt         DateTime?
+  rejectionReason     String?
+  preferredMethod     String?
+  reference           String?
+  accountVerified     Boolean          @default(true)
+  estimatedArrival    DateTime?
+  estimatedFee        Decimal?
+  expedited           Boolean          @default(false)
+  lastNotificationAt  DateTime?
+  priority            Int              @default(0)
+  processorComments   String?
+  processorId         String?
+  reviewRequired      Boolean          @default(false)
+  supportingDocuments String[]
+  taxWithheld         Decimal?
+  
+  // Relations
+  bankTransfer        BankTransfer?
+  wallet              Wallet           @relation(fields: [walletId], references: [id])
+
+  @@index([walletId])
+  @@index([status])
+  @@index([requestedAt])
+  @@map("withdrawal_requests")
+}
+
+/// Transfert bancaire suite à une demande de retrait
+model BankTransfer {
+  id                    String             @id @default(cuid())
+  amount                Decimal
+  currency              String
+  withdrawalRequestId   String?            @unique
+  recipientName         String
+  bankName              String?
+  reference             String?
+  initiatedAt           DateTime
+  completedAt           DateTime?
+  failedAt              DateTime?
+  failureReason         String?
+  notes                 String?
+  metadata              Json?
+  createdBy             String?
+  endorsedBy            String?
+  estimatedArrivalDate  DateTime?
+  externalReference     String?
+  isRecipientVerified   Boolean            @default(false)
+  isSenderVerified      Boolean            @default(true)
+  platformTransactionId String?
+  recipientBic          String?
+  recipientIban         String
+  senderIban            String?
+  senderName            String?
+  transferFee           Decimal?
+  transferMethod        String             @default("SEPA")
+  transferProofUrl      String?
+  transferReference     String?
+  status                TransactionStatus
+  
+  // Relations
+  withdrawalRequest     WithdrawalRequest? @relation(fields: [withdrawalRequestId], references: [id])
+
+  @@map("bank_transfers")
+} 
+// ===== MODÈLES DE PORTEFEUILLE ÉLECTRONIQUE =====
+// Ce fichier contient les modèles pour les portefeuilles des livreurs et prestataires
+// et les transactions associées.
+
+/// Portefeuille électronique d'un utilisateur
+model Wallet {
+  id                      String              @id @default(cuid())
+  userId                  String              @unique
+  balance                 Decimal             @default(0)
+  currency                String              @default("EUR")
+  isActive                Boolean             @default(true)
+  createdAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+  lastTransactionAt       DateTime?
+  accountVerified         Boolean             @default(false)
+  accountType             String?
+  minimumWithdrawalAmount Decimal             @default(10)
+  automaticWithdrawal     Boolean             @default(false)
+  withdrawalThreshold     Decimal?
+  withdrawalDay           Int?
+  totalEarned             Decimal?
+  totalWithdrawn          Decimal?
+  earningsLastMonth       Decimal?
+  earningsThisMonth       Decimal?
+  encryptedBankInfo       String?
+  fiscalCategory          String?
+  lastWithdrawalAt        DateTime?
+  notificationThreshold   Decimal?
+  notificationsEnabled    Boolean             @default(true)
+  stripeConnectAccountId  String?
+  stripeCustomerId        String?
+  taxIdentifier           String?
+  taxReportingEnabled     Boolean             @default(false)
+  
+  // Relations
+  transactions            WalletTransaction[]
+  user                    User                @relation(fields: [userId], references: [id])
+  withdrawalRequests      WithdrawalRequest[]
+
+  @@map("wallets")
+}
+
+/// Transaction dans un portefeuille
+model WalletTransaction {
+  id                String            @id @default(cuid())
+  walletId          String
+  amount            Decimal
+  currency          String
+  type              TransactionType
+  status            TransactionStatus @default(PENDING)
+  description       String?
+  reference         String?
+  stripeTransferId  String?
+  metadata          Json?
+  createdAt         DateTime          @default(now())
+  balanceAfter      Decimal?
+  commissionRate    Decimal?
+  completedAt       DateTime?
+  deliveryId        String?
+  failedAt          DateTime?
+  failureReason     String?
+  isSystemGenerated Boolean           @default(false)
+  paymentId         String?
+  previousBalance   Decimal?
+  reportingCategory String?
+  serviceId         String?
+  sourceTransaction String?
+  taxAmount         Decimal?
+  taxRate           Decimal?
+  updatedAt         DateTime          @updatedAt
+  withdrawalId      String?
+  
+  // Relations
+  wallet            Wallet            @relation(fields: [walletId], references: [id])
+
+  @@index([walletId])
+  @@index([type])
+  @@index([status])
+  @@index([createdAt])
+  @@map("wallet_transactions")
+} 
+// ===== MODÈLES D'ABONNEMENT ET MOYENS DE PAIEMENT =====
+// Ce fichier contient les modèles pour les abonnements et méthodes de paiement.
+
+/// Abonnement à un plan de la plateforme
+model Subscription {
+  id                     String             @id @default(cuid())
+  userId                 String
+  status                 SubscriptionStatus
+  planType               PlanType
+  stripeSubscriptionId   String?
+  startDate              DateTime
+  endDate                DateTime?
+  autoRenew              Boolean            @default(true)
+  cancelAtPeriodEnd      Boolean            @default(false)
+  cancelledAt            DateTime?
+  currentPeriodStart     DateTime?
+  currentPeriodEnd       DateTime?
+  discountPercent        Decimal?
+  previousPlanType       PlanType?
+  billingCycleAnchor     Int?
+  couponApplied          String?
+  createdAt              DateTime           @default(now())
+  currency               String             @default("EUR")
+  customPlanFeatures     Json?
+  discountAmount         Decimal?
+  discountDuration       String?
+  discountDurationMonths Int?
+  downgradedAt           DateTime?
+  gracePeriodEnd         DateTime?
+  lastPaymentFailure     DateTime?
+  metadata               Json?
+  nextInvoiceDate        DateTime?
+  pausedAt               DateTime?
+  paymentFailureCount    Int                @default(0)
+  price                  Decimal?
+  resumeAt               DateTime?
+  trialEnd               DateTime?
+  trialStart             DateTime?
+  updatedAt              DateTime           @updatedAt
+  upgradedAt             DateTime?
+  
+  // Relations
+  payments               Payment[]
+  user                   User               @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@map("subscriptions")
+}
+
+/// Moyen de paiement enregistré par un utilisateur
+model PaymentMethod {
+  id               String    @id @default(cuid())
+  userId           String
+  type             String
+  isDefault        Boolean   @default(false)
+  brand            String?
+  last4            String?
+  expiryMonth      Int?
+  expiryYear       Int?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  billingAddress   String?
+  billingCity      String?
+  billingCountry   String?
+  billingEmail     String?
+  billingName      String?
+  billingPostal    String?
+  billingState     String?
+  deletedAt        DateTime?
+  fingerprint      String?
+  isDeleted        Boolean   @default(false)
+  mandateCreatedAt DateTime?
+  mandateId        String?
+  mandateStatus    String?
+  provider         String    @default("STRIPE")
+  token            String
+  
+  // Relations
+  user             User      @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([isDefault])
+  @@map("payment_methods")
+} 
+// ===== MODÈLES DE PAIEMENT =====
+// Ce fichier contient le modèle pour les paiements effectués sur la plateforme.
+
+/// Paiement réalisé sur la plateforme
+model Payment {
+  id                 String           @id @default(cuid())
+  amount             Decimal
+  currency           String
+  status             PaymentStatus
+  description        String?
+  userId             String
+  isEscrow           Boolean          @default(false)
+  escrowReleaseCode  String?
+  escrowReleaseDate  DateTime?
+  escrowReleasedAt   DateTime?
+  stripePaymentId    String?
+  paymentIntentId    String?
+  deliveryId         String?          @unique
+  serviceId          String?
+  subscriptionId     String?
+  invoiceId          String?
+  commissionAmount   Decimal?
+  commissionId       String?
+  refundId           String?
+  refundedAmount     Decimal?
+  refundedAt         DateTime?
+  disputeId          String?
+  disputeStatus      String?
+  metadata           Json?
+  capturedAt         DateTime?
+  paymentMethodType  String?
+  paymentMethodId    String?
+  receiptUrl         String?
+  errorMessage       String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  source             String?
+  notes              String?
+  paymentProvider    String           @default("STRIPE")
+  isRecurring        Boolean          @default(false)
+  recurringFrequency String?
+  processingFee      Decimal?
+  taxAmount          Decimal?
+  taxRate            Decimal?
+  paymentReference   String?
+  ipAddress          String?
+  
+  // Relations
+  bookings           ServiceBooking[]
+  commission         Commission?      @relation(fields: [commissionId], references: [id])
+  delivery           Delivery?        @relation("PaymentToDelivery", fields: [deliveryId], references: [id])
+  invoice            Invoice?         @relation(fields: [invoiceId], references: [id])
+  service            Service?         @relation(fields: [serviceId], references: [id])
+  subscription       Subscription?    @relation(fields: [subscriptionId], references: [id])
+  user               User             @relation(fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([deliveryId])
+  @@index([serviceId])
+  @@index([subscriptionId])
+  @@index([invoiceId])
+  @@index([commissionId])
+  @@map("payments")
+} 
+
+// ----- DOMAINE: BILLING -----
+
+// ===== MODÈLES DE RAPPORTS FINANCIERS =====
+// Ce fichier contient les modèles pour les rapports financiers et tâches associées.
+
+/// Rapport financier généré par la plateforme
+model FinancialReport {
+  id               String   @id @default(cuid())
+  data             Json?
+  totalRevenue     Decimal?
+  totalCommissions Decimal?
+  status           String   @default("DRAFT")
+  generatedAt      DateTime @default(now())
+  fileUrl          String?
+  generatedBy      String?
+  netRevenue       Decimal?
+  notes            String?
+  periodEnd        DateTime
+  periodStart      DateTime
+  reportType       String
+  totalFees        Decimal?
+
+  @@index([reportType])
+  @@index([periodStart, periodEnd])
+  @@map("financial_reports")
+}
+
+/// Tâche financière à effectuer
+model FinancialTask {
+  id          String                @id @default(cuid())
+  title       String
+  description String?
+  dueDate     DateTime?
+  completed   Boolean               @default(false)
+  completedAt DateTime?
+  priority    FinancialTaskPriority
+  category    FinancialTaskCategory
+  createdAt   DateTime              @default(now())
+  updatedAt   DateTime              @updatedAt
+  userId      String
+  
+  // Relations
+  user        User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([priority])
+  @@index([category])
+  @@index([completed])
+  @@map("financial_tasks")
+} 
+// ===== MODÈLES DE FACTURATION =====
+// Ce fichier contient les modèles pour les factures et leurs lignes.
+
+/// Facture émise par la plateforme
+model Invoice {
+  id                 String        @id @default(cuid())
+  userId             String
+  amount             Decimal
+  currency           String        @default("EUR")
+  status             InvoiceStatus
+  dueDate            DateTime
+  paidDate           DateTime?
+  pdfUrl             String?
+  billingPeriodStart DateTime?
+  billingPeriodEnd   DateTime?
+  paymentTerms       String?
+  notes              String?
+  companyName        String?
+  billingAddress     String?
+  billingCity        String?
+  billingCountry     String?
+  billingName        String?
+  billingPostal      String?
+  billingState       String?
+  createdAt          DateTime      @default(now())
+  description        String?
+  emailSentAt        DateTime?
+  invoiceNumber      String        @unique
+  invoiceType        String        @default("SERVICE")
+  isCreditNote       Boolean       @default(false)
+  issueDate          DateTime
+  locale             String        @default("fr")
+  merchantId         String?
+  originalInvoiceId  String?
+  providerId         String?
+  refundReason       String?
+  reminderSentAt     DateTime?
+  remoteStorageUrl   String?
+  serviceDescription String?
+  taxAmount          Decimal?
+  taxId              String?
+  taxRate            Decimal?
+  termsAndConditions String?
+  totalAmount        Decimal
+  updatedAt          DateTime      @updatedAt
+  
+  // Relations
+  items              InvoiceItem[]
+  user               User          @relation(fields: [userId], references: [id])
+  payments           Payment[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([issueDate])
+  @@map("invoices")
+}
+
+/// Ligne de facture
+model InvoiceItem {
+  id          String    @id @default(cuid())
+  invoiceId   String
+  description String
+  quantity    Decimal
+  unitPrice   Decimal
+  taxRate     Decimal?
+  taxAmount   Decimal?
+  serviceId   String?
+  deliveryId  String?
+  discount    Decimal?
+  amount      Decimal
+  createdAt   DateTime  @default(now())
+  itemCode    String?
+  metadata    Json?
+  periodEnd   DateTime?
+  periodStart DateTime?
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  invoice     Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@map("invoice_items")
+} 
+// ===== MODÈLES DE CYCLES DE FACTURATION =====
+// Ce fichier contient le modèle pour les cycles de facturation automatisés.
+
+/// Cycle de facturation pour les commerçants et prestataires
+model BillingCycle {
+  id               String    @id @default(cuid())
+  merchantId       String?
+  providerId       String?
+  periodStart      DateTime
+  periodEnd        DateTime
+  status           String    @default("PENDING")
+  invoiceId        String?
+  totalAmount      Decimal?
+  serviceFees      Decimal?
+  commissionFees   Decimal?
+  processingFees   Decimal?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+  scheduledRunDate DateTime
+  serviceSummary   Json?
+  lastRunAt        DateTime?
+  errorMessage     String?
+  retryCount       Int       @default(0)
+
+  @@index([periodStart, periodEnd])
+  @@index([status])
+  @@map("billing_cycles")
+} 
+// ===== MODÈLES DE COMMISSIONS =====
+// Ce fichier contient les modèles pour les commissions et promotions.
+
+/// Commission appliquée sur les transactions
+model Commission {
+  id              String    @id @default(cuid())
+  rate            Decimal
+  promotionId     String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  applicableRoles String[]
+  calculationType String    @default("PERCENTAGE")
+  countryCode     String?
+  currency        String    @default("EUR")
+  description     String?
+  endDate         DateTime?
+  flatFee         Decimal?
+  isActive        Boolean   @default(true)
+  maximumAmount   Decimal?
+  minimumAmount   Decimal?
+  payoutSchedule  String?   @default("IMMEDIATE")
+  productCategory String?
+  serviceType     String
+  startDate       DateTime?
+  tierThresholds  Json?
+  
+  // Relations
+  payments        Payment[]
+
+  @@index([serviceType])
+  @@index([isActive])
+  @@map("commissions")
+}
+
+/// Enregistrement des promotions
+model PromotionRecord {
+  id          String   @id @default(cuid())
+  type        String
+  serviceType String?
+  rate        Decimal
+  startDate   DateTime
+  endDate     DateTime
+  isActive    Boolean  @default(true)
+  description String?
+  createdAt   DateTime @default(now())
+
+  @@map("promotion_records")
+} 
+// ===== MODÈLES DE COMPTES FINANCIERS =====
+// Ce fichier contient les modèles pour les comptes financiers et taux de taxes.
+
+/// Compte financier de la plateforme
+model FinancialAccount {
+  id                 String    @id @default(cuid())
+  name               String
+  accountType        String
+  balance            Decimal   @default(0)
+  currency           String    @default("EUR")
+  description        String?
+  isActive           Boolean   @default(true)
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  reconciliationDate DateTime?
+  bankAccount        String?
+  accountNumber      String?
+  notes              String?
+
+  @@map("financial_accounts")
+}
+
+/// Taux de taxe applicable
+model TaxRate {
+  id          String    @id @default(cuid())
+  name        String
+  rate        Decimal
+  countryCode String
+  description String?
+  isActive    Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  taxType     String    @default("VAT")
+  region      String?
+  startDate   DateTime?
+  endDate     DateTime?
+
+  @@index([countryCode])
+  @@index([isActive])
+  @@map("tax_rates")
+} 
+
+// ----- DOMAINE: ADMIN -----
+
+// ===== MODÈLES DE VERIFICATION =====
+// Ce fichier contient les modèles pour la vérification des documents utilisateurs.
+
+/// Demande de vérification d'un document
+model Verification {
+  id              String             @id @default(cuid())
+  status          VerificationStatus @default(PENDING)
+  requestedAt     DateTime           @default(now())
+  verifiedAt      DateTime?
+  documentId      String
+  submitterId     String
+  verifierId      String?
+  notes           String?
+  rejectionReason String?
+  
+  // Relations
+  document        Document           @relation(fields: [documentId], references: [id], onDelete: Cascade)
+  submitter       User               @relation("SubmitterRelation", fields: [submitterId], references: [id])
+  verifier        User?              @relation("VerifierRelation", fields: [verifierId], references: [id])
+
+  @@index([documentId])
+  @@index([submitterId])
+  @@index([verifierId])
+  @@index([status])
+  @@map("verifications")
+}
+
+/// Historique des vérifications effectuées
+model VerificationHistory {
+  id            String             @id @default(cuid())
+  status        VerificationStatus
+  comment       String?
+  createdAt     DateTime           @default(now())
+  documentId    String?
+  userId        String
+  verifiedById  String
+  reason        String?
+  internalNotes String?
+  
+  // Relations
+  document      Document?          @relation(fields: [documentId], references: [id])
+  user          User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verifiedBy    User               @relation("VerifierRelation", fields: [verifiedById], references: [id])
+
+  @@index([documentId])
+  @@index([userId])
+  @@index([verifiedById])
+  @@map("verification_history")
+} 
+// ===== MODÈLES DE NOTIFICATIONS =====
+// Ce fichier contient le modèle pour les notifications envoyées aux utilisateurs.
+
+/// Notification envoyée à un utilisateur
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  title     String
+  message   String
+  type      String
+  link      String?
+  data      String?
+  read      Boolean   @default(false)
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+  
+  // Relation avec le modèle User
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([read])
+  @@map("notifications")
+} 
+// ===== MODÈLES DE DOCUMENTS =====
+// Ce fichier contient les modèles pour la gestion des documents téléversés par les utilisateurs.
+
+/// Document téléversé par un utilisateur pour vérification
+model Document {
+  id                  String                @id @default(cuid())
+  type                DocumentType
+  userId              String
+  filename            String
+  fileUrl             String
+  mimeType            String
+  fileSize            Int
+  uploadedAt          DateTime              @default(now())
+  expiryDate          DateTime?
+  notes               String?
+  isVerified          Boolean               @default(false)
+  verificationStatus  VerificationStatus    @default(PENDING)
+  rejectionReason     String?
+  reviewerId          String?
+  
+  // Relations avec l'utilisateur et le réviseur
+  reviewer            User?                 @relation("DocumentReviewer", fields: [reviewerId], references: [id])
+  user                User                  @relation(fields: [userId], references: [id], onDelete: Cascade)
+  verificationHistory VerificationHistory[]
+  verifications       Verification[]
+
+  @@index([userId])
+  @@index([type])
+  @@index([verificationStatus])
+  @@map("documents")
+} 
+// ===== MODÈLES DE CONTRATS =====
+// Ce fichier contient le modèle pour les contrats entre commerçants et la plateforme.
+
+/// Contrat conclu avec un commerçant
+model Contract {
+  id         String         @id @default(cuid())
+  merchantId String
+  title      String
+  content    String
+  status     ContractStatus @default(DRAFT)
+  createdAt  DateTime       @default(now())
+  updatedAt  DateTime       @updatedAt
+  signedAt   DateTime?
+  expiresAt  DateTime?
+  fileUrl    String?
+  
+  // Relations avec le profil Merchant
+  merchant   Merchant       @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@index([merchantId])
+  @@index([status])
+  @@map("contracts")
+} 
+// ===== MODÈLES D'AUDIT ET TRAÇABILITÉ =====
+// Ce fichier contient les modèles pour l'audit et le suivi de l'activité des utilisateurs.
+
+/// Journaux d'audit des actions administratives
+model AuditLog {
+  id            String   @id @default(cuid())
+  entityType    String
+  entityId      String
+  action        String
+  performedById String
+  changes       Json?
+  createdAt     DateTime @default(now())
+  
+  // Relations
+  performedBy   User     @relation("AuditLogPerformer", fields: [performedById], references: [id])
+
+  @@map("audit_logs")
+}
+
+/// Journal d'activité utilisateur pour audit
+model UserActivityLog {
+  id           String       @id @default(cuid())
+  userId       String
+  activityType ActivityType
+  details      String?
+  ipAddress    String?
+  userAgent    String?
+  createdAt    DateTime     @default(now())
+  
+  // Relations
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_activity_logs")
+} 

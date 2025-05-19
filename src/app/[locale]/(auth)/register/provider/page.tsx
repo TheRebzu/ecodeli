@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle } from 'lucide-react';
+import { PageProps, MetadataProps } from '@/types/next';
 
 export async function generateMetadata({
   params,

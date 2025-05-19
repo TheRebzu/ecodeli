@@ -55,7 +55,7 @@ const roleBasedPaths: Record<UserRole, string[]> = {
 
 // Chemins autorisés même pour les utilisateurs non vérifiés
 const allowedNonVerifiedPaths: Record<UserRole, string[]> = {
-  DELIVERER: ['/deliverer/documents', '/deliverer/profile', '/deliverer/settings'],
+  DELIVERER: ['/deliverer/documents', '/api/upload', '/api/trpc/document', '/api/documents'], // Ajout des chemins API pour le téléchargement
   MERCHANT: ['/merchant/contract', '/merchant/profile', '/merchant/settings'],
   PROVIDER: ['/provider/documents', '/provider/profile', '/provider/settings'],
   CLIENT: [], // Les clients n'ont pas besoin de vérification
@@ -339,5 +339,7 @@ function getDashboardPathForRole(role: UserRole, locale: string = 'fr'): string 
 
 // Configuration du middleware pour qu'il s'exécute sur toutes les routes pertinentes
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)'],
+  matcher: [
+    '/((?!api/trpc|api/documents|api/upload|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)',
+  ],
 };

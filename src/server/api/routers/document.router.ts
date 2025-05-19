@@ -1,7 +1,7 @@
 import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
-import { router, protectedProcedure, adminProcedure } from '../trpc';
-import { DocumentService } from '../../services/document.service';
+import { router, protectedProcedure, adminProcedure } from '@/server/api/trpc';
+import { DocumentService } from '@/server/services/document.service';
 import { DocumentStatus, DocumentType } from '../../db/enums';
 import { UserRole, VerificationStatus } from '@prisma/client';
 import {
@@ -9,7 +9,7 @@ import {
   updateDocumentSchema,
   createVerificationSchema,
   updateVerificationSchema,
-} from '../../../schemas/auth/document.schema';
+} from '@/schemas/document.schema';
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
@@ -17,6 +17,26 @@ import crypto from 'crypto';
 const documentService = new DocumentService();
 
 export const documentRouter = router({
+  /**
+   * Obtenir les documents de l'utilisateur connecté
+   */
+  getMyDocuments: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      const userId = ctx.session.user.id;
+      const documents = await ctx.db.document.findMany({
+        where: { userId },
+        orderBy: { uploadedAt: 'desc' },
+      });
+      return documents;
+    } catch (error: any) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la récupération des documents',
+        cause: error,
+      });
+    }
+  }),
+
   /**
    * Obtenir les documents d'un utilisateur
    */
@@ -153,12 +173,6 @@ export const documentRouter = router({
           });
         }
 
-        let docType = input.type;
-        let documentNotes = input.notes || '';
-
-        // SELFIE is now a valid enum type in the Prisma schema, no need to convert
-        // Keep documentNotes as is
-
         let fileUrl = '';
         let fileName = '';
         let mimeType = '';
@@ -212,17 +226,16 @@ export const documentRouter = router({
 
           // Construire l'URL du fichier
           fileUrl = `/uploads/${userId}/${uniqueFilename}`;
-          fileName = uniqueFilename;
 
           // Enregistrer les métadonnées dans la base de données
           const result = await documentService.uploadDocument({
             userId,
-            type: docType,
+            type: input.type,
             filename: uniqueFilename,
             fileUrl,
             mimeType,
             fileSize: buffer.length,
-            notes: documentNotes,
+            notes: input.notes,
             expiryDate: input.expiryDate,
           });
 
@@ -317,12 +330,12 @@ export const documentRouter = router({
         // Enregistrer les métadonnées dans la base de données
         const result = await documentService.uploadDocument({
           userId,
-          type: docType,
+          type: input.type,
           filename: fileName,
-          fileUrl,
-          mimeType,
+          fileUrl: fileUrl,
+          mimeType: mimeType,
           fileSize: fileSize,
-          notes: documentNotes,
+          notes: input.notes,
           expiryDate: input.expiryDate,
         });
 
@@ -492,7 +505,7 @@ export const documentRouter = router({
       return await documentService.updateVerification({
         verificationId: input.verificationId,
         verifierId: ctx.session.user.id,
-        status: input.status as unknown as VerificationStatus,
+        status: input.status as DocumentStatus,
         notes: input.notes,
       });
     }),

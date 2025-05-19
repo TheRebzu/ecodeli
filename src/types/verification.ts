@@ -7,7 +7,7 @@ import {
   rejectVerificationSchema,
   listVerificationDocumentsSchema,
   verificationHistorySchema,
-} from '@/schemas/admin/verification.schema';
+} from '@/schemas/verification.schema';
 
 export type VerificationFilters = z.infer<typeof verificationFiltersSchema>;
 export type GetVerificationDetail = z.infer<typeof getVerificationDetailSchema>;

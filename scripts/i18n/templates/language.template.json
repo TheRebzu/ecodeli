@@ -1,0 +1,237 @@
+{
+  "common": {
+    "languageName": "",
+    "languages": {
+      "fr": "",
+      "en": "",
+      "es": "",
+      "de": "",
+      "it": ""
+    },
+    "yes": "",
+    "no": "",
+    "ok": "",
+    "cancel": "",
+    "confirm": "",
+    "save": "",
+    "delete": "",
+    "edit": "",
+    "create": "",
+    "update": "",
+    "error": "",
+    "success": "",
+    "warning": "",
+    "info": "",
+    "loading": "",
+    "search": "",
+    "filter": "",
+    "sort": "",
+    "add": "",
+    "remove": "",
+    "back": "",
+    "next": "",
+    "previous": "",
+    "required": "",
+    "optional": "",
+    "all": "",
+    "none": "",
+    "more": "",
+    "less": ""
+  },
+  "errors": {
+    "required": "",
+    "invalidEmail": "",
+    "invalidPassword": "",
+    "invalidPhoneNumber": "",
+    "invalidDate": "",
+    "networkError": "",
+    "serverError": "",
+    "notFound": "",
+    "unauthorized": "",
+    "forbidden": "",
+    "sessionExpired": "",
+    "alreadyExists": "",
+    "tooShort": "",
+    "tooLong": "",
+    "invalidFormat": "",
+    "insufficientPermissions": ""
+  },
+  "auth": {
+    "login": "",
+    "logout": "",
+    "register": "",
+    "forgotPassword": "",
+    "resetPassword": "",
+    "verifyEmail": "",
+    "username": "",
+    "email": "",
+    "password": "",
+    "confirmPassword": "",
+    "rememberMe": "",
+    "authenticationFailed": "",
+    "loginSuccess": "",
+    "logoutSuccess": "",
+    "registrationSuccess": "",
+    "passwordResetSuccess": "",
+    "emailVerified": "",
+    "emailVerificationSent": ""
+  },
+  "navigation": {
+    "home": "",
+    "dashboard": "",
+    "profile": "",
+    "settings": "",
+    "messages": "",
+    "notifications": "",
+    "help": "",
+    "about": "",
+    "contact": "",
+    "privacyPolicy": "",
+    "termsOfService": "",
+    "faq": "",
+    "services": "",
+    "products": "",
+    "blog": "",
+    "menu": ""
+  },
+  "profile": {
+    "personalInfo": "",
+    "accountSettings": "",
+    "notifications": "",
+    "security": "",
+    "payment": "",
+    "address": "",
+    "documents": "",
+    "preferences": "",
+    "language": "",
+    "theme": "",
+    "timezone": "",
+    "subscription": "",
+    "privacy": ""
+  },
+  "dates": {
+    "today": "",
+    "yesterday": "",
+    "tomorrow": "",
+    "thisWeek": "",
+    "lastWeek": "",
+    "nextWeek": "",
+    "thisMonth": "",
+    "lastMonth": "",
+    "nextMonth": "",
+    "thisYear": "",
+    "lastYear": "",
+    "nextYear": "",
+    "dateFormat": "",
+    "timeFormat": "",
+    "dateTimeFormat": ""
+  },
+  "deliveries": {
+    "title": "",
+    "description": "",
+    "create": "",
+    "details": "",
+    "status": {
+      "pending": "",
+      "inTransit": "",
+      "delivered": "",
+      "cancelled": "",
+      "failed": ""
+    },
+    "filters": {
+      "all": "",
+      "today": "",
+      "thisWeek": "",
+      "thisMonth": "",
+      "custom": ""
+    },
+    "table": {
+      "id": "",
+      "client": "",
+      "address": "",
+      "status": "",
+      "date": "",
+      "actions": ""
+    }
+  },
+  "payments": {
+    "title": "",
+    "description": "",
+    "methods": {
+      "creditCard": "",
+      "paypal": "",
+      "bankTransfer": "",
+      "cash": ""
+    },
+    "status": {
+      "pending": "",
+      "completed": "",
+      "failed": "",
+      "refunded": ""
+    },
+    "actions": {
+      "pay": "",
+      "refund": "",
+      "cancel": ""
+    },
+    "form": {
+      "cardNumber": "",
+      "cardHolder": "",
+      "expiryDate": "",
+      "cvv": "",
+      "saveCard": ""
+    }
+  },
+  "messages": {
+    "title": "",
+    "new": "",
+    "reply": "",
+    "send": "",
+    "empty": "",
+    "loading": "",
+    "attachments": "",
+    "addAttachment": ""
+  },
+  "notifications": {
+    "title": "",
+    "markAsRead": "",
+    "markAllAsRead": "",
+    "empty": "",
+    "settings": "",
+    "types": {
+      "deliveries": "",
+      "payments": "",
+      "messages": "",
+      "system": ""
+    }
+  },
+  "todo": {
+    "title": "Liste de tâches",
+    "inputPlaceholder": "Ajouter une nouvelle tâche",
+    "addButton": "Ajouter",
+    "emptyState": "Aucune tâche pour le moment",
+    "deleteButton": "Supprimer",
+    "markComplete": "Marquer comme terminée",
+    "markIncomplete": "Marquer comme non terminée",
+    "editTask": "Modifier la tâche",
+    "taskDetails": "Détails de la tâche",
+    "completeAll": "Tout terminer",
+    "clearCompleted": "Supprimer les tâches terminées",
+    "filter": {
+      "all": "Toutes",
+      "active": "Actives",
+      "completed": "Terminées"
+    },
+    "priority": {
+      "high": "Haute",
+      "medium": "Moyenne",
+      "low": "Basse"
+    },
+    "statistics": {
+      "total": "Total des tâches",
+      "completed": "Tâches terminées",
+      "remaining": "Tâches restantes",
+      "progress": "Progression"
+    }
+  }
+} 

@@ -1,0 +1,68 @@
+# Dépendances
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+.pnp
+.pnp.js
+
+# Build et distribution
+.next
+out
+build
+dist
+
+# Fichiers de développement et tests
+.git
+.github
+.husky
+tests
+__tests__
+*.test.js
+*.spec.js
+coverage
+.nyc_output
+.eslintcache
+jest.config.js
+.eslintrc*
+.prettierrc*
+.editorconfig
+.vscode
+*.md
+!README.md
+
+# Environnement et logs
+.env*
+!.env.example
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Système et temporaires
+.DS_Store
+Thumbs.db
+.idea
+.vscode
+*.swp
+*.swo
+tmp
+temp
+
+# Docker
+docker-compose.yml
+Dockerfile
+.dockerignore
+
+# Fichiers volumineux et médias
+*.mp4
+*.tiff
+*.avi
+*.flv
+*.mov
+*.wmv
+
+# Prisma
+prisma/*.db
+prisma/dev.db
+prisma/migrations/*_init 

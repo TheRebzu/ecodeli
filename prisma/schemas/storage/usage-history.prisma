@@ -1,0 +1,25 @@
+// ===== MODÈLES D'HISTORIQUE D'UTILISATION =====
+// Ce fichier contient le modèle pour le suivi des actions sur les boxes.
+
+/// Historique d'utilisation d'une box
+model BoxUsageHistory {
+  id            String        @id @default(cuid())
+  boxId         String
+  reservationId String?
+  clientId      String
+  actionType    BoxActionType
+  actionTime    DateTime      @default(now())
+  details       String?
+  ipAddress     String?
+  deviceInfo    String?
+  
+  // Relations
+  box           Box           @relation(fields: [boxId], references: [id], onDelete: Cascade)
+  client        User          @relation(fields: [clientId], references: [id])
+  reservation   Reservation?  @relation(fields: [reservationId], references: [id])
+
+  @@index([boxId])
+  @@index([reservationId])
+  @@index([clientId])
+  @@map("box_usage_history")
+} 

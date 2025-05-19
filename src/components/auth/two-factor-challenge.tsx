@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { signIn } from 'next-auth/react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { totpChallengeSchema, TotpChallengeSchemaType } from '@/schemas/auth/login.schema';
+import { totpChallengeSchema, TotpChallengeSchemaType } from '@/schemas/login.schema';
 import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import {

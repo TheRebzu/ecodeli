@@ -1,0 +1,112 @@
+// ===== MODÈLES DE LIVRAISONS =====
+// Ce fichier contient les modèles pour les livraisons, leur suivi et évaluations.
+
+/// Livraison assignée à un livreur
+model Delivery {
+  id                 String          @id @default(cuid())
+  announcementId     String
+  delivererId        String
+  clientId           String
+  status             DeliveryStatus  @default(PENDING)
+  startTime          DateTime?
+  completionTime     DateTime?
+  actualPickupTime   DateTime?
+  actualDeliveryTime DateTime?
+  notes              String?
+  trackingCode       String          @unique
+  price              Float
+  createdAt          DateTime        @default(now())
+  updatedAt          DateTime        @updatedAt
+  
+  // Relations avec Announcement et User
+  announcement       Announcement    @relation(fields: [announcementId], references: [id])
+  deliverer          User            @relation("DelivererDeliveries", fields: [delivererId], references: [id])
+  client             User            @relation("ClientDeliveries", fields: [clientId], references: [id])
+  
+  // Relations avec d'autres modèles
+  logs               DeliveryLog[]
+  coordinates        DeliveryCoordinates[]
+  proofs             DeliveryProof[]
+  ratings            DeliveryRating[]
+  payments           Payment[]       @relation("PaymentToDelivery")
+
+  @@index([announcementId])
+  @@index([delivererId])
+  @@index([clientId])
+  @@index([status])
+  @@index([trackingCode])
+  @@map("deliveries")
+}
+
+/// Journaux d'événements pour une livraison
+model DeliveryLog {
+  id         String         @id @default(cuid())
+  deliveryId String
+  status     DeliveryStatusEnum
+  message    String
+  createdAt  DateTime       @default(now())
+  location   String?
+  
+  // Relation avec Delivery
+  delivery   Delivery       @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryId])
+  @@index([status])
+  @@map("delivery_logs")
+}
+
+/// Coordonnées GPS enregistrées pendant la livraison
+model DeliveryCoordinates {
+  id         String    @id @default(cuid())
+  deliveryId String
+  latitude   Float
+  longitude  Float
+  timestamp  DateTime  @default(now())
+  accuracy   Float?
+  speed      Float?
+  
+  // Relation avec Delivery
+  delivery   Delivery  @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryId])
+  @@map("delivery_coordinates")
+}
+
+/// Preuves de livraison (photos, signatures)
+model DeliveryProof {
+  id           String   @id @default(cuid())
+  deliveryId   String
+  type         String   // "signature", "photo", "document"
+  fileUrl      String
+  mimeType     String?
+  uploadedAt   DateTime @default(now())
+  notes        String?
+  
+  // Relation avec Delivery
+  delivery     Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+
+  @@index([deliveryId])
+  @@index([type])
+  @@map("delivery_proofs")
+}
+
+/// Évaluations des livraisons
+model DeliveryRating {
+  id         String   @id @default(cuid())
+  deliveryId String
+  ratedById  String   // ID de l'utilisateur qui a donné l'évaluation
+  targetId   String   // ID de l'utilisateur qui est évalué
+  rating     Int      // 1-5
+  comment    String?  // Commentaire en texte libre, pas un type Int
+  createdAt  DateTime @default(now())
+  
+  // Relations avec Delivery et User
+  delivery   Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  ratedBy    User     @relation("RatingGiver", fields: [ratedById], references: [id])
+  target     User     @relation("RatingReceiver", fields: [targetId], references: [id])
+
+  @@index([deliveryId])
+  @@index([ratedById])
+  @@index([targetId])
+  @@map("delivery_ratings")
+} 

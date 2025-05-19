@@ -1,0 +1,83 @@
+// ===== MODÈLES DE FACTURATION =====
+// Ce fichier contient les modèles pour les factures et leurs lignes.
+
+/// Facture émise par la plateforme
+model Invoice {
+  id                 String        @id @default(cuid())
+  userId             String
+  amount             Decimal
+  currency           String        @default("EUR")
+  status             InvoiceStatus
+  dueDate            DateTime
+  paidDate           DateTime?
+  pdfUrl             String?
+  billingPeriodStart DateTime?
+  billingPeriodEnd   DateTime?
+  paymentTerms       String?
+  notes              String?
+  companyName        String?
+  billingAddress     String?
+  billingCity        String?
+  billingCountry     String?
+  billingName        String?
+  billingPostal      String?
+  billingState       String?
+  createdAt          DateTime      @default(now())
+  description        String?
+  emailSentAt        DateTime?
+  invoiceNumber      String        @unique
+  invoiceType        String        @default("SERVICE")
+  isCreditNote       Boolean       @default(false)
+  issueDate          DateTime
+  locale             String        @default("fr")
+  merchantId         String?
+  originalInvoiceId  String?
+  providerId         String?
+  refundReason       String?
+  reminderSentAt     DateTime?
+  remoteStorageUrl   String?
+  serviceDescription String?
+  taxAmount          Decimal?
+  taxId              String?
+  taxRate            Decimal?
+  termsAndConditions String?
+  totalAmount        Decimal
+  updatedAt          DateTime      @updatedAt
+  
+  // Relations
+  items              InvoiceItem[]
+  user               User          @relation(fields: [userId], references: [id])
+  payments           Payment[]
+
+  @@index([userId])
+  @@index([status])
+  @@index([issueDate])
+  @@map("invoices")
+}
+
+/// Ligne de facture
+model InvoiceItem {
+  id          String    @id @default(cuid())
+  invoiceId   String
+  description String
+  quantity    Decimal
+  unitPrice   Decimal
+  taxRate     Decimal?
+  taxAmount   Decimal?
+  serviceId   String?
+  deliveryId  String?
+  discount    Decimal?
+  amount      Decimal
+  createdAt   DateTime  @default(now())
+  itemCode    String?
+  metadata    Json?
+  periodEnd   DateTime?
+  periodStart DateTime?
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  invoice     Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId])
+  @@map("invoice_items")
+} 

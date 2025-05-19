@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { UserStats } from '@/types/admin/dashboard';
+import { UserStats } from '@/types/dashboard';
 import { UserIcon, UsersIcon } from 'lucide-react';
 
 interface UserStatsCardProps {

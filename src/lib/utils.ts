@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { format, formatDistance, Locale } from 'date-fns';
+import { format, formatDistance, Locale, addDays } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
 
 /**
@@ -138,4 +138,86 @@ export function generateRandomCode(length: number): string {
     code += characters.charAt(randomIndex);
   }
   return code;
+}
+
+/**
+ * Formate la taille d'un fichier en unités lisibles (octets, Ko, Mo, Go)
+ * @param bytes Taille en octets
+ * @param decimals Nombre de décimales (par défaut: 2)
+ * @returns Chaîne formatée avec unité
+ */
+export function formatFileSize(bytes: number, decimals: number = 2): string {
+  if (bytes === 0) return '0 octets';
+
+  const k = 1024;
+  const dm = decimals < 0 ? 0 : decimals;
+  const sizes = ['octets', 'Ko', 'Mo', 'Go', 'To'];
+
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i];
+}
+
+/**
+ * Retourne la plage de dates pour une période donnée
+ */
+export function getCurrentDateRange(days: number = 30) {
+  const endDate = new Date();
+  const startDate = addDays(endDate, -days);
+
+  return {
+    startDate,
+    endDate,
+  };
+}
+
+/**
+ * Calcule le pourcentage de variation entre deux valeurs
+ */
+export function calculatePercentChange(current: number, previous: number): number {
+  if (previous === 0) return 0;
+  return ((current - previous) / previous) * 100;
+}
+
+/**
+ * Génère une couleur aléatoire
+ */
+export function getRandomColor(): string {
+  const letters = '0123456789ABCDEF';
+  let color = '#';
+  for (let i = 0; i < 6; i++) {
+    color += letters[Math.floor(Math.random() * 16)];
+  }
+  return color;
+}
+
+/**
+ * Génère une palette de couleurs pour les graphiques
+ */
+export function generateChartColors(count: number): string[] {
+  const baseColors = [
+    '#3b82f6', // blue-500
+    '#10b981', // emerald-500
+    '#f59e0b', // amber-500
+    '#ef4444', // red-500
+    '#8b5cf6', // violet-500
+    '#ec4899', // pink-500
+    '#06b6d4', // cyan-500
+    '#f97316', // orange-500
+    '#84cc16', // lime-500
+    '#6366f1', // indigo-500
+  ];
+
+  if (count <= baseColors.length) {
+    return baseColors.slice(0, count);
+  }
+
+  // Si on a besoin de plus de couleurs que disponibles, on ajoute des couleurs aléatoires
+  const colors = [...baseColors];
+
+  for (let i = baseColors.length; i < count; i++) {
+    colors.push(getRandomColor());
+  }
+
+  return colors;
 }
