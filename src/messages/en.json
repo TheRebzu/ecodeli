@@ -1052,6 +1052,9 @@
       "resendVerificationEmail": "Resend verification email",
       "verificationEmailSent": "Verification email sent successfully",
       "verificationEmailError": "Unable to resend verification email",
+      "emailRequired": "Email required",
+      "enterEmailForVerification": "Please enter your email address to receive a verification link",
+      "verificationEmailInfo": "If you haven't received the verification email or if it has expired, you can request a new link",
       "2fa": {
         "codeLabel": "Authentication code",
         "codePlaceholder": "123456",

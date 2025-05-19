@@ -52,6 +52,7 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
       error === 'EmailNotVerified' ||
       error.includes('EmailNotVerified') ||
       error.includes('vérifier votre email') ||
+      error.includes('Veuillez vérifier votre email') ||
       error === tAuth('errors.EmailNotVerified')
     );
   };
@@ -65,9 +66,12 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
       email: '',
       password: '',
       totp: '',
-      rememberMe: false,
+      remember: false,
     },
   });
+
+  // Surveiller le champ email pour afficher/masquer les options de renvoi d'email
+  const watchEmail = form.watch('email');
 
   // Vérifier si l'erreur actuelle est liée à un email non vérifié
   useEffect(() => {
@@ -205,7 +209,7 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
                 <div className="flex items-center justify-between">
                   <FormField
                     control={form.control}
-                    name="rememberMe"
+                    name="remember"
                     render={({ field }) => (
                       <FormItem className="flex items-center space-x-2 space-y-0">
                         <FormControl>
@@ -264,6 +268,40 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
             </Button>
           </form>
         </Form>
+
+        {/* Bouton dédié pour renvoyer l'email de vérification - uniquement pour les emails non vérifiés */}
+        {emailToVerify && isEmailNotVerifiedError(authError) && (
+          <div className="mt-6 text-center">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <span className="w-full border-t"></span>
+              </div>
+              <div className="relative flex justify-center text-xs uppercase">
+                <span className="bg-card px-2 text-muted-foreground">{tAuth('login.or')}</span>
+              </div>
+            </div>
+
+            <div className="mt-4 space-y-2">
+              <p className="text-sm text-muted-foreground">
+                {tAuth('login.2fa.verificationEmailInfo')}
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={handleResendVerificationEmail}
+                disabled={isResendingEmail}
+              >
+                {isResendingEmail ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <MailIcon className="mr-2 h-4 w-4" />
+                )}
+                {tAuth('login.resendVerificationEmail')}
+              </Button>
+            </div>
+          </div>
+        )}
       </CardContent>
       <CardFooter className="flex flex-col space-y-4">
         <div className="relative w-full">

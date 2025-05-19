@@ -1141,7 +1141,10 @@
         "codeLabel": "Code d'authentification",
         "codePlaceholder": "123456",
         "verifyButton": "Vérifier",
-        "enterCode": "Entrez le code à 6 chiffres généré par votre application d'authentification"
+        "enterCode": "Entrez le code à 6 chiffres généré par votre application d'authentification",
+        "emailRequired": "Email requis",
+        "enterEmailForVerification": "Veuillez entrer votre adresse email pour recevoir un lien de vérification",
+        "verificationEmailInfo": "Si vous n'avez pas reçu l'email de vérification ou s'il a expiré, vous pouvez demander un nouveau lien"
       },
       "continueWith": "Ou continuer avec",
       "resendVerificationEmail": "Renvoyer l'email de vérification",
