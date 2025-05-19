@@ -1,0 +1,37 @@
+// ===== MODÈLES DE SERVICES =====
+// Ce fichier contient les modèles pour les services proposés par les prestataires.
+
+/// Service proposé par un prestataire
+model Service {
+  id          String           @id @default(cuid())
+  name        String
+  description String
+  price       Decimal
+  duration    Int
+  categoryId  String
+  providerId  String
+  isActive    Boolean          @default(true)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  
+  // Relations avec CategoryService, User et ServiceBooking
+  category    ServiceCategory  @relation(fields: [categoryId], references: [id])
+  provider    User             @relation(fields: [providerId], references: [id])
+  bookings    ServiceBooking[]
+  payments    Payment[]
+
+  @@index([providerId])
+  @@index([categoryId])
+}
+
+/// Catégorie de service
+model ServiceCategory {
+  id          String    @id @default(cuid())
+  name        String
+  description String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relation avec Service
+  services    Service[]
+} 

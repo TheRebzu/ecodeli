@@ -5,6 +5,7 @@ import { ServiceDetail } from '@/components/services/service-detail';
 import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import { api } from '@/trpc/server';
+import { PageProps, MetadataProps } from '@/types/next';
 
 interface ServicePageProps {
   params: {

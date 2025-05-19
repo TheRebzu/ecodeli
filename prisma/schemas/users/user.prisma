@@ -1,0 +1,101 @@
+// ===== MODÈLE UTILISATEUR PRINCIPAL =====
+// Ce modèle est au cœur du système EcoDeli et représente tous les utilisateurs
+// indépendamment de leur rôle (client, livreur, commerçant, prestataire, admin).
+
+/// Utilisateur principal avec authentification et données de profil communes
+model User {
+  id                       String                        @id @default(cuid())
+  name                     String
+  email                    String                        @unique
+  emailVerified            DateTime?
+  password                 String
+  image                    String?
+  role                     UserRole
+  status                   UserStatus                    @default(PENDING_VERIFICATION)
+  createdAt                DateTime                      @default(now())
+  updatedAt                DateTime                      @updatedAt
+  phoneNumber              String?
+  lastLoginAt              DateTime?
+  twoFactorEnabled         Boolean                       @default(false)
+  twoFactorSecret          String?
+  locale                   String?
+  preferences              Json?
+  isVerified               Boolean                       @default(false)
+  lastPasswordChange       DateTime?
+  lockedUntil              DateTime?
+  loginAttempts            Int                           @default(0)
+  notes                    String?
+  hasCompletedOnboarding   Boolean                       @default(false)
+  lastOnboardingStep       Int                           @default(0)
+  onboardingCompletionDate DateTime?
+  isProvider               Boolean                       @default(false)
+  providerBio              String?
+  providerLocationLat      Float?
+  providerLocationLng      Float?
+  providerAddress          String?
+  providerZipCode          String?
+  providerCity             String?
+  providerVerified         Boolean                       @default(false)
+  
+  // Relation avec les livraisons
+  clientDeliveries         Delivery[]                    @relation("ClientDeliveries")
+  delivererDeliveries      Delivery[]                    @relation("DelivererDeliveries")
+  
+  // Relations communes
+  notifications            Notification[]
+  providerAvailability     ProviderAvailability[]
+  providedServices         Service[]
+  clientBookings           ServiceBooking[]              @relation("ClientBookings")
+  providerBookings         ServiceBooking[]              @relation("ProviderBookings")
+  
+  // Relations d'authentification
+  accounts                 Account[]
+  sessions                 Session[]
+  
+  // Relations avec les profils spécifiques
+  admin                    Admin?
+  client                   Client?
+  deliverer                Deliverer?
+  merchant                 Merchant?
+  provider                 Provider?
+  
+  // Relations avec les entités métier
+  clientAnnouncements      Announcement[]                @relation("ClientAnnouncements")
+  delivererAnnouncements   Announcement[]                @relation("DelivererAnnouncements")
+  performedAuditLogs       AuditLog[]                    @relation("AuditLogPerformer")
+  boxSubscriptions         BoxAvailabilitySubscription[]
+  boxUsageHistory          BoxUsageHistory[]
+  boxes                    Box[]
+  favorites                DelivererFavorite[]
+  deliveryApplications     DeliveryApplication[]
+  reviewedDocuments        Document[]                    @relation("DocumentReviewer")
+  documents                Document[]
+  financialTasks           FinancialTask[]
+  invoices                 Invoice[]
+  paymentMethods           PaymentMethod[]
+  payments                 Payment[]
+  reservations             Reservation[]
+  subscriptions            Subscription[]
+  activityLogs             UserActivityLog[]
+  
+  // Relations avec les évaluations
+  givenRatings             DeliveryRating[]              @relation("RatingGiver")
+  receivedRatings          DeliveryRating[]              @relation("RatingReceiver")
+  
+  // Relations avec les vérifications
+  verificationHistory      VerificationHistory[]
+  verifiedHistories        VerificationHistory[]         @relation("VerifierRelation")
+  submittedVerifications   Verification[]                @relation("SubmitterRelation")
+  verifications            Verification[]                @relation("VerifierRelation")
+  
+  // Relation avec le portefeuille
+  wallet                   Wallet?
+  
+  // Relations avec la messagerie
+  sentMessages             Message[]
+
+  @@index([email])
+  @@index([role])
+  @@index([status])
+  @@map("users")
+} 

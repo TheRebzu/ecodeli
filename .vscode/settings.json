@@ -1,0 +1,17 @@
+{
+    "gitlens.ai.openai.url": "",
+    "WillLuke.nextjs.addTypesOnSave": true,
+    "WillLuke.nextjs.hasPrompted": true,
+    "sqltools.connections": [
+        {
+            "previewLimit": 50,
+            "server": "localhost",
+            "port": 5432,
+            "driver": "PostgreSQL",
+            "name": "ecodeli",
+            "database": "ecodeli",
+            "username": "postgres",
+            "password": "Amine2004"
+        }
+    ]
+}

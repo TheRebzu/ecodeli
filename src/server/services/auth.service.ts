@@ -3,7 +3,7 @@ import { hash, compare } from 'bcryptjs';
 import { UserRole, UserStatus } from '../db/enums';
 import { randomBytes } from 'crypto';
 import { TRPCError } from '@trpc/server';
-import { LoginSchemaType } from '@/schemas/auth/login.schema';
+import { LoginSchemaType } from '@/schemas/login.schema';
 import { PrismaClient } from '@prisma/client';
 import { EmailService } from './email.service';
 import { TokenService } from './token.service';
@@ -12,7 +12,7 @@ import {
   DelivererRegisterSchemaType,
   MerchantRegisterSchemaType,
   ProviderRegisterSchemaType,
-} from '@/schemas/auth';
+} from '@/schemas';
 import { VerificationStatus } from '@prisma/client';
 import { DocumentService } from './document.service';
 import { NotificationService } from './notification.service';
@@ -40,14 +40,12 @@ export class AuthService {
   private emailService: EmailService;
   private tokenService: TokenService;
   private documentService: DocumentService;
-  private notificationService: NotificationService;
 
   constructor(prisma = db) {
     this.prisma = prisma;
     this.emailService = new EmailService();
     this.tokenService = new TokenService(prisma);
     this.documentService = new DocumentService(prisma);
-    this.notificationService = new NotificationService(prisma);
   }
 
   /**
@@ -58,6 +56,15 @@ export class AuthService {
       where: { email },
     });
     return !!user;
+  }
+
+  /**
+   * Récupère un utilisateur par son email
+   */
+  async getUserByEmail(email: string) {
+    return this.prisma.user.findUnique({
+      where: { email },
+    });
   }
 
   /**
@@ -1098,7 +1105,9 @@ export class AuthService {
     };
   }
 
-  // Mettre à jour le statut de vérification d'un utilisateur
+  /**
+   * Met à jour le statut de vérification d'un utilisateur
+   */
   async updateUserVerificationStatus(
     userId: string,
     status: VerificationStatus,
@@ -1108,9 +1117,10 @@ export class AuthService {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       include: {
-        deliverer: user.role === UserRole.DELIVERER,
-        merchant: user.role === UserRole.MERCHANT,
-        provider: user.role === UserRole.PROVIDER,
+        client: true,
+        deliverer: true,
+        merchant: true,
+        provider: true,
       },
     });
 
@@ -1121,21 +1131,24 @@ export class AuthService {
       });
     }
 
-    // Mettre à jour le statut de vérification dans la table user
+    // Mettre à jour le statut
     await this.prisma.user.update({
       where: { id: userId },
       data: {
-        isVerified: status === VerificationStatus.APPROVED,
+        status: status === 'APPROVED' ? 'ACTIVE' : 'REJECTED',
       },
     });
 
-    // Mettre à jour le statut dans la table spécifique au rôle
+    // Mettre à jour le profil spécifique au rôle
     switch (user.role) {
       case UserRole.DELIVERER:
         if (user.deliverer) {
           await this.prisma.deliverer.update({
             where: { id: user.deliverer.id },
-            data: { isVerified: status === VerificationStatus.APPROVED },
+            data: {
+              isVerified: status === 'APPROVED',
+              verificationNotes: notes,
+            },
           });
         }
         break;
@@ -1143,7 +1156,10 @@ export class AuthService {
         if (user.merchant) {
           await this.prisma.merchant.update({
             where: { id: user.merchant.id },
-            data: { isVerified: status === VerificationStatus.APPROVED },
+            data: {
+              isVerified: status === 'APPROVED',
+              verificationNotes: notes,
+            },
           });
         }
         break;
@@ -1151,26 +1167,43 @@ export class AuthService {
         if (user.provider) {
           await this.prisma.provider.update({
             where: { id: user.provider.id },
-            data: { isVerified: status === VerificationStatus.APPROVED },
+            data: {
+              isVerified: status === 'APPROVED',
+              verificationNotes: notes,
+            },
           });
         }
         break;
-      default:
-        break;
     }
 
-    // Envoyer notification de changement de statut
-    await this.notificationService.sendVerificationStatusChangedNotification(
-      user,
-      status,
-      notes,
-      locale
-    );
+    // Envoyer notification à l'utilisateur
+    if (status === 'APPROVED') {
+      await NotificationService.sendNotification({
+        userId,
+        title: 'Compte vérifié',
+        content:
+          'Votre compte a été approuvé. Vous pouvez maintenant utiliser toutes les fonctionnalités.',
+        type: 'ACCOUNT',
+      });
+      await this.emailService.sendAccountVerifiedEmail(user.email, user.name || '', locale);
+    } else {
+      await NotificationService.sendNotification({
+        userId,
+        title: 'Vérification du compte',
+        content: `Votre compte a été refusé${notes ? ': ' + notes : '.'}`,
+        type: 'ACCOUNT',
+      });
+      await this.emailService.sendAccountRejectedEmail(
+        user.email,
+        user.name || '',
+        notes || '',
+        locale
+      );
+    }
 
     return {
-      userId,
+      success: true,
       status,
-      isVerified: status === VerificationStatus.APPROVED,
     };
   }
 

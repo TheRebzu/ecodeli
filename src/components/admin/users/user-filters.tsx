@@ -20,7 +20,7 @@ import {
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { UserFilters } from '@/types/admin/admin';
+import { UserFilters } from '@/types/admin';
 
 const filterSchema = z.object({
   search: z.string().optional(),

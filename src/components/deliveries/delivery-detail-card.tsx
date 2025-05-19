@@ -1,194 +1,189 @@
 'use client';
 
-import { useTranslations } from 'next-intl';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MapPin, Calendar, Clock, User, Truck, Box, AlertCircle, BadgeCheck } from 'lucide-react';
-import DeliveryStatusBadge from './delivery-status-badge';
-import { DeliveryStatus } from '@/types/delivery';
+import React from 'react';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  MapPin,
+  CalendarClock,
+  User,
+  Truck,
+  Clock,
+  Phone,
+  MapPinned,
+  ChevronRight,
+} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import DeliveryStatusIndicator from './delivery-status';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
+import { useDeliveryLiveTracking } from '@/hooks/use-delivery-tracking';
+import { DeliveryStatus } from '@prisma/client';
+import Link from 'next/link';
+import { cn } from '@/lib/utils';
 
 interface DeliveryDetailCardProps {
-  id: string;
-  status: DeliveryStatus;
-  pickupAddress: string;
-  deliveryAddress: string;
-  pickupDate: Date;
-  deliveryDate?: Date;
-  estimatedArrival?: Date;
-  client: {
-    id: string;
-    name: string;
-    image?: string;
-  };
-  deliverer?: {
-    id: string;
-    name: string;
-    image?: string;
-    rating?: number;
-  };
+  deliveryId: string;
   className?: string;
+  showActions?: boolean;
+  showMap?: boolean;
+  showTimeline?: boolean;
+  isInteractive?: boolean;
 }
 
-export default function DeliveryDetailCard({
-  id,
-  status,
-  pickupAddress,
-  deliveryAddress,
-  pickupDate,
-  deliveryDate,
-  estimatedArrival,
-  client,
-  deliverer,
-  className = '',
-}: DeliveryDetailCardProps) {
-  const t = useTranslations('deliveries');
+const DeliveryDetailCard: React.FC<DeliveryDetailCardProps> = ({
+  deliveryId,
+  className,
+  showActions = true,
+  showMap = false,
+  showTimeline = false,
+  isInteractive = true,
+}) => {
+  // Récupérer les données de livraison
+  const { deliveryInfo, isLoading, error } = useDeliveryLiveTracking(deliveryId);
 
-  // Formater la date et l'heure
-  const formatDateTime = (date?: Date) => {
-    if (!date) return '';
-    return new Intl.DateTimeFormat('fr-FR', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(date instanceof Date ? date : new Date(date));
+  // Formatter les dates
+  const formatDate = (date: Date | string | undefined) => {
+    if (!date) return 'Non définie';
+    return format(new Date(date), 'PPp', { locale: fr });
   };
 
-  // Formater la date uniquement
-  const formatDate = (date?: Date) => {
-    if (!date) return '';
-    return new Intl.DateTimeFormat('fr-FR', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    }).format(date instanceof Date ? date : new Date(date));
-  };
+  // État de chargement
+  if (isLoading) {
+    return (
+      <Card className={cn('w-full max-w-md mx-auto', className)}>
+        <CardContent className="pt-6 flex justify-center items-center min-h-[200px]">
+          <div className="flex flex-col items-center gap-2">
+            <div className="animate-spin h-8 w-8 rounded-full border-4 border-primary border-t-transparent" />
+            <p className="text-sm text-muted-foreground">Chargement des détails...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
-  // Déterminer si la livraison est en retard
-  const isLate =
-    estimatedArrival &&
-    new Date() > new Date(estimatedArrival) &&
-    status !== DeliveryStatus.DELIVERED &&
-    status !== DeliveryStatus.CONFIRMED;
+  // Affichage d'erreur
+  if (error || !deliveryInfo) {
+    return (
+      <Card className={cn('w-full max-w-md mx-auto', className)}>
+        <CardContent className="pt-6">
+          <div className="flex flex-col items-center gap-2 text-destructive">
+            <p className="text-sm">Impossible de charger les détails de cette livraison</p>
+            <Button variant="outline" size="sm" onClick={() => window.location.reload()}>
+              Réessayer
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
-    <Card className={className}>
+    <Card className={cn('w-full max-w-md mx-auto', className)}>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
-          <CardTitle>{t('detailCard.title')}</CardTitle>
-          <DeliveryStatusBadge status={status} />
+          <CardTitle className="text-lg font-medium">
+            Livraison #{deliveryInfo.id.slice(-6)}
+          </CardTitle>
+          <DeliveryStatusIndicator status={deliveryInfo.status as DeliveryStatus} size="sm" />
         </div>
       </CardHeader>
-      <CardContent className="pb-4">
-        <div className="space-y-4">
-          {/* Informations sur les adresses */}
-          <div className="space-y-2">
-            <div className="flex items-start space-x-2">
-              <MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-sm font-medium">{t('detailCard.pickupAddress')}</p>
-                <p className="text-sm text-muted-foreground">{pickupAddress}</p>
-              </div>
-            </div>
-            <div className="flex items-start space-x-2">
-              <MapPin className="mt-0.5 h-4 w-4 text-muted-foreground" />
-              <div>
-                <p className="text-sm font-medium">{t('detailCard.deliveryAddress')}</p>
-                <p className="text-sm text-muted-foreground">{deliveryAddress}</p>
-              </div>
+
+      <CardContent className="space-y-4 pt-0">
+        {/* Adresses */}
+        <div className="space-y-3">
+          <div className="flex items-start gap-3">
+            <MapPin className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium">Adresse de collecte</p>
+              <p className="text-sm text-muted-foreground">{deliveryInfo.pickupAddress}</p>
             </div>
           </div>
 
-          {/* Informations sur les dates */}
-          <div className="space-y-2">
-            <div className="flex items-center space-x-2">
-              <Calendar className="h-4 w-4 text-muted-foreground" />
-              <p className="text-sm">
-                <span className="font-medium">{t('detailCard.pickupDate')}: </span>
-                {formatDate(pickupDate)}
+          <div className="flex items-start gap-3">
+            <MapPinned className="h-5 w-5 text-muted-foreground shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm font-medium">Adresse de livraison</p>
+              <p className="text-sm text-muted-foreground">{deliveryInfo.deliveryAddress}</p>
+            </div>
+          </div>
+        </div>
+
+        <Separator />
+
+        {/* Dates */}
+        <div className="space-y-3">
+          <div className="flex items-center gap-3">
+            <CalendarClock className="h-5 w-5 text-muted-foreground" />
+            <div>
+              <p className="text-sm font-medium">Date de collecte</p>
+              <p className="text-sm text-muted-foreground">{formatDate(deliveryInfo.pickupDate)}</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Clock className="h-5 w-5 text-muted-foreground" />
+            <div>
+              <p className="text-sm font-medium">Livraison estimée</p>
+              <p className="text-sm text-muted-foreground">
+                {formatDate(deliveryInfo.estimatedArrival)}
               </p>
             </div>
+          </div>
+        </div>
 
-            {deliveryDate && (
-              <div className="flex items-center space-x-2">
-                <Calendar className="h-4 w-4 text-muted-foreground" />
-                <p className="text-sm">
-                  <span className="font-medium">{t('detailCard.deliveryDate')}: </span>
-                  {formatDateTime(deliveryDate)}
-                </p>
+        <Separator />
+
+        {/* Personnes */}
+        <div className="space-y-3">
+          {deliveryInfo.client && (
+            <div className="flex items-center gap-3">
+              <User className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <p className="text-sm font-medium">Client</p>
+                <p className="text-sm text-muted-foreground">{deliveryInfo.client.name}</p>
               </div>
-            )}
+            </div>
+          )}
 
-            {estimatedArrival && (
-              <div className="flex items-center space-x-2">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <p className="text-sm">
-                    <span className="font-medium">{t('detailCard.estimatedArrival')}: </span>
-                    {formatDateTime(estimatedArrival)}
-                  </p>
-                  {isLate && (
-                    <p className="text-sm text-red-500 flex items-center mt-1">
-                      <AlertCircle className="h-3 w-3 mr-1" />
-                      {t('detailCard.late')}
-                    </p>
+          {deliveryInfo.deliverer && (
+            <div className="flex items-center gap-3">
+              <Truck className="h-5 w-5 text-muted-foreground" />
+              <div className="flex-1">
+                <p className="text-sm font-medium">Livreur</p>
+                <div className="flex items-center justify-between">
+                  <p className="text-sm text-muted-foreground">{deliveryInfo.deliverer.name}</p>
+                  {deliveryInfo.deliverer.phone && (
+                    <a
+                      href={`tel:${deliveryInfo.deliverer.phone}`}
+                      className="flex items-center text-xs text-primary hover:underline"
+                    >
+                      <Phone className="h-3 w-3 mr-1" />
+                      Appeler
+                    </a>
                   )}
                 </div>
               </div>
-            )}
-          </div>
-
-          {/* Informations sur les personnes */}
-          <div className="space-y-3 pt-2">
-            <div className="flex items-center space-x-2">
-              <User className="h-4 w-4 text-muted-foreground" />
-              <p className="text-sm font-medium">{t('detailCard.client')}</p>
             </div>
-
-            <div className="flex items-center space-x-2 ml-6">
-              <Avatar className="h-8 w-8">
-                <AvatarImage src={client.image} />
-                <AvatarFallback>{client.name.charAt(0)}</AvatarFallback>
-              </Avatar>
-              <p className="text-sm">{client.name}</p>
-            </div>
-
-            {deliverer && (
-              <>
-                <div className="flex items-center space-x-2 mt-4">
-                  <Truck className="h-4 w-4 text-muted-foreground" />
-                  <p className="text-sm font-medium">{t('detailCard.deliverer')}</p>
-                </div>
-
-                <div className="flex items-center space-x-2 ml-6">
-                  <Avatar className="h-8 w-8">
-                    <AvatarImage src={deliverer.image} />
-                    <AvatarFallback>{deliverer.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="text-sm">{deliverer.name}</p>
-                    {deliverer.rating && (
-                      <div className="flex items-center mt-0.5">
-                        <BadgeCheck className="h-3 w-3 text-primary mr-1" />
-                        <p className="text-xs text-muted-foreground">
-                          {deliverer.rating.toFixed(1)} / 5
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-
-          {/* ID de la livraison */}
-          <div className="flex items-center space-x-2 pt-2">
-            <Box className="h-4 w-4 text-muted-foreground" />
-            <p className="text-xs text-muted-foreground">ID: {id}</p>
-          </div>
+          )}
         </div>
       </CardContent>
+
+      {showActions && isInteractive && (
+        <CardFooter className="flex justify-end gap-2">
+          <Button variant="outline" size="sm" asChild>
+            <Link
+              href={`/[locale]/(protected)/client/deliveries/${deliveryId}`}
+              className="flex items-center"
+            >
+              Détails
+              <ChevronRight className="ml-1 h-4 w-4" />
+            </Link>
+          </Button>
+        </CardFooter>
+      )}
     </Card>
   );
-}
+};
+
+export default DeliveryDetailCard;

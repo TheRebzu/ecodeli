@@ -1,30 +1,78 @@
-import { DeliveryStatus } from '@/types/delivery';
-import { Badge } from '@/components/ui/badge';
-import { useTranslations } from 'next-intl';
+'use client';
 
-interface StatusBadgeProps {
-  status: DeliveryStatus;
+import React from 'react';
+import { DeliveryStatus as DeliveryStatusEnum } from '@prisma/client';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import { STATUS_CONFIG } from './delivery-status';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+
+interface DeliveryStatusBadgeProps {
+  status: DeliveryStatusEnum;
+  showIcon?: boolean;
+  showTooltip?: boolean;
   className?: string;
+  size?: 'sm' | 'md' | 'lg';
 }
 
-// Définition des couleurs pour chaque statut
-const statusColors: Record<DeliveryStatus, string> = {
-  [DeliveryStatus.PENDING]: 'bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/10',
-  [DeliveryStatus.ACCEPTED]: 'bg-blue-500/10 text-blue-500 hover:bg-blue-500/10',
-  [DeliveryStatus.PICKED_UP]: 'bg-blue-600/10 text-blue-600 hover:bg-blue-600/10',
-  [DeliveryStatus.IN_TRANSIT]: 'bg-purple-500/10 text-purple-500 hover:bg-purple-500/10',
-  [DeliveryStatus.DELIVERED]: 'bg-green-500/10 text-green-500 hover:bg-green-500/10',
-  [DeliveryStatus.CONFIRMED]: 'bg-green-600/10 text-green-600 hover:bg-green-600/10',
-  [DeliveryStatus.CANCELLED]: 'bg-red-500/10 text-red-500 hover:bg-red-500/10',
-  [DeliveryStatus.DISPUTED]: 'bg-orange-500/10 text-orange-500 hover:bg-orange-500/10',
-};
+const DeliveryStatusBadge: React.FC<DeliveryStatusBadgeProps> = ({
+  status,
+  showIcon = true,
+  showTooltip = true,
+  className,
+  size = 'md',
+}) => {
+  // Récupérer la configuration du statut
+  const config = STATUS_CONFIG[status] || STATUS_CONFIG.UNKNOWN;
+  const Icon = config.icon;
 
-export default function DeliveryStatusBadge({ status, className = '' }: StatusBadgeProps) {
-  const t = useTranslations('deliveries');
+  // Classes CSS selon la taille
+  const sizeClasses = {
+    sm: 'px-1.5 py-0.5 text-xs',
+    md: 'px-2 py-1 text-sm',
+    lg: 'px-3 py-1.5 text-base',
+  };
 
-  return (
-    <Badge variant="outline" className={`${statusColors[status]} ${className}`}>
-      {t(`statuses.${status}`)}
+  // Classes pour l'icône selon la taille
+  const iconClasses = {
+    sm: 'h-3 w-3 mr-1',
+    md: 'h-3.5 w-3.5 mr-1.5',
+    lg: 'h-4 w-4 mr-2',
+  };
+
+  // Créer le badge avec les couleurs appropriées
+  const badge = (
+    <Badge
+      className={cn(
+        config.bgColor,
+        'text-foreground font-medium border',
+        config.borderColor,
+        sizeClasses[size],
+        'flex items-center justify-center',
+        className
+      )}
+      variant="outline"
+    >
+      {showIcon && <Icon className={cn(config.color, iconClasses[size])} />}
+      <span className={config.color}>{config.label}</span>
     </Badge>
   );
-}
+
+  // Envelopper dans un tooltip si demandé
+  if (showTooltip) {
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>{badge}</TooltipTrigger>
+          <TooltipContent>
+            <p>{config.description}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
+
+  return badge;
+};
+
+export default DeliveryStatusBadge;

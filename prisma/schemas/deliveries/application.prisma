@@ -1,0 +1,32 @@
+// ===== MODÈLES D'APPLICATIONS DE LIVRAISON =====
+// Ces modèles gèrent les candidatures des livreurs aux annonces
+// et leurs préférences. Ces données sont extraites du fichier announcement.prisma
+// pour respecter la structure demandée.
+
+// NOTE: Voir announcement.prisma pour les modèles:
+// - DeliveryApplication: Candidatures des livreurs
+// - DelivererFavorite: Annonces favorites des livreurs 
+
+// ===== MODÈLES DE CANDIDATURE DE LIVRAISON =====
+// Ce fichier contient le modèle pour les candidatures des livreurs aux annonces.
+
+/// Candidature d'un livreur pour une annonce
+model DeliveryApplication {
+  id             String             @id @default(cuid())
+  delivererId    String
+  announcementId String
+  message        String?
+  status         ApplicationStatus  @default(PENDING)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  proposedPrice  Float?
+  
+  // Relations avec User et Announcement
+  deliverer      User               @relation(fields: [delivererId], references: [id], onDelete: Cascade)
+  announcement   Announcement       @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+
+  @@index([delivererId])
+  @@index([announcementId])
+  @@index([status])
+  @@map("delivery_applications")
+} 
