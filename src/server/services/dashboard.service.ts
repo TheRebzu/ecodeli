@@ -576,9 +576,9 @@ export const dashboardService = {
 
       // Préparer les tableaux pour stocker les données
       const dates = [];
-      const registrations = [];
-      const deliveries = [];
-      const documents = [];
+      const registrationValues = [];
+      const deliveryValues = [];
+      const transactionValues = [];
 
       // Générer une date pour chaque jour des 30 derniers jours
       for (let i = 0; i < 30; i++) {
@@ -615,37 +615,41 @@ export const dashboardService = {
           },
         });
 
-        // Comptage des documents
-        const documentsCount = await db.document.count({
+        // Comptage des transactions
+        const transactionsCount = await db.payment.count({
           where: {
-            uploadedAt: {
+            createdAt: {
               gte: startDate,
               lte: endDate,
             },
           },
         });
 
-        registrations.push(usersCount);
-        deliveries.push(deliveriesCount);
-        documents.push(documentsCount);
+        registrationValues.push(usersCount);
+        deliveryValues.push(deliveriesCount);
+        transactionValues.push(transactionsCount);
       }
 
+      // Formatage des données selon le type ActivityChartData
+      const registrations = dates.map((date, i) => ({
+        date,
+        value: registrationValues[i]
+      }));
+
+      const deliveries = dates.map((date, i) => ({
+        date,
+        value: deliveryValues[i]
+      }));
+
+      const transactions = dates.map((date, i) => ({
+        date,
+        value: transactionValues[i]
+      }));
+
       return {
-        labels: dates,
-        datasets: [
-          {
-            label: 'Inscriptions',
-            data: registrations,
-          },
-          {
-            label: 'Livraisons',
-            data: deliveries,
-          },
-          {
-            label: 'Documents',
-            data: documents,
-          },
-        ],
+        deliveries,
+        transactions,
+        registrations
       };
     } catch (error) {
       console.error("Erreur lors de la récupération des données du graphique d'activité:", error);
