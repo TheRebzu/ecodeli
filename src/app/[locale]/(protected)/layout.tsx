@@ -4,6 +4,7 @@ import { getMessages } from 'next-intl/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/server/auth/next-auth';
 import { redirect } from 'next/navigation';
+import { OnboardingWrapper } from '@/components/providers/onboarding-provider';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -42,7 +43,9 @@ export default async function ProtectedLayout(props: LayoutProps) {
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <div className="flex min-h-screen flex-col">
-        <main className="flex-1">{children}</main>
+        <main className="flex-1">
+          <OnboardingWrapper>{children}</OnboardingWrapper>
+        </main>
       </div>
     </NextIntlClientProvider>
   );

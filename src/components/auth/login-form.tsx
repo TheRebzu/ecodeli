@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useSearchParams } from 'next/navigation';
@@ -25,7 +25,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Loader2, AlertTriangle, KeyRound } from 'lucide-react';
+import { Loader2, AlertTriangle, KeyRound, MailIcon } from 'lucide-react';
 import AppLink from '@/components/shared/app-link';
 import { useAuth } from '@/hooks/use-auth';
 import { useToast } from '@/components/ui/use-toast';
@@ -37,9 +37,24 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
   const searchParams = useSearchParams();
   const callbackUrl = searchParams.get('callbackUrl') || '/';
   const [showTwoFactor, setShowTwoFactor] = useState(false);
-  const { login, error: authError, isLoading: authLoading } = useAuth();
+  const [emailToVerify, setEmailToVerify] = useState<string | null>(null);
+  const [isResendingEmail, setIsResendingEmail] = useState(false);
+  const { login, error: authError, isLoading: authLoading, resendEmailVerification } = useAuth();
   const { toast: _toast } = useToast();
   const tAuth = useTranslations('auth');
+
+  // Vérifier si l'erreur est liée à un email non vérifié
+  const isEmailNotVerifiedError = (error: string | null) => {
+    if (!error) return false;
+
+    // Vérifier les différents cas possibles
+    return (
+      error === 'EmailNotVerified' ||
+      error.includes('EmailNotVerified') ||
+      error.includes('vérifier votre email') ||
+      error === tAuth('errors.EmailNotVerified')
+    );
+  };
 
   // @ts-ignore: Le cast en 'any' est nécessaire en raison d'incompatibilités
   // de types entre Zod, react-hook-form et les props attendues.
@@ -54,8 +69,19 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
     },
   });
 
+  // Vérifier si l'erreur actuelle est liée à un email non vérifié
+  useEffect(() => {
+    if (isEmailNotVerifiedError(authError)) {
+      const emailValue = form.getValues('email');
+      if (emailValue) {
+        setEmailToVerify(emailValue);
+      }
+    }
+  }, [authError, form]);
+
   const onSubmit: SubmitHandler<LoginSchemaType> = async values => {
     try {
+      setEmailToVerify(null); // Réinitialiser l'état du formulaire
       const result = await login(values, callbackUrl);
 
       if (!result) {
@@ -72,9 +98,35 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
           });
           return;
         }
+
+        // Si l'erreur est que l'email n'est pas vérifié
+        if (isEmailNotVerifiedError(authError)) {
+          setEmailToVerify(values.email);
+        }
       }
     } catch (error) {
       console.error('Erreur de connexion:', error);
+    }
+  };
+
+  const handleResendVerificationEmail = async () => {
+    if (!emailToVerify) return;
+
+    setIsResendingEmail(true);
+    try {
+      await resendEmailVerification(emailToVerify);
+      _toast({
+        title: tAuth('login.verificationEmailSent'),
+        variant: 'default',
+      });
+    } catch (error) {
+      console.error("Erreur lors du renvoi de l'email de vérification:", error);
+      _toast({
+        title: tAuth('login.verificationEmailError'),
+        variant: 'destructive',
+      });
+    } finally {
+      setIsResendingEmail(false);
     }
   };
 
@@ -89,6 +141,23 @@ export function LoginForm({ locale = 'fr' }: { locale?: string }) {
           <Alert variant="destructive" className="mb-4">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription>{getAuthErrorMessage(authError, key => tAuth(key))}</AlertDescription>
+
+            {isEmailNotVerifiedError(authError) && emailToVerify && (
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-2 w-full"
+                onClick={handleResendVerificationEmail}
+                disabled={isResendingEmail}
+              >
+                {isResendingEmail ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <MailIcon className="mr-2 h-4 w-4" />
+                )}
+                {tAuth('login.resendVerificationEmail')}
+              </Button>
+            )}
           </Alert>
         )}
         <Form {...form}>

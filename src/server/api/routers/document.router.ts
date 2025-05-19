@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { router, protectedProcedure, adminProcedure } from '../trpc';
 import { DocumentService } from '../../services/document.service';
 import { DocumentStatus, DocumentType } from '../../db/enums';
+import { UserRole, VerificationStatus } from '@prisma/client';
 import {
   uploadDocumentSchema,
   updateDocumentSchema,
@@ -56,7 +57,7 @@ export const documentRouter = router({
     )
     .query(async ({ input }) => {
       try {
-        const types = documentService.getRequiredDocumentTypesByRole(input.userRole.toLowerCase());
+        const types = documentService.getRequiredDocumentTypes(input.userRole as UserRole);
         return types;
       } catch (error: any) {
         throw new TRPCError({
@@ -117,7 +118,7 @@ export const documentRouter = router({
         // Utiliser correctement le service de document pour mettre à jour le statut
         const document = await documentService.verifyDocument({
           documentId,
-          status: status as DocumentStatus,
+          verificationStatus: status as VerificationStatus,
           adminId,
           rejectionReason,
         });
@@ -340,38 +341,34 @@ export const documentRouter = router({
    * Supprimer un document
    */
   deleteDocument: protectedProcedure
-    .input(
-      z.object({
-        documentId: z.string(),
-      })
-    )
+    .input(z.object({ documentId: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      try {
-        const userId = ctx.session.user.id;
-        const deleted = await documentService.deleteDocument(input.documentId, userId);
+      const { documentId } = input;
+      const { user } = ctx.session;
 
-        if (!deleted) {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: "Vous n'êtes pas autorisé à supprimer ce document",
-          });
-        }
+      // Vérifier que le document existe
+      const document = await ctx.db.document.findUnique({
+        where: { id: documentId },
+      });
 
-        return {
-          success: true,
-          documentId: input.documentId,
-        };
-      } catch (error: any) {
-        if (error instanceof TRPCError) {
-          throw error;
-        }
-
+      if (!document) {
         throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la suppression du document',
-          cause: error,
+          code: 'NOT_FOUND',
+          message: 'Document not found',
         });
       }
+
+      // Vérifier que l'utilisateur a le droit de supprimer ce document
+      if (document.userId !== user.id && user.role !== 'ADMIN') {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'You do not have permission to delete this document',
+        });
+      }
+
+      return await ctx.db.document.delete({
+        where: { id: documentId },
+      });
     }),
 
   // Mettre à jour un document

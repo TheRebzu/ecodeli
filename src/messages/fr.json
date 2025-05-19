@@ -1124,7 +1124,7 @@
       "title": "Connexion",
       "welcome": "Bienvenue sur EcoDeli",
       "connectToAccount": "Connectez-vous pour accéder à votre compte",
-      "email": "Adresse e-mail",
+      "email": "Email",
       "password": "Mot de passe",
       "forgotPassword": "Mot de passe oublié ?",
       "signIn": "Se connecter",
@@ -1143,7 +1143,10 @@
         "verifyButton": "Vérifier",
         "enterCode": "Entrez le code à 6 chiffres généré par votre application d'authentification"
       },
-      "continueWith": "Ou continuer avec"
+      "continueWith": "Ou continuer avec",
+      "resendVerificationEmail": "Renvoyer l'email de vérification",
+      "verificationEmailSent": "Email de vérification renvoyé avec succès",
+      "verificationEmailError": "Impossible de renvoyer l'email de vérification"
     },
     "register": {
       "pageTitle": "Inscription | EcoDeli",
@@ -1417,6 +1420,7 @@
     "alreadySubmitted": "Document déjà soumis",
     "verificationRequired": {
       "title": "Vérification requise",
+      "message": "Veuillez télécharger tous les documents requis pour activer votre compte de livreur",
       "type": {
         "label": "Type de document",
         "placeholder": "Sélectionnez un type de document",
@@ -1437,7 +1441,25 @@
       "submit": "Soumettre le document"
     },
     "verification": {
-      "notice": "Tous vos documents doivent être vérifiés avant d'accéder à toutes les fonctionnalités"
+      "notice": "Tous vos documents doivent être vérifiés avant d'accéder à toutes les fonctionnalités",
+      "forceUpdate": {
+        "title": "Problème de statut de vérification",
+        "description": "Vous devez avoir 3 documents vérifiés pour activer votre compte. Veuillez soumettre et faire valider tous les documents requis avant de pouvoir accéder à votre tableau de bord.",
+        "button": "Mettre à jour mon statut",
+        "updating": "Mise à jour en cours..."
+      },
+      "updateSuccess": {
+        "title": "Statut mis à jour",
+        "description": "Votre statut de vérification a été mis à jour avec succès. Vous allez être redirigé vers votre tableau de bord."
+      },
+      "updateError": {
+        "title": "Erreur de mise à jour",
+        "description": "Une erreur est survenue lors de la mise à jour de votre statut. Veuillez réessayer plus tard."
+      }
+    },
+    "pendingVerification": {
+      "title": "Documents en cours de vérification",
+      "message": "Vos documents ont été soumis et sont en cours de vérification par notre équipe. Vous recevrez une notification lorsque la vérification sera terminée."
     },
     "deleteConfirmation": {
       "title": "Supprimer le document",
@@ -2333,5 +2355,51 @@
   "noApplicationsYet": "[en] noApplicationsYet",
   "cannotEditAnnouncement": "[en] cannotEditAnnouncement",
   "cannotEditAnnouncementDescription": "[en] cannotEditAnnouncementDescription",
-  "backToAnnouncement": "[en] backToAnnouncement"
+  "backToAnnouncement": "[en] backToAnnouncement",
+  "dashboard": {
+    "welcome": "Bienvenue dans votre tableau de bord",
+    "welcomeMessage": "Voici un résumé des options disponibles pour gérer votre compte.",
+    "quickActions": {
+      "title": "Actions rapides",
+      "findDeliveries": "Trouver des livraisons",
+      "findDeliveriesDescription": "Consultez les annonces disponibles pour de nouvelles livraisons",
+      "manageRoutes": "Gérer mes itinéraires",
+      "manageRoutesDescription": "Planifiez et optimisez vos trajets de livraison",
+      "activeDeliveries": "Livraisons en cours",
+      "activeDeliveriesDescription": "Suivez et gérez vos livraisons en cours",
+      "schedule": "Mon planning",
+      "scheduleDescription": "Consultez et mettez à jour votre disponibilité",
+      "notifications": "Notifications",
+      "notificationsDescription": "Consultez les notifications et les messages importants",
+      "statistics": "Statistiques",
+      "statisticsDescription": "Visualisez vos données et performances"
+    },
+    "verification": {
+      "verified": "Vérifié",
+      "pendingVerification": "Vérification en attente",
+      "documentStatus": "Statut de vérification des documents",
+      "documentsInVerification": "Documents en cours de vérification",
+      "allDocumentsVerified": "Tous les documents ont été vérifiés",
+      "processingVerification": "Vos documents sont vérifiés, votre compte sera bientôt activé",
+      "viewDocuments": "Voir mes documents"
+    },
+    "stats": {
+      "title": "Statistiques",
+      "deliveriesCompleted": "Livraisons terminées",
+      "activeDeliveries": "Livraisons en cours",
+      "rating": "Évaluation moyenne",
+      "earnings": "Gains totaux"
+    }
+  },
+  "Auth": {
+    "EmailVerification": {
+      "title": "Vérification d'email",
+      "description": "Validation de votre adresse email",
+      "verifying": "Vérification de votre email en cours...",
+      "success": "Votre email a été vérifié avec succès. Vous allez être redirigé vers la page de connexion.",
+      "defaultError": "Une erreur est survenue lors de la vérification de votre email.",
+      "loginButton": "Aller à la connexion",
+      "backButton": "Retour à la connexion"
+    }
+  }
 }
