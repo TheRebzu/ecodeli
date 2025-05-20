@@ -102,7 +102,7 @@ function getVerificationPathByRole(role: UserRole): string {
     case UserRole.DELIVERER:
       return '/deliverer/documents';
     case UserRole.MERCHANT:
-      return '/merchant/contract';
+      return '/merchant/documents';
     case UserRole.PROVIDER:
       return '/provider/documents';
     default:

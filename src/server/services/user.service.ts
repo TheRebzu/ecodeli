@@ -14,14 +14,15 @@ export const userService = {
   async toggleUserActivation(userId: string, isActive: boolean) {
     return db.user.update({
       where: { id: userId },
-      data: { isActive },
+      data: { 
+        status: isActive ? 'ACTIVE' : 'INACTIVE'
+      },
       select: {
         id: true,
         email: true,
         name: true,
-        isActive: true,
-        role: true,
         status: true,
+        role: true,
       },
     });
   },
@@ -59,20 +60,16 @@ export const userService = {
       return db.user.update({
         where: { id: userId },
         data: {
-          isBanned: true,
-          bannedAt: new Date(),
-          bannedById: adminId,
-          banReason: reason || 'Non spécifiée',
+          status: 'SUSPENDED',
+          notes: reason ? `BANNI par ${adminId} le ${new Date().toISOString()}: ${reason}` : 'BANNI: Raison non spécifiée',
         },
       });
     } else {
       return db.user.update({
         where: { id: userId },
         data: {
-          isBanned: false,
-          bannedAt: null,
-          bannedById: null,
-          banReason: null,
+          status: 'ACTIVE',
+          notes: null,
         },
       });
     }

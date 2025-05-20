@@ -1273,26 +1273,13 @@ export class AdminService {
         });
       }
 
-      // Enregistrer les informations de base pour la journalisation externe
-      const deletionRecord = {
-        userId,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        deletedAt: new Date(),
-        deletedBy: performedById,
-        reason,
-      };
-
-      // Stocker cette information dans un système externe ou dans une table séparée
-      await this.prisma.userDeletionLog.create({
+      // Enregistrer les informations de base dans les logs d'activité
+      await this.prisma.userActivityLog.create({
         data: {
           userId,
-          userEmail: user.email,
-          userName: user.name,
-          userRole: user.role,
-          reason,
-          deletedByUserId: performedById,
+          activityType: 'OTHER',
+          details: `Suppression définitive du compte - Raison: ${reason} - Effectuée par: ${performedById}`,
+          ipAddress: 'admin-action',
         },
       });
 
@@ -1302,6 +1289,21 @@ export class AdminService {
           where: { userId },
         });
       }
+
+      // Supprimer le wallet associé à l'utilisateur (résout l'erreur de clé étrangère)
+      await this.prisma.wallet.deleteMany({
+        where: { userId },
+      });
+
+      // Supprimer toutes les transactions du wallet associées à l'utilisateur
+      await this.prisma.walletTransaction.deleteMany({
+        where: { wallet: { userId } },
+      });
+
+      // Supprimer les demandes de retrait associées
+      await this.prisma.withdrawalRequest.deleteMany({
+        where: { wallet: { userId } },
+      });
 
       // Supprimer l'utilisateur et toutes ses données associées en cascade
       await this.prisma.user.delete({
@@ -1325,15 +1327,15 @@ export class AdminService {
     try {
       const admin = await this.prisma.user.findUnique({
         where: { id: adminId, role: 'ADMIN' },
-        select: { id: true, passwordHash: true },
+        select: { id: true, password: true },
       });
 
-      if (!admin || !admin.passwordHash) {
+      if (!admin || !admin.password) {
         return false;
       }
 
       // Vérifier le mot de passe en utilisant bcrypt
-      return bcrypt.compare(password, admin.passwordHash);
+      return bcrypt.compare(password, admin.password);
     } catch (error) {
       console.error('Error verifying admin password:', error);
       return false;

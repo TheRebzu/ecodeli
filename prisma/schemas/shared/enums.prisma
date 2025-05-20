@@ -21,15 +21,19 @@ enum UserStatus {
 
 /// Type de document d'identification
 enum DocumentType {
-  ID_CARD                   // Carte d'identité
-  DRIVING_LICENSE           // Permis de conduire
-  VEHICLE_REGISTRATION      // Carte grise
-  INSURANCE                 // Assurance
-  QUALIFICATION_CERTIFICATE // Certificat de qualification
-  PROOF_OF_ADDRESS          // Justificatif de domicile
-  BUSINESS_REGISTRATION     // Extrait K-bis
-  OTHER                     // Autre type de document
-  SELFIE                    // Photo de vérification
+  ID_CARD            // Carte d'identité
+  PASSPORT           // Passeport
+  DRIVERS_LICENSE    // Permis de conduire
+  PROOF_OF_ADDRESS   // Justificatif de domicile
+  VEHICLE_INSURANCE  // Assurance véhicule
+  VEHICLE_REGISTRATION // Carte grise
+  BUSINESS_LICENSE   // Licence commerciale
+  INSURANCE_CERTIFICATE // Certificat d'assurance
+  PROFESSIONAL_QUALIFICATION // Qualification professionnelle
+  TAX_CERTIFICATE    // Certificat fiscal
+  BUSINESS_REGISTRATION // Enregistrement entreprise
+  VAT_REGISTRATION   // Enregistrement TVA
+  OTHER              // Autre type de document
 }
 
 /// Statut d'un document
@@ -42,9 +46,9 @@ enum DocumentStatus {
 
 /// Statut de vérification
 enum VerificationStatus {
-  PENDING   // En attente de vérification
-  APPROVED  // Vérification approuvée
-  REJECTED  // Vérification rejetée
+  PENDING    // En attente d'examen
+  APPROVED   // Vérifié et approuvé
+  REJECTED   // Rejeté pour non-conformité
 }
 
 /// Type de token d'authentification
@@ -386,4 +390,16 @@ enum Interval {
   WEEK  // Semaine
   MONTH // Mois
   YEAR  // Année
+}
+
+/// Raisons de rejet pour les documents de vérification
+enum RejectionReason {
+  UNREADABLE         // Document illisible
+  EXPIRED            // Document expiré
+  INCOMPLETE         // Informations manquantes
+  FAKE               // Document potentiellement falsifié
+  WRONG_TYPE         // Mauvais type de document
+  LOW_QUALITY        // Qualité d'image insuffisante
+  INFORMATION_MISMATCH // Informations ne correspondent pas
+  OTHER              // Autre raison
 } 

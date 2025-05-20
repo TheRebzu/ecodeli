@@ -22,6 +22,8 @@
 
 # TODO file
 TODO.md
+prisma/seed-users.*
+TODO.txt
 
 # misc
 .DS_Store
