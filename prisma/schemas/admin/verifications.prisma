@@ -46,4 +46,57 @@ model VerificationHistory {
   @@index([userId])
   @@index([verifiedById])
   @@map("verification_history")
+}
+
+/// Modèle spécifique pour la vérification des comptes commerçants
+model MerchantVerification {
+  id                 String             @id @default(cuid())
+  merchantId         String             @unique
+  status             VerificationStatus @default(PENDING)
+  requestedAt        DateTime           @default(now())
+  verifiedAt         DateTime?
+  verifierId         String?
+  notes              String?
+  rejectionReason    String?
+  businessDocuments  String[]           // IDs des documents d'entreprise soumis
+  identityDocuments  String[]           // IDs des documents d'identité soumis
+  addressDocuments   String[]           // IDs des documents de preuve d'adresse
+  businessRegistered Boolean            @default(false)    // Si l'entreprise est officiellement enregistrée
+  taxCompliant       Boolean            @default(false)    // Si l'entreprise est à jour fiscalement
+  
+  // Relations
+  merchant           Merchant           @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  verifier           User?              @relation("MerchantVerifier", fields: [verifierId], references: [id])
+
+  @@index([merchantId])
+  @@index([verifierId])
+  @@index([status])
+  @@map("merchant_verifications")
+}
+
+/// Modèle spécifique pour la vérification des comptes prestataires
+model ProviderVerification {
+  id                 String             @id @default(cuid())
+  providerId         String             @unique
+  status             VerificationStatus @default(PENDING)
+  requestedAt        DateTime           @default(now())
+  verifiedAt         DateTime?
+  verifierId         String?
+  notes              String?
+  rejectionReason    String?
+  identityDocuments  String[]           // IDs des documents d'identité soumis
+  qualificationDocs  String[]           // IDs des documents de qualification professionnelle
+  insuranceDocs      String[]           // IDs des documents d'assurance
+  addressDocuments   String[]           // IDs des documents de preuve d'adresse
+  qualificationsVerified Boolean        @default(false)    // Si les qualifications ont été vérifiées
+  insuranceValid     Boolean            @default(false)    // Si l'assurance est valide
+  
+  // Relations
+  provider           Provider           @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  verifier           User?              @relation("ProviderVerifier", fields: [verifierId], references: [id])
+
+  @@index([providerId])
+  @@index([verifierId])
+  @@index([status])
+  @@map("provider_verifications")
 } 

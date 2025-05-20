@@ -464,7 +464,8 @@ model User {
   lastOnboardingStep       Int                           @default(0)
   onboardingCompletionDate DateTime?
   isProvider               Boolean                       @default(false)
-  providerBio              String?  providerLocationLat      Float?
+  providerBio              String?
+  providerLocationLat      Float?
   providerLocationLng      Float?
   providerAddress          String?
   providerZipCode          String?
@@ -472,9 +473,11 @@ model User {
   providerVerified         Boolean                       @default(false)
   isActive                 Boolean                       @default(true)
   isBanned                 Boolean                       @default(false)
-  banReason                String?
-  
-  // Relation avec les livraisons
+  bannedAt                 DateTime?                     // Date du bannissement
+  bannedById               String?                       // ID de l'admin ayant banni
+  banReason                String?                       // Raison du bannissement
+  bannedBy                 User?                         @relation("BannedBy", fields: [bannedById], references: [id])
+  bannedUsers              User[]                        @relation("BannedBy")
   clientDeliveries         Delivery[]                    @relation("ClientDeliveries")
   delivererDeliveries      Delivery[]                    @relation("DelivererDeliveries")
   

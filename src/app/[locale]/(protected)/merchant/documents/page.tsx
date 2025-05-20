@@ -10,7 +10,7 @@ import { createCaller } from '@/trpc/server';
 import { headers } from 'next/headers';
 
 export const metadata: Metadata = {
-  title: 'Mes documents | EcoDeli Prestataire',
+  title: 'Mes documents | EcoDeli Marchand',
   description: 'Téléchargez et gérez les documents nécessaires à la vérification de votre compte',
 };
 
@@ -19,7 +19,7 @@ type Props = {
   searchParams: { [key: string]: string | string[] | undefined };
 };
 
-export default async function ProviderDocumentsPage({ params, searchParams }: Props) {
+export default async function MerchantDocumentsPage({ params, searchParams }: Props) {
   // Résoudre params.locale et searchParams en tant que Promise
   const [resolvedParams, resolvedSearchParams] = await Promise.all([
     params,
@@ -37,8 +37,8 @@ export default async function ProviderDocumentsPage({ params, searchParams }: Pr
     return redirect(`/${locale}/login`);
   }
 
-  // Vérifier que l'utilisateur est bien un prestataire
-  if (session.user.role !== 'PROVIDER') {
+  // Vérifier que l'utilisateur est bien un marchand
+  if (session.user.role !== 'MERCHANT') {
     return redirect(`/${locale}/login`);
   }
   
@@ -49,8 +49,8 @@ export default async function ProviderDocumentsPage({ params, searchParams }: Pr
     const headersList = headers();
     const referer = headersList.get('referer') || '';
     
-    // Ne rediriger que si on ne vient pas d'une autre page du module provider
-    if (!referer || !referer.includes('provider')) {
+    // Ne rediriger que si on ne vient pas d'une autre page du module merchant
+    if (!referer || !referer.includes('merchant')) {
       // Utiliser redirection client avec JavaScript pour éviter NEXT_REDIRECT
       return (
         <div className="container mx-auto py-8 max-w-4xl">
@@ -60,7 +60,7 @@ export default async function ProviderDocumentsPage({ params, searchParams }: Pr
           </div>
           <script dangerouslySetInnerHTML={{ __html: `
             setTimeout(() => {
-              window.location.href = '/${locale}/provider/dashboard';
+              window.location.href = '/${locale}/merchant/dashboard';
             }, 2000);
           `}} />
         </div>
@@ -68,12 +68,12 @@ export default async function ProviderDocumentsPage({ params, searchParams }: Pr
     }
   }
   
-  // Vérifier automatiquement le statut des documents pour tout prestataire non vérifié
+  // Vérifier automatiquement le statut des documents pour tout marchand non vérifié
   let verificationStatus = null;
   if (!session.user.isVerified) {
     try {
       const caller = await createCaller();
-      verificationStatus = await caller.verification.checkAndUpdateProviderVerification();
+      verificationStatus = await caller.verification.checkAndUpdateMerchantVerification();
       console.log("Vérification automatique effectuée:", verificationStatus);
       
       // Si la vérification a réussi mais que la session n'est pas mise à jour, forcer un rafraîchissement
@@ -99,7 +99,7 @@ export default async function ProviderDocumentsPage({ params, searchParams }: Pr
           <script dangerouslySetInnerHTML={{ __html: `
             // Forcer une actualisation complète pour mettre à jour la session
             setTimeout(() => {
-              window.location.href = '/${locale}/provider/dashboard';
+              window.location.href = '/${locale}/merchant/dashboard';
             }, 3000);
           `}} />
         </>
@@ -110,7 +110,7 @@ export default async function ProviderDocumentsPage({ params, searchParams }: Pr
               <p className="font-bold">Vérification requise</p>
               <p>
                 Vous devez télécharger et faire vérifier tous vos documents avant de pouvoir 
-                accéder à toutes les fonctionnalités de votre compte prestataire.
+                accéder à toutes les fonctionnalités de votre compte marchand.
               </p>
             </div>
           ) : null}
@@ -119,7 +119,7 @@ export default async function ProviderDocumentsPage({ params, searchParams }: Pr
           
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
             <div>
-              <DocumentUpload userRole="PROVIDER" />
+              <DocumentUpload userRole="MERCHANT" />
             </div>
             <div>
               <DocumentList />
@@ -129,12 +129,12 @@ export default async function ProviderDocumentsPage({ params, searchParams }: Pr
           <div className="mt-8 p-4 bg-blue-50 dark:bg-blue-900/30 rounded-lg border border-blue-200 dark:border-blue-800">
             <h2 className="text-xl font-medium mb-2">Documents nécessaires</h2>
             <p className="mb-4 text-sm text-gray-600 dark:text-gray-300">
-              Pour vérifier votre compte prestataire, veuillez télécharger les documents suivants :
+              Pour vérifier votre compte marchand, veuillez télécharger les documents suivants :
             </p>
             <ul className="list-disc pl-5 mb-4 space-y-2 text-sm text-gray-600 dark:text-gray-300">
               <li>Document d'identité valide (carte d'identité, passeport)</li>
-              <li>Diplômes ou certifications professionnelles</li>
-              <li>Justificatif d'assurance responsabilité civile professionnelle</li>
+              <li>Extrait Kbis ou équivalent (moins de 3 mois)</li>
+              <li>Attestation URSSAF ou équivalent (moins de 3 mois)</li>
               <li>Justificatif d'adresse professionnelle (moins de 3 mois)</li>
             </ul>
           </div>
@@ -142,4 +142,4 @@ export default async function ProviderDocumentsPage({ params, searchParams }: Pr
       )}
     </div>
   );
-}
+} 

@@ -263,5 +263,8 @@
   "type": "module",
   "peerDependencies": {
     "@t3-oss/env-nextjs": "^0.13.4"
+  },
+  "prisma": {
+    "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
   }
 }

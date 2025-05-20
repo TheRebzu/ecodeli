@@ -197,230 +197,93 @@
       "documentsListDescription": "Tous les documents téléchargés par l'utilisateur",
       "tabs": {
         "pending": "En attente",
-        "approved": "Approuvés",
-        "rejected": "Rejetés",
-        "all": "Tous"
-      },
-      "noDocuments": "Aucun document trouvé",
-      "status": {
-        "approved": "Approuvé",
-        "rejected": "Rejeté",
-        "pending": "En attente"
-      },
-      "actions": {
-        "view": "Voir",
-        "approve": "Approuver",
-        "reject": "Rejeter"
-      },
-      "documentTypes": {
-        "ID_CARD": "Carte d'identité",
-        "DRIVING_LICENSE": "Permis de conduire",
-        "SELFIE": "Photo de profil",
-        "OTHER": "Autre document"
-      },
-      "table": {
-        "documentType": "Type de document",
-        "status": "Statut",
-        "submitted": "Soumis le",
-        "actions": "Actions",
-        "user": "Utilisateur",
-        "role": "Rôle",
-        "documents": "Documents"
-      },
-      "usersVerification": {
-        "title": "Vérification des utilisateurs",
-        "description": "Consultez et vérifiez les documents des utilisateurs",
-        "searchPlaceholder": "Rechercher par nom ou email",
-        "search": "Rechercher",
-        "noUsers": "Aucun utilisateur trouvé"
-      },
-      "users": {
-        "title": "Gestion des utilisateurs",
-        "subtitle": "Gérer les utilisateurs de la plateforme",
-        "actions": {
-          "export": "Exporter",
-          "addUser": "Ajouter un utilisateur"
+        "approved": "Approuvés"
+      }
+    }
+  },
+  "verification": {
+    "merchant": {
+      "title": "Vérification du compte commerçant",
+      "description": "Soumettez vos documents pour vérifier votre compte commerçant",
+      "formTitle": "Vérification du compte commerçant",
+      "formDescription": "Pour activer votre compte commerçant, veuillez télécharger les documents suivants pour vérification",
+      "submitButton": "Soumettre pour vérification",
+      "documents": {
+        "idCard": {
+          "label": "Pièce d'identité",
+          "description": "Carte d'identité, passeport ou permis de conduire valide"
         },
-        "tabs": {
-          "all": "Tous les utilisateurs",
-          "pending": "En attente",
-          "verified": "Vérifiés",
-          "unverified": "Non vérifiés"
+        "businessLicense": {
+          "label": "Licence commerciale",
+          "description": "Document officiel autorisant votre activité commerciale"
         },
-        "stats": {
-          "title": "Statistiques"
+        "taxCertificate": {
+          "label": "Certificat fiscal",
+          "description": "Attestation fiscale à jour ou numéro de TVA"
         },
-        "bulkActions": {
-          "title": "Actions en masse",
-          "activate": "Activer",
-          "deactivate": "Désactiver",
-          "suspend": "Suspendre",
-          "delete": "Supprimer",
-          "export": "Exporter",
-          "resetPassword": "Réinitialiser les mots de passe",
-          "sendVerification": "Envoyer des emails de vérification",
-          "actions": {
-            "ACTIVATE": {
-              "label": "Activer les utilisateurs",
-              "title": "Activer les utilisateurs sélectionnés",
-              "description": "Cette action activera tous les utilisateurs sélectionnés. Les utilisateurs activés pourront se connecter et utiliser la plateforme."
-            },
-            "DEACTIVATE": {
-              "label": "Désactiver les utilisateurs",
-              "title": "Désactiver les utilisateurs sélectionnés",
-              "description": "Cette action désactivera tous les utilisateurs sélectionnés. Les utilisateurs désactivés ne pourront plus se connecter."
-            },
-            "SUSPEND": {
-              "label": "Suspendre les utilisateurs",
-              "title": "Suspendre les utilisateurs sélectionnés",
-              "description": "Cette action suspendra tous les utilisateurs sélectionnés. Les utilisateurs suspendus ne pourront plus accéder à leur compte temporairement."
-            },
-            "FORCE_PASSWORD_RESET": {
-              "label": "Forcer la réinitialisation des mots de passe",
-              "title": "Forcer la réinitialisation des mots de passe",
-              "description": "Cette action obligera les utilisateurs sélectionnés à réinitialiser leur mot de passe lors de leur prochaine connexion."
-            },
-            "SEND_VERIFICATION_EMAIL": {
-              "label": "Envoyer des emails de vérification",
-              "title": "Envoyer des emails de vérification",
-              "description": "Cette action enverra un email de vérification à tous les utilisateurs sélectionnés non vérifiés."
-            },
-            "DELETE": {
-              "label": "Supprimer les utilisateurs",
-              "title": "Supprimer les utilisateurs sélectionnés",
-              "description": "Cette action supprimera définitivement tous les utilisateurs sélectionnés. Cette action est irréversible."
-            },
-            "ASSIGN_ROLE": {
-              "label": "Attribuer un rôle",
-              "title": "Attribuer un rôle aux utilisateurs sélectionnés",
-              "description": "Cette action attribuera un rôle spécifique à tous les utilisateurs sélectionnés."
-            },
-            "ASSIGN_PERMISSION": {
-              "label": "Attribuer une permission",
-              "title": "Attribuer une permission aux utilisateurs sélectionnés",
-              "description": "Cette action attribuera une permission spécifique à tous les utilisateurs sélectionnés."
-            },
-            "REVOKE_PERMISSION": {
-              "label": "Révoquer une permission",
-              "title": "Révoquer une permission des utilisateurs sélectionnés",
-              "description": "Cette action révoquera une permission spécifique de tous les utilisateurs sélectionnés."
-            },
-            "ADD_TAG": {
-              "label": "Ajouter un tag",
-              "title": "Ajouter un tag aux utilisateurs sélectionnés",
-              "description": "Cette action ajoutera un tag spécifique à tous les utilisateurs sélectionnés."
-            },
-            "REMOVE_TAG": {
-              "label": "Supprimer un tag",
-              "title": "Supprimer un tag des utilisateurs sélectionnés",
-              "description": "Cette action supprimera un tag spécifique de tous les utilisateurs sélectionnés."
-            },
-            "SEND_NOTIFICATION": {
-              "label": "Envoyer une notification",
-              "title": "Envoyer une notification aux utilisateurs sélectionnés",
-              "description": "Cette action enverra une notification à tous les utilisateurs sélectionnés."
-            },
-            "EXPORT_DATA": {
-              "label": "Exporter les données",
-              "title": "Exporter les données des utilisateurs sélectionnés",
-              "description": "Cette action exportera toutes les données des utilisateurs sélectionnés."
-            }
-          },
-          "confirm": {
-            "title": "Confirmation requise",
-            "description": "Veuillez confirmer que vous souhaitez effectuer cette action sur {count} utilisateurs sélectionnés.",
-            "confirmButtonText": "Confirmer",
-            "cancelButtonText": "Annuler"
-          },
-          "confirmSensitive": {
-            "title": "Confirmation de sécurité requise",
-            "description": "Cette action est sensible et peut avoir un impact important. Veuillez confirmer en tapant le code de sécurité ci-dessous.",
-            "codePrompt": "Veuillez saisir le code '{code}' pour confirmer",
-            "codePlaceholder": "Code de confirmation",
-            "confirmButtonText": "Confirmer",
-            "cancelButtonText": "Annuler"
-          },
-          "button": "Actions en masse",
-          "cancel": "Annuler",
-          "processing": "Traitement en cours...",
-          "confirm": "Confirmer",
-          "confirmationText": "Vous avez sélectionné {count} utilisateurs",
-          "button": "Actions en masse",
-          "title": "Actions en masse",
-          "cancel": "Annuler",
-          "processing": "Traitement en cours...",
-          "confirm": "Confirmer",
-          "confirmationText": "Vous avez sélectionné {count} utilisateurs"
-        },
-        "quickStats": "Statistiques rapides",
-        "totalUsers": "Total utilisateurs",
-        "activeUsers": "Utilisateurs actifs",
-        "newToday": "Nouveaux aujourd'hui",
-        "pendingVerification": "En attente de vérification",
-        "selectAll": "Sélectionner tous les utilisateurs",
-        "noUsers": "Aucun utilisateur trouvé",
-        "never": "Jamais",
-        "pending": "en attente",
-        "verified": "Vérifié",
-        "unverified": "Non vérifié",
-        "openMenu": "Ouvrir le menu",
-        "table": {
-          "user": "Utilisateur",
-          "role": "Rôle",
-          "status": "Statut",
-          "created": "Créé le",
-          "lastActive": "Dernière activité",
-          "documents": "Documents"
-        },
-        "roles": {
-          "ADMIN": "Admin",
-          "CLIENT": "Client",
-          "DELIVERER": "Livreur",
-          "MERCHANT": "Commerçant",
-          "PROVIDER": "Prestataire"
-        },
-        "status": {
-          "ACTIVE": "Actif",
-          "INACTIVE": "Inactif",
-          "SUSPENDED": "Suspendu",
-          "PENDING_VERIFICATION": "En attente"
-        },
-        "actions": {
-          "title": "Actions",
-          "view": "Voir les détails",
-          "edit": "Modifier",
-          "verify": "Vérifier",
-          "activate": "Activer",
-          "deactivate": "Désactiver",
-          "delete": "Supprimer",
-          "export": "Exporter",
-          "addUser": "Ajouter un utilisateur"
-        },
-        "success": {
-          "title": "Action réussie",
-          "description": "L'action a été effectuée avec succès sur {count} utilisateurs."
-        },
-        "error": {
-          "title": "Erreur",
-          "description": "Une erreur est survenue lors de l'exécution de l'action. Veuillez réessayer.",
-          "confirmationRequired": {
-            "title": "Confirmation requise",
-            "description": "Veuillez confirmer cette action sensible."
-          }
-        },
-        "activationStatus": {
-          "active": "Actif",
-          "inactive": "Inactif",
-          "activate": "Activer",
-          "deactivate": "Désactiver",
-          "confirmActivate": "Êtes-vous sûr de vouloir activer ce compte utilisateur ?",
-          "confirmDeactivate": "Êtes-vous sûr de vouloir désactiver ce compte utilisateur ?",
-          "successActivate": "Compte activé",
-          "successDeactivate": "Compte désactivé",
-          "successActivateDescription": "Le compte utilisateur a été activé avec succès",
-          "successDeactivateDescription": "Le compte utilisateur a été désactivé avec succès",
-          "error": "Erreur lors de la modification de l'état du compte"
+        "proofOfAddress": {
+          "label": "Justificatif d'adresse",
+          "description": "Facture récente (eau, électricité, téléphone) de moins de 3 mois"
         }
+      }
+    },
+    "provider": {
+      "title": "Vérification du compte prestataire",
+      "description": "Soumettez vos documents pour vérifier votre compte prestataire",
+      "formTitle": "Vérification du compte prestataire",
+      "formDescription": "Pour activer votre compte prestataire, veuillez télécharger les documents suivants pour vérification",
+      "submitButton": "Soumettre pour vérification",
+      "documents": {
+        "idCard": {
+          "label": "Pièce d'identité",
+          "description": "Carte d'identité, passeport ou permis de conduire valide"
+        },
+        "professionalQualification": {
+          "label": "Qualification professionnelle",
+          "description": "Diplôme, certification ou attestation de formation"
+        },
+        "insuranceCertificate": {
+          "label": "Certificat d'assurance",
+          "description": "Assurance responsabilité civile professionnelle à jour"
+        },
+        "proofOfAddress": {
+          "label": "Justificatif d'adresse",
+          "description": "Facture récente (eau, électricité, téléphone) de moins de 3 mois"
+        }
+      }
+    },
+    "statusBanner": {
+      "pending": {
+        "title": "Vérification en cours",
+        "description": "Votre demande est en cours d'examen par notre équipe. Ce processus peut prendre jusqu'à 48 heures ouvrées."
+      },
+      "approved": {
+        "title": "Compte vérifié",
+        "description": "Votre compte a été vérifié avec succès. Vous pouvez maintenant accéder à toutes les fonctionnalités."
+      },
+      "rejected": {
+        "title": "Vérification refusée",
+        "description": "Votre demande de vérification a été refusée. Veuillez consulter les raisons ci-dessous et soumettre à nouveau les documents corrects."
+      }
+    },
+    "alreadySubmitted": {
+      "title": "Demande déjà soumise",
+      "pending": "Votre demande de vérification est en cours d'examen. Nous vous notifierons dès qu'elle sera traitée.",
+      "approved": "Votre compte est déjà vérifié. Vous avez accès à toutes les fonctionnalités."
+    },
+    "upload": {
+      "dropzone": {
+        "title": "Télécharger un document",
+        "instruction": "Glissez-déposez un fichier ici, ou cliquez pour sélectionner",
+        "dropping": "Déposez le fichier ici",
+        "maxSize": "Taille maximale: {size}MB",
+        "formats": "Formats acceptés: JPG, PNG, PDF"
+      },
+      "uploaded": "Document téléchargé avec succès",
+      "error": {
+        "tooLarge": "Fichier trop volumineux. Taille maximale: {size}MB",
+        "invalidFormat": "Format de fichier non supporté.",
+        "uploadFailed": "Échec du téléchargement. Veuillez réessayer."
       }
     }
   },

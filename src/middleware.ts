@@ -44,6 +44,12 @@ const publicPaths = [
   '/test',
 ];
 
+// Chemins spéciaux pour les états utilisateur particuliers
+const specialStatusPaths = {
+  [UserStatus.SUSPENDED]: ['/account-suspended'],
+  [UserStatus.INACTIVE]: ['/account-inactive'],
+};
+
 // Définir les chemins accessibles en fonction du rôle
 const roleBasedPaths: Record<UserRole, string[]> = {
   CLIENT: ['/client'],
@@ -56,8 +62,8 @@ const roleBasedPaths: Record<UserRole, string[]> = {
 // Chemins autorisés même pour les utilisateurs non vérifiés
 const allowedNonVerifiedPaths: Record<UserRole, string[]> = {
   DELIVERER: ['/deliverer/documents', '/api/upload', '/api/trpc/document', '/api/documents'], // Ajout des chemins API pour le téléchargement
-  MERCHANT: ['/merchant/contract', '/merchant/profile', '/merchant/settings'],
-  PROVIDER: ['/provider/documents', '/provider/profile', '/provider/settings'],
+  MERCHANT: ['/merchant/documents', '/merchant/verification', '/merchant/profile', '/api/upload', '/api/trpc/document', '/api/documents'],
+  PROVIDER: ['/provider/documents', '/provider/verification', '/provider/profile', '/api/upload', '/api/trpc/document', '/api/documents'],
   CLIENT: [], // Les clients n'ont pas besoin de vérification
   ADMIN: [], // Les admins n'ont pas besoin de vérification
 };
@@ -183,6 +189,37 @@ export async function middleware(request: NextRequest) {
 
     console.log(`Middleware - User ${token.email || token.id} - Role: ${userRole}, isVerified: ${isVerified}, Status: ${userStatus}, Path: ${pathname}`);
 
+    // Vérification du statut de l'utilisateur
+    if (userStatus === UserStatus.SUSPENDED) {
+      // Vérifier si l'utilisateur est déjà sur une page autorisée pour son statut
+      const isSpecialStatusPath = specialStatusPaths[UserStatus.SUSPENDED].some(
+        path => pathWithoutLocale === path || pathWithoutLocale.startsWith(`${path}/`)
+      );
+      
+      if (isSpecialStatusPath) {
+        // Laisser passer la requête si l'utilisateur est déjà sur la page account-suspended
+        return NextResponse.next();
+      }
+      
+      // Rediriger vers une page expliquant que le compte est suspendu
+      return NextResponse.redirect(new URL(`/${locale}/account-suspended`, request.url));
+    }
+
+    if (userStatus === UserStatus.INACTIVE) {
+      // Vérifier si l'utilisateur est déjà sur une page autorisée pour son statut
+      const isSpecialStatusPath = specialStatusPaths[UserStatus.INACTIVE].some(
+        path => pathWithoutLocale === path || pathWithoutLocale.startsWith(`${path}/`)
+      );
+      
+      if (isSpecialStatusPath) {
+        // Laisser passer la requête si l'utilisateur est déjà sur la page account-inactive
+        return NextResponse.next();
+      }
+      
+      // Rediriger vers une page expliquant que le compte est inactif
+      return NextResponse.redirect(new URL(`/${locale}/account-inactive`, request.url));
+    }
+
     // Vérifier si l'utilisateur a accès au chemin demandé en fonction de son rôle
     const hasRoleAccess = Object.entries(roleBasedPaths).some(([role, paths]) => {
       return (
@@ -195,17 +232,6 @@ export async function middleware(request: NextRequest) {
     if (!hasRoleAccess) {
       const dashboardPath = getDashboardPathForRole(userRole, locale);
       return NextResponse.redirect(new URL(dashboardPath, request.url));
-    }
-
-    // Vérification du statut de l'utilisateur
-    if (userStatus === UserStatus.SUSPENDED) {
-      // Rediriger vers une page expliquant que le compte est suspendu
-      return NextResponse.redirect(new URL(`/${locale}/account-suspended`, request.url));
-    }
-
-    if (userStatus === UserStatus.INACTIVE) {
-      // Rediriger vers une page expliquant que le compte est inactif
-      return NextResponse.redirect(new URL(`/${locale}/account-inactive`, request.url));
     }
 
     // Pour les utilisateurs non vérifiés (hors clients et admins)
@@ -231,7 +257,7 @@ export async function middleware(request: NextRequest) {
             verificationPath = `/${locale}/deliverer/documents`;
             break;
           case UserRole.MERCHANT:
-            verificationPath = `/${locale}/merchant/contract`;
+            verificationPath = `/${locale}/merchant/documents`;
             break;
           case UserRole.PROVIDER:
             verificationPath = `/${locale}/provider/documents`;
@@ -239,7 +265,7 @@ export async function middleware(request: NextRequest) {
           default:
             verificationPath = `/${locale}/login`;
         }
-
+        
         // Ajouter un paramètre pour indiquer qu'une vérification automatique est requise
         const redirectUrl = new URL(verificationPath, request.url);
         redirectUrl.searchParams.set('verification_required', 'true');
