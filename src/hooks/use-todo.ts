@@ -4,7 +4,7 @@ import { TodoItem } from '@/components/todo';
 import { useToast } from '@/components/ui/use-toast';
 
 export function useTodo() {
-  const t = useTranslations('Todo');
+  const t = useTranslations('todo');
   const { toast } = useToast();
   
   const todos = useTodoStore((state) => state.todos);

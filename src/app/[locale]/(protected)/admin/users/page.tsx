@@ -52,11 +52,11 @@ export default function AdminUsersPage() {
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="sm">
             <DownloadIcon className="mr-2 h-4 w-4" />
-            {t('actions.export')}
+            {t('actions.export') || "Exporter"}
           </Button>
           <Button size="sm">
             <PlusIcon className="mr-2 h-4 w-4" />
-            {t('actions.addUser')}
+            {t('actions.addUser') || "Ajouter un utilisateur"}
           </Button>
           <UserBulkActions
             selectedUserIds={selectedUserIds}

@@ -464,13 +464,15 @@ model User {
   lastOnboardingStep       Int                           @default(0)
   onboardingCompletionDate DateTime?
   isProvider               Boolean                       @default(false)
-  providerBio              String?
-  providerLocationLat      Float?
+  providerBio              String?  providerLocationLat      Float?
   providerLocationLng      Float?
   providerAddress          String?
   providerZipCode          String?
   providerCity             String?
   providerVerified         Boolean                       @default(false)
+  isActive                 Boolean                       @default(true)
+  isBanned                 Boolean                       @default(false)
+  banReason                String?
   
   // Relation avec les livraisons
   clientDeliveries         Delivery[]                    @relation("ClientDeliveries")

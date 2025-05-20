@@ -9,7 +9,7 @@ import { useTodo } from '@/hooks/use-todo';
 import { TodoList } from '@/components/todo/TodoList';
 
 export default function TodoPage() {
-  const t = useTranslations('Todo');
+  const t = useTranslations('todo');
   const {
     filteredTodos,
     isFormVisible,
