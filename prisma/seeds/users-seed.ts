@@ -129,6 +129,11 @@ async function createAdminUser() {
         isVerified: true,
         hasCompletedOnboarding: true,
         currentStatus: DeliveryStatusEnum.CREATED,
+        // Ajout d'un admin banni pour test
+        isBanned: false,
+        bannedAt: null,
+        bannedById: null,
+        banReason: null,
         admin: {
           create: {
             permissions: ['all', 'super_admin'],
@@ -180,6 +185,10 @@ async function createClientUser() {
         isVerified: true,
         hasCompletedOnboarding: true,
         currentStatus: DeliveryStatusEnum.CREATED,
+        isBanned: true, // Client banni pour test
+        bannedAt: new Date(),
+        bannedById: null, // À remplacer par l'ID admin si besoin
+        banReason: 'Violation des conditions d’utilisation',
         client: {
           create: {
             address: '123 Rue de Test',
@@ -252,6 +261,10 @@ async function createDelivererUser() {
         isVerified: true,
         hasCompletedOnboarding: true,
         currentStatus: DeliveryStatusEnum.CREATED,
+        isBanned: false,
+        bannedAt: null,
+        bannedById: null,
+        banReason: null,
         deliverer: {
           create: {
             address: '42 Avenue de la Livraison',
@@ -329,6 +342,10 @@ async function createMerchantUser() {
         isVerified: true,
         hasCompletedOnboarding: true,
         currentStatus: DeliveryStatusEnum.CREATED,
+        isBanned: false,
+        bannedAt: null,
+        bannedById: null,
+        banReason: null,
         merchant: {
           create: {
             companyName: 'Boutique Écologique Test',
@@ -372,4 +389,4 @@ main()
   });
 
 // Export pour permettre l'utilisation dans d'autres fichiers
-export { main }; 
+export { main };

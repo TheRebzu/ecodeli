@@ -26,6 +26,7 @@ import { formatRelativeDate } from '@/lib/utils';
 import { UserRole, UserStatus } from '@prisma/client';
 import { MoreHorizontal, User, Mail, Phone, Calendar, Shield, AlertCircle, CheckCircle } from 'lucide-react';
 import { Link } from '@/navigation';
+import { useUserBan } from '@/hooks/use-user-ban';
 
 interface User {
   id: string;
@@ -41,6 +42,9 @@ interface User {
   pendingVerificationsCount?: number;
   lastActivityAt?: Date | null;
   image?: string | null;
+  isBanned: boolean;
+  bannedAt?: Date | null;
+  banReason?: string | null;
 }
 
 interface UserTableProps {
@@ -50,6 +54,7 @@ interface UserTableProps {
   isLoading?: boolean;
 }
 
+// Composant de table des utilisateurs pour l'interface d'administration
 export default function UserTable({
   users,
   onSelectionChange,
@@ -58,6 +63,10 @@ export default function UserTable({
 }: UserTableProps) {
   const t = useTranslations('Admin.verification.users');
   const [selectAll, setSelectAll] = useState(false);
+  // Hook pour bannir/débannir un utilisateur
+  const userBan = useUserBan();
+  const [banDialog, setBanDialog] = useState<{ userId: string; action: 'BAN' | 'UNBAN' } | null>(null);
+  const [banReason, setBanReason] = useState('');
 
   // Gérer la sélection de tous les utilisateurs
   const handleSelectAll = (checked: boolean) => {
@@ -108,19 +117,38 @@ export default function UserTable({
     }
   };
 
+  // Handler pour ouvrir la modale de ban
+  const handleBanAction = (userId: string, action: 'BAN' | 'UNBAN') => {
+    setBanDialog({ userId, action });
+    setBanReason('');
+  };
+
+  // Handler pour confirmer le ban/déban
+  const handleConfirmBan = () => {
+    if (!banDialog) return;
+    userBan.mutate({
+      userId: banDialog.userId,
+      action: banDialog.action as any, // Conversion du type
+      reason: banDialog.action === 'BAN' ? banReason : undefined,
+    }, {
+      onSuccess: () => setBanDialog(null),
+    });
+  };
+
+  // RENDU PRINCIPAL
   return (
     <div className="overflow-x-auto">
       <div className="rounded-md border">
-      <Table>
-        <TableHeader>
-          <TableRow>
+        <Table>
+          <TableHeader>
+            <TableRow>
               <TableHead className="w-10">
-              <Checkbox
+                <Checkbox
                   checked={selectAll}
                   onCheckedChange={handleSelectAll}
                   aria-label={t('selectAll')}
-              />
-            </TableHead>
+                />
+              </TableHead>
               <TableHead className="w-[220px]">{t('table.user')}</TableHead>
               <TableHead className="w-[100px]">{t('table.role')}</TableHead>
               <TableHead className="w-[120px]">{t('table.status')}</TableHead>
@@ -128,9 +156,9 @@ export default function UserTable({
               <TableHead className="w-[120px]">{t('table.lastActive')}</TableHead>
               <TableHead className="w-[100px]">{t('table.documents')}</TableHead>
               <TableHead className="w-[50px]"></TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {isLoading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <TableRow key={i} className="animate-pulse">
@@ -155,24 +183,24 @@ export default function UserTable({
                 </TableRow>
               ))
             ) : users.length === 0 ? (
-            <TableRow>
+              <TableRow>
                 <TableCell colSpan={8} className="h-24 text-center">
                   <div className="flex flex-col items-center justify-center space-y-2">
                     <User className="h-8 w-8 text-muted-foreground" />
                     <div className="text-sm text-muted-foreground">{t('noUsers')}</div>
                   </div>
-              </TableCell>
-            </TableRow>
-          ) : (
-            users.map(user => (
+                </TableCell>
+              </TableRow>
+            ) : (
+              users.map(user => (
                 <TableRow key={user.id} className={selectedUserIds.includes(user.id) ? 'bg-muted/50' : ''}>
-                <TableCell>
-                  <Checkbox
+                  <TableCell>
+                    <Checkbox
                       checked={selectedUserIds.includes(user.id)}
                       onCheckedChange={(checked) => handleSelectUser(user.id, !!checked)}
                       aria-label={`Select ${user.name}`}
-                  />
-                </TableCell>
+                    />
+                  </TableCell>
                   <TableCell>
                     <div className="flex items-center space-x-3">
                       <Avatar>
@@ -238,7 +266,7 @@ export default function UserTable({
                       <span className="text-xs text-muted-foreground">{t('never')}</span>
                     )}
                   </TableCell>
-                <TableCell>
+                  <TableCell>
                     <div className="flex items-center space-x-1">
                       <span className="font-medium">{user.documentsCount || 0}</span>
                       {(user.pendingVerificationsCount ?? 0) > 0 && (
@@ -247,16 +275,16 @@ export default function UserTable({
                         </Badge>
                       )}
                     </div>
-                </TableCell>
+                  </TableCell>
                   <TableCell>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" className="h-8 w-8 p-0">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" className="h-8 w-8 p-0">
                           <span className="sr-only">{t('openMenu')}</span>
                           <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
                         <DropdownMenuLabel>{t('actions.title')}</DropdownMenuLabel>
                         <DropdownMenuItem asChild>
                           <Link href={`/admin/users/${user.id}`}>{t('actions.view')}</Link>
@@ -269,9 +297,9 @@ export default function UserTable({
                             <Link href={`/admin/verification/user/${user.id}`}>
                               {t('actions.verify')}
                             </Link>
-                        </DropdownMenuItem>
-                      )}
-                      <DropdownMenuSeparator />
+                          </DropdownMenuItem>
+                        )}
+                        <DropdownMenuSeparator />
                         {user.status === 'ACTIVE' ? (
                           <DropdownMenuItem className="text-amber-600">
                             {t('actions.deactivate')}
@@ -279,20 +307,66 @@ export default function UserTable({
                         ) : (
                           <DropdownMenuItem className="text-green-600">
                             {t('actions.activate')}
-                            </DropdownMenuItem>
+                          </DropdownMenuItem>
                         )}
                         <DropdownMenuItem className="text-destructive">
                           {t('actions.delete')}
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </TableCell>
-              </TableRow>
-            ))
-          )}
-        </TableBody>
-      </Table>
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        {/* Action de bannissement/débannissement */}
+                        {user.isBanned ? (
+                          <DropdownMenuItem className="text-green-600" onClick={() => handleBanAction(user.id, 'UNBAN')}>
+                            {t('actions.unban')}
+                          </DropdownMenuItem>
+                        ) : (
+                          <DropdownMenuItem className="text-red-600" onClick={() => handleBanAction(user.id, 'BAN')}>
+                            {t('actions.ban')}
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </div>
+      {/* Modale de confirmation de bannissement/débannissement */}
+      {banDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white dark:bg-zinc-900 rounded-lg shadow-lg p-6 w-full max-w-md">
+            <h2 className="text-lg font-bold mb-2">
+              {banDialog.action === 'BAN' ? t('actions.ban') : t('actions.unban')}
+            </h2>
+            {banDialog.action === 'BAN' && (
+              <div className="mb-4">
+                <label className="block text-sm font-medium mb-1" htmlFor="ban-reason">
+                  {t('common.reason')}
+                </label>
+                <textarea
+                  id="ban-reason"
+                  className="w-full border rounded p-2"
+                  value={banReason}
+                  onChange={e => setBanReason(e.target.value)}
+                  placeholder={t('placeholders.reason')}
+                  required
+                />
+              </div>
+            )}
+            <div className="flex justify-end gap-2 mt-4">
+              <Button variant="outline" onClick={() => setBanDialog(null)}>{t('common.cancel')}</Button>
+              <Button
+                variant={banDialog.action === 'BAN' ? 'destructive' : 'default'}
+                onClick={handleConfirmBan}
+                disabled={userBan.isPending || (banDialog.action === 'BAN' && !banReason)}
+              >
+                {banDialog.action === 'BAN' ? t('actions.confirmBan') : t('actions.confirmUnban')}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

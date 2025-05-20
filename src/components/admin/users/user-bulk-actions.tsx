@@ -680,6 +680,28 @@ export default function UserBulkActions({
           </div>
         </div>
       ),
+      BAN: (
+        <div className="space-y-4">
+          <p className="text-red-600 dark:text-red-400 font-medium">
+            {t('actions.BAN.warning')}
+          </p>
+          <div className="space-y-2">
+            <Label htmlFor="reason">{t('common.reason')}</Label>
+            <Textarea
+              id="reason"
+              value={reason}
+              onChange={e => setReason(e.target.value)}
+              placeholder={t('placeholders.reason')}
+              required
+            />
+          </div>
+        </div>
+      ),
+      UNBAN: (
+        <div className="space-y-4">
+          <p>{t('actions.UNBAN.description')}</p>
+        </div>
+      ),
     };
 
     return configs[selectedAction];
@@ -716,6 +738,8 @@ export default function UserBulkActions({
       case 'DELETE': return 'Supprimer les utilisateurs sélectionnés';
       case 'FORCE_PASSWORD_RESET': return 'Forcer la réinitialisation des mots de passe';
       case 'SEND_VERIFICATION_EMAIL': return 'Envoyer des emails de vérification';
+      case 'BAN': return 'Bannir les utilisateurs sélectionnés';
+      case 'UNBAN': return 'Débannir les utilisateurs sélectionnés';
       default: return 'Confirmer l\'action';
     }
   };
@@ -739,6 +763,10 @@ export default function UserBulkActions({
         return `Êtes-vous sûr de vouloir forcer la réinitialisation des mots de passe pour les ${userCount} utilisateurs sélectionnés ? Ils recevront un email avec un lien de réinitialisation.`;
       case 'SEND_VERIFICATION_EMAIL': 
         return `Êtes-vous sûr de vouloir envoyer des emails de vérification aux ${userCount} utilisateurs sélectionnés ?`;
+      case 'BAN': 
+        return `Êtes-vous sûr de vouloir bannir les ${userCount} utilisateurs sélectionnés ? Ils ne pourront plus accéder à la plateforme.`;
+      case 'UNBAN': 
+        return `Êtes-vous sûr de vouloir débannir les ${userCount} utilisateurs sélectionnés ? Ils pourront à nouveau accéder à la plateforme.`;
       default: 
         return `Êtes-vous sûr de vouloir effectuer cette action sur les ${userCount} utilisateurs sélectionnés ?`;
     }
@@ -753,11 +781,11 @@ export default function UserBulkActions({
             disabled={noUsersSelected || disabled}
             className="min-w-[140px]"
           >
-            {t('button')} ({selectedUserIds.length})
+            {t('button') || "Actions en masse"} ({selectedUserIds.length})
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuLabel>{t('title')}</DropdownMenuLabel>
+          <DropdownMenuLabel>{t('title') || "Actions en masse"}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => handleOpenDialog('ACTIVATE')}>
             {t('actions.ACTIVATE.label')}
@@ -806,6 +834,18 @@ export default function UserBulkActions({
           >
             {t('actions.DELETE.label')}
           </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => handleOpenDialog('BAN')}
+            className="text-red-600 focus:text-red-600"
+          >
+            {t('actions.BAN.label')}
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => handleOpenDialog('UNBAN')}
+            className="text-red-600 focus:text-red-600"
+          >
+            {t('actions.UNBAN.label')}
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
@@ -819,14 +859,14 @@ export default function UserBulkActions({
                 })}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {t('confirmationText', { count: selectedUserIds.length })}
+              {t('confirmationText', { count: selectedUserIds.length }) || `Vous avez sélectionné ${selectedUserIds.length} utilisateurs`}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
           {getActionConfig()}
 
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleCloseDialog}>{t('cancel')}</AlertDialogCancel>
+            <AlertDialogCancel onClick={handleCloseDialog}>{t('cancel') || "Annuler"}</AlertDialogCancel>
             <AlertDialogAction
               onClick={handleSubmit}
               disabled={isLoading}
@@ -839,10 +879,10 @@ export default function UserBulkActions({
               {isLoading ? (
                 <>
                   <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-                  {t('processing')}
+                  {t('processing') || "Traitement en cours..."}
                 </>
               ) : (
-                t('confirm')
+                t('confirm') || "Confirmer"
               )}
             </AlertDialogAction>
           </AlertDialogFooter>

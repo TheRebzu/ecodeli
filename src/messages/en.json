@@ -2277,10 +2277,22 @@
     "title": "[TO_TRANSLATE] title",
     "description": "[TO_TRANSLATE] description"
   },
-  "admin": {
-    "users": {
+  "admin": {    "users": {
       "title": "[TO_TRANSLATE] title",
       "subtitle": "[TO_TRANSLATE] subtitle",
+      "activationStatus": {
+        "active": "Active",
+        "inactive": "Inactive",
+        "activate": "Activate",
+        "deactivate": "Deactivate",
+        "confirmActivate": "Are you sure you want to activate this user account?",
+        "confirmDeactivate": "Are you sure you want to deactivate this user account?",
+        "successActivate": "Account activated",
+        "successDeactivate": "Account deactivated",
+        "successActivateDescription": "The user account has been successfully activated",
+        "successDeactivateDescription": "The user account has been successfully deactivated",
+        "error": "Error changing account status"
+      },
       "actions": {
         "export": "[TO_TRANSLATE] export",
         "addUser": "[TO_TRANSLATE] addUser"

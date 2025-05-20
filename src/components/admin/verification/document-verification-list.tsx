@@ -50,7 +50,7 @@ import {
 } from 'lucide-react';
 
 export default function DocumentVerificationList() {
-  const t = useTranslations('admin.verification');
+  const t = useTranslations('Admin.verification');
   const { toast } = useToast();
   const [selectedDocument, setSelectedDocument] = useState<any | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
