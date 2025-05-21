@@ -321,68 +321,42 @@ export class AuthService {
   /**
    * Vérification de l'email d'un utilisateur
    */
-  async verifyEmail(token: string): Promise<boolean> {
-    // Vérification du token et récupération de l'ID utilisateur
-    const userId = await this.tokenService.verifyToken(token);
+  async verifyEmail(token: string) {
+    try {
+      // Utiliser le TokenService pour vérifier le token
+      const userId = await this.tokenService.verifyToken(token);
 
-    const user = await this.prisma.user.findUnique({
-      where: { id: userId },
-      include: {
-        client: true,
-        deliverer: true,
-        merchant: true,
-        provider: true,
-      },
-    });
-
-    if (!user) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Utilisateur non trouvé',
+      // Trouver l'utilisateur correspondant
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
       });
-    }
 
-    // Mise à jour de l'utilisateur
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: {
-        emailVerified: new Date(),
-        status: UserStatus.ACTIVE,
-      },
-    });
+      if (!user) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Utilisateur non trouvé',
+        });
+      }
 
-    // Suppression du token de vérification
-    await this.tokenService.deleteToken(token);
-
-    // Envoi d'email de confirmation d'activation
-    if (user.email) {
-      await this.emailService.sendAccountActivationNotification(user.email);
-    }
-
-    // Gestion spécifique selon le rôle
-    if (user.role === UserRole.CLIENT) {
-      // Pour les clients, accès immédiat après vérification email
-      await this.prisma.client.update({
-        where: { userId: user.id },
+      // Mettre à jour l'utilisateur
+      await this.prisma.user.update({
+        where: { id: user.id },
         data: {
-          // Pas de données supplémentaires à mettre à jour
+          emailVerified: new Date(),
         },
       });
 
-      // Envoyer un email de bienvenue client
-      await this.emailService.sendClientWelcomeEmail(user.email);
-    } else if (user.role === UserRole.DELIVERER) {
-      // Pour les livreurs, envoyer instructions pour documents
-      await this.emailService.sendDelivererVerificationInstructions(user.email);
-    } else if (user.role === UserRole.MERCHANT) {
-      // Pour les commerçants, envoyer instructions pour contrat
-      await this.emailService.sendMerchantContractInstructions(user.email);
-    } else if (user.role === UserRole.PROVIDER) {
-      // Pour les prestataires, envoyer instructions pour qualifications
-      await this.emailService.sendProviderVerificationInstructions(user.email);
-    }
+      // Supprimer le token utilisé
+      await this.tokenService.deleteToken(token);
 
-    return true;
+      return true;
+    } catch (error) {
+      console.error('Erreur lors de la vérification du token:', error);
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Token de vérification invalide ou expiré',
+      });
+    }
   }
 
   /**
@@ -957,25 +931,7 @@ export class AuthService {
   }) {
     const { name, email, password, role, locale } = data;
 
-    // Vérifier si l'utilisateur existe déjà
-    const existingUser = await this.prisma.user.findUnique({
-      where: { email },
-    });
-
-    if (existingUser) {
-      throw new TRPCError({
-        code: 'CONFLICT',
-        message: 'Cette adresse email est déjà utilisée',
-      });
-    }
-
-    // Crypter le mot de passe
     const hashedPassword = await hash(password, 12);
-
-    // Créer un jeton de vérification
-    const verificationToken = uuidv4();
-    const expires = new Date();
-    expires.setHours(expires.getHours() + 24); // Expire après 24h
 
     // Créer l'utilisateur
     const user = await this.prisma.user.create({
@@ -985,8 +941,6 @@ export class AuthService {
         password: hashedPassword,
         role,
         emailVerified: null,
-        verificationToken,
-        verificationTokenExpires: expires,
         isVerified: role === UserRole.CLIENT, // Les clients sont vérifiés par défaut
       },
     });
@@ -994,8 +948,11 @@ export class AuthService {
     // Créer le profil spécifique selon le rôle
     await this.createRoleSpecificProfile(user.id, role);
 
+    // Générer un token de vérification via TokenService
+    const verificationToken = await this.tokenService.createEmailVerificationToken(user.id);
+
     // Envoyer l'email de vérification
-    await this.emailService.sendVerificationEmail(user, verificationToken, locale);
+    await this.emailService.sendVerificationEmail(user.email, verificationToken, locale);
 
     return { id: user.id, name: user.name, email: user.email, role: user.role };
   }
@@ -1039,38 +996,6 @@ export class AuthService {
     }
   }
 
-  // Vérifier l'email d'un utilisateur avec son token
-  async verifyEmail(token: string) {
-    // Trouver l'utilisateur par token
-    const user = await this.prisma.user.findFirst({
-      where: {
-        verificationToken: token,
-        verificationTokenExpires: {
-          gt: new Date(),
-        },
-      },
-    });
-
-    if (!user) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Token de vérification invalide ou expiré',
-      });
-    }
-
-    // Mettre à jour l'utilisateur
-    await this.prisma.user.update({
-      where: { id: user.id },
-      data: {
-        emailVerified: new Date(),
-        verificationToken: null,
-        verificationTokenExpires: null,
-      },
-    });
-
-    return true;
-  }
-
   // Demande de réinitialisation de mot de passe
   async requestPasswordReset(email: string, locale: SupportedLanguage) {
     const user = await this.prisma.user.findUnique({
@@ -1083,7 +1008,7 @@ export class AuthService {
     }
 
     // Générer le token de réinitialisation
-    const resetToken = uuidv4();
+    const resetToken = await this.tokenService.createPasswordResetToken(user.id);
     const expires = new Date();
     expires.setHours(expires.getHours() + 1); // Expire après 1h
 
@@ -1097,7 +1022,7 @@ export class AuthService {
     });
 
     // Envoyer l'email de réinitialisation
-    await this.emailService.sendPasswordResetEmail(user, resetToken, locale);
+    await this.emailService.sendPasswordResetEmail(user.email, resetToken, locale);
 
     return true;
   }
@@ -1372,5 +1297,35 @@ export class AuthService {
       profileId,
       ...additionalInfo,
     };
+  }
+
+  // Renvoyer l'email de vérification
+  async resendVerificationEmail(email: string, locale: SupportedLanguage = 'fr'): Promise<boolean> {
+    // Trouver l'utilisateur
+    const user = await this.prisma.user.findUnique({
+      where: { email },
+    });
+
+    if (!user) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Utilisateur non trouvé',
+      });
+    }
+
+    if (user.emailVerified) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'Cet email est déjà vérifié',
+      });
+    }
+
+    // Générer un nouveau token de vérification
+    const verificationToken = await this.tokenService.createEmailVerificationToken(user.id);
+
+    // Envoyer l'email de vérification
+    await this.emailService.sendVerificationEmail(user.email, verificationToken, locale);
+
+    return true;
   }
 }

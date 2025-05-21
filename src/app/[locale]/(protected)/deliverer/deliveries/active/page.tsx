@@ -1,6 +1,6 @@
 'use client';
 
-usimport { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,7 +30,7 @@ import { Link } from '@/navigation';
 import { useRoleProtection } from '@/hooks/use-role-protection';
 import { api } from '@/trpc/react';
 import { toast } from 'sonner';
-import { formatDistance, formatDate, formatTime } from '@/lib/utils';
+import { formatDistanceValue, formatDate, formatTime } from '@/lib/utils';
 import { DeliveryStatus } from '@/types/delivery';
 
 // Type pour les livraisons actives
@@ -196,7 +196,7 @@ export default function ActiveDeliveriesPage() {
   
   // Obtenir la couleur de badge pour chaque statut
   const getStatusBadgeVariant = (status: DeliveryStatus) => {
-    const statusVariants: Record<DeliveryStatus, string> = {
+    const statusVariants: Record<string, string> = {
       'PENDING': 'outline',
       'ASSIGNED': 'secondary',
       'EN_ROUTE_TO_PICKUP': 'secondary',
@@ -280,14 +280,14 @@ export default function ActiveDeliveriesPage() {
             <div className="space-y-4 py-4">
               <div className="space-y-2">
                 <p className="text-sm font-medium">{t('currentStatus')}:</p>
-                <Badge variant={getStatusBadgeVariant(activeDeliveries.find(d => d.id === deliveryToUpdate)?.status || 'PENDING')}>
+                <Badge variant={getStatusBadgeVariant(activeDeliveries.find(d => d.id === deliveryToUpdate)?.status || 'PENDING') as "default" | "success" | "outline" | "secondary" | "destructive"}>
                   {getStatusLabel(activeDeliveries.find(d => d.id === deliveryToUpdate)?.status || 'PENDING')}
                 </Badge>
               </div>
               
               <div className="space-y-2">
                 <p className="text-sm font-medium">{t('newStatus')}:</p>
-                <Badge variant={getStatusBadgeVariant(getNextStatus(activeDeliveries.find(d => d.id === deliveryToUpdate)?.status || 'PENDING'))}>
+                <Badge variant={getStatusBadgeVariant(getNextStatus(activeDeliveries.find(d => d.id === deliveryToUpdate)?.status || 'PENDING')) as "default" | "success" | "outline" | "secondary" | "destructive"}>
                   {getStatusLabel(getNextStatus(activeDeliveries.find(d => d.id === deliveryToUpdate)?.status || 'PENDING'))}
                 </Badge>
               </div>
@@ -358,9 +358,9 @@ export default function ActiveDeliveriesPage() {
               <div className="flex justify-between items-start">
                 <div>
                   <CardTitle className="text-xl">{t('delivery')} #{delivery.id.slice(-4)}</CardTitle>
-                  <CardDescription>{formatDistance(delivery.distance)} km • {formatDate(delivery.deliveryDate)}</CardDescription>
+                  <CardDescription>{formatDistanceValue(delivery.distance)} km • {formatDate(delivery.deliveryDate)}</CardDescription>
                 </div>
-                <Badge variant={getStatusBadgeVariant(delivery.status)}>
+                <Badge variant={getStatusBadgeVariant(delivery.status) as "default" | "success" | "outline" | "secondary" | "destructive"}>
                   {getStatusLabel(delivery.status)}
                 </Badge>
               </div>
@@ -402,8 +402,8 @@ export default function ActiveDeliveriesPage() {
                     <Clock className="h-5 w-5 text-muted-foreground mr-2 mt-0.5" />
                     <div>
                       <p className="text-sm font-medium">{t('estimatedTime')}</p>
-                      <p>{formatDistance(delivery.distance / 30 * 60)} min</p>
-                      <p className="text-sm text-muted-foreground">{formatDistance(delivery.distance)} km</p>
+                      <p>{formatDistanceValue(delivery.distance / 30 * 60)} min</p>
+                      <p className="text-sm text-muted-foreground">{formatDistanceValue(delivery.distance)} km</p>
                     </div>
                   </div>
                   

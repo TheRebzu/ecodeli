@@ -471,8 +471,13 @@ model User {
   providerZipCode          String?
   providerCity             String?
   providerVerified         Boolean                       @default(false)
-  
-  // Relation avec les livraisons
+  isActive                 Boolean                       @default(true)
+  isBanned                 Boolean                       @default(false)
+  bannedAt                 DateTime?                     // Date du bannissement
+  bannedById               String?                       // ID de l'admin ayant banni
+  banReason                String?                       // Raison du bannissement
+  bannedBy                 User?                         @relation("BannedBy", fields: [bannedById], references: [id])
+  bannedUsers              User[]                        @relation("BannedBy")
   clientDeliveries         Delivery[]                    @relation("ClientDeliveries")
   delivererDeliveries      Delivery[]                    @relation("DelivererDeliveries")
   

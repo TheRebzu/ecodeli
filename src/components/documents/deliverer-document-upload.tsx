@@ -155,15 +155,15 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid grid-cols-3 mb-8">
           <TabsTrigger value="id" className="relative">
-            {t('documents.idCard.tab')}
+            {t('idCard.tab')}
             {renderStatusBadge(getDocumentStatus(idDocuments))}
           </TabsTrigger>
           <TabsTrigger value="selfie" className="relative">
-            {t('documents.selfie.tab')}
+            {t('selfie.tab')}
             {renderStatusBadge(getDocumentStatus(selfieDocuments))}
           </TabsTrigger>
           <TabsTrigger value="license" className="relative">
-            {t('documents.drivingLicense.tab')}
+            {t('drivingLicense.tab')}
             {renderStatusBadge(getDocumentStatus(drivingLicenseDocuments))}
           </TabsTrigger>
         </TabsList>
@@ -172,8 +172,8 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
         <TabsContent value="id">
           <Card>
             <CardHeader>
-              <CardTitle>{t('documents.idCard.title')}</CardTitle>
-              <CardDescription>{t('documents.idCard.description')}</CardDescription>
+              <CardTitle>{t('idCard.title')}</CardTitle>
+              <CardDescription>{t('idCard.description')}</CardDescription>
             </CardHeader>
             <CardContent>
               {idDocuments.length > 0 ? (
@@ -187,7 +187,7 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
                 <DocumentUploadForm
                   onUpload={files => handleUpload(files, 'ID_CARD')}
                   isLoading={isLoading}
-                  label={t('documents.idCard.uploadLabel')}
+                  label={t('idCard.uploadLabel')}
                   acceptedFileTypes={{ 'image/*': ['.jpeg', '.jpg', '.png'] }}
                   maxFiles={1}
                   maxSize={5 * 1024 * 1024} // 5MB
@@ -219,8 +219,8 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
         <TabsContent value="selfie">
           <Card>
             <CardHeader>
-              <CardTitle>{t('documents.selfie.title')}</CardTitle>
-              <CardDescription>{t('documents.selfie.description')}</CardDescription>
+              <CardTitle>{t('selfie.title')}</CardTitle>
+              <CardDescription>{t('selfie.description')}</CardDescription>
             </CardHeader>
             <CardContent>
               {selfieDocuments.length > 0 ? (
@@ -234,7 +234,7 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
                 <DocumentUploadForm
                   onUpload={files => handleUpload(files, 'SELFIE')}
                   isLoading={isLoading}
-                  label={t('documents.selfie.uploadLabel')}
+                  label={t('selfie.uploadLabel')}
                   acceptedFileTypes={{ 'image/*': ['.jpeg', '.jpg', '.png'] }}
                   maxFiles={1}
                   maxSize={5 * 1024 * 1024} // 5MB
@@ -253,8 +253,8 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
                   disabled={selfieDocuments[0].verificationStatus !== 'REJECTED'}
                 >
                   {selfieDocuments[0].verificationStatus === 'REJECTED'
-                    ? t('documents.replaceRejected')
-                    : t('documents.alreadySubmitted')}
+                    ? t('replaceRejected')
+                    : t('alreadySubmitted')}
                 </Button>
               </CardFooter>
             )}
@@ -265,8 +265,8 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
         <TabsContent value="license">
           <Card>
             <CardHeader>
-              <CardTitle>{t('documents.drivingLicense.title')}</CardTitle>
-              <CardDescription>{t('documents.drivingLicense.description')}</CardDescription>
+              <CardTitle>{t('drivingLicense.title')}</CardTitle>
+              <CardDescription>{t('drivingLicense.description')}</CardDescription>
             </CardHeader>
             <CardContent>
               {drivingLicenseDocuments.length > 0 ? (
@@ -280,7 +280,7 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
                 <DocumentUploadForm
                   onUpload={files => handleUpload(files, 'DRIVING_LICENSE')}
                   isLoading={isLoading}
-                  label={t('documents.drivingLicense.uploadLabel')}
+                  label={t('drivingLicense.uploadLabel')}
                   acceptedFileTypes={{ 'image/*': ['.jpeg', '.jpg', '.png'] }}
                   maxFiles={1}
                   maxSize={5 * 1024 * 1024} // 5MB
@@ -299,8 +299,8 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
                   disabled={drivingLicenseDocuments[0].verificationStatus !== 'REJECTED'}
                 >
                   {drivingLicenseDocuments[0].verificationStatus === 'REJECTED'
-                    ? t('documents.replaceRejected')
-                    : t('documents.alreadySubmitted')}
+                    ? t('replaceRejected')
+                    : t('alreadySubmitted')}
                 </Button>
               </CardFooter>
             )}

@@ -88,6 +88,10 @@ async function main() {
     const providerUsers = await createProviderUsers(adminUsers[0].id);
     console.log(`✅ ${providerUsers.length} providers processed`);
 
+    // Créer des utilisateurs merchant et provider supplémentaires sans documents
+    const pendingVerificationUsers = await createPendingVerificationUsers();
+    console.log(`✅ ${pendingVerificationUsers.merchantUser ? 1 : 0} merchant et ${pendingVerificationUsers.providerUser ? 1 : 0} provider créés en attente de vérification`);
+
     // 2. Create financial data
     await createFinancialData([
       ...clientUsers,
@@ -167,15 +171,15 @@ async function createAdminUsers() {
         emailVerified: new Date(),
         phoneNumber: `+33123456${adminUsers.length}`,
         locale: 'fr',
-        twoFactorEnabled: adminUsers.length === 0, // Only first admin has 2FA
-        twoFactorSecret: adminUsers.length === 0 ? generateTwoFactorSecret() : null,
+        twoFactorEnabled: false, // Désactivé pour tous les admins
+        twoFactorSecret: null, // Pas de secret pour le 2FA
         hasCompletedOnboarding: true,
         admin: {
           create: {
             permissions: profile.permissions,
             department: profile.department,
-            twoFactorEnabled: adminUsers.length === 0,
-            twoFactorSecret: adminUsers.length === 0 ? generateTwoFactorSecret() : null,
+            twoFactorEnabled: false, // Désactivé pour tous les admins
+            twoFactorSecret: null, // Pas de secret pour le 2FA
           },
         },
       },
@@ -699,6 +703,114 @@ async function createProviderUsers(adminId: string) {
   return providers;
 }
 
+// Créer des utilisateurs merchant et provider avec des comptes validés mais en attente de documents
+async function createPendingVerificationUsers() {
+  const hashedPassword = await hashPassword(DEFAULT_PASSWORD);
+  let merchantUser = null;
+  let providerUser = null;
+
+  try {
+    // Vérifier et créer l'utilisateur merchant si nécessaire
+    const merchantEmail = 'merchant.verification@ecodeli.me';
+    const existingMerchant = await prisma.user.findUnique({
+      where: { email: merchantEmail },
+    });
+
+    if (!existingMerchant) {
+      merchantUser = await prisma.user.create({
+        data: {
+          name: 'Marc Dubois',
+          email: merchantEmail,
+          password: hashedPassword,
+          role: UserRole.MERCHANT,
+          status: UserStatus.ACTIVE,
+          emailVerified: new Date(), // Email vérifié
+          phoneNumber: '+33712345678',
+          locale: 'fr',
+          isVerified: false, // Non vérifié
+          hasCompletedOnboarding: true,
+          merchant: {
+            create: {
+              companyName: 'Boulangerie Dubois',
+              address: '15 Rue des Artisans, Lyon',
+              phone: '+33712345678',
+              businessType: 'BAKERY',
+              vatNumber: 'FR12345678901',
+              businessName: 'Boulangerie Artisanale Dubois',
+              businessAddress: '15 Rue des Artisans',
+              businessCity: 'Lyon',
+              businessPostal: '69001',
+              businessCountry: 'France',
+              taxId: 'FR12345678901',
+              isVerified: false, // Non vérifié, documents non soumis
+              description: 'Boulangerie artisanale traditionnelle',
+              paymentMethods: ['CARD', 'CASH'],
+              deliveryOptions: ['PICKUP', 'DELIVERY'],
+              foundingYear: 2018,
+              employeeCount: 5,
+            },
+          },
+        },
+      });
+      
+      console.log('Merchant utilisateur créé avec email vérifié mais en attente de documents:', merchantEmail);
+    } else {
+      console.log(`Merchant utilisateur avec l'email ${merchantEmail} existe déjà, utilisation de l'existant`);
+      merchantUser = existingMerchant;
+    }
+
+    // Vérifier et créer l'utilisateur provider si nécessaire
+    const providerEmail = 'provider.verification@ecodeli.me';
+    const existingProvider = await prisma.user.findUnique({
+      where: { email: providerEmail },
+    });
+
+    if (!existingProvider) {
+      providerUser = await prisma.user.create({
+        data: {
+          name: 'Sophie Martin',
+          email: providerEmail,
+          password: hashedPassword,
+          role: UserRole.PROVIDER,
+          status: UserStatus.ACTIVE,
+          emailVerified: new Date(), // Email vérifié
+          phoneNumber: '+33623456789',
+          locale: 'fr',
+          isVerified: false, // Non vérifié
+          hasCompletedOnboarding: true,
+          isProvider: true, // Important pour le profil prestataire
+          provider: {
+            create: {
+              companyName: 'Martin Services',
+              address: '42 Avenue des Prestataires, Paris',
+              phone: '+33623456789',
+              services: ['CLEANING', 'HANDYMAN'],
+              isVerified: false, // Non vérifié, documents non soumis
+              serviceType: 'HOME_SERVICES',
+              description: 'Services d\'entretien et de réparation à domicile',
+              availability: 'WEEKDAYS',
+              professionalBio: 'Plus de 10 ans d\'expérience dans les services à domicile',
+              serviceRadius: 25,
+              qualifications: ['CERTIFIED_HANDYMAN', 'CLEANING_SPECIALIST'],
+              yearsInBusiness: 10,
+              languages: ['FRENCH', 'ENGLISH'],
+            },
+          },
+        },
+      });
+      
+      console.log('Provider utilisateur créé avec email vérifié mais en attente de documents:', providerEmail);
+    } else {
+      console.log(`Provider utilisateur avec l'email ${providerEmail} existe déjà, utilisation de l'existant`);
+      providerUser = existingProvider;
+    }
+  } catch (error) {
+    console.error('Erreur lors de la création des utilisateurs en attente de vérification:', error);
+  }
+
+  return { merchantUser, providerUser };
+}
+
 // Create financial data
 async function createFinancialData(users: any[]) {
   for (const user of users) {
@@ -876,7 +988,15 @@ async function createAnnouncements(clientUsers: any[], merchantUsers: any[]) {
             pickupAddress: faker.location.streetAddress(),
             pickupLongitude: 2.3522 + (Math.random() * 0.1 - 0.05),
             pickupLatitude: 48.8566 + (Math.random() * 0.1 - 0.05),
-                        deliveryAddress: faker.location.streetAddress(),            deliveryLongitude: 2.3522 + (Math.random() * 0.1 - 0.05),            deliveryLatitude: 48.8566 + (Math.random() * 0.1 - 0.05),            pickupCity: faker.location.city(),            deliveryCity: faker.location.city(),            weight: faker.number.float({ min: 0.1, max: 50 }),            width: faker.number.float({ min: 10, max: 100 }),            height: faker.number.float({ min: 10, max: 100 }),            length: faker.number.float({ min: 10, max: 100 }),
+            deliveryAddress: faker.location.streetAddress(),
+            deliveryLongitude: 2.3522 + (Math.random() * 0.1 - 0.05),
+            deliveryLatitude: 48.8566 + (Math.random() * 0.1 - 0.05),
+            pickupCity: faker.location.city(),
+            deliveryCity: faker.location.city(),
+            weight: faker.number.float({ min: 0.1, max: 50 }),
+            width: faker.number.float({ min: 10, max: 100 }),
+            height: faker.number.float({ min: 10, max: 100 }),
+            length: faker.number.float({ min: 10, max: 100 }),
             isFragile: Math.random() > 0.7,
             needsCooling: Math.random() > 0.8,
             pickupDate: generateRandomDate(

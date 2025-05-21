@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -42,6 +42,7 @@ export function TutorialNavigation({
 }: TutorialNavigationProps) {
   const isFirstStep = currentStep === 0;
   const isLastStep = currentStep === totalSteps - 1;
+  const [isSkipping, setIsSkipping] = useState(false);
 
   // Fusionner les libellés par défaut avec ceux fournis par les props
   const mergedLabels = {
@@ -49,22 +50,28 @@ export function TutorialNavigation({
     ...labels,
   };
 
+  const handleSkip = async () => {
+    setIsSkipping(true);
+    await onSkip();
+    setIsSkipping(false);
+  };
+
   return (
     <div className={cn('flex justify-between w-full', className)}>
       <div>
         {isFirstStep ? (
-          <Button variant="ghost" onClick={onSkip} disabled={isLoading}>
-            {mergedLabels.skip}
+          <Button variant="ghost" onClick={handleSkip} disabled={isLoading || isSkipping}>
+            {isSkipping ? "Fermeture..." : mergedLabels.skip}
           </Button>
         ) : (
-          <Button variant="outline" onClick={onPrevious} disabled={isLoading}>
+          <Button variant="outline" onClick={onPrevious} disabled={isLoading || isSkipping}>
             {mergedLabels.previous}
           </Button>
         )}
       </div>
 
       <div>
-        <Button onClick={isLastStep ? onComplete : onNext} disabled={isLoading}>
+        <Button onClick={isLastStep ? onComplete : onNext} disabled={isLoading || isSkipping}>
           {isLastStep ? mergedLabels.finish : mergedLabels.next}
         </Button>
       </div>

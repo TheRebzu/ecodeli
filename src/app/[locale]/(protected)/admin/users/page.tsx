@@ -6,6 +6,7 @@ import { api } from '@/trpc/react';
 import { UserFilters } from '@/types/admin';
 import UserStatsAdvanced from '@/components/admin/users/user-stats-advanced';
 import UserBulkActions from '@/components/admin/users/user-bulk-actions';
+import UserTable from '@/components/admin/users/user-table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -14,13 +15,20 @@ import { AlertCircleIcon, DownloadIcon, PlusIcon, UsersIcon } from 'lucide-react
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function AdminUsersPage() {
-  const t = useTranslations('admin.users');
+  const t = useTranslations('Admin.verification.users');
   const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string>('list');
   const [filters, setFilters] = useState<UserFilters>({});
 
   // Statistiques globales des utilisateurs
   const statsQuery = api.adminUser.getUserStats.useQuery();
+  
+  // Récupération des utilisateurs avec filtres
+  const usersQuery = api.adminUser.getUsers.useQuery({ 
+    page: 1, 
+    limit: 10, 
+    ...filters 
+  });
 
   // Gérer la sélection des utilisateurs
   const handleUserSelection = (userIds: string[]) => {
@@ -31,6 +39,7 @@ export default function AdminUsersPage() {
   const handleBulkActionComplete = () => {
     setSelectedUserIds([]);
     statsQuery.refetch();
+    usersQuery.refetch();
   };
 
   return (
@@ -43,11 +52,11 @@ export default function AdminUsersPage() {
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="sm">
             <DownloadIcon className="mr-2 h-4 w-4" />
-            {t('actions.export')}
+            {t('actions.export') || "Exporter"}
           </Button>
           <Button size="sm">
             <PlusIcon className="mr-2 h-4 w-4" />
-            {t('actions.addUser')}
+            {t('actions.addUser') || "Ajouter un utilisateur"}
           </Button>
           <UserBulkActions
             selectedUserIds={selectedUserIds}
@@ -100,26 +109,24 @@ export default function AdminUsersPage() {
             <div className="space-y-4">
               <Card>
                 <CardHeader className="p-4">
-                  <CardTitle className="text-xl">Statistiques rapides</CardTitle>
+                  <CardTitle className="text-xl">{t('quickStats')}</CardTitle>
                 </CardHeader>
                 <CardContent className="p-4 pt-0">
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <div className="flex flex-col space-y-1">
-                      <span className="text-sm text-muted-foreground">Total utilisateurs</span>
+                      <span className="text-sm text-muted-foreground">{t('totalUsers')}</span>
                       <span className="text-2xl font-bold">{statsQuery.data?.totalUsers}</span>
                     </div>
                     <div className="flex flex-col space-y-1">
-                      <span className="text-sm text-muted-foreground">Utilisateurs actifs</span>
+                      <span className="text-sm text-muted-foreground">{t('activeUsers')}</span>
                       <span className="text-2xl font-bold">{statsQuery.data?.activeUsers}</span>
                     </div>
                     <div className="flex flex-col space-y-1">
-                      <span className="text-sm text-muted-foreground">Nouveaux aujourd'hui</span>
+                      <span className="text-sm text-muted-foreground">{t('newToday')}</span>
                       <span className="text-2xl font-bold">{statsQuery.data?.newUsersToday}</span>
                     </div>
                     <div className="flex flex-col space-y-1">
-                      <span className="text-sm text-muted-foreground">
-                        En attente de vérification
-                      </span>
+                      <span className="text-sm text-muted-foreground">{t('pendingVerification')}</span>
                       <span className="text-2xl font-bold">
                         {statsQuery.data?.usersByVerification?.unverified || 0}
                       </span>
@@ -128,10 +135,13 @@ export default function AdminUsersPage() {
                 </CardContent>
               </Card>
 
-              <p className="text-sm text-muted-foreground">
-                Cette page afficherait normalement le tableau des utilisateurs. Implémentez votre{' '}
-                <code>UserTable</code> ici avec la gestion de sélection.
-              </p>
+              {/* Table des utilisateurs */}
+              <UserTable
+                users={usersQuery.data?.users || []}
+                selectedUserIds={selectedUserIds}
+                onSelectionChange={handleUserSelection}
+                isLoading={usersQuery.isLoading}
+              />
             </div>
           )}
         </TabsContent>

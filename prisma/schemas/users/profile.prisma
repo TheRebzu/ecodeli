@@ -94,6 +94,7 @@ model Merchant {
   
   // Relations
   contracts        Contract[]
+  verification     MerchantVerification?
   user             User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("merchants")
@@ -129,6 +130,7 @@ model Provider {
   // Relations
   user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   skills             Skill[]
+  verification       ProviderVerification?
 
   @@map("providers")
 }
