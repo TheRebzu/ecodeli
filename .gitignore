@@ -45,6 +45,26 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# uploads
 public/uploads/
+
+# IDE files
+.vscode/
+.cursor/
+.idea/
+*.iml
+*.swp
+*.swo
+
+# Logs
+logs
+*.log
+
+# Temps
+.temp
+.tmp
+.cache
+
+# Local configuration
 .github/instructions/rules.instructions.md
-TODO.md
