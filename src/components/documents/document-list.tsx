@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
+import { api } from '@/trpc/react';
 import { DocumentStatus, DocumentType } from '@prisma/client';
 import { formatDistanceToNow } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
@@ -31,62 +32,43 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertCircle, CheckCircle, Clock, Eye, FileText, Trash, X } from 'lucide-react';
-import { useDocuments } from '@/hooks/use-documents';
-import { useToast } from '@/components/ui/use-toast';
+import { AlertCircle, CheckCircle, Clock, Eye, FileText, X } from 'lucide-react';
 
-interface DocumentListProps {
-  documents?: any[];
-  isLoading?: boolean;
-  onDelete?: (id: string) => void;
-  locale?: string;
-  userId?: string;
-}
-
-export default function DocumentList({
-  documents: externalDocuments,
-  isLoading: externalLoading,
-  onDelete,
-  locale = 'fr',
-  userId,
-}: DocumentListProps) {
+export default function DocumentList() {
   const t = useTranslations('documents');
-  const { toast } = useToast();
   const [selectedDocument, setSelectedDocument] = useState<any | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [documentToDelete, setDocumentToDelete] = useState<any | null>(null);
+  const locale = 'fr'; // Set this based on your app's locale state
 
-  // Utiliser le hook useDocuments seulement si aucun document n'est passé en prop
-  const {
-    documents: hookDocuments,
-    isLoading: hookLoading,
-    deleteDocument,
-    refreshDocuments,
-  } = !externalDocuments
-    ? useDocuments(userId)
-    : { documents: [], isLoading: false, deleteDocument: null, refreshDocuments: () => {} };
-
-  // Utiliser les documents passés en prop ou ceux du hook
-  const documents = externalDocuments || hookDocuments;
-  const isLoading = externalLoading || hookLoading;
-
-  const handleDelete = onDelete || deleteDocument;
+  const { data: documents, isLoading, isError, refetch } = api.auth.getUserDocuments.useQuery();
 
   if (isLoading) {
     return <DocumentListSkeleton />;
+  }
+
+  if (isError) {
+    return (
+      <Card className="w-full">
+        <CardHeader>
+          <CardTitle>{t('list.title')}</CardTitle>
+          <CardDescription>{t('list.description')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-center p-6 text-center">
+            <div>
+              <AlertCircle className="mx-auto h-10 w-10 text-destructive" />
+              <h3 className="mt-2 text-lg font-semibold">{t('list.errorTitle')}</h3>
+              <p className="text-sm text-muted-foreground">{t('list.errorDescription')}</p>
+              <Button onClick={() => refetch()} className="mt-4">
+                {t('list.retry')}
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   if (!documents || documents.length === 0) {
@@ -114,21 +96,8 @@ export default function DocumentList({
     setPreviewOpen(true);
   };
 
-  const handleDeleteDocument = (document: any) => {
-    setDocumentToDelete(document);
-    setDeleteDialogOpen(true);
-  };
-
-  const confirmDeleteDocument = () => {
-    if (handleDelete && documentToDelete) {
-      handleDelete(documentToDelete.id);
-    }
-    setDeleteDialogOpen(false);
-    setDocumentToDelete(null);
-  };
-
-  const getStatusBadgeProps = (status: string) => {
-    switch (status?.toUpperCase()) {
+  const getStatusBadgeProps = (status: DocumentStatus) => {
+    switch (status) {
       case 'PENDING':
         return { variant: 'outline' as const, icon: <Clock className="mr-1 h-3 w-3" /> };
       case 'APPROVED':
@@ -148,50 +117,6 @@ export default function DocumentList({
       addSuffix: true,
       locale: locale === 'fr' ? fr : enUS,
     });
-  };
-
-  const downloadDocument = async (document: any) => {
-    try {
-      // Afficher un message de chargement
-      toast({
-        title: t('download.preparing'),
-        description: t('download.starting'),
-      });
-
-      // Utiliser la nouvelle API de téléchargement avec le bon type MIME
-      const downloadUrl = `/api/download?path=${encodeURIComponent(document.fileUrl)}&download=true`;
-
-      // Créer un élément de lien temporaire pour le téléchargement
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-
-      // Définir le nom du fichier à télécharger
-      const fileName =
-        document.filename ||
-        `document-${document.type.toLowerCase()}.${document.mimeType?.split('/').pop() || 'file'}`;
-      link.setAttribute('download', fileName);
-
-      // Cliquer sur le lien pour déclencher le téléchargement
-      document.body.appendChild(link);
-      link.click();
-
-      // Nettoyer
-      setTimeout(() => {
-        document.body.removeChild(link);
-      }, 100);
-
-      toast({
-        title: t('download.success'),
-        description: t('download.completed'),
-      });
-    } catch (error) {
-      console.error('Erreur de téléchargement:', error);
-      toast({
-        title: t('download.error'),
-        description: t('download.failed'),
-        variant: 'destructive',
-      });
-    }
   };
 
   return (
@@ -214,18 +139,17 @@ export default function DocumentList({
             </TableHeader>
             <TableBody>
               {documents.map(doc => {
-                const status = doc.verificationStatus || doc.status;
-                const { variant, icon } = getStatusBadgeProps(status);
+                const { variant, icon } = getStatusBadgeProps(doc.status as DocumentStatus);
                 return (
                   <TableRow key={doc.id}>
                     <TableCell className="font-medium">{t(`documentTypes.${doc.type}`)}</TableCell>
                     <TableCell>
                       <Badge variant={variant} className="flex w-fit items-center">
                         {icon}
-                        {t(`status.${status?.toLowerCase()}`)}
+                        {t(`status.${doc.status}`)}
                       </Badge>
                     </TableCell>
-                    <TableCell>{formatDate(doc.uploadedAt || doc.createdAt)}</TableCell>
+                    <TableCell>{formatDate(doc.createdAt)}</TableCell>
                     <TableCell>
                       {doc.expiryDate ? (
                         formatDate(doc.expiryDate)
@@ -249,21 +173,6 @@ export default function DocumentList({
                           <TooltipContent>{t('list.view')}</TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => handleDeleteDocument(doc)}
-                            >
-                              <Trash className="h-4 w-4" />
-                              <span className="sr-only">{t('list.delete')}</span>
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>{t('list.delete')}</TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
                     </TableCell>
                   </TableRow>
                 );
@@ -285,16 +194,14 @@ export default function DocumentList({
             <DialogHeader>
               <DialogTitle>{t(`documentTypes.${selectedDocument.type}`)}</DialogTitle>
               <DialogDescription>
-                {(selectedDocument.status === 'REJECTED' ||
-                  selectedDocument.verificationStatus === 'REJECTED') &&
-                  selectedDocument.rejectionReason && (
-                    <div className="mt-2 rounded-md bg-destructive/10 p-3 text-sm">
-                      <p className="font-semibold text-destructive">
-                        {t('preview.rejectionReason')}:
-                      </p>
-                      <p>{selectedDocument.rejectionReason}</p>
-                    </div>
-                  )}
+                {selectedDocument.status === 'REJECTED' && selectedDocument.rejectionReason && (
+                  <div className="mt-2 rounded-md bg-destructive/10 p-3 text-sm">
+                    <p className="font-semibold text-destructive">
+                      {t('preview.rejectionReason')}:
+                    </p>
+                    <p>{selectedDocument.rejectionReason}</p>
+                  </div>
+                )}
               </DialogDescription>
             </DialogHeader>
 
@@ -302,14 +209,14 @@ export default function DocumentList({
               <div className="rounded-md border">
                 {selectedDocument.mimeType?.startsWith('image/') ? (
                   <img
-                    src={selectedDocument.fileUrl}
+                    src={`/api/documents/${selectedDocument.id}`}
                     alt={t(`documentTypes.${selectedDocument.type}`)}
                     className="h-auto w-full"
                   />
                 ) : (
                   <div className="flex h-40 items-center justify-center bg-muted">
                     <a
-                      href={selectedDocument.fileUrl}
+                      href={`/api/documents/${selectedDocument.id}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-primary-foreground"
@@ -324,15 +231,11 @@ export default function DocumentList({
               <div className="grid grid-cols-2 gap-3 text-sm">
                 <div>
                   <p className="font-semibold text-muted-foreground">{t('preview.status')}</p>
-                  <p>
-                    {t(
-                      `status.${(selectedDocument.verificationStatus || selectedDocument.status)?.toLowerCase()}`
-                    )}
-                  </p>
+                  <p>{t(`status.${selectedDocument.status}`)}</p>
                 </div>
                 <div>
                   <p className="font-semibold text-muted-foreground">{t('preview.submitted')}</p>
-                  <p>{formatDate(selectedDocument.uploadedAt || selectedDocument.createdAt)}</p>
+                  <p>{formatDate(selectedDocument.createdAt)}</p>
                 </div>
                 <div>
                   <p className="font-semibold text-muted-foreground">{t('preview.expires')}</p>
@@ -342,14 +245,14 @@ export default function DocumentList({
                 </div>
                 <div>
                   <p className="font-semibold text-muted-foreground">{t('preview.fileName')}</p>
-                  <p>{selectedDocument.filename || '-'}</p>
+                  <p>{selectedDocument.originalName || '-'}</p>
                 </div>
               </div>
 
-              {selectedDocument.notes && (
+              {selectedDocument.description && (
                 <div>
                   <p className="font-semibold text-muted-foreground">{t('preview.description')}</p>
-                  <p className="mt-1 text-sm">{selectedDocument.notes}</p>
+                  <p className="mt-1 text-sm">{selectedDocument.description}</p>
                 </div>
               )}
             </div>
@@ -358,36 +261,10 @@ export default function DocumentList({
               <Button variant="secondary" onClick={() => setPreviewOpen(false)}>
                 {t('preview.close')}
               </Button>
-              {selectedDocument && (
-                <Button
-                  variant="outline"
-                  onClick={() => downloadDocument(selectedDocument)}
-                  className="flex items-center gap-2"
-                >
-                  <FileText className="h-4 w-4" />
-                  {t('preview.download')}
-                </Button>
-              )}
             </DialogFooter>
           </DialogContent>
         </Dialog>
       )}
-
-      {/* Delete Confirmation Dialog */}
-      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>{t('deleteDialog.title')}</AlertDialogTitle>
-            <AlertDialogDescription>{t('deleteDialog.description')}</AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>{t('deleteDialog.cancel')}</AlertDialogCancel>
-            <AlertDialogAction onClick={confirmDeleteDocument}>
-              {t('deleteDialog.confirm')}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }

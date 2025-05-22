@@ -1,21 +1,21 @@
 'use client';
 
 import * as React from 'react';
-import { addDays, format } from 'date-fns';
+import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { useTranslations } from 'next-intl';
 
-export interface DatePickerProps {
-  className?: string;
-  selected?: Date;
+interface DatePickerProps {
+  date?: Date;
   onSelect?: (date: Date | undefined) => void;
   placeholder?: string;
   disabled?: (date: Date) => boolean;
+  className?: string;
+  selected?: Date;
 }
 
 /**
@@ -23,25 +23,27 @@ export interface DatePickerProps {
  * Permet de sélectionner une date avec un calendrier
  */
 export function DatePicker({
+  date,
+  onSelect,
+  placeholder = 'Sélectionner une date',
+  disabled,
   className,
   selected,
-  onSelect,
-  placeholder,
-  disabled,
 }: DatePickerProps) {
-  const t = useTranslations('datePickerLocale');
-  const [date, setDate] = React.useState<Date | undefined>(selected);
+  const [selectedDate, setSelectedDate] = React.useState<Date | undefined>(date);
 
-  // Mettre à jour l'état local si la prop selected change
+  // Mise à jour de la date lorsque la prop date change
   React.useEffect(() => {
-    setDate(selected);
-  }, [selected]);
+    if (date !== selectedDate) {
+      setSelectedDate(date);
+    }
+  }, [date, selectedDate]);
 
-  // Gérer la sélection de date
-  const handleSelect = (newDate: Date | undefined) => {
-    setDate(newDate);
+  // Fonction de sélection de date
+  const handleSelect = (date: Date | undefined) => {
+    setSelectedDate(date);
     if (onSelect) {
-      onSelect(newDate);
+      onSelect(date);
     }
   };
 
@@ -52,22 +54,21 @@ export function DatePicker({
           variant="outline"
           className={cn(
             'w-full justify-start text-left font-normal',
-            !date && 'text-muted-foreground',
+            !selectedDate && 'text-muted-foreground',
             className
           )}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
-          {date ? format(date, 'P', { locale: fr }) : placeholder || t('selectDate')}
+          {selectedDate ? format(selectedDate, 'P', { locale: fr }) : <span>{placeholder}</span>}
         </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
         <Calendar
           mode="single"
-          selected={date}
+          selected={selectedDate || selected}
           onSelect={handleSelect}
-          initialFocus
-          locale={fr}
           disabled={disabled}
+          initialFocus
         />
       </PopoverContent>
     </Popover>

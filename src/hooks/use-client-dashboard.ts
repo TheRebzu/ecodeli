@@ -14,28 +14,28 @@ export const useClientDashboard = () => {
     isLoading: isLoadingStats,
     error: statsError,
     refetch: refetchStats,
-  } = api.clientData.getDashboardStats.useQuery();
+  } = api.client.getDashboardStats.useQuery();
 
   const {
     data: recentActivity,
     isLoading: isLoadingActivity,
     error: activityError,
     refetch: refetchActivity,
-  } = api.clientData.getRecentActivity.useQuery();
+  } = api.client.getRecentActivity.useQuery();
 
   const {
     data: financialMetrics,
     isLoading: isLoadingFinancial,
     error: financialError,
     refetch: refetchFinancial,
-  } = api.clientData.getFinancialMetrics.useQuery();
+  } = api.client.getFinancialMetrics.useQuery();
 
   const {
     data: activeItems,
     isLoading: isLoadingActiveItems,
     error: activeItemsError,
     refetch: refetchActiveItems,
-  } = api.clientData.getActiveItems.useQuery();
+  } = api.client.getActiveItems.useQuery();
 
   // Fonction pour rafraîchir toutes les données
   const refreshDashboard = useCallback(async () => {

@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import Image from 'next/image';
 import { LogOut, Bell, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -68,22 +67,12 @@ export function BaseSidebar({
   const pathname = usePathname();
   const { logout } = useAuth();
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
-  const [mounted, setMounted] = useState(false);
-  const [windowWidth, setWindowWidth] = useState(0);
+  const [windowWidth, setWindowWidth] = useState(
+    typeof window !== 'undefined' ? window.innerWidth : 0
+  );
 
-  // Effet pour gérer le montage côté client et empêcher les problèmes d'hydratation
+  // Réinitialiser l'état collapsed lors des changements de taille d'écran
   useEffect(() => {
-    setMounted(true);
-    setWindowWidth(window.innerWidth);
-    if (window.innerWidth < 1024) {
-      setCollapsed(false);
-    }
-  }, []);
-
-  // Effet pour gérer les changements de taille d'écran (après montage)
-  useEffect(() => {
-    if (!mounted) return;
-
     const handleResize = () => {
       setWindowWidth(window.innerWidth);
       if (window.innerWidth < 1024) {
@@ -91,9 +80,12 @@ export function BaseSidebar({
       }
     };
 
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, [mounted]);
+    if (typeof window !== 'undefined') {
+      window.addEventListener('resize', handleResize);
+      handleResize();
+      return () => window.removeEventListener('resize', handleResize);
+    }
+  }, []);
 
   const toggleCollapse = () => {
     setCollapsed(!collapsed);
@@ -132,7 +124,7 @@ export function BaseSidebar({
         </Link>
 
         <div className="flex items-center gap-2">
-          {!collapsed && notifications > 0 && mounted && (
+          {!collapsed && notifications > 0 && (
             <Button
               variant="outline"
               size="icon"
@@ -149,8 +141,7 @@ export function BaseSidebar({
             </Button>
           )}
 
-          {/* Afficher le bouton de collapse uniquement côté client après montage */}
-          {mounted && collapsible && windowWidth >= 1024 && (
+          {collapsible && windowWidth >= 1024 && (
             <Button
               variant="ghost"
               size="icon"
@@ -206,7 +197,7 @@ export function BaseSidebar({
       </ScrollArea>
 
       {/* Zone d'informations d'abonnement */}
-      {!collapsed && subscriptionInfo && mounted && (
+      {!collapsed && subscriptionInfo && (
         <div className="px-4 py-3 border-t border-b">
           <div className="flex items-center justify-between">
             <div>
@@ -223,7 +214,7 @@ export function BaseSidebar({
       )}
 
       {/* Action rapide */}
-      {!collapsed && quickAction && mounted && (
+      {!collapsed && quickAction && (
         <div className="p-4">
           <Button className="w-full" size="sm" asChild>
             <Link href={quickAction.href}>
@@ -241,12 +232,10 @@ export function BaseSidebar({
             <div className={cn('flex items-center gap-3 mb-4', collapsed && 'flex-col')}>
               <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center overflow-hidden">
                 {userInfo.avatar ? (
-                  <Image
+                  <img
                     src={userInfo.avatar}
                     alt={userInfo.name}
                     className="h-full w-full object-cover"
-                    width={40}
-                    height={40}
                   />
                 ) : (
                   <span className="font-medium text-sm">

@@ -1,258 +1,191 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import { useRouter, useParams, useSearchParams } from 'next/navigation';
-import { useToast } from '@/components/ui/use-toast';
-import { Card, CardContent } from '@/components/ui/card';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Separator } from '@/components/ui/separator';
-import { Skeleton } from '@/components/ui/skeleton';
-import { AlertCircle, ArrowLeft, Phone, ThumbsUp, CheckCircle, Box } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, Star, Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import DeliveryTrackingPanel from '@/components/deliveries/delivery-tracking-panel';
-import DeliveryContact from '@/components/deliveries/delivery-contact';
-import DeliveryArrivalNotice from '@/components/deliveries/delivery-arrival-notice';
-import DeliveryConfirmationForm from '@/components/deliveries/delivery-confirmation-form';
-import { useDeliveryDetails } from '@/hooks/use-delivery-details';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import DeliveryTrackingMap from '@/components/deliveries/delivery-tracking-map';
+import DeliveryDetailCard from '@/components/deliveries/delivery-detail-card';
+import DeliveryTimeline from '@/components/deliveries/delivery-timeline';
+import { useDeliveryTracking } from '@/hooks/use-delivery-tracking';
 import { DeliveryStatus } from '@/types/delivery';
 
-export default function ClientDeliveryDetailsPage() {
-  const t = useTranslations('client.deliveryDetails');
-  const router = useRouter();
+export default function DeliveryDetailPage() {
+  const t = useTranslations('deliveries');
   const params = useParams();
+  const router = useRouter();
   const searchParams = useSearchParams();
-  const { toast } = useToast();
 
-  const deliveryId = Array.isArray(params.id) ? params.id[0] : params.id;
-  const [activeTab, setActiveTab] = useState<string>('tracking');
-  const [showContactDialog, setShowContactDialog] = useState<boolean>(
-    searchParams.get('contact') === 'true'
-  );
+  const deliveryId = params.id as string;
+  const justConfirmed = searchParams.get('confirmed') === 'true';
+  const justRated = searchParams.get('rated') === 'true';
 
-  // Récupérer les détails de la livraison
-  const {
-    delivery,
-    isLoading,
-    error,
-    refresh,
-    isArrivingSoon,
-    canBeConfirmed,
-    isCompleted,
-    isRated,
-  } = useDeliveryDetails(deliveryId);
+  const { trackingInfo, delivery, coordinatesHistory, isLoading, isAuthorized, error } =
+    useDeliveryTracking({ deliveryId });
 
-  // Gérer l'ouverture du dialogue de contact
-  const handleContactClick = () => {
-    setShowContactDialog(true);
-  };
+  // Rediriger si non autorisé
+  useEffect(() => {
+    if (!isLoading && !isAuthorized) {
+      router.push('/client/deliveries');
+    }
+  }, [isLoading, isAuthorized, router]);
 
-  // Gérer les actions spécifiques au statut
-  const handleConfirmDelivery = () => {
-    router.push(`/client/deliveries/${deliveryId}/confirm`);
-  };
+  // Préparer les props pour la carte
+  const mapProps = delivery
+    ? {
+        deliveryId: delivery.id,
+        pickupAddress: delivery.pickupAddress,
+        deliveryAddress: delivery.deliveryAddress,
+        status: delivery.status as DeliveryStatus,
+        lastUpdate: delivery.lastLocationUpdate as Date | undefined,
+        currentCoordinates:
+          delivery.currentLat && delivery.currentLng
+            ? ([delivery.currentLat, delivery.currentLng] as [number, number])
+            : undefined,
+      }
+    : undefined;
 
-  const handleRateDelivery = () => {
-    router.push(`/client/deliveries/${deliveryId}/rate`);
-  };
-
-  const handleGoBack = () => {
+  // Fonction pour retourner à la liste
+  const handleBackToList = () => {
     router.push('/client/deliveries');
   };
 
-  // Effectuer des actions basées sur les paramètres d'URL
-  useEffect(() => {
-    // Si l'URL contient ?confirm=success
-    if (searchParams.get('confirm') === 'success') {
-      toast({
-        title: t('confirmationSuccess'),
-        description: t('confirmationSuccessDescription'),
-        variant: 'default',
-      });
-    }
+  // Fonction pour aller à la page de confirmation
+  const handleConfirm = () => {
+    router.push(`/client/deliveries/${deliveryId}/confirm`);
+  };
 
-    // Si l'URL contient ?rate=success
-    if (searchParams.get('rate') === 'success') {
-      toast({
-        title: t('ratingSuccess'),
-        description: t('ratingSuccessDescription'),
-        variant: 'default',
-      });
-    }
-  }, [searchParams, toast, t]);
+  // Fonction pour aller à la page d'évaluation
+  const handleRate = () => {
+    router.push(`/client/deliveries/${deliveryId}/rate`);
+  };
 
-  // Rendu du squelette pendant le chargement
+  // Afficher un loader pendant le chargement
   if (isLoading) {
     return (
-      <div className="container mx-auto py-6 max-w-4xl">
-        <div className="flex items-center mb-6">
-          <Button variant="ghost" size="sm" className="mr-4" onClick={handleGoBack}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            {t('backToList')}
-          </Button>
-          <Skeleton className="h-8 w-64" />
-        </div>
-        <Skeleton className="h-[600px] w-full rounded-lg" />
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
-  // Afficher un message d'erreur si besoin
-  if (error || !delivery) {
+  // Vérifier si la livraison existe
+  if (!delivery) {
     return (
-      <div className="container mx-auto py-6 max-w-4xl">
-        <Button variant="ghost" size="sm" className="mb-6" onClick={handleGoBack}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
+      <div className="container max-w-5xl py-8">
+        <Button variant="ghost" onClick={handleBackToList} className="mb-6">
+          <ArrowLeft className="mr-2 h-4 w-4" />
           {t('backToList')}
         </Button>
 
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>{t('errorTitle')}</AlertTitle>
-          <AlertDescription>{error?.message || t('errorDescription')}</AlertDescription>
+          <AlertDescription>{error?.message || t('deliveryNotFound')}</AlertDescription>
         </Alert>
-
-        <div className="flex justify-center mt-6">
-          <Button onClick={() => refresh()}>{t('tryAgain')}</Button>
-        </div>
       </div>
     );
   }
 
-  // Actions disponibles en fonction du statut
-  const renderActions = () => {
-    return (
-      <div className="flex flex-wrap gap-3 mt-6">
-        {delivery.status === DeliveryStatus.IN_TRANSIT && (
-          <Button variant="default" className="flex items-center" onClick={handleContactClick}>
-            <Phone className="mr-2 h-4 w-4" />
-            {t('contactDeliverer')}
-          </Button>
-        )}
-
-        {canBeConfirmed && (
-          <Button variant="default" className="flex items-center" onClick={handleConfirmDelivery}>
-            <CheckCircle className="mr-2 h-4 w-4" />
-            {t('confirmDelivery')}
-          </Button>
-        )}
-
-        {isCompleted && !isRated && (
-          <Button variant="outline" className="flex items-center" onClick={handleRateDelivery}>
-            <ThumbsUp className="mr-2 h-4 w-4" />
-            {t('rateDelivery')}
-          </Button>
-        )}
-
-        <Button variant="outline" onClick={handleGoBack}>
-          {t('backToDeliveries')}
-        </Button>
-      </div>
-    );
-  };
-
   return (
-    <div className="container mx-auto py-6 max-w-4xl">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-        <div className="flex items-center">
-          <Button variant="ghost" size="sm" className="mr-4" onClick={handleGoBack}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">
-              {t('deliveryTitle', { id: delivery.id.slice(-6) })}
-            </h1>
-            <p className="text-muted-foreground">
-              {t('deliverySubtitle', {
-                date: new Date(delivery.createdAt).toLocaleDateString('fr-FR'),
-              })}
-            </p>
-          </div>
-        </div>
+    <div className="container max-w-5xl py-8">
+      <div className="flex items-center justify-between mb-8">
+        <Button variant="ghost" onClick={handleBackToList}>
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          {t('backToList')}
+        </Button>
 
         <div className="flex gap-2">
-          {delivery.status === DeliveryStatus.IN_TRANSIT && (
-            <Button onClick={handleContactClick} size="sm">
-              <Phone className="mr-2 h-4 w-4" />
-              {t('contact')}
+          {delivery.status === DeliveryStatus.DELIVERED && (
+            <Button onClick={handleConfirm}>
+              <CheckCircle2 className="mr-2 h-4 w-4" />
+              {t('confirmDelivery')}
+            </Button>
+          )}
+
+          {delivery.status === DeliveryStatus.CONFIRMED && !delivery.rating && (
+            <Button onClick={handleRate}>
+              <Star className="mr-2 h-4 w-4" />
+              {t('rateDelivery')}
             </Button>
           )}
         </div>
       </div>
 
-      {/* Notification d'arrivée si pertinent */}
-      {isArrivingSoon && (
-        <div className="mb-6">
-          <DeliveryArrivalNotice
-            deliveryId={deliveryId}
-            onContactClick={handleContactClick}
-            onTrackClick={() => setActiveTab('tracking')}
-          />
-        </div>
+      {justConfirmed && (
+        <Alert className="mb-6" variant="success">
+          <CheckCircle2 className="h-4 w-4" />
+          <AlertTitle>{t('deliveryConfirmedTitle')}</AlertTitle>
+          <AlertDescription>{t('deliveryConfirmedDescription')}</AlertDescription>
+        </Alert>
       )}
 
-      {/* Panel de suivi principal */}
-      <div className="mb-6">
-        <DeliveryTrackingPanel
-          deliveryId={deliveryId}
-          onContactClick={handleContactClick}
-          showMap={true}
-          showTimeline={true}
-        />
-      </div>
+      {justRated && (
+        <Alert className="mb-6" variant="success">
+          <Star className="h-4 w-4" />
+          <AlertTitle>{t('deliveryRatedTitle')}</AlertTitle>
+          <AlertDescription>{t('deliveryRatedDescription')}</AlertDescription>
+        </Alert>
+      )}
 
-      {/* Actions contextuelles */}
-      <Card className="mb-6">
-        <CardContent className="pt-6">
-          <div className="space-y-4">
-            <div className="flex items-center">
-              <Box className="h-5 w-5 mr-2 text-primary" />
-              <h3 className="text-lg font-medium">{t('actionsTitle')}</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <Tabs defaultValue="map">
+            <TabsList className="mb-4">
+              <TabsTrigger value="map">{t('tabs.map')}</TabsTrigger>
+              <TabsTrigger value="info">{t('tabs.details')}</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="map" className="min-h-[400px]">
+              {mapProps && <DeliveryTrackingMap {...mapProps} className="h-full" />}
+            </TabsContent>
+
+            <TabsContent value="info">
+              <DeliveryDetailCard
+                id={delivery.id}
+                status={delivery.status as DeliveryStatus}
+                pickupAddress={delivery.pickupAddress}
+                deliveryAddress={delivery.deliveryAddress}
+                pickupDate={new Date(delivery.pickupDate)}
+                deliveryDate={delivery.deliveryDate ? new Date(delivery.deliveryDate) : undefined}
+                estimatedArrival={
+                  delivery.estimatedArrival ? new Date(delivery.estimatedArrival) : undefined
+                }
+                client={delivery.client}
+                deliverer={delivery.deliverer || undefined}
+              />
+            </TabsContent>
+          </Tabs>
+        </div>
+
+        <div>
+          <DeliveryTimeline status={delivery.status as DeliveryStatus} logs={delivery.logs || []} />
+
+          {delivery.rating && (
+            <div className="mt-6 p-4 bg-muted rounded-lg">
+              <h3 className="font-semibold flex items-center">
+                <Star className="h-4 w-4 text-yellow-500 mr-2" />
+                {t('yourRating')}
+              </h3>
+              <div className="flex mt-2">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star
+                    key={i}
+                    className={`h-5 w-5 ${i < delivery.rating!.rating ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300'}`}
+                  />
+                ))}
+              </div>
+              {delivery.rating.comment && <p className="mt-2 text-sm">{delivery.rating.comment}</p>}
+              <p className="mt-2 text-xs text-muted-foreground">
+                {new Date(delivery.rating.createdAt).toLocaleDateString()}
+              </p>
             </div>
-            <Separator />
-            <p className="text-muted-foreground">
-              {delivery.status === DeliveryStatus.PENDING
-                ? t('statusMessages.pending')
-                : delivery.status === DeliveryStatus.ACCEPTED
-                  ? t('statusMessages.accepted')
-                  : delivery.status === DeliveryStatus.PICKED_UP
-                    ? t('statusMessages.pickedUp')
-                    : delivery.status === DeliveryStatus.IN_TRANSIT
-                      ? t('statusMessages.inTransit')
-                      : delivery.status === DeliveryStatus.DELIVERED
-                        ? t('statusMessages.delivered')
-                        : delivery.status === DeliveryStatus.CONFIRMED
-                          ? t('statusMessages.confirmed')
-                          : t('statusMessages.default')}
-            </p>
-            {renderActions()}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Dialog de contact */}
-      <Dialog open={showContactDialog} onOpenChange={setShowContactDialog}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>{t('contactDialogTitle')}</DialogTitle>
-            <DialogDescription>{t('contactDialogDescription')}</DialogDescription>
-          </DialogHeader>
-          <DeliveryContact
-            deliveryId={deliveryId}
-            delivererName={delivery.deliverer?.name}
-            delivererPhone={delivery.deliverer?.phone}
-            onClose={() => setShowContactDialog(false)}
-          />
-        </DialogContent>
-      </Dialog>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

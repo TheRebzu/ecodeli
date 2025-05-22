@@ -1,840 +1,252 @@
-import { useState, useCallback, useEffect } from 'react';
-import { api } from '@/trpc/react';
-import { toast } from 'sonner';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import useAnnouncementStore, { useAnnouncementList } from '@/store/use-announcement-store';
-import type { AnnouncementStatus, AnnouncementType, Announcement } from '@prisma/client';
+import { api } from '../trpc/react';
+import { toast } from 'sonner';
+import { AnnouncementStatus, AnnouncementType, AnnouncementPriority } from '../types/announcement';
 import {
-  CreateAnnouncementInput,
-  UpdateAnnouncementInput,
-  AnnouncementFilterInput,
-  CreateAnnouncementApplicationInput,
-} from '@/schemas/announcement.schema';
+  CreateAnnouncementSchemaType,
+  UpdateAnnouncementSchemaType,
+  AnnouncementFiltersSchemaType,
+} from '../schemas/announcement.schema';
 
-type AnnouncementWithDetails = Announcement & {
-  client?: {
-    id: string;
-    name: string;
-    image?: string | null;
-    rating?: number;
-  };
-  deliverer?: {
-    id: string;
-    userId: string;
-    name: string;
-    image?: string | null;
-    rating?: number;
-  };
-  applications?: Array<{
-    id: string;
-    delivererId: string;
-    status: string;
-    proposedPrice: number;
-    createdAt: Date;
-  }>;
-  isFavorite?: boolean;
-};
-
-type AnnouncementResponse = {
-  items: AnnouncementWithDetails[];
-  totalCount: number;
-  currentPage: number;
-  totalPages: number;
-};
-
-type UseAnnouncementOptions = {
-  enableAutoRefresh?: boolean;
-  refreshInterval?: number;
-  initialFilter?: Partial<AnnouncementFilterInput>;
-};
-
-/**
- * Hook principal pour la gestion des annonces
- */
-export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
-  const {
-    enableAutoRefresh = true,
-    refreshInterval = 60000, // 1 minute
-    initialFilter = { page: 1, limit: 10 },
-  } = options;
-
-  const [isLoading, setIsLoading] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [announcements, setAnnouncements] = useState<AnnouncementWithDetails[]>([]);
-  const [currentAnnouncement, setCurrentAnnouncement] = useState<AnnouncementWithDetails | null>(
-    null
-  );
-  const [totalCount, setTotalCount] = useState(0);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
-  const [filters, setFilters] = useState<Partial<AnnouncementFilterInput>>(initialFilter);
-
+export function useAnnouncement() {
   const router = useRouter();
+  const utils = api.useUtils();
 
-  // Utiliser le store Zustand pour les opérations plus complexes
-  const {
-    toggleFavorite,
-    fetchAnnouncements: fetchFromStore,
-    setFilters: setStoreFilters,
-  } = useAnnouncementStore();
+  // État local pour la pagination et les filtres
+  const [filters, setFilters] = useState<AnnouncementFiltersSchemaType>({
+    limit: 10,
+    offset: 0,
+    sortOrder: 'desc',
+    sortBy: 'createdAt',
+  });
 
-  /**
-   * Récupère la liste des annonces avec filtrage
-   */
-  const fetchAnnouncements = useCallback(
-    async (page: number = 1, filter: Partial<AnnouncementFilterInput> = {}) => {
-      try {
-        setIsLoading(true);
-        setError(null);
+  // Récupération des annonces du client
+  const myAnnouncements = api.announcement.getMyAnnouncements.useQuery({
+    limit: filters.limit || 10,
+    offset: filters.offset || 0,
+    status: filters.status as AnnouncementStatus | undefined,
+  });
 
-        const mergedFilter = { ...filters, ...filter, page } as AnnouncementFilterInput;
-        setFilters(mergedFilter);
+  // Récupération de toutes les annonces avec filtres
+  const allAnnouncements = api.announcement.getAll.useQuery(filters, {
+    enabled: Object.keys(filters).length > 2, // Active la requête uniquement si des filtres sont définis
+  });
 
-        // Mettre à jour également le store pour la cohérence
-        setStoreFilters(mergedFilter);
+  // Récupération d'une annonce par ID
+  const getAnnouncementById = (id: string) => {
+    return api.announcement.getById.useQuery({ id });
+  };
 
-        // Utiliser la procédure tRPC getAll
-        const response = await api.announcement.getAll.query(mergedFilter);
-
-        setAnnouncements(response.items);
-        setTotalCount(response.totalCount);
-        setCurrentPage(response.currentPage);
-        setTotalPages(response.totalPages);
-
-        return response;
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : 'Erreur lors du chargement des annonces';
-        setError(message);
-        toast.error(message);
-        return null;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [filters, setStoreFilters]
-  );
-
-  /**
-   * Récupère les détails d'une annonce spécifique
-   */
-  const fetchAnnouncementById = useCallback(async (id: string) => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const response = await api.announcement.getById.query({ id });
-      setCurrentAnnouncement(response);
-
-      return response;
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : `Erreur lors du chargement de l'annonce ${id}`;
-      setError(message);
-      toast.error(message);
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  /**
-   * Crée une nouvelle annonce
-   */
-  const createAnnouncement = useCallback(async (data: CreateAnnouncementInput) => {
-    try {
-      setIsSaving(true);
-      setError(null);
-
-      const response = await api.announcement.create.mutate(data);
+  // Création d'une annonce
+  const createAnnouncementMutation = api.announcement.create.useMutation({
+    onSuccess: () => {
+      // Invalider les requêtes pour recharger les données
+      utils.announcement.getMyAnnouncements.invalidate();
+      utils.announcement.getAll.invalidate();
 
       toast.success('Annonce créée avec succès');
+      router.push('/client/announcements');
+    },
+    onError: error => {
+      toast.error(error.message || "Erreur lors de la création de l'annonce");
+    },
+  });
 
-      return response;
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "Erreur lors de la création de l'annonce";
-      setError(message);
-      toast.error(message);
-      return null;
-    } finally {
-      setIsSaving(false);
+  const createAnnouncement = (data: CreateAnnouncementSchemaType) => {
+    createAnnouncementMutation.mutate(data);
+  };
+
+  // Mise à jour d'une annonce
+  const updateAnnouncementMutation = api.announcement.update.useMutation({
+    onSuccess: () => {
+      // Invalider les requêtes pour recharger les données
+      utils.announcement.getMyAnnouncements.invalidate();
+      utils.announcement.getById.invalidate();
+      utils.announcement.getAll.invalidate();
+
+      toast.success('Annonce mise à jour avec succès');
+      router.refresh();
+    },
+    onError: error => {
+      toast.error(error.message || "Erreur lors de la mise à jour de l'annonce");
+    },
+  });
+
+  const updateAnnouncement = (data: UpdateAnnouncementSchemaType) => {
+    updateAnnouncementMutation.mutate(data);
+  };
+
+  // Suppression d'une annonce
+  const deleteAnnouncementMutation = api.announcement.delete.useMutation({
+    onSuccess: () => {
+      // Invalider les requêtes pour recharger les données
+      utils.announcement.getMyAnnouncements.invalidate();
+      utils.announcement.getAll.invalidate();
+
+      toast.success('Annonce supprimée avec succès');
+      router.refresh();
+    },
+    onError: error => {
+      toast.error(error.message || "Erreur lors de la suppression de l'annonce");
+    },
+  });
+
+  const deleteAnnouncement = (id: string) => {
+    if (confirm('Êtes-vous sûr de vouloir supprimer cette annonce ?')) {
+      deleteAnnouncementMutation.mutate({ id });
     }
-  }, []);
+  };
 
-  /**
-   * Met à jour une annonce existante
-   */
-  const updateAnnouncement = useCallback(
-    async (id: string, data: UpdateAnnouncementInput) => {
-      try {
-        setIsSaving(true);
-        setError(null);
+  // Publication d'une annonce
+  const publishAnnouncementMutation = api.announcement.publish.useMutation({
+    onSuccess: () => {
+      // Invalider les requêtes pour recharger les données
+      utils.announcement.getMyAnnouncements.invalidate();
+      utils.announcement.getById.invalidate();
+      utils.announcement.getAll.invalidate();
 
-        const response = await api.announcement.update.mutate({
-          id,
-          ...data,
-        });
-
-        // Mettre à jour l'annonce courante si c'est celle-ci
-        if (currentAnnouncement && currentAnnouncement.id === id) {
-          setCurrentAnnouncement({ ...currentAnnouncement, ...response });
-        }
-
-        toast.success('Annonce mise à jour avec succès');
-
-        return response;
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Erreur lors de la mise à jour de l'annonce";
-        setError(message);
-        toast.error(message);
-        return null;
-      } finally {
-        setIsSaving(false);
-      }
+      toast.success('Annonce publiée avec succès');
+      router.refresh();
     },
-    [currentAnnouncement]
-  );
-
-  /**
-   * Supprime une annonce
-   */
-  const deleteAnnouncement = useCallback(
-    async (id: string) => {
-      try {
-        setIsDeleting(true);
-        setError(null);
-
-        await api.announcement.delete.mutate({ id });
-
-        // Retirer l'annonce de la liste locale
-        setAnnouncements(prev => prev.filter(a => a.id !== id));
-
-        // Réinitialiser l'annonce courante si c'est celle-ci
-        if (currentAnnouncement && currentAnnouncement.id === id) {
-          setCurrentAnnouncement(null);
-        }
-
-        toast.success('Annonce supprimée avec succès');
-
-        return true;
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Erreur lors de la suppression de l'annonce";
-        setError(message);
-        toast.error(message);
-        return false;
-      } finally {
-        setIsDeleting(false);
-      }
+    onError: error => {
+      toast.error(error.message || "Erreur lors de la publication de l'annonce");
     },
-    [currentAnnouncement]
-  );
+  });
 
-  /**
-   * Publie une annonce
-   */
-  const publishAnnouncement = useCallback(
-    async (id: string) => {
-      try {
-        setIsSaving(true);
-        setError(null);
+  const publishAnnouncement = (id: string) => {
+    publishAnnouncementMutation.mutate({ id });
+  };
 
-        const result = await api.announcement.publish.mutate({ id });
+  // Définir l'annonce comme complétée
+  const completeAnnouncementMutation = api.announcement.complete.useMutation({
+    onSuccess: () => {
+      // Invalider les requêtes pour recharger les données
+      utils.announcement.getMyAnnouncements.invalidate();
+      utils.announcement.getById.invalidate();
+      utils.announcement.getAll.invalidate();
 
-        // Mettre à jour l'annonce courante si c'est celle-ci
-        if (currentAnnouncement && currentAnnouncement.id === id) {
-          setCurrentAnnouncement({
-            ...currentAnnouncement,
-            status: 'PUBLISHED' as AnnouncementStatus,
-          });
-        }
-
-        toast.success('Annonce publiée avec succès');
-
-        return true;
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Erreur lors de la publication de l'annonce";
-        setError(message);
-        toast.error(message);
-        return false;
-      } finally {
-        setIsSaving(false);
-      }
+      toast.success('Annonce marquée comme complétée');
+      router.refresh();
     },
-    [currentAnnouncement]
-  );
-
-  /**
-   * Annule une annonce
-   */
-  const cancelAnnouncement = useCallback(
-    async (id: string, reason: string) => {
-      try {
-        setIsSaving(true);
-        setError(null);
-
-        await api.announcement.updateStatus.mutate({
-          id,
-          status: 'CANCELLED',
-          cancelReason: reason,
-        });
-
-        // Mettre à jour l'annonce courante si c'est celle-ci
-        if (currentAnnouncement && currentAnnouncement.id === id) {
-          setCurrentAnnouncement({
-            ...currentAnnouncement,
-            status: 'CANCELLED' as AnnouncementStatus,
-            cancelReason: reason,
-          });
-        }
-
-        toast.success('Annonce annulée avec succès');
-
-        return true;
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Erreur lors de l'annulation de l'annonce";
-        setError(message);
-        toast.error(message);
-        return false;
-      } finally {
-        setIsSaving(false);
-      }
+    onError: error => {
+      toast.error(error.message || "Erreur lors de la complétion de l'annonce");
     },
-    [currentAnnouncement]
-  );
+  });
 
-  /**
-   * Assigne un livreur à une annonce
-   */
-  const assignDeliverer = useCallback(
-    async (announcementId: string, applicationId: string) => {
-      try {
-        setIsSaving(true);
-        setError(null);
+  const completeAnnouncement = (id: string) => {
+    completeAnnouncementMutation.mutate({ id });
+  };
 
-        const result = await api.announcement.assignDeliverer.mutate({
-          announcementId,
-          applicationId,
-        });
+  // Gestion des filtres
+  const updateFilters = (newFilters: Partial<AnnouncementFiltersSchemaType>) => {
+    setFilters(prev => ({ ...prev, ...newFilters, offset: 0 })); // Réinitialiser l'offset lors du changement de filtre
+  };
 
-        // Mettre à jour l'annonce courante si c'est celle-ci
-        if (currentAnnouncement && currentAnnouncement.id === announcementId) {
-          // Trouver les détails de l'application sélectionnée
-          const selectedApplication = currentAnnouncement.applications?.find(
-            app => app.id === applicationId
-          );
+  // Gestion de la pagination
+  const nextPage = () => {
+    setFilters(prev => ({ ...prev, offset: (prev.offset || 0) + (prev.limit || 10) }));
+  };
 
-          if (selectedApplication) {
-            setCurrentAnnouncement({
-              ...currentAnnouncement,
-              status: 'ASSIGNED' as AnnouncementStatus,
-              delivererId: selectedApplication.delivererId,
-              // Mettre à jour les applications pour montrer celle qui a été acceptée
-              applications: currentAnnouncement.applications?.map(app => ({
-                ...app,
-                status: app.id === applicationId ? 'ACCEPTED' : 'REJECTED',
-              })),
-            });
-          }
-        }
+  const prevPage = () => {
+    setFilters(prev => ({
+      ...prev,
+      offset: Math.max(0, (prev.offset || 0) - (prev.limit || 10)),
+    }));
+  };
 
-        toast.success('Livreur assigné avec succès');
+  // Liste des types d'annonces pour les formulaires
+  const announcementTypes = Object.values(AnnouncementType).map(type => ({
+    value: type,
+    label: getAnnouncementTypeLabel(type),
+  }));
 
-        return true;
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : "Erreur lors de l'assignation du livreur";
-        setError(message);
-        toast.error(message);
-        return false;
-      } finally {
-        setIsSaving(false);
-      }
-    },
-    [currentAnnouncement]
-  );
+  // Liste des priorités pour les formulaires
+  const announcementPriorities = Object.values(AnnouncementPriority).map(priority => ({
+    value: priority,
+    label: getAnnouncementPriorityLabel(priority),
+  }));
 
-  /**
-   * Effectue le processus de paiement pour une annonce
-   */
-  const payForAnnouncement = useCallback(
-    async (announcementId: string, paymentMethodId?: string) => {
-      try {
-        setIsSaving(true);
-        setError(null);
+  // Liste des statuts pour les filtres
+  const announcementStatuses = Object.values(AnnouncementStatus).map(status => ({
+    value: status,
+    label: getAnnouncementStatusLabel(status),
+  }));
 
-        // Requête au routeur de paiement
-        const result = await api.payment.createForAnnouncement.mutate({
-          announcementId,
-          paymentMethodId,
-        });
-
-        if (result && result.clientSecret) {
-          // Redirection vers la page de confirmation de paiement
-          router.push(
-            `/client/announcements/${announcementId}/payment/confirm?session=${result.clientSecret}`
-          );
-        }
-
-        return result;
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Erreur lors du paiement';
-        setError(message);
-        toast.error(message);
-        return null;
-      } finally {
-        setIsSaving(false);
-      }
-    },
-    [router]
-  );
-
-  /**
-   * Confirme le paiement d'une annonce
-   */
-  const confirmPayment = useCallback(async (clientSecret: string) => {
-    try {
-      setIsSaving(true);
-      setError(null);
-
-      const result = await api.payment.confirmPayment.mutate({
-        clientSecret,
-      });
-
-      if (result.success) {
-        toast.success('Paiement confirmé avec succès');
-      } else {
-        setError(result.error || 'Erreur lors de la confirmation du paiement');
-        toast.error(result.error || 'Erreur lors de la confirmation du paiement');
-      }
-
-      return result;
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Erreur lors de la confirmation du paiement';
-      setError(message);
-      toast.error(message);
-      return null;
-    } finally {
-      setIsSaving(false);
-    }
-  }, []);
-
-  /**
-   * Postule pour une annonce (livreur)
-   */
-  const applyForAnnouncement = useCallback(
-    async (announcementId: string, data: CreateAnnouncementApplicationInput) => {
-      try {
-        setIsSaving(true);
-        setError(null);
-
-        const result = await api.announcement.applyForAnnouncement.mutate({
-          announcementId,
-          ...data,
-        });
-
-        // Mettre à jour l'annonce courante si c'est celle-ci
-        if (currentAnnouncement && currentAnnouncement.id === announcementId) {
-          const applications = currentAnnouncement.applications || [];
-          setCurrentAnnouncement({
-            ...currentAnnouncement,
-            applications: [...applications, result],
-          });
-        }
-
-        toast.success('Candidature envoyée avec succès');
-
-        return result;
-      } catch (err) {
-        const message = err instanceof Error ? err.message : 'Erreur lors de la candidature';
-        setError(message);
-        toast.error(message);
-        return null;
-      } finally {
-        setIsSaving(false);
-      }
-    },
-    [currentAnnouncement]
-  );
-
-  /**
-   * Retire une candidature (livreur)
-   */
-  const withdrawApplication = useCallback(
-    async (announcementId: string, applicationId: string) => {
-      try {
-        setIsSaving(true);
-        setError(null);
-
-        await api.announcement.updateApplicationStatus.mutate({
-          applicationId,
-          status: 'WITHDRAWN',
-        });
-
-        // Mettre à jour l'annonce courante si c'est celle-ci
-        if (currentAnnouncement && currentAnnouncement.id === announcementId) {
-          setCurrentAnnouncement({
-            ...currentAnnouncement,
-            applications: currentAnnouncement.applications?.filter(app => app.id !== applicationId),
-          });
-        }
-
-        toast.success('Candidature retirée avec succès');
-
-        return true;
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : 'Erreur lors du retrait de candidature';
-        setError(message);
-        toast.error(message);
-        return false;
-      } finally {
-        setIsSaving(false);
-      }
-    },
-    [currentAnnouncement]
-  );
-
-  /**
-   * Ajoute/retire une annonce des favoris
-   */
-  const addToFavorites = useCallback(
-    (id: string) => {
-      // Utiliser la fonction du store pour gérer les favoris
-      toggleFavorite(id);
-
-      // Mettre à jour la liste locale
-      setAnnouncements(prev =>
-        prev.map(ann => (ann.id === id ? { ...ann, isFavorite: !ann.isFavorite } : ann))
-      );
-
-      // Mettre à jour l'annonce courante si c'est celle-ci
-      if (currentAnnouncement && currentAnnouncement.id === id) {
-        setCurrentAnnouncement({
-          ...currentAnnouncement,
-          isFavorite: !currentAnnouncement.isFavorite,
-        });
-      }
-    },
-    [toggleFavorite, currentAnnouncement]
-  );
-
-  // Effet pour l'auto-refresh si activé
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-
-    if (enableAutoRefresh) {
-      interval = setInterval(() => {
-        fetchAnnouncements(currentPage, filters);
-      }, refreshInterval);
-    }
-
-    return () => {
-      if (interval) clearInterval(interval);
+  // Fonctions utilitaires pour les libellés
+  function getAnnouncementTypeLabel(type: AnnouncementType): string {
+    const typeLabels: Record<AnnouncementType, string> = {
+      [AnnouncementType.PACKAGE]: 'Colis',
+      [AnnouncementType.GROCERIES]: 'Courses',
+      [AnnouncementType.DOCUMENTS]: 'Documents',
+      [AnnouncementType.MEAL]: 'Repas',
+      [AnnouncementType.FURNITURE]: 'Meubles',
+      [AnnouncementType.OTHER]: 'Autre',
     };
-  }, [enableAutoRefresh, refreshInterval, currentPage, filters, fetchAnnouncements]);
+
+    return typeLabels[type] || type;
+  }
+
+  function getAnnouncementPriorityLabel(priority: AnnouncementPriority): string {
+    const priorityLabels: Record<AnnouncementPriority, string> = {
+      [AnnouncementPriority.LOW]: 'Basse',
+      [AnnouncementPriority.MEDIUM]: 'Moyenne',
+      [AnnouncementPriority.HIGH]: 'Élevée',
+      [AnnouncementPriority.URGENT]: 'Urgente',
+    };
+
+    return priorityLabels[priority] || priority;
+  }
+
+  function getAnnouncementStatusLabel(status: AnnouncementStatus): string {
+    const statusLabels: Record<AnnouncementStatus, string> = {
+      [AnnouncementStatus.DRAFT]: 'Brouillon',
+      [AnnouncementStatus.PENDING]: 'En attente',
+      [AnnouncementStatus.PUBLISHED]: 'Publiée',
+      [AnnouncementStatus.ASSIGNED]: 'Attribuée',
+      [AnnouncementStatus.IN_PROGRESS]: 'En cours',
+      [AnnouncementStatus.COMPLETED]: 'Terminée',
+      [AnnouncementStatus.CANCELLED]: 'Annulée',
+    };
+
+    return statusLabels[status] || status;
+  }
 
   return {
-    // États
-    isLoading,
-    isSaving,
-    isDeleting,
-    error,
+    // Récupération des données
+    myAnnouncements: myAnnouncements.data,
+    allAnnouncements: allAnnouncements.data,
+    getAnnouncementById,
+    isLoading: myAnnouncements.isLoading || allAnnouncements.isLoading,
 
-    // Données
-    announcements,
-    currentAnnouncement,
-    totalCount,
-    currentPage,
-    totalPages,
-    filters,
-
-    // Actions principales
-    fetchAnnouncements,
-    fetchAnnouncementById,
+    // Actions
     createAnnouncement,
     updateAnnouncement,
     deleteAnnouncement,
-
-    // Gestion du statut
     publishAnnouncement,
-    cancelAnnouncement,
-    assignDeliverer,
+    completeAnnouncement,
 
-    // Paiement
-    payForAnnouncement,
-    confirmPayment,
+    // État des mutations
+    isCreating: createAnnouncementMutation.isPending,
+    isUpdating: updateAnnouncementMutation.isPending,
+    isDeleting: deleteAnnouncementMutation.isPending,
+    isPublishing: publishAnnouncementMutation.isPending,
+    isCompleting: completeAnnouncementMutation.isPending,
 
-    // Actions livreur
-    applyForAnnouncement,
-    withdrawApplication,
-
-    // Favoris
-    addToFavorites,
-
-    // Utilitaires
-    setFilters,
-    resetError: () => setError(null),
-  };
-};
-
-/**
- * Hook pour gérer les annonces d'un client spécifique
- */
-export const useClientAnnouncements = (options: UseAnnouncementOptions = {}) => {
-  const [myAnnouncements, setMyAnnouncements] = useState<AnnouncementWithDetails[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const {
-    initialFilter = {
-      page: 1,
-      limit: 10,
-    },
-  } = options;
-
-  const [filters, setFilters] = useState<Partial<AnnouncementFilterInput>>(initialFilter);
-
-  /**
-   * Récupère les annonces du client connecté
-   */
-  const fetchMyAnnouncements = useCallback(
-    async (page: number = 1) => {
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        const updatedFilters = { ...filters, page } as AnnouncementFilterInput;
-
-        const response = await api.announcement.getMyAnnouncements.query(updatedFilters);
-
-        setMyAnnouncements(response.items);
-
-        return response;
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : 'Erreur lors du chargement de vos annonces';
-        setError(message);
-        toast.error(message);
-        return null;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [filters]
-  );
-
-  /**
-   * Récupère les annonces en cours du client
-   */
-  const fetchActiveAnnouncements = useCallback(async () => {
-    const activeFilters = {
-      ...filters,
-      status: ['PUBLISHED', 'IN_APPLICATION', 'ASSIGNED', 'IN_PROGRESS'] as AnnouncementStatus[],
-      page: 1,
-    };
-
-    setFilters(activeFilters);
-    return fetchMyAnnouncements(1);
-  }, [filters, fetchMyAnnouncements]);
-
-  /**
-   * Récupère l'historique des annonces du client
-   */
-  const fetchAnnouncementHistory = useCallback(async () => {
-    const historyFilters = {
-      ...filters,
-      status: ['COMPLETED', 'CANCELLED', 'PAID'] as AnnouncementStatus[],
-      page: 1,
-    };
-
-    setFilters(historyFilters);
-    return fetchMyAnnouncements(1);
-  }, [filters, fetchMyAnnouncements]);
-
-  // On utilise useEffect avec une dépendance vide pour ne charger qu'une seule fois au montage
-  // La fonction fetchMyAnnouncements contient des dépendances qui changent à chaque rendu
-  useEffect(() => {
-    // Charger les annonces du client au montage uniquement
-    const initialLoad = async () => {
-      await fetchMyAnnouncements(1);
-    };
-    
-    initialLoad();
-    // Tableau de dépendances vide pour éviter les rechargements en boucle
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  return {
-    myAnnouncements,
-    isLoading,
-    error,
+    // Gestion des filtres
     filters,
-    fetchMyAnnouncements,
-    fetchActiveAnnouncements,
-    fetchAnnouncementHistory,
-    setFilters,
-    resetError: () => setError(null),
+    updateFilters,
+    nextPage,
+    prevPage,
+
+    // Listes pour les formulaires
+    announcementTypes,
+    announcementPriorities,
+    announcementStatuses,
+
+    // Fonctions utilitaires
+    getAnnouncementTypeLabel,
+    getAnnouncementPriorityLabel,
+    getAnnouncementStatusLabel,
   };
-};
-
-/**
- * Hook pour gérer les annonces disponibles pour un livreur
- */
-export const useDelivererAnnouncements = (options: UseAnnouncementOptions = {}) => {
-  const [availableAnnouncements, setAvailableAnnouncements] = useState<AnnouncementWithDetails[]>(
-    []
-  );
-  const [myAssignedAnnouncements, setMyAssignedAnnouncements] = useState<AnnouncementWithDetails[]>(
-    []
-  );
-  const [myApplications, setMyApplications] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isLoadingApplications, setIsLoadingApplications] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const {
-    initialFilter = {
-      page: 1,
-      limit: 10,
-    },
-  } = options;
-
-  const [filters, setFilters] = useState<Partial<AnnouncementFilterInput>>(initialFilter);
-
-  /**
-   * Récupère les annonces disponibles pour les livreurs
-   */
-  const fetchAvailableAnnouncements = useCallback(
-    async (page: number = 1) => {
-      try {
-        setIsLoading(true);
-        setError(null);
-
-        const updatedFilters = {
-          ...filters,
-          status: ['PUBLISHED', 'IN_APPLICATION'] as AnnouncementStatus[],
-          page,
-        } as AnnouncementFilterInput;
-
-        // Utiliser la recherche avec filtre de statut
-        const response = await api.announcement.search.query(updatedFilters);
-
-        setAvailableAnnouncements(response.announcements);
-
-        return response;
-      } catch (err) {
-        const message =
-          err instanceof Error ? err.message : 'Erreur lors du chargement des annonces disponibles';
-        setError(message);
-        toast.error(message);
-        return null;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [filters]
-  );
-
-  /**
-   * Récupère les annonces assignées au livreur connecté
-   */
-  const fetchMyAssignedAnnouncements = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      const response = await api.announcement.getAssignedToDeliverer.query({});
-
-      setMyAssignedAnnouncements(response.announcements);
-
-      return response;
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Erreur lors du chargement de vos livraisons';
-      setError(message);
-      toast.error(message);
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  /**
-   * Récupère les candidatures du livreur
-   */
-  const fetchMyApplications = useCallback(async () => {
-    try {
-      setIsLoadingApplications(true);
-      setError(null);
-
-      // Cette route n'existe pas spécifiquement, utiliser la route de recherche
-      const response = await api.announcement.search.query({
-        hasApplied: true,
-        page: 1,
-        limit: 20,
-      });
-
-      setMyApplications(response.announcements);
-
-      return response;
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Erreur lors du chargement de vos candidatures';
-      setError(message);
-      toast.error(message);
-      return null;
-    } finally {
-      setIsLoadingApplications(false);
-    }
-  }, []);
-
-  /**
-   * Filtre les annonces par proximité géographique
-   */
-  const filterByProximity = useCallback(
-    async (latitude: number, longitude: number, radius: number = 10) => {
-      const proximityFilter = {
-        ...filters,
-        near: {
-          latitude,
-          longitude,
-          radius,
-        },
-      };
-
-      setFilters(proximityFilter);
-      return fetchAvailableAnnouncements(1);
-    },
-    [filters, fetchAvailableAnnouncements]
-  );
-
-  useEffect(() => {
-    // Charger les annonces disponibles au montage
-    fetchAvailableAnnouncements(1);
-  }, [fetchAvailableAnnouncements]);
-
-  return {
-    availableAnnouncements,
-    myAssignedAnnouncements,
-    myApplications,
-    isLoading,
-    isLoadingApplications,
-    error,
-    filters,
-    fetchAvailableAnnouncements,
-    fetchMyAssignedAnnouncements,
-    fetchMyApplications,
-    filterByProximity,
-    setFilters,
-    resetError: () => setError(null),
-  };
-};
-
-export default useAnnouncement;
+}

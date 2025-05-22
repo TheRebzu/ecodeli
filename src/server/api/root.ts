@@ -1,3 +1,4 @@
+import { initTRPC, TRPCError } from '@trpc/server';
 import superjson from 'superjson';
 import { router, createTRPCContext } from './trpc';
 import { authRouter } from './routers/auth.router';
@@ -11,31 +12,48 @@ import { warehouseRouter } from './routers/warehouse.router';
 import { documentRouter } from './routers/document.router';
 import { verificationRouter } from './routers/verification.router';
 import { userPreferencesRouter } from '@/server/api/routers/user-preferences.router';
-import { adminUserRouter } from './routers/admin-user.router';
-import { adminDashboardRouter } from './routers/admin-dashboard.router';
-import { warehouseRouter as adminWarehouseRouter } from './routers/warehouse.router';
+import { notificationRouter } from './routers/notification.router';
+import { adminUserRouter } from './routers/admin/admin-user.router';
+import { adminDashboardRouter } from './routers/admin/admin-dashboard.router';
+import { warehouseRouter as adminWarehouseRouter } from './routers/admin/warehouse.router';
 import { deliveryTrackingRouter } from './routers/delivery-tracking.router';
 import { storageRouter } from './routers/storage.router';
 import { clientRouter } from './routers/client.router';
-import { profileRouter } from './routers/profile.router';
-import { walletRouter } from '@/server/api/routers/wallet.router';
-import { withdrawalRouter } from '@/server/api/routers/withdrawal.router';
-import { billingRouter } from './routers/billing.router';
-import { financialTaskRouter } from './routers/financial-task.router';
-import { notificationRouter } from './routers/notification.router';
-import { subscriptionRouter } from './routers/subscription.router';
 
 // Re-export createTRPCContext from trpc.ts
-export { createTRPCContext } from './trpc';
+export { createTRPCContext };
 
-/**
- * Ce fichier regroupe tous les router tRPC de l'application.
- * C'est le point d'entrée principal de l'API tRPC.
- */
+const t = initTRPC.context<typeof createTRPCContext>().create({
+  transformer: superjson,
+});
 
-/**
- * Router API principal qui regroupe tous les autres routers.
- */
+const isAuthenticated = t.middleware(({ ctx, next }) => {
+  if (!ctx.session || !ctx.session.user) {
+    throw new TRPCError({ code: 'UNAUTHORIZED' });
+  }
+  return next({
+    ctx: {
+      ...ctx,
+      session: { ...ctx.session, user: ctx.session.user },
+    },
+  });
+});
+
+export const protectedProcedure = t.procedure.use(isAuthenticated);
+
+// Middleware pour vérifier si l'utilisateur est un administrateur
+const isAdmin = t.middleware(({ ctx, next }) => {
+  if (!ctx.session || !ctx.session.user || ctx.session.user.role !== 'ADMIN') {
+    throw new TRPCError({ code: 'FORBIDDEN' });
+  }
+  return next({
+    ctx,
+  });
+});
+
+export const adminProcedure = t.procedure.use(isAuthenticated).use(isAdmin);
+
+// Export the full router
 export const appRouter = router({
   auth: authRouter,
   user: userRouter,
@@ -45,23 +63,16 @@ export const appRouter = router({
   payment: paymentRouter,
   invoice: invoiceRouter,
   warehouse: warehouseRouter,
+  adminWarehouse: adminWarehouseRouter,
   document: documentRouter,
   verification: verificationRouter,
   userPreferences: userPreferencesRouter,
+  notification: notificationRouter,
   adminUser: adminUserRouter,
   adminDashboard: adminDashboardRouter,
-  adminWarehouse: adminWarehouseRouter,
   deliveryTracking: deliveryTrackingRouter,
   storage: storageRouter,
-  clientData: clientRouter,
-  profile: profileRouter,
-  wallet: walletRouter,
-  withdrawal: withdrawalRouter,
-  billing: billingRouter,
-  subscription: subscriptionRouter,
-  financialTask: financialTaskRouter,
-  notification: notificationRouter,
+  client: clientRouter,
 });
 
-// Type d'export pour le typage côté client
 export type AppRouter = typeof appRouter;

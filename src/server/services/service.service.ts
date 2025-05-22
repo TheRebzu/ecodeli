@@ -7,7 +7,7 @@ import {
   SearchServicesInput,
   UpdateBookingInput,
   UpdateServiceInput,
-} from '@/schemas/service.schema';
+} from '../../schemas/service.schema';
 import { TRPCError } from '@trpc/server';
 import { add, format, parse, addMinutes } from 'date-fns';
 

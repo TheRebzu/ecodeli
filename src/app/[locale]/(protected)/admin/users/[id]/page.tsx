@@ -34,7 +34,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import ForceActivateDelivererButton from '@/components/admin/users/force-activate-deliverer-button';
 
 export default function UserDetailPage() {
   const router = useRouter();
@@ -561,13 +560,6 @@ export default function UserDetailPage() {
           </AlertDialogContent>
         )}
       </AlertDialog>
-
-      {user.role === UserRole.DELIVERER && (
-        <div className="mt-4">
-          <h3 className="text-lg font-semibold mb-2">Actions spéciales</h3>
-          <ForceActivateDelivererButton userId={user.id} />
-        </div>
-      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useRouter } from 'next/router';
-import { useAuth } from '@/lib/trpc-auth-client';
+import { useAuth } from '@/lib/auth/trpc-auth-client';
 
 export default function RegisterForm() {
   const [formData, setFormData] = useState({

@@ -1,9 +1,7 @@
-import { router, protectedProcedure } from '@/server/api/trpc';
+import { router, protectedProcedure } from '../trpc';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { dashboardService } from '@/server/services/dashboard.service';
-import { serviceService } from '@/server/services/service.service';
-import { Prisma } from '@prisma/client';
+import { DashboardService } from '@/server/services/dashboard.service';
 
 // Définir les interfaces pour les données récupérées de la base de données
 interface DeliveryWithRelations {
@@ -146,17 +144,15 @@ export const clientRouter = router({
       });
     }
 
-    // Récupérer les livraisons avec les relations nécessaires
+    // Récupérer les livraisons
     const deliveries = await ctx.db.delivery.findMany({
       where: {
         clientId: user.client.id,
       },
       include: {
-        deliverer: {
-          select: {
-            id: true,
-            name: true,
-            image: true,
+        merchant: {
+          include: {
+            user: true,
           },
         },
       },
@@ -165,17 +161,16 @@ export const clientRouter = router({
       },
     });
 
-    // Transformer les données pour le client
-    return deliveries.map(delivery => ({
+    return deliveries.map((delivery: DeliveryWithRelations) => ({
       id: delivery.id,
       clientId: delivery.clientId,
       status: delivery.status,
-      merchantName: 'Inconnu', // Valeur par défaut si merchant n'est pas disponible
-      originAddress: delivery.pickupAddress,
-      destinationAddress: delivery.deliveryAddress,
+      merchantName: delivery.merchant?.user?.name || 'Inconnu',
+      originAddress: delivery.originAddress,
+      destinationAddress: delivery.destinationAddress,
       createdAt: delivery.createdAt.toISOString(),
-      estimatedDelivery: delivery.deliveryDate?.toISOString(),
-      deliveredAt: delivery.status === 'DELIVERED' ? delivery.updatedAt.toISOString() : undefined,
+      estimatedDelivery: delivery.estimatedDelivery?.toISOString(),
+      deliveredAt: delivery.deliveredAt?.toISOString(),
     }));
   }),
 
@@ -198,21 +193,23 @@ export const clientRouter = router({
     // Récupérer les factures
     const invoices = await ctx.db.invoice.findMany({
       where: {
-        userId: userId, // Utiliser userId au lieu de clientId
+        clientId: user.client.id,
+      },
+      include: {
+        delivery: true,
       },
       orderBy: {
         createdAt: 'desc',
       },
     });
 
-    // Transformer les données pour le client
-    return invoices.map(invoice => ({
+    return invoices.map((invoice: InvoiceWithRelations) => ({
       id: invoice.id,
-      clientId: user.client?.id || '', // Utiliser l'opérateur de coalescence nullish
+      clientId: invoice.clientId,
       amount: invoice.amount,
       status: invoice.status,
       date: invoice.createdAt.toISOString(),
-      deliveryId: null, // Pas disponible dans le modèle actuel
+      deliveryId: invoice.deliveryId,
     }));
   }),
 
@@ -254,7 +251,7 @@ export const clientRouter = router({
       }
 
       // Vérifier si le prestataire existe
-      const provider = await ctx.db.user.findUnique({
+      const provider = await ctx.db.provider.findUnique({
         where: { id: input.providerId },
       });
 
@@ -265,31 +262,27 @@ export const clientRouter = router({
         });
       }
 
-      // Créer la réservation de service
-      const date = new Date(input.date);
-      const booking = await ctx.db.serviceBooking.create({
+      // Créer le rendez-vous
+      const appointment = await ctx.db.appointment.create({
         data: {
           clientId: user.client.id,
           serviceId: input.serviceId,
           providerId: input.providerId,
-          startTime: date,
-          endTime: new Date(date.getTime() + 60 * 60 * 1000), // +1 heure par défaut
-          status: 'PENDING',
-          totalPrice: service.price,
+          date: new Date(input.date),
           notes: input.notes,
+          status: 'PENDING',
         },
       });
 
       return {
-        id: booking.id,
-        clientId: booking.clientId,
-        serviceId: booking.serviceId,
-        providerId: booking.providerId,
-        status: booking.status,
-        startTime: booking.startTime.toISOString(),
-        endTime: booking.endTime.toISOString(),
-        notes: booking.notes,
-        createdAt: booking.createdAt.toISOString(),
+        id: appointment.id,
+        clientId: appointment.clientId,
+        serviceId: appointment.serviceId,
+        providerId: appointment.providerId,
+        status: appointment.status,
+        date: appointment.date.toISOString(),
+        notes: appointment.notes,
+        createdAt: appointment.createdAt.toISOString(),
       };
     }),
 
@@ -310,7 +303,7 @@ export const clientRouter = router({
       });
     }
 
-    return dashboardService.getClientDashboardStats(userId);
+    return DashboardService.getClientDashboardStats(userId);
   }),
 
   // Procédure pour récupérer l'activité récente du client
@@ -330,7 +323,7 @@ export const clientRouter = router({
       });
     }
 
-    return dashboardService.getClientRecentActivity(userId);
+    return DashboardService.getClientRecentActivity(userId);
   }),
 
   // Procédure pour récupérer les métriques financières du client
@@ -350,7 +343,7 @@ export const clientRouter = router({
       });
     }
 
-    return dashboardService.getClientFinancialMetrics(userId);
+    return DashboardService.getClientFinancialMetrics(userId);
   }),
 
   // Procédure pour récupérer les éléments actifs du client
@@ -370,92 +363,6 @@ export const clientRouter = router({
       });
     }
 
-    return dashboardService.getClientActiveItems(userId);
+    return DashboardService.getClientActiveItems(userId);
   }),
-
-  // Procédure pour récupérer les réservations de service d'un client
-  getMyClientBookings: protectedProcedure
-    .input(
-      z
-        .object({
-          status: z.string().optional(),
-        })
-        .optional()
-    )
-    .query(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
-
-      // Vérifier si l'utilisateur est un client
-      const user = await ctx.db.user.findUnique({
-        where: { id: userId },
-        include: { client: true },
-      });
-
-      if (!user || !user.client) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: "Vous n'êtes pas autorisé à accéder à ces données",
-        });
-      }
-
-      const status = input?.status;
-
-      return serviceService.getClientBookings(user.client.id, status);
-    }),
-
-  // Procédure pour récupérer les détails d'une réservation
-  getBookingById: protectedProcedure
-    .input(
-      z.object({
-        id: z.string().cuid(),
-      })
-    )
-    .query(async ({ ctx, input }) => {
-      const userId = ctx.session.user.id;
-
-      // Vérifier si l'utilisateur est un client
-      const user = await ctx.db.user.findUnique({
-        where: { id: userId },
-        include: { client: true },
-      });
-
-      if (!user || !user.client) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: "Vous n'êtes pas autorisé à accéder à ces données",
-        });
-      }
-
-      const booking = await ctx.db.serviceBooking.findUnique({
-        where: { id: input.id },
-        include: {
-          service: true,
-          provider: {
-            select: {
-              id: true,
-              name: true,
-              image: true,
-            },
-          },
-          review: true,
-        },
-      });
-
-      if (!booking) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Réservation non trouvée',
-        });
-      }
-
-      // Vérifier que la réservation appartient au client
-      if (booking.clientId !== user.client.id) {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: "Vous n'êtes pas autorisé à accéder à cette réservation",
-        });
-      }
-
-      return booking;
-    }),
 });

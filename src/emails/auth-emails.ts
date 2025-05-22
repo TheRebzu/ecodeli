@@ -14,14 +14,8 @@ const transporter = nodemailer.createTransport({
 /**
  * Envoie un email de vérification à l'utilisateur
  */
-export async function sendVerificationEmail(
-  email: string,
-  name: string,
-  token: string,
-  locale: string = 'fr'
-): Promise<void> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
-  const verificationUrl = `${baseUrl}/${locale}/verify-email?token=${token}`;
+export async function sendVerificationEmail(email: string, token: string): Promise<void> {
+  const verificationUrl = `${process.env.NEXT_PUBLIC_APP_URL}/verify-email?token=${token}`;
 
   await transporter.sendMail({
     to: email,
@@ -29,7 +23,6 @@ export async function sendVerificationEmail(
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
         <h1 style="color: #3B82F6;">Vérifiez votre adresse email</h1>
-        <p>Bonjour ${name},</p>
         <p>Merci de vous être inscrit sur EcoDeli. Veuillez cliquer sur le lien ci-dessous pour vérifier votre adresse email :</p>
         <a href="${verificationUrl}" style="display: inline-block; background-color: #3B82F6; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; margin: 20px 0;">
           Vérifier mon adresse email

@@ -5,7 +5,6 @@ import { authOptions } from '@/server/auth/next-auth';
 import { getTranslations } from 'next-intl/server';
 import DelivererDashboard from '@/components/dashboard/deliverer/deliverer-dashboard';
 import { UserStatus } from '@/server/db/enums';
-import { PageProps, MetadataProps } from '@/types/next';
 
 type Props = {
   params: { locale: string };
@@ -22,9 +21,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 export default async function DelivererDashboardPage({ params }: Props) {
-  // Attendre la résolution des paramètres
-  const resolvedParams = await params;
-  const locale = resolvedParams.locale;
+  const locale = params.locale;
   const session = await getServerSession(authOptions);
 
   // Rediriger vers la page de connexion si l'utilisateur n'est pas connecté

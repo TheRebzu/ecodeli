@@ -9,7 +9,7 @@ export const POST = async (req: Request) => {
       endpoint: '/api/trpc',
       req,
       router: appRouter,
-      createContext: createTRPCContext,
+      createContext: () => createTRPCContext(),
       onError: ({ error }) => {
         console.error('tRPC error:', error);
       },
@@ -31,7 +31,7 @@ export const GET = async (req: Request) => {
       endpoint: '/api/trpc',
       req,
       router: appRouter,
-      createContext: createTRPCContext,
+      createContext: () => createTRPCContext(),
       onError: ({ error }) => {
         console.error('tRPC error:', error);
       },

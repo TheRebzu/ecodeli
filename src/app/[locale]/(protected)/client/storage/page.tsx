@@ -1,18 +1,12 @@
-import { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
+import { Metadata } from 'next';
 import { Package, Search, Bell } from 'lucide-react';
 import { Container, PageHeading, Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui';
-import { PageProps, MetadataProps } from '@/types/next';
 import {
   DynamicBoxReservations,
   DynamicBoxSearchPanel,
   DynamicBoxNotificationsPanel,
 } from '@/components/storage/client-wrapper';
-import { Button } from '@/components/ui/button';
-import { redirect, notFound } from 'next/navigation';
-import { getServerSession } from 'next-auth';
-import { authOptions } from '@/server/auth/next-auth';
-import { UserRole } from '@prisma/client';
 
 export async function generateMetadata({
   params,

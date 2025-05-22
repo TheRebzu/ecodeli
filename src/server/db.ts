@@ -1,15 +1,14 @@
 import { PrismaClient } from '@prisma/client';
-import { ExtendedPrismaClient } from '@/types/prisma-client';
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;
 };
 
-// Création du client Prisma avec options par défaut
-export const db = (globalForPrisma.prisma ??
+export const db =
+  globalForPrisma.prisma ??
   new PrismaClient({
-    log: process.env.NODE_ENV === 'development' ? ['error', 'warn'] : ['error'],
-  })) as PrismaClient & ExtendedPrismaClient;
+    log: process.env.NODE_ENV === 'development' ? ['error'] : ['error'],
+  });
 
 if (process.env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = db;

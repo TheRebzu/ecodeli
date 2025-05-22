@@ -1,7 +1,7 @@
 import { useSession, signIn, signOut } from 'next-auth/react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { LoginSchemaType } from '@/schemas/login.schema';
+import { LoginSchemaType } from '@/schemas/auth/login.schema';
 import { api } from './use-trpc';
 import { useToast } from '@/components/ui/use-toast';
 import type { UserRole } from '@prisma/client';
@@ -10,7 +10,7 @@ import type {
   DelivererRegisterSchemaType,
   MerchantRegisterSchemaType,
   ProviderRegisterSchemaType,
-} from '@/schemas';
+} from '@/schemas/auth';
 
 export function useAuth() {
   const { data: session, status, update } = useSession();
@@ -24,7 +24,6 @@ export function useAuth() {
   const verifyEmail = api.auth.verifyEmail.useMutation();
   const forgotPassword = api.auth.forgotPassword.useMutation();
   const resetPassword = api.auth.resetPassword.useMutation();
-  const resendVerificationEmail = api.auth.resendVerificationEmail.useMutation();
   const getSession = api.auth.getSession.useQuery(undefined, {
     enabled: status === 'authenticated',
     refetchOnWindowFocus: false,
@@ -249,31 +248,6 @@ export function useAuth() {
     }
   };
 
-  // Renvoyer l'email de vérification
-  const resendEmailVerification = async (email: string) => {
-    try {
-      setIsLoading(true);
-      const result = await resendVerificationEmail.mutateAsync({ email });
-      toast({
-        title: 'Email envoyé',
-        description: 'Un nouveau lien de vérification a été envoyé à votre adresse email.',
-      });
-      return result;
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Erreur lors de l'envoi de l'email";
-      setError(errorMessage);
-      toast({
-        title: 'Erreur',
-        description: errorMessage,
-        variant: 'destructive',
-      });
-      return null;
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   // Étendre les données de session avec les données complètes de l'utilisateur
   const extendedUser = getSession.data || session?.user;
   const role = extendedUser?.role as UserRole | undefined;
@@ -294,6 +268,5 @@ export function useAuth() {
     requestPasswordReset,
     resetPassword: resetUserPassword,
     refreshSession,
-    resendEmailVerification,
   };
 }

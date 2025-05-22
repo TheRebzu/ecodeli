@@ -1,59 +1,20 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Calendar,
-  Package2,
-  Map,
-  Truck,
-  Bell,
-  BarChart4,
-  CheckCircle2,
-  FileCheck,
-} from 'lucide-react';
-import { Badge } from '@/components/ui/badge';
-import { useSession } from 'next-auth/react';
-import { Progress } from '@/components/ui/progress';
-import { api } from '@/trpc/react';
+import { Calendar, Package2, Map, Truck, Bell, BarChart4 } from 'lucide-react';
 
 interface DelivererDashboardProps {
   locale: string;
 }
 
-// Interface pour les documents
-interface Document {
-  id: string;
-  type: string;
-  isVerified: boolean;
-}
-
 export default function DelivererDashboard({ locale }: DelivererDashboardProps) {
   const t = useTranslations('dashboard');
   const router = useRouter();
-  const { data: session } = useSession();
-  const isVerified = session?.user?.isVerified;
-
-  // Récupérer les documents de l'utilisateur via tRPC
-  const { data: documentsData } = api.document.getUserDocuments.useQuery();
-  const [verificationProgress, setVerificationProgress] = useState(0);
-
-  // Calculer la progression de la vérification
-  useEffect(() => {
-    if (documentsData) {
-      // Compter les documents vérifiés
-      const verifiedDocs = documentsData.filter((doc: Document) => doc.isVerified).length;
-      // Nous avons besoin de 3 documents vérifiés
-      const requiredDocs = 3;
-      // Calculer le pourcentage de progression
-      const progress = Math.min(100, (verifiedDocs / requiredDocs) * 100);
-      setVerificationProgress(progress);
-    }
-  }, [documentsData]);
 
   // Définir les actions rapides pour les livreurs
   const quickActions = [
@@ -103,60 +64,9 @@ export default function DelivererDashboard({ locale }: DelivererDashboardProps) 
 
   return (
     <div className="container mx-auto py-8 space-y-8">
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">{t('welcome')}</h1>
-          {isVerified ? (
-            <Badge
-              variant="secondary"
-              className="flex items-center gap-1 bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-            >
-              <CheckCircle2 className="h-4 w-4" />
-              <span>{t('verification.verified')}</span>
-            </Badge>
-          ) : (
-            <Badge variant="outline" className="flex items-center gap-1">
-              <span>{t('verification.pendingVerification')}</span>
-            </Badge>
-          )}
-        </div>
-
-        {!isVerified && (
-          <Card className="mt-4 border-amber-200 bg-amber-50 dark:border-amber-900 dark:bg-amber-950">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <FileCheck className="h-4 w-4" />
-                {t('verification.documentStatus')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs">
-                    {verificationProgress === 100
-                      ? t('verification.allDocumentsVerified')
-                      : t('verification.documentsInVerification')}
-                  </span>
-                  <span className="text-xs font-medium">{Math.round(verificationProgress)}%</span>
-                </div>
-                <Progress value={verificationProgress} className="h-2" />
-                {verificationProgress === 100 && !isVerified && (
-                  <p className="text-xs text-muted-foreground">
-                    {t('verification.processingVerification')}
-                  </p>
-                )}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-2 w-full"
-                  onClick={() => router.push(`/${locale}/deliverer/documents`)}
-                >
-                  {t('verification.viewDocuments')}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-bold">{t('welcome')}</h1>
+        <p className="text-muted-foreground">{t('deliverer.welcomeMessage')}</p>
       </div>
 
       <Tabs defaultValue="quickActions" className="w-full">

@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation';
 import { setRequestLocale } from 'next-intl/server';
-import { PageProps, MetadataProps } from '@/types/next';
 
 export default async function RootPage({ params }: { params: Promise<{ locale: string }> }) {
   // Attendre que les paramètres soient résolus avant de les utiliser

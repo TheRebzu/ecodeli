@@ -1,7 +1,6 @@
 import { ProtectedHeader } from '@/components/layout/protected-header';
 import { ProtectedFooter } from '@/components/layout/protected-footer';
 import { DelivererSidebar } from '@/components/layout/sidebars/deliverer-sidebar';
-import VerificationStatusProvider from '@/components/verification/verification-status-provider';
 
 interface DelivererLayoutProps {
   children: React.ReactNode;
@@ -10,17 +9,12 @@ interface DelivererLayoutProps {
   };
 }
 
-export default async function DelivererLayout({ children, params }: DelivererLayoutProps) {
-  // Résoudre params.locale en tant que Promise
-  const resolvedParams = await Promise.resolve(params);
-  const locale = resolvedParams.locale;
+export default function DelivererLayout({ children, params }: DelivererLayoutProps) {
+  const { locale } = params;
 
   return (
     <div className="min-h-screen flex flex-col">
       <ProtectedHeader locale={locale} />
-
-      {/* Utiliser un client component pour la vérification */}
-      <VerificationStatusProvider />
 
       <div className="flex-1 flex">
         <div className="hidden md:block w-64 shrink-0">

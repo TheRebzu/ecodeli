@@ -45,13 +45,9 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
   const allDocumentsSubmitted = hasIdCard && hasSelfie && hasDrivingLicense;
 
   // Gestionnaire d'upload pour chaque type de document
-  const handleUpload = async (
-    files: File[],
-    type: 'ID_CARD' | 'SELFIE' | 'DRIVING_LICENSE',
-    notes?: string
-  ) => {
+  const handleUpload = async (files: File[], type: 'ID_CARD' | 'SELFIE' | 'DRIVING_LICENSE') => {
     try {
-      await uploadDocument(files[0], type, notes || '');
+      await uploadDocument(files[0], type);
 
       // Message de succès
       toast({
@@ -101,7 +97,7 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
     if (documents.length === 0) return 'missing';
 
     const latestDocument = documents[0];
-    return latestDocument.verificationStatus.toLowerCase();
+    return latestDocument.status.toLowerCase();
   };
 
   // Fonctions pour rendre les badges de statut
@@ -155,15 +151,15 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="grid grid-cols-3 mb-8">
           <TabsTrigger value="id" className="relative">
-            {t('idCard.tab')}
+            {t('documents.idCard.tab')}
             {renderStatusBadge(getDocumentStatus(idDocuments))}
           </TabsTrigger>
           <TabsTrigger value="selfie" className="relative">
-            {t('selfie.tab')}
+            {t('documents.selfie.tab')}
             {renderStatusBadge(getDocumentStatus(selfieDocuments))}
           </TabsTrigger>
           <TabsTrigger value="license" className="relative">
-            {t('drivingLicense.tab')}
+            {t('documents.drivingLicense.tab')}
             {renderStatusBadge(getDocumentStatus(drivingLicenseDocuments))}
           </TabsTrigger>
         </TabsList>
@@ -172,8 +168,8 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
         <TabsContent value="id">
           <Card>
             <CardHeader>
-              <CardTitle>{t('idCard.title')}</CardTitle>
-              <CardDescription>{t('idCard.description')}</CardDescription>
+              <CardTitle>{t('documents.idCard.title')}</CardTitle>
+              <CardDescription>{t('documents.idCard.description')}</CardDescription>
             </CardHeader>
             <CardContent>
               {idDocuments.length > 0 ? (
@@ -187,7 +183,7 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
                 <DocumentUploadForm
                   onUpload={files => handleUpload(files, 'ID_CARD')}
                   isLoading={isLoading}
-                  label={t('idCard.uploadLabel')}
+                  label={t('documents.idCard.uploadLabel')}
                   acceptedFileTypes={{ 'image/*': ['.jpeg', '.jpg', '.png'] }}
                   maxFiles={1}
                   maxSize={5 * 1024 * 1024} // 5MB
@@ -200,13 +196,13 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
                   variant="outline"
                   onClick={() => {
                     // Permettre de remplacer le document si nécessaire
-                    if (idDocuments[0].verificationStatus === 'REJECTED') {
+                    if (idDocuments[0].status === 'REJECTED') {
                       handleDelete(idDocuments[0].id);
                     }
                   }}
-                  disabled={idDocuments[0].verificationStatus !== 'REJECTED'}
+                  disabled={idDocuments[0].status !== 'REJECTED'}
                 >
-                  {idDocuments[0].verificationStatus === 'REJECTED'
+                  {idDocuments[0].status === 'REJECTED'
                     ? t('documents.replaceRejected')
                     : t('documents.alreadySubmitted')}
                 </Button>
@@ -215,12 +211,12 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
           </Card>
         </TabsContent>
 
-        {/* Onglet Selfie */}
+        {/* Onglet Photo de profil (selfie) */}
         <TabsContent value="selfie">
           <Card>
             <CardHeader>
-              <CardTitle>{t('selfie.title')}</CardTitle>
-              <CardDescription>{t('selfie.description')}</CardDescription>
+              <CardTitle>{t('documents.selfie.title')}</CardTitle>
+              <CardDescription>{t('documents.selfie.description')}</CardDescription>
             </CardHeader>
             <CardContent>
               {selfieDocuments.length > 0 ? (
@@ -234,7 +230,7 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
                 <DocumentUploadForm
                   onUpload={files => handleUpload(files, 'SELFIE')}
                   isLoading={isLoading}
-                  label={t('selfie.uploadLabel')}
+                  label={t('documents.selfie.uploadLabel')}
                   acceptedFileTypes={{ 'image/*': ['.jpeg', '.jpg', '.png'] }}
                   maxFiles={1}
                   maxSize={5 * 1024 * 1024} // 5MB
@@ -246,15 +242,15 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
                 <Button
                   variant="outline"
                   onClick={() => {
-                    if (selfieDocuments[0].verificationStatus === 'REJECTED') {
+                    if (selfieDocuments[0].status === 'REJECTED') {
                       handleDelete(selfieDocuments[0].id);
                     }
                   }}
-                  disabled={selfieDocuments[0].verificationStatus !== 'REJECTED'}
+                  disabled={selfieDocuments[0].status !== 'REJECTED'}
                 >
-                  {selfieDocuments[0].verificationStatus === 'REJECTED'
-                    ? t('replaceRejected')
-                    : t('alreadySubmitted')}
+                  {selfieDocuments[0].status === 'REJECTED'
+                    ? t('documents.replaceRejected')
+                    : t('documents.alreadySubmitted')}
                 </Button>
               </CardFooter>
             )}
@@ -265,8 +261,8 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
         <TabsContent value="license">
           <Card>
             <CardHeader>
-              <CardTitle>{t('drivingLicense.title')}</CardTitle>
-              <CardDescription>{t('drivingLicense.description')}</CardDescription>
+              <CardTitle>{t('documents.drivingLicense.title')}</CardTitle>
+              <CardDescription>{t('documents.drivingLicense.description')}</CardDescription>
             </CardHeader>
             <CardContent>
               {drivingLicenseDocuments.length > 0 ? (
@@ -280,7 +276,7 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
                 <DocumentUploadForm
                   onUpload={files => handleUpload(files, 'DRIVING_LICENSE')}
                   isLoading={isLoading}
-                  label={t('drivingLicense.uploadLabel')}
+                  label={t('documents.drivingLicense.uploadLabel')}
                   acceptedFileTypes={{ 'image/*': ['.jpeg', '.jpg', '.png'] }}
                   maxFiles={1}
                   maxSize={5 * 1024 * 1024} // 5MB
@@ -292,15 +288,15 @@ export default function DelivererDocumentUpload({ userId, locale }: DelivererDoc
                 <Button
                   variant="outline"
                   onClick={() => {
-                    if (drivingLicenseDocuments[0].verificationStatus === 'REJECTED') {
+                    if (drivingLicenseDocuments[0].status === 'REJECTED') {
                       handleDelete(drivingLicenseDocuments[0].id);
                     }
                   }}
-                  disabled={drivingLicenseDocuments[0].verificationStatus !== 'REJECTED'}
+                  disabled={drivingLicenseDocuments[0].status !== 'REJECTED'}
                 >
-                  {drivingLicenseDocuments[0].verificationStatus === 'REJECTED'
-                    ? t('replaceRejected')
-                    : t('alreadySubmitted')}
+                  {drivingLicenseDocuments[0].status === 'REJECTED'
+                    ? t('documents.replaceRejected')
+                    : t('documents.alreadySubmitted')}
                 </Button>
               </CardFooter>
             )}

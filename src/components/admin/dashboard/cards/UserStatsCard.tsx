@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { UserStats } from '@/types/dashboard';
+import { UserStats } from '@/types/admin/dashboard';
 import { UserIcon, UsersIcon } from 'lucide-react';
 
 interface UserStatsCardProps {
@@ -24,9 +24,6 @@ const UserStatsCard = ({ data, expanded = false }: UserStatsCardProps) => {
     );
   }
 
-  // Assurer que data.newUsers existe
-  const newUsers = data.newUsers || { today: 0, thisWeek: 0, thisMonth: 0 };
-  
   const roleColors: Record<string, string> = {
     ADMIN: 'bg-red-100 text-red-800',
     CLIENT: 'bg-blue-100 text-blue-800',
@@ -61,15 +58,15 @@ const UserStatsCard = ({ data, expanded = false }: UserStatsCardProps) => {
             <div className="grid grid-cols-3 gap-2">
               <div className="bg-background p-2 rounded-lg border text-center">
                 <p className="text-xs text-muted-foreground">Aujourd&apos;hui</p>
-                <p className="text-lg font-semibold">{newUsers.today}</p>
+                <p className="text-lg font-semibold">{data.newUsers.today}</p>
               </div>
               <div className="bg-background p-2 rounded-lg border text-center">
                 <p className="text-xs text-muted-foreground">Cette semaine</p>
-                <p className="text-lg font-semibold">{newUsers.thisWeek}</p>
+                <p className="text-lg font-semibold">{data.newUsers.thisWeek}</p>
               </div>
               <div className="bg-background p-2 rounded-lg border text-center">
                 <p className="text-xs text-muted-foreground">Ce mois</p>
-                <p className="text-lg font-semibold">{newUsers.thisMonth}</p>
+                <p className="text-lg font-semibold">{data.newUsers.thisMonth}</p>
               </div>
             </div>
           </div>

@@ -90,11 +90,7 @@
           "description": "Utilisez notre système de stockage pour vos colis et marchandises."
         }
       }
-    },
-    "pageTitle": "Inscription Client | EcoDeli",
-    "pageDescription": "Inscrivez-vous en tant que client sur EcoDeli",
-    "title": "Inscription Client",
-    "instructions": "Complétez les informations ci-dessous pour créer votre compte client"
+    }
   },
   "Deliverer": {
     "Onboarding": {
@@ -183,111 +179,6 @@
           "title": "Avis et évaluations",
           "description": "Consultez les avis laissés par vos clients et améliorez votre réputation."
         }
-      }
-    }
-  },
-  "Admin": {
-    "verification": {
-      "metadata": {
-        "title": "Vérification de documents | EcoDeli Admin",
-        "description": "Vérifiez et approuvez les documents utilisateurs"
-      },
-      "title": "Vérification de documents",
-      "description": "Vérifiez et approuvez les documents soumis par les utilisateurs",
-      "userDocumentsTitle": "Documents utilisateur",
-      "backToUsers": "Retour à la liste des utilisateurs",
-      "loading": "Chargement...",
-      "documentsListTitle": "Liste des documents",
-      "documentsListDescription": "Tous les documents téléchargés par l'utilisateur",
-      "tabs": {
-        "pending": "En attente",
-        "approved": "Approuvés"
-      }
-    }
-  },
-  "verification": {
-    "merchant": {
-      "title": "Vérification du compte commerçant",
-      "description": "Soumettez vos documents pour vérifier votre compte commerçant",
-      "formTitle": "Vérification du compte commerçant",
-      "formDescription": "Pour activer votre compte commerçant, veuillez télécharger les documents suivants pour vérification",
-      "submitButton": "Soumettre pour vérification",
-      "documents": {
-        "idCard": {
-          "label": "Pièce d'identité",
-          "description": "Carte d'identité, passeport ou permis de conduire valide"
-        },
-        "businessLicense": {
-          "label": "Licence commerciale",
-          "description": "Document officiel autorisant votre activité commerciale"
-        },
-        "taxCertificate": {
-          "label": "Certificat fiscal",
-          "description": "Attestation fiscale à jour ou numéro de TVA"
-        },
-        "proofOfAddress": {
-          "label": "Justificatif d'adresse",
-          "description": "Facture récente (eau, électricité, téléphone) de moins de 3 mois"
-        }
-      }
-    },
-    "provider": {
-      "title": "Vérification du compte prestataire",
-      "description": "Soumettez vos documents pour vérifier votre compte prestataire",
-      "formTitle": "Vérification du compte prestataire",
-      "formDescription": "Pour activer votre compte prestataire, veuillez télécharger les documents suivants pour vérification",
-      "submitButton": "Soumettre pour vérification",
-      "documents": {
-        "idCard": {
-          "label": "Pièce d'identité",
-          "description": "Carte d'identité, passeport ou permis de conduire valide"
-        },
-        "professionalQualification": {
-          "label": "Qualification professionnelle",
-          "description": "Diplôme, certification ou attestation de formation"
-        },
-        "insuranceCertificate": {
-          "label": "Certificat d'assurance",
-          "description": "Assurance responsabilité civile professionnelle à jour"
-        },
-        "proofOfAddress": {
-          "label": "Justificatif d'adresse",
-          "description": "Facture récente (eau, électricité, téléphone) de moins de 3 mois"
-        }
-      }
-    },
-    "statusBanner": {
-      "pending": {
-        "title": "Vérification en cours",
-        "description": "Votre demande est en cours d'examen par notre équipe. Ce processus peut prendre jusqu'à 48 heures ouvrées."
-      },
-      "approved": {
-        "title": "Compte vérifié",
-        "description": "Votre compte a été vérifié avec succès. Vous pouvez maintenant accéder à toutes les fonctionnalités."
-      },
-      "rejected": {
-        "title": "Vérification refusée",
-        "description": "Votre demande de vérification a été refusée. Veuillez consulter les raisons ci-dessous et soumettre à nouveau les documents corrects."
-      }
-    },
-    "alreadySubmitted": {
-      "title": "Demande déjà soumise",
-      "pending": "Votre demande de vérification est en cours d'examen. Nous vous notifierons dès qu'elle sera traitée.",
-      "approved": "Votre compte est déjà vérifié. Vous avez accès à toutes les fonctionnalités."
-    },
-    "upload": {
-      "dropzone": {
-        "title": "Télécharger un document",
-        "instruction": "Glissez-déposez un fichier ici, ou cliquez pour sélectionner",
-        "dropping": "Déposez le fichier ici",
-        "maxSize": "Taille maximale: {size}MB",
-        "formats": "Formats acceptés: JPG, PNG, PDF"
-      },
-      "uploaded": "Document téléchargé avec succès",
-      "error": {
-        "tooLarge": "Fichier trop volumineux. Taille maximale: {size}MB",
-        "invalidFormat": "Format de fichier non supporté.",
-        "uploadFailed": "Échec du téléchargement. Veuillez réessayer."
       }
     }
   },
@@ -609,9 +500,9 @@
     "case_userstatus_inactive_return": ";\n      case UserStatus.INACTIVE:\n        return",
     "case_userrole_client_return": ";\n      case UserRole.CLIENT:\n        return",
     "case_userrole_deliverer_return": ";\n      case UserRole.DELIVERER:\n        return",
-    "deliverer_role": "Deliverer",
+    "deliverer": "Deliverer",
     "case_userrole_merchant_return": ";\n      case UserRole.MERCHANT:\n        return",
-    "merchant_role": "Merchant",
+    "merchant": "Merchant",
     "case_userrole_provider_return": ";\n      case UserRole.PROVIDER:\n        return",
     "provider": "Provider",
     "verified": "Verified",
@@ -1170,40 +1061,7 @@
     "backToHome": "[en] backToHome",
     "save": "[en] save",
     "cancel": "[en] cancel",
-      "back": "[en] back",
-    "delivererRegister": {
-      "pageTitle": "Inscription Livreur | EcoDeli",
-      "pageDescription": "Inscrivez-vous en tant que livreur sur EcoDeli",
-      "title": "Inscription Livreur",
-      "instructions": "Complétez les informations ci-dessous pour rejoindre notre réseau de livreurs",
-      "delivererPageTitle": "Inscription Livreur | EcoDeli",
-      "delivererPageDescription": "Créez votre compte livreur EcoDeli",
-      "createDelivererAccount": "Créer un compte livreur",
-      "enterDelivererDetails": "Complétez les informations ci-dessous pour rejoindre notre réseau de livreurs"
-    },
-    "merchantRegister": {
-      "pageTitle": "Inscription Commerçant | EcoDeli",
-      "pageDescription": "Inscrivez-vous en tant que commerçant sur EcoDeli",
-      "title": "Inscription Commerçant",
-      "instructions": "Complétez les informations ci-dessous pour créer votre compte commerçant"
-    },
-    "todo": {
-      "title": "Liste de tâches",
-      "inputPlaceholder": "Ajouter une nouvelle tâche...",
-      "addButton": "Ajouter",
-      "emptyState": "Aucune tâche à afficher. Ajoutez-en une !",
-      "deleteButton": "Supprimer",
-      "notifications": {
-        "taskCompleted": "Tâche terminée",
-        "taskReactivated": "Tâche réactivée",
-        "taskCompletedDesc": "La tâche a été marquée comme terminée",
-        "taskReactivatedDesc": "La tâche a été remise en cours",
-        "taskDeleted": "Tâche supprimée",
-        "taskDeletedDesc": "La tâche a été supprimée avec succès",
-        "taskAdded": "Tâche ajoutée",
-        "taskAddedDesc": "La nouvelle tâche a été ajoutée avec succès"
-      }
-    }
+    "back": "[en] back"
   },
   "auth": {
     "login": {
@@ -1271,11 +1129,7 @@
         "pageTitle": "Inscription Livreur | EcoDeli",
         "pageDescription": "Inscrivez-vous en tant que livreur sur EcoDeli",
         "title": "Inscription Livreur",
-        "instructions": "Complétez les informations ci-dessous pour rejoindre notre équipe de livreurs",
-        "delivererPageTitle": "Inscription Livreur | EcoDeli",
-        "delivererPageDescription": "Créez votre compte livreur EcoDeli",
-        "createDelivererAccount": "Créer un compte livreur",
-        "enterDelivererDetails": "Complétez les informations ci-dessous pour rejoindre notre réseau de livreurs"
+        "instructions": "Complétez les informations ci-dessous pour rejoindre notre équipe de livreurs"
       },
       "merchant": {
         "pageTitle": "Inscription Commerçant | EcoDeli",
@@ -1475,123 +1329,2337 @@
 
   "documents": {
     "deliverer": {
-      "title": "Vérification de vos documents",
-      "subtitle": "Pour assurer la sécurité de notre plateforme, nous avons besoin de vérifier votre identité et vos documents",
+      "title": "Documents du livreur",
+      "subtitle": "Téléchargez vos documents pour vérification",
       "pageTitle": "Vérification de Documents | EcoDeli",
       "pageDescription": "Uploadez vos documents pour vérification"
     },
-    "idCard": {
-      "tab": "Identité",
-      "title": "Carte d'identité",
-      "description": "Téléchargez une copie de votre carte d'identité (recto-verso)",
-      "uploadLabel": "Télécharger votre carte d'identité"
+    "verificationRequired": {
+      "title": "Vérification requise",
+      "message": "Pour accéder à toutes les fonctionnalités de livreur, vous devez télécharger et faire vérifier vos documents."
     },
-    "drivingLicense": {
-      "tab": "Permis de conduire",
-      "title": "Permis de conduire",
-      "description": "Téléchargez une copie de votre permis de conduire",
-      "uploadLabel": "Télécharger votre permis de conduire"
-    },
-    "selfie": {
-      "tab": "Selfie",
-      "title": "Photo de profil",
-      "description": "Téléchargez une photo de vous clairement identifiable",
-      "uploadLabel": "Télécharger votre selfie"
-    },
-    "status": {
-      "pending": "En attente",
-      "approved": "Approuvé",
-      "rejected": "Rejeté",
-      "missing": "Manquant"
+    "pendingVerification": {
+      "title": "Vérification en cours",
+      "message": "Vos documents ont été soumis et sont en cours de vérification. Vous serez notifié lorsque la vérification sera terminée."
     },
     "documentTypes": {
       "ID_CARD": "Carte d'identité",
       "DRIVING_LICENSE": "Permis de conduire",
-      "SELFIE": "Photo de profil",
+      "VEHICLE_REGISTRATION": "Carte grise",
+      "INSURANCE": "Attestation d'assurance",
+      "QUALIFICATION_CERTIFICATE": "Certification professionnelle",
+      "PROOF_OF_ADDRESS": "Justificatif de domicile",
+      "BUSINESS_REGISTRATION": "Extrait KBIS",
       "OTHER": "Autre document"
     },
-    "verification": {
-      "notice": "Tous vos documents doivent être vérifiés avant d'accéder à toutes les fonctionnalités"
+    "documents": {
+      "idCard": {
+        "title": "Carte d'identité",
+        "description": "Pièce d'identité valide (carte nationale d'identité, passeport, titre de séjour)",
+        "tab": "Carte d'identité",
+        "uploadLabel": "Téléverser votre carte d'identité"
+      },
+      "selfie": {
+        "title": "Selfie",
+        "description": "Photo récente de vous-même prise avec votre téléphone ou webcam",
+        "tab": "Selfie",
+        "uploadLabel": "Téléverser votre selfie"
+      },
+      "drivingLicense": {
+        "title": "Permis de conduire",
+        "description": "Permis de conduire valide pour le type de véhicule que vous utiliserez",
+        "tab": "Permis de conduire",
+        "uploadLabel": "Téléverser votre permis de conduire"
+      }
     },
-    "deleteConfirmation": {
-      "title": "Supprimer le document",
-      "description": "Êtes-vous sûr de vouloir supprimer ce document ? Cette action est irréversible.",
-      "confirm": "Supprimer",
-      "cancel": "Annuler"
-    },
-    "allDocumentsSubmitted": {
-      "title": "Tous les documents soumis",
-      "description": "Tous vos documents ont été soumis pour vérification. Nous vous informerons lorsqu'ils seront approuvés."
-    },
-    "verificationRequired": {
-      "title": "Vérification requise",
-      "message": "Vous devez télécharger et faire vérifier vos documents pour accéder à toutes les fonctionnalités."
-    },
-    "pendingVerification": {
-      "title": "Vérification en cours",
-      "message": "Vos documents sont en cours de vérification par notre équipe. Merci de votre patience."
-    },
-    "replaceRejected": "Remplacer le document rejeté",
-    "alreadySubmitted": "Document déjà soumis",
-    "forceVerification": {
-      "title": "Problème de vérification?",
-      "description": "Si tous vos documents ont été approuvés mais que votre compte n'est toujours pas vérifié, vous pouvez essayer de forcer la vérification."
-    },
-    "upload": {
-      "dropFiles": "Déposez vos fichiers ici ou cliquez pour parcourir",
-      "title": "Télécharger un document",
-      "subtitle": "Formats acceptés: PDF, JPG, PNG (max 5MB)",
-      "dropzone": "Déposez votre fichier ici",
-      "orBrowse": "ou parcourir",
-      "maxSize": "Taille maximale: 5MB",
-      "button": "Télécharger",
-      "processing": "Traitement en cours..."
+    "uploadForm": {
+      "title": "Téléchargement de document",
+      "description": "Veuillez télécharger votre document au format requis"
     },
     "form": {
-      "documentType": "Type de document",
-      "description": "Description (optionnel)",
-      "uploading": "Téléchargement en cours...",
-      "uploadSuccess": "Document téléchargé avec succès",
-      "uploadError": "Erreur lors du téléchargement",
+      "type": "Type de document",
+      "typeDescription": "Sélectionnez le type de document que vous souhaitez télécharger",
+      "file": "Fichier",
+      "fileDescription": "Format accepté: PDF, JPG, PNG (max 10MB)",
+      "expiryDate": "Date d'expiration",
+      "expiryDateDescription": "Date d'expiration du document (si applicable)",
+      "description": "Description",
+      "descriptionHelp": "Ajoutez des détails supplémentaires sur ce document (optionnel)",
       "submit": "Soumettre",
-      "cancel": "Annuler"
-    }
-  },
-  "uploadForm": {
-    "title": "Télécharger un document",
-    "description": "Téléchargez les documents requis pour la vérification de votre compte"
-  },
-  "list": {
-    "title": "Documents téléchargés",
-    "description": "Tous vos documents téléchargés",
-    "errorTitle": "Erreur de chargement",
-    "errorDescription": "Impossible de charger vos documents. Veuillez réessayer.",
-    "retry": "Réessayer",
-    "emptyTitle": "Aucun document",
-    "emptyDescription": "Vous n'avez pas encore téléchargé de documents",
-    "noDocumentsUploaded": "Aucun document téléchargé dans cette catégorie",
-    "columns": {
-      "type": "Type",
+      "selectDate": "Sélectionnez une date",
+      "selectType": "Sélectionnez un type de document",
+      "descriptionPlaceholder": "Décrivez brièvement ce document..."
+    },
+    "title": "Documents",
+    "upload": "Téléverser un document",
+    "view": "Voir le document",
+    "delete": "Supprimer le document",
+    "types": {
+      "id_card": "Carte d'identité",
+      "driving_license": "Permis de conduire",
+      "vehicle_registration": "Carte grise",
+      "insurance": "Attestation d'assurance",
+      "qualification_certificate": "Certification professionnelle",
+      "business_registration": "Extrait KBIS",
+      "proof_of_address": "Justificatif de domicile",
+      "other": "Autre document"
+    },
+    "verification": {
+      "title": "Vérification des documents",
+      "pending": "En attente de vérification",
+      "approved": "Documents approuvés",
+      "rejected": "Documents rejetés",
+      "status": "Statut de vérification",
+      "description": "Détails du document soumis à vérification",
+      "documentDetails": "Détails du document",
+      "rejectionReason": "Motif du rejet",
+      "rejectionReasonPlaceholder": "Veuillez indiquer la raison du rejet",
+      "rejectionReasonHelp": "Cette information sera partagée avec l'utilisateur",
+      "cancel": "Annuler",
+      "processing": "Traitement en cours",
+      "reject": "Rejeter",
+      "approve": "Approuver"
+    },
+    "upload_success": "Document téléversé avec succès",
+    "no_file_selected": "Aucun fichier sélectionné",
+    "upload_error": "Erreur lors du téléversement",
+    "type": "Type",
+    "select_type": "Sélectionnez un type",
+    "type_description": "Type de document à téléverser",
+    "file": "Fichier",
+    "preview": {
+      "rejectionReason": "Motif du rejet",
+      "viewDocument": "Voir le document",
+      "user": "Utilisateur",
       "status": "Statut",
+      "submitted": "Soumis le",
+      "expires": "Expire le",
+      "description": "Description",
+      "close": "Fermer"
+    },
+    "remove": "Supprimer",
+    "drag_drop": "Glissez-déposez votre fichier ici ou cliquez pour parcourir",
+    "max_size": "Taille maximale: 5 MB",
+    "file_description": "Description du fichier",
+    "expiry_date": "Date d'expiration",
+    "select_expiry_date": "Sélectionner une date d'expiration",
+    "expiry_date_description": "Date d'expiration du document",
+    "uploading": "Téléversement en cours...",
+    "success": {
+      "title": "Succès",
+      "description": "Votre document a été téléversé avec succès"
+    },
+    "error": {
+      "title": "Erreur de téléversement"
+    },
+    "uploadError": {
+      "title": "Erreur lors du téléchargement"
+    },
+    "defaultRejectionReason": "Document non conforme aux exigences",
+    "description": "Description",
+    "noDocuments": {
+      "title": "Aucun document",
+      "description": "Vous n'avez pas encore téléversé de documents"
+    },
+    "uploadedAt": "Téléversé le",
+    "expiresAt": "Expire le",
+    "viewPdf": "Voir le PDF",
+    "rejectionNotesPlaceholder": "Entrez la raison du rejet...",
+    "rejectionWarning": "Veuillez fournir une raison détaillée pour aider l'utilisateur à comprendre pourquoi son document a été rejeté",
+    "actions": {
+      "hideDocument": "Masquer le document",
+      "viewDocument": "Voir le document",
+      "reject": "Rejeter",
+      "approve": "Approuver"
+    },
+    "verifySuccess": {
+      "title": "Vérification réussie",
+      "description": "Le document a été vérifié avec succès"
+    },
+    "verifyError": {
+      "title": "Erreur de vérification",
+      "description": "Une erreur est survenue lors de la vérification du document"
+    },
+    "errorTitle": "Erreur",
+    "errorDescription": "Une erreur est survenue",
+    "retry": "Réessayer",
+    "tabs": {
+      "pending": "En attente",
+      "approved": "Approuvés",
+      "rejected": "Rejetés"
+    },
+    "columns": {
+      "user": "Utilisateur",
+      "type": "Type",
       "submitted": "Soumis le",
       "expires": "Expire le",
       "actions": "Actions"
     },
-    "view": "Voir",
+    "approve": "Approuver",
+    "reject": "Rejeter",
+    "status": {
+      "missing": "Document manquant"
+    }
+  },
+
+  "status": {
+    "pending": "En attente",
+    "approved": "Approuvé",
+    "rejected": "Rejeté",
+    "active": "Actif",
+    "inactive": "Inactif",
+    "suspended": "Suspendu",
+    "maintenance": "[en] maintenance",
+    "closed": "[en] closed",
+    "PENDING": "[en] PENDING",
+    "draft": "[en] draft",
+    "pendingSignature": "[en] pendingSignature",
+    "terminated": "[en] terminated",
+    "expired": "[en] expired",
+    "CONFIRMED": "[en] CONFIRMED",
+    "COMPLETED": "[en] COMPLETED",
+    "CANCELLED": "[en] CANCELLED",
+    "RESCHEDULED": "[en] RESCHEDULED"
+  },
+  "actions": {
+    "submit": "Soumettre",
+    "cancel": "Annuler",
+    "confirm": "Confirmer",
+    "save": "Enregistrer",
+    "edit": "Modifier",
     "delete": "Supprimer",
-    "subtitle": "Liste de vos documents",
-    "totalDocuments": "{count, plural, =0 {Aucun document} one {# document} other {# documents}}"
+    "upload": "Téléverser",
+    "view": "Voir",
+    "approve": "Approuver",
+    "reject": "Rejeter",
+    "verify": "Vérifier",
+    "createAnnouncement": "[en] createAnnouncement",
+    "searchServices": "[en] searchServices",
+    "trackDeliveries": "[en] trackDeliveries",
+    "bookStorage": "[en] bookStorage",
+    "scheduleService": "[en] scheduleService",
+    "viewInvoices": "[en] viewInvoices",
+    "updateProfile": "[en] updateProfile",
+    "contactSupport": "[en] contactSupport",
+    "backToDashboard": "[en] backToDashboard",
+    "create": "[en] create",
+    "update": "[en] update",
+    "statusChanged": "[en] statusChanged",
+    "applicationAdded": "[en] applicationAdded",
+    "applicationStatusUpdated": "[en] applicationStatusUpdated",
+    "open": "[en] open",
+    "viewDetails": "[en] viewDetails",
+    "goToEntity": "[en] goToEntity"
+  },
+  "errors": {
+    "general": "Une erreur est survenue",
+    "auth": {
+      "general": "Une erreur d'authentification est survenue",
+      "credentials": "Identifiants invalides",
+      "verification": "La vérification de l'email est requise",
+      "unauthorized": "Vous n'êtes pas autorisé à accéder à cette ressource",
+      "accountInactive": "Ce compte est inactif",
+      "emailAlreadyInUse": "Cet email est déjà utilisé",
+      "passwordMismatch": "Les mots de passe ne correspondent pas",
+      "weakPassword": "Le mot de passe est trop faible",
+      "accountSuspended": "Ce compte a été suspendu"
+    },
+    "server": "Une erreur de serveur est survenue",
+    "network": "Une erreur de réseau est survenue",
+    "notFound": "Ressource non trouvée",
+    "validation": "Erreur de validation",
+    "permission": "Permission refusée",
+    "reason_required": "La raison est obligatoire",
+    "searchFailed": "[en] searchFailed",
+    "invalidCode": "[en] invalidCode",
+    "generic": "[en] generic"
+  },
+  "notifications": {
+    "verification_required": "Vérification requise : Veuillez vérifier votre compte pour accéder à toutes les fonctionnalités.",
+    "access_denied": "Accès refusé : Vous n'avez pas la permission d'accéder à cette ressource.",
+    "email_verified": "Email vérifié : Votre email a été vérifié avec succès.",
+    "document_approved": "Document approuvé : Votre document a été approuvé.",
+    "document_rejected": "Document rejeté : Votre document a été rejeté.",
+    "verification_approved": "Vérification approuvée : Votre compte a été vérifié.",
+    "verification_rejected": "Vérification rejetée : La vérification de votre compte a été refusée.",
+    "title": "Notifications",
+    "description": "Gérez vos notifications",
+    "empty": "Aucune notification",
+    "noNotifications": "Vous n'avez aucune notification",
+    "notificationsWillAppearHere": "Vos notifications apparaîtront ici",
+    "markAllAsRead": "Tout marquer comme lu",
+    "allMarkedAsRead": "Toutes les notifications ont été marquées comme lues",
+    "deleteAll": "Tout supprimer",
+    "delete": "Supprimer",
+    "notificationDeleted": "Notification supprimée",
+    "allNotificationsDeleted": "Toutes les notifications ont été supprimées",
+    "viewAll": "Voir toutes les notifications",
+    "unread": "Non lu",
+    "allNotifications": "Toutes les notifications",
+    "unreadOnly": "Non lues uniquement",
+    "document": {
+      "approved": "Document approuvé",
+      "approvedMessage": "Votre document {documentType} a été approuvé",
+      "rejected": "Document rejeté",
+      "rejectedMessage": "Votre document {documentType} a été rejeté : {reason}",
+      "uploaded": "Document téléchargé",
+      "uploadedMessage": "Vous avez téléchargé un nouveau document : {documentType}"
+    },
+    "verification": {
+      "approved": "Vérification approuvée",
+      "approvedMessage": "Votre vérification a été approuvée. Vous avez maintenant un accès complet à la plateforme",
+      "rejected": "Vérification rejetée",
+      "rejectedMessage": "Votre vérification a été rejetée : {reason}",
+      "pending": "Vérification en attente",
+      "pendingMessage": "Votre vérification est en cours d'examen",
+      "missingDocuments": "Documents manquants",
+      "missingDocumentsMessage": "Vous devez télécharger les documents suivants : {documents}"
+    },
+    "activeTab": "[en] activeTab",
+    "createTab": "[en] createTab",
+    "availabilityAlert": "[en] availabilityAlert",
+    "dateRange": "[en] dateRange",
+    "location": "[en] location",
+    "anyLocation": "[en] anyLocation",
+    "boxDetails": "[en] boxDetails",
+    "anyType": "[en] anyType",
+    "noNotificationsTitle": "[en] noNotificationsTitle",
+    "noNotificationsDesc": "[en] noNotificationsDesc",
+    "createTitle": "[en] createTitle",
+    "createDescription": "[en] createDescription",
+    "createButton": "[en] createButton",
+    "deleteTitle": "[en] deleteTitle",
+    "deleteDescription": "[en] deleteDescription",
+    "cancel": "[en] cancel",
+    "confirm": "[en] confirm"
+  },
+  "verification": {
+    "title": "Vérification des documents",
+    "pending_documents": "Documents en attente",
+    "processed_documents": "Documents traités",
+    "no_pending_documents": "Aucun document en attente",
+    "no_processed_documents": "Aucun document traité",
+    "filter_by_status": "Filtrer par statut",
+    "required_documents": "Documents requis",
+    "missing_documents": "Documents manquants",
+    "document_approved": "Document approuvé avec succès",
+    "document_rejected": "Document rejeté avec succès",
+    "approval_notes": "Notes d'approbation",
+    "rejection_reason": "Motif de rejet",
+    "upload_required_documents": "Veuillez téléverser les documents requis pour compléter votre vérification",
+    "status_approved_title": "[en] status_approved_title",
+    "status_approved_description": "[en] status_approved_description",
+    "view_documents": "[en] view_documents",
+    "status_pending_title": "[en] status_pending_title",
+    "status_pending_description": "[en] status_pending_description",
+    "upload_missing_documents": "[en] upload_missing_documents",
+    "status_rejected_title": "[en] status_rejected_title",
+    "status_rejected_description": "[en] status_rejected_description",
+    "fix_rejected_documents": "[en] fix_rejected_documents",
+    "document_upload_progress": "[en] document_upload_progress",
+    "rejected_documents_message": "[en] rejected_documents_message",
+    "verified_message": "[en] verified_message",
+    "approvedTitle": "[en] approvedTitle",
+    "approvedDescription": "[en] approvedDescription",
+    "rejectedTitle": "[en] rejectedTitle",
+    "rejectedDescription": "[en] rejectedDescription",
+    "approved": "[en] approved",
+    "rejected": "[en] rejected",
+    "pending": "[en] pending",
+    "noVerifications": "[en] noVerifications",
+    "addNotes": "[en] addNotes",
+    "notesPlaceholder": "[en] notesPlaceholder",
+    "reject": "[en] reject",
+    "approve": "[en] approve"
+  },
+  "uploaded_by": "Téléversé par",
+  "uploaded": "Téléversé",
+  "uploaded_at": "Téléversé le",
+  "view_document": "Voir le document",
+  "preview_not_available": "Aperçu non disponible pour ce type de fichier",
+  "download_document": "Télécharger le document",
+  "approve": "Approuver",
+  "reject": "Rejeter",
+  "approving": "Approbation en cours...",
+  "rejecting": "Rejet en cours...",
+  "approve_document": "Approuver le document",
+  "reject_document": "Rejeter le document",
+  "approve_document_description": "Êtes-vous sûr de vouloir approuver ce document ?",
+  "reject_document_description": "Veuillez fournir une raison pour rejeter ce document",
+  "enter_approval_notes": "Ajouter des notes d'approbation (optionnel)",
+  "enter_rejection_reason": "Entrez la raison du rejet",
+  "notes_optional": "Les notes sont optionnelles",
+  "cancel": "Annuler",
+  "admin": {
+    "verification": {
+      "metadata": {
+        "title": "Vérifications | EcoDeli Admin",
+        "description": "Gérez les demandes de vérification des utilisateurs"
+      },
+      "title": "Vérifications",
+      "description": "Gérez les demandes de vérification des utilisateurs",
+      "provider": {
+        "title": "Vérification des prestataires",
+        "description": "Gérez les demandes de vérification des prestataires de services"
+      },
+      "deliverer": {
+        "title": "Vérification des livreurs",
+        "description": "Gérez les demandes de vérification des livreurs"
+      },
+      "merchant": {
+        "title": "Vérification des commerçants",
+        "description": "Gérez les demandes de vérification des commerçants"
+      },
+      "stats": {
+        "pending": "En attente",
+        "approved": "Approuvées",
+        "rejected": "Rejetées",
+        "total": "Total"
+      },
+      "tabs": {
+        "pending": "En attente",
+        "approved": "Approuvées",
+        "rejected": "Rejetées"
+      },
+      "status": {
+        "PENDING": "En attente",
+        "APPROVED": "Approuvé",
+        "REJECTED": "Rejeté",
+        "EXPIRED": "Expiré"
+      },
+      "table": {
+        "user": "Utilisateur",
+        "role": "Rôle",
+        "documentType": "Type de document",
+        "submitted": "Soumis le",
+        "status": "Statut",
+        "processedAt": "Traité le",
+        "expires": "Expire le",
+        "actions": "Actions"
+      },
+      "actions": {
+        "view": "Voir",
+        "approve": "Approuver",
+        "reject": "Rejeter",
+        "back": "Retour"
+      },
+      "roles": {
+        "admin": "Administrateur",
+        "client": "Client",
+        "deliverer": "Livreur",
+        "merchant": "Commerçant",
+        "provider": "Prestataire"
+      },
+      "documentTypes": {
+        "ID_CARD": "Carte d'identité",
+        "PASSPORT": "Passeport",
+        "DRIVER_LICENSE": "Permis de conduire",
+        "BUSINESS_LICENSE": "Licence commerciale",
+        "PROOF_OF_ADDRESS": "Justificatif de domicile",
+        "OTHER": "Autre document"
+      },
+      "footer": {
+        "updatedAt": "Mis à jour le {date}"
+      },
+      "pending": {
+        "empty": {
+          "title": "Aucune vérification en attente",
+          "description": "Toutes les demandes de vérification ont été traitées"
+        }
+      },
+      "processed": {
+        "empty": {
+          "title": "Aucune vérification traitée",
+          "description": "Aucune demande de vérification n'a encore été traitée"
+        }
+      },
+      "error": {
+        "title": "Erreur",
+        "description": "Impossible de charger les demandes de vérification",
+        "notFound": "Demande de vérification introuvable"
+      },
+      "filters": {
+        "role": "Rôle",
+        "search": "Rechercher",
+        "dateFrom": "Date de début",
+        "dateTo": "Date de fin",
+        "allRoles": "Tous les rôles",
+        "searchPlaceholder": "Nom ou email...",
+        "selectDate": "Sélectionner une date",
+        "filter": "Filtrer",
+        "reset": "Réinitialiser",
+        "sortBy": "Trier par",
+        "sortDirection": "Ordre",
+        "roles": {
+          "deliverer": "Livreur",
+          "merchant": "Commerçant",
+          "provider": "Prestataire"
+        }
+      },
+      "detail": {
+        "metadata": {
+          "title": "Détails de vérification | EcoDeli Admin",
+          "description": "Vérifiez et approuvez ou rejetez une demande de vérification"
+        },
+        "title": "Détails de la vérification",
+        "error": {
+          "title": "Erreur",
+          "description": "Impossible de charger les détails de la vérification",
+          "notFound": "Demande de vérification introuvable"
+        },
+        "document": {
+          "title": "Document",
+          "uploadedAt": "Uploadé le {date}",
+          "download": "Télécharger",
+          "preview": {
+            "unsupported": "Prévisualisation non disponible pour ce type de fichier",
+            "open": "Ouvrir dans un nouvel onglet"
+          }
+        },
+        "history": {
+          "title": "Historique",
+          "description": "Suivi de l'évolution de la demande",
+          "submitted": {
+            "title": "Document soumis",
+            "description": "Le {date} par {user}"
+          },
+          "approved": {
+            "title": "Vérification approuvée",
+            "description": "Le {date} par {user}"
+          },
+          "rejected": {
+            "title": "Vérification rejetée",
+            "description": "Le {date} par {user}"
+          }
+        },
+        "user": {
+          "title": "Informations utilisateur",
+          "description": "Détails du demandeur",
+          "role": "Rôle",
+          "accountCreated": "Compte créé le",
+          "phone": "Téléphone"
+        },
+        "documentInfo": {
+          "title": "Informations sur le document",
+          "description": "Détails techniques du document",
+          "type": "Type de fichier",
+          "size": "Taille",
+          "uploadedAt": "Date d'envoi",
+          "status": "Statut"
+        },
+        "actions": {
+          "title": "Actions",
+          "description": "Approuver ou rejeter cette demande",
+          "approve": "Approuver la demande",
+          "reject": "Rejeter la demande",
+          "back": "Retour à la liste"
+        },
+        "approval": {
+          "dialog": {
+            "title": "Approuver la vérification",
+            "description": "Êtes-vous sûr de vouloir approuver cette vérification ?",
+            "notes": {
+              "label": "Notes (facultatif)",
+              "placeholder": "Ajoutez des notes concernant cette approbation...",
+              "help": "Ces notes seront enregistrées dans l'historique de vérification"
+            },
+            "actions": {
+              "confirm": "Approuver",
+              "cancel": "Annuler",
+              "loading": "Approbation en cours..."
+            }
+          },
+          "success": {
+            "title": "Vérification approuvée",
+            "description": "La vérification a été approuvée avec succès"
+          },
+          "error": {
+            "title": "Erreur d'approbation",
+            "description": "Une erreur est survenue lors de l'approbation de la vérification"
+          }
+        },
+        "rejection": {
+          "dialog": {
+            "title": "Rejeter la vérification",
+            "description": "Êtes-vous sûr de vouloir rejeter cette vérification ?",
+            "reason": {
+              "label": "Motif de rejet",
+              "placeholder": "Veuillez indiquer le motif du rejet...",
+              "help": "Le motif sera visible par l'utilisateur pour qu'il puisse effectuer les corrections nécessaires"
+            },
+            "actions": {
+              "confirm": "Rejeter",
+              "cancel": "Annuler",
+              "loading": "Rejet en cours..."
+            }
+          },
+          "success": {
+            "title": "Vérification rejetée",
+            "description": "La vérification a été rejetée avec succès"
+          },
+          "error": {
+            "title": "Erreur de rejet",
+            "description": "Une erreur est survenue lors du rejet de la vérification"
+          },
+          "validation": {
+            "title": "Motif requis",
+            "description": "Veuillez fournir un motif de rejet"
+          }
+        }
+      },
+      "contracts": {
+        "title": "Gestion des contrats",
+        "description": "Créer et gérer les contrats commerciaux",
+        "createContract": "Créer un contrat",
+        "editContract": "Modifier le contrat",
+        "selectTemplate": "Sélectionner un modèle",
+        "selectTemplateDescription": "Choisissez un modèle pour créer un nouveau contrat",
+        "allContracts": "Tous les contrats",
+        "contractName": "Nom du contrat",
+        "merchant": "Commerçant",
+        "status": {
+          "draft": "Brouillon",
+          "pendingSignature": "En attente de signature",
+          "active": "Actif",
+          "terminated": "Résilié",
+          "expired": "Expiré"
+        },
+        "createdAt": "Créé le",
+        "expiresAt": "Expire le",
+        "signedAt": "Signé le",
+        "actions": "Actions",
+        "view": "Voir",
+        "edit": "Modifier",
+        "delete": "Supprimer",
+        "cancel": "Annuler",
+        "save": "Enregistrer",
+        "noContracts": "Aucun contrat trouvé",
+        "noContractsDescription": "Aucun contrat ne correspond à vos critères de recherche ou aucun contrat n'a été créé.",
+        "searchPlaceholder": "Rechercher un contrat...",
+        "details": {
+          "title": "Détails du contrat",
+          "general": "Informations générales",
+          "documents": "Documents",
+          "history": "Historique",
+          "merchantInfo": "Informations commerçant",
+          "contractTerms": "Conditions du contrat",
+          "signatureStatus": "État de la signature",
+          "paymentTerms": "Conditions de paiement",
+          "renewalInfo": "Informations de renouvellement",
+          "downloadPdf": "Télécharger le PDF",
+          "sendReminder": "Envoyer un rappel",
+          "renew": "Renouveler",
+          "terminate": "Résilier"
+        },
+        "templates": {
+          "title": "Modèles de contrat",
+          "description": "Gérer les modèles de contrat",
+          "createTemplate": "Créer un modèle",
+          "editTemplate": "Modifier le modèle",
+          "deleteTemplate": "Supprimer le modèle",
+          "templateName": "Nom du modèle",
+          "templateDescription": "Description",
+          "lastUpdated": "Dernière mise à jour",
+          "usageCount": "Nombre d'utilisations",
+          "preview": "Aperçu",
+          "noTemplates": "Aucun modèle trouvé",
+          "noTemplatesDescription": "Créez un nouveau modèle pour commencer."
+        }
+      },
+      "warehouses": {
+        "meta": {
+          "title": "Entrepôts",
+          "description": "Gérer les entrepôts et les box de stockage pour la plateforme"
+        },
+        "title": "Entrepôts",
+        "subtitle": "Gérer les entrepôts et les unités de stockage",
+        "create": "Ajouter un entrepôt",
+        "search": "Rechercher des entrepôts...",
+        "searchButton": "Rechercher",
+        "name": "Nom",
+        "location": "Emplacement",
+        "capacity": "Capacité",
+        "occupied": "Occupé",
+        "status": "Statut",
+        "active": "Actif",
+        "inactive": "Inactif",
+        "actions": "Actions",
+        "view": "Voir",
+        "edit": "Modifier",
+        "loading": "Chargement des entrepôts...",
+        "noWarehouses": "Aucun entrepôt trouvé",
+        "showing": "Affichage de",
+        "of": "sur",
+        "warehouses": "entrepôts",
+        "deleteTitle": "Supprimer l'entrepôt",
+        "deleteDescription": "Êtes-vous sûr de vouloir supprimer cet entrepôt ? Cette action ne peut pas être annulée et supprimera définitivement l'entrepôt et toutes ses données.",
+        "cancel": "Annuler",
+        "confirm": "Supprimer",
+        "deleteSuccess": "Entrepôt supprimé avec succès",
+        "deleteError": "Erreur lors de la suppression de l'entrepôt",
+        "form": {
+          "meta": {
+            "createTitle": "Créer un entrepôt",
+            "createDescription": "Ajouter un nouvel entrepôt au système",
+            "editTitle": "Modifier l'entrepôt",
+            "editDescription": "Modifier les détails de l'entrepôt"
+          },
+          "createTitle": "Créer un entrepôt",
+          "editTitle": "Modifier l'entrepôt",
+          "createDescription": "Ajouter un nouvel entrepôt au système",
+          "editDescription": "Modifier les détails de l'entrepôt",
+          "name": "Nom",
+          "nameDescription": "Le nom de l'entrepôt",
+          "location": "Emplacement",
+          "locationDescription": "Ville ou zone où se trouve l'entrepôt",
+          "address": "Adresse",
+          "addressDescription": "Adresse complète de l'entrepôt",
+          "capacity": "Capacité",
+          "capacityDescription": "Nombre maximum d'unités de stockage",
+          "description": "Description",
+          "descriptionHint": "Détails supplémentaires sur l'entrepôt",
+          "status": "Statut actif",
+          "statusDescription": "Activer ou désactiver cet entrepôt",
+          "cancel": "Annuler",
+          "create": "Créer l'entrepôt",
+          "update": "Mettre à jour l'entrepôt",
+          "saving": "Enregistrement...",
+          "createSuccess": "Entrepôt créé avec succès",
+          "createError": "Erreur lors de la création de l'entrepôt",
+          "updateSuccess": "Entrepôt mis à jour avec succès",
+          "updateError": "Erreur lors de la mise à jour de l'entrepôt"
+        },
+        "details": {
+          "meta": {
+            "title": "Détails de l'entrepôt",
+            "description": "Consulter et gérer les détails de l'entrepôt et des box"
+          },
+          "warehouseDetails": "Détails de l'entrepôt",
+          "backToList": "Retour à la liste",
+          "edit": "Modifier l'entrepôt",
+          "basicInfo": "Informations de base",
+          "location": "Emplacement",
+          "address": "Adresse",
+          "status": "Statut",
+          "active": "Actif",
+          "inactive": "Inactif",
+          "capacityInfo": "Informations sur la capacité",
+          "totalCapacity": "Capacité totale",
+          "occupiedSpace": "Espace occupé",
+          "totalBoxes": "Total des box",
+          "additionalInfo": "Informations supplémentaires",
+          "description": "Description",
+          "noDescription": "Aucune description fournie",
+          "createdAt": "Créé le",
+          "updatedAt": "Mis à jour le",
+          "boxes": "Box",
+          "statistics": "Statistiques",
+          "boxesDescription": "Box de stockage dans cet entrepôt",
+          "statisticsDescription": "Statistiques d'utilisation de l'entrepôt",
+          "comingSoon": "Statistiques à venir",
+          "createBox": "Ajouter une box",
+          "searchBox": "Rechercher des box...",
+          "searchButton": "Rechercher",
+          "boxName": "Nom de la box",
+          "size": "Taille",
+          "pricePerDay": "Prix/jour",
+          "occupation": "Statut",
+          "occupied": "Occupée",
+          "available": "Disponible",
+          "client": "Client",
+          "view": "Voir",
+          "loading": "Chargement des données de l'entrepôt...",
+          "loadingBoxes": "Chargement des box...",
+          "noBoxes": "Aucune box trouvée",
+          "showing": "Affichage de",
+          "of": "sur",
+          "boxesTotal": "box",
+          "deleteBoxTitle": "Supprimer la box",
+          "deleteBoxDescription": "Êtes-vous sûr de vouloir supprimer cette box ? Cette action ne peut pas être annulée.",
+          "cancel": "Annuler",
+          "confirm": "Supprimer",
+          "deleteBoxSuccess": "Box supprimée avec succès",
+          "deleteBoxError": "Erreur lors de la suppression de la box",
+          "actions": "Actions"
+        },
+        "boxes": {
+          "meta": {
+            "title": "Box de stockage",
+            "description": "Gérer les box de stockage dans l'entrepôt",
+            "createTitle": "Ajouter une box",
+            "createDescription": "Ajouter une nouvelle box de stockage à l'entrepôt",
+            "editTitle": "Modifier la box",
+            "editDescription": "Modifier les détails de la box de stockage"
+          },
+          "title": "Box de stockage",
+          "subtitle": "Gérer les box de stockage dans l'entrepôt",
+          "createTitle": "Ajouter une box de stockage",
+          "editTitle": "Modifier la box de stockage",
+          "createDescription": "Ajouter une nouvelle box de stockage à l'entrepôt",
+          "editDescription": "Modifier les détails de la box de stockage",
+          "name": "Nom de la box",
+          "nameDescription": "Nom ou identifiant de la box",
+          "size": "Taille (m³)",
+          "sizeDescription": "Taille de la box en mètres cubes",
+          "pricePerDay": "Prix par jour (€)",
+          "priceDescription": "Prix de location par jour pour cette box",
+          "description": "Description",
+          "descriptionHint": "Détails supplémentaires sur la box",
+          "cancel": "Annuler",
+          "create": "Créer la box",
+          "update": "Mettre à jour la box",
+          "saving": "Enregistrement...",
+          "createSuccess": "Box créée avec succès",
+          "createError": "Erreur lors de la création de la box",
+          "updateSuccess": "Box mise à jour avec succès",
+          "updateError": "Erreur lors de la mise à jour de la box"
+        },
+        "reservations": {
+          "meta": {
+            "title": "Réservations de box",
+            "description": "Gérer les réservations pour les box de stockage",
+            "createTitle": "Créer une réservation",
+            "createDescription": "Créer une nouvelle réservation pour une box de stockage",
+            "editTitle": "Modifier la réservation",
+            "editDescription": "Modifier les détails de la réservation"
+          },
+          "title": "Réservations de box",
+          "createTitle": "Créer une réservation",
+          "editTitle": "Modifier la réservation",
+          "boxName": "Box",
+          "client": "Client",
+          "startDate": "Date de début",
+          "endDate": "Date de fin",
+          "status": "Statut",
+          "pending": "En attente",
+          "active": "Active",
+          "completed": "Terminée",
+          "cancelled": "Annulée",
+          "totalPrice": "Prix total",
+          "actions": "Actions",
+          "cancel": "Annuler",
+          "create": "Créer la réservation",
+          "update": "Mettre à jour la réservation",
+          "saving": "Enregistrement...",
+          "createSuccess": "Réservation créée avec succès",
+          "createError": "Erreur lors de la création de la réservation",
+          "updateSuccess": "Réservation mise à jour avec succès",
+          "updateError": "Erreur lors de la mise à jour de la réservation",
+          "cancelSuccess": "Réservation annulée avec succès",
+          "cancelError": "Erreur lors de l'annulation de la réservation"
+        }
+      },
+      "audit": {
+        "title": "Journal d'audit",
+        "subtitle": "Suivez toutes les modifications effectuées sur les données du système",
+        "filter": "Filtrer",
+        "noLogs": "Aucun log d'audit trouvé",
+        "previous": "Précédent",
+        "next": "Suivant",
+        "pagination": "Page {current} sur {total}",
+        "detailsTitle": "Détails du log d'audit",
+        "close": "Fermer",
+        "noChanges": "Aucun changement détecté",
+        "columns": {
+          "action": "Action",
+          "entityType": "Type d'entité",
+          "entityId": "ID d'entité",
+          "performedBy": "Effectué par",
+          "date": "Date",
+          "changes": "Modifications",
+          "actions": "Actions"
+        },
+        "actions": {
+          "create": "Création",
+          "update": "Modification",
+          "delete": "Suppression",
+          "statusChanged": "Changement de statut",
+          "applicationAdded": "Candidature ajoutée",
+          "applicationStatusUpdated": "Statut de candidature modifié",
+          "open": "Ouvrir",
+          "viewDetails": "Voir les détails",
+          "goToEntity": "Aller à l'entité"
+        },
+        "entityTypes": {
+          "announcement": "Annonce",
+          "user": "Utilisateur",
+          "delivery": "Livraison"
+        },
+        "error": {
+          "title": "Erreur lors du chargement des logs d'audit",
+          "message": "Une erreur est survenue lors de la récupération des logs d'audit. Veuillez réessayer."
+        }
+      }
+    },
+    "warehouses": {
+      "meta": {
+        "title": "Warehouses",
+        "description": "Manage warehouses and storage boxes for the platform"
+      },
+      "title": "Warehouses",
+      "subtitle": "Manage warehouses and storage units",
+      "create": "Add Warehouse",
+      "search": "Search warehouses...",
+      "searchButton": "Search",
+      "name": "Name",
+      "location": "Location",
+      "capacity": "Capacity",
+      "occupied": "Occupied",
+      "status": "Status",
+      "active": "Active",
+      "inactive": "Inactive",
+      "actions": "Actions",
+      "view": "View",
+      "edit": "Edit",
+      "loading": "Loading warehouses...",
+      "noWarehouses": "No warehouses found",
+      "showing": "Showing",
+      "of": "of",
+      "warehouses": "warehouses",
+      "deleteTitle": "Delete Warehouse",
+      "deleteDescription": "Are you sure you want to delete this warehouse? This action cannot be undone and will permanently delete the warehouse and all its data.",
+      "cancel": "Cancel",
+      "confirm": "Delete",
+      "deleteSuccess": "Warehouse deleted successfully",
+      "deleteError": "Error deleting warehouse",
+      "form": {
+        "meta": {
+          "createTitle": "Create Warehouse",
+          "createDescription": "Add a new warehouse to the system",
+          "editTitle": "Edit Warehouse",
+          "editDescription": "Modify the warehouse details"
+        },
+        "createTitle": "Create Warehouse",
+        "editTitle": "Edit Warehouse",
+        "createDescription": "Add a new warehouse to the system",
+        "editDescription": "Modify the warehouse details",
+        "name": "Name",
+        "nameDescription": "The name of the warehouse",
+        "location": "Location",
+        "locationDescription": "City or area where the warehouse is located",
+        "address": "Address",
+        "addressDescription": "Full address of the warehouse",
+        "capacity": "Capacity",
+        "capacityDescription": "Maximum number of storage units",
+        "description": "Description",
+        "descriptionHint": "Additional details about the warehouse",
+        "status": "Active Status",
+        "statusDescription": "Enable or disable this warehouse",
+        "cancel": "Cancel",
+        "create": "Create Warehouse",
+        "update": "Update Warehouse",
+        "saving": "Saving...",
+        "createSuccess": "Warehouse created successfully",
+        "createError": "Error creating warehouse",
+        "updateSuccess": "Warehouse updated successfully",
+        "updateError": "Error updating warehouse"
+      },
+      "details": {
+        "meta": {
+          "title": "Warehouse Details",
+          "description": "View and manage warehouse details and boxes"
+        },
+        "warehouseDetails": "Warehouse Details",
+        "backToList": "Back to List",
+        "edit": "Edit Warehouse",
+        "basicInfo": "Basic Information",
+        "location": "Location",
+        "address": "Address",
+        "status": "Status",
+        "active": "Active",
+        "inactive": "Inactive",
+        "capacityInfo": "Capacity Information",
+        "totalCapacity": "Total Capacity",
+        "occupiedSpace": "Occupied Space",
+        "totalBoxes": "Total Boxes",
+        "additionalInfo": "Additional Information",
+        "description": "Description",
+        "noDescription": "No description provided",
+        "createdAt": "Created At",
+        "updatedAt": "Updated At",
+        "boxes": "Boxes",
+        "statistics": "Statistics",
+        "boxesDescription": "Storage boxes in this warehouse",
+        "statisticsDescription": "Warehouse usage statistics",
+        "comingSoon": "  coming soon",
+        "createBox": "Add Box",
+        "searchBox": "Search boxes...",
+        "searchButton": "Search",
+        "boxName": "Box Name",
+        "size": "Size",
+        "pricePerDay": "Price/Day",
+        "occupation": "Status",
+        "occupied": "Occupied",
+        "available": "Available",
+        "client": "Client",
+        "view": "View",
+        "loading": "Loading warehouse data...",
+        "loadingBoxes": "Loading boxes...",
+        "noBoxes": "No boxes found",
+        "showing": "Showing",
+        "of": "of",
+        "boxesTotal": "boxes",
+        "deleteBoxTitle": "Delete Box",
+        "deleteBoxDescription": "Are you sure you want to delete this box? This action cannot be undone.",
+        "cancel": "Cancel",
+        "confirm": "Delete",
+        "deleteBoxSuccess": "Box deleted successfully",
+        "deleteBoxError": "Error deleting box",
+        "actions": "Actions"
+      },
+      "boxes": {
+        "meta": {
+          "title": "Storage Boxes",
+          "description": "Manage storage boxes in the warehouse",
+          "createTitle": "Add Box",
+          "createDescription": "Add a new storage box to the warehouse",
+          "editTitle": "Edit Box",
+          "editDescription": "Modify the storage box details"
+        },
+        "title": "Storage Boxes",
+        "subtitle": "Manage storage boxes in the warehouse",
+        "createTitle": "Add Storage Box",
+        "editTitle": "Edit Storage Box",
+        "createDescription": "Add a new storage box to the warehouse",
+        "editDescription": "Modify storage box details",
+        "name": "Box Name",
+        "nameDescription": "Name or identifier for the box",
+        "size": "Size (m³)",
+        "sizeDescription": "Size of the box in cubic meters",
+        "pricePerDay": "Price per Day (€)",
+        "priceDescription": "Rental price per day for this box",
+        "description": "Description",
+        "descriptionHint": "Additional details about the box",
+        "cancel": "Cancel",
+        "create": "Create Box",
+        "update": "Update Box",
+        "saving": "Saving...",
+        "createSuccess": "Box created successfully",
+        "createError": "Error creating box",
+        "updateSuccess": "Box updated successfully",
+        "updateError": "Error updating box"
+      },
+      "reservations": {
+        "meta": {
+          "title": "Box Reservations",
+          "description": "Manage reservations for storage boxes",
+          "createTitle": "Create Reservation",
+          "createDescription": "Create a new reservation for a storage box",
+          "editTitle": "Edit Reservation",
+          "editDescription": "Modify the reservation details"
+        },
+        "title": "Box Reservations",
+        "createTitle": "Create Reservation",
+        "editTitle": "Edit Reservation",
+        "boxName": "Box",
+        "client": "Client",
+        "startDate": "Start Date",
+        "endDate": "End Date",
+        "status": "Status",
+        "pending": "Pending",
+        "active": "Active",
+        "completed": "Completed",
+        "cancelled": "Cancelled",
+        "totalPrice": "Total Price",
+        "actions": "Actions",
+        "cancel": "Cancel",
+        "create": "Create Reservation",
+        "update": "Update Reservation",
+        "saving": "Saving...",
+        "createSuccess": "Reservation created successfully",
+        "createError": "Error creating reservation",
+        "updateSuccess": "Reservation updated successfully",
+        "updateError": "Error updating reservation",
+        "cancelSuccess": "Reservation cancelled successfully",
+        "cancelError": "Error cancelling reservation"
+      }
+    }
+  },
+  "announcements": {
+    "title": "Annonces",
+    "all": "Toutes les annonces",
+    "mine": "Mes annonces",
+    "create": "Créer une annonce",
+    "edit": "Modifier",
+    "delete": "Supprimer l'annonce",
+    "deleteConfirmation": "Êtes-vous sûr de vouloir supprimer cette annonce ?",
+    "deleteWarning": "Cette action ne peut pas être annulée. L'annonce sera définitivement supprimée.",
+    "details": "Détails de l'annonce",
+    "publish": "Publier",
+    "published": "Publiée",
+    "dimensions": "Dimensions",
+    "priority": {
+      "LOW": "Basse",
+      "MEDIUM": "Moyenne",
+      "HIGH": "Haute",
+      "URGENT": "Urgente"
+    },
+    "flexibility": "Flexibilité",
+    "flexible": "Flexible",
+    "notFlexible": "Non flexible",
+    "pickupAddress": "Adresse de collecte",
+    "deliveryAddress": "Adresse de livraison",
+    "pickupDate": "Date de collecte",
+    "deliveryDate": "Date de livraison",
+    "weight": "Poids",
+    "suggestedPrice": "Prix suggéré",
+    "finalPrice": "Prix final",
+    "negotiable": "Négociable",
+    "description": "Description",
+    "fragile": "Fragile",
+    "needsCooling": "Réfrigération nécessaire",
+    "notes": "Notes",
+    "viewDetails": "Voir les détails",
+    "unpublish": "Dépublier",
+    "status": {
+      "DRAFT": "Brouillon",
+      "PUBLISHED": "Publiée",
+      "ASSIGNED": "Assignée",
+      "COMPLETED": "Terminée",
+      "CANCELLED": "Annulée"
+    },
+    "notSpecified": "Non spécifié",
+    "myAnnouncements": "My Announcements",
+    "myAnnouncementsDescription": "Manage your delivery announcements",
+    "createAnnouncement": "Create Announcement",
+    "createAnnouncementDescription": "Post a new delivery announcement",
+    "editAnnouncement": "Edit Announcement",
+    "editAnnouncementDescription": "Modify your announcement details",
+    "announcementDetails": "Announcement Details",
+    "announcementDetailsDescription": "View details of this announcement",
+    "announcementNotFound": "Announcement not found",
+    "cannotEditAnnouncement": "Cannot edit announcement",
+    "cannotEditAnnouncementDescription": "This announcement cannot be modified due to its current status",
+    "newAnnouncement": "New Announcement",
+    "type": "Type",
+    "pickupTimeWindow": "Pickup Time Window",
+    "deliveryTimeWindow": "Delivery Time Window",
+    "isFlexible": "Flexible Schedule",
+    "isNegotiable": "Negotiable Price",
+    "width": "Width",
+    "height": "Height",
+    "length": "Length",
+    "isFragile": "Fragile Content",
+    "tags": "Tags",
+    "cancel": "Cancel",
+    "save": "Save",
+    "back": "Back",
+    "complete": "Mark as Completed",
+    "total": "Total",
+    "pending": "Pending",
+    "assigned": "Assigned",
+    "inProgress": "In Progress",
+    "completed": "Completed",
+    "cancelled": "Cancelled",
+    "draft": "Draft",
+    "refresh": "Refresh",
+    "mapView": "Map View",
+    "listView": "List View",
+    "applications": "Applications",
+    "delivererApplications": "Deliverer Applications",
+    "proposedPrice": "Proposed Price",
+    "message": "Message",
+    "viewProfile": "View Profile",
+    "acceptOffer": "Accept Offer",
+    "noApplicationsYet": "No applications yet",
+    "draftAnnouncementTitle": "Draft Announcement",
+    "draftAnnouncementDescription": "This announcement is in draft mode and is not visible to deliverers. Publish it to allow deliverers to apply.",
+    "createFirstAnnouncement": "Create your first announcement",
+    "noAnnouncementsFound": "No announcements found",
+    "package": "Package",
+    "groceries": "Groceries",
+    "documents": "Documents",
+    "meal": "Meal",
+    "furniture": "Furniture",
+    "other": "Other",
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "urgent": "Urgent",
+    "filterAnnouncements": "Filter Announcements",
+    "allStatuses": "All Statuses",
+    "allTypes": "All Types",
+    "fromDate": "From Date",
+    "toDate": "To Date",
+    "minPrice": "Min Price",
+    "maxPrice": "Max Price",
+    "keyword": "Keyword",
+    "sortBy": "Sort By",
+    "sortOrder": "Sort Order",
+    "ascending": "Ascending",
+    "descending": "Descending",
+    "resetFilters": "Reset Filters",
+    "applyFilters": "Apply Filters",
+    "clearAllFilters": "Clear All Filters",
+    "sortByCreationDate": "Creation Date",
+    "sortByUpdateDate": "Update Date",
+    "sortByPrice": "Price",
+    "sortByPickupDate": "Pickup Date",
+    "sortByDeliveryDate": "Delivery Date",
+    "searchKeyword": "Search by keyword...",
+    "showingResults": "Showing {from} to {to} of {total} results",
+    "previous": "Previous",
+    "next": "Next",
+    "announcement": "Announcement",
+    "backToAnnouncement": "Back to Announcement",
+    "advancedFilters": "Advanced Filters",
+    "selectDate": "Select Date",
+    "needsCoolingDescription": "If your package requires refrigeration during transport",
+    "createdAt": "Created on",
+    "updatedAt": "Updated on",
+    "announcementPhoto": "Photo {index}",
+    "actions": "Actions"
+  },
+  "service": {
+    "booking": {
+      "title": "Réservation de services",
+      "search": {
+        "title": "Rechercher un service",
+        "subtitle": "Trouvez un prestataire pour vos besoins",
+        "categoryLabel": "Catégorie",
+        "locationLabel": "Emplacement",
+        "dateLabel": "Date",
+        "maxPriceLabel": "Prix maximum",
+        "searchButton": "Rechercher",
+        "noResults": "Aucun service ne correspond à votre recherche",
+        "distanceLabel": "Distance max. (km)",
+        "queryLabel": "Mot-clé"
+      },
+      "form": {
+        "appointment": "Appointment",
+        "date": "Date",
+        "time": "Time",
+        "selectTime": "Select a time",
+        "notes": "Special notes",
+        "notesPlaceholder": "Additional instructions or information for the provider...",
+        "paymentMethod": "Payment method",
+        "creditCard": "Credit card",
+        "appWallet": "EcoDeli Wallet",
+        "summary": "Summary",
+        "servicePrice": "Service price",
+        "total": "Total",
+        "termsAndConditions": "I agree to the {link} and privacy policy",
+        "cancel": "Cancel",
+        "confirmBooking": "Confirm booking",
+        "processing": "Processing...",
+        "selectDateFirst": "Please select a date first",
+        "back": "Back"
+      },
+      "status": {
+        "PENDING": "Pending",
+        "CONFIRMED": "Confirmed",
+        "COMPLETED": "Completed",
+        "CANCELLED": "Cancelled",
+        "RESCHEDULED": "Rescheduled"
+      },
+      "manage": {
+        "cancelled": "Réservation annulée avec succès"
+      },
+      "review": {
+        "reviewSuccess": "Merci pour votre évaluation !"
+      }
+    },
+    "provider": {
+      "tabs": {
+        "calendar": "Calendar",
+        "availability": "Availability"
+      },
+      "calendar": {
+        "title": "My calendar",
+        "subtitle": "Check your appointments",
+        "selectDate": "Select a date",
+        "appointmentsCount": "{count} appointments",
+        "noAppointments": "No appointments scheduled",
+        "nothingScheduled": "Nothing scheduled for today",
+        "freeDay": "You have no appointments on this day"
+      },
+      "availability": {
+        "title": "Manage my availability",
+        "subtitle": "Set your available hours",
+        "add": "Add availability",
+        "addTitle": "New availability",
+        "addSubtitle": "Define when you are available to provide your services",
+        "day": "Day",
+        "selectDay": "Select a day",
+        "startTime": "Start time",
+        "endTime": "End time",
+        "recurring": "Repeat every week",
+        "cancel": "Cancel",
+        "adding": "Adding...",
+        "noAvailability": "No availability defined",
+        "addSome": "Add your availability to receive bookings",
+        "added": "Availability added successfully",
+        "deleted": "Availability deleted",
+        "addFailed": "Failed to add availability",
+        "deleteFailed": "Failed to delete availability",
+        "confirmDelete": "Are you sure you want to delete this availability?"
+      },
+      "days": {
+        "monday": "Monday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday",
+        "thursday": "Thursday",
+        "friday": "Friday",
+        "saturday": "Saturday",
+        "sunday": "Sunday"
+      }
+    },
+    "review": {
+      "title": "Rate your experience",
+      "editTitle": "Edit your review",
+      "subtitle": "How was your {service} with {provider}?",
+      "ratingLabel": "Your rating",
+      "commentLabel": "Your comment",
+      "commentPlaceholder": "Share your experience with this service...",
+      "cancel": "Cancel",
+      "submit": "Send",
+      "submitting": "Sending...",
+      "update": "Update",
+      "success": "Thank you for your review!",
+      "error": "An error occurred while saving your review."
+    },
+    "categories": {
+      "all": "All Categories"
+    },
+    "search": {
+      "formTitle": "Search for a service",
+      "keywordsPlaceholder": "What are you looking for?",
+      "locationPlaceholder": "Enter an address",
+      "showAdvancedOptions": "Show more filters",
+      "hideAdvancedOptions": "Hide filters",
+      "serviceType": "Service type",
+      "selectServiceType": "Select a type",
+      "dateFrom": "Start date",
+      "dateTo": "End date",
+      "selectDate": "Select a date",
+      "priceRange": "Price range",
+      "minimumRating": "Minimum rating",
+      "anyRating": "Any rating",
+      "sortBy": "Sort by",
+      "defaultSort": "Default",
+      "sortOrder": "Order",
+      "ascending": "Ascending",
+      "descending": "Descending",
+      "resetButton": "Reset",
+      "searchButton": "Search",
+      "searching": "Searching...",
+      "types": {
+        "transport": "Transport",
+        "airportTransfer": "Airport transfer",
+        "petSitting": "Pet sitting",
+        "housekeeping": "Housekeeping",
+        "gardening": "Gardening"
+      },
+      "sortOptions": {
+        "default": "Default",
+        "price": "Price",
+        "rating": "Rating",
+        "distance": "Distance",
+        "date": "Date"
+      },
+      "errors": {
+        "searchFailed": "Search failed. Please try again."
+      }
+    },
+    "list": {
+      "title": "Available services",
+      "searchPlaceholder": "Search...",
+      "sortBy": "Sort by",
+      "activeFilters": "Active filters",
+      "clearAllFilters": "Clear all filters",
+      "allCategories": "All categories",
+      "noServicesFound": "No services found",
+      "resultsCount": "{count} services found",
+      "noResults": "No results found",
+      "tryDifferentFilters": "Try different search criteria",
+      "resetFilters": "Reset filters",
+      "sortOptions": {
+        "default": "Relevance",
+        "price": "Price",
+        "rating": "Rating",
+        "distance": "Distance"
+      },
+      "filters": {
+        "type": "Type",
+        "categoryId": "Category",
+        "dateRange": "Dates",
+        "priceRange": "Price",
+        "location": "Location",
+        "rating": "Rating",
+        "keywords": "Keywords"
+      }
+    },
+    "card": {
+      "viewDetails": "View details"
+    },
+    "detail": {
+      "verifiedProvider": "Verified provider",
+      "tabs": {
+        "details": "Details",
+        "provider": "Provider",
+        "reviews": "Reviews"
+      },
+      "descriptionTitle": "Service description",
+      "noReviews": "No reviews yet",
+      "beFirstReviewer": "Be the first to leave a review after using this service!",
+      "bookingTitle": "Book this service",
+      "bookingSubtitle": "Select a date and time slot",
+      "selectDate": "Select a date",
+      "selectTime": "Available time",
+      "noTimeSlotsAvailable": "No time slots available for this date",
+      "totalPrice": "Total price",
+      "bookNow": "Book now",
+      "needHelp": "Need help?",
+      "supportHours": "Support available Monday to Friday, 9am-6pm",
+      "faq": {
+        "title1": "How can I cancel my booking?",
+        "content1": "You can cancel your booking up to 24 hours before the scheduled time without any fees. After this deadline, cancellation fees may apply.",
+        "title2": "How can I contact the provider?",
+        "content2": "Once your booking is confirmed, you will be able to communicate with the provider via our secure messaging system.",
+        "title3": "How does payment work?",
+        "content3": "Payment is secure and is only charged after the service is completed. You can pay by credit card or via our e-wallet."
+      }
+    },
+    "confirmation": {
+      "title": "Booking confirmed!",
+      "subtitle": "Your booking has been successfully processed.",
+      "service": "Service",
+      "provider": "Provider",
+      "duration": "Duration",
+      "minutes": "minutes",
+      "dateTime": "Date and time",
+      "location": "Location",
+      "notes": "Your notes",
+      "subtotal": "Subtotal",
+      "total": "Total",
+      "paymentId": "Payment ID",
+      "reservationId": "Reservation ID",
+      "addToCalendar": "Add to calendar",
+      "share": {
+        "title": "My booking on EcoDeli",
+        "text": "I booked {service} on {date} at {time}",
+        "copied": "Link copied to clipboard"
+      },
+      "downloadReceipt": "Download receipt",
+      "viewAllServices": "View all services",
+      "questions": "Questions?",
+      "contactSupport": "Contact support",
+      "calendarEvent": {
+        "prefix": "Appointment:",
+        "appointment": "Appointment with",
+        "notes": "Notes",
+        "online": "Online"
+      }
+    }
+  },
+  "deliveries": {
+    "client": {
+      "title": "Mes livraisons",
+      "description": "Suivez et gérez toutes vos livraisons",
+      "listTitle": "Historique des livraisons",
+      "listDescription": "{count, plural, =0 {Aucune livraison trouvée} one {# livraison trouvée} other {# livraisons trouvées}}"
+    },
+    "statuses": {
+      "PENDING": "En attente",
+      "ACCEPTED": "Acceptée",
+      "PICKED_UP": "Récupérée",
+      "IN_TRANSIT": "En transit",
+      "DELIVERED": "Livrée",
+      "CONFIRMED": "Confirmée",
+      "CANCELLED": "Annulée",
+      "DISPUTED": "Litige"
+    },
+    "timeline": {
+      "title": "Suivi de progression",
+      "completed": "Terminé",
+      "pending": "En attente",
+      "steps": {
+        "PENDING": "Commande créée",
+        "ACCEPTED": "Livraison acceptée",
+        "PICKED_UP": "Colis récupéré",
+        "IN_TRANSIT": "En route",
+        "DELIVERED": "Colis livré",
+        "CONFIRMED": "Livraison confirmée"
+      }
+    },
+    "detailCard": {
+      "title": "Détails de la livraison",
+      "pickupAddress": "Adresse de ramassage",
+      "deliveryAddress": "Adresse de livraison",
+      "pickupDate": "Date de ramassage",
+      "deliveryDate": "Date de livraison",
+      "estimatedArrival": "Arrivée estimée",
+      "late": "En retard",
+      "client": "Client",
+      "deliverer": "Livreur"
+    },
+    "tracking": {
+      "map": {
+        "title": "Suivi en temps réel",
+        "lastUpdate": "Dernière mise à jour",
+        "pickupPoint": "Point de ramassage",
+        "deliveryPoint": "Point de livraison",
+        "currentPosition": "Position actuelle",
+        "statusIs": "Statut"
+      }
+    },
+    "confirmation": {
+      "title": "Confirmer la réception",
+      "description": "Veuillez confirmer que vous avez bien reçu votre colis",
+      "backToDetails": "Retour aux détails",
+      "cannotConfirmTitle": "Confirmation impossible",
+      "cannotConfirmDescription": "Cette livraison ne peut pas être confirmée car elle n'a pas encore été marquée comme livrée.",
+      "errorTitle": "Erreur de confirmation",
+      "codeLabel": "Code de confirmation",
+      "codePlaceholder": "Entrez le code",
+      "codeHelp": "Le code vous a été fourni par le livreur",
+      "feedbackLabel": "Commentaire (facultatif)",
+      "feedbackPlaceholder": "Partagez votre expérience de livraison...",
+      "feedbackHelp": "Votre commentaire aidera à améliorer le service",
+      "uploadPhotoButton": "Ajouter une photo de preuve",
+      "photoOptional": "Facultatif - ajoutez une photo comme preuve de livraison",
+      "cancelButton": "Annuler",
+      "confirmButton": "Confirmer la réception",
+      "successTitle": "Réception confirmée !",
+      "successMessage": "Merci d'avoir confirmé la réception de votre livraison."
+    },
+    "rating": {
+      "title": "Évaluer la livraison",
+      "description": "Partagez votre expérience avec le livreur",
+      "editTitle": "Modifier votre évaluation",
+      "editDescription": "Mettez à jour votre évaluation précédente",
+      "backToDetails": "Retour aux détails",
+      "cannotRateTitle": "Évaluation impossible",
+      "cannotRateDescription": "Vous ne pouvez évaluer que les livraisons confirmées.",
+      "errorTitle": "Erreur d'évaluation",
+      "ratingLabel": "Note",
+      "ratingDescription": "Vous avez donné {rating} étoile(s)",
+      "selectRating": "Sélectionnez une note de 1 à 5 étoiles",
+      "commentLabel": "Commentaire",
+      "commentPlaceholder": "Décrivez votre expérience avec ce livreur...",
+      "commentHelp": "Votre commentaire aide les autres utilisateurs et nous aide à améliorer le service",
+      "cancelButton": "Annuler",
+      "submitButton": "Soumettre l'évaluation",
+      "updateButton": "Mettre à jour l'évaluation",
+      "successTitle": "Évaluation soumise !",
+      "successMessage": "Merci d'avoir partagé votre expérience."
+    },
+    "statusUpdate": {
+      "title": "Mettre à jour le statut",
+      "statusIs": "Statut actuel",
+      "notePlaceholder": "Ajouter une note pour cette mise à jour...",
+      "noteHelp": "Les notes aident le client à comprendre l'état de sa livraison",
+      "acceptDelivery": "Accepter la livraison",
+      "startPickup": "Commencer le ramassage",
+      "confirmPickup": "Confirmer la récupération",
+      "markAsDelivered": "Marquer comme livré",
+      "cancelDelivery": "Annuler la livraison",
+      "waitingForConfirmation": "En attente de confirmation client",
+      "clientMustConfirm": "Le client doit confirmer la réception pour finaliser la livraison",
+      "errorTitle": "Erreur de mise à jour"
+    },
+    "filters": {
+      "title": "Filtres",
+      "description": "Filtrer vos livraisons",
+      "search": "Recherche",
+      "searchPlaceholder": "Rechercher par adresse...",
+      "status": "Statut",
+      "allStatuses": "Tous les statuts",
+      "clear": "Effacer les filtres"
+    },
+    "stats": {
+      "total": "Total des livraisons",
+      "inProgress": "En cours",
+      "completed": "Terminées",
+      "pending": "En attente"
+    },
+    "table": {
+      "id": "ID",
+      "addresses": "Adresses",
+      "date": "Date",
+      "status": "Statut",
+      "deliverer": "Livreur"
+    },
+    "from": "De",
+    "to": "À",
+    "details": "Détails",
+    "backToList": "Retour à la liste",
+    "confirmDelivery": "Confirmer la réception",
+    "rateDelivery": "Évaluer la livraison",
+    "yourRating": "Votre évaluation",
+    "noDeliveries": "Aucune livraison trouvée",
+    "noDeliveriesDescription": "Vous n'avez pas encore de livraisons à afficher.",
+    "noAssignedDeliverer": "Pas encore assigné",
+    "deliveryNotFound": "Livraison non trouvée",
+    "errorTitle": "Une erreur est survenue",
+    "showFilters": "Afficher les filtres",
+    "hideFilters": "Masquer les filtres",
+    "deliveryConfirmedTitle": "Livraison confirmée !",
+    "deliveryConfirmedDescription": "Merci d'avoir confirmé la réception de votre colis.",
+    "deliveryRatedTitle": "Évaluation soumise !",
+    "deliveryRatedDescription": "Merci d'avoir partagé votre expérience avec ce livreur.",
+    "tabs": {
+      "map": "Carte",
+      "details": "Détails"
+    }
+  },
+  "storage": {
+    "dashboardPage": {
+      "title": "Gestion des box de stockage",
+      "description": "Gérez vos box de stockage, recherchez des espaces disponibles et suivez vos réservations",
+      "metaTitle": "Box de Stockage | EcoDeli",
+      "metaDescription": "Gérez vos box de stockage, consultez vos réservations et trouvez des espaces disponibles"
+    },
+    "boxTypes": {
+      "standard": "Standard",
+      "climate_controlled": "Climatisée",
+      "secure": "Sécurisée",
+      "extra_large": "Extra large",
+      "refrigerated": "Réfrigérée",
+      "fragile": "Objets fragiles"
+    },
+    "tabs": {
+      "myReservations": "Mes réservations",
+      "findBox": "Rechercher une box",
+      "notifications": "Notifications"
+    },
+    "reservations": {
+      "title": "Mes réservations de box",
+      "empty": "Vous n'avez aucune réservation active",
+      "emptyDescription": "Utilisez l'onglet Rechercher pour trouver et réserver une box de stockage",
+      "active": "Réservations actives",
+      "upcoming": "Réservations à venir",
+      "past": "Historique des réservations",
+      "status": {
+        "active": "Active",
+        "upcoming": "À venir",
+        "completed": "Terminée",
+        "cancelled": "Annulée"
+      },
+      "statuses": {
+        "active": "Active",
+        "pending": "En attente",
+        "completed": "Terminée",
+        "cancelled": "Annulée",
+        "overdue": "En retard",
+        "extended": "Prolongée"
+      },
+      "search": "Rechercher une réservation",
+      "extend": "Prolonger",
+      "cancel": "Annuler",
+      "access": "Accéder",
+      "details": "Détails",
+      "noReservations": "Vous n'avez pas encore de réservation",
+      "noReservationsFound": "Aucune réservation trouvée",
+      "startSearching": "Commencez par rechercher une box disponible",
+      "findBox": "Trouver une box",
+      "expiringSoon": "Expire dans moins de 3 jours",
+      "totalPrice": "Prix total",
+      "size": "Taille",
+      "type": "Type",
+      "boxDetails": "Détails de la box",
+      "startDate": "Date de début",
+      "endDate": "Date de fin"
+    },
+    "search": {
+      "title": "Rechercher une box de stockage",
+      "searchButton": "Rechercher",
+      "resultsTitle": "Résultats de recherche",
+      "noResults": "Aucune box disponible correspondant à vos critères",
+      "filters": {
+        "location": "Emplacement",
+        "startDate": "Date de début",
+        "endDate": "Date de fin",
+        "size": "Taille",
+        "priceRange": "Fourchette de prix",
+        "features": "Caractéristiques",
+        "boxType": "Type de box"
+      },
+      "box": {
+        "reserve": "Réserver",
+        "pricePerDay": "Prix par jour",
+        "size": "Taille",
+        "location": "Emplacement",
+        "features": "Caractéristiques",
+        "availability": "Disponibilité"
+      },
+      "locationPlaceholder": "Entrez une ville ou un code postal",
+      "subscribe": "Être notifié lorsque disponible",
+      "advancedSearch": "Recherche avancée"
+    },
+    "notifications": {
+      "title": "Notifications de disponibilité",
+      "empty": "Aucune notification configurée",
+      "emptyDescription": "Configurez des alertes pour être notifié lorsque des box correspondant à vos critères sont disponibles",
+      "create": "Créer une alerte",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "activeTab": "Notifications actives",
+      "createTab": "Créer une notification",
+      "availabilityAlert": "Alerte de disponibilité",
+      "createTitle": "Créer une notification de disponibilité",
+      "createDescription": "Définissez les critères pour recevoir des notifications lorsque des box correspondantes deviennent disponibles",
+      "createButton": "Créer la notification",
+      "deleteTitle": "Supprimer la notification",
+      "deleteDescription": "Êtes-vous sûr de vouloir supprimer cette notification de disponibilité ?",
+      "confirm": "Confirmer",
+      "cancel": "Annuler",
+      "createdAt": "Créée le {date}",
+      "dateRange": "Période",
+      "location": "Lieu",
+      "boxDetails": "Caractéristiques de la box",
+      "noNotificationsTitle": "Aucune notification active",
+      "noNotificationsDesc": "Vous n'avez pas encore configuré de notifications de disponibilité",
+      "radius": "Rayon de {radius} km",
+      "minSize": "Min. {size} m³",
+      "maxSize": "Max. {size} m³",
+      "anyLocation": "Tous les entrepôts",
+      "anyType": "Tous types"
+    },
+    "warehouse": {
+      "openingHours": "Heures d'ouverture",
+      "contact": "Contact",
+      "facilities": "Équipements",
+      "security": "Sécurité",
+      "directions": "Itinéraire"
+    },
+    "history": {
+      "title": "Historique d'utilisation",
+      "noHistoryTitle": "Pas d'historique disponible",
+      "noHistoryDescription": "Aucune activité n'a été enregistrée pour cette box",
+      "actionTypes": {
+        "access": "Accès à la box",
+        "departure": "Sortie de la box",
+        "maintenance": "Maintenance",
+        "other": "Autre action"
+      }
+    },
+    "details": {
+      "boxDetails": "Détails de la box",
+      "reservationDetails": "Détails de la réservation",
+      "extend": "Prolonger la réservation",
+      "cancel": "Annuler la réservation",
+      "accessCode": "Code d'accès"
+    },
+    "dialogs": {
+      "extend": {
+        "title": "Prolonger la réservation",
+        "description": "Choisissez une nouvelle date de fin pour votre réservation",
+        "newEndDate": "Nouvelle date de fin",
+        "additionalCost": "Coût supplémentaire",
+        "confirm": "Confirmer",
+        "cancel": "Annuler"
+      },
+      "access": {
+        "title": "Accès à la box",
+        "description": "Utilisez le code suivant pour accéder à votre box",
+        "validUntil": "Valide jusqu'à",
+        "regenerate": "Générer un nouveau code",
+        "close": "Fermer"
+      }
+    },
+    "features": {
+      "climate_control": "Climatisation",
+      "security_camera": "Caméra de sécurité",
+      "24h_access": "Accès 24h/24",
+      "fire_protection": "Protection incendie",
+      "private_access": "Accès privé",
+      "loading_dock": "Quai de chargement"
+    },
+    "subscription": {
+      "success": "Notification créée",
+      "successDescription": "Vous serez notifié lorsqu'une box correspondant à vos critères devient disponible",
+      "error": "Erreur",
+      "deactivateSuccess": "Notification supprimée",
+      "deactivateSuccessDescription": "La notification a été supprimée avec succès",
+      "deactivateError": "Erreur lors de la suppression",
+      "pushNotifications": "Notifications push",
+      "pushDescription": "Recevez des notifications instantanées sur votre appareil",
+      "emailNotifications": "Notifications par email",
+      "emailDescription": "Recevez des notifications par email",
+      "smsNotifications": "Notifications SMS",
+      "smsDescription": "Recevez des notifications par SMS"
+    }
+  },
+  "dashboard": {
+    "welcome": "Bienvenue sur votre tableau de bord",
+    "deliverer": {
+      "title": "Tableau de bord Livreur",
+      "description": "Gérez vos livraisons et suivez votre activité sur EcoDeli",
+      "welcomeMessage": "Bienvenue sur votre tableau de bord de livreur. Vous pouvez gérer vos livraisons, consulter les annonces disponibles et planifier vos trajets.",
+      "pendingVerification": "Votre compte est en attente de vérification. Veuillez compléter les documents requis pour accéder à toutes les fonctionnalités."
+    },
+    "client": {
+      "metaTitle": "Tableau de bord | EcoDeli",
+      "metaDescription": "Gérez vos livraisons, annonces et services dans un seul endroit",
+      "welcomeMessage": "Bienvenue sur votre tableau de bord",
+      "refreshDashboard": "Actualiser",
+      "errorTitle": "Erreur de chargement",
+      "errorDescription": "Impossible de charger les données du tableau de bord",
+      "retry": "Réessayer",
+      "statsTitle": "Statistiques",
+      "announcementsCount": "Annonces",
+      "deliveriesCount": "Livraisons",
+      "completedDeliveriesCount": "Livraisons complétées",
+      "averageRating": "Note moyenne",
+      "estimatedSavings": "Économies estimées",
+      "quickActions": {
+        "title": "Actions rapides",
+        "findDeliveries": "Trouver des livraisons",
+        "findDeliveriesDescription": "Parcourez les annonces de livraison disponibles près de chez vous"
+      },
+      "actions": {
+        "createAnnouncement": "Créer une annonce",
+        "searchServices": "Rechercher des services",
+        "trackDeliveries": "Suivre mes livraisons",
+        "bookStorage": "Réserver un box",
+        "scheduleService": "Planifier un service",
+        "viewInvoices": "Voir mes factures",
+        "updateProfile": "Mettre à jour mon profil",
+        "contactSupport": "Contacter le support"
+      },
+      "stats": {
+        "title": "Vos statistiques",
+        "announcements": "Annonces",
+        "deliveries": "Livraisons",
+        "completed": "Complétées",
+        "rating": "Évaluation",
+        "savings": "Économies"
+      },
+      "activeDeliveries": {
+        "title": "Livraisons en cours",
+        "viewAll": "Voir tout",
+        "empty": "Aucune livraison en cours",
+        "from": "De",
+        "to": "À"
+      },
+      "activeAnnouncements": {
+        "title": "Annonces actives",
+        "viewAll": "Voir tout",
+        "empty": "Aucune annonce active",
+        "delivererCount": "{count} livreur(s)"
+      },
+      "financialSummary": {
+        "title": "Résumé financier",
+        "currentMonth": "Mois en cours",
+        "previousMonth": "Mois précédent",
+        "evolution": "Évolution",
+        "savings": "Économies estimées"
+      },
+      "activity": {
+        "title": "Activité récente",
+        "viewAll": "Voir tout",
+        "empty": "Aucune activité récente",
+        "delivery": "Livraison",
+        "announcement": "Annonce",
+        "payment": "Paiement",
+        "box_reservation": "Réservation de box",
+        "created": "créé(e)",
+        "updated": "mis(e) à jour",
+        "cancelled": "annulé(e)",
+        "completed": "terminé(e)"
+      }
+    }
+  },
+
+  "search": {
+    "error": "[en] error",
+    "backToResults": "[en] backToResults",
+    "noResults": "[en] noResults",
+    "tryDifferentCriteria": "[en] tryDifferentCriteria",
+    "newSearch": "[en] newSearch",
+    "title": "[en] title",
+    "filters": "[en] filters"
+  },
+  "reservation": {
+    "success": "[en] success",
+    "successDescription": "[en] successDescription",
+    "error": "[en] error",
+    "updateSuccess": "[en] updateSuccess",
+    "updateSuccessDescription": "[en] updateSuccessDescription",
+    "updateError": "[en] updateError",
+    "extendSuccess": "[en] extendSuccess",
+    "extendError": "[en] extendError",
+    "summary": "[en] summary",
+    "period": "[en] period",
+    "duration": "[en] duration",
+    "days": "[en] days",
+    "day": "[en] day",
+    "totalPrice": "[en] totalPrice",
+    "notes": "[en] notes",
+    "notesPlaceholder": "[en] notesPlaceholder",
+    "notesHelp": "[en] notesHelp",
+    "paymentSimulation": "[en] paymentSimulation",
+    "paymentDescription": "[en] paymentDescription",
+    "paymentDetails": "[en] paymentDetails",
+    "subtotal": "[en] subtotal",
+    "serviceFee": "[en] serviceFee",
+    "vat": "[en] vat",
+    "finalTotal": "[en] finalTotal",
+    "termsTitle": "[en] termsTitle",
+    "termsDescription": "[en] termsDescription",
+    "confirmed": "[en] confirmed",
+    "confirmationMessage": "[en] confirmationMessage",
+    "accessCodeTitle": "[en] accessCodeTitle",
+    "accessCodeDescription": "[en] accessCodeDescription",
+    "viewReservations": "[en] viewReservations",
+    "back": "[en] back",
+    "continueToPayment": "[en] continueToPayment",
+    "confirmAndPay": "[en] confirmAndPay"
+  },
+  "access": {
+    "success": "[en] success",
+    "successDescription": "[en] successDescription",
+    "error": "[en] error",
+    "codeCopied": "[en] codeCopied",
+    "title": "[en] title",
+    "description": "[en] description",
+    "boxName": "[en] boxName",
+    "warehouse": "[en] warehouse",
+    "boxType": "[en] boxType",
+    "warehouseAddress": "[en] warehouseAddress",
+    "warehousePhone": "[en] warehousePhone",
+    "phoneNotAvailable": "[en] phoneNotAvailable",
+    "codeTitle": "[en] codeTitle",
+    "codeDescription": "[en] codeDescription",
+    "showCode": "[en] showCode",
+    "getCodeDescription": "[en] getCodeDescription",
+    "gettingCode": "[en] gettingCode",
+    "getCode": "[en] getCode",
+    "close": "[en] close"
+  },
+  "reservations": {
+    "error": "[en] error",
+    "title": "[en] title",
+    "noReservationsFound": "[en] noReservationsFound",
+    "noReservations": "[en] noReservations",
+    "startSearching": "[en] startSearching",
+    "findBox": "[en] findBox",
+    "totalPrice": "[en] totalPrice",
+    "startDate": "[en] startDate",
+    "endDate": "[en] endDate",
+    "boxDetails": "[en] boxDetails",
+    "size": "[en] size",
+    "type": "[en] type",
+    "expiringSoon": "[en] expiringSoon",
+    "access": "[en] access",
+    "extend": "[en] extend",
+    "active": "[en] active",
+    "completed": "[en] completed",
+    "cancelled": "[en] cancelled"
+  },
+  "history": {
+    "error": "[en] error",
+    "noHistoryTitle": "[en] noHistoryTitle",
+    "noHistoryDescription": "[en] noHistoryDescription",
+    "title": "[en] title",
+    "empty": "[en] empty"
+  },
+  "subscription": {
+    "success": "[en] success",
+    "successDescription": "[en] successDescription",
+    "error": "[en] error",
+    "deactivateSuccess": "[en] deactivateSuccess",
+    "deactivateSuccessDescription": "[en] deactivateSuccessDescription",
+    "deactivateError": "[en] deactivateError",
+    "warehouseDescription": "[en] warehouseDescription",
+    "boxTypeDescription": "[en] boxTypeDescription",
+    "startDateDescription": "[en] startDateDescription",
+    "endDateDescription": "[en] endDateDescription",
+    "priceDescription": "[en] priceDescription",
+    "sizeDescription": "[en] sizeDescription",
+    "notificationPreferences": "[en] notificationPreferences",
+    "emailNotifications": "[en] emailNotifications",
+    "emailDescription": "[en] emailDescription",
+    "pushNotifications": "[en] pushNotifications",
+    "pushDescription": "[en] pushDescription",
+    "smsNotifications": "[en] smsNotifications",
+    "smsDescription": "[en] smsDescription",
+    "subscribe": "[en] subscribe"
+  },
+  "warehouses": {
+    "error": "[en] error",
+    "boxesError": "[en] boxesError"
+  },
+  "form": {
+    "bookingSuccess": "[en] bookingSuccess",
+    "warehouse": "[en] warehouse",
+    "selectWarehouse": "[en] selectWarehouse",
+    "warehouseDescription": "[en] warehouseDescription",
+    "boxType": "[en] boxType",
+    "selectBoxType": "[en] selectBoxType",
+    "boxTypeDescription": "[en] boxTypeDescription",
+    "startDate": "[en] startDate",
+    "pickDate": "[en] pickDate",
+    "startDateDescription": "[en] startDateDescription",
+    "endDate": "[en] endDate",
+    "endDateDescription": "[en] endDateDescription",
+    "priceRange": "[en] priceRange",
+    "perDay": "[en] perDay",
+    "priceDescription": "[en] priceDescription",
+    "sizeRange": "[en] sizeRange",
+    "sizeDescription": "[en] sizeDescription",
+    "features": "[en] features",
+    "featuresDescription": "[en] featuresDescription",
+    "search": "[en] search",
+    "minSize": "[en] minSize",
+    "selectDateFirst": "[en] selectDateFirst",
+    "back": "[en] back",
+    "appointment": "[en] appointment",
+    "date": "[en] date",
+    "time": "[en] time",
+    "selectTime": "[en] selectTime",
+    "notes": "[en] notes",
+    "notesPlaceholder": "[en] notesPlaceholder",
+    "paymentMethod": "[en] paymentMethod",
+    "creditCard": "[en] creditCard",
+    "appWallet": "[en] appWallet",
+    "summary": "[en] summary",
+    "servicePrice": "[en] servicePrice",
+    "total": "[en] total",
+    "cancel": "[en] cancel",
+    "processing": "[en] processing",
+    "confirmBooking": "[en] confirmBooking",
+    "type": "[en] type",
+    "selectType": "[en] selectType",
+    "typeDescription": "[en] typeDescription",
+    "file": "[en] file",
+    "fileDescription": "[en] fileDescription",
+    "expiryDate": "[en] expiryDate",
+    "selectDate": "[en] selectDate",
+    "expiryDateDescription": "[en] expiryDateDescription",
+    "description": "[en] description",
+    "descriptionPlaceholder": "[en] descriptionPlaceholder",
+    "descriptionHelp": "[en] descriptionHelp",
+    "uploading": "[en] uploading",
+    "submit": "[en] submit",
+    "title": "[en] title"
+  },
+  "manage": {
+    "cancelled": "[en] cancelled",
+    "title": "[en] title",
+    "description": "[en] description",
+    "viewDetails": "[en] viewDetails",
+    "cancel": "[en] cancel",
+    "reschedule": "[en] reschedule",
+    "leaveReview": "[en] leaveReview",
+    "subtitle": "[en] subtitle",
+    "upcoming": "[en] upcoming",
+    "past": "[en] past",
+    "noUpcomingBookings": "[en] noUpcomingBookings",
+    "noUpcomingBookingsSubtitle": "[en] noUpcomingBookingsSubtitle",
+    "browseServices": "[en] browseServices",
+    "noPastBookings": "[en] noPastBookings",
+    "noPastBookingsSubtitle": "[en] noPastBookingsSubtitle"
+  },
+  "review": {
+    "reviewSuccess": "[en] reviewSuccess"
+  },
+  "error": {
+    "title": "[en] title",
+    "generic": "[en] generic",
+    "description": "[en] description",
+    "message": "[en] message"
+  },
+  "complete": {
+    "success": {
+      "title": "[en] title"
+    }
+  },
+  "reset": {
+    "success": {
+      "title": "[en] title"
+    },
+    "title": "[en] title",
+    "description": "[en] description",
+    "info": "[en] info",
+    "processing": "[en] processing",
+    "button": "[en] button"
+  },
+  "deleteSuccess": "[en] deleteSuccess",
+  "deleteSuccessDescription": "[en] deleteSuccessDescription",
+  "deleteError": "[en] deleteError",
+  "uploadSuccess": {
+    "title": "[en] title",
+    "description": "[en] description"
+  },
+  "uploadSuccessDescription": "[en] uploadSuccessDescription",
+  "uploadError": {
+    "title": "[en] title",
+    "description": "[en] description"
+  },
+  "extend": {
+    "title": "[en] title",
+    "description": "[en] description",
+    "currentEndDate": "[en] currentEndDate",
+    "selectNewEndDate": "[en] selectNewEndDate",
+    "selectDate": "[en] selectDate",
+    "additionalCost": "[en] additionalCost",
+    "cancel": "[en] cancel",
+    "processing": "[en] processing",
+    "confirm": "[en] confirm"
+  },
+  "features": {
+    "climateControlled": "[en] climateControlled",
+    "secure": "[en] secure",
+    "24hAccess": "[en] 24hAccess"
+  },
+  "boxTypes": {
+    "standard": "[en] standard",
+    "climateControlled": "[en] climateControlled",
+    "secure": "[en] secure",
+    "extraLarge": "[en] extraLarge",
+    "refrigerated": "[en] refrigerated",
+    "fragile": "[en] fragile"
+  },
+  "boxDetails": {
+    "maxWeight": "[en] maxWeight",
+    "perDay": "[en] perDay",
+    "contact": "[en] contact",
+    "reserve": "[en] reserve"
+  },
+  "toggleTheme": "[en] toggleTheme",
+  "lightMode": "[en] lightMode",
+  "darkMode": "[en] darkMode",
+  "systemMode": "[en] systemMode",
+  "languageName": "[en] languageName",
+  "formats": {
+    "date": {
+      "short": "[en] short",
+      "medium": "[en] medium",
+      "long": "[en] long",
+      "relative": "[en] relative"
+    },
+    "number": {
+      "decimal": "[en] decimal",
+      "percent": "[en] percent"
+    }
+  },
+  "title": "[en] title",
+  "verifiedProvider": "[en] verifiedProvider",
+  "tabs": {
+    "details": "[en] details",
+    "provider": "[en] provider",
+    "reviews": "[en] reviews",
+    "calendar": "[en] calendar",
+    "availability": "[en] availability",
+    "pending": "[en] pending",
+    "approved": "[en] approved",
+    "rejected": "[en] rejected",
+    "myReservations": "[en] myReservations",
+    "findBox": "[en] findBox",
+    "notifications": "[en] notifications",
+    "map": "[en] map"
+  },
+  "descriptionTitle": "[en] descriptionTitle",
+  "faq": {
+    "title1": "[en] title1",
+    "content1": "[en] content1",
+    "title2": "[en] title2",
+    "content2": "[en] content2",
+    "title3": "[en] title3",
+    "content3": "[en] content3"
+  },
+  "noReviews": "[en] noReviews",
+  "beFirstReviewer": "[en] beFirstReviewer",
+  "bookingTitle": "[en] bookingTitle",
+  "bookingSubtitle": "[en] bookingSubtitle",
+  "selectDate": "[en] selectDate",
+  "selectTime": "[en] selectTime",
+  "noTimeSlotsAvailable": "[en] noTimeSlotsAvailable",
+  "totalPrice": "[en] totalPrice",
+  "bookNow": "[en] bookNow",
+  "needHelp": "[en] needHelp",
+  "supportHours": "[en] supportHours",
+  "card": {
+    "viewDetails": "[en] viewDetails"
+  },
+  "success": {
+    "title": "[en] title",
+    "description": "[en] description",
+    "message": "[en] message"
+  },
+  "editTitle": "[en] editTitle",
+  "ratingLabel": "[en] ratingLabel",
+  "commentLabel": "[en] commentLabel",
+  "commentPlaceholder": "[en] commentPlaceholder",
+  "submitting": "[en] submitting",
+  "update": "[en] update",
+  "submit": "[en] submit",
+  "availability": {
+    "added": "[en] added",
+    "addFailed": "[en] addFailed",
+    "deleted": "[en] deleted",
+    "deleteFailed": "[en] deleteFailed",
+    "confirmDelete": "[en] confirmDelete",
+    "title": "[en] title",
+    "subtitle": "[en] subtitle",
+    "add": "[en] add",
+    "addTitle": "[en] addTitle",
+    "addSubtitle": "[en] addSubtitle",
+    "day": "[en] day",
+    "selectDay": "[en] selectDay",
+    "startTime": "[en] startTime",
+    "endTime": "[en] endTime",
+    "recurring": "[en] recurring",
+    "cancel": "[en] cancel",
+    "adding": "[en] adding",
+    "noAvailability": "[en] noAvailability",
+    "addSome": "[en] addSome"
+  },
+  "days": {
+    "sunday": "[en] sunday",
+    "monday": "[en] monday",
+    "tuesday": "[en] tuesday",
+    "wednesday": "[en] wednesday",
+    "thursday": "[en] thursday",
+    "friday": "[en] friday",
+    "saturday": "[en] saturday"
+  },
+  "calendar": {
+    "title": "[en] title",
+    "subtitle": "[en] subtitle",
+    "selectDate": "[en] selectDate",
+    "noAppointments": "[en] noAppointments",
+    "nothingScheduled": "[en] nothingScheduled",
+    "freeDay": "[en] freeDay"
+  },
+  "calendarEvent": {
+    "prefix": "[en] prefix",
+    "appointment": "[en] appointment",
+    "notes": "[en] notes",
+    "online": "[en] online"
+  },
+  "share": {
+    "title": "[en] title",
+    "copied": "[en] copied"
+  },
+  "subtitle": "[en] subtitle",
+  "duration": "[en] duration",
+  "minutes": "[en] minutes",
+  "provider": {
+    "pageTitle": "[en] pageTitle",
+    "pageDescription": "[en] pageDescription",
+    "title": "[en] title",
+    "instructions": "[en] instructions"
+  },
+  "dateTime": "[en] dateTime",
+  "location": "[en] location",
+  "notes": "[en] notes",
+  "subtotal": "[en] subtotal",
+  "total": "[en] total",
+  "paymentId": "[en] paymentId",
+  "reservationId": "[en] reservationId",
+  "addToCalendar": "[en] addToCalendar",
+  "downloadReceipt": "[en] downloadReceipt",
+  "viewAllServices": "[en] viewAllServices",
+  "questions": "[en] questions",
+  "contactSupport": "[en] contactSupport",
+  "home": "[en] home",
+  "profile": "[en] profile",
+  "settings": {
+    "preferences": {
+      "saved": "[en] saved",
+      "savedDescription": "[en] savedDescription"
+    },
+    "language": {
+      "title": "[en] title",
+      "preferences": "[en] preferences",
+      "preferencesDescription": "[en] preferencesDescription",
+      "selectLanguage": "[en] selectLanguage",
+      "dateFormat": "[en] dateFormat",
+      "currencyFormat": "[en] currencyFormat",
+      "preview": "[en] preview",
+      "previewDescription": "[en] previewDescription",
+      "datePreview": "[en] datePreview",
+      "numberPreview": "[en] numberPreview"
+    }
+  },
+  "types": {
+    "idCard": "[en] idCard",
+    "drivingLicense": "[en] drivingLicense",
+    "vehicleRegistration": "[en] vehicleRegistration",
+    "insurance": "[en] insurance",
+    "qualificationCertificate": "[en] qualificationCertificate",
+    "other": "[en] other"
+  },
+  "expires": "[en] expires",
+  "filename": "[en] filename",
+  "view": "[en] view",
+  "submittedBy": "[en] submittedBy",
+  "verificationStatus": "[en] verificationStatus",
+  "upload": {
+    "success": {
+      "title": "[en] title",
+      "description": "[en] description",
+      "message": "[en] message"
+    },
+    "error": {
+      "title": "[en] title"
+    },
+    "title": "[en] title",
+    "description": "[en] description",
+    "uploadAnother": "[en] uploadAnother",
+    "backToDashboard": "[en] backToDashboard",
+    "form": {
+      "type": {
+        "label": "[en] label",
+        "placeholder": "[en] placeholder",
+        "description": "[en] description"
+      },
+      "file": {
+        "label": "[en] label",
+        "instruction": "[en] instruction",
+        "supportedFormats": "[en] supportedFormats",
+        "description": "[en] description"
+      },
+      "expiryDate": {
+        "label": "[en] label",
+        "placeholder": "[en] placeholder",
+        "description": "[en] description"
+      },
+      "submitting": "[en] submitting",
+      "submit": "[en] submit"
+    },
+    "verification": {
+      "notice": "[en] notice"
+    }
+  },
+  "uploadForm": {
+    "title": "[en] title",
+    "description": "[en] description"
+  },
+  "list": {
+    "title": "[en] title",
+    "description": "[en] description",
+    "errorTitle": "[en] errorTitle",
+    "errorDescription": "[en] errorDescription",
+    "retry": "[en] retry",
+    "emptyTitle": "[en] emptyTitle",
+    "emptyDescription": "[en] emptyDescription",
+    "columns": {
+      "type": "[en] type",
+      "status": "[en] status",
+      "submitted": "[en] submitted",
+      "expires": "[en] expires",
+      "actions": "[en] actions"
+    },
+    "view": "[en] view",
+    "subtitle": "[en] subtitle"
   },
   "preview": {
-    "rejectionReason": "Motif de refus",
-    "viewDocument": "Voir le document",
-    "status": "Statut",
-    "submitted": "Soumis le",
-    "expires": "Expire le",
-    "fileName": "Nom du fichier",
-    "description": "Description",
-    "close": "Fermer",
-    "delete": "Supprimer"
+    "rejectionReason": "[en] rejectionReason",
+    "viewDocument": "[en] viewDocument",
+    "status": "[en] status",
+    "submitted": "[en] submitted",
+    "expires": "[en] expires",
+    "fileName": "[en] fileName",
+    "description": "[en] description",
+    "close": "[en] close"
   },
   "tracking": {
     "map": {

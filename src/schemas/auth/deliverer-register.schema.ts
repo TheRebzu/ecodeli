@@ -26,4 +26,4 @@ export const delivererRegisterSchema = z
     path: ['confirmPassword'],
   });
 
-export type DelivererRegisterSchemaType = z.infer<typeof delivererRegisterSchema>; 
+export type DelivererRegisterSchemaType = z.infer<typeof delivererRegisterSchema>;

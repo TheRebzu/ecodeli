@@ -37,7 +37,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/components/ui/use-toast';
 
 interface UserDocument {
   id: string;
@@ -46,8 +45,6 @@ interface UserDocument {
   createdAt: Date;
   updatedAt: Date;
   fileUrl: string;
-  filename?: string;
-  mimeType?: string;
 }
 
 interface UserDocumentsProps {
@@ -68,7 +65,6 @@ export function UserDocuments({
   const [rejectionReason, setRejectionReason] = useState('');
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isReviewOpen, setIsReviewOpen] = useState(false);
-  const { toast } = useToast();
 
   // Function to display document type in a readable format
   const formatDocumentType = (type: string) => {
@@ -101,44 +97,6 @@ export function UserDocuments({
     setReviewStatus('APPROVED');
     setRejectionReason('');
     setIsReviewOpen(true);
-  };
-
-  const downloadDocument = async (document: UserDocument) => {
-    try {
-      toast({
-        title: 'Préparation du document',
-        description: 'Le téléchargement va commencer...',
-      });
-
-      // Utiliser la nouvelle API de téléchargement avec le bon type MIME
-      const downloadUrl = `/api/download?path=${encodeURIComponent(document.fileUrl)}&download=true`;
-
-      // Créer un élément de lien temporaire pour le téléchargement
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-
-      // Extraire le nom de fichier
-      const fileName =
-        document.filename || document.fileUrl.split('/').pop() || `document-${document.id}`;
-      link.setAttribute('download', fileName);
-
-      // Déclencher le téléchargement
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      toast({
-        title: 'Téléchargement lancé',
-        description: `Le document est en cours de téléchargement.`,
-      });
-    } catch (error) {
-      console.error('Erreur lors du téléchargement:', error);
-      toast({
-        title: 'Erreur de téléchargement',
-        description: 'Impossible de télécharger le document.',
-        variant: 'destructive',
-      });
-    }
   };
 
   if (isLoading) {
@@ -224,7 +182,11 @@ export function UserDocuments({
                         View
                       </Button>
 
-                      <Button variant="ghost" size="sm" onClick={() => downloadDocument(document)}>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => window.open(document.fileUrl, '_blank')}
+                      >
                         <Download className="h-4 w-4 mr-1" />
                         Download
                       </Button>
@@ -285,18 +247,6 @@ export function UserDocuments({
             <Button variant="outline" onClick={() => setIsPreviewOpen(false)}>
               Close
             </Button>
-
-            {selectedDocument && (
-              <Button
-                variant="outline"
-                onClick={() => {
-                  if (selectedDocument) downloadDocument(selectedDocument);
-                }}
-              >
-                <Download className="h-4 w-4 mr-1" />
-                Download
-              </Button>
-            )}
 
             {selectedDocument && selectedDocument.status === 'PENDING' && (
               <Button

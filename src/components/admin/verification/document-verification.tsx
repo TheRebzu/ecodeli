@@ -47,7 +47,6 @@ const documentTypeLabels: Record<DocumentType, string> = {
   VEHICLE_REGISTRATION: 'Carte grise',
   INSURANCE: "Attestation d'assurance",
   QUALIFICATION_CERTIFICATE: 'Certificat de qualification',
-  SELFIE: 'Photo de profil',
   OTHER: 'Autre document',
 };
 

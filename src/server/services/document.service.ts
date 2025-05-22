@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { TRPCError } from '@trpc/server';
 import { db } from '../db';
 import crypto from 'crypto';
-import { NotificationService, sendNotification } from './notification.service';
+import { NotificationService } from './notification.service';
 import { getUserPreferredLocale } from '@/lib/user-locale';
 
 // Interface Document pour typer les retours
@@ -15,6 +15,7 @@ interface Document {
   id: string;
   userId: string;
   filename: string;
+  originalName: string;
   mimeType: string;
   size: number;
   path: string;
@@ -95,11 +96,13 @@ type UploadFileResult = {
 export class DocumentService {
   private prisma: PrismaClient;
   private uploadDir: string;
+  private notificationService: NotificationService;
 
   constructor(prisma = db) {
     this.prisma = prisma;
     // Le dossier d'uploads est relatif à la racine du projet
     this.uploadDir = path.join(process.cwd(), 'public', 'uploads');
+    this.notificationService = new NotificationService();
   }
 
   /**
@@ -151,20 +154,16 @@ export class DocumentService {
   /**
    * Télécharge un document pour un utilisateur
    */
-  async uploadDocument(params: UploadDocumentParams) {
+  async uploadDocument(
+    userId: string,
+    documentType: DocumentType,
+    file: { buffer: Buffer; filename: string; mimetype: string },
+    expiryDate?: Date
+  ) {
     try {
-      const { userId, type, filename, fileUrl, mimeType, fileSize, notes, expiryDate } = params;
-
       // Vérifier si l'utilisateur existe
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
-        select: {
-          id: true,
-          name: true,
-          email: true,
-          role: true,
-          locale: true,
-        },
       });
 
       if (!user) {
@@ -174,27 +173,47 @@ export class DocumentService {
         });
       }
 
-      // Créer l'entrée du document dans la base de données
+      // Sauvegarder le fichier
+      const fileResult = await this.saveFile(file, userId);
+
+      // Déterminer le type d'utilisateur
+      let userRole: UserRole;
+      switch (user.role) {
+        case 'CLIENT':
+          userRole = UserRole.CLIENT;
+          break;
+        case 'DELIVERER':
+          userRole = UserRole.DELIVERER;
+          break;
+        case 'MERCHANT':
+          userRole = UserRole.MERCHANT;
+          break;
+        case 'PROVIDER':
+          userRole = UserRole.PROVIDER;
+          break;
+        default:
+          userRole = UserRole.CLIENT;
+      }
+
+      // Créer l'entrée de document
       const document = await this.prisma.document.create({
         data: {
-          userId,
-          type,
-          filename,
-          mimeType,
-          fileSize,
-          fileUrl,
+          userId: userId,
+          type: documentType,
+          filename: fileResult.filename,
+          fileUrl: fileResult.fileUrl,
+          mimeType: fileResult.mimeType,
+          fileSize: fileResult.fileSize,
           uploadedAt: new Date(),
-          verificationStatus: VerificationStatus.PENDING,
-          notes,
           expiryDate,
-          isVerified: false,
+          userRole: userRole.toString(),
         },
         include: {
           user: true,
         },
       });
 
-      // Créer une demande de vérification pour ce document
+      // Créer une demande de vérification
       await this.prisma.verification.create({
         data: {
           submitterId: userId,
@@ -204,33 +223,17 @@ export class DocumentService {
         },
       });
 
-      console.log(`Document créé avec succès: ${document.id}`);
-      console.log(`Envoi de notification aux administrateurs pour le document ${document.id}`);
-
-      try {
-        // Envoyer une notification à tous les administrateurs
-        const userLocale = getUserPreferredLocale(user);
-        await this.notificationService.sendDocumentSubmissionToAdminsNotification(
-          document,
-          userLocale
-        );
-        console.log(
-          `Notification envoyée avec succès aux administrateurs pour le document ${document.id}`
-        );
-      } catch (notifError) {
-        console.error("Erreur lors de l'envoi de la notification aux administrateurs:", notifError);
-        // Ne pas faire échouer l'upload si la notification échoue
-      }
+      // Envoyer une notification à tous les administrateurs
+      const notificationService = new NotificationService();
+      const userLocale = getUserPreferredLocale(user);
+      await notificationService.sendDocumentSubmissionToAdminsNotification(document, userLocale);
 
       return document;
     } catch (error) {
       console.error('Erreur lors du téléchargement du document:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message:
-          'Erreur lors du téléchargement du document: ' +
-          (error instanceof Error ? error.message : String(error)),
-        cause: error,
+        message: 'Erreur lors du téléchargement du document',
       });
     }
   }
@@ -523,11 +526,13 @@ export class DocumentService {
     if (status === DocumentStatus.APPROVED) {
       await this.emailService.sendDocumentApprovedEmail(
         document.user.email as string,
+        document.originalName,
         document.type as DocumentType
       );
     } else if (status === DocumentStatus.REJECTED) {
       await this.emailService.sendDocumentRejectedEmail(
         document.user.email as string,
+        document.originalName,
         document.type as DocumentType,
         rejectionReason || 'Aucune raison spécifiée'
       );
@@ -861,7 +866,6 @@ export class DocumentService {
       [DocumentType.INSURANCE]: "Attestation d'assurance",
       [DocumentType.CRIMINAL_RECORD]: 'Casier judiciaire',
       [DocumentType.PROFESSIONAL_CERTIFICATION]: 'Certification professionnelle',
-      [DocumentType.SELFIE]: 'Photo de profil',
       [DocumentType.OTHER]: 'Autre document',
     };
 
@@ -903,7 +907,7 @@ export class DocumentService {
   async getDocumentsByUserId(userId: string): Promise<Document[]> {
     return await this.prisma.document.findMany({
       where: { userId },
-      orderBy: { uploadedAt: 'desc' },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -911,7 +915,7 @@ export class DocumentService {
   async getMostRecentDocumentByType(userId: string, type: DocumentType): Promise<Document | null> {
     return await this.prisma.document.findFirst({
       where: { userId, type },
-      orderBy: { uploadedAt: 'desc' },
+      orderBy: { createdAt: 'desc' },
     });
   }
 
@@ -959,31 +963,34 @@ export class DocumentService {
         const locale = getUserPreferredLocale(userWithDocument.user);
 
         if (data.verificationStatus === VerificationStatus.APPROVED) {
-          // Send approval notification using the exported NotificationService function
-          await sendNotification({
-            userId: userWithDocument.user.id,
-            title: 'Document approuvé',
-            message: `Votre document ${userWithDocument.type} a été approuvé.`,
-            type: 'VERIFICATION',
-            data: { status: VerificationStatus.APPROVED },
-          });
+          // Send approval notification
+          await this.notificationService.sendDocumentApprovedNotification(userWithDocument, locale);
 
-          // Send email notification (if integrated with email service)
-          // This will need to be implemented based on your email service
+          // Send approval email
+          await this.emailService.sendDocumentApprovedEmail(
+            userWithDocument.user.email,
+            userWithDocument.user.name || '',
+            userWithDocument.type,
+            locale
+          );
         }
 
         if (data.verificationStatus === VerificationStatus.REJECTED) {
           // Send rejection notification
-          await sendNotification({
-            userId: userWithDocument.user.id,
-            title: 'Document rejeté',
-            message: `Votre document ${userWithDocument.type} a été rejeté: ${data.rejectionReason || 'Document invalide'}`,
-            type: 'VERIFICATION',
-            data: { status: VerificationStatus.REJECTED, reason: data.rejectionReason },
-          });
+          await this.notificationService.sendDocumentRejectedNotification(
+            userWithDocument,
+            data.rejectionReason || 'Document invalide',
+            locale
+          );
 
-          // Send email notification (if integrated with email service)
-          // This will need to be implemented based on your email service
+          // Send rejection email
+          await this.emailService.sendDocumentRejectedEmail(
+            userWithDocument.user.email,
+            userWithDocument.user.name || '',
+            userWithDocument.type,
+            data.rejectionReason || 'Document invalide',
+            locale
+          );
         }
       }
 

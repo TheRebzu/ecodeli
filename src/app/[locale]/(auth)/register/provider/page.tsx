@@ -3,11 +3,11 @@ import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/server/auth/next-auth';
-import ProviderRegisterForm from '@/components/auth/register-forms/provider-register-form';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
-import { PageProps, MetadataProps } from '@/types/next';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertTriangle } from 'lucide-react';
 
 export async function generateMetadata({
   params,
@@ -41,7 +41,7 @@ export default async function ProviderRegisterPage({ params }: { params: { local
 
   return (
     <div className="container flex h-screen flex-col items-center justify-center">
-      <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px] md:w-[550px]">
+      <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[450px]">
         <Button variant="ghost" className="absolute left-4 top-4 md:left-8 md:top-8" asChild>
           <Link href={`/${locale}/register`}>
             <ChevronLeft className="mr-2 h-4 w-4" />
@@ -51,10 +51,20 @@ export default async function ProviderRegisterPage({ params }: { params: { local
 
         <div className="flex flex-col space-y-2 text-center">
           <h1 className="text-2xl font-semibold tracking-tight">{t('provider.title')}</h1>
-          <p className="text-sm text-muted-foreground">{t('provider.description')}</p>
+          <p className="text-sm text-muted-foreground">{t('provider.instructions')}</p>
         </div>
-        
-        <ProviderRegisterForm locale={locale} />
+
+        <Alert className="my-8">
+          <AlertTriangle className="h-4 w-4" />
+          <AlertTitle>{t('provider.title')}</AlertTitle>
+          <AlertDescription>{t('comingSoon')}</AlertDescription>
+        </Alert>
+
+        <div className="text-center">
+          <Button asChild>
+            <Link href={`/${locale}/register`}>{t('back')}</Link>
+          </Button>
+        </div>
       </div>
     </div>
   );

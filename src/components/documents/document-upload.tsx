@@ -39,7 +39,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
 import { api } from '@/trpc/react';
-import { DocumentType, UserRole } from '@prisma/client';
+import { DocumentType } from '@prisma/client';
 import { useTranslations } from 'next-intl';
 
 // Schéma de validation pour le formulaire
@@ -62,38 +62,10 @@ const documentTypeLabels: Record<DocumentType, string> = {
   VEHICLE_REGISTRATION: 'Carte grise',
   INSURANCE: "Attestation d'assurance",
   QUALIFICATION_CERTIFICATE: 'Certificat de qualification',
-  SELFIE: 'Photo de profil',
   OTHER: 'Autre document',
 };
 
-// Mapping des types de documents par rôle utilisateur
-const documentTypesByRole: Record<string, DocumentType[]> = {
-  DELIVERER: [
-    DocumentType.ID_CARD,
-    DocumentType.DRIVING_LICENSE,
-    DocumentType.VEHICLE_REGISTRATION,
-    DocumentType.INSURANCE,
-    DocumentType.SELFIE,
-    DocumentType.OTHER,
-  ],
-  MERCHANT: [
-    DocumentType.ID_CARD,
-    DocumentType.INSURANCE,
-    DocumentType.OTHER,
-  ],
-  PROVIDER: [
-    DocumentType.ID_CARD,
-    DocumentType.QUALIFICATION_CERTIFICATE,
-    DocumentType.INSURANCE,
-    DocumentType.OTHER,
-  ],
-};
-
-interface DocumentUploadProps {
-  userRole?: string;
-}
-
-export function DocumentUpload({ userRole = 'DELIVERER' }: DocumentUploadProps) {
+export function DocumentUpload() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
@@ -131,6 +103,14 @@ export function DocumentUpload({ userRole = 'DELIVERER' }: DocumentUploadProps) 
 
   const onSubmit = async (data: DocumentUploadFormValues) => {
     setIsSubmitting(true);
+
+    // Création d'un FormData pour l'upload
+    const formData = new FormData();
+    formData.append('type', data.type);
+    formData.append('file', data.file);
+    if (data.expiryDate) {
+      formData.append('expiryDate', data.expiryDate.toISOString());
+    }
 
     try {
       // Appel API pour uploader le document
@@ -170,9 +150,6 @@ export function DocumentUpload({ userRole = 'DELIVERER' }: DocumentUploadProps) 
   };
 
   const fileRef = form.register('file');
-  
-  // Filtrer les types de documents disponibles en fonction du rôle
-  const availableDocumentTypes = documentTypesByRole[userRole] || documentTypesByRole.DELIVERER;
 
   return (
     <Card className="w-full max-w-2xl mx-auto">
@@ -190,7 +167,7 @@ export function DocumentUpload({ userRole = 'DELIVERER' }: DocumentUploadProps) 
               <Button variant="outline" onClick={() => setUploadSuccess(false)}>
                 {t('upload.uploadAnother')}
               </Button>
-              <Button onClick={() => router.push(`/${userRole.toLowerCase()}`)}>
+              <Button onClick={() => router.push('/deliverer')}>
                 {t('upload.backToDashboard')}
               </Button>
             </div>
@@ -215,9 +192,9 @@ export function DocumentUpload({ userRole = 'DELIVERER' }: DocumentUploadProps) 
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {availableDocumentTypes.map((documentType) => (
-                          <SelectItem key={documentType} value={documentType}>
-                            {documentTypeLabels[documentType]}
+                        {Object.entries(documentTypeLabels).map(([key, label]) => (
+                          <SelectItem key={key} value={key}>
+                            {label}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -270,26 +247,32 @@ export function DocumentUpload({ userRole = 'DELIVERER' }: DocumentUploadProps) 
                         ) : (
                           <div className="relative">
                             <div className="border rounded-md overflow-hidden">
-                              <div className="flex items-center p-2 bg-muted/20">
-                                <span className="text-sm font-medium truncate">
-                                  {(value as File)?.name}
-                                </span>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  className="ml-auto"
-                                  onClick={handleClearFile}
-                                  disabled={isSubmitting}
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </div>
+                              {previewUrl.endsWith('.pdf') ? (
+                                <div className="flex items-center justify-center bg-secondary p-6 min-h-[150px]">
+                                  <span className="font-medium">Document PDF</span>
+                                </div>
+                              ) : (
+                                <img
+                                  src={previewUrl}
+                                  alt="Document preview"
+                                  className="object-contain w-full max-h-[300px]"
+                                />
+                              )}
                             </div>
+                            <Button
+                              type="button"
+                              variant="destructive"
+                              size="icon"
+                              className="absolute top-2 right-2"
+                              onClick={handleClearFile}
+                            >
+                              <X className="w-4 h-4" />
+                            </Button>
                           </div>
                         )}
                       </div>
                     </FormControl>
+                    <FormDescription>{t('upload.form.file.description')}</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -345,21 +328,19 @@ export function DocumentUpload({ userRole = 'DELIVERER' }: DocumentUploadProps) 
               </div>
 
               <div className="flex justify-end pt-4">
-                <Button type="submit" disabled={isSubmitting} className="w-full">
-                  {isSubmitting ? (
-                    <>
-                      <span className="mr-2">Téléchargement...</span>
-                      <span className="animate-spin">⏳</span>
-                    </>
-                  ) : (
-                    'Télécharger le document'
-                  )}
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? t('upload.form.submitting') : t('upload.form.submit')}
                 </Button>
               </div>
             </form>
           </Form>
         )}
       </CardContent>
+      <CardFooter className="flex justify-between">
+        <Button variant="ghost" onClick={() => router.push('/deliverer')} disabled={isSubmitting}>
+          {t('upload.backToDashboard')}
+        </Button>
+      </CardFooter>
     </Card>
   );
 }

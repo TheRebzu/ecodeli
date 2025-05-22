@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { DeliveryStatus } from '@/types/delivery';
+import { DeliveryStatus } from '../types/delivery';
 
 export const deliverySchema = z.object({
   pickupAddress: z.string().min(5, "L'adresse de ramassage est requise"),

@@ -3,7 +3,6 @@ import { getTranslations } from 'next-intl/server';
 import { createCaller } from '@/trpc/server';
 import { notFound } from 'next/navigation';
 import { WarehouseDetail } from '@/components/admin/warehouses/warehouse-detail';
-import { PageProps, MetadataProps } from '@/types/next';
 
 export async function generateMetadata({
   params,

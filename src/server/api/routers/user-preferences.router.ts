@@ -16,12 +16,6 @@ export const userPreferencesRouter = router({
       return userPreferencesService.updateUserPreferences(ctx.session.user.id, input);
     }),
 
-  updatePreferences: protectedProcedure
-    .input(updateUserPreferencesSchema)
-    .mutation(async ({ ctx, input }) => {
-      return userPreferencesService.updateUserPreferences(ctx.session.user.id, input);
-    }),
-
   getOnboardingStatus: protectedProcedure.query(async ({ ctx }) => {
     return userPreferencesService.getOnboardingStatus(ctx.session.user.id);
   }),

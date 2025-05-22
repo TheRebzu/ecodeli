@@ -1,10 +1,23 @@
 'use client';
 
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import { z } from 'zod';
+import { useRouter } from 'next/navigation';
+import { createAnnouncementSchema, updateAnnouncementSchema } from '@/schemas/announcement.schema';
+import { AnnouncementPriority, AnnouncementType, Announcement } from '@/types/announcement';
+import { useAnnouncement } from '@/hooks/use-announcement';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Form,
   FormControl,
@@ -22,645 +35,638 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import {
-  AlertCircle,
-  Calendar,
-  Clock,
-  MapPin,
-  Package,
-  CreditCard,
-  Save,
-  Loader2,
-  CornerDownLeft,
-} from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-
-import { AnnouncementPhotoUpload } from './announcement-photo-upload';
+import { PhotoUpload } from './photo-upload';
 import { AddressMapPicker } from './address-map-picker';
 
-import {
-  AnnouncementTypeEnum,
-  AnnouncementPriorityEnum,
-  type AnnouncementType,
-} from '@/schemas/announcement.schema';
+type AnnouncementFormProps = {
+  announcement?: Announcement;
+  isEdit?: boolean;
+};
 
-// Schéma pour le formulaire (simplifié pour correspondre au schéma du backend)
-const formSchema = z.object({
-  title: z
-    .string()
-    .min(5, 'Le titre doit contenir au moins 5 caractères')
-    .max(100, 'Le titre ne peut pas dépasser 100 caractères'),
-  description: z.string().min(10, 'La description doit contenir au moins 10 caractères'),
-  type: z.string(),
-  priority: z.string().default('MEDIUM'),
-  pickupAddress: z.string().min(5, "L'adresse de collecte est requise"),
-  pickupLongitude: z.number().optional(),
-  pickupLatitude: z.number().optional(),
-  deliveryAddress: z.string().min(5, "L'adresse de livraison est requise"),
-  deliveryLongitude: z.number().optional(),
-  deliveryLatitude: z.number().optional(),
-  weight: z.number().positive().optional().or(z.literal('')),
-  width: z.number().positive().optional().or(z.literal('')),
-  height: z.number().positive().optional().or(z.literal('')),
-  length: z.number().positive().optional().or(z.literal('')),
-  isFragile: z.boolean().default(false),
-  needsCooling: z.boolean().default(false),
-  pickupDate: z.string().optional(),
-  pickupTimeWindow: z.string().optional(),
-  deliveryDate: z.string().optional(),
-  deliveryTimeWindow: z.string().optional(),
-  isFlexible: z.boolean().default(false),
-  suggestedPrice: z
-    .number()
-    .positive('Le prix proposé doit être supérieur à 0')
-    .optional()
-    .or(z.literal('')),
-  isNegotiable: z.boolean().default(true),
-  requiresSignature: z.boolean().default(false),
-  requiresId: z.boolean().default(false),
-  specialInstructions: z.string().optional(),
-  photos: z.array(z.string()).default([]),
-});
-
-// Types pour les props du formulaire
-interface AnnouncementFormProps {
-  defaultValues?: Partial<z.infer<typeof formSchema>>;
-  onSubmit: (data: z.infer<typeof formSchema>) => Promise<void>;
-  onCancel?: () => void;
-  isSubmitting?: boolean;
-  error?: string;
-  mode?: 'create' | 'edit';
-}
-
-// Type pour les valeurs du formulaire
-type FormValues = z.infer<typeof formSchema>;
-
-// Types d'annonce disponibles
-const ANNOUNCEMENT_TYPES = [
-  { value: 'PACKAGE_DELIVERY', label: 'Livraison de colis' },
-  { value: 'GROCERY_SHOPPING', label: 'Courses alimentaires' },
-  { value: 'PERSON_TRANSPORT', label: 'Transport de personnes' },
-  { value: 'AIRPORT_TRANSFER', label: 'Transfert aéroport' },
-  { value: 'FOREIGN_PURCHASE', label: "Achat à l'étranger" },
-  { value: 'PET_CARE', label: "Transport d'animaux" },
-  { value: 'HOME_SERVICES', label: 'Services à domicile' },
-];
-
-// Niveaux de priorité
-const PRIORITY_LEVELS = [
-  { value: 'LOW', label: 'Faible' },
-  { value: 'MEDIUM', label: 'Moyenne' },
-  { value: 'HIGH', label: 'Élevée' },
-  { value: 'URGENT', label: 'Urgente' },
-];
-
-/**
- * Formulaire de création/modification d'annonce
- */
-export function AnnouncementForm({
-  defaultValues,
-  onSubmit,
-  onCancel,
-  isSubmitting = false,
-  error,
-  mode = 'create',
-}: AnnouncementFormProps) {
+export function AnnouncementForm({ announcement, isEdit = false }: AnnouncementFormProps) {
   const t = useTranslations('announcements');
-  const [activeTab, setActiveTab] = useState('details');
+  const router = useRouter();
+  const {
+    createAnnouncement,
+    updateAnnouncement,
+    isCreating,
+    isUpdating,
+    announcementTypes,
+    announcementPriorities,
+  } = useAnnouncement();
 
-  // Initialisation du formulaire avec react-hook-form et zod
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      title: '',
-      description: '',
-      type: 'PACKAGE_DELIVERY',
-      priority: 'MEDIUM',
-      pickupAddress: '',
-      deliveryAddress: '',
-      isFragile: false,
-      needsCooling: false,
-      isFlexible: false,
-      isNegotiable: true,
-      requiresSignature: false,
-      requiresId: false,
-      photos: [],
-      ...defaultValues,
-    },
+  const schema = isEdit ? updateAnnouncementSchema : createAnnouncementSchema;
+
+  // Configuration du formulaire avec React Hook Form et Zod
+  const form = useForm({
+    resolver: zodResolver(schema),
+    defaultValues:
+      isEdit && announcement
+        ? {
+            id: announcement.id,
+            title: announcement.title,
+            description: announcement.description,
+            type: announcement.type,
+            priority: announcement.priority,
+            pickupAddress: announcement.pickupAddress,
+            pickupLongitude: announcement.pickupLongitude,
+            pickupLatitude: announcement.pickupLatitude,
+            deliveryAddress: announcement.deliveryAddress,
+            deliveryLongitude: announcement.deliveryLongitude,
+            deliveryLatitude: announcement.deliveryLatitude,
+            weight: announcement.weight,
+            width: announcement.width,
+            height: announcement.height,
+            length: announcement.length,
+            isFragile: announcement.isFragile,
+            needsCooling: announcement.needsCooling,
+            pickupDate: announcement.pickupDate,
+            pickupTimeWindow: announcement.pickupTimeWindow,
+            deliveryDate: announcement.deliveryDate,
+            deliveryTimeWindow: announcement.deliveryTimeWindow,
+            isFlexible: announcement.isFlexible,
+            suggestedPrice: announcement.suggestedPrice,
+            isNegotiable: announcement.isNegotiable,
+            tags: announcement.tags,
+            notes: announcement.notes,
+            photos: announcement.photos || [],
+            estimatedDistance: announcement.estimatedDistance,
+            estimatedDuration: announcement.estimatedDuration,
+            requiresSignature: announcement.requiresSignature,
+            requiresId: announcement.requiresId,
+            specialInstructions: announcement.specialInstructions,
+          }
+        : {
+            title: '',
+            description: '',
+            type: AnnouncementType.PACKAGE,
+            priority: AnnouncementPriority.MEDIUM,
+            pickupAddress: '',
+            deliveryAddress: '',
+            isFragile: false,
+            needsCooling: false,
+            isFlexible: false,
+            isNegotiable: true,
+            tags: [],
+            photos: [],
+            requiresSignature: false,
+            requiresId: false,
+          },
   });
 
-  // Surveiller certaines valeurs du formulaire pour la logique conditionnelle
-  const currentType = form.watch('type');
-  const isFlexible = form.watch('isFlexible');
+  // Fonction de soumission du formulaire
+  function onSubmit(data: CreateAnnouncementSchemaType | UpdateAnnouncementSchemaType) {
+    if (isEdit && announcement) {
+      updateAnnouncement(data as UpdateAnnouncementSchemaType);
+    } else {
+      createAnnouncement(data as CreateAnnouncementSchemaType);
+    }
+  }
 
-  // Gérer l'envoi du formulaire
-  const handleSubmit = async (values: FormValues) => {
-    // Convertir les champs numériques vides en undefined
-    const formattedValues = {
-      ...values,
-      weight: values.weight === '' ? undefined : Number(values.weight),
-      width: values.width === '' ? undefined : Number(values.width),
-      height: values.height === '' ? undefined : Number(values.height),
-      length: values.length === '' ? undefined : Number(values.length),
-      suggestedPrice: values.suggestedPrice === '' ? undefined : Number(values.suggestedPrice),
-    };
+  function estimateDistanceAndDuration(
+    startLat: number,
+    startLng: number,
+    endLat: number,
+    endLng: number
+  ) {
+    // Calcul simple de la distance à vol d'oiseau (formule de Haversine)
+    const R = 6371; // Rayon de la Terre en km
+    const dLat = (endLat - startLat) * (Math.PI / 180);
+    const dLon = (endLng - startLng) * (Math.PI / 180);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(startLat * (Math.PI / 180)) *
+        Math.cos(endLat * (Math.PI / 180)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c;
 
-    await onSubmit(formattedValues);
-  };
+    // Estimation approximative de la durée (1 km ≈ 1.5 min en ville)
+    const duration = Math.round(distance * 1.5);
 
-  // Mettre à jour les coordonnées de l'adresse de collecte
-  const handlePickupCoordinatesChange = (lat: number, lng: number) => {
-    form.setValue('pickupLatitude', lat);
-    form.setValue('pickupLongitude', lng);
-  };
-
-  // Mettre à jour les coordonnées de l'adresse de livraison
-  const handleDeliveryCoordinatesChange = (lat: number, lng: number) => {
-    form.setValue('deliveryLatitude', lat);
-    form.setValue('deliveryLongitude', lng);
-  };
-
-  // Gérer les changements d'adresse de collecte
-  const handlePickupAddressChange = (address: string) => {
-    form.setValue('pickupAddress', address);
-  };
-
-  // Gérer les changements d'adresse de livraison
-  const handleDeliveryAddressChange = (address: string) => {
-    form.setValue('deliveryAddress', address);
-  };
-
-  // Vérifier si certains champs sont requis en fonction du type d'annonce
-  const isPackageType = currentType === 'PACKAGE_DELIVERY' || currentType === 'GROCERY_SHOPPING';
+    // Mise à jour des champs du formulaire
+    form.setValue('estimatedDistance', parseFloat(distance.toFixed(1)));
+    form.setValue('estimatedDuration', duration);
+  }
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              {mode === 'create' ? t('createAnnouncement') : t('editAnnouncement')}
-            </CardTitle>
-            <CardDescription>
-              {mode === 'create'
-                ? t('createAnnouncementDescription')
-                : t('editAnnouncementDescription')}
-            </CardDescription>
-          </CardHeader>
+    <Card className="w-full max-w-4xl mx-auto">
+      <CardHeader>
+        <CardTitle>{isEdit ? t('editAnnouncement') : t('createAnnouncement')}</CardTitle>
+        <CardDescription>
+          {isEdit ? t('editAnnouncementDescription') : t('createAnnouncementDescription')}
+        </CardDescription>
+      </CardHeader>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <CardContent className="p-6 pb-0">
-              <TabsList className="grid grid-cols-3 mb-6">
-                <TabsTrigger value="details">
-                  <Package className="h-4 w-4 mr-2" />
-                  {t('details')}
-                </TabsTrigger>
-                <TabsTrigger value="addresses">
-                  <MapPin className="h-4 w-4 mr-2" />
-                  {t('addresses')}
-                </TabsTrigger>
-                <TabsTrigger value="photos">
-                  <Calendar className="h-4 w-4 mr-2" />
-                  {t('schedule')}
-                </TabsTrigger>
-              </TabsList>
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)}>
+          <CardContent className="space-y-6">
+            {/* Section Informations générales */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">{t('generalInformation')}</h3>
+              <Separator />
 
-              {error && (
-                <Alert variant="destructive" className="mb-6">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertTitle>{t('error')}</AlertTitle>
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
+              <div className="grid grid-cols-1 gap-4">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('titleLabel') || 'Titre'}</FormLabel>
+                      <FormControl>
+                        <Input placeholder={t('titlePlaceholder')} {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-              <TabsContent value="details" className="mt-0 space-y-6">
-                {/* Informations de base */}
-                <div className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="title"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('title')}</FormLabel>
+                <FormField
+                  control={form.control}
+                  name="type"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('typeLabel') || 'Type'}</FormLabel>
+                      <Select value={field.value} onValueChange={field.onChange}>
                         <FormControl>
-                          <Input {...field} placeholder={t('titlePlaceholder')} maxLength={100} />
+                          <SelectTrigger>
+                            {field.value ? <>{t(`type.${field.value}`)}</> : <>{t('selectType')}</>}
+                          </SelectTrigger>
                         </FormControl>
-                        <FormDescription>{t('titleDescription')}</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                        <SelectContent>
+                          {Object.values(AnnouncementType).map(type => (
+                            <SelectItem key={type} value={type}>
+                              {t(`type.${type}`)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                  <FormField
-                    control={form.control}
-                    name="description"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('description')}</FormLabel>
+                <FormField
+                  control={form.control}
+                  name="priority"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('priorityLabel') || 'Priorité'}</FormLabel>
+                      <Select value={field.value} onValueChange={field.onChange}>
                         <FormControl>
-                          <Textarea
-                            {...field}
-                            placeholder={t('descriptionPlaceholder')}
-                            className="min-h-[120px]"
-                          />
+                          <SelectTrigger>
+                            {field.value ? (
+                              <>{t(`priority.${field.value}`)}</>
+                            ) : (
+                              <>{t('selectPriority')}</>
+                            )}
+                          </SelectTrigger>
                         </FormControl>
-                        <FormDescription>{t('descriptionDescription')}</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                        <SelectContent>
+                          {Object.values(AnnouncementPriority).map(priority => (
+                            <SelectItem key={priority} value={priority}>
+                              {t(`priority.${priority}`)}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="type"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('type')}</FormLabel>
-                          <FormControl>
-                            <Select value={field.value} onValueChange={field.onChange}>
-                              <SelectTrigger>
-                                <SelectValue placeholder={t('selectType')} />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {ANNOUNCEMENT_TYPES.map(type => (
-                                  <SelectItem key={type.value} value={type.value}>
-                                    {type.label}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                          </FormControl>
-                          <FormDescription>{t('typeDescription')}</FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('descriptionLabel') || 'Description'}</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder={t('descriptionPlaceholder')}
+                          {...field}
+                          className="min-h-32"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Section Adresses */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">{t('addresses')}</h3>
+              <Separator />
+
+              {/* Adresse de ramassage avec carte */}
+              <FormField
+                control={form.control}
+                name="pickupAddress"
+                render={({ field }) => (
+                  <FormItem>
+                    <AddressMapPicker
+                      label={t('pickupAddress')}
+                      placeholder={t('pickupAddressPlaceholder')}
+                      initialAddress={field.value}
+                      initialLatitude={form.getValues('pickupLatitude')}
+                      initialLongitude={form.getValues('pickupLongitude')}
+                      onAddressChange={(address, lat, lng) => {
+                        field.onChange(address);
+                        form.setValue('pickupLatitude', lat);
+                        form.setValue('pickupLongitude', lng);
+
+                        // Estimation de la distance et durée si les deux adresses sont disponibles
+                        const deliveryLat = form.getValues('deliveryLatitude');
+                        const deliveryLng = form.getValues('deliveryLongitude');
+                        if (deliveryLat && deliveryLng) {
+                          estimateDistanceAndDuration(lat, lng, deliveryLat, deliveryLng);
+                        }
+                      }}
                     />
-
-                    <FormField
-                      control={form.control}
-                      name="priority"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('priority')}</FormLabel>
-                          <FormControl>
-                            <RadioGroup
-                              value={field.value}
-                              onValueChange={field.onChange}
-                              className="flex space-x-2"
-                            >
-                              {PRIORITY_LEVELS.map(priority => (
-                                <FormItem
-                                  key={priority.value}
-                                  className="flex items-center space-x-1 space-y-0"
-                                >
-                                  <FormControl>
-                                    <RadioGroupItem
-                                      value={priority.value}
-                                      id={`priority-${priority.value}`}
-                                    />
-                                  </FormControl>
-                                  <FormLabel
-                                    htmlFor={`priority-${priority.value}`}
-                                    className={cn(
-                                      'text-xs font-normal cursor-pointer',
-                                      priority.value === 'LOW' && 'text-blue-500',
-                                      priority.value === 'MEDIUM' && 'text-green-500',
-                                      priority.value === 'HIGH' && 'text-amber-500',
-                                      priority.value === 'URGENT' && 'text-red-500'
-                                    )}
-                                  >
-                                    {priority.label}
-                                  </FormLabel>
-                                </FormItem>
-                              ))}
-                            </RadioGroup>
-                          </FormControl>
-                          <FormDescription>{t('priorityDescription')}</FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-
-                {/* Détails du colis */}
-                {isPackageType && (
-                  <>
-                    <Separator />
-                    <div className="space-y-4">
-                      <h3 className="text-base font-medium">{t('packageDetails')}</h3>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="weight"
-                          render={({ field: { onChange, ...field } }) => (
-                            <FormItem>
-                              <FormLabel>{t('weight')} (kg)</FormLabel>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  type="number"
-                                  min="0"
-                                  step="0.1"
-                                  onChange={e => onChange(e.target.value)}
-                                  placeholder="0.5"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="width"
-                          render={({ field: { onChange, ...field } }) => (
-                            <FormItem>
-                              <FormLabel>{t('width')} (cm)</FormLabel>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  type="number"
-                                  min="0"
-                                  step="1"
-                                  onChange={e => onChange(e.target.value)}
-                                  placeholder="20"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="height"
-                          render={({ field: { onChange, ...field } }) => (
-                            <FormItem>
-                              <FormLabel>{t('height')} (cm)</FormLabel>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  type="number"
-                                  min="0"
-                                  step="1"
-                                  onChange={e => onChange(e.target.value)}
-                                  placeholder="15"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="length"
-                          render={({ field: { onChange, ...field } }) => (
-                            <FormItem>
-                              <FormLabel>{t('length')} (cm)</FormLabel>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  type="number"
-                                  min="0"
-                                  step="1"
-                                  onChange={e => onChange(e.target.value)}
-                                  placeholder="30"
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField
-                          control={form.control}
-                          name="isFragile"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                              <FormControl>
-                                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                              </FormControl>
-                              <div className="space-y-1 leading-none">
-                                <FormLabel>{t('isFragile')}</FormLabel>
-                                <FormDescription>{t('isFragileDescription')}</FormDescription>
-                              </div>
-                            </FormItem>
-                          )}
-                        />
-
-                        <FormField
-                          control={form.control}
-                          name="needsCooling"
-                          render={({ field }) => (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                              <FormControl>
-                                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                              </FormControl>
-                              <div className="space-y-1 leading-none">
-                                <FormLabel>{t('needsCooling')}</FormLabel>
-                                <FormDescription>{t('needsCoolingDescription')}</FormDescription>
-                              </div>
-                            </FormItem>
-                          )}
-                        />
-                      </div>
-                    </div>
-                  </>
+                    <FormMessage />
+                  </FormItem>
                 )}
+              />
 
-                {/* Exigences spéciales */}
-                <Separator />
-                <div className="space-y-4">
-                  <h3 className="text-base font-medium">{t('specialRequirements')}</h3>
+              {/* Adresse de livraison avec carte */}
+              <FormField
+                control={form.control}
+                name="deliveryAddress"
+                render={({ field }) => (
+                  <FormItem>
+                    <AddressMapPicker
+                      label={t('deliveryAddress')}
+                      placeholder={t('deliveryAddressPlaceholder')}
+                      initialAddress={field.value}
+                      initialLatitude={form.getValues('deliveryLatitude')}
+                      initialLongitude={form.getValues('deliveryLongitude')}
+                      onAddressChange={(address, lat, lng) => {
+                        field.onChange(address);
+                        form.setValue('deliveryLatitude', lat);
+                        form.setValue('deliveryLongitude', lng);
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="requiresSignature"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                          <FormControl>
-                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel>{t('requiresSignature')}</FormLabel>
-                            <FormDescription>{t('requiresSignatureDescription')}</FormDescription>
-                          </div>
-                        </FormItem>
-                      )}
+                        // Estimation de la distance et durée si les deux adresses sont disponibles
+                        const pickupLat = form.getValues('pickupLatitude');
+                        const pickupLng = form.getValues('pickupLongitude');
+                        if (pickupLat && pickupLng) {
+                          estimateDistanceAndDuration(pickupLat, pickupLng, lat, lng);
+                        }
+                      }}
                     />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-                    <FormField
-                      control={form.control}
-                      name="requiresId"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                          <FormControl>
-                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel>{t('requiresId')}</FormLabel>
-                            <FormDescription>{t('requiresIdDescription')}</FormDescription>
-                          </div>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
+              {/* Distance et durée estimées */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                <FormField
+                  control={form.control}
+                  name="estimatedDistance"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('estimatedDistance')} (km)</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="number"
+                          step="0.1"
+                          placeholder="0.0"
+                          value={field.value || ''}
+                          onChange={e =>
+                            field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)
+                          }
+                          readOnly
+                        />
+                      </FormControl>
+                      <FormDescription>{t('estimatedDistanceDescription')}</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
+                <FormField
+                  control={form.control}
+                  name="estimatedDuration"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('estimatedDuration')} (min)</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="number"
+                          step="1"
+                          placeholder="0"
+                          value={field.value || ''}
+                          onChange={e =>
+                            field.onChange(e.target.value ? parseInt(e.target.value) : undefined)
+                          }
+                          readOnly
+                        />
+                      </FormControl>
+                      <FormDescription>{t('estimatedDurationDescription')}</FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Section Détails de l'envoi */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">{t('packageDetails')}</h3>
+              <Separator />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Poids */}
+                <FormField
+                  control={form.control}
+                  name="weight"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('weight')} (kg)</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...field}
+                          type="number"
+                          step="0.1"
+                          placeholder="0.0"
+                          value={field.value || ''}
+                          onChange={e =>
+                            field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)
+                          }
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Dimensions */}
+                <div className="grid grid-cols-3 gap-2">
+                  {/* Largeur */}
                   <FormField
                     control={form.control}
-                    name="specialInstructions"
+                    name="width"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('specialInstructions')}</FormLabel>
+                        <FormLabel>{t('width')} (cm)</FormLabel>
                         <FormControl>
-                          <Textarea
+                          <Input
                             {...field}
-                            placeholder={t('specialInstructionsPlaceholder')}
-                            className="min-h-[80px]"
+                            type="number"
+                            step="0.1"
+                            placeholder="0"
+                            value={field.value || ''}
+                            onChange={e =>
+                              field.onChange(
+                                e.target.value ? parseFloat(e.target.value) : undefined
+                              )
+                            }
                           />
                         </FormControl>
-                        <FormDescription>{t('specialInstructionsDescription')}</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                </div>
 
-                {/* Prix */}
-                <Separator />
-                <div className="space-y-4">
-                  <h3 className="text-base font-medium">{t('pricing')}</h3>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
-                      control={form.control}
-                      name="suggestedPrice"
-                      render={({ field: { onChange, ...field } }) => (
-                        <FormItem>
-                          <FormLabel>{t('suggestedPrice')} (€)</FormLabel>
-                          <FormControl>
-                            <Input
-                              {...field}
-                              type="number"
-                              min="0"
-                              step="0.5"
-                              onChange={e => onChange(e.target.value)}
-                              placeholder="20.00"
-                              className="w-full"
-                            />
-                          </FormControl>
-                          <FormDescription>{t('suggestedPriceDescription')}</FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="isNegotiable"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
-                          <FormControl>
-                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel>{t('isNegotiable')}</FormLabel>
-                            <FormDescription>{t('isNegotiableDescription')}</FormDescription>
-                          </div>
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </div>
-              </TabsContent>
-
-              <TabsContent value="addresses" className="mt-0 space-y-6">
-                {/* Adresse de collecte */}
-                <div className="space-y-4">
-                  <h3 className="text-base font-medium">{t('pickupAddress')}</h3>
-
+                  {/* Hauteur */}
                   <FormField
                     control={form.control}
-                    name="pickupAddress"
+                    name="height"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('pickupAddressLabel')}</FormLabel>
+                        <FormLabel>{t('height')} (cm)</FormLabel>
                         <FormControl>
-                          <AddressMapPicker
-                            address={field.value}
-                            onAddressChange={handlePickupAddressChange}
-                            onCoordinatesChange={handlePickupCoordinatesChange}
-                            latitude={form.getValues('pickupLatitude')}
-                            longitude={form.getValues('pickupLongitude')}
+                          <Input
+                            {...field}
+                            type="number"
+                            step="0.1"
+                            placeholder="0"
+                            value={field.value || ''}
+                            onChange={e =>
+                              field.onChange(
+                                e.target.value ? parseFloat(e.target.value) : undefined
+                              )
+                            }
                           />
                         </FormControl>
-                        <FormDescription>{t('pickupAddressDescription')}</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                </div>
 
-                {/* Adresse de livraison */}
-                <div className="space-y-4">
-                  <h3 className="text-base font-medium">{t('deliveryAddress')}</h3>
-
+                  {/* Longueur */}
                   <FormField
                     control={form.control}
-                    name="deliveryAddress"
+                    name="length"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>{t('deliveryAddressLabel')}</FormLabel>
+                        <FormLabel>{t('length')} (cm)</FormLabel>
                         <FormControl>
-                          <AddressMapPicker
-                            address={field.value}
-                            onAddressChange={handleDeliveryAddressChange}
-                            onCoordinatesChange={handleDeliveryCoordinatesChange}
-                            latitude={form.getValues('deliveryLatitude')}
-                            longitude={form.getValues('deliveryLongitude')}
+                          <Input
+                            {...field}
+                            type="number"
+                            step="0.1"
+                            placeholder="0"
+                            value={field.value || ''}
+                            onChange={e =>
+                              field.onChange(
+                                e.target.value ? parseFloat(e.target.value) : undefined
+                              )
+                            }
                           />
                         </FormControl>
-                        <FormDescription>{t('deliveryAddressDescription')}</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
                 </div>
-              </TabsContent>
+              </div>
 
-              <TabsContent value="photos" className="mt-0 space-y-6">
-                {/* Horaires */}
-                <div className="space-y-4">
-                  <h3 className="text-base font-medium">{t('schedule')}</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Fragile */}
+                <FormField
+                  control={form.control}
+                  name="isFragile"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>{t('isFragile')}</FormLabel>
+                        <FormDescription>{t('isFragileDescription')}</FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
 
+                {/* Nécessite réfrigération */}
+                <FormField
+                  control={form.control}
+                  name="needsCooling"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>{t('needsCooling')}</FormLabel>
+                        <FormDescription>{t('needsCoolingDescription')}</FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Section Planification */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">{t('scheduling') || 'Planification'}</h3>
+              <Separator />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="pickupDate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>{t('pickupDate')}</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                'pl-3 text-left font-normal',
+                                !field.value && 'text-muted-foreground'
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, 'PPP', { locale: fr })
+                              ) : (
+                                <span>{t('selectDate') || 'Sélectionner une date'}</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={date => {
+                              return date < new Date(new Date().setHours(0, 0, 0, 0));
+                            }}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="pickupTimeWindow"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('pickupTimeWindow')}</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="14:00-16:00" />
+                      </FormControl>
+                      <FormDescription>
+                        {t('timeWindowDescription') ||
+                          'Spécifiez une plage horaire (ex: 14:00-16:00)'}
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="deliveryDate"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-col">
+                      <FormLabel>{t('deliveryDate')}</FormLabel>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <FormControl>
+                            <Button
+                              variant="outline"
+                              className={cn(
+                                'pl-3 text-left font-normal',
+                                !field.value && 'text-muted-foreground'
+                              )}
+                            >
+                              {field.value ? (
+                                format(field.value, 'PPP', { locale: fr })
+                              ) : (
+                                <span>{t('selectDate') || 'Sélectionner une date'}</span>
+                              )}
+                              <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                            </Button>
+                          </FormControl>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={field.value}
+                            onSelect={field.onChange}
+                            disabled={date => {
+                              const pickupDate = form.getValues('pickupDate');
+                              return (
+                                date < new Date(new Date().setHours(0, 0, 0, 0)) ||
+                                (pickupDate && date < pickupDate)
+                              );
+                            }}
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="deliveryTimeWindow"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('deliveryTimeWindow')}</FormLabel>
+                      <FormControl>
+                        <Input {...field} placeholder="14:00-16:00" />
+                      </FormControl>
+                      <FormDescription>
+                        {t('timeWindowDescription') ||
+                          'Spécifiez une plage horaire (ex: 14:00-16:00)'}
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <div className="col-span-2">
                   <FormField
                     control={form.control}
                     name="isFlexible"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 mb-4">
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                         <FormControl>
                           <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                         </FormControl>
@@ -671,160 +677,183 @@ export function AnnouncementForm({
                       </FormItem>
                     )}
                   />
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div className="space-y-4">
-                      <FormField
-                        control={form.control}
-                        name="pickupDate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t('pickupDate')}</FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                type="datetime-local"
-                                min={new Date().toISOString().slice(0, 16)}
-                                className="w-full"
-                                disabled={isFlexible}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="pickupTimeWindow"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t('pickupTimeWindow')}</FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                placeholder={t('pickupTimeWindowPlaceholder')}
-                                disabled={isFlexible}
-                              />
-                            </FormControl>
-                            <FormDescription>{t('timeWindowDescription')}</FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-
-                    <div className="space-y-4">
-                      <FormField
-                        control={form.control}
-                        name="deliveryDate"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t('deliveryDate')}</FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                type="datetime-local"
-                                min={new Date().toISOString().slice(0, 16)}
-                                className="w-full"
-                                disabled={isFlexible}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="deliveryTimeWindow"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>{t('deliveryTimeWindow')}</FormLabel>
-                            <FormControl>
-                              <Input
-                                {...field}
-                                placeholder={t('deliveryTimeWindowPlaceholder')}
-                                disabled={isFlexible}
-                              />
-                            </FormControl>
-                            <FormDescription>{t('timeWindowDescription')}</FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
                 </div>
-
-                {/* Photos */}
-                <Separator />
-                <div className="space-y-4">
-                  <h3 className="text-base font-medium">{t('photos')}</h3>
-
-                  <FormField
-                    control={form.control}
-                    name="photos"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('photosLabel')}</FormLabel>
-                        <FormControl>
-                          <AnnouncementPhotoUpload
-                            photos={field.value}
-                            onPhotosChange={field.onChange}
-                            maxPhotos={5}
-                            disabled={isSubmitting}
-                          />
-                        </FormControl>
-                        <FormDescription>{t('photosDescription')}</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </TabsContent>
-            </CardContent>
-          </Tabs>
-
-          <CardFooter className="flex justify-between p-6">
-            {onCancel && (
-              <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
-                <CornerDownLeft className="h-4 w-4 mr-2" />
-                {t('cancel')}
-              </Button>
-            )}
-
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  form.reset();
-                }}
-                disabled={isSubmitting}
-              >
-                {t('reset')}
-              </Button>
-
-              <Button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    {t('submitting')}
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    {mode === 'create' ? t('create') : t('update')}
-                  </>
-                )}
-              </Button>
+              </div>
             </div>
+
+            {/* Section Prix */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">{t('pricing')}</h3>
+              <Separator />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="suggestedPrice"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{t('suggestedPrice')}</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          step="0.01"
+                          {...field}
+                          onChange={e =>
+                            field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)
+                          }
+                          value={field.value || ''}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        {t('suggestedPriceDescription') || 'Prix suggéré pour cette livraison'}
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Prix négociable */}
+                <FormField
+                  control={form.control}
+                  name="isNegotiable"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>{t('isNegotiable')}</FormLabel>
+                        <FormDescription>{t('isNegotiableDescription')}</FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+
+            {/* Section Notes */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">{t('additionalInformation')}</h3>
+              <Separator />
+
+              <FormField
+                control={form.control}
+                name="notes"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('notes')}</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} placeholder={t('notesPlaceholder')} rows={3} />
+                    </FormControl>
+                    <FormDescription>{t('notesDescription')}</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Section Exigences de livraison */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">{t('deliveryRequirements')}</h3>
+              <Separator />
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="requiresSignature"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>{t('requiresSignature')}</FormLabel>
+                        <FormDescription>{t('requiresSignatureDescription')}</FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="requiresId"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                      <FormControl>
+                        <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>{t('requiresId')}</FormLabel>
+                        <FormDescription>{t('requiresIdDescription')}</FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <FormField
+                control={form.control}
+                name="specialInstructions"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('specialInstructions')}</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        {...field}
+                        placeholder={t('specialInstructionsPlaceholder')}
+                        rows={3}
+                        value={field.value || ''}
+                      />
+                    </FormControl>
+                    <FormDescription>{t('specialInstructionsDescription')}</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            {/* Section Photos */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">{t('photos')}</h3>
+              <Separator />
+
+              <FormField
+                control={form.control}
+                name="photos"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{t('uploadPhotos')}</FormLabel>
+                    <FormControl>
+                      <PhotoUpload
+                        initialPhotos={field.value}
+                        onChange={field.onChange}
+                        maxPhotos={5}
+                      />
+                    </FormControl>
+                    <FormDescription>{t('photosDescription')}</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+          </CardContent>
+
+          <CardFooter className="flex justify-between">
+            <Button type="button" variant="outline" onClick={() => router.back()}>
+              {t('cancel')}
+            </Button>
+            <Button type="submit" disabled={isCreating || isUpdating}>
+              {isEdit
+                ? isUpdating
+                  ? t('updating')
+                  : t('updateAnnouncement')
+                : isCreating
+                  ? t('creating')
+                  : t('createAnnouncement')}
+            </Button>
           </CardFooter>
-        </Card>
-      </form>
-    </Form>
+        </form>
+      </Form>
+    </Card>
   );
 }
-
-export default AnnouncementForm;

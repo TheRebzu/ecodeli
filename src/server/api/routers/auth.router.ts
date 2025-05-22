@@ -1,6 +1,6 @@
-import { router, publicProcedure, protectedProcedure, adminProcedure } from '@/server/api/trpc';
-import { AuthService } from '@/server/services/auth.service';
-import { DocumentService } from '@/server/services/document.service';
+import { router, publicProcedure, protectedProcedure, adminProcedure } from '../trpc';
+import { AuthService } from '../../services/auth.service';
+import { DocumentService } from '../../services/document.service';
 import {
   clientRegisterSchema,
   delivererRegisterSchema,
@@ -11,16 +11,16 @@ import {
   resetPasswordSchema,
   createAdminSchema,
   accountVerificationSchema,
-} from '@/schemas';
+} from '../../../schemas/auth';
 import { z } from 'zod';
 import { DocumentType, UserRole, VerificationStatus } from '@prisma/client';
 import { DocumentStatus } from '../../db/enums';
 import { TRPCError } from '@trpc/server';
 import { authenticator } from 'otplib';
-import { hashPassword, verifyPassword } from '@/lib/passwords';
+import { hashPassword, verifyPassword } from '@/lib/auth/passwords';
 import { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail } from '@/lib/email';
-import { generateVerificationToken, generatePasswordResetToken } from '@/lib/tokens';
-import { generateTOTPSecret, generateBackupCodes } from '@/lib/totp';
+import { generateVerificationToken, generatePasswordResetToken } from '@/lib/auth/tokens';
+import { generateTOTPSecret, generateBackupCodes } from '@/lib/auth/totp';
 
 const authService = new AuthService();
 const documentService = new DocumentService();
@@ -97,26 +97,32 @@ export const authRouter = router({
     .mutation(async ({ ctx, input }) => {
       const { token } = input;
 
-      try {
-        // Utiliser le service AuthService pour vérifier le token
-        const authService = new AuthService(ctx.db);
-        const success = await authService.verifyEmail(token);
+      const user = await ctx.db.user.findFirst({
+        where: {
+          verificationToken: token,
+        },
+      });
 
-        if (!success) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Token de vérification invalide ou expiré',
-          });
-        }
-
-        return { success: true };
-      } catch (error) {
-        console.error('Erreur lors de la vérification de l\'email:', error);
+      if (!user) {
         throw new TRPCError({
           code: 'NOT_FOUND',
-          message: 'Token de vérification invalide ou expiré',
+          message: 'Token de vérification invalide',
         });
       }
+
+      // Mise à jour de l'utilisateur comme vérifié
+      await ctx.db.user.update({
+        where: { id: user.id },
+        data: {
+          emailVerified: new Date(),
+          verificationToken: null,
+        },
+      });
+
+      // Envoi de l'email de bienvenue
+      await sendWelcomeEmail(user.email, user.name, user.role);
+
+      return { success: true };
     }),
 
   // Demande de réinitialisation de mot de passe
@@ -134,9 +140,8 @@ export const authRouter = router({
         return { success: true };
       }
 
-      const resetTokenData = await generatePasswordResetToken();
-      const resetToken = resetTokenData.token; // Extraire juste la chaîne
-      const expiresAt = resetTokenData.expiresAt;
+      const resetToken = await generatePasswordResetToken();
+      const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24h
 
       await ctx.db.passwordResetToken.create({
         data: {
@@ -203,56 +208,6 @@ export const authRouter = router({
       });
 
       return { success: true };
-    }),
-
-  // Renvoyer l'email de vérification
-  resendVerificationEmail: publicProcedure
-    .input(z.object({ email: z.string().email() }))
-    .mutation(async ({ ctx, input }) => {
-      const { email } = input;
-
-      // On utilise le service d'authentification pour gérer l'envoi de l'email
-      const authService = new AuthService(ctx.db);
-
-      try {
-        // Vérifier si l'email existe et n'est pas déjà vérifié
-        const user = await ctx.db.user.findUnique({
-          where: { email },
-          select: {
-            id: true,
-            email: true,
-            emailVerified: true,
-          },
-        });
-
-        if (!user) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Utilisateur non trouvé',
-          });
-        }
-
-        if (user.emailVerified) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Cet email est déjà vérifié',
-          });
-        }
-
-        // Générer un nouveau token et envoyer l'email via le service
-        const locale = ctx.locale || 'fr';
-        await authService.resendVerificationEmail(email, locale);
-
-        return { success: true };
-      } catch (error) {
-        if (error instanceof TRPCError) {
-          throw error;
-        }
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: "Erreur lors de l'envoi de l'email de vérification",
-        });
-      }
     }),
 
   // Upload de document de vérification
@@ -324,26 +279,14 @@ export const authRouter = router({
         userId: user.id,
       },
       orderBy: {
-        uploadedAt: 'desc',
+        createdAt: 'desc',
       },
       include: {
         verifications: true,
       },
     });
 
-    // Map uploadedAt to createdAt for frontend compatibility
-    // Also handle SELFIE documents stored as OTHER with notes containing "SELFIE"
-    return documents.map(doc => ({
-      ...doc,
-      createdAt: doc.uploadedAt,
-      // If document is OTHER type but has notes containing "SELFIE" (case insensitive), correct the type for frontend
-      type:
-        doc.type === 'OTHER' &&
-        (doc.notes === 'SELFIE' ||
-          (typeof doc.notes === 'string' && doc.notes.toLowerCase().includes('selfie')))
-          ? 'SELFIE'
-          : doc.type,
-    }));
+    return documents;
   }),
 
   // Vérifier un document (pour admin)

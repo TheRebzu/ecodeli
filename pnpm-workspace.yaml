@@ -2,7 +2,6 @@ onlyBuiltDependencies:
   - '@prisma/client'
   - '@prisma/engines'
   - '@sentry/cli'
-  - '@tailwindcss/oxide'
   - bcrypt
   - canvas
   - esbuild

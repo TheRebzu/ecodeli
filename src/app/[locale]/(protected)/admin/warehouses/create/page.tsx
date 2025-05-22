@@ -1,7 +1,6 @@
 import { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { WarehouseForm } from '@/components/admin/warehouses/warehouse-form';
-import { PageProps, MetadataProps } from '@/types/next';
 
 export async function generateMetadata({
   params,

@@ -6,11 +6,11 @@
     "plugin:@typescript-eslint/recommended"
   ],
   "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint"],
+  "plugins": ["@typescript-eslint", "react-hooks"],
   "rules": {
     // Préfixer les variables inutilisées avec un underscore
     "@typescript-eslint/no-unused-vars": [
-      "warn",
+      "error",
       {
         "argsIgnorePattern": "^_",
         "varsIgnorePattern": "^_",
@@ -18,14 +18,20 @@
         "caughtErrorsIgnorePattern": "^_"
       }
     ],
-    // Autoriser any temporairement durant la phase de build
-    "@typescript-eslint/no-explicit-any": "off",
+    // Autoriser any avec commentaire explicite
+    "@typescript-eslint/no-explicit-any": [
+      "error",
+      {
+        "ignoreRestArgs": true,
+        "fixToUnknown": false
+      }
+    ],
     // Règles pour les hooks React
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn",
     // Ne pas permettre les @ts-ignore sans explication
     "@typescript-eslint/ban-ts-comment": [
-      "warn",
+      "error",
       {
         "ts-ignore": "allow-with-description",
         "minimumDescriptionLength": 10
@@ -34,10 +40,6 @@
     // Règles pour les types objets vides
     "@typescript-eslint/no-empty-object-type": "warn",
     // Optimisation des images Next.js
-    "@next/next/no-img-element": "warn",
-    // Désactiver temporairement les règles d'entités non échappées
-    "react/no-unescaped-entities": "off",
-    // Désactiver temporairement les règles de déclarations lexicales dans les blocs case
-    "no-case-declarations": "off"
+    "@next/next/no-img-element": "warn"
   }
 }

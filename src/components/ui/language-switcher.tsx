@@ -26,12 +26,6 @@ export function LanguageSwitcher({ locale }: LanguageSwitcherProps) {
   const pathname = usePathname();
   const params = useParams();
 
-  // Mapping des codes de langue vers leurs noms complets
-  const languageNames = {
-    fr: 'Français',
-    en: 'English',
-  };
-
   const handleLocaleChange = (newLocale: string) => {
     if (newLocale === locale) return;
 
@@ -51,7 +45,7 @@ export function LanguageSwitcher({ locale }: LanguageSwitcherProps) {
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="h-8 gap-1">
           <Globe className="h-4 w-4" />
-          <span className="hidden md:inline-block">{languageNames[locale as keyof typeof languageNames]}</span>
+          <span className="hidden md:inline-block">{t('languageName')}</span>
           <ChevronDown className="h-4 w-4 opacity-50" />
         </Button>
       </DropdownMenuTrigger>
@@ -62,7 +56,7 @@ export function LanguageSwitcher({ locale }: LanguageSwitcherProps) {
             onClick={() => handleLocaleChange(localeOption)}
             className={locale === localeOption ? 'bg-accent font-medium' : ''}
           >
-            {languageNames[localeOption as keyof typeof languageNames]}
+            {t(`languages.${localeOption}`)}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

@@ -1,6 +1,3 @@
-'use client';
-
-import React from 'react';
 import { ProtectedHeader } from '@/components/layout/protected-header';
 import { ProtectedFooter } from '@/components/layout/protected-footer';
 import { AdminSidebar } from '@/components/layout/sidebars/admin-sidebar';
@@ -12,9 +9,8 @@ interface AdminLayoutProps {
   };
 }
 
-export default function AdminLayout({ children, params }: AdminLayoutProps) {
-  const paramsValue = React.use(params as unknown as Promise<{locale: string}>);
-  const locale = paramsValue.locale;
+export default async function AdminLayout({ children, params }: AdminLayoutProps) {
+  const locale = params.locale;
 
   return (
     <div className="min-h-screen flex flex-col">

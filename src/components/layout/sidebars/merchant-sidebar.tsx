@@ -20,7 +20,6 @@ import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/hooks/use-auth';
-import { useSession } from 'next-auth/react';
 
 interface MerchantSidebarProps {
   locale: string;
@@ -36,13 +35,6 @@ interface NavigationItem {
 export function MerchantSidebar({ locale }: MerchantSidebarProps) {
   const pathname = usePathname();
   const { logout } = useAuth();
-  const { data: session } = useSession();
-
-  // Récupérer les informations de l'utilisateur connecté
-  const userName = session?.user?.name || 'Utilisateur';
-  const _userEmail = session?.user?.email || 'utilisateur@ecodeli.com';
-  const userInitials = userName.split(' ').map(n => n[0]).join('').toUpperCase();
-  const businessName = (session?.user as any)?.business?.name || 'Mon Commerce';
 
   const navigationItems: NavigationItem[] = [
     {
@@ -185,11 +177,11 @@ export function MerchantSidebar({ locale }: MerchantSidebarProps) {
       <div className="mt-auto p-4 border-t">
         <div className="flex items-center gap-3 mb-4">
           <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center overflow-hidden">
-            <span className="font-medium text-sm">{userInitials}</span>
+            <span className="font-medium text-sm">PB</span>
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">{userName}</p>
-            <p className="text-xs text-muted-foreground truncate">{businessName}</p>
+            <p className="text-sm font-medium truncate">Pierre Boucher</p>
+            <p className="text-xs text-muted-foreground truncate">Boulangerie La Miche Dorée</p>
           </div>
         </div>
         <Separator className="my-4" />

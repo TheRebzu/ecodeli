@@ -44,12 +44,6 @@ const publicPaths = [
   '/test',
 ];
 
-// Chemins spéciaux pour les états utilisateur particuliers
-const specialStatusPaths = {
-  [UserStatus.SUSPENDED]: ['/account-suspended'],
-  [UserStatus.INACTIVE]: ['/account-inactive'],
-};
-
 // Définir les chemins accessibles en fonction du rôle
 const roleBasedPaths: Record<UserRole, string[]> = {
   CLIENT: ['/client'],
@@ -61,9 +55,9 @@ const roleBasedPaths: Record<UserRole, string[]> = {
 
 // Chemins autorisés même pour les utilisateurs non vérifiés
 const allowedNonVerifiedPaths: Record<UserRole, string[]> = {
-  DELIVERER: ['/deliverer/documents', '/api/upload', '/api/trpc/document', '/api/documents'], // Ajout des chemins API pour le téléchargement
-  MERCHANT: ['/merchant/documents', '/merchant/verification', '/merchant/profile', '/api/upload', '/api/trpc/document', '/api/documents'],
-  PROVIDER: ['/provider/documents', '/provider/verification', '/provider/profile', '/api/upload', '/api/trpc/document', '/api/documents'],
+  DELIVERER: ['/deliverer/documents', '/deliverer/profile', '/deliverer/settings'],
+  MERCHANT: ['/merchant/contract', '/merchant/profile', '/merchant/settings'],
+  PROVIDER: ['/provider/documents', '/provider/profile', '/provider/settings'],
   CLIENT: [], // Les clients n'ont pas besoin de vérification
   ADMIN: [], // Les admins n'ont pas besoin de vérification
 };
@@ -187,39 +181,6 @@ export async function middleware(request: NextRequest) {
     const isVerified = !!token.isVerified;
     const userStatus = (token.status as UserStatus) || UserStatus.ACTIVE;
 
-    console.log(`Middleware - User ${token.email || token.id} - Role: ${userRole}, isVerified: ${isVerified}, Status: ${userStatus}, Path: ${pathname}`);
-
-    // Vérification du statut de l'utilisateur
-    if (userStatus === UserStatus.SUSPENDED) {
-      // Vérifier si l'utilisateur est déjà sur une page autorisée pour son statut
-      const isSpecialStatusPath = specialStatusPaths[UserStatus.SUSPENDED].some(
-        path => pathWithoutLocale === path || pathWithoutLocale.startsWith(`${path}/`)
-      );
-      
-      if (isSpecialStatusPath) {
-        // Laisser passer la requête si l'utilisateur est déjà sur la page account-suspended
-        return NextResponse.next();
-      }
-      
-      // Rediriger vers une page expliquant que le compte est suspendu
-      return NextResponse.redirect(new URL(`/${locale}/account-suspended`, request.url));
-    }
-
-    if (userStatus === UserStatus.INACTIVE) {
-      // Vérifier si l'utilisateur est déjà sur une page autorisée pour son statut
-      const isSpecialStatusPath = specialStatusPaths[UserStatus.INACTIVE].some(
-        path => pathWithoutLocale === path || pathWithoutLocale.startsWith(`${path}/`)
-      );
-      
-      if (isSpecialStatusPath) {
-        // Laisser passer la requête si l'utilisateur est déjà sur la page account-inactive
-        return NextResponse.next();
-      }
-      
-      // Rediriger vers une page expliquant que le compte est inactif
-      return NextResponse.redirect(new URL(`/${locale}/account-inactive`, request.url));
-    }
-
     // Vérifier si l'utilisateur a accès au chemin demandé en fonction de son rôle
     const hasRoleAccess = Object.entries(roleBasedPaths).some(([role, paths]) => {
       return (
@@ -234,6 +195,17 @@ export async function middleware(request: NextRequest) {
       return NextResponse.redirect(new URL(dashboardPath, request.url));
     }
 
+    // Vérification du statut de l'utilisateur
+    if (userStatus === UserStatus.SUSPENDED) {
+      // Rediriger vers une page expliquant que le compte est suspendu
+      return NextResponse.redirect(new URL(`/${locale}/account-suspended`, request.url));
+    }
+
+    if (userStatus === UserStatus.INACTIVE) {
+      // Rediriger vers une page expliquant que le compte est inactif
+      return NextResponse.redirect(new URL(`/${locale}/account-inactive`, request.url));
+    }
+
     // Pour les utilisateurs non vérifiés (hors clients et admins)
     if (
       userRole !== UserRole.CLIENT &&
@@ -246,9 +218,6 @@ export async function middleware(request: NextRequest) {
         path => pathWithoutLocale === path || pathWithoutLocale.startsWith(`${path}/`)
       );
 
-      console.log(`Middleware - Path Check - Role: ${userRole}, Path: ${pathWithoutLocale}, isAllowedPath: ${isAllowedPath}`);
-      console.log(`Allowed Paths for ${userRole}: ${JSON.stringify(allowedNonVerifiedPaths[userRole])}`);
-
       if (!isAllowedPath) {
         // Rediriger vers la page de vérification appropriée en fonction du rôle
         let verificationPath;
@@ -257,7 +226,7 @@ export async function middleware(request: NextRequest) {
             verificationPath = `/${locale}/deliverer/documents`;
             break;
           case UserRole.MERCHANT:
-            verificationPath = `/${locale}/merchant/documents`;
+            verificationPath = `/${locale}/merchant/contract`;
             break;
           case UserRole.PROVIDER:
             verificationPath = `/${locale}/provider/documents`;
@@ -265,13 +234,11 @@ export async function middleware(request: NextRequest) {
           default:
             verificationPath = `/${locale}/login`;
         }
-        
-        // Ajouter un paramètre pour indiquer qu'une vérification automatique est requise
+
+        // Ajouter un message indiquant que la vérification est nécessaire
         const redirectUrl = new URL(verificationPath, request.url);
         redirectUrl.searchParams.set('verification_required', 'true');
-        redirectUrl.searchParams.set('auto_check', 'true');
 
-        console.log(`Middleware - Redirecting to verification path: ${verificationPath}`);
         return NextResponse.redirect(redirectUrl);
       }
     }
@@ -372,7 +339,5 @@ function getDashboardPathForRole(role: UserRole, locale: string = 'fr'): string 
 
 // Configuration du middleware pour qu'il s'exécute sur toutes les routes pertinentes
 export const config = {
-  matcher: [
-    '/((?!api/trpc|api/documents|api/upload|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)',
-  ],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|robots.txt|sitemap.xml).*)'],
 };

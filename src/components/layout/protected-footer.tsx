@@ -32,7 +32,7 @@ export function ProtectedFooter({
     return 'client';
   };
 
-  const _role = getRoleFromPath();
+  const role = getRoleFromPath();
 
   return (
     <MainFooter

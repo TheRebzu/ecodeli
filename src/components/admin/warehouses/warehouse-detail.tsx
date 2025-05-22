@@ -1,5 +1,3 @@
-'use client';
-
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useWarehouse } from '@/hooks/use-warehouse';

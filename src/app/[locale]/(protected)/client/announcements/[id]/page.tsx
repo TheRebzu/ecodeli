@@ -1,399 +1,357 @@
-'use client';
-
-import { useEffect, useState } from 'react';
-import { useTranslations } from 'next-intl';
-import { useParams, useRouter } from 'next/navigation';
+import { Metadata } from 'next';
+import { getTranslations } from 'next-intl/server';
+import { PageHeader } from '@/components/ui/page-header';
+import { AnnouncementCard } from '@/components/announcements/announcement-card';
+import { AnnouncementMap } from '@/components/announcements/announcement-map';
 import { Button } from '@/components/ui/button';
-import { Link } from '@/navigation';
-import { useAnnouncement } from '@/hooks/use-announcement';
-import { Separator } from '@/components/ui/separator';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
+import { ChevronLeft, Edit, Trash2 } from 'lucide-react';
+import Link from 'next/link';
+import { db } from '@/server/db';
+import { notFound } from 'next/navigation';
+import {
+  Announcement,
+  AnnouncementStatus,
+  AnnouncementType,
+  AnnouncementPriority,
+  DeliveryApplication as AppDeliveryApplication,
+} from '@/types/announcement';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AnnouncementDetail } from '@/components/announcements/announcement-detail';
-import DelivererProposalsList from '@/components/announcements/deliverer-proposals-list';
-import { Skeleton } from '@/components/ui/skeleton';
-import {
-  AlertCircle,
-  ArrowLeft,
-  Edit,
-  MapPin,
-  Calendar,
-  Clock,
-  Package,
-  CreditCard,
-  Trash2,
-  ArrowUpRight,
-  Truck,
-  Loader,
-} from 'lucide-react';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import { toast } from 'sonner';
-import { useRoleProtection } from '@/hooks/use-role-protection';
-import { UserRole } from '@prisma/client';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import type { User } from '@prisma/client';
 
-// Définition précise du type d'application pour l'annonce
-interface DelivererApplication {
+// Définir les types pour les applications de livraison qui incluent le livreur
+interface DeliveryApplication {
   id: string;
   announcementId: string;
   delivererId: string;
-  deliverer: {
-    id: string;
-    name: string;
-    image?: string | null;
-    rating?: number;
-    completedDeliveries?: number;
-    averageResponseTime?: number;
-    verificationStatus?: string;
-  };
-  status: 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED';
-  proposedPrice: number;
-  estimatedDeliveryTime?: string | Date;
-  message: string;
-  hasRequiredEquipment: boolean;
-  canPickupAtScheduledTime: boolean;
-  createdAt: Date;
+  proposedPrice: number | null;
+  message: string | null;
+  status: string;
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  deliverer: User;
 }
 
-export default function AnnouncementDetailsPage() {
-  useRoleProtection(['CLIENT']);
-  const t = useTranslations('announcements');
-  const params = useParams<{ id: string }>();
-  const router = useRouter();
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [activeTab, setActiveTab] = useState('details');
+// Définir le type pour les données brutes de l'annonce récupérées de la base de données
+interface RawAnnouncementData {
+  id: string;
+  title: string;
+  description: string;
+  type: string;
+  status: string;
+  priority: string;
+  pickupAddress: string;
+  pickupLongitude: number | null;
+  pickupLatitude: number | null;
+  deliveryAddress: string;
+  deliveryLongitude: number | null;
+  deliveryLatitude: number | null;
+  weight: number | null;
+  width: number | null;
+  height: number | null;
+  length: number | null;
+  isFragile: number | boolean;
+  needsCooling: number | boolean;
+  pickupDate: string | Date | null;
+  pickupTimeWindow: string | null;
+  deliveryDate: string | Date | null;
+  deliveryTimeWindow: string | null;
+  isFlexible: number | boolean;
+  suggestedPrice: number | null;
+  finalPrice: number | null;
+  isNegotiable: number | boolean;
+  paymentStatus: string | null;
+  clientId: string;
+  delivererId: string | null;
+  createdAt: string | Date;
+  updatedAt: string | Date;
+  viewCount: number;
+  applicationsCount: number;
+  cancelReason: string | null;
+  notes: string | null;
+  tags: string[] | string | null;
+  client: User;
+  applications: DeliveryApplication[] | null;
+}
 
-  const {
-    fetchAnnouncementById,
-    currentAnnouncement,
-    isLoading,
-    error,
-    deleteAnnouncement,
-    isDeleting,
-  } = useAnnouncement();
+interface AnnouncementDetailPageProps {
+  params: Promise<{
+    id: string;
+    locale: string;
+  }>;
+}
+
+export async function generateMetadata({ params }: AnnouncementDetailPageProps): Promise<Metadata> {
+  const { locale, id } = await params;
+  const t = await getTranslations({ locale, namespace: 'announcements' });
 
   // Récupérer les détails de l'annonce
-  useEffect(() => {
-    if (params.id) {
-      fetchAnnouncementById(params.id);
+  try {
+    const announcement = await db.$queryRaw<{ title: string }[]>`
+      SELECT title FROM announcements WHERE id = ${id} LIMIT 1
+    `;
+
+    if (!announcement || announcement.length === 0) {
+      return {
+        title: t('announcementNotFound'),
+      };
     }
-  }, [params.id, fetchAnnouncementById]);
 
-  // Gérer la suppression d'une annonce
-  const handleDeleteAnnouncement = async () => {
-    if (!params.id) return;
+    return {
+      title: `${t('announcement')} - ${announcement[0].title}`,
+      description: t('announcementDetailsDescription'),
+    };
+  } catch {
+    return {
+      title: t('announcementDetails'),
+      description: t('announcementDetailsDescription'),
+    };
+  }
+}
 
-    try {
-      await deleteAnnouncement(params.id);
+export default async function AnnouncementDetailPage({ params }: AnnouncementDetailPageProps) {
+  const { locale, id } = await params;
+  const t = await getTranslations({ locale, namespace: 'announcements' });
 
-      toast.success(t('deleteSuccess'), {
-        description: t('announcementDeleted'),
-      });
+  try {
+    // Récupérer d'abord les détails de l'annonce et l'information du client
+    const announcementData = await db.$queryRaw<RawAnnouncementData[]>`
+      SELECT 
+        a.*,
+        (
+          SELECT json_build_object(
+            'id', c.id,
+            'name', c.name,
+            'email', c.email,
+            'image', c.image
+          )
+          FROM users c
+          WHERE c.id = a."clientId"
+        ) as client
+      FROM announcements a
+      WHERE a.id = ${id}
+    `;
 
-      // Rediriger vers la liste des annonces
-      router.push('/client/announcements');
-    } catch (err) {
-      toast.error(t('deleteError'), {
-        description: err instanceof Error ? err.message : String(err),
-      });
-    } finally {
-      setShowDeleteDialog(false);
+    if (!announcementData || announcementData.length === 0) {
+      notFound();
     }
-  };
 
-  // Afficher un skeleton loader pendant le chargement
-  if (isLoading) {
+    const rawAnnouncement = announcementData[0];
+
+    // Récupérer séparément les applications de livraison
+    const applications = await db.$queryRaw<DeliveryApplication[]>`
+      SELECT 
+        da.*,
+        (
+          SELECT json_build_object(
+            'id', d.id,
+            'name', d.name,
+            'email', d.email,
+            'image', d.image
+          )
+          FROM users d
+          WHERE d.id = da."delivererId"
+        ) as deliverer
+      FROM delivery_applications da
+      WHERE da."announcementId" = ${id}
+    `;
+
+    // Ajouter les applications à l'annonce
+    rawAnnouncement.applications = applications.length > 0 ? applications : null;
+
+    // Corriger les applications si null (aucune application)
+    let appDeliveryApplications: AppDeliveryApplication[] = [];
+    if (Array.isArray(rawAnnouncement.applications) && rawAnnouncement.applications.length > 0) {
+      appDeliveryApplications = rawAnnouncement.applications.map(app => ({
+        id: app.id,
+        announcementId: app.announcementId,
+        delivererId: app.delivererId,
+        proposedPrice: app.proposedPrice !== null ? app.proposedPrice : undefined,
+        message: app.message !== null ? app.message : undefined,
+        status: app.status,
+        createdAt: new Date(app.createdAt),
+        updatedAt: new Date(app.updatedAt),
+        deliverer: app.deliverer,
+      }));
+    }
+
+    // Convertir en objet Announcement compatible avec les composants
+    const announcement: Announcement = {
+      id: rawAnnouncement.id,
+      title: rawAnnouncement.title,
+      description: rawAnnouncement.description,
+      type: rawAnnouncement.type as AnnouncementType,
+      status: rawAnnouncement.status as AnnouncementStatus,
+      priority: rawAnnouncement.priority as AnnouncementPriority,
+      pickupAddress: rawAnnouncement.pickupAddress,
+      pickupLongitude:
+        rawAnnouncement.pickupLongitude !== null ? rawAnnouncement.pickupLongitude : undefined,
+      pickupLatitude:
+        rawAnnouncement.pickupLatitude !== null ? rawAnnouncement.pickupLatitude : undefined,
+      deliveryAddress: rawAnnouncement.deliveryAddress,
+      deliveryLongitude:
+        rawAnnouncement.deliveryLongitude !== null ? rawAnnouncement.deliveryLongitude : undefined,
+      deliveryLatitude:
+        rawAnnouncement.deliveryLatitude !== null ? rawAnnouncement.deliveryLatitude : undefined,
+      weight: rawAnnouncement.weight !== null ? rawAnnouncement.weight : undefined,
+      width: rawAnnouncement.width !== null ? rawAnnouncement.width : undefined,
+      height: rawAnnouncement.height !== null ? rawAnnouncement.height : undefined,
+      length: rawAnnouncement.length !== null ? rawAnnouncement.length : undefined,
+      isFragile: Boolean(rawAnnouncement.isFragile),
+      needsCooling: Boolean(rawAnnouncement.needsCooling),
+      pickupDate: rawAnnouncement.pickupDate ? new Date(rawAnnouncement.pickupDate) : undefined,
+      pickupTimeWindow:
+        rawAnnouncement.pickupTimeWindow !== null ? rawAnnouncement.pickupTimeWindow : undefined,
+      deliveryDate: rawAnnouncement.deliveryDate
+        ? new Date(rawAnnouncement.deliveryDate)
+        : undefined,
+      deliveryTimeWindow:
+        rawAnnouncement.deliveryTimeWindow !== null
+          ? rawAnnouncement.deliveryTimeWindow
+          : undefined,
+      isFlexible: Boolean(rawAnnouncement.isFlexible),
+      suggestedPrice:
+        rawAnnouncement.suggestedPrice !== null ? rawAnnouncement.suggestedPrice : undefined,
+      finalPrice: rawAnnouncement.finalPrice !== null ? rawAnnouncement.finalPrice : undefined,
+      isNegotiable: Boolean(rawAnnouncement.isNegotiable),
+      paymentStatus:
+        rawAnnouncement.paymentStatus !== null ? rawAnnouncement.paymentStatus : undefined,
+      clientId: rawAnnouncement.clientId,
+      client: rawAnnouncement.client,
+      delivererId: rawAnnouncement.delivererId !== null ? rawAnnouncement.delivererId : undefined,
+      deliverer: undefined,
+      createdAt: new Date(rawAnnouncement.createdAt),
+      updatedAt: new Date(rawAnnouncement.updatedAt),
+      viewCount: rawAnnouncement.viewCount,
+      applicationsCount: rawAnnouncement.applicationsCount,
+      cancelReason:
+        rawAnnouncement.cancelReason !== null ? rawAnnouncement.cancelReason : undefined,
+      notes: rawAnnouncement.notes !== null ? rawAnnouncement.notes : undefined,
+      tags: Array.isArray(rawAnnouncement.tags)
+        ? rawAnnouncement.tags
+        : typeof rawAnnouncement.tags === 'string'
+          ? JSON.parse(rawAnnouncement.tags)
+          : [],
+      applications: appDeliveryApplications,
+    };
+
+    // Vérifier si l'annonce peut être modifiée
+    const isEditable =
+      announcement.status === AnnouncementStatus.DRAFT ||
+      announcement.status === AnnouncementStatus.PENDING;
+
+    // Vérifier si l'annonce peut être supprimée
+    const isDeletable =
+      announcement.status === AnnouncementStatus.DRAFT ||
+      announcement.status === AnnouncementStatus.PENDING ||
+      announcement.status === AnnouncementStatus.PUBLISHED;
+
     return (
       <div className="container py-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <Skeleton className="h-8 w-64" />
-            <Skeleton className="h-4 w-40" />
-          </div>
-          <Skeleton className="h-10 w-24" />
-        </div>
-
-        <Separator />
-
-        <div className="grid gap-6 md:grid-cols-3">
-          <div className="md:col-span-2 space-y-4">
-            <Skeleton className="h-[400px] w-full rounded-lg" />
-          </div>
-          <div className="space-y-4">
-            <Skeleton className="h-[200px] w-full rounded-lg" />
-            <Skeleton className="h-[200px] w-full rounded-lg" />
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  // Afficher un message d'erreur si l'annonce n'est pas trouvée
-  if (error || !currentAnnouncement) {
-    return (
-      <div className="container py-6">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>{t('error')}</AlertTitle>
-          <AlertDescription>{error || t('announcementNotFound')}</AlertDescription>
-        </Alert>
-
-        <div className="mt-6">
-          <Button asChild>
-            <Link href="/client/announcements">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              {t('backToList')}
-            </Link>
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
-  // Vérifier si l'annonce a des applications/propositions
-  const hasProposals =
-    currentAnnouncement.applications && currentAnnouncement.applications.length > 0;
-    
-  // Adapter les données des applications pour le composant DelivererProposalsList
-  const formattedProposals = currentAnnouncement.applications?.map(app => {
-    // Cas par défaut si l'application n'a pas toutes les données attendues
-    const application: DelivererApplication = {
-      id: app.id,
-      announcementId: params.id as string,
-      delivererId: app.delivererId,
-      deliverer: {
-        id: app.delivererId,
-        name: (app as any)?.deliverer?.name || 'Livreur inconnu',
-        image: (app as any)?.deliverer?.image || null,
-        rating: (app as any)?.deliverer?.rating || 0,
-        completedDeliveries: (app as any)?.deliverer?.completedDeliveries || 0,
-        averageResponseTime: (app as any)?.deliverer?.averageResponseTime,
-        verificationStatus: (app as any)?.deliverer?.verificationStatus || 'PENDING'
-      },
-      status: (app.status as 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED') || 'PENDING',
-      proposedPrice: app.proposedPrice,
-      estimatedDeliveryTime: (app as any)?.estimatedDeliveryTime,
-      message: (app as any)?.message || '',
-      hasRequiredEquipment: (app as any)?.hasRequiredEquipment || false,
-      canPickupAtScheduledTime: (app as any)?.canPickupAtScheduledTime || false,
-      createdAt: app.createdAt
-    };
-    
-    return application;
-  }) || [];
-
-  return (
-    <div className="container py-6 space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2">
-            <h1 className="text-3xl font-bold tracking-tight">{currentAnnouncement.title}</h1>
-            <Badge className="ml-2">{t(`status.${currentAnnouncement.status}`)}</Badge>
-          </div>
-          <p className="text-muted-foreground mt-1">
-            {t('createdAt')}: {new Date(currentAnnouncement.createdAt).toLocaleDateString()}
-          </p>
-        </div>
-
-        <div className="flex flex-wrap items-center gap-2">
-          <Button variant="outline" asChild>
-            <Link href="/client/announcements">
-              <ArrowLeft className="mr-2 h-4 w-4" />
+        <PageHeader heading={announcement.title} description={t('announcementDetailsDescription')}>
+          <Button variant="outline" size="sm" asChild>
+            <Link href={`/${locale}/client/announcements`}>
+              <ChevronLeft className="mr-2 h-4 w-4" />
               {t('back')}
             </Link>
           </Button>
 
-          <Button variant="outline" asChild>
-            <Link href={`/client/announcements/${params.id}/edit`}>
-              <Edit className="mr-2 h-4 w-4" />
-              {t('edit')}
-            </Link>
-          </Button>
-
-          <Button variant="destructive" onClick={() => setShowDeleteDialog(true)}>
-            <Trash2 className="mr-2 h-4 w-4" />
-            {t('delete')}
-          </Button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <div className="md:col-span-3">
-          <Tabs value={activeTab} onValueChange={setActiveTab}>
-            <TabsList className="mb-6">
-              <TabsTrigger value="details">
-                <Package className="h-4 w-4 mr-2" />
-                {t('details')}
-              </TabsTrigger>
-              <TabsTrigger value="proposals" disabled={!hasProposals}>
-                <Clock className="h-4 w-4 mr-2" />
-                {t('proposals')} {hasProposals && `(${currentAnnouncement.applications?.length})`}
-              </TabsTrigger>
-            </TabsList>
-
-            <TabsContent value="details" className="space-y-6">
-              <Card>
-                <CardContent className="pt-6">
-                  <AnnouncementDetail 
-                    announcement={currentAnnouncement} 
-                    userRole="CLIENT"
-                    className="space-y-4" 
-                  />
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="proposals" className="space-y-6">
-              {hasProposals ? (
-                <DelivererProposalsList
-                  announcementId={params.id as string}
-                  proposals={formattedProposals}
-                  announcementTitle={currentAnnouncement.title}
-                  suggestedPrice={currentAnnouncement.suggestedPrice || 0}
-                  onAccept={(proposalId) => {
-                    // Implémenter ultérieurement
-                    return Promise.resolve();
-                  }}
-                  onReject={(proposalId) => {
-                    // Implémenter ultérieurement
-                    return Promise.resolve();
-                  }}
-                  onSendMessage={(delivererId) => {
-                    // Implémenter ultérieurement
-                  }}
-                  onViewDelivererProfile={(delivererId) => {
-                    // Implémenter ultérieurement
-                  }}
-                  onProposalAccepted={() => fetchAnnouncementById(params.id as string)}
-                />
-              ) : (
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="text-center py-12">
-                      <Clock className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
-                      <h3 className="text-lg font-medium">{t('noProposalsYet')}</h3>
-                      <p className="text-muted-foreground">{t('proposalsWillAppearHere')}</p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
-            </TabsContent>
-          </Tabs>
-        </div>
-
-        <div className="space-y-6">
-          <Card>
-            <CardContent className="pt-6">
-              <h3 className="font-semibold mb-4">{t('quickActions')}</h3>
-
-              <div className="space-y-3">
-                <Button variant="outline" className="w-full justify-start" asChild>
-                  <Link href={`/client/announcements/${params.id}/edit`}>
-                    <Edit className="mr-2 h-4 w-4" />
-                    {t('editAnnouncement')}
-                  </Link>
-                </Button>
-
-                {/* Ajouter les boutons en fonction du statut de l'annonce */}
-                {['ASSIGNED', 'IN_PROGRESS'].includes(currentAnnouncement.status) && (
-                  <Button variant="outline" className="w-full justify-start" asChild>
-                    <Link href={`/client/announcements/${params.id}/tracking`}>
-                      <Truck className="mr-2 h-4 w-4" />
-                      {t('trackDelivery')}
-                    </Link>
-                  </Button>
-                )}
-
-                {currentAnnouncement.status === 'PUBLISHED' && (
-                  <Button variant="outline" className="w-full justify-start" asChild>
-                    <Link href={`/client/announcements/${params.id}/payment`}>
-                      <CreditCard className="mr-2 h-4 w-4" />
-                      {t('makePayment')}
-                    </Link>
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardContent className="pt-6">
-              <h3 className="font-semibold mb-4">{t('announcementInfo')}</h3>
-
-              <div className="space-y-4">
-                <div className="flex items-start">
-                  <MapPin className="h-5 w-5 text-muted-foreground mr-2 mt-0.5" />
-                  <div>
-                    <p className="font-medium">{t('locations')}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {t('from')}: {currentAnnouncement.pickupAddress}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {t('to')}: {currentAnnouncement.deliveryAddress}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start">
-                  <Calendar className="h-5 w-5 text-muted-foreground mr-2 mt-0.5" />
-                  <div>
-                    <p className="font-medium">{t('dates')}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {t('pickupDate')}: {currentAnnouncement.pickupDate ? 
-                        new Date(currentAnnouncement.pickupDate).toLocaleDateString() : 
-                        t('notSpecified')}
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      {t('deliveryDate')}: {currentAnnouncement.deliveryDate ?
-                        new Date(currentAnnouncement.deliveryDate).toLocaleDateString() : 
-                        t('notSpecified')}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-start">
-                  <CreditCard className="h-5 w-5 text-muted-foreground mr-2 mt-0.5" />
-                  <div>
-                    <p className="font-medium">{t('price')}</p>
-                    <p className="text-sm font-semibold">
-                      €{(currentAnnouncement.suggestedPrice || 0).toFixed(2)}
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Dialog de confirmation de suppression */}
-      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{t('deleteConfirmation')}</DialogTitle>
-            <DialogDescription>{t('deleteConfirmationText')}</DialogDescription>
-          </DialogHeader>
-
-          <DialogFooter className="mt-4">
-            <Button variant="outline" onClick={() => setShowDeleteDialog(false)}>
-              {t('cancel')}
+          {isEditable && (
+            <Button variant="outline" size="sm" asChild>
+              <Link href={`/${locale}/client/announcements/${announcement.id}/edit`}>
+                <Edit className="mr-2 h-4 w-4" />
+                {t('edit')}
+              </Link>
             </Button>
-            <Button variant="destructive" onClick={handleDeleteAnnouncement} disabled={isDeleting}>
-              {isDeleting && <Loader className="mr-2 h-4 w-4 animate-spin" />}
-              {t('confirmDelete')}
+          )}
+
+          {isDeletable && (
+            <Button variant="destructive" size="sm">
+              <Trash2 className="mr-2 h-4 w-4" />
+              {t('delete')}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
-  );
+          )}
+        </PageHeader>
+
+        {announcement.status === AnnouncementStatus.DRAFT && (
+          <Alert>
+            <AlertTitle>{t('draftAnnouncementTitle')}</AlertTitle>
+            <AlertDescription>{t('draftAnnouncementDescription')}</AlertDescription>
+          </Alert>
+        )}
+
+        <Tabs defaultValue="details" className="w-full">
+          <TabsList className="mb-4">
+            <TabsTrigger value="details">{t('details')}</TabsTrigger>
+            <TabsTrigger value="map">{t('mapView')}</TabsTrigger>
+            <TabsTrigger value="applications">
+              {t('applications')} (
+              {announcement.applications ? announcement.applications.length : 0})
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="details" className="space-y-4">
+            <AnnouncementCard announcement={announcement} isClientView={true} isDetailed={true} />
+          </TabsContent>
+
+          <TabsContent value="map">
+            <AnnouncementMap
+              announcements={[announcement]}
+              selectedAnnouncement={announcement}
+              height="500px"
+            />
+          </TabsContent>
+
+          <TabsContent value="applications">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('delivererApplications')}</CardTitle>
+              </CardHeader>
+              <CardContent>
+                {announcement.applications && announcement.applications.length > 0 ? (
+                  <div className="space-y-4">
+                    {announcement.applications.map(application => (
+                      <div key={application.id} className="border p-4 rounded-lg">
+                        <div className="flex justify-between">
+                          <div>
+                            <div className="font-semibold">{application.deliverer?.name}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {t('proposedPrice')}:{' '}
+                              {application.proposedPrice
+                                ? `${application.proposedPrice} €`
+                                : t('notSpecified')}
+                            </div>
+                            {application.message && (
+                              <div className="mt-2 text-sm">
+                                <div className="font-medium">{t('message')}:</div>
+                                <p className="text-muted-foreground">{application.message}</p>
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex gap-2">
+                            <Button size="sm" variant="outline">
+                              {t('viewProfile')}
+                            </Button>
+                            <Button size="sm">{t('acceptOffer')}</Button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <p className="text-muted-foreground">{t('noApplicationsYet')}</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
+      </div>
+    );
+  } catch (error) {
+    console.error("Erreur lors de la récupération des détails de l'annonce:", error);
+    notFound();
+  }
 }

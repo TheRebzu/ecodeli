@@ -1,18 +1,6 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
-import {
-  Calendar,
-  Clock,
-  Filter,
-  X,
-  Activity,
-  Search,
-  RefreshCw,
-  Download,
-  ExternalLink,
-  Shield,
-  Check,
-} from 'lucide-react';
+import { Calendar, Clock, Filter, X, Activity, Search, RefreshCw, Download } from 'lucide-react';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -37,127 +25,21 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DatePicker } from '@/components/ui/date-picker';
-import { ActivityType, UserActivityLogItem } from '@/types/admin';
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { ActivityType, UserActivityLogItem } from '@/types/admin/admin';
 
-// Mapping des types d'activité vers des libellés et couleurs
-const activityTypeLabels: Record<ActivityType, { label: string; color: string; icon: any }> = {
-  [ActivityType.LOGIN]: {
-    label: 'Connexion',
-    color: 'bg-green-500',
-    icon: <Shield className="h-4 w-4" />,
-  },
-  [ActivityType.LOGOUT]: {
-    label: 'Déconnexion',
-    color: 'bg-blue-500',
-    icon: <ExternalLink className="h-4 w-4" />,
-  },
-  [ActivityType.PROFILE_UPDATE]: {
-    label: 'Mise à jour du profil',
-    color: 'bg-orange-500',
-    icon: <Activity className="h-4 w-4" />,
-  },
-  [ActivityType.PASSWORD_CHANGE]: {
-    label: 'Changement de mot de passe',
-    color: 'bg-amber-500',
-    icon: <Shield className="h-4 w-4" />,
-  },
-  [ActivityType.STATUS_CHANGE]: {
-    label: 'Changement de statut',
-    color: 'bg-purple-500',
-    icon: <Activity className="h-4 w-4" />,
-  },
-  [ActivityType.ROLE_CHANGE]: {
-    label: 'Changement de rôle',
-    color: 'bg-indigo-500',
-    icon: <Activity className="h-4 w-4" />,
-  },
-  [ActivityType.VERIFICATION_SUBMIT]: {
-    label: 'Soumission de vérification',
-    color: 'bg-lime-500',
-    icon: <Activity className="h-4 w-4" />,
-  },
-  [ActivityType.VERIFICATION_REVIEW]: {
-    label: 'Revue de vérification',
-    color: 'bg-cyan-500',
-    icon: <Activity className="h-4 w-4" />,
-  },
-  [ActivityType.DOCUMENT_UPLOAD]: {
-    label: 'Téléchargement de document',
-    color: 'bg-emerald-500',
-    icon: <Activity className="h-4 w-4" />,
-  },
-  [ActivityType.ACCOUNT_CREATION]: {
-    label: 'Création de compte',
-    color: 'bg-sky-500',
-    icon: <Activity className="h-4 w-4" />,
-  },
-  [ActivityType.EMAIL_VERIFIED]: {
-    label: 'Email vérifié',
-    color: 'bg-green-500',
-    icon: <Activity className="h-4 w-4" />,
-  },
-  [ActivityType.PHONE_VERIFIED]: {
-    label: 'Téléphone vérifié',
-    color: 'bg-green-500',
-    icon: <Activity className="h-4 w-4" />,
-  },
-  [ActivityType.PASSWORD_RESET]: {
-    label: 'Réinitialisation de mot de passe',
-    color: 'bg-amber-500',
-    icon: <Shield className="h-4 w-4" />,
-  },
-  [ActivityType.PASSWORD_RESET_REQUEST]: {
-    label: 'Demande de réinitialisation',
-    color: 'bg-amber-500',
-    icon: <Shield className="h-4 w-4" />,
-  },
-  [ActivityType.ACCOUNT_LOCKED]: {
-    label: 'Compte verrouillé',
-    color: 'bg-red-500',
-    icon: <Shield className="h-4 w-4" />,
-  },
-  [ActivityType.ACCOUNT_UNLOCKED]: {
-    label: 'Compte déverrouillé',
-    color: 'bg-green-500',
-    icon: <Shield className="h-4 w-4" />,
-  },
-  [ActivityType.FAILED_LOGIN_ATTEMPT]: {
-    label: 'Tentative échouée',
-    color: 'bg-red-500',
-    icon: <Shield className="h-4 w-4" />,
-  },
-  [ActivityType.PERMISSION_CHANGE]: {
-    label: 'Changement de permissions',
-    color: 'bg-indigo-500',
-    icon: <Shield className="h-4 w-4" />,
-  },
-  [ActivityType.SUBSCRIPTION_CHANGE]: {
-    label: "Changement d'abonnement",
-    color: 'bg-emerald-500',
-    icon: <Activity className="h-4 w-4" />,
-  },
-  [ActivityType.PAYMENT_METHOD_ADDED]: {
-    label: 'Méthode de paiement ajoutée',
-    color: 'bg-emerald-500',
-    icon: <Activity className="h-4 w-4" />,
-  },
-  [ActivityType.OTHER]: {
-    label: 'Autre',
-    color: 'bg-gray-500',
-    icon: <Activity className="h-4 w-4" />,
-  },
+// Activity type to label mapping
+const activityTypeLabels: Record<ActivityType, { label: string; color: string }> = {
+  [ActivityType.LOGIN]: { label: 'Login', color: 'bg-green-500' },
+  [ActivityType.LOGOUT]: { label: 'Logout', color: 'bg-blue-500' },
+  [ActivityType.PROFILE_UPDATE]: { label: 'Profile Update', color: 'bg-orange-500' },
+  [ActivityType.PASSWORD_CHANGE]: { label: 'Password Change', color: 'bg-amber-500' },
+  [ActivityType.STATUS_CHANGE]: { label: 'Status Change', color: 'bg-purple-500' },
+  [ActivityType.ROLE_CHANGE]: { label: 'Role Change', color: 'bg-indigo-500' },
+  [ActivityType.VERIFICATION_SUBMIT]: { label: 'Verification Submitted', color: 'bg-lime-500' },
+  [ActivityType.VERIFICATION_REVIEW]: { label: 'Verification Review', color: 'bg-cyan-500' },
+  [ActivityType.DOCUMENT_UPLOAD]: { label: 'Document Upload', color: 'bg-emerald-500' },
+  [ActivityType.ACCOUNT_CREATION]: { label: 'Account Creation', color: 'bg-sky-500' },
+  [ActivityType.OTHER]: { label: 'Other', color: 'bg-gray-500' },
 };
 
 interface UserActivityLogsProps {
@@ -173,11 +55,9 @@ interface UserActivityLogsProps {
     searchTerm?: string;
     dateFrom?: Date;
     dateTo?: Date;
-    sortDirection?: 'asc' | 'desc';
   }) => void;
   onRefresh: () => void;
   onExport: () => void;
-  onAddLog?: (data: { activityType: ActivityType; details: string }) => void;
 }
 
 export function UserActivityLogs({
@@ -190,21 +70,13 @@ export function UserActivityLogs({
   onFilterChange,
   onRefresh,
   onExport,
-  onAddLog,
 }: UserActivityLogsProps) {
   const [activeFilters, setActiveFilters] = useState<{
     types?: ActivityType[];
     searchTerm?: string;
     dateFrom?: Date;
     dateTo?: Date;
-    sortDirection?: 'asc' | 'desc';
-  }>({
-    sortDirection: 'desc',
-  });
-
-  const [selectedActivityTypes, setSelectedActivityTypes] = useState<ActivityType[]>([]);
-  const [newLogDetails, setNewLogDetails] = useState('');
-  const [newLogType, setNewLogType] = useState<ActivityType>(ActivityType.OTHER);
+  }>({});
 
   const handleFilterChange = (newFilters: any) => {
     const updatedFilters = { ...activeFilters, ...newFilters };
@@ -220,197 +92,70 @@ export function UserActivityLogs({
     onFilterChange(newFilters);
   };
 
-  const handleAddActivityLog = () => {
-    if (onAddLog) {
-      onAddLog({
-        activityType: newLogType,
-        details: newLogDetails,
-      });
-      setNewLogDetails('');
-      setNewLogType(ActivityType.OTHER);
-    }
-  };
-
-  const handleTypeSelect = (type: ActivityType) => {
-    if (selectedActivityTypes.includes(type)) {
-      setSelectedActivityTypes(selectedActivityTypes.filter(t => t !== type));
-    } else {
-      setSelectedActivityTypes([...selectedActivityTypes, type]);
-    }
-  };
-
-  const applyTypeFilter = () => {
-    handleFilterChange({
-      types: selectedActivityTypes.length > 0 ? selectedActivityTypes : undefined,
-    });
-  };
-
-  const getActivityBadge = (type: ActivityType) => {
-    const config = activityTypeLabels[type] || activityTypeLabels[ActivityType.OTHER];
-    return (
-      <Badge className={`${config.color} flex items-center gap-1`}>
-        {config.icon}
-        {config.label}
-      </Badge>
-    );
-  };
-
   return (
     <Card>
       <CardHeader>
         <div className="flex justify-between items-start">
           <div>
-            <CardTitle>Journaux d'activité</CardTitle>
-            <CardDescription>
-              Historique des activités utilisateur et journal d'audit
-            </CardDescription>
+            <CardTitle>Activity Logs</CardTitle>
+            <CardDescription>User activity history and audit trail</CardDescription>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={onRefresh}>
               <RefreshCw className="w-4 h-4 mr-2" />
-              Actualiser
+              Refresh
             </Button>
             <Button variant="outline" size="sm" onClick={onExport}>
               <Download className="w-4 h-4 mr-2" />
-              Exporter
+              Export
             </Button>
-            {onAddLog && (
-              <Dialog>
-                <DialogTrigger asChild>
-                  <Button variant="default" size="sm">
-                    <Activity className="w-4 h-4 mr-2" />
-                    Ajouter
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Ajouter une entrée d'activité</DialogTitle>
-                    <DialogDescription>
-                      Créer une nouvelle entrée dans le journal d'activité de cet utilisateur
-                    </DialogDescription>
-                  </DialogHeader>
-
-                  <div className="space-y-4 py-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="activity-type">Type d'activité</Label>
-                      <Select
-                        value={newLogType}
-                        onValueChange={value => setNewLogType(value as ActivityType)}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner un type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {Object.entries(ActivityType).map(([key, value]) => (
-                            <SelectItem key={key} value={value}>
-                              {activityTypeLabels[value]?.label || value}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="details">Détails</Label>
-                      <Textarea
-                        id="details"
-                        placeholder="Entrez les détails de l'activité"
-                        value={newLogDetails}
-                        onChange={e => setNewLogDetails(e.target.value)}
-                        rows={4}
-                      />
-                    </div>
-                  </div>
-
-                  <DialogFooter>
-                    <DialogClose asChild>
-                      <Button variant="outline">Annuler</Button>
-                    </DialogClose>
-                    <Button onClick={handleAddActivityLog} disabled={!newLogDetails.trim()}>
-                      Ajouter l'entrée
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-            )}
           </div>
         </div>
       </CardHeader>
       <CardContent>
-        {/* Filtres */}
+        {/* Filters */}
         <div className="flex flex-wrap gap-2 mb-4">
           <div className="relative">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Rechercher..."
+              placeholder="Search logs..."
               className="pl-8 w-[250px]"
               value={activeFilters.searchTerm || ''}
               onChange={e => handleFilterChange({ searchTerm: e.target.value })}
             />
           </div>
 
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="flex items-center gap-1">
-                <Filter className="w-4 h-4" />
-                Types d'activité
-                {activeFilters.types && activeFilters.types.length > 0 && (
-                  <Badge className="ml-1 bg-primary" variant="default">
-                    {activeFilters.types.length}
-                  </Badge>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-[300px] p-0" align="start">
-              <div className="p-4 border-b">
-                <h4 className="font-medium mb-2">Filtrer par type d'activité</h4>
-                <div className="space-y-2 max-h-[300px] overflow-y-auto">
-                  {Object.entries(ActivityType).map(([key, value]) => (
-                    <div key={key} className="flex items-center space-x-2">
-                      <input
-                        type="checkbox"
-                        id={`type-${key}`}
-                        checked={selectedActivityTypes.includes(value)}
-                        onChange={() => handleTypeSelect(value)}
-                        className="rounded border-gray-300"
-                      />
-                      <label htmlFor={`type-${key}`} className="text-sm flex items-center">
-                        {activityTypeLabels[value]?.label || value}
-                      </label>
-                    </div>
-                  ))}
-                </div>
-                <div className="flex justify-between mt-4">
-                  <Button variant="outline" size="sm" onClick={() => setSelectedActivityTypes([])}>
-                    Effacer
-                  </Button>
-                  <Button size="sm" onClick={applyTypeFilter}>
-                    Appliquer
-                  </Button>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
+          <Select
+            value={activeFilters.types ? 'selected' : ''}
+            onValueChange={value => {
+              if (value === '') {
+                clearFilter('types');
+              }
+            }}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Activity Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Activities</SelectItem>
+              <SelectItem value="selected">Selected Types</SelectItem>
+            </SelectContent>
+          </Select>
 
           <Popover>
             <PopoverTrigger asChild>
               <Button variant="outline" size="sm">
                 <Calendar className="w-4 h-4 mr-2" />
-                Période
-                {(activeFilters.dateFrom || activeFilters.dateTo) && (
-                  <Badge className="ml-1 bg-primary" variant="default">
-                    <Check className="h-3 w-3" />
-                  </Badge>
-                )}
+                Date Range
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-4">
               <div className="space-y-2">
-                <h4 className="font-medium">Filtrer par date</h4>
+                <h4 className="font-medium">Filter by date</h4>
                 <div className="grid gap-2">
                   <div className="grid gap-1">
                     <div className="flex items-center gap-2">
-                      <label htmlFor="from">Du</label>
+                      <label htmlFor="from">From</label>
                       <DatePicker
                         value={activeFilters.dateFrom}
                         onChange={date => handleFilterChange({ dateFrom: date })}
@@ -419,7 +164,7 @@ export function UserActivityLogs({
                   </div>
                   <div className="grid gap-1">
                     <div className="flex items-center gap-2">
-                      <label htmlFor="to">Au</label>
+                      <label htmlFor="to">To</label>
                       <DatePicker
                         value={activeFilters.dateTo}
                         onChange={date => handleFilterChange({ dateTo: date })}
@@ -436,35 +181,19 @@ export function UserActivityLogs({
                       clearFilter('dateTo');
                     }}
                   >
-                    Effacer les dates
+                    Clear dates
                   </Button>
                 </div>
               </div>
             </PopoverContent>
           </Popover>
 
-          <Select
-            value={activeFilters.sortDirection || 'desc'}
-            onValueChange={value => handleFilterChange({ sortDirection: value })}
-          >
-            <SelectTrigger className="w-[150px]">
-              <SelectValue placeholder="Tri" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="desc">Plus récent d'abord</SelectItem>
-              <SelectItem value="asc">Plus ancien d'abord</SelectItem>
-            </SelectContent>
-          </Select>
-
-          {/* Affichage des filtres actifs */}
-          {(activeFilters.types?.length ||
-            activeFilters.searchTerm ||
-            activeFilters.dateFrom ||
-            activeFilters.dateTo) && (
-            <div className="flex flex-wrap gap-2 mt-2 ml-1">
-              {activeFilters.types && activeFilters.types.length > 0 && (
+          {/* Active filters display */}
+          {Object.keys(activeFilters).length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {activeFilters.types && (
                 <Badge variant="secondary" className="flex items-center gap-1">
-                  Types d'activité ({activeFilters.types.length})
+                  Activity Types ({activeFilters.types.length})
                   <Button
                     variant="ghost"
                     size="icon"
@@ -477,7 +206,7 @@ export function UserActivityLogs({
               )}
               {activeFilters.searchTerm && (
                 <Badge variant="secondary" className="flex items-center gap-1">
-                  Recherche: {activeFilters.searchTerm}
+                  Search: {activeFilters.searchTerm}
                   <Button
                     variant="ghost"
                     size="icon"
@@ -490,7 +219,7 @@ export function UserActivityLogs({
               )}
               {(activeFilters.dateFrom || activeFilters.dateTo) && (
                 <Badge variant="secondary" className="flex items-center gap-1">
-                  Période
+                  Date Range
                   <Button
                     variant="ghost"
                     size="icon"
@@ -504,96 +233,100 @@ export function UserActivityLogs({
                   </Button>
                 </Badge>
               )}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-xs"
-                onClick={() => {
-                  setActiveFilters({ sortDirection: activeFilters.sortDirection });
-                  onFilterChange({ sortDirection: activeFilters.sortDirection });
-                }}
-              >
-                Effacer tous les filtres
-              </Button>
+              {Object.keys(activeFilters).length > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs"
+                  onClick={() => {
+                    setActiveFilters({});
+                    onFilterChange({});
+                  }}
+                >
+                  Clear all filters
+                </Button>
+              )}
             </div>
           )}
         </div>
 
-        {/* Tableau des journaux d'activité */}
+        {/* Activity Log Table */}
         {isLoading ? (
-          <div className="space-y-4">
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-            <Skeleton className="h-10 w-full" />
-          </div>
-        ) : logs.length === 0 ? (
-          <div className="text-center py-8 text-muted-foreground">
-            Aucune activité trouvée avec les filtres actuels.
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-8 w-full" />
+            <Skeleton className="h-8 w-full" />
           </div>
         ) : (
-          <div className="overflow-y-auto">
+          <>
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead width={220}>Date et heure</TableHead>
-                  <TableHead width={180}>Type d'activité</TableHead>
-                  <TableHead>Détails</TableHead>
-                  <TableHead width={150}>Adresse IP</TableHead>
+                  <TableHead>Activity Type</TableHead>
+                  <TableHead>Timestamp</TableHead>
+                  <TableHead>Details</TableHead>
+                  <TableHead>IP Address</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {logs.map(log => (
-                  <TableRow key={log.id}>
-                    <TableCell className="font-mono text-xs">
-                      <div className="flex items-center gap-1">
-                        <Calendar className="h-3 w-3 text-muted-foreground" />
-                        {format(new Date(log.createdAt), 'dd/MM/yyyy')}
-                      </div>
-                      <div className="flex items-center gap-1 mt-1">
-                        <Clock className="h-3 w-3 text-muted-foreground" />
-                        {format(new Date(log.createdAt), 'HH:mm:ss')}
-                      </div>
+                {logs.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={4} className="h-24 text-center">
+                      No activity logs found.
                     </TableCell>
-                    <TableCell>{getActivityBadge(log.activityType)}</TableCell>
-                    <TableCell className="text-sm">{log.details || '-'}</TableCell>
-                    <TableCell className="font-mono text-xs">{log.ipAddress || '-'}</TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  logs.map(log => (
+                    <TableRow key={log.id}>
+                      <TableCell>
+                        <Badge
+                          className={activityTypeLabels[log.activityType]?.color || 'bg-gray-500'}
+                        >
+                          {activityTypeLabels[log.activityType]?.label || log.activityType}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-1">
+                          <Calendar className="h-3 w-3 text-muted-foreground" />
+                          {format(new Date(log.createdAt), 'MMM d, yyyy')}
+                          <span className="mx-1 text-muted-foreground">·</span>
+                          <Clock className="h-3 w-3 text-muted-foreground" />
+                          {format(new Date(log.createdAt), 'HH:mm:ss')}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {log.details || (
+                          <span className="text-muted-foreground italic">No details</span>
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {log.ipAddress || <span className="text-muted-foreground italic">N/A</span>}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
-          </div>
-        )}
 
-        {/* Pagination */}
-        {!isLoading && logs.length > 0 && (
-          <div className="flex items-center justify-between mt-4">
-            <div className="text-sm text-muted-foreground">
-              Affichage de {Math.min(limit, logs.length)} sur {total} entrées
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onPageChange(page - 1)}
-                disabled={page <= 1}
-              >
-                Précédent
-              </Button>
-              <span className="text-sm">
-                Page {page} sur {Math.ceil(total / limit)}
-              </span>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => onPageChange(page + 1)}
-                disabled={page >= Math.ceil(total / limit)}
-              >
-                Suivant
-              </Button>
-            </div>
-          </div>
+            {/* Pagination */}
+            {total > 0 && (
+              <div className="flex items-center justify-end space-x-2 py-4">
+                <div className="flex-1 text-sm text-muted-foreground">
+                  Showing <span className="font-medium">{logs.length}</span> of{' '}
+                  <span className="font-medium">{total}</span> logs
+                </div>
+                <div className="space-x-2">
+                  <Pagination
+                    totalItems={total}
+                    itemsPerPage={limit}
+                    currentPage={page}
+                    onPageChange={onPageChange}
+                  />
+                </div>
+              </div>
+            )}
+          </>
         )}
       </CardContent>
     </Card>

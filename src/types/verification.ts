@@ -1,157 +1,63 @@
-/**
- * Types pour la vérification des comptes merchant et provider
- */
+import { z } from 'zod';
+import { UserRole } from '@prisma/client';
+import {
+  verificationFiltersSchema,
+  getVerificationDetailSchema,
+  approveVerificationSchema,
+  rejectVerificationSchema,
+  listVerificationDocumentsSchema,
+  verificationHistorySchema,
+} from '@/schemas/admin/verification.schema';
 
-import { Document as _Document } from '@prisma/client';
+export type VerificationFilters = z.infer<typeof verificationFiltersSchema>;
+export type GetVerificationDetail = z.infer<typeof getVerificationDetailSchema>;
+export type ApproveVerification = z.infer<typeof approveVerificationSchema>;
+export type RejectVerification = z.infer<typeof rejectVerificationSchema>;
+export type ListVerificationDocuments = z.infer<typeof listVerificationDocumentsSchema>;
+export type VerificationHistory = z.infer<typeof verificationHistorySchema>;
 
-/**
- * Statuts de vérification possibles
- */
-export enum VerificationStatus {
-  PENDING = 'PENDING',
-  APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED',
-}
-
-/**
- * Types de raisons de rejet
- */
-export enum RejectionReason {
-  UNREADABLE = 'UNREADABLE',
-  EXPIRED = 'EXPIRED',
-  INCOMPLETE = 'INCOMPLETE',
-  FAKE = 'FAKE',
-  WRONG_TYPE = 'WRONG_TYPE',
-  LOW_QUALITY = 'LOW_QUALITY',
-  INFORMATION_MISMATCH = 'INFORMATION_MISMATCH',
-  OTHER = 'OTHER',
-}
-
-/**
- * Types de documents pour vérification
- */
-export enum VerificationDocumentType {
-  ID_CARD = 'ID_CARD',
-  PASSPORT = 'PASSPORT',
-  DRIVERS_LICENSE = 'DRIVERS_LICENSE',
-  PROOF_OF_ADDRESS = 'PROOF_OF_ADDRESS',
-  BUSINESS_LICENSE = 'BUSINESS_LICENSE',
-  TAX_CERTIFICATE = 'TAX_CERTIFICATE',
-  BUSINESS_REGISTRATION = 'BUSINESS_REGISTRATION',
-  VAT_REGISTRATION = 'VAT_REGISTRATION',
-  INSURANCE_CERTIFICATE = 'INSURANCE_CERTIFICATE',
-  PROFESSIONAL_QUALIFICATION = 'PROFESSIONAL_QUALIFICATION',
-}
-
-/**
- * Type pour un document utilisateur dans le frontend
- */
-export interface UserDocument {
-  documentId: string;
-  documentUrl: string;
-  documentType: string;
-  fileName?: string;
-  fileSize?: number;
-  uploadedAt?: Date;
-}
-
-/**
- * Type de base pour la vérification
- */
-export interface VerificationBase {
+export interface VerificationRequest {
   id: string;
-  status: VerificationStatus;
-  requestedAt: Date;
-  verifiedAt?: Date;
-  verifierId?: string;
-  notes?: string;
-  rejectionReason?: string;
+  userId: string;
+  role: UserRole;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  submittedAt: Date;
+  reviewedAt: Date | null;
+  reviewedBy: string | null;
+  notes: string | null;
+  documents: VerificationDocument[];
+  user: {
+    id: string;
+    name: string | null;
+    email: string;
+    phone: string | null;
+    profileImage: string | null;
+  };
 }
 
-/**
- * Type pour la vérification des merchants
- */
-export interface MerchantVerification extends VerificationBase {
-  merchantId: string;
-  businessDocuments: string[];
-  identityDocuments: string[];
-  addressDocuments: string[];
-  businessRegistered: boolean;
-  taxCompliant: boolean;
-}
-
-/**
- * Type pour la vérification des providers
- */
-export interface ProviderVerification extends VerificationBase {
-  providerId: string;
-  identityDocuments: string[];
-  qualificationDocs: string[];
-  insuranceDocs: string[];
-  addressDocuments: string[];
-  qualificationsVerified: boolean;
-  insuranceValid: boolean;
-}
-
-/**
- * Type pour la requête de soumission de vérification d'un merchant
- */
-export interface MerchantVerificationRequest {
-  merchantId: string;
-  documents: {
-    type: VerificationDocumentType;
-    fileId: string;
-  }[];
-  notes?: string;
-}
-
-/**
- * Type pour la requête de soumission de vérification d'un provider
- */
-export interface ProviderVerificationRequest {
-  providerId: string;
-  documents: {
-    type: VerificationDocumentType;
-    fileId: string;
-  }[];
-  notes?: string;
-}
-
-/**
- * Type pour la mise à jour d'une demande de vérification par un admin
- */
-export interface VerificationUpdateRequest {
-  verificationId: string;
-  status: VerificationStatus;
-  notes?: string;
-  rejectionReason?: RejectionReason;
-}
-
-/**
- * Type pour le document soumis pour vérification
- */
 export interface VerificationDocument {
   id: string;
-  type: VerificationDocumentType;
-  userId: string;
-  fileName: string;
-  fileUrl: string;
+  verificationId: string;
+  type:
+    | 'ID_CARD'
+    | 'BUSINESS_LICENSE'
+    | 'PASSPORT'
+    | 'DRIVER_LICENSE'
+    | 'PROOF_OF_ADDRESS'
+    | 'OTHER';
+  url: string;
+  name: string;
   mimeType: string;
-  fileSize: number;
+  size: number;
   uploadedAt: Date;
-  expiryDate?: Date;
-  notes?: string;
 }
 
-/**
- * Type pour la réponse sur le statut de vérification
- */
-export interface VerificationStatusResponse {
-  status: VerificationStatus;
-  submittedAt: Date;
-  verifiedAt?: Date;
-  documents: VerificationDocument[];
-  missingDocuments?: VerificationDocumentType[];
-  rejectionReason?: string;
-  notes?: string;
+export interface VerificationStats {
+  pending: number;
+  approved: number;
+  rejected: number;
+  total: number;
+  pendingByRole: {
+    [role in UserRole]?: number;
+  };
 }

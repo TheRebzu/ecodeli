@@ -17,7 +17,7 @@ import {
 import Link from 'next/link';
 import { formatDate, formatTime } from '@/lib/format';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/server/auth/next-auth';
+import { authOptions } from '@/server/auth';
 import { api } from '@/trpc/server';
 
 export async function generateMetadata(): Promise<Metadata> {

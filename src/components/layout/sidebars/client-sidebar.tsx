@@ -16,12 +16,16 @@ import {
 } from 'lucide-react';
 import { BaseSidebar, SidebarSection } from './base-sidebar';
 import { useAuth } from '@/hooks/use-auth';
-import { useSession } from 'next-auth/react';
 
 interface ClientSidebarProps {
   locale: string;
   notificationCount?: number;
   messageCount?: number;
+  userData?: {
+    name: string;
+    email: string;
+    avatar?: string;
+  };
   collapsed?: boolean;
 }
 
@@ -29,17 +33,22 @@ export function ClientSidebar({
   locale,
   notificationCount = 2,
   messageCount = 3,
+  userData = {
+    name: 'Sophie Lavoie',
+    email: 'sophie.lavoie@gmail.com',
+  },
   collapsed = false,
 }: ClientSidebarProps) {
   const { user } = useAuth();
-  const { data: session } = useSession();
 
-  // Récupérer les informations de l'utilisateur connecté
-  const userInfo = {
-    name: session?.user?.name || user?.name || 'Utilisateur',
-    email: session?.user?.email || user?.email || 'utilisateur@ecodeli.com',
-    avatar: user?.image || undefined,
-  };
+  // Utilisons les données réelles de l'utilisateur si disponibles
+  const userInfo = user
+    ? {
+        name: user.name || userData.name,
+        email: user.email || userData.email,
+        avatar: user.image || userData.avatar,
+      }
+    : userData;
 
   const sections: SidebarSection[] = [
     {

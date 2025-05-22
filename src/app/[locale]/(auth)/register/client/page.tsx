@@ -7,7 +7,6 @@ import ClientRegisterForm from '@/components/auth/register-forms/client-register
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
-import { PageProps, MetadataProps } from '@/types/next';
 
 export async function generateMetadata({
   params,

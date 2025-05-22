@@ -1,5 +1,3 @@
-'use client';
-
 import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -22,7 +20,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
-import { createWarehouseSchema } from '@/schemas/warehouse.schema';
+import { createWarehouseSchema } from '@/schemas/admin/warehouse.schema';
 
 type FormValues = z.infer<typeof createWarehouseSchema>;
 

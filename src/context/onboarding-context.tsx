@@ -37,7 +37,6 @@ type OnboardingContextType = {
   goToStep: (step: number) => Promise<void>;
   isCompleting?: boolean;
   setStepsConfiguration?: (currentStepIndex: number, totalStepsCount: number) => void;
-  setIsActive: (isActive: boolean) => void;
 };
 
 const OnboardingContext = createContext<OnboardingContextType | undefined>(undefined);
@@ -70,23 +69,16 @@ export function OnboardingProvider({ children, t: externalT }: OnboardingProvide
       setIsFirstLogin(isFirstTime);
 
       // Activer automatiquement le tutoriel lors de la première connexion
-      // mais pas pour les administrateurs
-      const userRole = session.data?.user?.role?.toLowerCase();
-      if (isFirstTime && !isActive && userRole && userRole !== 'admin') {
+      if (isFirstTime && !isActive) {
         setIsActive(true);
         // Définir le type de tutoriel en fonction du rôle de l'utilisateur
-        setTutorialType(userRole);
+        setTutorialType(session.data?.user?.role?.toLowerCase());
       }
     }
   }, [session, status, isLoading, isActive]);
 
   // Démarrer le tutoriel d'onboarding
   const startOnboarding = (type?: string) => {
-    // Ne pas démarrer le tutoriel pour les administrateurs
-    if (type === 'admin' || (!type && session.data?.user?.role?.toLowerCase() === 'admin')) {
-      return;
-    }
-
     if (type) {
       setTutorialType(type);
     } else if (!tutorialType && session.data?.user?.role) {
@@ -136,17 +128,11 @@ export function OnboardingProvider({ children, t: externalT }: OnboardingProvide
 
   // Pour sauter le tutoriel
   const handleSkipOnboarding = async (options?: { redirectTo?: string }) => {
-    try {
-      // Fermer immédiatement la fenêtre pour une meilleure expérience utilisateur
+    const result = await completion.skipOnboarding(options);
+    if (result) {
       setIsActive(false);
-      
-      // Puis mettre à jour l'état dans la base de données
-      const result = await completion.skipOnboarding(options);
-      return result;
-    } catch (error) {
-      console.error("Erreur lors du saut du tutoriel:", error);
-      return false;
     }
+    return result;
   };
 
   return (
@@ -169,7 +155,6 @@ export function OnboardingProvider({ children, t: externalT }: OnboardingProvide
         goToStep,
         isCompleting: completion.isCompleting,
         setStepsConfiguration,
-        setIsActive,
       }}
     >
       {children}

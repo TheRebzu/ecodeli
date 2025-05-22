@@ -1,11 +1,9 @@
 'use client';
 
-import React from 'react';
+import { Announcement, AnnouncementStatus } from '@/types/announcement';
+import { useAnnouncement } from '@/hooks/use-announcement';
 import { useTranslations } from 'next-intl';
-import { formatDistance } from 'date-fns';
-import { fr } from 'date-fns/locale';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { useRouter } from 'next/navigation';
 import {
   Card,
   CardContent,
@@ -14,299 +12,396 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { MapPin, Clock, Package, Truck, Heart } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import {
+  Calendar,
+  Clock,
+  Edit,
+  Eye,
+  MapPin,
+  MoreHorizontal,
+  Package,
+  Trash2,
+  Truck,
+  Euro,
+  CheckCircle2,
+  AlertCircle,
+} from 'lucide-react';
+import { format } from 'date-fns';
+import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
-import type { AnnouncementStatus, UserRole } from '@prisma/client';
-import Link from 'next/link';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { useState } from 'react';
 
-// Définir un type étendu pour les statuts qui inclut ceux utilisés dans l'UI mais pas dans le schéma
-type ExtendedAnnouncementStatus =
-  | AnnouncementStatus
-  | 'IN_APPLICATION'
-  | 'DELIVERED'
-  | 'PAID'
-  | 'PROBLEM'
-  | 'DISPUTE';
-
-// Types pour le composant
 type AnnouncementCardProps = {
-  id: string;
-  title: string;
-  description: string;
-  type: string;
-  status: AnnouncementStatus | ExtendedAnnouncementStatus;
-  price: number;
-  distance?: number;
-  pickupAddress: string;
-  deliveryAddress: string;
-  pickupDate?: Date | null;
-  deliveryDate?: Date | null;
-  createdAt: Date;
-  isFavorite?: boolean;
-  userRole?: UserRole;
-  clientName?: string;
-  clientImage?: string;
-  clientRating?: number;
-  delivererName?: string;
-  delivererImage?: string;
-  delivererRating?: number;
-  onFavoriteToggle?: (id: string) => void;
-  onApply?: (id: string) => void;
-  onCancel?: (id: string) => void;
-  onPayNow?: (id: string) => void;
-  onViewDetails?: (id: string) => void;
-  className?: string;
+  announcement: Announcement;
+  isClientView?: boolean;
+  isDetailed?: boolean;
 };
 
-/**
- * Carte d'annonce pour afficher une annonce dans une liste
- */
-export const AnnouncementCard: React.FC<AnnouncementCardProps> = ({
-  id,
-  title,
-  description,
-  type,
-  status,
-  price,
-  distance,
-  pickupAddress,
-  deliveryAddress,
-  pickupDate,
-  deliveryDate,
-  createdAt,
-  isFavorite,
-  userRole,
-  clientName,
-  clientImage,
-  clientRating,
-  delivererName,
-  delivererImage,
-  delivererRating,
-  onFavoriteToggle,
-  onApply,
-  onCancel,
-  onPayNow,
-  onViewDetails,
-  className,
-}) => {
-  const t = useTranslations('Announcements');
+export function AnnouncementCard({
+  announcement,
+  isClientView = true,
+  isDetailed = false,
+}: AnnouncementCardProps) {
+  const t = useTranslations('announcements');
+  const router = useRouter();
+  const {
+    deleteAnnouncement,
+    publishAnnouncement,
+    getAnnouncementTypeLabel,
+    getAnnouncementStatusLabel,
+    getAnnouncementPriorityLabel,
+  } = useAnnouncement();
 
-  // Déterminer le statut à afficher
-  const getStatusBadge = () => {
-    const statusStyles: Record<string, string> = {
-      DRAFT: 'bg-gray-200 hover:bg-gray-300 text-gray-700',
-      PENDING: 'bg-gray-200 hover:bg-gray-300 text-gray-700',
-      PUBLISHED: 'bg-blue-100 hover:bg-blue-200 text-blue-800',
-      IN_APPLICATION: 'bg-purple-100 hover:bg-purple-200 text-purple-800',
-      ASSIGNED: 'bg-indigo-100 hover:bg-indigo-200 text-indigo-800',
-      IN_PROGRESS: 'bg-amber-100 hover:bg-amber-200 text-amber-800',
-      DELIVERED: 'bg-green-100 hover:bg-green-200 text-green-800',
-      COMPLETED: 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800',
-      CANCELLED: 'bg-red-100 hover:bg-red-200 text-red-800',
-      PAID: 'bg-green-100 hover:bg-green-200 text-green-800',
-      PROBLEM: 'bg-red-100 hover:bg-red-200 text-red-800',
-      DISPUTE: 'bg-red-100 hover:bg-red-200 text-red-800',
-    };
+  // État pour les boîtes de dialogue
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
 
-    return (
-      <Badge variant="outline" className={cn('font-normal', statusStyles[status] || '')}>
-        {t(`status.${status}`)}
-      </Badge>
-    );
+  // Fonction pour naviguer vers la page de détail
+  const viewDetails = () => {
+    router.push(`/client/announcements/${announcement.id}`);
   };
 
-  // Déterminer les actions disponibles selon le rôle et le statut
-  const getActions = () => {
-    // Actions pour les clients
-    if (userRole === 'CLIENT') {
-      if (status === 'DRAFT' || status === 'PENDING') {
-        return (
-          <>
-            <Button variant="outline" size="sm" onClick={() => onViewDetails?.(id)}>
-              {t('actions.edit')}
-            </Button>
-            <Button size="sm" onClick={() => onViewDetails?.(id)}>
-              {t('actions.publish')}
-            </Button>
-          </>
-        );
-      }
-
-      if (status === 'PUBLISHED' || status === 'IN_APPLICATION') {
-        return (
-          <>
-            <Button variant="outline" size="sm" onClick={() => onCancel?.(id)}>
-              {t('actions.cancel')}
-            </Button>
-            <Button size="sm" onClick={() => onViewDetails?.(id)}>
-              {t('actions.viewApplications')}
-            </Button>
-          </>
-        );
-      }
-
-      if (status === 'DELIVERED') {
-        return (
-          <Button size="sm" onClick={() => onViewDetails?.(id)}>
-            {t('actions.confirmDelivery')}
-          </Button>
-        );
-      }
-
-      if (status === 'COMPLETED') {
-        if (typeof status === 'string' && !status.includes('PAID')) {
-          return (
-            <Button size="sm" onClick={() => onPayNow?.(id)}>
-              {t('actions.payNow')}
-            </Button>
-          );
-        }
-      }
-    }
-
-    // Actions pour les livreurs
-    if (userRole === 'DELIVERER') {
-      if (status === 'PUBLISHED' || status === 'IN_APPLICATION') {
-        return (
-          <Button size="sm" onClick={() => onApply?.(id)}>
-            {t('actions.apply')}
-          </Button>
-        );
-      }
-
-      if (status === 'ASSIGNED' || status === 'IN_PROGRESS') {
-        return (
-          <Button size="sm" onClick={() => onViewDetails?.(id)}>
-            {t('actions.trackDelivery')}
-          </Button>
-        );
-      }
-    }
-
-    // Action par défaut
-    return (
-      <Button variant="outline" size="sm" onClick={() => onViewDetails?.(id)}>
-        {t('actions.viewDetails')}
-      </Button>
-    );
+  // Fonction pour naviguer vers la page de modification
+  const editAnnouncement = () => {
+    router.push(`/client/announcements/${announcement.id}/edit`);
   };
 
-  // Formatage du prix
-  const formattedPrice = new Intl.NumberFormat('fr-FR', {
-    style: 'currency',
-    currency: 'EUR',
-  }).format(price);
+  // Récupérer la couleur du badge en fonction du statut
+  const getStatusBadgeVariant = (status: AnnouncementStatus) => {
+    switch (status) {
+      case AnnouncementStatus.DRAFT:
+        return 'secondary';
+      case AnnouncementStatus.PENDING:
+        return 'outline';
+      case AnnouncementStatus.PUBLISHED:
+        return 'default';
+      case AnnouncementStatus.ASSIGNED:
+        return 'default';
+      case AnnouncementStatus.IN_PROGRESS:
+        return 'default';
+      case AnnouncementStatus.COMPLETED:
+        return 'default';
+      case AnnouncementStatus.CANCELLED:
+        return 'destructive';
+      default:
+        return 'outline';
+    }
+  };
 
-  // Formatage des dates relatives
-  const getRelativeDate = (date: Date) => {
-    return formatDistance(date, new Date(), {
-      addSuffix: true,
-      locale: fr,
-    });
+  // Récupérer l'icône en fonction du statut
+  const getStatusIcon = (status: AnnouncementStatus) => {
+    switch (status) {
+      case AnnouncementStatus.COMPLETED:
+        return <CheckCircle2 className="h-4 w-4 mr-1" />;
+      case AnnouncementStatus.CANCELLED:
+        return <AlertCircle className="h-4 w-4 mr-1" />;
+      default:
+        return null;
+    }
+  };
+
+  // Vérifier si l'annonce est modifiable par le client
+  const isEditable =
+    isClientView &&
+    (announcement.status === AnnouncementStatus.DRAFT ||
+      announcement.status === AnnouncementStatus.PENDING);
+
+  // Vérifier si l'annonce est publiable par le client
+  const isPublishable =
+    isClientView &&
+    (announcement.status === AnnouncementStatus.DRAFT ||
+      announcement.status === AnnouncementStatus.PENDING);
+
+  // Vérifier si l'annonce est supprimable par le client
+  const isDeletable =
+    isClientView &&
+    (announcement.status === AnnouncementStatus.DRAFT ||
+      announcement.status === AnnouncementStatus.PENDING ||
+      announcement.status === AnnouncementStatus.PUBLISHED);
+
+  // Action de publication
+  const handlePublish = () => {
+    publishAnnouncement(announcement.id);
+  };
+
+  // Action de suppression
+  const handleDelete = () => {
+    deleteAnnouncement(announcement.id);
+    setIsDeleteDialogOpen(false);
   };
 
   return (
-    <Card className={cn('w-full overflow-hidden hover:shadow-md transition-shadow', className)}>
+    <Card className={cn('w-full transition-all hover:shadow-md', isDetailed && 'shadow-md')}>
       <CardHeader className="pb-2">
         <div className="flex justify-between items-start">
-          <div>
-            <CardTitle className="text-lg line-clamp-1">{title}</CardTitle>
-            <CardDescription className="flex items-center space-x-2">
-              <Clock className="h-3.5 w-3.5" />
-              <span>{getRelativeDate(createdAt)}</span>
-              {getStatusBadge()}
+          <div className="space-y-1">
+            <CardTitle className="flex items-center">
+              <Badge variant="outline" className="mr-2">
+                {getAnnouncementTypeLabel(announcement.type)}
+              </Badge>
+              {announcement.title}
+            </CardTitle>
+            <CardDescription>
+              {t('createdAt')}: {format(new Date(announcement.createdAt), 'PPP', { locale: fr })}
+              {announcement.updatedAt !== announcement.createdAt &&
+                ` · ${t('updatedAt')}: ${format(new Date(announcement.updatedAt), 'PPP', { locale: fr })}`}
             </CardDescription>
           </div>
-          {onFavoriteToggle && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-9 w-9"
-              onClick={() => onFavoriteToggle(id)}
-              aria-label={
-                isFavorite ? t('actions.removeFromFavorites') : t('actions.addToFavorites')
-              }
-            >
-              <Heart
-                className={cn(
-                  'h-5 w-5',
-                  isFavorite ? 'fill-red-500 text-red-500' : 'text-gray-500'
+          <div className="flex items-center gap-2">
+            <Badge variant={getStatusBadgeVariant(announcement.status)}>
+              {getStatusIcon(announcement.status)}
+              {getAnnouncementStatusLabel(announcement.status)}
+            </Badge>
+
+            {/* Menu d'actions */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <MoreHorizontal className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>{t('actions')}</DropdownMenuLabel>
+                <DropdownMenuItem onClick={viewDetails}>
+                  <Eye className="mr-2 h-4 w-4" />
+                  {t('viewDetails')}
+                </DropdownMenuItem>
+
+                {isEditable && (
+                  <DropdownMenuItem onClick={editAnnouncement}>
+                    <Edit className="mr-2 h-4 w-4" />
+                    {t('edit')}
+                  </DropdownMenuItem>
                 )}
-              />
-            </Button>
-          )}
+
+                {isPublishable && (
+                  <DropdownMenuItem onClick={handlePublish}>
+                    <Truck className="mr-2 h-4 w-4" />
+                    {t('publish')}
+                  </DropdownMenuItem>
+                )}
+
+                {isDeletable && (
+                  <>
+                    <DropdownMenuSeparator />
+                    <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                      <AlertDialogTrigger asChild>
+                        <DropdownMenuItem onSelect={e => e.preventDefault()}>
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          {t('delete')}
+                        </DropdownMenuItem>
+                      </AlertDialogTrigger>
+                      <AlertDialogContent>
+                        <AlertDialogHeader>
+                          <AlertDialogTitle>{t('deleteConfirmation')}</AlertDialogTitle>
+                          <AlertDialogDescription>{t('deleteWarning')}</AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                          <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+                          <AlertDialogAction onClick={handleDelete} className="bg-destructive">
+                            {t('delete')}
+                          </AlertDialogAction>
+                        </AlertDialogFooter>
+                      </AlertDialogContent>
+                    </AlertDialog>
+                  </>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
       </CardHeader>
 
       <CardContent className="pb-2">
-        <div className="flex flex-col space-y-3">
-          <p className="text-sm line-clamp-2 text-muted-foreground">{description}</p>
-
-          <div className="flex items-start space-x-3 text-sm">
-            <div className="flex-1 flex items-start space-x-1">
-              <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-              <span className="line-clamp-2 text-muted-foreground">{pickupAddress}</span>
-            </div>
-            <div className="flex-1 flex items-start space-x-1">
-              <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-              <span className="line-clamp-2 text-muted-foreground">{deliveryAddress}</span>
-            </div>
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              {type.includes('PACKAGE') && <Package className="h-4 w-4 text-muted-foreground" />}
-              {type.includes('TRANSPORT') && <Truck className="h-4 w-4 text-muted-foreground" />}
-              <span className="text-sm font-medium">{t(`types.${type}`)}</span>
-            </div>
-
-            <div className="text-right">
-              <span className="text-sm font-normal text-muted-foreground">{t('price')}</span>
-              <p className="text-lg font-bold">{formattedPrice}</p>
-            </div>
-          </div>
-
-          {/* Afficher le client ou le livreur selon le contexte */}
-          {userRole === 'DELIVERER' && clientName && (
-            <div className="flex items-center mt-2">
-              <Avatar className="h-8 w-8 mr-2">
-                <AvatarImage src={clientImage} alt={clientName} />
-                <AvatarFallback>{clientName.substring(0, 2).toUpperCase()}</AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col">
-                <span className="text-xs text-muted-foreground">{t('client')}</span>
-                <span className="text-sm font-medium">{clientName}</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            {/* Adresses */}
+            <div className="flex items-start">
+              <MapPin className="h-4 w-4 mr-2 mt-1 text-muted-foreground" />
+              <div className="text-sm">
+                <div>
+                  <span className="font-medium">{t('pickupAddress')}: </span>{' '}
+                  {announcement.pickupAddress}
+                </div>
+                <div>
+                  <span className="font-medium">{t('deliveryAddress')}: </span>{' '}
+                  {announcement.deliveryAddress}
+                </div>
               </div>
             </div>
-          )}
 
-          {userRole === 'CLIENT' && delivererName && (
-            <div className="flex items-center mt-2">
-              <Avatar className="h-8 w-8 mr-2">
-                <AvatarImage src={delivererImage} alt={delivererName} />
-                <AvatarFallback>{delivererName.substring(0, 2).toUpperCase()}</AvatarFallback>
-              </Avatar>
-              <div className="flex flex-col">
-                <span className="text-xs text-muted-foreground">{t('deliverer')}</span>
-                <span className="text-sm font-medium">{delivererName}</span>
+            {/* Dates */}
+            {(announcement.pickupDate || announcement.deliveryDate) && (
+              <div className="flex items-start">
+                <Calendar className="h-4 w-4 mr-2 mt-1 text-muted-foreground" />
+                <div className="text-sm">
+                  {announcement.pickupDate && (
+                    <div>
+                      <span className="font-medium">{t('pickupDate')}: </span>
+                      {format(new Date(announcement.pickupDate), 'PPP', { locale: fr })}
+                      {announcement.pickupTimeWindow && ` (${announcement.pickupTimeWindow})`}
+                    </div>
+                  )}
+                  {announcement.deliveryDate && (
+                    <div>
+                      <span className="font-medium">{t('deliveryDate')}: </span>
+                      {format(new Date(announcement.deliveryDate), 'PPP', { locale: fr })}
+                      {announcement.deliveryTimeWindow && ` (${announcement.deliveryTimeWindow})`}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            {/* Détails du colis */}
+            {(announcement.weight ||
+              announcement.width ||
+              announcement.height ||
+              announcement.length) && (
+              <div className="flex items-start">
+                <Package className="h-4 w-4 mr-2 mt-1 text-muted-foreground" />
+                <div className="text-sm">
+                  {announcement.weight && (
+                    <div>
+                      <span className="font-medium">{t('weight')}: </span> {announcement.weight} kg
+                    </div>
+                  )}
+                  {(announcement.width || announcement.height || announcement.length) && (
+                    <div>
+                      <span className="font-medium">{t('dimensions')}: </span>
+                      {announcement.width || '?'} × {announcement.height || '?'} ×{' '}
+                      {announcement.length || '?'} cm
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Prix */}
+            <div className="flex items-start">
+              <Euro className="h-4 w-4 mr-2 mt-1 text-muted-foreground" />
+              <div className="text-sm">
+                <div>
+                  <span className="font-medium">{t('suggestedPrice')}: </span>
+                  {announcement.suggestedPrice
+                    ? `${announcement.suggestedPrice} €`
+                    : t('notSpecified')}
+                  {announcement.isNegotiable && ` (${t('negotiable')})`}
+                </div>
+                {announcement.finalPrice && (
+                  <div>
+                    <span className="font-medium">{t('finalPrice')}: </span>
+                    {announcement.finalPrice} €
+                  </div>
+                )}
               </div>
             </div>
-          )}
+
+            {/* Urgence et flexibilité */}
+            <div className="flex items-start">
+              <Clock className="h-4 w-4 mr-2 mt-1 text-muted-foreground" />
+              <div className="text-sm">
+                <div>
+                  <span className="font-medium">Priorité: </span>{' '}
+                  {announcement.priority && getAnnouncementPriorityLabel(announcement.priority)}
+                </div>
+                <div>
+                  <span className="font-medium">{t('flexibility')}: </span>{' '}
+                  {announcement.isFlexible ? t('flexible') : t('notFlexible')}
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+
+        {/* Description (visible uniquement en mode détaillé ou si demandé explicitement) */}
+        {isDetailed && (
+          <>
+            <Separator className="my-4" />
+            <div className="space-y-2">
+              <h4 className="font-medium">{t('description')}</h4>
+              <p className="text-sm text-muted-foreground">{announcement.description}</p>
+
+              {/* Caractéristiques spéciales */}
+              {(announcement.isFragile || announcement.needsCooling) && (
+                <div className="flex gap-2 mt-2">
+                  {announcement.isFragile && <Badge variant="secondary">{t('fragile')}</Badge>}
+                  {announcement.needsCooling && (
+                    <Badge variant="secondary">{t('needsCooling')}</Badge>
+                  )}
+                </div>
+              )}
+
+              {/* Notes */}
+              {announcement.notes && (
+                <>
+                  <h4 className="font-medium mt-4">{t('notes')}</h4>
+                  <p className="text-sm text-muted-foreground">{announcement.notes}</p>
+                </>
+              )}
+
+              {/* Tags */}
+              {announcement.tags && announcement.tags.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {announcement.tags.map(tag => (
+                    <Badge key={tag} variant="outline">
+                      {tag}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </CardContent>
 
-      <CardFooter className="flex justify-between pt-2">
-        {distance !== undefined && (
-          <div className="text-sm text-muted-foreground">
-            {t('distance')}:{' '}
-            {distance < 1 ? `${(distance * 1000).toFixed(0)}m` : `${distance.toFixed(1)}km`}
+      <CardFooter className="flex justify-end pt-2">
+        {!isDetailed && (
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={viewDetails}>
+              <Eye className="mr-2 h-4 w-4" />
+              {t('viewDetails')}
+            </Button>
+
+            {isEditable && (
+              <Button variant="outline" size="sm" onClick={editAnnouncement}>
+                <Edit className="mr-2 h-4 w-4" />
+                {t('edit')}
+              </Button>
+            )}
+
+            {isPublishable && (
+              <Button size="sm" onClick={handlePublish}>
+                <Truck className="mr-2 h-4 w-4" />
+                {t('publish')}
+              </Button>
+            )}
           </div>
         )}
-        <div className="flex space-x-2">{getActions()}</div>
       </CardFooter>
     </Card>
   );
-};
-
-export default AnnouncementCard;
+}
