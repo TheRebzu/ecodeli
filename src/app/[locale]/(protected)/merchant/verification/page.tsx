@@ -7,6 +7,7 @@ import { MerchantVerificationForm } from '@/components/verification/merchant-ver
 import { VerificationStatus } from '@/types/verification';
 import { VerificationStatusBanner } from '@/components/verification/verification-status-banner';
 import { db } from '@/server/db';
+import { DocumentType } from '@prisma/client';
 
 export async function generateMetadata({
   params: { locale },
@@ -62,6 +63,7 @@ export default async function MerchantVerificationPage({
   });
   
   const verificationStatus = merchantVerification?.status || null;
+
   
   // Traduire les textes
   const t = await getTranslations({ locale, namespace: 'verification' });

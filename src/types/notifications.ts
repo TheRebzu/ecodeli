@@ -1,5 +1,6 @@
 import { Notification as PrismaNotification, UserRole, AnnouncementStatus } from '@prisma/client';
 
+
 // Type pour les types de notifications
 export enum NotificationType {
   SYSTEM = 'SYSTEM',

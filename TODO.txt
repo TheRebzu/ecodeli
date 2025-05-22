@@ -1,0 +1,22 @@
+# Organisation des routes dans Next.js App Router
+
+## Tâches terminées
+- [x] Déplacement de la page account-inactive vers (auth)/account-inactive
+- [x] Déplacement de la page account-suspended vers (auth)/account-suspended
+- [x] Suppression des anciens dossiers dans src/app/[locale]/account-inactive et src/app/[locale]/account-suspended
+- [x] Vérification que les pages déplacées maintiennent les mêmes fonctionnalités
+- [x] Suppression du dossier src/app/[locale]/register et ses sous-dossiers
+- [x] Confirmation que toutes les routes sont maintenant correctement organisées dans leurs dossiers appropriés
+- [x] Correction des erreurs TypeScript en supprimant les fichiers restants
+
+## Structure des répertoires
+Les pages sont maintenant organisées selon la structure suivante :
+- `/src/app/[locale]/(auth)/` - Pages liées à l'authentification (login, register, account-inactive, account-suspended, etc.)
+- `/src/app/[locale]/(protected)/` - Pages nécessitant une authentification (client, admin, etc.)
+- `/src/app/[locale]/(public)/` - Pages publiques (about, home, etc.)
+
+## Recommandations pour la suite
+- [ ] Vérifier si les redirections sont correctement mises à jour dans les composants qui utilisent ces routes
+- [ ] Tester la navigation entre les pages pour s'assurer que les liens fonctionnent correctement
+- [ ] Mettre à jour les chemins dans les composants qui pourraient faire référence aux anciens emplacements
+- [ ] Exécuter les tests pour s'assurer que le déplacement des fichiers n'a pas causé de régressions

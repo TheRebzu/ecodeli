@@ -145,6 +145,7 @@ export type ProviderVerificationSubmitInput = z.infer<typeof providerVerificatio
 
 // Type pour le contexte du schéma de traitement de vérification
 type VerificationProcessContext = {
+
   status: VerificationStatus;
 };
 

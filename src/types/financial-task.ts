@@ -8,6 +8,7 @@ import {
   toggleFinancialTaskSchema,
   deleteFinancialTaskSchema,
   financialTaskListOptionsSchema
+
 } from '@/schemas/financial-task.schema';
 
 // Type pour une tâche financière complète

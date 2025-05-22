@@ -562,6 +562,7 @@
     "documentsInVerification": "[TO_TRANSLATE] documentsInVerification",
     "processingVerification": "[TO_TRANSLATE] processingVerification",
     "viewDocuments": "[TO_TRANSLATE] viewDocuments"
+
   },
   "status": {
     "pending": "[TO_TRANSLATE] pending",
@@ -638,6 +639,7 @@
       "description": "[TO_TRANSLATE] description",
       "uploadLabel": "[TO_TRANSLATE] uploadLabel",
       "label": "[TO_TRANSLATE] label"
+
     },
     "selfie": {
       "tab": "[TO_TRANSLATE] tab",
@@ -2285,6 +2287,7 @@
       "description": "[TO_TRANSLATE] description",
       "label": "[TO_TRANSLATE] label"
     }
+
   },
   "maps": {
     "pickupAddress": "[TO_TRANSLATE] pickupAddress",
@@ -2372,6 +2375,7 @@
       "verificationNotice": "[TO_TRANSLATE] verificationNotice"
     },
     "T": "[TO_TRANSLATE] T"
+
   },
   "roles": {
     "client": "[TO_TRANSLATE] client",
@@ -2726,6 +2730,7 @@
         "successDeactivateDescription": "[TO_TRANSLATE] successDeactivateDescription",
         "error": "[TO_TRANSLATE] error"
       }
+
     },
     "reports": {
       "a": "[TO_TRANSLATE] a",
@@ -3303,6 +3308,7 @@
     "documents": "[TO_TRANSLATE] documents",
     "created": "[TO_TRANSLATE] created",
     "lastActive": "[TO_TRANSLATE] lastActive"
+
   },
   "pending": {
     "empty": {
@@ -3432,6 +3438,7 @@
     "businessType": "[TO_TRANSLATE] businessType",
     "vatNumber": "[TO_TRANSLATE] vatNumber",
     "businessAddress": "[TO_TRANSLATE] businessAddress"
+
   },
   "notificationTypes": {
     "info": "[TO_TRANSLATE] info",
@@ -3688,6 +3695,7 @@
     "title": "[TO_TRANSLATE] title",
     "instructions": "[TO_TRANSLATE] instructions",
     "description": "[TO_TRANSLATE] description"
+
   },
   "noAnnouncements": {
     "title": "[TO_TRANSLATE] title",
@@ -3745,6 +3753,7 @@
     "businessType": "[TO_TRANSLATE] businessType",
     "vatNumber": "[TO_TRANSLATE] vatNumber",
     "businessAddress": "[TO_TRANSLATE] businessAddress"
+
   },
   "vehicleTypes": {
     "bicycle": "[TO_TRANSLATE] bicycle",
@@ -4103,6 +4112,7 @@
     "title": "[TO_TRANSLATE] title",
     "instructions": "[TO_TRANSLATE] instructions",
     "description": "[TO_TRANSLATE] description"
+
   },
   "back": "[TO_TRANSLATE] back",
   "comingSoon": "[TO_TRANSLATE] comingSoon",
