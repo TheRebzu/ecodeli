@@ -30,4 +30,4 @@ export const createAdminSchema = z.object({
   department: z.string().optional(),
 });
 
-export type CreateAdminSchemaType = z.infer<typeof createAdminSchema>;
+export type CreateAdminSchemaType = z.infer<typeof createAdminSchema >;
