@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useForm } from 'react-hook-form';
+import { useForm, SubmitHandler, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
 import { z } from 'zod';
@@ -76,10 +76,22 @@ const formSchema = z.object({
   deliveryAddress: z.string().min(5, "L'adresse de livraison est requise"),
   deliveryLongitude: z.number().optional(),
   deliveryLatitude: z.number().optional(),
-  weight: z.number().positive().optional().or(z.literal('')),
-  width: z.number().positive().optional().or(z.literal('')),
-  height: z.number().positive().optional().or(z.literal('')),
-  length: z.number().positive().optional().or(z.literal('')),
+  weight: z.preprocess(
+    (val) => (val === '' ? undefined : Number(String(val).replace(',', '.'))),
+    z.number().positive().optional()
+  ),
+  width: z.preprocess(
+    (val) => (val === '' ? undefined : Number(String(val).replace(',', '.'))),
+    z.number().positive().optional()
+  ),
+  height: z.preprocess(
+    (val) => (val === '' ? undefined : Number(String(val).replace(',', '.'))),
+    z.number().positive().optional()
+  ),
+  length: z.preprocess(
+    (val) => (val === '' ? undefined : Number(String(val).replace(',', '.'))),
+    z.number().positive().optional()
+  ),
   isFragile: z.boolean().default(false),
   needsCooling: z.boolean().default(false),
   pickupDate: z.string().optional(),
@@ -87,11 +99,10 @@ const formSchema = z.object({
   deliveryDate: z.string().optional(),
   deliveryTimeWindow: z.string().optional(),
   isFlexible: z.boolean().default(false),
-  suggestedPrice: z
-    .number()
-    .positive('Le prix proposé doit être supérieur à 0')
-    .optional()
-    .or(z.literal('')),
+  suggestedPrice: z.preprocess(
+    (val) => (val === '' ? undefined : Number(String(val).replace(',', '.'))),
+    z.number().positive('Le prix proposé doit être supérieur à 0').optional()
+  ),
   isNegotiable: z.boolean().default(true),
   requiresSignature: z.boolean().default(false),
   requiresId: z.boolean().default(false),
@@ -147,20 +158,34 @@ export function AnnouncementForm({
 
   // Initialisation du formulaire avec react-hook-form et zod
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(formSchema) as any,
     defaultValues: {
       title: '',
       description: '',
       type: 'PACKAGE_DELIVERY',
       priority: 'MEDIUM',
       pickupAddress: '',
+      pickupLatitude: undefined,
+      pickupLongitude: undefined,
       deliveryAddress: '',
+      deliveryLatitude: undefined,
+      deliveryLongitude: undefined,
+      weight: undefined,
+      width: undefined,
+      height: undefined,
+      length: undefined,
       isFragile: false,
       needsCooling: false,
+      pickupDate: '',
+      pickupTimeWindow: '',
+      deliveryDate: '',
+      deliveryTimeWindow: '',
       isFlexible: false,
+      suggestedPrice: undefined,
       isNegotiable: true,
       requiresSignature: false,
       requiresId: false,
+      specialInstructions: '',
       photos: [],
       ...defaultValues,
     },
@@ -171,18 +196,9 @@ export function AnnouncementForm({
   const isFlexible = form.watch('isFlexible');
 
   // Gérer l'envoi du formulaire
-  const handleSubmit = async (values: FormValues) => {
-    // Convertir les champs numériques vides en undefined
-    const formattedValues = {
-      ...values,
-      weight: values.weight === '' ? undefined : Number(values.weight),
-      width: values.width === '' ? undefined : Number(values.width),
-      height: values.height === '' ? undefined : Number(values.height),
-      length: values.length === '' ? undefined : Number(values.length),
-      suggestedPrice: values.suggestedPrice === '' ? undefined : Number(values.suggestedPrice),
-    };
-
-    await onSubmit(formattedValues);
+  const handleSubmit: SubmitHandler<FormValues> = async (values) => {
+    // Les valeurs sont déjà correctement transformées grâce au prétraitement de Zod
+    await onSubmit(values);
   };
 
   // Mettre à jour les coordonnées de l'adresse de collecte
@@ -253,7 +269,7 @@ export function AnnouncementForm({
               <TabsContent value="details" className="mt-0 space-y-6">
                 {/* Informations de base */}
                 <div className="space-y-4">
-                  <FormField
+                  <Controller
                     control={form.control}
                     name="title"
                     render={({ field }) => (
@@ -268,7 +284,7 @@ export function AnnouncementForm({
                     )}
                   />
 
-                  <FormField
+                  <Controller
                     control={form.control}
                     name="description"
                     render={({ field }) => (
@@ -288,14 +304,18 @@ export function AnnouncementForm({
                   />
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
+                    <Controller
                       control={form.control}
                       name="type"
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>{t('type')}</FormLabel>
                           <FormControl>
-                            <Select value={field.value} onValueChange={field.onChange}>
+                            <Select 
+                              value={field.value} 
+                              onValueChange={field.onChange}
+                              disabled={field.disabled}
+                            >
                               <SelectTrigger>
                                 <SelectValue placeholder={t('selectType')} />
                               </SelectTrigger>
@@ -314,7 +334,7 @@ export function AnnouncementForm({
                       )}
                     />
 
-                    <FormField
+                    <Controller
                       control={form.control}
                       name="priority"
                       render={({ field }) => (
@@ -325,6 +345,7 @@ export function AnnouncementForm({
                               value={field.value}
                               onValueChange={field.onChange}
                               className="flex space-x-2"
+                              disabled={field.disabled}
                             >
                               {PRIORITY_LEVELS.map(priority => (
                                 <FormItem
@@ -368,18 +389,18 @@ export function AnnouncementForm({
                     <div className="space-y-4">
                       <h3 className="text-base font-medium">{t('packageDetails')}</h3>
                       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                        <FormField
+                        <Controller
                           control={form.control}
                           name="weight"
-                          render={({ field: { onChange, ...field } }) => (
+                          render={({ field: { onChange, value, ...field } }) => (
                             <FormItem>
                               <FormLabel>{t('weight')} (kg)</FormLabel>
                               <FormControl>
                                 <Input
                                   {...field}
-                                  type="number"
-                                  min="0"
-                                  step="0.1"
+                                  type="text"
+                                  inputMode="decimal"
+                                  value={value ?? ''}
                                   onChange={e => onChange(e.target.value)}
                                   placeholder="0.5"
                                 />
@@ -389,18 +410,18 @@ export function AnnouncementForm({
                           )}
                         />
 
-                        <FormField
+                        <Controller
                           control={form.control}
                           name="width"
-                          render={({ field: { onChange, ...field } }) => (
+                          render={({ field: { onChange, value, ...field } }) => (
                             <FormItem>
                               <FormLabel>{t('width')} (cm)</FormLabel>
                               <FormControl>
                                 <Input
                                   {...field}
-                                  type="number"
-                                  min="0"
-                                  step="1"
+                                  type="text"
+                                  inputMode="decimal"
+                                  value={value ?? ''}
                                   onChange={e => onChange(e.target.value)}
                                   placeholder="20"
                                 />
@@ -410,18 +431,18 @@ export function AnnouncementForm({
                           )}
                         />
 
-                        <FormField
+                        <Controller
                           control={form.control}
                           name="height"
-                          render={({ field: { onChange, ...field } }) => (
+                          render={({ field: { onChange, value, ...field } }) => (
                             <FormItem>
                               <FormLabel>{t('height')} (cm)</FormLabel>
                               <FormControl>
                                 <Input
                                   {...field}
-                                  type="number"
-                                  min="0"
-                                  step="1"
+                                  type="text"
+                                  inputMode="decimal"
+                                  value={value ?? ''}
                                   onChange={e => onChange(e.target.value)}
                                   placeholder="15"
                                 />
@@ -431,18 +452,18 @@ export function AnnouncementForm({
                           )}
                         />
 
-                        <FormField
+                        <Controller
                           control={form.control}
                           name="length"
-                          render={({ field: { onChange, ...field } }) => (
+                          render={({ field: { onChange, value, ...field } }) => (
                             <FormItem>
                               <FormLabel>{t('length')} (cm)</FormLabel>
                               <FormControl>
                                 <Input
                                   {...field}
-                                  type="number"
-                                  min="0"
-                                  step="1"
+                                  type="text"
+                                  inputMode="decimal"
+                                  value={value ?? ''}
                                   onChange={e => onChange(e.target.value)}
                                   placeholder="30"
                                 />
@@ -454,13 +475,17 @@ export function AnnouncementForm({
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <FormField
+                        <Controller
                           control={form.control}
                           name="isFragile"
                           render={({ field }) => (
                             <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                               <FormControl>
-                                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                <Checkbox 
+                                  checked={field.value} 
+                                  onCheckedChange={field.onChange}
+                                  disabled={field.disabled}
+                                />
                               </FormControl>
                               <div className="space-y-1 leading-none">
                                 <FormLabel>{t('isFragile')}</FormLabel>
@@ -470,13 +495,17 @@ export function AnnouncementForm({
                           )}
                         />
 
-                        <FormField
+                        <Controller
                           control={form.control}
                           name="needsCooling"
                           render={({ field }) => (
                             <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                               <FormControl>
-                                <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                                <Checkbox 
+                                  checked={field.value} 
+                                  onCheckedChange={field.onChange}
+                                  disabled={field.disabled}
+                                />
                               </FormControl>
                               <div className="space-y-1 leading-none">
                                 <FormLabel>{t('needsCooling')}</FormLabel>
@@ -496,13 +525,17 @@ export function AnnouncementForm({
                   <h3 className="text-base font-medium">{t('specialRequirements')}</h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
+                    <Controller
                       control={form.control}
                       name="requiresSignature"
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                           <FormControl>
-                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                            <Checkbox 
+                              checked={field.value} 
+                              onCheckedChange={field.onChange}
+                              disabled={field.disabled}
+                            />
                           </FormControl>
                           <div className="space-y-1 leading-none">
                             <FormLabel>{t('requiresSignature')}</FormLabel>
@@ -512,13 +545,17 @@ export function AnnouncementForm({
                       )}
                     />
 
-                    <FormField
+                    <Controller
                       control={form.control}
                       name="requiresId"
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                           <FormControl>
-                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                            <Checkbox 
+                              checked={field.value} 
+                              onCheckedChange={field.onChange}
+                              disabled={field.disabled}
+                            />
                           </FormControl>
                           <div className="space-y-1 leading-none">
                             <FormLabel>{t('requiresId')}</FormLabel>
@@ -529,7 +566,7 @@ export function AnnouncementForm({
                     />
                   </div>
 
-                  <FormField
+                  <Controller
                     control={form.control}
                     name="specialInstructions"
                     render={({ field }) => (
@@ -555,18 +592,18 @@ export function AnnouncementForm({
                   <h3 className="text-base font-medium">{t('pricing')}</h3>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <FormField
+                    <Controller
                       control={form.control}
                       name="suggestedPrice"
-                      render={({ field: { onChange, ...field } }) => (
+                      render={({ field: { onChange, value, ...field } }) => (
                         <FormItem>
                           <FormLabel>{t('suggestedPrice')} (€)</FormLabel>
                           <FormControl>
                             <Input
                               {...field}
-                              type="number"
-                              min="0"
-                              step="0.5"
+                              type="text"
+                              inputMode="decimal"
+                              value={value ?? ''}
                               onChange={e => onChange(e.target.value)}
                               placeholder="20.00"
                               className="w-full"
@@ -578,13 +615,17 @@ export function AnnouncementForm({
                       )}
                     />
 
-                    <FormField
+                    <Controller
                       control={form.control}
                       name="isNegotiable"
                       render={({ field }) => (
                         <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                           <FormControl>
-                            <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                            <Checkbox 
+                              checked={field.value} 
+                              onCheckedChange={field.onChange}
+                              disabled={field.disabled}
+                            />
                           </FormControl>
                           <div className="space-y-1 leading-none">
                             <FormLabel>{t('isNegotiable')}</FormLabel>
@@ -602,7 +643,7 @@ export function AnnouncementForm({
                 <div className="space-y-4">
                   <h3 className="text-base font-medium">{t('pickupAddress')}</h3>
 
-                  <FormField
+                  <Controller
                     control={form.control}
                     name="pickupAddress"
                     render={({ field }) => (
@@ -628,7 +669,7 @@ export function AnnouncementForm({
                 <div className="space-y-4">
                   <h3 className="text-base font-medium">{t('deliveryAddress')}</h3>
 
-                  <FormField
+                  <Controller
                     control={form.control}
                     name="deliveryAddress"
                     render={({ field }) => (
@@ -656,13 +697,17 @@ export function AnnouncementForm({
                 <div className="space-y-4">
                   <h3 className="text-base font-medium">{t('schedule')}</h3>
 
-                  <FormField
+                  <Controller
                     control={form.control}
                     name="isFlexible"
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4 mb-4">
                         <FormControl>
-                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
+                          <Checkbox 
+                            checked={field.value} 
+                            onCheckedChange={field.onChange}
+                            disabled={field.disabled}
+                          />
                         </FormControl>
                         <div className="space-y-1 leading-none">
                           <FormLabel>{t('isFlexible')}</FormLabel>
@@ -674,7 +719,7 @@ export function AnnouncementForm({
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-4">
-                      <FormField
+                      <Controller
                         control={form.control}
                         name="pickupDate"
                         render={({ field }) => (
@@ -686,7 +731,7 @@ export function AnnouncementForm({
                                 type="datetime-local"
                                 min={new Date().toISOString().slice(0, 16)}
                                 className="w-full"
-                                disabled={isFlexible}
+                                disabled={isFlexible || field.disabled}
                               />
                             </FormControl>
                             <FormMessage />
@@ -694,7 +739,7 @@ export function AnnouncementForm({
                         )}
                       />
 
-                      <FormField
+                      <Controller
                         control={form.control}
                         name="pickupTimeWindow"
                         render={({ field }) => (
@@ -704,7 +749,7 @@ export function AnnouncementForm({
                               <Input
                                 {...field}
                                 placeholder={t('pickupTimeWindowPlaceholder')}
-                                disabled={isFlexible}
+                                disabled={isFlexible || field.disabled}
                               />
                             </FormControl>
                             <FormDescription>{t('timeWindowDescription')}</FormDescription>
@@ -715,7 +760,7 @@ export function AnnouncementForm({
                     </div>
 
                     <div className="space-y-4">
-                      <FormField
+                      <Controller
                         control={form.control}
                         name="deliveryDate"
                         render={({ field }) => (
@@ -727,7 +772,7 @@ export function AnnouncementForm({
                                 type="datetime-local"
                                 min={new Date().toISOString().slice(0, 16)}
                                 className="w-full"
-                                disabled={isFlexible}
+                                disabled={isFlexible || field.disabled}
                               />
                             </FormControl>
                             <FormMessage />
@@ -735,7 +780,7 @@ export function AnnouncementForm({
                         )}
                       />
 
-                      <FormField
+                      <Controller
                         control={form.control}
                         name="deliveryTimeWindow"
                         render={({ field }) => (
@@ -745,7 +790,7 @@ export function AnnouncementForm({
                               <Input
                                 {...field}
                                 placeholder={t('deliveryTimeWindowPlaceholder')}
-                                disabled={isFlexible}
+                                disabled={isFlexible || field.disabled}
                               />
                             </FormControl>
                             <FormDescription>{t('timeWindowDescription')}</FormDescription>
@@ -762,7 +807,7 @@ export function AnnouncementForm({
                 <div className="space-y-4">
                   <h3 className="text-base font-medium">{t('photos')}</h3>
 
-                  <FormField
+                  <Controller
                     control={form.control}
                     name="photos"
                     render={({ field }) => (
@@ -773,7 +818,7 @@ export function AnnouncementForm({
                             photos={field.value}
                             onPhotosChange={field.onChange}
                             maxPhotos={5}
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || field.disabled}
                           />
                         </FormControl>
                         <FormDescription>{t('photosDescription')}</FormDescription>

@@ -40,7 +40,7 @@ interface AddressMapPickerProps {
  * Composant de sélection d'adresse avec carte intégrée
  */
 export function AddressMapPicker({
-  address,
+  address = '',
   onAddressChange,
   onCoordinatesChange,
   latitude,
@@ -50,7 +50,7 @@ export function AddressMapPicker({
   placeholder,
 }: AddressMapPickerProps) {
   const t = useTranslations('maps');
-  const [inputValue, setInputValue] = useState(address);
+  const [inputValue, setInputValue] = useState(address || '');
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showPopover, setShowPopover] = useState(false);
@@ -69,7 +69,7 @@ export function AddressMapPicker({
           type: markerType,
           popup: {
             title: markerType === 'pickup' ? t('pickupAddress') : t('deliveryAddress'),
-            content: address,
+            content: address || '',
           },
         },
       ]
@@ -85,7 +85,7 @@ export function AddressMapPicker({
   // Mettre à jour l'adresse dans le parent
   useEffect(() => {
     if (address !== inputValue) {
-      setInputValue(address);
+      setInputValue(address || '');
     }
   }, [address]);
 
@@ -153,7 +153,8 @@ export function AddressMapPicker({
   };
 
   // Gérer le clic sur la carte
-  const handleMapClick = (lat: number, lng: number) => {
+  const handleMapClick = (e: L.LeafletMouseEvent) => {
+    const { lat, lng } = e.latlng;
     setSelectedCoordinates([lat, lng]);
     fetchAddressFromCoordinates(lat, lng);
   };
@@ -219,7 +220,14 @@ export function AddressMapPicker({
       <Card className="overflow-hidden border">
         <CardContent className="p-0">
           <div className="h-[300px] w-full">
-            <Map center={mapCenter} markers={markers} onMapClick={handleMapClick} />
+            <Map 
+              center={{ 
+                lat: mapCenter[0], 
+                lng: mapCenter[1]
+              }} 
+              markers={markers.length > 0 ? markers : undefined} 
+              onMapClick={handleMapClick} 
+            />
           </div>
         </CardContent>
       </Card>
