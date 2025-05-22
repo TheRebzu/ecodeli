@@ -1,6 +1,0 @@
-{
-  "snapshot": "snapshot-20250521-4959e2ac-f128-4f52-a186-7318a562b5b0",
-  "install": "pnpm install --force",
-  "start": "pnpm run dev",
-  "terminals": []
-}
