@@ -129,19 +129,21 @@ export function AnnouncementPhotoUpload({
 
       {uploadError && <p className="text-sm text-destructive">{uploadError}</p>}
 
-      {photos.length > 0 && (
+      {photos && photos.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">
           {photos.map((photo, index) => (
             <Card key={index} className="relative group overflow-hidden">
               <CardContent className="p-0">
                 <div className="relative aspect-square w-full">
-                  <Image
-                    src={photo}
-                    alt={t('announcementPhoto', { index: index + 1 })}
-                    fill
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                    className="object-cover"
-                  />
+                  {photo && (
+                    <Image
+                      src={photo || ''}
+                      alt={t('announcementPhoto', { index: index + 1 })}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 33vw"
+                      className="object-cover"
+                    />
+                  )}
                   <Button
                     variant="destructive"
                     size="icon"

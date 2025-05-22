@@ -28,6 +28,7 @@ import {
 } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { PageProps, MetadataProps } from '@/types/next';
 
 export function generateMetadata(): Metadata {
   return {
@@ -36,10 +37,11 @@ export function generateMetadata(): Metadata {
   };
 }
 
-export default async function HomePage({ params }: { params: { locale: string } }) {
-  // Await params and store locale in a constant to avoid dynamic API issues
-  const locale = await Promise.resolve(params.locale);
-  setRequestLocale(locale);
+export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
+  // Locale est une valeur dynamique fournie par Next.js, on doit utiliser await
+  const { locale } = await params;
+  // Utiliser la fonction pour configurer la locale pour cette requête
+  await setRequestLocale(locale);
 
   // Log pour débogage
   console.log('PublicHomePage rendering in (public) group, locale:', locale);

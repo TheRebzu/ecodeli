@@ -1,162 +1,166 @@
 'use client';
 
 import { useState } from 'react';
-import Link from 'next/link';
-import { UserRole, UserStatus } from '@prisma/client';
-import { Plus } from 'lucide-react';
-
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useTranslations } from 'next-intl';
+import { api } from '@/trpc/react';
+import { UserFilters } from '@/types/admin';
+import UserStatsAdvanced from '@/components/admin/users/user-stats-advanced';
+import UserBulkActions from '@/components/admin/users/user-bulk-actions';
+import UserTable from '@/components/admin/users/user-table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Pagination } from '@/components/ui/pagination';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useAdminUsers } from '@/hooks/use-admin-users';
-import { UserTable } from '@/components/admin/users/user-table';
-import { UserFiltersForm } from '@/components/admin/users/user-filters';
-import { UserFilters } from '@/types/admin/admin';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
+import { AlertCircleIcon, DownloadIcon, PlusIcon, UsersIcon } from 'lucide-react';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 export default function AdminUsersPage() {
-  const [activeTab, setActiveTab] = useState<string>('all');
+  const t = useTranslations('Admin.verification.users');
+  const [selectedUserIds, setSelectedUserIds] = useState<string[]>([]);
+  const [activeTab, setActiveTab] = useState<string>('list');
+  const [filters, setFilters] = useState<UserFilters>({});
 
-  const {
-    users,
-    totalUsers,
-    isLoadingUsers,
-    filters,
-    handlePageChange,
-    handleFilterChange,
-    updateUserStatus,
-    updateUserRole,
-    viewUserDetail,
-  } = useAdminUsers();
+  // Statistiques globales des utilisateurs
+  const statsQuery = api.adminUser.getUserStats.useQuery();
+  
+  // Récupération des utilisateurs avec filtres
+  const usersQuery = api.adminUser.getUsers.useQuery({ 
+    page: 1, 
+    limit: 10, 
+    ...filters 
+  });
 
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-
-    let newFilters: UserFilters = {};
-
-    switch (value) {
-      case 'clients':
-        newFilters = { role: UserRole.CLIENT };
-        break;
-      case 'deliverers':
-        newFilters = { role: UserRole.DELIVERER };
-        break;
-      case 'merchants':
-        newFilters = { role: UserRole.MERCHANT };
-        break;
-      case 'providers':
-        newFilters = { role: UserRole.PROVIDER };
-        break;
-      case 'admins':
-        newFilters = { role: UserRole.ADMIN };
-        break;
-      case 'pending':
-        newFilters = { status: UserStatus.PENDING_VERIFICATION };
-        break;
-      case 'suspended':
-        newFilters = { status: UserStatus.SUSPENDED };
-        break;
-      case 'all':
-      default:
-        // No filters for "all" tab
-        break;
-    }
-
-    handleFilterChange(newFilters);
+  // Gérer la sélection des utilisateurs
+  const handleUserSelection = (userIds: string[]) => {
+    setSelectedUserIds(userIds);
   };
 
-  const handleResetFilters = () => {
-    setActiveTab('all');
-    handleFilterChange({});
+  // Fonction appelée après une action en masse réussie
+  const handleBulkActionComplete = () => {
+    setSelectedUserIds([]);
+    statsQuery.refetch();
+    usersQuery.refetch();
   };
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="container mx-auto py-6 space-y-8">
+      <div className="flex flex-col space-y-2 md:flex-row md:items-center md:justify-between md:space-y-0">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
-          <p className="text-muted-foreground">
-            Manage all users, verify accounts, and update permissions
-          </p>
+          <h1 className="text-3xl font-bold tracking-tight">{t('title')}</h1>
+          <p className="text-muted-foreground">{t('subtitle')}</p>
         </div>
-        <Button asChild>
-          <Link href="/admin/users/create">
-            <Plus className="mr-2 h-4 w-4" />
-            Add User
-          </Link>
-        </Button>
+        <div className="flex items-center space-x-2">
+          <Button variant="outline" size="sm">
+            <DownloadIcon className="mr-2 h-4 w-4" />
+            {t('actions.export') || "Exporter"}
+          </Button>
+          <Button size="sm">
+            <PlusIcon className="mr-2 h-4 w-4" />
+            {t('actions.addUser') || "Ajouter un utilisateur"}
+          </Button>
+          <UserBulkActions
+            selectedUserIds={selectedUserIds}
+            onActionComplete={handleBulkActionComplete}
+            disabled={selectedUserIds.length === 0}
+          />
+        </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Users</CardTitle>
-          <CardDescription>
-            {isLoadingUsers ? 'Loading users...' : `${totalUsers} users in total`}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="all">All Users</TabsTrigger>
-              <TabsTrigger value="clients">Clients</TabsTrigger>
-              <TabsTrigger value="deliverers">Deliverers</TabsTrigger>
-              <TabsTrigger value="merchants">Merchants</TabsTrigger>
-              <TabsTrigger value="providers">Providers</TabsTrigger>
-              <TabsTrigger value="admins">Admins</TabsTrigger>
-              <TabsTrigger value="pending">Pending</TabsTrigger>
-              <TabsTrigger value="suspended">Suspended</TabsTrigger>
-            </TabsList>
+      <Separator />
 
-            <TabsContent value={activeTab} className="space-y-4">
-              {/* Filters */}
-              <UserFiltersForm
-                currentFilters={filters}
-                onFilterChange={handleFilterChange}
-                onResetFilters={handleResetFilters}
-              />
+      <Tabs
+        defaultValue="list"
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="space-y-4"
+      >
+        <div className="flex items-center justify-between">
+          <TabsList>
+            <TabsTrigger value="list" className="flex items-center">
+              <UsersIcon className="mr-2 h-4 w-4" />
+              {t('tabs.all')}
+            </TabsTrigger>
+            <TabsTrigger value="stats">{t('stats.title')}</TabsTrigger>
+          </TabsList>
+        </div>
 
-              {/* User Table */}
-              {isLoadingUsers ? (
-                <div className="space-y-2">
-                  <Skeleton className="h-8 w-full" />
-                  <Skeleton className="h-8 w-full" />
-                  <Skeleton className="h-8 w-full" />
-                  <Skeleton className="h-8 w-full" />
-                  <Skeleton className="h-8 w-full" />
+        <TabsContent value="list" className="space-y-4">
+          {statsQuery.isLoading ? (
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('title')}</CardTitle>
+                <CardDescription>{t('subtitle')}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="flex h-[400px] items-center justify-center">
+                  <p className="text-sm text-muted-foreground">Chargement des utilisateurs...</p>
                 </div>
-              ) : (
-                <>
-                  <UserTable
-                    users={users}
-                    onViewUser={viewUserDetail}
-                    onUpdateStatus={updateUserStatus}
-                    onUpdateRole={updateUserRole}
-                  />
-
-                  {/* Pagination */}
-                  {totalUsers > 0 && (
-                    <div className="flex items-center justify-end space-x-2 py-4">
-                      <div className="flex-1 text-sm text-muted-foreground">
-                        Showing <span className="font-medium">{users.length}</span> of{' '}
-                        <span className="font-medium">{totalUsers}</span> users
-                      </div>
-                      <div className="space-x-2">
-                        <Pagination
-                          totalItems={totalUsers}
-                          itemsPerPage={filters.limit || 10}
-                          currentPage={filters.page || 1}
-                          onPageChange={handlePageChange}
-                        />
-                      </div>
+              </CardContent>
+            </Card>
+          ) : statsQuery.isError ? (
+            <Alert variant="destructive">
+              <AlertCircleIcon className="h-4 w-4" />
+              <AlertTitle>Erreur</AlertTitle>
+              <AlertDescription>
+                Impossible de charger les utilisateurs. Veuillez réessayer ultérieurement.
+              </AlertDescription>
+            </Alert>
+          ) : (
+            <div className="space-y-4">
+              <Card>
+                <CardHeader className="p-4">
+                  <CardTitle className="text-xl">{t('quickStats')}</CardTitle>
+                </CardHeader>
+                <CardContent className="p-4 pt-0">
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                    <div className="flex flex-col space-y-1">
+                      <span className="text-sm text-muted-foreground">{t('totalUsers')}</span>
+                      <span className="text-2xl font-bold">{statsQuery.data?.totalUsers}</span>
                     </div>
-                  )}
-                </>
-              )}
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+                    <div className="flex flex-col space-y-1">
+                      <span className="text-sm text-muted-foreground">{t('activeUsers')}</span>
+                      <span className="text-2xl font-bold">{statsQuery.data?.activeUsers}</span>
+                    </div>
+                    <div className="flex flex-col space-y-1">
+                      <span className="text-sm text-muted-foreground">{t('newToday')}</span>
+                      <span className="text-2xl font-bold">{statsQuery.data?.newUsersToday}</span>
+                    </div>
+                    <div className="flex flex-col space-y-1">
+                      <span className="text-sm text-muted-foreground">{t('pendingVerification')}</span>
+                      <span className="text-2xl font-bold">
+                        {statsQuery.data?.usersByVerification?.unverified || 0}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Table des utilisateurs */}
+              <UserTable
+                users={usersQuery.data?.users || []}
+                selectedUserIds={selectedUserIds}
+                onSelectionChange={handleUserSelection}
+                isLoading={usersQuery.isLoading}
+              />
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="stats">
+          <UserStatsAdvanced
+            initialFilters={{
+              period: 'MONTH',
+              compareWithPrevious: true,
+              breakdownByRole: true,
+              breakdownByStatus: true,
+              breakdownByCountry: true,
+              includeRetentionRate: true,
+              includeChurnRate: true,
+              includeGrowthRate: true,
+            }}
+          />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

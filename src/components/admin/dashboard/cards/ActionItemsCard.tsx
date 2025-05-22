@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ActionItems } from '@/types/admin/dashboard';
+import { ActionItems } from '@/types/dashboard';
 import {
   BellIcon,
   FileWarningIcon,

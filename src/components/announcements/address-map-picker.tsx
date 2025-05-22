@@ -1,281 +1,238 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useTranslations } from 'next-intl';
+import { Search, MapPin, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Search } from 'lucide-react';
-import { toast } from 'sonner';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
+import debounce from 'lodash/debounce';
 import dynamic from 'next/dynamic';
 
-// Types pour éviter les erreurs avec les imports dynamiques
-interface MapProps {
-  center: [number, number];
-  zoom: number;
-  style: React.CSSProperties;
-  children: React.ReactNode;
-}
-
-interface TileLayerProps {
-  attribution: string;
-  url: string;
-}
-
-interface MarkerProps {
-  position: [number, number];
-  children?: React.ReactNode;
-}
-
-interface PopupProps {
-  children: React.ReactNode;
-}
-
-// Import dynamique de Leaflet pour éviter les problèmes de SSR
-const MapContainer = dynamic<MapProps>(
-  () => import('react-leaflet').then(mod => mod.MapContainer),
-  { ssr: false }
-);
-
-const TileLayer = dynamic<TileLayerProps>(
-  () => import('react-leaflet').then(mod => mod.TileLayer),
-  { ssr: false }
-);
-
-const Marker = dynamic<MarkerProps>(() => import('react-leaflet').then(mod => mod.Marker), {
+// Import dynamique de la carte pour éviter les erreurs côté serveur
+const Map = dynamic(() => import('@/components/maps/leaflet-map'), {
   ssr: false,
+  loading: () => (
+    <div className="flex items-center justify-center h-[300px] bg-muted/20">
+      <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+    </div>
+  ),
 });
 
-const Popup = dynamic<PopupProps>(() => import('react-leaflet').then(mod => mod.Popup), {
-  ssr: false,
-});
+// Types de marqueurs
+export type MarkerType = 'pickup' | 'delivery' | 'current';
 
-// Définir une interface pour l'événement de clic sur la carte
-interface MapClickEvent {
-  latlng: {
-    lat: number;
-    lng: number;
-  };
-}
-
-// Composant MapEvents pour gérer les clics sur la carte
-const MapEvents = dynamic<{ onClick: (e: MapClickEvent) => void }>(
-  () =>
-    import('react-leaflet').then(mod => {
-      // Création d'un composant wrapper pour useMapEvents
-      const EventsComponent = ({ onClick }: { onClick: (e: MapClickEvent) => void }) => {
-        mod.useMapEvents({
-          click: onClick,
-        });
-        return null;
-      };
-      return EventsComponent;
-    }),
-  { ssr: false }
-);
-
-// Import dynamique de l'icône Leaflet
-const IconSetup = dynamic(
-  () =>
-    import('leaflet').then(L => {
-      // Configurer le chemin des icônes Leaflet
-      delete (L.Icon.Default.prototype as { _getIconUrl?: unknown })._getIconUrl;
-
-      L.Icon.Default.mergeOptions({
-        iconRetinaUrl: '/leaflet/marker-icon-2x.png',
-        iconUrl: '/leaflet/marker-icon.png',
-        shadowUrl: '/leaflet/marker-shadow.png',
-      });
-
-      // Composant avec un nom d'affichage
-      const LeafletIconSetup = ({ children }: { children: React.ReactNode }) => <>{children}</>;
-      LeafletIconSetup.displayName = 'LeafletIconSetup';
-      return LeafletIconSetup;
-    }),
-  { ssr: false }
-);
-
+// Props du composant
 interface AddressMapPickerProps {
-  initialAddress?: string;
-  initialLatitude?: number;
-  initialLongitude?: number;
-  onAddressChange: (address: string, latitude: number, longitude: number) => void;
-  label: string;
+  address: string;
+  onAddressChange: (address: string) => void;
+  onCoordinatesChange: (latitude: number, longitude: number) => void;
+  latitude?: number;
+  longitude?: number;
+  markerType?: MarkerType;
+  className?: string;
   placeholder?: string;
 }
 
+/**
+ * Composant de sélection d'adresse avec carte intégrée
+ */
 export function AddressMapPicker({
-  initialAddress = '',
-  initialLatitude,
-  initialLongitude,
+  address = '',
   onAddressChange,
-  label,
+  onCoordinatesChange,
+  latitude,
+  longitude,
+  markerType = 'pickup',
+  className,
   placeholder,
 }: AddressMapPickerProps) {
-  const t = useTranslations('announcements');
-  const [address, setAddress] = useState(initialAddress);
-  const [latitude, setLatitude] = useState<number>(initialLatitude || 48.8566);
-  const [longitude, setLongitude] = useState<number>(initialLongitude || 2.3522);
-  const [isMapReady, setIsMapReady] = useState(false);
-  const [isSearching, setIsSearching] = useState(false);
+  const t = useTranslations('maps');
+  const [inputValue, setInputValue] = useState(address || '');
+  const [suggestions, setSuggestions] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showPopover, setShowPopover] = useState(false);
+  const [mapCenter, setMapCenter] = useState<[number, number]>(
+    [latitude || 48.8566, longitude || 2.3522] // Paris par défaut
+  );
+  const [selectedCoordinates, setSelectedCoordinates] = useState<[number, number] | null>(
+    latitude && longitude ? [latitude, longitude] : null
+  );
 
-  // Référence au timeout pour la recherche d'adresse
-  const searchTimeout = useRef<NodeJS.Timeout | null>(null);
+  // Créer des marqueurs pour la carte
+  const markers = selectedCoordinates
+    ? [
+        {
+          position: selectedCoordinates,
+          type: markerType,
+          popup: {
+            title: markerType === 'pickup' ? t('pickupAddress') : t('deliveryAddress'),
+            content: address || '',
+          },
+        },
+      ]
+    : [];
 
-  // Effet pour initialiser la carte une fois le composant monté
+  // Mettre à jour les coordonnées dans le parent quand elles changent
   useEffect(() => {
-    setIsMapReady(true);
-    return () => {
-      if (searchTimeout.current) {
-        clearTimeout(searchTimeout.current);
-      }
-    };
-  }, []);
+    if (selectedCoordinates) {
+      onCoordinatesChange(selectedCoordinates[0], selectedCoordinates[1]);
+    }
+  }, [selectedCoordinates, onCoordinatesChange]);
 
-  // Effet pour mettre à jour la position sur la carte si les valeurs initiales changent
+  // Mettre à jour l'adresse dans le parent
   useEffect(() => {
-    if (initialLatitude && initialLongitude) {
-      setLatitude(initialLatitude);
-      setLongitude(initialLongitude);
+    if (address !== inputValue) {
+      setInputValue(address || '');
     }
-    if (initialAddress) {
-      setAddress(initialAddress);
+  }, [address]);
+
+  // Mettre à jour les coordonnées quand latitude/longitude changent
+  useEffect(() => {
+    if (latitude && longitude) {
+      setSelectedCoordinates([latitude, longitude]);
+      setMapCenter([latitude, longitude]);
     }
-  }, [initialAddress, initialLatitude, initialLongitude]);
+  }, [latitude, longitude]);
 
-  // Recherche d'adresse avec géocodage
-  const searchAddress = async () => {
-    if (!address.trim()) return;
+  // Recherche d'adresse avec l'API Nominatim (OpenStreetMap)
+  const searchAddress = useCallback(async (query: string) => {
+    if (query.length < 3) {
+      setSuggestions([]);
+      return;
+    }
 
+    setIsLoading(true);
     try {
-      setIsSearching(true);
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&limit=5`
       );
 
       if (!response.ok) {
-        throw new Error(t('addressSearchError'));
+        throw new Error("Erreur lors de la recherche d'adresse");
       }
 
       const data = await response.json();
-
-      if (data && data.length > 0) {
-        const result = data[0];
-        const newLat = parseFloat(result.lat);
-        const newLng = parseFloat(result.lon);
-
-        setLatitude(newLat);
-        setLongitude(newLng);
-        setAddress(result.display_name);
-
-        onAddressChange(result.display_name, newLat, newLng);
-      } else {
-        toast.error(t('addressNotFound'));
-      }
+      setSuggestions(data);
     } catch (error) {
       console.error("Erreur de recherche d'adresse:", error);
-      toast.error(t('addressSearchError'));
     } finally {
-      setIsSearching(false);
+      setIsLoading(false);
     }
+  }, []);
+
+  // Fonction debounce pour éviter trop d'appels API
+  const debouncedSearch = useCallback(
+    debounce((query: string) => {
+      searchAddress(query);
+    }, 500),
+    [searchAddress]
+  );
+
+  // Gérer le changement d'adresse dans l'input
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setInputValue(value);
+    setShowPopover(value.length >= 3);
+    debouncedSearch(value);
   };
 
-  // Gestion de la sélection d'une position sur la carte
-  const handleMapClick = async (e: { latlng: { lat: number; lng: number } }) => {
-    const { lat, lng } = e.latlng;
-    setLatitude(lat);
-    setLongitude(lng);
+  // Sélectionner une suggestion
+  const handleSelectSuggestion = (suggestion: any) => {
+    const address = suggestion.display_name;
+    const lat = parseFloat(suggestion.lat);
+    const lon = parseFloat(suggestion.lon);
 
-    // Géocodage inverse pour obtenir l'adresse
+    setInputValue(address);
+    setSelectedCoordinates([lat, lon]);
+    setMapCenter([lat, lon]);
+    onAddressChange(address);
+    setShowPopover(false);
+  };
+
+  // Gérer le clic sur la carte
+  const handleMapClick = (e: L.LeafletMouseEvent) => {
+    const { lat, lng } = e.latlng;
+    setSelectedCoordinates([lat, lng]);
+    fetchAddressFromCoordinates(lat, lng);
+  };
+
+  // Recherche d'adresse à partir de coordonnées (géocodage inverse)
+  const fetchAddressFromCoordinates = async (lat: number, lng: number) => {
     try {
       const response = await fetch(
-        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=18&addressdetails=1`
       );
 
       if (!response.ok) {
-        throw new Error();
+        throw new Error("Erreur lors de la recherche d'adresse");
       }
 
       const data = await response.json();
+      const address = data.display_name;
 
-      if (data && data.display_name) {
-        setAddress(data.display_name);
-        onAddressChange(data.display_name, lat, lng);
-      }
+      setInputValue(address);
+      onAddressChange(address);
     } catch (error) {
       console.error('Erreur de géocodage inverse:', error);
-      // Mettre à jour avec uniquement les coordonnées
-      onAddressChange(address, lat, lng);
-    }
-  };
-
-  // Gérer la recherche d'adresse avec un délai
-  const handleAddressChange = (value: string) => {
-    setAddress(value);
-
-    if (searchTimeout.current) {
-      clearTimeout(searchTimeout.current);
-    }
-
-    if (value.trim().length > 3) {
-      searchTimeout.current = setTimeout(() => {
-        searchAddress();
-      }, 1000);
     }
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-col space-y-2">
-        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-          {label}
-        </label>
-        <div className="flex w-full items-center space-x-2">
-          <Input
-            type="text"
-            value={address}
-            onChange={e => handleAddressChange(e.target.value)}
-            placeholder={placeholder || t('enterAddress')}
-            className="flex-1"
-          />
-          <Button
-            type="button"
-            size="icon"
-            onClick={searchAddress}
-            disabled={isSearching || !address.trim()}
-          >
-            <Search className="h-4 w-4" />
-          </Button>
-        </div>
-        <div className="text-xs text-muted-foreground">
-          {latitude.toFixed(6)}, {longitude.toFixed(6)}
-        </div>
-      </div>
+    <div className={cn('space-y-3', className)}>
+      <Popover open={showPopover && suggestions.length > 0} onOpenChange={setShowPopover}>
+        <PopoverTrigger asChild>
+          <div className="relative">
+            <MapPin className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder={placeholder || t('searchAddress')}
+              value={inputValue}
+              onChange={handleInputChange}
+              className="pl-9 pr-10"
+            />
+            {isLoading && (
+              <Loader2 className="absolute right-2.5 top-2.5 h-4 w-4 animate-spin text-muted-foreground" />
+            )}
+          </div>
+        </PopoverTrigger>
+        <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+          <div className="max-h-[300px] overflow-auto">
+            {suggestions.map((suggestion, index) => (
+              <Button
+                key={index}
+                variant="ghost"
+                className="w-full justify-start p-2 text-xs"
+                onClick={() => handleSelectSuggestion(suggestion)}
+              >
+                <MapPin className="mr-2 h-3.5 w-3.5 text-muted-foreground" />
+                <div className="w-full overflow-hidden text-left">
+                  <div className="truncate">{suggestion.display_name}</div>
+                </div>
+              </Button>
+            ))}
+          </div>
+        </PopoverContent>
+      </Popover>
 
-      {isMapReady && (
-        <Card className="overflow-hidden">
-          <CardContent className="p-0">
-            <div className="h-[300px] w-full">
-              <IconSetup>
-                <MapContainer
-                  center={[latitude, longitude]}
-                  zoom={13}
-                  style={{ height: '100%', width: '100%' }}
-                >
-                  <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                  />
-                  <Marker position={[latitude, longitude]}>
-                    <Popup>{address}</Popup>
-                  </Marker>
-                  <MapEvents onClick={handleMapClick} />
-                </MapContainer>
-              </IconSetup>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+      <Card className="overflow-hidden border">
+        <CardContent className="p-0">
+          <div className="h-[300px] w-full">
+            <Map 
+              center={{ 
+                lat: mapCenter[0], 
+                lng: mapCenter[1]
+              }} 
+              markers={markers.length > 0 ? markers : undefined} 
+              onMapClick={handleMapClick} 
+            />
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
+
+export default AddressMapPicker;

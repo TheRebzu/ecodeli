@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { z } from 'zod';
 import Image from 'next/image';
 import { api } from '@/trpc/react';
-import { uploadDocumentSchema } from '@/schemas/auth/document.schema';
+import { uploadDocumentSchema } from '@/schemas/document.schema';
 import { Calendar } from '@/components/ui/calendar';
 import { FileText, Upload, X, Eye, Calendar as CalendarIcon } from 'lucide-react';
 import {

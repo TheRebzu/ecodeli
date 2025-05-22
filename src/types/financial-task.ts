@@ -4,7 +4,11 @@ import { FinancialTaskCategory, FinancialTaskPriority } from '@prisma/client';
 import {
   createFinancialTaskSchema,
   updateFinancialTaskSchema,
-  financialTaskFiltersSchema
+  financialTaskFiltersSchema,
+  toggleFinancialTaskSchema,
+  deleteFinancialTaskSchema,
+  financialTaskListOptionsSchema
+
 } from '@/schemas/financial-task.schema';
 
 // Type pour une tâche financière complète

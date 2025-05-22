@@ -54,7 +54,7 @@ export function useServiceBooking({ serviceId, providerId }: UseServiceBookingPr
   const createBookingMutation = api.service.createBooking.useMutation({
     onSuccess: data => {
       toast.success(t('form.bookingSuccess'));
-      utils.service.getMyClientBookings.invalidate();
+      utils.clientData.getMyClientBookings.invalidate();
       router.push(`/[locale]/(protected)/client/services/${data.id}`);
     },
     onError: error => {
@@ -65,8 +65,8 @@ export function useServiceBooking({ serviceId, providerId }: UseServiceBookingPr
   const updateBookingStatusMutation = api.service.updateBookingStatus.useMutation({
     onSuccess: () => {
       toast.success(t('manage.cancelled'));
-      utils.service.getMyClientBookings.invalidate();
-      utils.service.getBookingById.invalidate();
+      utils.clientData.getMyClientBookings.invalidate();
+      utils.clientData.getBookingById.invalidate();
       router.refresh();
     },
     onError: error => {
@@ -77,8 +77,8 @@ export function useServiceBooking({ serviceId, providerId }: UseServiceBookingPr
   const rescheduleBookingMutation = api.service.rescheduleBooking.useMutation({
     onSuccess: () => {
       toast.success('Réservation reprogrammée avec succès');
-      utils.service.getMyClientBookings.invalidate();
-      utils.service.getBookingById.invalidate();
+      utils.clientData.getMyClientBookings.invalidate();
+      utils.clientData.getBookingById.invalidate();
       router.refresh();
     },
     onError: error => {
@@ -91,7 +91,7 @@ export function useServiceBooking({ serviceId, providerId }: UseServiceBookingPr
       toast.success(t('review.reviewSuccess'));
       utils.service.getServiceReviews.invalidate();
       utils.service.getProviderReviews.invalidate();
-      utils.service.getBookingById.invalidate();
+      utils.clientData.getBookingById.invalidate();
       router.refresh();
     },
     onError: error => {

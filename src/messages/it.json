@@ -532,7 +532,37 @@
     "noCode": {
       "title": "[TO_TRANSLATE] title",
       "description": "[TO_TRANSLATE] description"
-    }
+    },
+    "provider": {
+      "formTitle": "[TO_TRANSLATE] Vérification du compte prestataire",
+      "formDescription": "[TO_TRANSLATE] Pour activer votre compte prestataire, veuillez télécharger les documents suivants pour vérification",
+      "submitButton": "[TO_TRANSLATE] Soumettre pour vérification"
+    },
+    "merchant": {
+      "formTitle": "[TO_TRANSLATE] Vérification du compte commerçant",
+      "formDescription": "[TO_TRANSLATE] Pour activer votre compte commerçant, veuillez télécharger les documents suivants pour vérification",
+      "submitButton": "[TO_TRANSLATE] Soumettre pour vérification"
+    },
+    "updateSuccess": {
+      "title": "[TO_TRANSLATE] title"
+    },
+    "updateError": {
+      "title": "[TO_TRANSLATE] title"
+    },
+    "forceUpdate": {
+      "title": "[TO_TRANSLATE] title",
+      "description": "[TO_TRANSLATE] description",
+      "updating": "[TO_TRANSLATE] updating",
+      "button": "[TO_TRANSLATE] button"
+    },
+    "verified": "[TO_TRANSLATE] verified",
+    "pendingVerification": "[TO_TRANSLATE] pendingVerification",
+    "documentStatus": "[TO_TRANSLATE] documentStatus",
+    "allDocumentsVerified": "[TO_TRANSLATE] allDocumentsVerified",
+    "documentsInVerification": "[TO_TRANSLATE] documentsInVerification",
+    "processingVerification": "[TO_TRANSLATE] processingVerification",
+    "viewDocuments": "[TO_TRANSLATE] viewDocuments"
+
   },
   "status": {
     "pending": "[TO_TRANSLATE] pending",
@@ -607,7 +637,9 @@
       "tab": "[TO_TRANSLATE] tab",
       "title": "[TO_TRANSLATE] title",
       "description": "[TO_TRANSLATE] description",
-      "uploadLabel": "[TO_TRANSLATE] uploadLabel"
+      "uploadLabel": "[TO_TRANSLATE] uploadLabel",
+      "label": "[TO_TRANSLATE] label"
+
     },
     "selfie": {
       "tab": "[TO_TRANSLATE] tab",
@@ -685,6 +717,26 @@
       "processing": "[TO_TRANSLATE] processing",
       "reject": "[TO_TRANSLATE] reject",
       "approve": "[TO_TRANSLATE] approve"
+    },
+    "professionalQualification": {
+      "label": "[TO_TRANSLATE] label",
+      "description": "[TO_TRANSLATE] description"
+    },
+    "insuranceCertificate": {
+      "label": "[TO_TRANSLATE] label",
+      "description": "[TO_TRANSLATE] description"
+    },
+    "proofOfAddress": {
+      "label": "[TO_TRANSLATE] label",
+      "description": "[TO_TRANSLATE] description"
+    },
+    "businessLicense": {
+      "label": "[TO_TRANSLATE] label",
+      "description": "[TO_TRANSLATE] description"
+    },
+    "taxCertificate": {
+      "label": "[TO_TRANSLATE] label",
+      "description": "[TO_TRANSLATE] description"
     }
   },
   "extend": {
@@ -906,7 +958,11 @@
     "tariffs": "[TO_TRANSLATE] tariffs",
     "terms": "[TO_TRANSLATE] terms",
     "notes": "[TO_TRANSLATE] notes",
-    "verification": "[TO_TRANSLATE] verification"
+    "verification": "[TO_TRANSLATE] verification",
+    "clients": "[TO_TRANSLATE] clients",
+    "deliverers": "[TO_TRANSLATE] deliverers",
+    "merchants": "[TO_TRANSLATE] merchants",
+    "providers": "[TO_TRANSLATE] providers"
   },
   "faq": {
     "title1": "[TO_TRANSLATE] title1",
@@ -2083,7 +2139,8 @@
     "cannotEditDescription": "[TO_TRANSLATE] cannotEditDescription",
     "backToDetails": "[TO_TRANSLATE] backToDetails",
     "announcementUpdatedDescription": "[TO_TRANSLATE] announcementUpdatedDescription",
-    "editAnnouncementInstructions": "[TO_TRANSLATE] editAnnouncementInstructions"
+    "editAnnouncementInstructions": "[TO_TRANSLATE] editAnnouncementInstructions",
+    "price": "[TO_TRANSLATE] price"
   },
   "leaflet": "[TO_TRANSLATE] leaflet",
   "emptyState": {
@@ -2216,7 +2273,21 @@
     "completeDelivery": "[TO_TRANSLATE] completeDelivery",
     "reportIssue": "[TO_TRANSLATE] reportIssue",
     "navigate": "[TO_TRANSLATE] navigate",
-    "contact": "[TO_TRANSLATE] contact"
+    "contact": "[TO_TRANSLATE] contact",
+    "viewDocuments": "[TO_TRANSLATE] viewDocuments",
+    "approve": "[TO_TRANSLATE] approve",
+    "reject": "[TO_TRANSLATE] reject",
+    "title": "[TO_TRANSLATE] title",
+    "verify": "[TO_TRANSLATE] verify",
+    "BAN": {
+      "warning": "[TO_TRANSLATE] warning",
+      "label": "[TO_TRANSLATE] label"
+    },
+    "UNBAN": {
+      "description": "[TO_TRANSLATE] description",
+      "label": "[TO_TRANSLATE] label"
+    }
+
   },
   "maps": {
     "pickupAddress": "[TO_TRANSLATE] pickupAddress",
@@ -2300,8 +2371,11 @@
       "selectRole": "[TO_TRANSLATE] selectRole",
       "roleDescription": "[TO_TRANSLATE] roleDescription",
       "submitting": "[TO_TRANSLATE] submitting",
-      "register": "[TO_TRANSLATE] register"
-    }
+      "register": "[TO_TRANSLATE] register",
+      "verificationNotice": "[TO_TRANSLATE] verificationNotice"
+    },
+    "T": "[TO_TRANSLATE] T"
+
   },
   "roles": {
     "client": "[TO_TRANSLATE] client",
@@ -2648,7 +2722,15 @@
         "confirm": "[TO_TRANSLATE] confirm"
       },
       "title": "[TO_TRANSLATE] title",
-      "subtitle": "[TO_TRANSLATE] subtitle"
+      "subtitle": "[TO_TRANSLATE] subtitle",
+      "activationStatus": {
+        "successActivate": "[TO_TRANSLATE] successActivate",
+        "successDeactivate": "[TO_TRANSLATE] successDeactivate",
+        "successActivateDescription": "[TO_TRANSLATE] successActivateDescription",
+        "successDeactivateDescription": "[TO_TRANSLATE] successDeactivateDescription",
+        "error": "[TO_TRANSLATE] error"
+      }
+
     },
     "reports": {
       "a": "[TO_TRANSLATE] a",
@@ -3222,7 +3304,11 @@
     "edit": "[TO_TRANSLATE] edit",
     "publish": "[TO_TRANSLATE] publish",
     "deactivate": "[TO_TRANSLATE] deactivate",
-    "activate": "[TO_TRANSLATE] activate"
+    "activate": "[TO_TRANSLATE] activate",
+    "documents": "[TO_TRANSLATE] documents",
+    "created": "[TO_TRANSLATE] created",
+    "lastActive": "[TO_TRANSLATE] lastActive"
+
   },
   "pending": {
     "empty": {
@@ -3233,6 +3319,58 @@
   "Admin": {
     "Verification": {
       "loading": "[TO_TRANSLATE] loading"
+    },
+    "verification": {
+      "loading": "[TO_TRANSLATE] Chargement...",
+      "documents": "[TO_TRANSLATE] documents",
+      "documentApproved": "[TO_TRANSLATE] documentApproved",
+      "documentRejected": "[TO_TRANSLATE] documentRejected",
+      "userDocumentsTitle": "[TO_TRANSLATE] Documents utilisateur",
+      "backToUsers": "[TO_TRANSLATE] Retour à la liste des utilisateurs",
+      "documentsListTitle": "[TO_TRANSLATE] Liste des documents",
+      "documentsListDescription": "[TO_TRANSLATE] Tous les documents téléchargés par l'utilisateur",
+      "noDocuments": "[TO_TRANSLATE] noDocuments",
+      "viewDocument": "[TO_TRANSLATE] viewDocument",
+      "status": "[TO_TRANSLATE] status",
+      "rejectionReason": "[TO_TRANSLATE] rejectionReason",
+      "close": "[TO_TRANSLATE] close",
+      "rejectDocument": "[TO_TRANSLATE] rejectDocument",
+      "rejectionReasonPlaceholder": "[TO_TRANSLATE] rejectionReasonPlaceholder",
+      "cancel": "[TO_TRANSLATE] cancel",
+      "confirm": "[TO_TRANSLATE] confirm",
+      "approveDocument": "[TO_TRANSLATE] approveDocument",
+      "approvalNotesPlaceholder": "[TO_TRANSLATE] approvalNotesPlaceholder",
+      "users": {
+        "selectAll": "[TO_TRANSLATE] selectAll",
+        "noUsers": "[TO_TRANSLATE] noUsers",
+        "verified": "[TO_TRANSLATE] verified",
+        "unverified": "[TO_TRANSLATE] unverified",
+        "never": "[TO_TRANSLATE] never",
+        "pending": "[TO_TRANSLATE] pending",
+        "openMenu": "[TO_TRANSLATE] openMenu",
+        "stats": {
+          "totalUsers": "[TO_TRANSLATE] totalUsers",
+          "activeUsers": "[TO_TRANSLATE] activeUsers",
+          "newUsers": "[TO_TRANSLATE] newUsers",
+          "churnRate": "[TO_TRANSLATE] churnRate",
+          "growthRate": "[TO_TRANSLATE] growthRate"
+        },
+        "bulkActions": {
+          "button": "[TO_TRANSLATE] button",
+          "title": "[TO_TRANSLATE] title",
+          "confirmationText": "[TO_TRANSLATE] confirmationText",
+          "cancel": "[TO_TRANSLATE] cancel",
+          "processing": "[TO_TRANSLATE] processing",
+          "confirm": "[TO_TRANSLATE] confirm"
+        },
+        "title": "[TO_TRANSLATE] title",
+        "subtitle": "[TO_TRANSLATE] subtitle",
+        "quickStats": "[TO_TRANSLATE] quickStats",
+        "totalUsers": "[TO_TRANSLATE] totalUsers",
+        "activeUsers": "[TO_TRANSLATE] activeUsers",
+        "newToday": "[TO_TRANSLATE] newToday",
+        "pendingVerification": "[TO_TRANSLATE] pendingVerification"
+      }
     }
   },
   "uploaded_by": "[TO_TRANSLATE] uploaded_by",
@@ -3290,7 +3428,17 @@
     "licensePlate": "[TO_TRANSLATE] licensePlate",
     "password": "[TO_TRANSLATE] password",
     "confirmPassword": "[TO_TRANSLATE] confirmPassword",
-    "phoneNumber": "[TO_TRANSLATE] phoneNumber"
+    "phoneNumber": "[TO_TRANSLATE] phoneNumber",
+    "companyName": "[TO_TRANSLATE] companyName",
+    "serviceType": "[TO_TRANSLATE] serviceType",
+    "services": "[TO_TRANSLATE] services",
+    "description": "[TO_TRANSLATE] description",
+    "availability": "[TO_TRANSLATE] availability",
+    "websiteUrl": "[TO_TRANSLATE] websiteUrl",
+    "businessType": "[TO_TRANSLATE] businessType",
+    "vatNumber": "[TO_TRANSLATE] vatNumber",
+    "businessAddress": "[TO_TRANSLATE] businessAddress"
+
   },
   "notificationTypes": {
     "info": "[TO_TRANSLATE] info",
@@ -3545,7 +3693,9 @@
     "pageTitle": "[TO_TRANSLATE] pageTitle",
     "pageDescription": "[TO_TRANSLATE] pageDescription",
     "title": "[TO_TRANSLATE] title",
-    "instructions": "[TO_TRANSLATE] instructions"
+    "instructions": "[TO_TRANSLATE] instructions",
+    "description": "[TO_TRANSLATE] description"
+
   },
   "noAnnouncements": {
     "title": "[TO_TRANSLATE] title",
@@ -3593,7 +3743,17 @@
     "password": "[TO_TRANSLATE] password",
     "confirmPassword": "[TO_TRANSLATE] confirmPassword",
     "phoneNumber": "[TO_TRANSLATE] phoneNumber",
-    "newsletter": "[TO_TRANSLATE] newsletter"
+    "newsletter": "[TO_TRANSLATE] newsletter",
+    "companyName": "[TO_TRANSLATE] companyName",
+    "serviceType": "[TO_TRANSLATE] serviceType",
+    "services": "[TO_TRANSLATE] services",
+    "description": "[TO_TRANSLATE] description",
+    "availability": "[TO_TRANSLATE] availability",
+    "websiteUrl": "[TO_TRANSLATE] websiteUrl",
+    "businessType": "[TO_TRANSLATE] businessType",
+    "vatNumber": "[TO_TRANSLATE] vatNumber",
+    "businessAddress": "[TO_TRANSLATE] businessAddress"
+
   },
   "vehicleTypes": {
     "bicycle": "[TO_TRANSLATE] bicycle",
@@ -3950,7 +4110,9 @@
     "pageTitle": "[TO_TRANSLATE] pageTitle",
     "pageDescription": "[TO_TRANSLATE] pageDescription",
     "title": "[TO_TRANSLATE] title",
-    "instructions": "[TO_TRANSLATE] instructions"
+    "instructions": "[TO_TRANSLATE] instructions",
+    "description": "[TO_TRANSLATE] description"
+
   },
   "back": "[TO_TRANSLATE] back",
   "comingSoon": "[TO_TRANSLATE] comingSoon",
@@ -4010,5 +4172,78 @@
   "userVerification": {
     "title": "[TO_TRANSLATE] title",
     "description": "[TO_TRANSLATE] description"
+  },
+  "auto_check": "[TO_TRANSLATE] auto_check",
+  "track_delivery": "[TO_TRANSLATE] track_delivery",
+  "idCard": {
+    "tab": "[TO_TRANSLATE] tab",
+    "title": "[TO_TRANSLATE] title",
+    "description": "[TO_TRANSLATE] description",
+    "uploadLabel": "[TO_TRANSLATE] uploadLabel"
+  },
+  "selfie": {
+    "tab": "[TO_TRANSLATE] tab",
+    "title": "[TO_TRANSLATE] title",
+    "description": "[TO_TRANSLATE] description",
+    "uploadLabel": "[TO_TRANSLATE] uploadLabel"
+  },
+  "drivingLicense": {
+    "tab": "[TO_TRANSLATE] tab",
+    "title": "[TO_TRANSLATE] title",
+    "description": "[TO_TRANSLATE] description",
+    "uploadLabel": "[TO_TRANSLATE] uploadLabel"
+  },
+  "upgrade": "[TO_TRANSLATE] upgrade",
+  "serviceTypes": {
+    "maintenance": "[TO_TRANSLATE] maintenance",
+    "cleaning": "[TO_TRANSLATE] cleaning",
+    "repair": "[TO_TRANSLATE] repair",
+    "installation": "[TO_TRANSLATE] installation",
+    "consulting": "[TO_TRANSLATE] consulting",
+    "other": "[TO_TRANSLATE] other"
+  },
+  "sections": {
+    "personalInfo": "[TO_TRANSLATE] personalInfo",
+    "professionalInfo": "[TO_TRANSLATE] professionalInfo",
+    "businessInfo": "[TO_TRANSLATE] businessInfo",
+    "businessAddress": "[TO_TRANSLATE] businessAddress"
+  },
+  "usersVerification": {
+    "title": "[TO_TRANSLATE] title",
+    "description": "[TO_TRANSLATE] description",
+    "search": "[TO_TRANSLATE] search",
+    "noUsers": "[TO_TRANSLATE] noUsers"
+  },
+  "documentTypes": {
+    "ID_CARD": "[TO_TRANSLATE] ID_CARD",
+    "DRIVING_LICENSE": "[TO_TRANSLATE] DRIVING_LICENSE",
+    "SELFIE": "[TO_TRANSLATE] SELFIE",
+    "OTHER": "[TO_TRANSLATE] OTHER"
+  },
+  "statusBanner": {
+    "approved": {
+      "title": "[TO_TRANSLATE] title",
+      "description": "[TO_TRANSLATE] description"
+    },
+    "rejected": {
+      "title": "[TO_TRANSLATE] title",
+      "description": "[TO_TRANSLATE] description"
+    },
+    "pending": {
+      "title": "[TO_TRANSLATE] title",
+      "description": "[TO_TRANSLATE] description"
+    }
+  },
+  "alreadySubmitted": {
+    "title": "[TO_TRANSLATE] title",
+    "pending": "[TO_TRANSLATE] pending",
+    "approved": "[TO_TRANSLATE] approved"
+  },
+  "referer": "[TO_TRANSLATE] referer",
+  "userDocuments": {
+    "metadata": {
+      "title": "[TO_TRANSLATE] title",
+      "description": "[TO_TRANSLATE] description"
+    }
   }
 }

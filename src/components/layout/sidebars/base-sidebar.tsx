@@ -67,12 +67,22 @@ export function BaseSidebar({
   const pathname = usePathname();
   const { logout } = useAuth();
   const [collapsed, setCollapsed] = useState(defaultCollapsed);
-  const [windowWidth, setWindowWidth] = useState(
-    typeof window !== 'undefined' ? window.innerWidth : 0
-  );
+  const [mounted, setMounted] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(0);
 
-  // Réinitialiser l'état collapsed lors des changements de taille d'écran
+  // Effet pour gérer le montage côté client et empêcher les problèmes d'hydratation
   useEffect(() => {
+    setMounted(true);
+    setWindowWidth(window.innerWidth);
+    if (window.innerWidth < 1024) {
+      setCollapsed(false);
+    }
+  }, []);
+
+  // Effet pour gérer les changements de taille d'écran (après montage)
+  useEffect(() => {
+    if (!mounted) return;
+
     const handleResize = () => {
       setWindowWidth(window.innerWidth);
       if (window.innerWidth < 1024) {
@@ -80,12 +90,9 @@ export function BaseSidebar({
       }
     };
 
-    if (typeof window !== 'undefined') {
-      window.addEventListener('resize', handleResize);
-      handleResize();
-      return () => window.removeEventListener('resize', handleResize);
-    }
-  }, []);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [mounted]);
 
   const toggleCollapse = () => {
     setCollapsed(!collapsed);
@@ -124,7 +131,7 @@ export function BaseSidebar({
         </Link>
 
         <div className="flex items-center gap-2">
-          {!collapsed && notifications > 0 && (
+          {!collapsed && notifications > 0 && mounted && (
             <Button
               variant="outline"
               size="icon"
@@ -141,7 +148,8 @@ export function BaseSidebar({
             </Button>
           )}
 
-          {collapsible && windowWidth >= 1024 && (
+          {/* Afficher le bouton de collapse uniquement côté client après montage */}
+          {mounted && collapsible && windowWidth >= 1024 && (
             <Button
               variant="ghost"
               size="icon"
@@ -197,7 +205,7 @@ export function BaseSidebar({
       </ScrollArea>
 
       {/* Zone d'informations d'abonnement */}
-      {!collapsed && subscriptionInfo && (
+      {!collapsed && subscriptionInfo && mounted && (
         <div className="px-4 py-3 border-t border-b">
           <div className="flex items-center justify-between">
             <div>
@@ -214,7 +222,7 @@ export function BaseSidebar({
       )}
 
       {/* Action rapide */}
-      {!collapsed && quickAction && (
+      {!collapsed && quickAction && mounted && (
         <div className="p-4">
           <Button className="w-full" size="sm" asChild>
             <Link href={quickAction.href}>

@@ -98,18 +98,7 @@ export function DelivererTutorial({ options }: DelivererTutorialProps) {
     }
   }, [setStepsConfiguration]);
 
-  // Récupérer l'étape actuelle
-  const currentTutorialStep = DELIVERER_TUTORIAL_STEPS[currentStep];
-
-  // Gérer la complétion du tutoriel
-  const handleComplete = async () => {
-    await completeOnboarding(options);
-  };
-
-  // Gérer le saut du tutoriel
-  const handleSkip = async () => {
-    await skipOnboarding(options);
-  };
+    // Récupérer l'étape actuelle  const currentTutorialStep = DELIVERER_TUTORIAL_STEPS[currentStep];  // Gérer la complétion du tutoriel  const handleComplete = async () => {    await completeOnboarding(options);  };  // Gérer le saut du tutoriel  const handleSkip = async () => {    // Fermer immédiatement la fenêtre pour une meilleure expérience utilisateur    setIsActive(false);    // Puis mettre à jour la base de données    await skipOnboarding(options);  };
 
   if (!currentTutorialStep) return null;
 

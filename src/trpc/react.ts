@@ -1,32 +1,25 @@
+'use client';
+
 import { createTRPCReact } from '@trpc/react-query';
 import { type AppRouter } from '@/server/api/root';
-import { QueryClient, type QueryClientConfig } from '@tanstack/react-query';
-import { httpBatchLink } from '@trpc/client';
-import superjson from 'superjson';
+import { QueryClient } from '@tanstack/react-query';
 
+/**
+ * Client tRPC pour une utilisation dans les composants React
+ */
 export const api = createTRPCReact<AppRouter>();
+export const trpc = api; // Pour la compatibilité avec le code existant
 
-// This function can be used to initialize api in client components
-export function getQueryClient(config?: QueryClientConfig) {
-  return new QueryClient(
-    config || {
-      defaultOptions: {
-        queries: {
-          retry: 1,
-          refetchOnWindowFocus: false,
-          staleTime: 5 * 60 * 1000, // 5 minutes
-        },
+/**
+ * Crée et configure un client de requêtes
+ */
+export function getQueryClient() {
+  return new QueryClient({
+    defaultOptions: {
+      queries: {
+        refetchOnWindowFocus: false,
+        staleTime: 5 * 60 * 1000, // 5 minutes
       },
-    }
-  );
-}
-
-// This function can be used to initialize api in client components
-export function getLinks() {
-  return [
-    httpBatchLink({
-      url: '/api/trpc',
-      transformer: superjson,
-    }),
-  ];
-}
+    },
+  });
+} 

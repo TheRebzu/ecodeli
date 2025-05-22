@@ -20,6 +20,11 @@
 # production
 /build
 
+# TODO file
+TODO.md
+prisma/seed-users.*
+TODO.txt
+
 # misc
 .DS_Store
 *.pem
@@ -39,3 +44,7 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+public/uploads/
+.github/instructions/rules.instructions.md
+.cursor
+TODO.md

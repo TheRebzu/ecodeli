@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { router, protectedProcedure, publicProcedure } from '../trpc';
-import { serviceService } from '../../services/service.service';
+import { router, protectedProcedure, publicProcedure } from '@/server/api/trpc';
+import { serviceService } from '@/server/services/service.service';
 import {
   createAvailabilitySchema,
   createBookingSchema,
@@ -11,7 +11,7 @@ import {
   updateBookingSchema,
   updateServiceCategorySchema,
   updateServiceSchema,
-} from '../../../schemas/service.schema';
+} from '@/schemas/service.schema';
 import { TRPCError } from '@trpc/server';
 
 export const serviceRouter = router({
