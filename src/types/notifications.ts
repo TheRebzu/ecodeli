@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 import { Notification as _PrismaNotification, UserRole as _UserRole, AnnouncementStatus as _AnnouncementStatus } from '@prisma/client';
+=======
+import { Notification as PrismaNotification, UserRole, AnnouncementStatus } from '@prisma/client';
+>>>>>>> amine
 
 // Type pour les types de notifications
 export enum NotificationType {

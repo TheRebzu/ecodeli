@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useToast } from '@/components/ui/use-toast';
-import { api } from './use-trpc';
+import { api } from '@/hooks/use-trpc';
 import { DocumentType } from '@prisma/client';
 
 type FileWithPreview = {
@@ -23,10 +23,10 @@ export function useDocumentUpload() {
 
   // Utiliser la mutation TRPC
   const utils = api.useContext();
-  const uploadDocument = api.auth.uploadDocument.useMutation({
+  const uploadDocument = api.document.uploadDocument.useMutation({
     onSuccess: () => {
       // Invalider la requête pour mettre à jour la liste des documents
-      utils.auth.getUserDocuments.invalidate();
+      utils.document.getUserDocuments.invalidate();
     },
   });
 
@@ -80,38 +80,47 @@ export function useDocumentUpload() {
     });
   };
 
-  // Télécharger un fichier via l'API fetch pour gérer FormData
-  const uploadFile = async (file: File, type: DocumentType, expiryDate?: Date) => {
+  // Fonction utilitaire pour convertir un fichier en base64
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        if (typeof reader.result === 'string') {
+          resolve(reader.result);
+        } else {
+          reject(new Error('Failed to convert file to base64'));
+        }
+      };
+      reader.onerror = error => reject(error);
+    });
+  };
+
+  // Télécharger un fichier via tRPC
+  const uploadFile = async (
+    file: File,
+    type: DocumentType,
+    notes: string = '',
+    expiryDate?: Date
+  ) => {
     setIsUploading(true);
     setProgress(0);
     setError(null);
 
     try {
-      // Création d'un FormData pour l'upload
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('type', type);
-      if (expiryDate) {
-        formData.append('expiryDate', expiryDate.toISOString());
-      }
+      // Convertir le fichier en base64
+      const base64File = await fileToBase64(file);
 
-      // Utiliser le point d'API pour l'upload
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
-      });
+      // Progression à 50% après lecture du fichier
+      setProgress(50);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Erreur lors de l'upload du document");
-      }
+      console.log('Type of file being sent:', typeof base64File);
 
-      const data = await response.json();
-
-      // Maintenant, enregistrer le document via tRPC avec l'URL du fichier
-      await uploadDocument.mutateAsync({
+      // Envoi via la mutation TRPC
+      const result = await uploadDocument.mutateAsync({
         type,
-        file: data.fileUrl, // L'URL du fichier téléchargé
+        file: base64File, // Envoyer la chaîne base64
+        notes,
         expiryDate,
       });
 
@@ -121,7 +130,7 @@ export function useDocumentUpload() {
         description: 'Votre document a été téléchargé avec succès.',
       });
 
-      return data;
+      return result;
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Erreur lors de l'upload du document";

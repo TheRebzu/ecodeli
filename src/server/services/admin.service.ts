@@ -3,7 +3,8 @@ import { PrismaClient, UserRole, UserStatus, Prisma } from '@prisma/client';
 import { db } from '../db';
 import { sendEmailNotification } from '@/lib/email';
 import { getUserPreferredLocale } from '@/lib/user-locale';
-import { UserFilters, ActivityType } from '@/types/admin/admin';
+import { UserFilters, ActivityType } from '@/types/admin';
+import bcrypt from 'bcrypt';
 
 /**
  * Options de tri pour les utilisateurs
@@ -248,13 +249,13 @@ export class AdminService {
                 select: {
                   id: true,
                   type: true,
-                  status: true,
-                  createdAt: true,
-                  updatedAt: true,
+                  verificationStatus: true,
+                  uploadedAt: true,
                   fileUrl: true,
+                  notes: true,
                 },
                 orderBy: {
-                  createdAt: 'desc',
+                  uploadedAt: 'desc',
                 },
               }
             : false,
@@ -263,7 +264,7 @@ export class AdminService {
                 select: {
                   id: true,
                   status: true,
-                  timestamp: true,
+                  createdAt: true,
                   reason: true,
                   verifiedBy: {
                     select: {
@@ -273,7 +274,7 @@ export class AdminService {
                   },
                 },
                 orderBy: {
-                  timestamp: 'desc',
+                  createdAt: 'desc',
                 },
               }
             : false,
@@ -302,7 +303,34 @@ export class AdminService {
         });
       }
 
-      return user;
+      // Create a properly typed result object with documents field
+      const result = {
+        ...user,
+        documents: [] as any[],
+      };
+
+      // Transform documents to handle SELFIE documents stored as OTHER
+      if ('documents' in user && Array.isArray(user.documents)) {
+        result.documents = user.documents.map(doc => {
+          // Determine if this is a SELFIE document based on notes field
+          const isSelfie =
+            doc.type === 'OTHER' &&
+            (doc.notes === 'SELFIE' ||
+              (typeof doc.notes === 'string' && doc.notes.toLowerCase().includes('selfie')));
+
+          return {
+            ...doc,
+            // Map uploadedAt to createdAt for frontend compatibility
+            createdAt: doc.uploadedAt,
+            // Map verificationStatus to status for frontend compatibility
+            status: doc.verificationStatus,
+            // If document is OTHER type but has selfie in notes, correct the type for frontend
+            type: isSelfie ? 'SELFIE' : doc.type,
+          };
+        });
+      }
+
+      return result;
     } catch (error) {
       if (error instanceof TRPCError) throw error;
 
@@ -781,6 +809,536 @@ export class AdminService {
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Error exporting users',
       });
+    }
+  }
+
+  /**
+   * Récupère les statistiques des utilisateurs pour le tableau de bord
+   */
+  async getUserStats() {
+    try {
+      const now = new Date();
+      const today = new Date(now.setHours(0, 0, 0, 0));
+      const oneWeekAgo = new Date(today);
+      oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+      const oneMonthAgo = new Date(today);
+      oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+
+      // Récupération des statistiques de base
+      const [
+        totalUsers,
+        activeUsers,
+        newUsersToday,
+        newUsersThisWeek,
+        newUsersThisMonth,
+        usersByRole,
+        usersByStatus,
+        verifiedUsers,
+      ] = await Promise.all([
+        this.prisma.user.count(),
+        this.prisma.user.count({ where: { status: 'ACTIVE' } }),
+        this.prisma.user.count({ where: { createdAt: { gte: today } } }),
+        this.prisma.user.count({ where: { createdAt: { gte: oneWeekAgo } } }),
+        this.prisma.user.count({ where: { createdAt: { gte: oneMonthAgo } } }),
+        this.prisma.user.groupBy({ by: ['role'], _count: true }),
+        this.prisma.user.groupBy({ by: ['status'], _count: true }),
+        this.prisma.user.count({ where: { isVerified: true } }),
+      ]);
+
+      // Transformation des données
+      const roleStats = {};
+      usersByRole.forEach(stat => {
+        roleStats[stat.role] = stat._count;
+      });
+
+      const statusStats = {};
+      usersByStatus.forEach(stat => {
+        statusStats[stat.status] = stat._count;
+      });
+
+      // Remplacer par un tableau vide ou utiliser un autre champ comme providerCity
+      const countriesStats = [
+        { country: 'France', count: 0 },
+        { country: 'Belgium', count: 0 },
+        { country: 'Switzerland', count: 0 },
+      ];
+
+      // Récupération des inscriptions dans le temps (derniers 6 mois)
+      const sixMonthsAgo = new Date(today);
+      sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6);
+
+      const registrationsOverTime = await this.prisma.$queryRaw`
+        SELECT 
+          DATE_TRUNC('month', "createdAt") as month,
+          COUNT(*) as count
+        FROM "users"
+        WHERE "createdAt" >= ${sixMonthsAgo}
+        GROUP BY DATE_TRUNC('month', "createdAt")
+        ORDER BY month
+      `;
+
+      return {
+        totalUsers,
+        activeUsers,
+        newUsersToday,
+        newUsersThisWeek,
+        newUsersThisMonth,
+        usersByRole: roleStats,
+        usersByStatus: statusStats,
+        usersByVerification: {
+          verified: verifiedUsers,
+          unverified: totalUsers - verifiedUsers,
+        },
+        topCountries: countriesStats,
+        registrationsOverTime: registrationsOverTime ? registrationsOverTime.map((row: any) => ({
+          date: row.month.toISOString().split('T')[0],
+          count: Number(row.count),
+        })) : [],
+      };
+    } catch (error) {
+      console.error('Error retrieving user statistics:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Error retrieving user statistics',
+      });
+    }
+  }
+
+  /**
+   * Force la réinitialisation du mot de passe d'un utilisateur
+   */
+  async forcePasswordReset(
+    userId: string,
+    options: {
+      reason?: string;
+      notifyUser?: boolean;
+      expireExistingTokens?: boolean;
+      performedById: string;
+    }
+  ) {
+    try {
+      const { reason, notifyUser = true, expireExistingTokens = true, performedById } = options;
+
+      // Vérifier si l'utilisateur existe
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, email: true, name: true, status: true, role: true },
+      });
+
+      if (!user) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Utilisateur non trouvé',
+        });
+      }
+
+      // Générer un token de réinitialisation
+      const token = crypto.randomBytes(32).toString('hex');
+      const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 heures
+
+      // Supprimer tous les tokens existants si nécessaire
+      if (expireExistingTokens) {
+        await this.prisma.passwordResetToken.deleteMany({
+          where: { userId },
+        });
+      }
+
+      // Créer un nouveau token
+      await this.prisma.passwordResetToken.create({
+        data: {
+          userId,
+          token,
+          expires,
+          forced: true,
+          forcedByUserId: performedById,
+          reason,
+        },
+      });
+
+      // Générer un lien de réinitialisation
+      const resetLink = `${process.env.NEXT_PUBLIC_APP_URL}/reset-password?token=${token}`;
+
+      // Notifier l'utilisateur si demandé
+      if (notifyUser) {
+        const locale = (await getUserPreferredLocale(userId)) || 'fr';
+
+        await sendEmailNotification({
+          to: user.email,
+          subject:
+            locale === 'fr' ? 'Réinitialisation de votre mot de passe' : 'Password Reset Required',
+          template: 'admin-force-password-reset',
+          data: {
+            name: user.name,
+            resetLink,
+            reason:
+              reason || (locale === 'fr' ? "Demande de l'administrateur" : 'Administrator request'),
+            expiresIn: '24 heures',
+            locale,
+          },
+        });
+      }
+
+      // Ajouter une entrée dans le journal d'activité
+      await this.prisma.userActivityLog.create({
+        data: {
+          userId,
+          activityType: 'PASSWORD_RESET_REQUEST',
+          details: `Réinitialisation forcée par un administrateur${reason ? `: ${reason}` : ''}`,
+          performedById,
+        },
+      });
+
+      return { success: true, message: 'Réinitialisation du mot de passe initiée' };
+    } catch (error) {
+      console.error('Error forcing password reset:', error);
+      if (error instanceof TRPCError) throw error;
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la réinitialisation du mot de passe',
+      });
+    }
+  }
+
+  /**
+   * Effectue des actions en masse sur plusieurs utilisateurs
+   */
+  async bulkUserAction(options: {
+    userIds: string[];
+    action: string;
+    reason?: string;
+    notifyUsers?: boolean;
+    additionalData?: Record<string, any>;
+    performedById: string;
+  }) {
+    try {
+      const {
+        userIds,
+        action,
+        reason,
+        notifyUsers = true,
+        additionalData,
+        performedById,
+      } = options;
+
+      if (!userIds.length) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Aucun utilisateur sélectionné pour cette action',
+        });
+      }
+
+      // Vérifier que tous les utilisateurs existent
+      const users = await this.prisma.user.findMany({
+        where: { id: { in: userIds } },
+        select: { id: true, email: true, name: true, status: true, role: true },
+      });
+
+      if (users.length !== userIds.length) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: "Certains utilisateurs n'existent pas",
+        });
+      }
+
+      let results = [];
+
+      switch (action) {
+        case 'ACTIVATE':
+          results = await Promise.all(
+            users.map(user =>
+              this.updateUserStatus(user.id, 'ACTIVE', {
+                reason,
+                notifyUser: notifyUsers,
+                performedById,
+              })
+            )
+          );
+          break;
+
+        case 'DEACTIVATE':
+          results = await Promise.all(
+            users.map(user =>
+              this.updateUserStatus(user.id, 'INACTIVE', {
+                reason,
+                notifyUser: notifyUsers,
+                performedById,
+              })
+            )
+          );
+          break;
+
+        case 'SUSPEND':
+          results = await Promise.all(
+            users.map(user =>
+              this.updateUserStatus(user.id, 'SUSPENDED', {
+                reason,
+                notifyUser: notifyUsers,
+                performedById,
+                expiresAt: additionalData?.expiresAt,
+              })
+            )
+          );
+          break;
+
+        case 'FORCE_PASSWORD_RESET':
+          results = await Promise.all(
+            users.map(user =>
+              this.forcePasswordReset(user.id, {
+                reason,
+                notifyUser: notifyUsers,
+                expireExistingTokens: true,
+                performedById,
+              })
+            )
+          );
+          break;
+
+        case 'SEND_VERIFICATION_EMAIL':
+          // Implémentation de l'envoi en masse d'emails de vérification
+          // ...
+          break;
+
+        case 'DELETE':
+          results = await Promise.all(
+            users.map(user => this.softDeleteUser(user.id, reason, performedById))
+          );
+          break;
+
+        case 'ADD_TAG':
+          if (!additionalData?.tag) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'Tag non spécifié pour cette action',
+            });
+          }
+
+          results = await Promise.all(
+            users.map(user => this.addUserTag(user.id, additionalData.tag, performedById))
+          );
+          break;
+
+        default:
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Action non prise en charge',
+          });
+      }
+
+      return {
+        success: true,
+        processed: users.length,
+        results,
+      };
+    } catch (error) {
+      console.error('Error performing bulk user action:', error);
+      if (error instanceof TRPCError) throw error;
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: "Erreur lors de l'exécution de l'action en masse",
+      });
+    }
+  }
+
+  /**
+   * Ajoute un tag à un utilisateur
+   */
+  private async addUserTag(userId: string, tag: string, performedById: string) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, tags: true },
+      });
+
+      if (!user) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Utilisateur non trouvé',
+        });
+      }
+
+      // Ajouter le tag s'il n'existe pas déjà
+      const currentTags = user.tags || [];
+      if (!currentTags.includes(tag)) {
+        await this.prisma.user.update({
+          where: { id: userId },
+          data: { tags: [...currentTags, tag] },
+        });
+
+        // Ajouter une entrée dans le journal d'activité
+        await this.prisma.userActivityLog.create({
+          data: {
+            userId,
+            activityType: 'OTHER',
+            details: `Tag ajouté: ${tag}`,
+            performedById,
+          },
+        });
+      }
+
+      return { success: true, userId, tag };
+    } catch (error) {
+      console.error('Error adding user tag:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: "Erreur lors de l'ajout du tag",
+      });
+    }
+  }
+
+  /**
+   * Soft delete d'un utilisateur (marque comme supprimé sans effacer les données)
+   */
+  private async softDeleteUser(userId: string, reason: string | undefined, performedById: string) {
+    try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, email: true, name: true },
+      });
+
+      if (!user) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Utilisateur non trouvé',
+        });
+      }
+
+      // Marquer l'utilisateur comme supprimé
+      await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          status: 'INACTIVE',
+          isDeleted: true,
+          deletedAt: new Date(),
+          deletedByUserId: performedById,
+          deletionReason: reason,
+          // Anonymiser les données sensibles
+          email: `deleted_${userId}@deleted.com`,
+          name: 'Utilisateur supprimé',
+          phoneNumber: null,
+          // Révoquer les sessions
+          sessions: {
+            deleteMany: {},
+          },
+        },
+      });
+
+      // Ajouter une entrée dans le journal d'activité
+      await this.prisma.userActivityLog.create({
+        data: {
+          userId,
+          activityType: 'OTHER',
+          details: `Compte supprimé${reason ? `: ${reason}` : ''}`,
+          performedById,
+        },
+      });
+
+      return { success: true, userId };
+    } catch (error) {
+      console.error('Error soft-deleting user:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: "Erreur lors de la suppression de l'utilisateur",
+      });
+    }
+  }
+
+  /**
+   * Suppression définitive d'un utilisateur (hard delete)
+   */
+  async permanentlyDeleteUser(
+    userId: string,
+    options: {
+      reason: string;
+      performedById: string;
+    }
+  ) {
+    try {
+      const { reason, performedById } = options;
+
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          role: true,
+          documents: { select: { id: true } },
+        },
+      });
+
+      if (!user) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Utilisateur non trouvé',
+        });
+      }
+
+      // Enregistrer les informations de base dans les logs d'activité
+      await this.prisma.userActivityLog.create({
+        data: {
+          userId,
+          activityType: 'OTHER',
+          details: `Suppression définitive du compte - Raison: ${reason} - Effectuée par: ${performedById}`,
+          ipAddress: 'admin-action',
+        },
+      });
+
+      // Supprimer les documents associés
+      if (user.documents.length > 0) {
+        await this.prisma.document.deleteMany({
+          where: { userId },
+        });
+      }
+
+      // Supprimer le wallet associé à l'utilisateur (résout l'erreur de clé étrangère)
+      await this.prisma.wallet.deleteMany({
+        where: { userId },
+      });
+
+      // Supprimer toutes les transactions du wallet associées à l'utilisateur
+      await this.prisma.walletTransaction.deleteMany({
+        where: { wallet: { userId } },
+      });
+
+      // Supprimer les demandes de retrait associées
+      await this.prisma.withdrawalRequest.deleteMany({
+        where: { wallet: { userId } },
+      });
+
+      // Supprimer l'utilisateur et toutes ses données associées en cascade
+      await this.prisma.user.delete({
+        where: { id: userId },
+      });
+
+      return { success: true, message: 'Utilisateur définitivement supprimé' };
+    } catch (error) {
+      console.error('Error permanently deleting user:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: "Erreur lors de la suppression définitive de l'utilisateur",
+      });
+    }
+  }
+
+  /**
+   * Vérifie le mot de passe d'un administrateur
+   */
+  async verifyAdminPassword(adminId: string, password: string): Promise<boolean> {
+    try {
+      const admin = await this.prisma.user.findUnique({
+        where: { id: adminId, role: 'ADMIN' },
+        select: { id: true, password: true },
+      });
+
+      if (!admin || !admin.password) {
+        return false;
+      }
+
+      // Vérifier le mot de passe en utilisant bcrypt
+      return bcrypt.compare(password, admin.password);
+    } catch (error) {
+      console.error('Error verifying admin password:', error);
+      return false;
     }
   }
 }

@@ -49,7 +49,11 @@ interface TodoFormProps {
 }
 
 export function TodoForm({ onSubmit, onCancel }: TodoFormProps) {
+<<<<<<< HEAD
   const [_date, _setDate] = useState<Date | undefined>(undefined);
+=======
+  const [date, setDate] = useState<Date | undefined>(undefined);
+>>>>>>> amine
 
   const form = useForm<TodoFormValues>({
     resolver: zodResolver(todoFormSchema),

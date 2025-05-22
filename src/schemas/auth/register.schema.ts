@@ -72,4 +72,4 @@ export const adminCreateUserSchema = z
 export type AdminCreateUserSchemaType = z.infer<typeof adminCreateUserSchema>;
 
 // Schéma pour l'adresse
-export const addressSchema = z.object(addressFields);
+export const addressSchema = z.object(addressFields); 

@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DeliveryStats } from '@/types/admin/dashboard';
+import { DeliveryStats } from '@/types/dashboard';
 import { TruckIcon, ClockIcon, XCircleIcon } from 'lucide-react';
 
 interface DeliveryStatsCardProps {

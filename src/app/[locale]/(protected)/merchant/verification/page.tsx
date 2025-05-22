@@ -7,7 +7,10 @@ import { MerchantVerificationForm } from '@/components/verification/merchant-ver
 import { VerificationStatus } from '@/types/verification';
 import { VerificationStatusBanner } from '@/components/verification/verification-status-banner';
 import { db } from '@/server/db';
+<<<<<<< HEAD
 import { DocumentType } from '@prisma/client';
+=======
+>>>>>>> amine
 
 export async function generateMetadata({
   params: { locale },
@@ -52,6 +55,7 @@ export default async function MerchantVerificationPage({
   }
   
   // Récupérer le statut de vérification actuel
+<<<<<<< HEAD
   // Recherche des documents liés au MERCHANT via la relation avec Document
   const merchantDocument = await db.document.findFirst({
     where: {
@@ -70,6 +74,19 @@ export default async function MerchantVerificationPage({
   
   const verificationStatus = merchantDocument?.verifications[0]?.status || null;
   const merchantVerification = merchantDocument?.verifications[0] || null;
+=======
+  const merchantVerification = await db.verification.findFirst({
+    where: {
+      submitterId: userId,
+      type: 'MERCHANT'
+    },
+    orderBy: {
+      createdAt: 'desc',
+    },
+  });
+  
+  const verificationStatus = merchantVerification?.status || null;
+>>>>>>> amine
   
   // Traduire les textes
   const t = await getTranslations({ locale, namespace: 'verification' });

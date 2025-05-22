@@ -144,7 +144,11 @@ export const providerVerificationSubmitSchema = z.object({
 export type ProviderVerificationSubmitInput = z.infer<typeof providerVerificationSubmitSchema>;
 
 // Type pour le contexte du schéma de traitement de vérification
+<<<<<<< HEAD
 type _VerificationProcessContext = {
+=======
+type VerificationProcessContext = {
+>>>>>>> amine
   status: VerificationStatus;
 };
 

@@ -36,4 +36,4 @@ export const merchantRegisterSchema = z
     path: ['confirmPassword'],
   });
 
-export type MerchantRegisterSchemaType = z.infer<typeof merchantRegisterSchema>;
+export type MerchantRegisterSchemaType = z.infer<typeof merchantRegisterSchema>; 

@@ -47,4 +47,4 @@ export const providerRegisterSchema = z
     path: ['confirmPassword'],
   });
 
-export type ProviderRegisterSchemaType = z.infer<typeof providerRegisterSchema>;
+export type ProviderRegisterSchemaType = z.infer<typeof providerRegisterSchema>; 

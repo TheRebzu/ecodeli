@@ -1,5 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TransactionStats } from '@/types/admin/dashboard';
+import { TransactionStats } from '@/types/dashboard';
 import {
   CreditCardIcon,
   TrendingUpIcon,
