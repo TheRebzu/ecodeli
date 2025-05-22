@@ -25,9 +25,9 @@ export const createAdminSchema = z.object({
     ),
   permissions: z
     .array(z.string())
-    .min(1, 'Au moins une permission doit être assignée')
+    .min(1, 'Au moins une  permission doit être assignée')
     .default(['USER_MANAGEMENT']),
   department: z.string().optional(),
 });
 
-export type CreateAdminSchemaType = z.infer<typeof createAdminSchema  >;
+export type CreateAdminSchemaType = z.infer<typeof createAdminSchema>;
