@@ -56,22 +56,22 @@ export default async function MerchantVerificationPage({
   
   // Récupérer le statut de vérification actuel
 <<<<<<< HEAD
+<<<<<<< HEAD
   // Recherche des documents liés au MERCHANT via la relation avec Document
   const merchantDocument = await db.document.findFirst({
+=======
+  const merchantVerification = await db.verification.findFirst({
+>>>>>>> 39899a500fab5a80507b97804da7f3197dfdc4cb
     where: {
-      userId: userId,
-      type: DocumentType.BUSINESS_REGISTRATION, // Type d'un document commercial
+      submitterId: userId,
+      type: 'MERCHANT'
     },
-    include: {
-      verifications: {
-        orderBy: {
-          requestedAt: 'desc', // Tri par date de demande
-        },
-        take: 1,
-      },
+    orderBy: {
+      createdAt: 'desc',
     },
   });
   
+<<<<<<< HEAD
   const verificationStatus = merchantDocument?.verifications[0]?.status || null;
   const merchantVerification = merchantDocument?.verifications[0] || null;
 =======
@@ -87,6 +87,10 @@ export default async function MerchantVerificationPage({
   
   const verificationStatus = merchantVerification?.status || null;
 >>>>>>> amine
+=======
+  const verificationStatus = merchantVerification?.status || null;
+
+>>>>>>> 39899a500fab5a80507b97804da7f3197dfdc4cb
   
   // Traduire les textes
   const t = await getTranslations({ locale, namespace: 'verification' });

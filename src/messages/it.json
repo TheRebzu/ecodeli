@@ -532,9 +532,6 @@
     "noCode": {
       "title": "[TO_TRANSLATE] title",
       "description": "[TO_TRANSLATE] description"
-<<<<<<< HEAD
-    }
-=======
     },
     "provider": {
       "formTitle": "[TO_TRANSLATE] Vérification du compte prestataire",
@@ -565,7 +562,7 @@
     "documentsInVerification": "[TO_TRANSLATE] documentsInVerification",
     "processingVerification": "[TO_TRANSLATE] processingVerification",
     "viewDocuments": "[TO_TRANSLATE] viewDocuments"
->>>>>>> amine
+
   },
   "status": {
     "pending": "[TO_TRANSLATE] pending",
@@ -640,12 +637,9 @@
       "tab": "[TO_TRANSLATE] tab",
       "title": "[TO_TRANSLATE] title",
       "description": "[TO_TRANSLATE] description",
-<<<<<<< HEAD
-      "uploadLabel": "[TO_TRANSLATE] uploadLabel"
-=======
       "uploadLabel": "[TO_TRANSLATE] uploadLabel",
       "label": "[TO_TRANSLATE] label"
->>>>>>> amine
+
     },
     "selfie": {
       "tab": "[TO_TRANSLATE] tab",
@@ -723,8 +717,6 @@
       "processing": "[TO_TRANSLATE] processing",
       "reject": "[TO_TRANSLATE] reject",
       "approve": "[TO_TRANSLATE] approve"
-<<<<<<< HEAD
-=======
     },
     "professionalQualification": {
       "label": "[TO_TRANSLATE] label",
@@ -745,7 +737,6 @@
     "taxCertificate": {
       "label": "[TO_TRANSLATE] label",
       "description": "[TO_TRANSLATE] description"
->>>>>>> amine
     }
   },
   "extend": {
@@ -967,15 +958,11 @@
     "tariffs": "[TO_TRANSLATE] tariffs",
     "terms": "[TO_TRANSLATE] terms",
     "notes": "[TO_TRANSLATE] notes",
-<<<<<<< HEAD
-    "verification": "[TO_TRANSLATE] verification"
-=======
     "verification": "[TO_TRANSLATE] verification",
     "clients": "[TO_TRANSLATE] clients",
     "deliverers": "[TO_TRANSLATE] deliverers",
     "merchants": "[TO_TRANSLATE] merchants",
     "providers": "[TO_TRANSLATE] providers"
->>>>>>> amine
   },
   "faq": {
     "title1": "[TO_TRANSLATE] title1",
@@ -2152,12 +2139,8 @@
     "cannotEditDescription": "[TO_TRANSLATE] cannotEditDescription",
     "backToDetails": "[TO_TRANSLATE] backToDetails",
     "announcementUpdatedDescription": "[TO_TRANSLATE] announcementUpdatedDescription",
-<<<<<<< HEAD
-    "editAnnouncementInstructions": "[TO_TRANSLATE] editAnnouncementInstructions"
-=======
     "editAnnouncementInstructions": "[TO_TRANSLATE] editAnnouncementInstructions",
     "price": "[TO_TRANSLATE] price"
->>>>>>> amine
   },
   "leaflet": "[TO_TRANSLATE] leaflet",
   "emptyState": {
@@ -2290,9 +2273,6 @@
     "completeDelivery": "[TO_TRANSLATE] completeDelivery",
     "reportIssue": "[TO_TRANSLATE] reportIssue",
     "navigate": "[TO_TRANSLATE] navigate",
-<<<<<<< HEAD
-    "contact": "[TO_TRANSLATE] contact"
-=======
     "contact": "[TO_TRANSLATE] contact",
     "viewDocuments": "[TO_TRANSLATE] viewDocuments",
     "approve": "[TO_TRANSLATE] approve",
@@ -2307,7 +2287,7 @@
       "description": "[TO_TRANSLATE] description",
       "label": "[TO_TRANSLATE] label"
     }
->>>>>>> amine
+
   },
   "maps": {
     "pickupAddress": "[TO_TRANSLATE] pickupAddress",
@@ -2391,15 +2371,11 @@
       "selectRole": "[TO_TRANSLATE] selectRole",
       "roleDescription": "[TO_TRANSLATE] roleDescription",
       "submitting": "[TO_TRANSLATE] submitting",
-<<<<<<< HEAD
-      "register": "[TO_TRANSLATE] register"
-    }
-=======
       "register": "[TO_TRANSLATE] register",
       "verificationNotice": "[TO_TRANSLATE] verificationNotice"
     },
     "T": "[TO_TRANSLATE] T"
->>>>>>> amine
+
   },
   "roles": {
     "client": "[TO_TRANSLATE] client",
@@ -2746,9 +2722,6 @@
         "confirm": "[TO_TRANSLATE] confirm"
       },
       "title": "[TO_TRANSLATE] title",
-<<<<<<< HEAD
-      "subtitle": "[TO_TRANSLATE] subtitle"
-=======
       "subtitle": "[TO_TRANSLATE] subtitle",
       "activationStatus": {
         "successActivate": "[TO_TRANSLATE] successActivate",
@@ -2757,7 +2730,7 @@
         "successDeactivateDescription": "[TO_TRANSLATE] successDeactivateDescription",
         "error": "[TO_TRANSLATE] error"
       }
->>>>>>> amine
+
     },
     "reports": {
       "a": "[TO_TRANSLATE] a",
@@ -3331,14 +3304,11 @@
     "edit": "[TO_TRANSLATE] edit",
     "publish": "[TO_TRANSLATE] publish",
     "deactivate": "[TO_TRANSLATE] deactivate",
-<<<<<<< HEAD
-    "activate": "[TO_TRANSLATE] activate"
-=======
     "activate": "[TO_TRANSLATE] activate",
     "documents": "[TO_TRANSLATE] documents",
     "created": "[TO_TRANSLATE] created",
     "lastActive": "[TO_TRANSLATE] lastActive"
->>>>>>> amine
+
   },
   "pending": {
     "empty": {
@@ -3349,8 +3319,6 @@
   "Admin": {
     "Verification": {
       "loading": "[TO_TRANSLATE] loading"
-<<<<<<< HEAD
-=======
     },
     "verification": {
       "loading": "[TO_TRANSLATE] Chargement...",
@@ -3403,7 +3371,6 @@
         "newToday": "[TO_TRANSLATE] newToday",
         "pendingVerification": "[TO_TRANSLATE] pendingVerification"
       }
->>>>>>> amine
     }
   },
   "uploaded_by": "[TO_TRANSLATE] uploaded_by",
@@ -3461,9 +3428,6 @@
     "licensePlate": "[TO_TRANSLATE] licensePlate",
     "password": "[TO_TRANSLATE] password",
     "confirmPassword": "[TO_TRANSLATE] confirmPassword",
-<<<<<<< HEAD
-    "phoneNumber": "[TO_TRANSLATE] phoneNumber"
-=======
     "phoneNumber": "[TO_TRANSLATE] phoneNumber",
     "companyName": "[TO_TRANSLATE] companyName",
     "serviceType": "[TO_TRANSLATE] serviceType",
@@ -3474,7 +3438,7 @@
     "businessType": "[TO_TRANSLATE] businessType",
     "vatNumber": "[TO_TRANSLATE] vatNumber",
     "businessAddress": "[TO_TRANSLATE] businessAddress"
->>>>>>> amine
+
   },
   "notificationTypes": {
     "info": "[TO_TRANSLATE] info",
@@ -3729,12 +3693,9 @@
     "pageTitle": "[TO_TRANSLATE] pageTitle",
     "pageDescription": "[TO_TRANSLATE] pageDescription",
     "title": "[TO_TRANSLATE] title",
-<<<<<<< HEAD
-    "instructions": "[TO_TRANSLATE] instructions"
-=======
     "instructions": "[TO_TRANSLATE] instructions",
     "description": "[TO_TRANSLATE] description"
->>>>>>> amine
+
   },
   "noAnnouncements": {
     "title": "[TO_TRANSLATE] title",
@@ -3782,9 +3743,6 @@
     "password": "[TO_TRANSLATE] password",
     "confirmPassword": "[TO_TRANSLATE] confirmPassword",
     "phoneNumber": "[TO_TRANSLATE] phoneNumber",
-<<<<<<< HEAD
-    "newsletter": "[TO_TRANSLATE] newsletter"
-=======
     "newsletter": "[TO_TRANSLATE] newsletter",
     "companyName": "[TO_TRANSLATE] companyName",
     "serviceType": "[TO_TRANSLATE] serviceType",
@@ -3795,7 +3753,7 @@
     "businessType": "[TO_TRANSLATE] businessType",
     "vatNumber": "[TO_TRANSLATE] vatNumber",
     "businessAddress": "[TO_TRANSLATE] businessAddress"
->>>>>>> amine
+
   },
   "vehicleTypes": {
     "bicycle": "[TO_TRANSLATE] bicycle",
@@ -4152,12 +4110,9 @@
     "pageTitle": "[TO_TRANSLATE] pageTitle",
     "pageDescription": "[TO_TRANSLATE] pageDescription",
     "title": "[TO_TRANSLATE] title",
-<<<<<<< HEAD
-    "instructions": "[TO_TRANSLATE] instructions"
-=======
     "instructions": "[TO_TRANSLATE] instructions",
     "description": "[TO_TRANSLATE] description"
->>>>>>> amine
+
   },
   "back": "[TO_TRANSLATE] back",
   "comingSoon": "[TO_TRANSLATE] comingSoon",
@@ -4217,8 +4172,6 @@
   "userVerification": {
     "title": "[TO_TRANSLATE] title",
     "description": "[TO_TRANSLATE] description"
-<<<<<<< HEAD
-=======
   },
   "auto_check": "[TO_TRANSLATE] auto_check",
   "track_delivery": "[TO_TRANSLATE] track_delivery",
@@ -4292,6 +4245,5 @@
       "title": "[TO_TRANSLATE] title",
       "description": "[TO_TRANSLATE] description"
     }
->>>>>>> amine
   }
 }

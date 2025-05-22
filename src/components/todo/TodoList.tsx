@@ -3,10 +3,7 @@ import { useTranslations } from 'next-intl';
 import { TodoItem } from './TodoItem';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-<<<<<<< HEAD
-=======
 import { cn } from '@/lib/utils';
->>>>>>> amine
 
 export interface Todo {
   id: string;
