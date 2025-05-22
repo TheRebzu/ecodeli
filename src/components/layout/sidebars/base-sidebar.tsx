@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import Image from 'next/image';
 import { LogOut, Bell, ChevronLeft } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
@@ -240,10 +241,12 @@ export function BaseSidebar({
             <div className={cn('flex items-center gap-3 mb-4', collapsed && 'flex-col')}>
               <div className="h-10 w-10 rounded-full bg-muted flex items-center justify-center overflow-hidden">
                 {userInfo.avatar ? (
-                  <img
+                  <Image
                     src={userInfo.avatar}
                     alt={userInfo.name}
                     className="h-full w-full object-cover"
+                    width={40}
+                    height={40}
                   />
                 ) : (
                   <span className="font-medium text-sm">

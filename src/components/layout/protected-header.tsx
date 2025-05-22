@@ -25,9 +25,9 @@ export function ProtectedHeader({
   notificationCount = 3,
   messageCount = 2,
 }: ProtectedHeaderProps) {
-  const [searchValue, setSearchValue] = useState('');
+  const [_searchValue, _setSearchValue] = useState('');
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user: _user, logout: _logout } = useAuth();
 
   // Détermine le rôle actuel à partir du pathname
   const getRoleFromPath = () => {

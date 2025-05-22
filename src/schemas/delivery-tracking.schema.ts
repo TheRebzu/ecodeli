@@ -1,6 +1,4 @@
 import { z } from 'zod';
-import { DeliveryStatus } from '@prisma/client';
-import { AnnouncementStatusEnum } from './announcement.schema';
 
 // Schéma pour les coordonnées géographiques
 export const geoCoordinatesSchema = z.object({

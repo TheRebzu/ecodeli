@@ -33,17 +33,17 @@ export type AnnouncementType = z.infer<typeof AnnouncementTypeEnum>;
 export type AnnouncementPriority = z.infer<typeof AnnouncementPriorityEnum>;
 
 // Validation des coordonnées GPS
-const gpsCoordinateSchema = z.number().min(-180).max(180);
+const _gpsCoordinateSchema = z.number().min(-180).max(180);
 
 // Validation de la date (pas de dates passées)
-const futureDateSchema = z
+const _futureDateSchema = z
   .date()
   .refine(date => date >= new Date(new Date().setHours(0, 0, 0, 0)), {
     message: "La date doit être dans le futur ou aujourd'hui",
   });
 
 // Schéma pour les photos
-const photoSchema = z.string().url('URL de photo invalide');
+const _photoSchema = z.string().url('URL de photo invalide');
 
 // Schéma de base pour une annonce
 const announcementBaseSchema = z.object({

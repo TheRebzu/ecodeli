@@ -4,8 +4,6 @@ import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { Home, Package, ShoppingBag, MessageSquare, User } from 'lucide-react';
-import { ModeToggle } from '@/components/ui/mode-toggle';
-import { LanguageSwitcher } from '@/components/ui/language-switcher';
 
 interface NavItem {
   label: string;

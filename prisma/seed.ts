@@ -26,6 +26,7 @@ import {
   InvoiceStatus,
   FinancialTaskPriority,
   FinancialTaskCategory,
+  User,
 } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 import * as speakeasy from 'speakeasy';
@@ -161,7 +162,7 @@ async function createAdminUsers() {
       continue;
     }
 
-    const user = await prisma.user.create({
+    const user: { id: string } = await prisma.user.create({
       data: {
         name: profile.name,
         email: profile.email,
@@ -236,7 +237,7 @@ async function createClientUsers() {
         password: hashedPassword,
         role: UserRole.CLIENT,
         status: profile.status,
-        emailVerified: profile.status === UserStatus.PENDING_VERIFICATION ? null : new Date(),
+        emailVerified: (profile.status as any) === UserStatus.PENDING_VERIFICATION ? null : new Date(),
         phoneNumber: `+336${faker.string.numeric(8)}`,
         locale: 'fr',
         isVerified: profile.status === UserStatus.ACTIVE,
@@ -418,7 +419,7 @@ async function createDelivererDocuments(userId: string, adminId: string, isVerif
           verificationStatus: status,
           reviewerId: status !== VerificationStatus.PENDING ? adminId : null,
           rejectionReason:
-            status === VerificationStatus.REJECTED ? 'Document illisible ou non conforme' : null,
+            (status as any) === VerificationStatus.REJECTED ? 'Document illisible ou non conforme' : null,
         },
       });
 
@@ -432,8 +433,8 @@ async function createDelivererDocuments(userId: string, adminId: string, isVerif
           submitterId: userId,
           verifierId: status !== VerificationStatus.PENDING ? adminId : null,
           rejectionReason:
-            status === VerificationStatus.REJECTED ? 'Document illisible ou non conforme' : null,
-          notes: status === VerificationStatus.APPROVED ? 'Document vérifié et approuvé' : null,
+            (status as any) === VerificationStatus.REJECTED ? 'Document illisible ou non conforme' : null,
+          notes: (status as any) === VerificationStatus.APPROVED ? 'Document vérifié et approuvé' : null,
         },
       });
     } catch (err) {
@@ -993,31 +994,6 @@ async function createAnnouncements(clientUsers: any[], merchantUsers: any[]) {
             deliveryLatitude: 48.8566 + (Math.random() * 0.1 - 0.05),
             pickupCity: faker.location.city(),
             deliveryCity: faker.location.city(),
-            weight: faker.number.float({ min: 0.1, max: 50 }),
-            width: faker.number.float({ min: 10, max: 100 }),
-            height: faker.number.float({ min: 10, max: 100 }),
-            length: faker.number.float({ min: 10, max: 100 }),
-            isFragile: Math.random() > 0.7,
-            needsCooling: Math.random() > 0.8,
-            pickupDate: generateRandomDate(
-              new Date(),
-              new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
-            ),
-            pickupTimeWindow: faker.helpers.arrayElement([
-              '08:00-10:00',
-              '10:00-12:00',
-              '14:00-16:00',
-            ]),
-            deliveryDate: generateRandomDate(
-              new Date(Date.now() + 1 * 24 * 60 * 60 * 1000),
-              new Date(Date.now() + 14 * 24 * 60 * 60 * 1000)
-            ),
-            deliveryTimeWindow: faker.helpers.arrayElement([
-              '08:00-10:00',
-              '10:00-12:00',
-              '14:00-16:00',
-            ]),
-            isFlexible: Math.random() > 0.5,
             suggestedPrice: faker.number.float({ min: 5, max: 100, fractionDigits: 2 }),
             isNegotiable: Math.random() > 0.3,
             clientId: client.id,
@@ -1027,7 +1003,7 @@ async function createAnnouncements(clientUsers: any[], merchantUsers: any[]) {
             estimatedDuration: faker.number.int({ min: 10, max: 120 }),
             requiresSignature: Math.random() > 0.7,
             requiresId: Math.random() > 0.8,
-          },
+          } as any,
         });
         announcements.push(announcement);
       }

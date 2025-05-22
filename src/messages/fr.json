@@ -90,7 +90,11 @@
           "description": "Utilisez notre système de stockage pour vos colis et marchandises."
         }
       }
-    }
+    },
+    "pageTitle": "Inscription Client | EcoDeli",
+    "pageDescription": "Inscrivez-vous en tant que client sur EcoDeli",
+    "title": "Inscription Client",
+    "instructions": "Complétez les informations ci-dessous pour créer votre compte client"
   },
   "Deliverer": {
     "Onboarding": {
@@ -605,9 +609,9 @@
     "case_userstatus_inactive_return": ";\n      case UserStatus.INACTIVE:\n        return",
     "case_userrole_client_return": ";\n      case UserRole.CLIENT:\n        return",
     "case_userrole_deliverer_return": ";\n      case UserRole.DELIVERER:\n        return",
-    "deliverer": "Deliverer",
+    "deliverer_role": "Deliverer",
     "case_userrole_merchant_return": ";\n      case UserRole.MERCHANT:\n        return",
-    "merchant": "Merchant",
+    "merchant_role": "Merchant",
     "case_userrole_provider_return": ";\n      case UserRole.PROVIDER:\n        return",
     "provider": "Provider",
     "verified": "Verified",
@@ -1166,16 +1170,22 @@
     "backToHome": "[en] backToHome",
     "save": "[en] save",
     "cancel": "[en] cancel",
-    "back": "[en] back",
-    "deliverer": {
+      "back": "[en] back",
+    "delivererRegister": {
       "pageTitle": "Inscription Livreur | EcoDeli",
       "pageDescription": "Inscrivez-vous en tant que livreur sur EcoDeli",
       "title": "Inscription Livreur",
-      "instructions": "Complétez les informations ci-dessous pour rejoindre notre équipe de livreurs",
+      "instructions": "Complétez les informations ci-dessous pour rejoindre notre réseau de livreurs",
       "delivererPageTitle": "Inscription Livreur | EcoDeli",
       "delivererPageDescription": "Créez votre compte livreur EcoDeli",
       "createDelivererAccount": "Créer un compte livreur",
       "enterDelivererDetails": "Complétez les informations ci-dessous pour rejoindre notre réseau de livreurs"
+    },
+    "merchantRegister": {
+      "pageTitle": "Inscription Commerçant | EcoDeli",
+      "pageDescription": "Inscrivez-vous en tant que commerçant sur EcoDeli",
+      "title": "Inscription Commerçant",
+      "instructions": "Complétez les informations ci-dessous pour créer votre compte commerçant"
     },
     "todo": {
       "title": "Liste de tâches",

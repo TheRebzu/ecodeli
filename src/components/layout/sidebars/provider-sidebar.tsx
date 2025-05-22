@@ -40,9 +40,9 @@ export function ProviderSidebar({ locale }: ProviderSidebarProps) {
 
   // Récupérer les informations de l'utilisateur connecté
   const userName = session?.user?.name || 'Utilisateur';
-  const userEmail = session?.user?.email || 'utilisateur@ecodeli.com';
+  const _userEmail = session?.user?.email || 'utilisateur@ecodeli.com';
   const userInitials = userName.split(' ').map(n => n[0]).join('').toUpperCase();
-  const serviceType = session?.user?.provider?.serviceType || 'Prestataire de services';
+  const serviceType = (session?.user as any)?.provider?.serviceType || 'Prestataire de services';
 
   const navigationItems: NavigationItem[] = [
     {

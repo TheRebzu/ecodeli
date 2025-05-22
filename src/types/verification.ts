@@ -2,7 +2,7 @@
  * Types pour la vérification des comptes merchant et provider
  */
 
-import { Document } from '@prisma/client';
+import { Document as _Document } from '@prisma/client';
 
 /**
  * Statuts de vérification possibles

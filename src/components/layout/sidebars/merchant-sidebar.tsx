@@ -40,9 +40,9 @@ export function MerchantSidebar({ locale }: MerchantSidebarProps) {
 
   // Récupérer les informations de l'utilisateur connecté
   const userName = session?.user?.name || 'Utilisateur';
-  const userEmail = session?.user?.email || 'utilisateur@ecodeli.com';
+  const _userEmail = session?.user?.email || 'utilisateur@ecodeli.com';
   const userInitials = userName.split(' ').map(n => n[0]).join('').toUpperCase();
-  const businessName = session?.user?.business?.name || 'Mon Commerce';
+  const businessName = (session?.user as any)?.business?.name || 'Mon Commerce';
 
   const navigationItems: NavigationItem[] = [
     {
