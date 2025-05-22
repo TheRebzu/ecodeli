@@ -37,9 +37,9 @@ export function generateMetadata(): Metadata {
   };
 }
 
-export default async function HomePage({ params }: { params: { locale: string } }) {
-  // Locale est une valeur statique fournie par Next.js, pas besoin d'await
-  const locale = params.locale;
+export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
+  // Locale est une valeur dynamique fournie par Next.js, on doit utiliser await
+  const { locale } = await params;
   // Utiliser la fonction pour configurer la locale pour cette requête
   await setRequestLocale(locale);
 
