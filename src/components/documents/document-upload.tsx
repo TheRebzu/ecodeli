@@ -41,6 +41,7 @@ import { cn } from '@/lib/utils';
 import { api } from '@/trpc/react';
 import { DocumentType, UserRole } from '@prisma/client';
 import { useTranslations } from 'next-intl';
+import { useDocuments } from '@/hooks/use-documents';
 
 // Schéma de validation pour le formulaire
 const documentUploadSchema = z.object({
@@ -99,7 +100,8 @@ export function DocumentUpload({ userRole = 'DELIVERER' }: DocumentUploadProps) 
   const [uploadSuccess, setUploadSuccess] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
-  const t = useTranslations('Documents');
+  const t = useTranslations('documents');
+  const { refreshDocuments } = useDocuments();
 
   const form = useForm<DocumentUploadFormValues>({
     resolver: zodResolver(documentUploadSchema),
@@ -133,18 +135,127 @@ export function DocumentUpload({ userRole = 'DELIVERER' }: DocumentUploadProps) 
     setIsSubmitting(true);
 
     try {
-      // Appel API pour uploader le document
-      await uploadDocument.mutateAsync({
-        type: data.type,
-        file: data.file,
-        expiryDate: data.expiryDate,
+      const file = data.file;
+      
+      // Débogage de la date d'expiration
+      if (data.expiryDate) {
+        console.log("Date d'expiration sélectionnée:", data.expiryDate);
+      }
+      
+      // Vérifier la taille du fichier
+      if (file.size > 10 * 1024 * 1024) { // 10 MB maximum
+        toast({
+          title: t('upload.error.title'),
+          description: t('upload.error.fileTooLarge', { maxSize: '10MB' }),
+          variant: 'destructive',
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
+      // Vérifier le type de fichier
+      const acceptedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+      if (!acceptedTypes.includes(file.type)) {
+        toast({
+          title: t('upload.error.title'),
+          description: t('upload.error.invalidFileType'),
+          variant: 'destructive',
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
+      toast({
+        title: t('upload.processing.title'),
+        description: t('upload.processing.description'),
       });
-
-      // Reset du formulaire après succès
-      form.reset();
-      setPreviewUrl(null);
+      
+      // Convertir le fichier en Base64
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        if (!event.target?.result) {
+          toast({
+            title: t('upload.error.title'),
+            description: t('upload.error.fileRead'),
+            variant: 'destructive',
+          });
+          setIsSubmitting(false);
+          return;
+        }
+        
+        const fileData = event.target.result.toString();
+        
+        try {
+          // Afficher un toast de chargement
+          toast({
+            title: t('upload.uploading.title'),
+            description: t('upload.uploading.description'),
+          });
+          
+          // Appel API pour uploader le document avec tous les champs requis
+          const result = await uploadDocument.mutateAsync({
+            type: data.type,
+            fileData: fileData,
+            fileName: file.name,
+            mimeType: file.type,
+            expiryDate: data.expiryDate,
+            description: `Document ${documentTypeLabels[data.type]} soumis le ${new Date().toLocaleDateString()}`,
+          });
+          
+          console.log("Document uploadé avec succès:", result);
+          
+          // Forcer un rafraîchissement des documents
+          if (typeof refreshDocuments === 'function') {
+            await refreshDocuments();
+          }
+          
+          // Reset du formulaire après succès
+          form.reset();
+          setPreviewUrl(null);
+          setUploadSuccess(true);
+          
+          // Redirection après un court délai pour laisser le temps aux données de se rafraîchir
+          setTimeout(() => {
+            router.refresh();
+          }, 1500);
+        } catch (error) {
+          console.error("Erreur lors de l'upload:", error);
+          
+          // Afficher un message d'erreur spécifique
+          const errorMessage = error instanceof Error ? error.message : t('upload.error.unknown');
+          toast({
+            title: t('upload.error.title'),
+            description: errorMessage,
+            variant: 'destructive',
+          });
+          
+          setIsSubmitting(false);
+        }
+      };
+      
+      reader.onerror = (event) => {
+        console.error("Erreur de lecture du fichier:", event);
+        toast({
+          title: t('upload.error.title'),
+          description: t('upload.error.fileRead'),
+          variant: 'destructive',
+        });
+        setIsSubmitting(false);
+      };
+      
+      // Lancer la lecture du fichier en Base64
+      reader.readAsDataURL(file);
     } catch (error) {
       console.error('Error uploading document:', error);
+      
+      // Message d'erreur générique
+      toast({
+        title: t('upload.error.title'),
+        description: error instanceof Error ? error.message : t('upload.error.unknown'),
+        variant: 'destructive',
+      });
+      
+      setIsSubmitting(false);
     }
   };
 

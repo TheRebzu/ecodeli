@@ -160,16 +160,67 @@ export const verificationRouter = router({
   // Pour les admins: lister toutes les vérifications en attente
   getPendingVerifications: adminProcedure
     .input(z.object({
-      role: z.enum(['MERCHANT', 'PROVIDER']).optional(),
+      userRole: z.enum(['MERCHANT', 'PROVIDER', 'DELIVERER']),
       limit: z.number().min(1).max(100).default(20),
       page: z.number().min(1).default(1),
     }))
     .query(async ({ input }) => {
-      return verificationService.getPendingVerifications(
-        input.role,
-        input.limit,
-        input.page
-      );
+      const { userRole, limit, page } = input;
+      
+      try {
+        // Utiliser la méthode existante documentService.getPendingDocuments
+        const documents = await documentService.getPendingDocuments(userRole as UserRole);
+        
+        // Vérifier si documents est null ou undefined
+        if (!documents || !Array.isArray(documents)) {
+          return {
+            data: [],
+            meta: {
+              total: 0,
+              pages: 1,
+              page,
+              limit,
+            },
+          };
+        }
+        
+        const totalCount = documents.length;
+        
+        // Appliquer la pagination manuellement
+        const paginatedDocs = documents.slice(
+          (page - 1) * limit,
+          page * limit
+        );
+        
+        // Transformer les documents pour le format attendu par le component
+        const data = paginatedDocs.map(doc => ({
+          id: doc.id,
+          userId: doc.userId,
+          type: doc.type,
+          uploadedAt: doc.uploadedAt || doc.createdAt,
+          user: doc.user,
+          documents: [{
+            id: doc.id,
+            type: doc.type
+          }]
+        }));
+        
+        return {
+          data,
+          meta: {
+            total: totalCount,
+            pages: Math.ceil(totalCount / limit),
+            page,
+            limit,
+          },
+        };
+      } catch (error) {
+        console.error('Erreur lors de la récupération des vérifications:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: "Une erreur est survenue lors de la récupération des vérifications: " + (error instanceof Error ? error.message : String(error))
+        });
+      }
     }),
 
   // Review a document (admin only)

@@ -419,6 +419,29 @@ export const dashboardService = {
         },
       });
 
+      // Récupérer les entrepôts avec leur taux d'occupation
+      const warehouses = await db.warehouse.findMany({
+        include: {
+          boxes: true,
+        },
+      });
+
+      // Calculer le taux d'occupation pour chaque entrepôt
+      const warehouseOccupancy = warehouses.map((warehouse) => {
+        const total = warehouse.boxes.length;
+        const occupied = warehouse.boxes.filter((box) => box.status === 'OCCUPIED').length;
+        const occupancyRate = total > 0 ? (occupied / total) * 100 : 0;
+        
+        return {
+          id: warehouse.id,
+          name: warehouse.name,
+          location: warehouse.address || 'Non spécifié',
+          capacity: total,
+          occupied: occupied,
+          occupancyRate: occupancyRate,
+        };
+      });
+
       return {
         totalWarehouses,
         totalBoxes,
@@ -427,6 +450,7 @@ export const dashboardService = {
         maintenanceBoxes,
         occupancyRate,
         activeReservations,
+        warehouseOccupancy,
       };
     } catch (error) {
       console.error("Erreur lors de la récupération des statistiques d'entrepôts:", error);
@@ -439,29 +463,22 @@ export const dashboardService = {
    */
   async getDeliveryStats() {
     try {
-      const totalDeliveries = await db.delivery.count();
-      const pendingDeliveries = await db.delivery.count({ where: { status: 'PENDING' } });
-      const inProgressDeliveries = await db.delivery.count({
+      // Compter le nombre de livraisons actives (en cours)
+      const activeDeliveries = await db.delivery.count({
         where: {
           status: {
             in: ['ACCEPTED', 'PICKED_UP', 'IN_TRANSIT'],
           },
         },
       });
-      const completedDeliveries = await db.delivery.count({ where: { status: 'DELIVERED' } });
+
+      // Compter le nombre de livraisons annulées
       const cancelledDeliveries = await db.delivery.count({ where: { status: 'CANCELLED' } });
 
-      // Livraisons aujourd'hui
+      // Date d'aujourd'hui (début de journée)
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      const deliveriesToday = await db.delivery.count({
-        where: {
-          createdAt: {
-            gte: today,
-          },
-        },
-      });
-
+      
       // Livraisons terminées aujourd'hui
       const completedToday = await db.delivery.count({
         where: {
@@ -472,13 +489,63 @@ export const dashboardService = {
         },
       });
 
+      // Date du début de la semaine
+      const startOfWeek = new Date();
+      startOfWeek.setDate(today.getDate() - today.getDay());
+      startOfWeek.setHours(0, 0, 0, 0);
+      
+      // Livraisons terminées cette semaine
+      const completedThisWeek = await db.delivery.count({
+        where: {
+          status: 'DELIVERED',
+          updatedAt: {
+            gte: startOfWeek,
+          },
+        },
+      });
+
+      // Date du début du mois
+      const startOfMonth = new Date();
+      startOfMonth.setDate(1);
+      startOfMonth.setHours(0, 0, 0, 0);
+      
+      // Livraisons terminées ce mois
+      const completedThisMonth = await db.delivery.count({
+        where: {
+          status: 'DELIVERED',
+          updatedAt: {
+            gte: startOfMonth,
+          },
+        },
+      });
+
+      // Temps moyen de livraison (simulé pour l'exemple - à remplacer par une vraie requête)
+      // Par exemple: temps moyen entre le statut PICKED_UP et DELIVERED en minutes
+      const avgDeliveryTime = 45; // 45 minutes par défaut
+
       return {
-        totalDeliveries,
-        pendingDeliveries,
-        inProgressDeliveries,
-        completedDeliveries,
-        cancelledDeliveries,
-        deliveriesToday,
+        // Données au format attendu par DeliveryStatsCard
+        active: activeDeliveries,
+        cancelled: cancelledDeliveries,
+        completed: {
+          today: completedToday,
+          thisWeek: completedThisWeek,
+          thisMonth: completedThisMonth,
+        },
+        avgDeliveryTime: avgDeliveryTime,
+        
+        // Conserver les anciennes propriétés pour la rétrocompatibilité
+        totalDeliveries: activeDeliveries + cancelledDeliveries + completedThisMonth,
+        pendingDeliveries: await db.delivery.count({ where: { status: 'PENDING' } }),
+        inProgressDeliveries: activeDeliveries,
+        completedDeliveries: completedThisMonth,
+        deliveriesToday: await db.delivery.count({
+          where: {
+            createdAt: {
+              gte: today,
+            },
+          },
+        }),
         completedToday,
       };
     } catch (error) {

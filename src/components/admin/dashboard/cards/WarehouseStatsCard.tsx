@@ -53,11 +53,11 @@ const WarehouseStatsCard = ({ data, expanded = false }: WarehouseStatsCardProps)
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-background p-3 rounded-lg border">
               <p className="text-muted-foreground text-sm">Total entrepôts</p>
-              <p className="text-2xl font-bold">{data.total}</p>
+              <p className="text-2xl font-bold">{data.totalWarehouses}</p>
             </div>
             <div className="bg-background p-3 rounded-lg border">
-              <p className="text-muted-foreground text-sm">Capacité totale</p>
-              <p className="text-2xl font-bold">{data.totalCapacity.toLocaleString('fr-FR')}</p>
+              <p className="text-muted-foreground text-sm">Total boxes</p>
+              <p className="text-2xl font-bold">{data.totalBoxes?.toLocaleString('fr-FR') || 0}</p>
             </div>
           </div>
 
@@ -74,12 +74,12 @@ const WarehouseStatsCard = ({ data, expanded = false }: WarehouseStatsCardProps)
               indicatorClassName={getProgressColor(data.occupancyRate)}
             />
             <p className="text-xs text-muted-foreground mt-1">
-              {data.occupiedCapacity.toLocaleString('fr-FR')} /{' '}
-              {data.totalCapacity.toLocaleString('fr-FR')} unités utilisées
+              {data.occupiedBoxes?.toLocaleString('fr-FR') || 0} /{' '}
+              {data.totalBoxes?.toLocaleString('fr-FR') || 0} boxes utilisées
             </p>
           </div>
 
-          {expanded && data.warehouseOccupancy.length > 0 && (
+          {expanded && data.warehouseOccupancy && data.warehouseOccupancy.length > 0 && (
             <div>
               <h4 className="text-sm font-medium mb-2">Détail par entrepôt</h4>
               <div className="space-y-3 max-h-96 overflow-y-auto">

@@ -1,8 +1,9 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { RecentActivity } from '@/types/dashboard';
+import { RecentActivity, DocumentSubmissionDetails, DeliveryCompletedDetails, TransactionCompletedDetails } from '@/types/dashboard';
 import { ActivityIcon, UserPlusIcon, FileTextIcon, TruckIcon, CreditCardIcon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { UserRole } from '@prisma/client';
+import { useTranslations } from 'next-intl';
 
 interface RecentActivitiesCardProps {
   data?: RecentActivity[];
@@ -10,43 +11,73 @@ interface RecentActivitiesCardProps {
 }
 
 const RecentActivitiesCard = ({ data, expanded = false }: RecentActivitiesCardProps) => {
+  const t = useTranslations('');
+  const tCommon = useTranslations('common');
+
   if (!data) {
     return (
       <Card>
         <CardHeader className="pb-2">
           <CardTitle className="text-lg flex items-center">
             <ActivityIcon className="h-5 w-5 mr-2" />
-            Activités récentes
+            {t('recentActivities.title')}
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">Chargement...</p>
+          <p className="text-muted-foreground">{tCommon('loading')}</p>
         </CardContent>
       </Card>
     );
   }
 
   // Formater la date relative (maintenant, il y a 5 min, etc.)
-  const formatRelativeTime = (date: Date) => {
-    const now = new Date();
-    const diffMs = now.getTime() - new Date(date).getTime();
-    const diffSec = Math.round(diffMs / 1000);
-    const diffMin = Math.round(diffSec / 60);
-    const diffHour = Math.round(diffMin / 60);
-    const diffDay = Math.round(diffHour / 24);
+  const formatRelativeTime = (timestamp: Date | string | number | null | undefined): string => {
+    if (!timestamp) {
+      return '';
+    }
+    
+    try {
+      const now = new Date();
+      let dateToCompare: Date;
+      
+      if (timestamp instanceof Date) {
+        dateToCompare = timestamp;
+      } else if (typeof timestamp === 'string' || typeof timestamp === 'number') {
+        dateToCompare = new Date(timestamp);
+        
+        // Vérifier si la date est valide
+        if (isNaN(dateToCompare.getTime())) {
+          console.error('Invalid date format:', timestamp);
+          return '';
+        }
+      } else {
+        console.error('Invalid timestamp type:', typeof timestamp);
+        return '';
+      }
+      
+      const diffMs = now.getTime() - dateToCompare.getTime();
+      const diffSec = Math.round(diffMs / 1000);
+      const diffMin = Math.round(diffSec / 60);
+      const diffHour = Math.round(diffMin / 60);
+      const diffDay = Math.round(diffHour / 24);
 
-    if (diffSec < 60) return "à l'instant";
-    if (diffMin < 60) return `il y a ${diffMin} min`;
-    if (diffHour < 24) return `il y a ${diffHour} h`;
-    if (diffDay === 1) return 'hier';
-    if (diffDay < 7) return `il y a ${diffDay} jours`;
+      if (diffSec < 60) return t('recentActivities.time.justNow');
+      if (diffMin < 60) return t('recentActivities.time.minutesAgo', { count: diffMin });
+      if (diffHour < 24) return t('recentActivities.time.hoursAgo', { count: diffHour });
+      if (diffDay === 1) return t('recentActivities.time.yesterday');
+      if (diffDay < 7) return t('recentActivities.time.daysAgo', { count: diffDay });
 
-    return new Intl.DateTimeFormat('fr-FR', {
-      day: 'numeric',
-      month: 'short',
-      hour: '2-digit',
-      minute: '2-digit',
-    }).format(new Date(date));
+      // Utiliser l'API Intl pour le formatage de date localisé sans spécifier explicitement la locale
+      return new Intl.DateTimeFormat(undefined, {
+        day: 'numeric',
+        month: 'short',
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(dateToCompare);
+    } catch (error) {
+      console.error('Error formatting relative time:', error);
+      return '';
+    }
   };
 
   // Obtenir l'icône correspondant au type d'activité
@@ -69,31 +100,49 @@ const RecentActivitiesCard = ({ data, expanded = false }: RecentActivitiesCardPr
   const getActivityTitle = (activity: RecentActivity) => {
     switch (activity.type) {
       case 'user_registration':
-        return 'Nouvel utilisateur';
+        return t('recentActivities.types.userRegistration');
       case 'document_submission':
-        return 'Document soumis';
+        return t('recentActivities.types.documentSubmission');
       case 'delivery_completed':
-        return 'Livraison terminée';
+        return t('recentActivities.types.deliveryCompleted');
       case 'transaction_completed':
-        return 'Transaction complétée';
+        return t('recentActivities.types.transactionCompleted');
       default:
-        return 'Activité';
+        return t('recentActivities.types.default');
     }
   };
 
   // Obtenir la description de l'activité
   const getActivityDescription = (activity: RecentActivity) => {
+    const userName = activity.user?.name || activity.user?.email || '';
+    
     switch (activity.type) {
       case 'user_registration':
-        return `${activity.user?.name || activity.user?.email} s'est inscrit`;
-      case 'document_submission':
-        return `${activity.user?.name || activity.user?.email} a soumis ${activity.details.documentType}`;
-      case 'delivery_completed':
-        return `Livraison de ${activity.details.from} à ${activity.details.to}`;
-      case 'transaction_completed':
-        return `Transaction de ${(activity.details.amount as number).toLocaleString('fr-FR')} ${activity.details.currency}`;
+        return t('recentActivities.descriptions.userRegistration', { userName });
+      case 'document_submission': {
+        const details = activity.details as Partial<DocumentSubmissionDetails>;
+        return t('recentActivities.descriptions.documentSubmission', { 
+          userName, 
+          documentType: details.documentType || 'document'
+        });
+      }
+      case 'delivery_completed': {
+        const details = activity.details as Partial<DeliveryCompletedDetails>;
+        return t('recentActivities.descriptions.deliveryCompleted', { 
+          from: details.from || '—', 
+          to: details.to || '—'
+        });
+      }
+      case 'transaction_completed': {
+        const details = activity.details as Partial<TransactionCompletedDetails>;
+        const amount = details.amount ? (details.amount as number).toLocaleString() : '0';
+        return t('recentActivities.descriptions.transactionCompleted', { 
+          amount,
+          currency: details.currency || 'EUR'
+        });
+      }
       default:
-        return 'Nouvelle activité';
+        return t('recentActivities.descriptions.default');
     }
   };
 
@@ -111,16 +160,16 @@ const RecentActivitiesCard = ({ data, expanded = false }: RecentActivitiesCardPr
       <CardHeader className="pb-2">
         <CardTitle className="text-lg flex items-center">
           <ActivityIcon className="h-5 w-5 mr-2" />
-          Activités récentes
+          {t('recentActivities.title')}
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {data.length === 0 ? (
-          <p className="text-muted-foreground text-center p-4">Aucune activité récente</p>
+        {!data || data.length === 0 ? (
+          <p className="text-muted-foreground text-center p-4">{t('recentActivities.noActivities')}</p>
         ) : (
           <div className="space-y-4 max-h-96 overflow-y-auto pr-1">
-            {data.map(activity => (
-              <div key={activity.id} className="flex items-start space-x-4 p-3 rounded-lg border">
+            {data.map((activity, index) => (
+              <div key={activity.id || `activity-${index}`} className="flex items-start space-x-4 p-3 rounded-lg border">
                 <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gray-100">
                   {getActivityIcon(activity.type)}
                 </div>
@@ -137,7 +186,7 @@ const RecentActivitiesCard = ({ data, expanded = false }: RecentActivitiesCardPr
                   {activity.user && (
                     <div className="mt-1">
                       <Badge className={`text-xs ${roleColors[activity.user.role]}`}>
-                        {activity.user.role}
+                        {t(`roles.${activity.user.role.toLowerCase()}`)}
                       </Badge>
                     </div>
                   )}

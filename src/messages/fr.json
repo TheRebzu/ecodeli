@@ -182,6 +182,40 @@
     }
   },
   "Admin": {
+    "dashboard": {
+      "recentActivities": {
+        "title": "Activités récentes",
+        "noActivities": "Aucune activité récente",
+        "time": {
+          "justNow": "à l'instant",
+          "minutesAgo": "il y a {count} min",
+          "hoursAgo": "il y a {count} h",
+          "yesterday": "hier",
+          "daysAgo": "il y a {count} jours"
+        },
+        "types": {
+          "userRegistration": "Nouvel utilisateur",
+          "documentSubmission": "Document soumis",
+          "deliveryCompleted": "Livraison terminée",
+          "transactionCompleted": "Transaction complétée",
+          "default": "Activité"
+        },
+        "descriptions": {
+          "userRegistration": "{userName} s'est inscrit",
+          "documentSubmission": "{userName} a soumis {documentType}",
+          "deliveryCompleted": "Livraison de {from} à {to}",
+          "transactionCompleted": "Transaction de {amount} {currency}",
+          "default": "Nouvelle activité"
+        }
+      },
+      "roles": {
+        "admin": "ADMIN",
+        "client": "CLIENT",
+        "deliverer": "LIVREUR",
+        "merchant": "COMMERÇANT",
+        "provider": "PRESTATAIRE"
+      }
+    },
     "verification": {
       "metadata": {
         "title": "Vérification de documents | EcoDeli Admin",
@@ -386,6 +420,7 @@
     "viewDocuments": "viewDocuments"
   },
   "common": {
+    "loading": "Chargement...",
     "languageName": "Français",
     "switchLanguage": "Changer de langue",
     "currentLanguage": "Langue actuelle",

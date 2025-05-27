@@ -57,11 +57,14 @@ export interface TransactionStats {
 
 // Types pour les statistiques d'entrepôts
 export interface WarehouseStats {
-  total: number;
-  totalCapacity: number;
-  occupiedCapacity: number;
+  totalWarehouses: number;
+  totalBoxes: number;
+  availableBoxes: number;
+  occupiedBoxes: number;
+  maintenanceBoxes: number;
   occupancyRate: number;
-  warehouseOccupancy: Array<{
+  activeReservations?: number;
+  warehouseOccupancy?: Array<{
     id: string;
     name: string;
     location: string;
@@ -83,6 +86,37 @@ export interface DeliveryStats {
   avgDeliveryTime: number; // en minutes
 }
 
+// Types for activity details based on activity type
+export interface UserRegistrationDetails {
+  // Additional details if needed
+}
+
+export interface DocumentSubmissionDetails {
+  documentType: string;
+  documentId?: string;
+}
+
+export interface DeliveryCompletedDetails {
+  deliveryId?: string;
+  from: string;
+  to: string;
+  distance?: number;
+}
+
+export interface TransactionCompletedDetails {
+  transactionId?: string;
+  amount: number;
+  currency: string;
+  paymentMethod?: string;
+}
+
+// Union type for activity details
+export type ActivityDetails =
+  | UserRegistrationDetails
+  | DocumentSubmissionDetails
+  | DeliveryCompletedDetails
+  | TransactionCompletedDetails;
+
 // Types pour l'activité récente
 export interface RecentActivity {
   id: string;
@@ -98,7 +132,7 @@ export interface RecentActivity {
     email: string;
     role: UserRole;
   };
-  details: Record<string, unknown>;
+  details: Record<string, unknown> & Partial<ActivityDetails>;
 }
 
 // Types pour les données du graphique d'activité

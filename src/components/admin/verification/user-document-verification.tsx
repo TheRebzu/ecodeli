@@ -103,6 +103,13 @@ export function UserDocumentVerification({
       return url;
     }
 
+    // Transformer les URLs qui pointent vers /uploads/ pour utiliser la nouvelle API
+    if (url.startsWith('/uploads/')) {
+      // Extraire le chemin après /uploads/
+      const uploadPath = url.replace('/uploads/', '');
+      return `${window.location.origin}/api/uploads/${uploadPath}`;
+    }
+
     // Ensure the URL is properly formatted
     if (url.startsWith('/')) {
       return `${window.location.origin}${url}`;
@@ -184,7 +191,7 @@ export function UserDocumentVerification({
       });
       router.refresh();
     },
-    onError: error => {
+    onError: (error: any) => {
       toast({
         title: 'Erreur',
         children: `Impossible d'approuver le document: ${error.message}`,
@@ -203,7 +210,7 @@ export function UserDocumentVerification({
       setRejectionReason('');
       router.refresh();
     },
-    onError: error => {
+    onError: (error: any) => {
       toast({
         title: 'Erreur',
         children: `Impossible de rejeter le document: ${error.message}`,
@@ -220,7 +227,7 @@ export function UserDocumentVerification({
       case 'MERCHANT':
         return ['ID_CARD', 'BUSINESS_REGISTRATION', 'PROOF_OF_ADDRESS'];
       case 'PROVIDER':
-        return ['ID_CARD', 'QUALIFICATION_CERTIFICATE', 'PROOF_OF_ADDRESS'];
+        return ['ID_CARD', 'QUALIFICATION_CERTIFICATE', 'INSURANCE'];
       default:
         return [];
     }

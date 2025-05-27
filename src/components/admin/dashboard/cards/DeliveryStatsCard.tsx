@@ -24,6 +24,9 @@ const DeliveryStatsCard = ({ data, expanded = false }: DeliveryStatsCardProps) =
     );
   }
 
+  // S'assurer que data.completed existe, sinon créer un objet vide avec valeurs par défaut
+  const completed = data.completed || { today: 0, thisWeek: 0, thisMonth: 0 };
+
   // Formater le temps moyen de livraison
   const formatDeliveryTime = (minutes: number) => {
     if (minutes < 60) {
@@ -68,7 +71,7 @@ const DeliveryStatsCard = ({ data, expanded = false }: DeliveryStatsCardProps) =
                 <p className="text-sm text-muted-foreground">
                   De la prise en charge à la livraison
                 </p>
-                <p className="text-lg font-bold">{formatDeliveryTime(data.avgDeliveryTime)}</p>
+                <p className="text-lg font-bold">{formatDeliveryTime(data.avgDeliveryTime || 0)}</p>
               </div>
             </div>
           </div>
@@ -78,15 +81,15 @@ const DeliveryStatsCard = ({ data, expanded = false }: DeliveryStatsCardProps) =
             <div className="grid grid-cols-3 gap-2">
               <div className="bg-background p-2 rounded-lg border text-center">
                 <p className="text-xs text-muted-foreground">Aujourd&apos;hui</p>
-                <p className="text-lg font-semibold text-green-500">{data.completed.today}</p>
+                <p className="text-lg font-semibold text-green-500">{completed.today}</p>
               </div>
               <div className="bg-background p-2 rounded-lg border text-center">
                 <p className="text-xs text-muted-foreground">Cette semaine</p>
-                <p className="text-lg font-semibold text-green-500">{data.completed.thisWeek}</p>
+                <p className="text-lg font-semibold text-green-500">{completed.thisWeek}</p>
               </div>
               <div className="bg-background p-2 rounded-lg border text-center">
                 <p className="text-xs text-muted-foreground">Ce mois</p>
-                <p className="text-lg font-semibold text-green-500">{data.completed.thisMonth}</p>
+                <p className="text-lg font-semibold text-green-500">{completed.thisMonth}</p>
               </div>
             </div>
           </div>
@@ -98,10 +101,10 @@ const DeliveryStatsCard = ({ data, expanded = false }: DeliveryStatsCardProps) =
                 <div className="bg-background p-3 rounded-lg border">
                   <p className="text-xs text-muted-foreground">Taux de complétion</p>
                   <p className="text-xl font-semibold">
-                    {data.active + data.cancelled + data.completed.thisMonth > 0
+                    {data.active + data.cancelled + completed.thisMonth > 0
                       ? Math.round(
-                          (data.completed.thisMonth /
-                            (data.active + data.cancelled + data.completed.thisMonth)) *
+                          (completed.thisMonth /
+                            (data.active + data.cancelled + completed.thisMonth)) *
                             100
                         )
                       : 0}
@@ -111,10 +114,10 @@ const DeliveryStatsCard = ({ data, expanded = false }: DeliveryStatsCardProps) =
                 <div className="bg-background p-3 rounded-lg border">
                   <p className="text-xs text-muted-foreground">Taux d&apos;annulation</p>
                   <p className="text-xl font-semibold">
-                    {data.active + data.cancelled + data.completed.thisMonth > 0
+                    {data.active + data.cancelled + completed.thisMonth > 0
                       ? Math.round(
                           (data.cancelled /
-                            (data.active + data.cancelled + data.completed.thisMonth)) *
+                            (data.active + data.cancelled + completed.thisMonth)) *
                             100
                         )
                       : 0}

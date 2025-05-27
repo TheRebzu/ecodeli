@@ -24,11 +24,6 @@ export function ProviderVerificationForm() {
       label: t('documents.insuranceCertificate.label'),
       description: t('documents.insuranceCertificate.description'),
     },
-    {
-      type: VerificationDocumentType.PROOF_OF_ADDRESS,
-      label: t('documents.proofOfAddress.label'),
-      description: t('documents.proofOfAddress.description'),
-    },
   ];
 
   return (

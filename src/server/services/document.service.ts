@@ -322,20 +322,48 @@ export class DocumentService {
    * Obtient tous les documents d'un utilisateur
    */
   async getUserDocuments(userId: string) {
-    return await this.prisma.document.findMany({
-      where: { userId },
-      orderBy: { uploadedAt: 'desc' },
-      include: {
-        verifications: {
-          select: {
-            id: true,
-            status: true,
-            verifiedAt: true,
-            notes: true,
+    try {
+      console.log(`Récupération des documents pour l'utilisateur ${userId}`);
+      
+      const documents = await this.prisma.document.findMany({
+        where: { userId },
+        orderBy: { uploadedAt: 'desc' },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              role: true,
+            },
+          },
+          verifications: {
+            orderBy: { requestedAt: 'desc' },
+            select: {
+              id: true,
+              status: true,
+              verifiedAt: true,
+              notes: true,
+              rejectionReason: true,
+              requestedAt: true,
+            },
           },
         },
-      },
-    });
+      });
+
+      console.log(`${documents.length} documents trouvés pour l'utilisateur ${userId}`);
+      
+      // Assurer la compatibilité avec l'interface attendue par le frontend
+      return documents.map(doc => ({
+        ...doc,
+        verificationStatus: doc.verifications[0]?.status || doc.verificationStatus || 'PENDING',
+        status: doc.status || doc.verificationStatus || (doc.verifications[0]?.status as any) || 'PENDING',
+        createdAt: doc.uploadedAt
+      }));
+    } catch (error) {
+      console.error(`Erreur lors de la récupération des documents: ${error}`);
+      throw error;
+    }
   }
 
   /**
@@ -343,15 +371,13 @@ export class DocumentService {
    */
   async getPendingDocuments(userRole?: UserRole) {
     const where: any = {
-      verifications: {
-        some: {
-          status: 'PENDING',
-        },
-      },
+      verificationStatus: 'PENDING',
     };
 
     if (userRole) {
-      where.userRole = userRole.toString();
+      where.user = {
+        role: userRole
+      };
     }
 
     return await this.prisma.document.findMany({
@@ -365,10 +391,6 @@ export class DocumentService {
             email: true,
             role: true,
           },
-        },
-        verifications: {
-          where: { status: 'PENDING' },
-          take: 1,
         },
       },
     });
@@ -793,7 +815,7 @@ export class DocumentService {
       if (userRole === 'DELIVERER') {
         const requiredDocumentTypes = [
           'ID_CARD',
-          'DRIVER_LICENSE',
+          'DRIVING_LICENSE',
           'VEHICLE_REGISTRATION',
           'INSURANCE',
         ];
@@ -821,8 +843,12 @@ export class DocumentService {
           });
         }
       } else if (userRole === 'PROVIDER') {
-        // Logique similaire pour les prestataires
-        const requiredDocumentTypes = ['ID_CARD', 'PROFESSIONAL_CERTIFICATION'];
+        // Documents requis pour les prestataires
+        const requiredDocumentTypes = [
+          'ID_CARD',
+          'QUALIFICATION_CERTIFICATE',
+          'INSURANCE',
+        ];
 
         const approvedDocuments = await db.document.findMany({
           where: {
@@ -1060,23 +1086,26 @@ export class DocumentService {
   getRequiredDocumentTypesByRole(role: string): DocumentType[] {
     switch (role) {
       case 'deliverer':
+      case 'DELIVERER':
         return [
           DocumentType.ID_CARD,
           DocumentType.DRIVING_LICENSE,
           DocumentType.VEHICLE_REGISTRATION,
-          DocumentType.INSURANCE_CERTIFICATE,
+          DocumentType.INSURANCE,
         ];
       case 'merchant':
+      case 'MERCHANT':
         return [
           DocumentType.ID_CARD,
           DocumentType.BUSINESS_REGISTRATION,
           DocumentType.PROOF_OF_ADDRESS,
         ];
       case 'provider':
+      case 'PROVIDER':
         return [
           DocumentType.ID_CARD,
-          DocumentType.PROFESSIONAL_CERTIFICATION,
-          DocumentType.PROOF_OF_ADDRESS,
+          DocumentType.QUALIFICATION_CERTIFICATE,
+          DocumentType.INSURANCE,
         ];
       default:
         return [DocumentType.ID_CARD];

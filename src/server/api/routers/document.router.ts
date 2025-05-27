@@ -51,11 +51,53 @@ export const documentRouter = router({
     )
     .query(async ({ ctx, input }) => {
       try {
-        // Utilisation de l'instance documentService plutôt que de la classe DocumentService
         const userId = input?.userId || ctx.session.user.id;
-        const status = input?.status;
-        const documents = await documentService.getUserDocuments(userId);
-        return documents;
+        console.log(`Récupération des documents pour l'utilisateur ${userId}`);
+        
+        // Requête directe à la base de données pour récupérer les documents
+        const documents = await ctx.db.document.findMany({
+          where: { 
+            userId,
+            ...(input?.status ? { status: input.status } : {})
+          },
+          orderBy: { uploadedAt: 'desc' },
+          include: {
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true,
+              },
+            },
+            verifications: {
+              orderBy: { requestedAt: 'desc' },
+              select: {
+                id: true,
+                status: true,
+                verifiedAt: true,
+                notes: true,
+                rejectionReason: true,
+                requestedAt: true,
+              },
+            },
+          },
+        });
+        
+        console.log(`${documents.length} documents trouvés pour l'utilisateur ${userId}`);
+        
+        // Traitement pour faciliter l'utilisation côté client
+        const processedDocuments = documents.map(doc => {
+          // S'assurer que toutes les propriétés nécessaires sont présentes
+          return {
+            ...doc,
+            status: doc.status || (doc.verifications[0]?.status as any) || 'PENDING',
+            verificationStatus: doc.verificationStatus || (doc.verifications[0]?.status as any) || 'PENDING',
+            createdAt: doc.uploadedAt
+          };
+        });
+        
+        return processedDocuments;
       } catch (error: any) {
         console.error('Erreur lors de la récupération des documents:', error);
         throw new TRPCError({

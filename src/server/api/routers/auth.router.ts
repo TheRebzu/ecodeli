@@ -21,6 +21,9 @@ import { hashPassword, verifyPassword } from '@/lib/passwords';
 import { sendVerificationEmail, sendWelcomeEmail, sendPasswordResetEmail } from '@/lib/email';
 import { generateVerificationToken, generatePasswordResetToken } from '@/lib/tokens';
 import { generateTOTPSecret, generateBackupCodes } from '@/lib/totp';
+import { format } from 'date-fns';
+import path from 'path';
+import fs from 'fs/promises';
 
 const authService = new AuthService();
 const documentService = new DocumentService();
@@ -271,6 +274,9 @@ export const authRouter = router({
       const { user } = ctx.session;
       const { type, fileData, fileName, mimeType, expiryDate, description } = input;
 
+      console.log(`Début de l'upload de document: ${type} pour l'utilisateur ${user.id} (${user.role})`);
+      console.log(`Le document a une date d'expiration: ${expiryDate ? format(expiryDate, 'yyyy-MM-dd') : 'Non'}`);
+
       // Vérifier si l'utilisateur est autorisé à uploader des documents
       if (!['DELIVERER', 'MERCHANT', 'PROVIDER'].includes(user.role)) {
         throw new TRPCError({
@@ -279,40 +285,114 @@ export const authRouter = router({
         });
       }
 
-      // Obtenir le profil ID selon le rôle
-      const profile = await ctx.db.profile.findUnique({
-        where: { userId: user.id },
-        include: {
-          deliverer: true,
-          merchant: true,
-          provider: true,
-        },
-      });
+      try {
+        // Créer un nom de fichier unique
+        const uniqueFilename = `${user.id}_${Date.now()}_${fileName.replace(/[^a-z0-9.]/gi, '_')}`;
+        
+        // Définir le chemin du répertoire utilisateur
+        const userUploadDir = path.join(process.cwd(), 'public', 'uploads', user.id);
+        
+        // S'assurer que le répertoire utilisateur existe
+        try {
+          await fs.mkdir(userUploadDir, { recursive: true });
+          console.log(`Répertoire créé ou vérifié: ${userUploadDir}`);
+        } catch (dirError) {
+          console.error(`Erreur lors de la création du répertoire: ${userUploadDir}`, dirError);
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: "Impossible de créer le répertoire de stockage"
+          });
+        }
+        
+        // Chemin complet du fichier
+        const filePath = path.join(userUploadDir, uniqueFilename);
+        
+        // URL relative pour accéder au fichier depuis le web
+        const fileUrl = `/uploads/${user.id}/${uniqueFilename}`;
+        
+        // Extraire les données du base64
+        let fileBuffer: Buffer;
+        try {
+          // Extraire le contenu réel du base64 (supprimer le préfixe data:image/jpeg;base64,)
+          const base64Data = fileData.split(',')[1] || fileData;
+          fileBuffer = Buffer.from(base64Data, 'base64');
+        } catch (base64Error) {
+          console.error("Erreur lors du décodage base64:", base64Error);
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: "Format de fichier invalide"
+          });
+        }
+        
+        // Écrire le fichier sur le disque
+        try {
+          await fs.writeFile(filePath, fileBuffer);
+          console.log(`Fichier écrit avec succès: ${filePath} (${fileBuffer.length} octets)`);
+        } catch (writeError) {
+          console.error("Erreur lors de l'écriture du fichier:", writeError);
+          throw new TRPCError({
+            code: 'INTERNAL_SERVER_ERROR',
+            message: "Erreur lors de l'enregistrement du fichier"
+          });
+        }
+        
+        // Taille réelle du fichier
+        const fileSize = fileBuffer.length;
 
-      if (!profile) {
+        // Création du document avec les données minimales requises
+        const documentData = {
+          userId: user.id,
+          type,
+          filename: uniqueFilename,
+          fileUrl,
+          mimeType,
+          fileSize,
+          uploadedAt: new Date(),
+          isVerified: false,
+          verificationStatus: VerificationStatus.PENDING,
+        };
+
+        // Ajouter les champs optionnels si présents
+        if (expiryDate) {
+          console.log(`Date d'expiration définie: ${format(expiryDate, 'yyyy-MM-dd')}`);
+          // @ts-ignore - Ignorer l'erreur TypeScript ici car nous savons que le champ existe
+          documentData.expiryDate = expiryDate;
+        }
+        
+        if (description) {
+          // @ts-ignore - Ignorer l'erreur TypeScript ici car nous savons que le champ existe
+          documentData.notes = description;
+        }
+
+        console.log("Création du document avec les données:", {
+          ...documentData,
+          fileData: "[CONTENU REDACTÉ]"
+        });
+
+        // Créer le document
+        const document = await ctx.db.document.create({
+          data: documentData,
+        });
+
+        // Créer une demande de vérification pour ce document
+        await ctx.db.verification.create({
+          data: {
+            submitterId: user.id,
+            documentId: document.id,
+            status: VerificationStatus.PENDING,
+            requestedAt: new Date(),
+          },
+        });
+
+        console.log(`Document créé avec succès: ${document.id}`);
+        return document;
+      } catch (error) {
+        console.error(`Erreur lors de l'upload du document:`, error);
         throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Profil non trouvé',
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Erreur lors de l'upload du document: ${error instanceof Error ? error.message : 'Unknown error'}`,
         });
       }
-
-      // Création du document
-      const document = await ctx.db.document.create({
-        data: {
-          type,
-          userId: user.id,
-          profileId: profile.id,
-          originalName: fileName,
-          mimeType,
-          fileData: fileData,
-          expiryDate,
-          description,
-          status: 'PENDING',
-          userRole: user.role,
-        },
-      });
-
-      return document;
     }),
 
   // Récupérer les documents de l'utilisateur

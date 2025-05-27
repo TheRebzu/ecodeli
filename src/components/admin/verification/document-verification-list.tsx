@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { api } from '@/trpc/react';
 import { DocumentStatus, DocumentType } from '@prisma/client';
-import { format } from 'date-fns';
+import { format, formatDistanceToNow } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
 import {
   Card,
@@ -46,11 +46,13 @@ import {
   FileText,
   ThumbsDown,
   ThumbsUp,
+  RefreshCcw,
   X,
 } from 'lucide-react';
 
 export default function DocumentVerificationList() {
   const t = useTranslations('Admin.verification');
+  const tDocuments = useTranslations('documents');
   const { toast } = useToast();
   const [selectedDocument, setSelectedDocument] = useState<any | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -116,7 +118,8 @@ export default function DocumentVerificationList() {
 
   const formatDate = (date: Date | null | undefined) => {
     if (!date) return '-';
-    return format(new Date(date), 'PPP', {
+    return formatDistanceToNow(new Date(date), {
+      addSuffix: true,
       locale: locale === 'fr' ? fr : enUS,
     });
   };
@@ -144,8 +147,22 @@ export default function DocumentVerificationList() {
     return (
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>{t('documents.title')}</CardTitle>
-          <CardDescription>{t('documents.description')}</CardDescription>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>{t('documents.title')}</CardTitle>
+              <CardDescription>{t('documents.description')}</CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetch()}
+              disabled={isLoading}
+              className="flex items-center gap-1"
+            >
+              <RefreshCcw className="h-4 w-4" />
+              {t('documents.refresh', { defaultValue: "Rafraîchir" })}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-center p-6 text-center">
@@ -167,8 +184,22 @@ export default function DocumentVerificationList() {
     <>
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>{t('documents.title')}</CardTitle>
-          <CardDescription>{t('documents.description')}</CardDescription>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>{t('documents.title')}</CardTitle>
+              <CardDescription>{t('documents.description')}</CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => refetch()}
+              disabled={isLoading}
+              className="flex items-center gap-1"
+            >
+              <RefreshCcw className="h-4 w-4" />
+              {t('documents.refresh', { defaultValue: "Rafraîchir" })}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <Tabs
@@ -225,10 +256,10 @@ export default function DocumentVerificationList() {
                           </TableCell>
                           <TableCell>
                             <div className="flex flex-col gap-1">
-                              <span>{t(`documentTypes.${doc.type}`)}</span>
+                              <span>{tDocuments(`documentTypes.${doc.type}`)}</span>
                               <Badge variant={variant} className="flex w-fit items-center">
                                 {icon}
-                                {t(`status.${doc.status}`)}
+                                {tDocuments(`status.${doc.status?.toLowerCase()}`)}
                               </Badge>
                             </div>
                           </TableCell>
@@ -318,7 +349,7 @@ export default function DocumentVerificationList() {
         <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
           <DialogContent className="sm:max-w-md">
             <DialogHeader>
-              <DialogTitle>{t(`documentTypes.${selectedDocument.type}`)}</DialogTitle>
+              <DialogTitle>{tDocuments(`documentTypes.${selectedDocument.type}`)}</DialogTitle>
               <DialogDescription>
                 {selectedDocument.status === 'REJECTED' && selectedDocument.rejectionReason && (
                   <div className="mt-2 rounded-md bg-destructive/10 p-3 text-sm">
@@ -335,14 +366,14 @@ export default function DocumentVerificationList() {
               <div className="rounded-md border">
                 {selectedDocument.mimeType?.startsWith('image/') ? (
                   <img
-                    src={`/api/documents/${selectedDocument.id}`}
-                    alt={t(`documentTypes.${selectedDocument.type}`)}
+                    src={selectedDocument.fileUrl}
+                    alt={tDocuments(`documentTypes.${selectedDocument.type}`)}
                     className="h-auto w-full"
                   />
                 ) : (
                   <div className="flex h-40 items-center justify-center bg-muted">
                     <a
-                      href={`/api/documents/${selectedDocument.id}`}
+                      href={selectedDocument.fileUrl}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 text-primary-foreground"
@@ -366,7 +397,7 @@ export default function DocumentVerificationList() {
                   <p className="font-semibold text-muted-foreground">
                     {t('documents.preview.status')}
                   </p>
-                  <p>{t(`status.${selectedDocument.status}`)}</p>
+                  <p>{tDocuments(`status.${selectedDocument.status}`)}</p>
                 </div>
                 <div>
                   <p className="font-semibold text-muted-foreground">
@@ -442,7 +473,7 @@ export default function DocumentVerificationList() {
                 <p className="font-medium">{t('documents.verification.documentDetails')}:</p>
                 <p className="text-sm">
                   <span className="font-semibold">{t('documents.columns.type')}:</span>{' '}
-                  {t(`documentTypes.${selectedDocument.type}`)}
+                  {tDocuments(`documentTypes.${selectedDocument.type}`)}
                 </p>
                 <p className="text-sm">
                   <span className="font-semibold">{t('documents.columns.user')}:</span>{' '}

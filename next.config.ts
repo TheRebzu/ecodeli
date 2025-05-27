@@ -4,6 +4,12 @@ import createNextIntlPlugin from 'next-intl/plugin';
 import path from 'path';
 
 const nextConfig: NextConfig = {
+  // Configurer le serveur de fichiers statiques
+  output: 'standalone',
+  // Activer les images externes
+  images: {
+    domains: ['localhost'],
+  },
   webpack: (config, { isServer }) => {
     // Configurer les alias pour s'assurer que @/ pointe vers src/
     config.resolve.alias = {

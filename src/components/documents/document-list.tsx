@@ -43,7 +43,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Skeleton } from '@/components/ui/skeleton';
-import { AlertCircle, CheckCircle, Clock, Eye, FileText, Trash, X } from 'lucide-react';
+import { AlertCircle, CheckCircle, Clock, Eye, FileText, RefreshCcw, Trash, X } from 'lucide-react';
 import { useDocuments } from '@/hooks/use-documents';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -63,6 +63,7 @@ export default function DocumentList({
   userId,
 }: DocumentListProps) {
   const t = useTranslations('documents');
+  const tList = useTranslations('list');
   const { toast } = useToast();
   const [selectedDocument, setSelectedDocument] = useState<any | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -100,8 +101,8 @@ export default function DocumentList({
           <div className="flex items-center justify-center p-6 text-center">
             <div>
               <FileText className="mx-auto h-10 w-10 text-muted-foreground" />
-              <h3 className="mt-2 text-lg font-semibold">{t('list.emptyTitle')}</h3>
-              <p className="text-sm text-muted-foreground">{t('list.emptyDescription')}</p>
+              <h3 className="mt-2 text-lg font-semibold">{tList('emptyTitle')}</h3>
+              <p className="text-sm text-muted-foreground">{tList('emptyDescription')}</p>
             </div>
           </div>
         </CardContent>
@@ -198,8 +199,22 @@ export default function DocumentList({
     <>
       <Card className="w-full">
         <CardHeader>
-          <CardTitle>{t('list.title')}</CardTitle>
-          <CardDescription>{t('list.description')}</CardDescription>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>{t('list.title')}</CardTitle>
+              <CardDescription>{t('list.description')}</CardDescription>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={refreshDocuments}
+              disabled={isLoading}
+              className="flex items-center gap-1"
+            >
+              <RefreshCcw className="h-4 w-4" />
+              {t('list.refresh')}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>

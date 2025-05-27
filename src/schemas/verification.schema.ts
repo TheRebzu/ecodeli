@@ -107,7 +107,10 @@ export const documentUploadSchema = z.object({
   }),
   file: z.any(), // Représente un fichier uploadé
   notes: z.string().optional(),
-  expiryDate: z.date().optional(),
+  expiryDate: z.date({
+    required_error: 'La date est requise',
+    invalid_type_error: 'Format de date invalide'
+  }).optional().transform(val => val ? new Date(val) : undefined),
 });
 
 export type DocumentUploadInput = z.infer<typeof documentUploadSchema>;

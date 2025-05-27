@@ -92,6 +92,12 @@ async function main() {
     const pendingVerificationUsers = await createPendingVerificationUsers();
     console.log(`✅ ${pendingVerificationUsers.merchantUser ? 1 : 0} merchant et ${pendingVerificationUsers.providerUser ? 1 : 0} provider créés en attente de vérification`);
 
+    // Ajouter des documents en attente pour le prestataire
+    if (pendingVerificationUsers.providerUser) {
+      await createProviderDocuments(pendingVerificationUsers.providerUser.id);
+      console.log(`✅ Documents ajoutés pour le prestataire en attente de vérification`);
+    }
+
     // 2. Create financial data
     await createFinancialData([
       ...clientUsers,
@@ -1037,6 +1043,37 @@ async function createAnnouncements(clientUsers: any[], merchantUsers: any[]) {
   }
 
   return announcements;
+}
+
+// Create verification documents for providers
+async function createProviderDocuments(userId: string) {
+  const documentTypes = [
+    { type: DocumentType.ID_CARD, filename: 'carte_identite.jpg', required: true },
+    { type: DocumentType.QUALIFICATION_CERTIFICATE, filename: 'certification.pdf', required: true },
+    { type: DocumentType.INSURANCE, filename: 'assurance.pdf', required: true },
+  ];
+
+  for (const doc of documentTypes) {
+    try {
+      await prisma.document.create({
+        data: {
+          type: doc.type,
+          userId,
+          filename: `${userId}_${doc.filename}`,
+          fileUrl: `https://storage.ecodeli.me/documents/${userId}_${doc.filename}`,
+          mimeType: doc.filename.endsWith('.pdf') ? 'application/pdf' : 'image/jpeg',
+          fileSize: faker.number.int({ min: 500000, max: 5000000 }),
+          uploadedAt: generateRandomDate(new Date('2023-01-01'), new Date()),
+          isVerified: false,
+          verificationStatus: 'PENDING',
+          reviewerId: null,
+          rejectionReason: null,
+        },
+      });
+    } catch (err) {
+      console.warn('Could not create provider document. Tables might not exist yet:', err);
+    }
+  }
 }
 
 // Execute the script

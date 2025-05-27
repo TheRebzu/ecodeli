@@ -9,6 +9,7 @@ import {
   XCircleIcon,
 } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
+import { useTranslations } from 'next-intl';
 
 interface TransactionStatsCardProps {
   data?: TransactionStats;
@@ -16,7 +17,10 @@ interface TransactionStatsCardProps {
 }
 
 const TransactionStatsCard = ({ data, expanded = false }: TransactionStatsCardProps) => {
-  if (!data) {
+  const tCommon = useTranslations('common');
+
+  // Si les données sont absentes ou incomplètes, afficher un état de chargement
+  if (!data || !data.status) {
     return (
       <Card>
         <CardHeader className="pb-2">
@@ -26,14 +30,14 @@ const TransactionStatsCard = ({ data, expanded = false }: TransactionStatsCardPr
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-muted-foreground">Chargement...</p>
+          <p className="text-muted-foreground">{tCommon('loading')}</p>
         </CardContent>
       </Card>
     );
   }
 
   // Formatter les montants en euros
-  const formatCurrency = (amount: number) => {
+  const formatCurrency = (amount: number = 0) => {
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
       currency: 'EUR',
@@ -41,12 +45,22 @@ const TransactionStatsCard = ({ data, expanded = false }: TransactionStatsCardPr
     }).format(amount);
   };
 
+  // Vérifier les propriétés de données avant de les utiliser
+  const completed = data.status?.completed || 0;
+  const pending = data.status?.pending || 0;
+  const failed = data.status?.failed || 0;
+  
   // Calculer le pourcentage de chaque statut
-  const total = data.status.completed + data.status.pending + data.status.failed;
-  const completedPercentage = total > 0 ? Math.round((data.status.completed / total) * 100) : 0;
-  const pendingPercentage = total > 0 ? Math.round((data.status.pending / total) * 100) : 0;
-  const failedPercentage = total > 0 ? Math.round((data.status.failed / total) * 100) : 0;
+  const total = completed + pending + failed;
+  const completedPercentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+  const pendingPercentage = total > 0 ? Math.round((pending / total) * 100) : 0;
+  const failedPercentage = total > 0 ? Math.round((failed / total) * 100) : 0;
 
+  // Vérifier les propriétés de volume
+  const volumeToday = data.volume?.today || 0;
+  const volumeThisWeek = data.volume?.thisWeek || 0;
+  const volumeThisMonth = data.volume?.thisMonth || 0;
+  
   return (
     <Card className={expanded ? 'col-span-full' : ''}>
       <CardHeader className="pb-2">
@@ -63,19 +77,19 @@ const TransactionStatsCard = ({ data, expanded = false }: TransactionStatsCardPr
                 Total
                 <TrendingUpIcon className="h-4 w-4 ml-1" />
               </p>
-              <p className="text-2xl font-bold">{data.total}</p>
+              <p className="text-2xl font-bold">{data.total || 0}</p>
             </div>
             <div className="bg-background p-3 rounded-lg border">
               <div className="flex justify-between">
                 <p className="text-muted-foreground text-sm">Aujourd&apos;hui</p>
-                {data.today > 0 && (
+                {(data.today || 0) > 0 && (
                   <span className="text-xs text-green-500 bg-green-50 px-1.5 py-0.5 rounded flex items-center">
                     <ArrowUpIcon className="h-3 w-3 mr-0.5" />
-                    {data.today}
+                    {data.today || 0}
                   </span>
                 )}
               </div>
-              <p className="text-xl font-semibold">{formatCurrency(data.volume.today)}</p>
+              <p className="text-xl font-semibold">{formatCurrency(volumeToday)}</p>
             </div>
           </div>
 
@@ -84,15 +98,15 @@ const TransactionStatsCard = ({ data, expanded = false }: TransactionStatsCardPr
             <div className="grid grid-cols-3 gap-2">
               <div className="bg-background p-2 rounded-lg border text-center">
                 <p className="text-xs text-muted-foreground">Aujourd'hui</p>
-                <p className="text-lg font-semibold">{formatCurrency(data.volume.today)}</p>
+                <p className="text-lg font-semibold">{formatCurrency(volumeToday)}</p>
               </div>
               <div className="bg-background p-2 rounded-lg border text-center">
                 <p className="text-xs text-muted-foreground">Cette semaine</p>
-                <p className="text-lg font-semibold">{formatCurrency(data.volume.thisWeek)}</p>
+                <p className="text-lg font-semibold">{formatCurrency(volumeThisWeek)}</p>
               </div>
               <div className="bg-background p-2 rounded-lg border text-center">
                 <p className="text-xs text-muted-foreground">Ce mois</p>
-                <p className="text-lg font-semibold">{formatCurrency(data.volume.thisMonth)}</p>
+                <p className="text-lg font-semibold">{formatCurrency(volumeThisMonth)}</p>
               </div>
             </div>
           </div>
@@ -108,7 +122,7 @@ const TransactionStatsCard = ({ data, expanded = false }: TransactionStatsCardPr
                       <span className="text-sm">Complétées</span>
                     </div>
                     <span className="text-sm font-medium">
-                      {data.status.completed}{' '}
+                      {completed}{' '}
                       <span className="text-muted-foreground">({completedPercentage}%)</span>
                     </span>
                   </div>
@@ -126,7 +140,7 @@ const TransactionStatsCard = ({ data, expanded = false }: TransactionStatsCardPr
                       <span className="text-sm">En attente</span>
                     </div>
                     <span className="text-sm font-medium">
-                      {data.status.pending}{' '}
+                      {pending}{' '}
                       <span className="text-muted-foreground">({pendingPercentage}%)</span>
                     </span>
                   </div>
@@ -144,7 +158,7 @@ const TransactionStatsCard = ({ data, expanded = false }: TransactionStatsCardPr
                       <span className="text-sm">Échouées</span>
                     </div>
                     <span className="text-sm font-medium">
-                      {data.status.failed}{' '}
+                      {failed}{' '}
                       <span className="text-muted-foreground">({failedPercentage}%)</span>
                     </span>
                   </div>

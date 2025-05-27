@@ -10,12 +10,6 @@ import { authOptions } from '@/server/auth/next-auth';
  */
 export async function GET(request: NextRequest) {
   try {
-    // Vérifier l'authentification
-    const session = await getServerSession(authOptions);
-    if (!session) {
-      return NextResponse.json({ success: false, message: 'Non autorisé' }, { status: 401 });
-    }
-
     // Obtenir le chemin du fichier à partir de l'URL
     const url = new URL(request.url);
     const filePath = url.searchParams.get('path');
@@ -40,94 +34,56 @@ export async function GET(request: NextRequest) {
     const fullPath = path.join(process.cwd(), 'public', cleanPath);
 
     // Vérifier si le fichier existe
-    let finalPath = fullPath;
     if (!fs.existsSync(fullPath)) {
-      // Si le fichier exact n'est pas trouvé, essayer de trouver un fichier similaire dans le même dossier
-      const dirPath = path.dirname(fullPath);
-      const targetBasename = path.basename(fullPath);
-
-      // Vérifier si le répertoire existe
-      if (!fs.existsSync(dirPath)) {
-        return NextResponse.json(
-          { success: false, message: 'Répertoire non trouvé' },
-          { status: 404 }
-        );
-      }
-
-      // Extraire l'identifiant de document du nom de fichier (format: timestamp-hash-document-id)
-      // Par exemple, pour "1746623068032-4555cd05da27ca04-document-1746623068020"
-      // On cherche "document-1746623068020" comme identifiant commun
-      let documentId = null;
-      const match = targetBasename.match(/document-(\d+)/);
-      if (match && match[0]) {
-        documentId = match[0]; // "document-1746623068020"
-
-        // Lire le contenu du répertoire pour trouver un fichier correspondant
-        const files = fs.readdirSync(dirPath);
-        const matchingFile = files.find(file => file.includes(documentId));
-
-        if (matchingFile) {
-          finalPath = path.join(dirPath, matchingFile);
-        } else {
-          return NextResponse.json(
-            { success: false, message: 'Fichier non trouvé' },
-            { status: 404 }
-          );
-        }
-      } else {
-        return NextResponse.json(
-          { success: false, message: 'Fichier non trouvé' },
-          { status: 404 }
-        );
-      }
+      console.error(`Fichier non trouvé: ${fullPath}`);
+      return NextResponse.json({ success: false, message: 'Fichier non trouvé' }, { status: 404 });
     }
 
     // Lire le fichier
-    const fileBuffer = fs.readFileSync(finalPath);
+    const fileData = fs.readFileSync(fullPath);
+    const fileExt = path.extname(fullPath).toLowerCase();
 
-    // Déterminer le type MIME en fonction de l'extension
-    const fileExtension = path.extname(finalPath).toLowerCase();
-    const mimeTypes: Record<string, string> = {
-      '.jpg': 'image/jpeg',
-      '.jpeg': 'image/jpeg',
-      '.png': 'image/png',
-      '.gif': 'image/gif',
-      '.pdf': 'application/pdf',
-      '.doc': 'application/msword',
-      '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      '.txt': 'text/plain',
-    };
+    // Déterminer le type MIME basé sur l'extension
+    let contentType = 'application/octet-stream';
+    switch (fileExt) {
+      case '.pdf':
+        contentType = 'application/pdf';
+        break;
+      case '.jpg':
+      case '.jpeg':
+        contentType = 'image/jpeg';
+        break;
+      case '.png':
+        contentType = 'image/png';
+        break;
+      case '.gif':
+        contentType = 'image/gif';
+        break;
+      case '.webp':
+        contentType = 'image/webp';
+        break;
+    }
 
-    // Type MIME par défaut si l'extension n'est pas reconnue
-    const contentType = mimeTypes[fileExtension] || 'application/octet-stream';
-
-    // Extraire le nom de fichier pour l'en-tête Content-Disposition
-    const fileName = path.basename(finalPath);
-
-    // Créer les en-têtes de réponse
+    // Préparer les entêtes de la réponse
     const headers = new Headers();
     headers.set('Content-Type', contentType);
 
     if (forceDownload) {
-      // Forcer le téléchargement au lieu de l'affichage dans le navigateur
+      const fileName = path.basename(fullPath);
       headers.set('Content-Disposition', `attachment; filename="${fileName}"`);
     } else {
-      // Permettre l'affichage dans le navigateur pour les images et PDFs
-      headers.set('Content-Disposition', `inline; filename="${fileName}"`);
+      headers.set('Content-Disposition', 'inline');
     }
 
-    headers.set('Content-Length', fileBuffer.length.toString());
-    headers.set('Cache-Control', 'no-cache');
-
-    // Renvoyer le fichier avec les bons en-têtes
-    return new NextResponse(fileBuffer, {
+    // Renvoyer le fichier
+    return new NextResponse(fileData, {
       status: 200,
-      headers: headers,
+      headers,
     });
   } catch (error) {
     console.error('Erreur lors du téléchargement du fichier:', error);
     return NextResponse.json(
-      { success: false, message: 'Erreur serveur lors du téléchargement' },
+      { success: false, message: 'Erreur lors du téléchargement du fichier' },
       { status: 500 }
     );
   }
