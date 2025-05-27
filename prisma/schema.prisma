@@ -1908,6 +1908,7 @@ model Document {
   id                  String                @id @default(cuid())
   type                DocumentType
   userId              String
+  userRole            UserRole              @default(CLIENT)
   filename            String
   fileUrl             String
   mimeType            String
@@ -1929,6 +1930,7 @@ model Document {
   @@index([userId])
   @@index([type])
   @@index([verificationStatus])
+  @@index([userRole])
   @@map("documents")
 } 
 // ===== MODÈLES DE CONTRATS =====

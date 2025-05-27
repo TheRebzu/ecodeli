@@ -2,13 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { db } from '@/server/db';
 import { authOptions } from '@/server/auth/next-auth';
-import { DocumentService } from '@/server/services/document.service';
+import { VerificationService } from '@/server/services/verification.service';
+import { VerificationStatus } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
 
-// Using a string literal for verification status to avoid the enum mismatch
-const APPROVED_STATUS = 'APPROVED';
-
-const documentService = new DocumentService();
+const verificationService = new VerificationService();
 
 export async function POST(req: NextRequest, { params }: { params: { documentId: string } }) {
   try {
@@ -25,43 +23,15 @@ export async function POST(req: NextRequest, { params }: { params: { documentId:
     const documentId = params.documentId;
     const { notes } = await req.json();
 
-    // Find the document
-    const document = await db.document.findUnique({
-      where: { id: documentId },
-      include: { user: true },
-    });
-
-    if (!document) {
-      return NextResponse.json({ error: 'Document not found' }, { status: 404 });
-    }
-
-    // Update document status
-    const updatedDocument = await documentService.updateDocumentFromApi(documentId, {
-      isVerified: true,
-      verificationStatus: APPROVED_STATUS,
-      reviewerId: session.user.id,
-      notes: notes || null,
-    });
-
-    // Check if all required documents are now verified
-    const requiredDocuments = documentService.getRequiredDocumentTypesByRole(document.user.role);
-
-    const hasAllDocuments = await documentService.hasRequiredDocuments(
-      document.user.id,
-      requiredDocuments
+    // Utiliser VerificationService pour approuver le document
+    const updatedVerification = await verificationService.reviewDocument(
+      documentId,
+      session.user.id,
+      VerificationStatus.APPROVED,
+      notes || undefined
     );
 
-    // If all documents are verified, update user verification status
-    if (hasAllDocuments) {
-      await db.user.update({
-        where: { id: document.user.id },
-        data: {
-          status: 'ACTIVE',
-        },
-      });
-    }
-
-    return NextResponse.json({ success: true, document: updatedDocument });
+    return NextResponse.json({ success: true, verification: updatedVerification });
   } catch (error) {
     console.error('Error approving document:', error);
 

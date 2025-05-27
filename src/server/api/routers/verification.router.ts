@@ -197,7 +197,7 @@ export const verificationRouter = router({
           id: doc.id,
           userId: doc.userId,
           type: doc.type,
-          uploadedAt: doc.uploadedAt || doc.createdAt,
+          uploadedAt: doc.uploadedAt,
           user: doc.user,
           documents: [{
             id: doc.id,
@@ -400,6 +400,62 @@ export const verificationRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: "Une erreur est survenue lors de la vérification"
+        });
+      }
+    }),
+    
+  // Approuver un document (admin seulement)
+  approveDocument: adminProcedure
+    .input(
+      z.object({
+        documentId: z.string(),
+        notes: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const adminId = ctx.session.user.id;
+        
+        // Utiliser la méthode reviewDocument avec le statut approuvé
+        return await verificationService.reviewDocument(
+          input.documentId,
+          adminId,
+          VerificationStatus.APPROVED,
+          input.notes
+        );
+      } catch (error) {
+        console.error("Erreur lors de l'approbation du document:", error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Une erreur est survenue lors de l'approbation du document: ${error instanceof Error ? error.message : String(error)}`
+        });
+      }
+    }),
+    
+  // Rejeter un document (admin seulement)
+  rejectDocument: adminProcedure
+    .input(
+      z.object({
+        documentId: z.string(),
+        reason: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const adminId = ctx.session.user.id;
+        
+        // Utiliser la méthode reviewDocument avec le statut rejeté
+        return await verificationService.reviewDocument(
+          input.documentId,
+          adminId,
+          VerificationStatus.REJECTED,
+          input.reason
+        );
+      } catch (error) {
+        console.error("Erreur lors du rejet du document:", error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Une erreur est survenue lors du rejet du document: ${error instanceof Error ? error.message : String(error)}`
         });
       }
     }),

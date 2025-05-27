@@ -66,11 +66,11 @@ export class VerificationService {
       data: {
         userId,
         type,
+        userRole,
         filename: uploadResult.filename,
         fileUrl: uploadResult.fileUrl,
         mimeType: uploadResult.mimeType,
         fileSize: uploadResult.fileSize,
-        userRole: userRole.toString(),
       },
     });
 
@@ -148,8 +148,8 @@ export class VerificationService {
       where: { id: documentId },
       data: {
         isVerified: status === VerificationStatus.APPROVED,
-        verifiedBy: verifierId,
-        verifiedAt: new Date(),
+        reviewerId: verifierId,
+        verificationStatus: status,
         rejectionReason: status === VerificationStatus.REJECTED ? notes : null,
       },
     });
@@ -157,16 +157,16 @@ export class VerificationService {
     // Récupérer les informations sur le document et l'utilisateur
     const document = await this.prisma.document.findUnique({
       where: { id: documentId },
-      select: { userId: true, userRole: true },
+      include: { user: true },
     });
 
     if (document && status === VerificationStatus.APPROVED) {
       // Si tous les documents requis sont approuvés, mettre à jour le statut de vérification de l'utilisateur
-      if (document.userRole === UserRole.DELIVERER.toString()) {
+      if (document.user.role === UserRole.DELIVERER) {
         await this.updateDelivererVerificationStatus(document.userId);
-      } else if (document.userRole === UserRole.PROVIDER.toString()) {
+      } else if (document.user.role === UserRole.PROVIDER) {
         await this.updateProviderVerificationStatus(document.userId);
-      } else if (document.userRole === UserRole.MERCHANT.toString()) {
+      } else if (document.user.role === UserRole.MERCHANT) {
         await this.updateMerchantVerificationStatus(document.userId);
       }
     }
@@ -225,7 +225,7 @@ export class VerificationService {
     const verifiedDocuments = await this.prisma.document.findMany({
       where: {
         userId,
-        userRole: userRole.toString(),
+        userRole,
         type: { in: requiredDocuments },
         isVerified: true,
       },
@@ -410,7 +410,7 @@ export class VerificationService {
     const verifiedDocuments = await this.prisma.document.findMany({
       where: {
         userId,
-        userRole: userRole.toString(),
+        userRole,
         type: { in: requiredDocuments },
         isVerified: true,
       },
