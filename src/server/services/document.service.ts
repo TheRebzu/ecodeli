@@ -61,6 +61,7 @@ type UploadDocumentParams = {
   fileSize: number;
   notes?: string;
   expiryDate?: Date;
+  userRole?: UserRole;
 };
 
 type UpdateDocumentParams = {
@@ -153,7 +154,7 @@ export class DocumentService {
    */
   async uploadDocument(params: UploadDocumentParams) {
     try {
-      const { userId, type, filename, fileUrl, mimeType, fileSize, notes, expiryDate } = params;
+      const { userId, type, filename, fileUrl, mimeType, fileSize, notes, expiryDate, userRole } = params;
 
       // Vérifier si l'utilisateur existe
       const user = await this.prisma.user.findUnique({
@@ -188,6 +189,7 @@ export class DocumentService {
           notes,
           expiryDate,
           isVerified: false,
+          userRole: userRole || user.role,
         },
         include: {
           user: true,
@@ -427,12 +429,14 @@ export class DocumentService {
   }
 
   /**
-   * Met à jour une vérification (par un admin)
+   * Met à jour une vérification
    */
   async updateVerification(data: UpdateVerificationParams) {
+    const { verificationId, verifierId, status, notes } = data;
+
     // Vérifier si la vérification existe
     const verification = await this.prisma.verification.findUnique({
-      where: { id: data.verificationId },
+      where: { id: verificationId },
     });
 
     if (!verification) {
@@ -444,50 +448,23 @@ export class DocumentService {
 
     // Mettre à jour la vérification
     const updatedVerification = await this.prisma.verification.update({
-      where: { id: data.verificationId },
+      where: { id: verificationId },
       data: {
-        verifierId: data.verifierId,
-        status: data.status as unknown as Prisma.EnumVerificationStatusFieldUpdateOperationsInput,
-        notes: data.notes,
+        status,
+        verifierId,
         verifiedAt: new Date(),
+        notes,
       },
     });
 
-    // Si la vérification est approuvée, marquer le document comme vérifié
-    if (data.status === VerificationStatus.APPROVED) {
-      await this.prisma.document.update({
-        where: { id: verification.documentId },
-        data: {
-          isVerified: true,
-        },
-      });
-
-      // Si c'est un document d'identité pour un livreur ou prestataire, mettre à jour leur statut de vérification
-      const document = await this.prisma.document.findUnique({
-        where: { id: verification.documentId },
-        include: {
-          user: true,
-        },
-      });
-
-      if (document && document.user) {
-        if (document.user.role === 'DELIVERER') {
-          await this.prisma.deliverer.update({
-            where: { userId: document.userId },
-            data: {
-              isVerified: true,
-            },
-          });
-        } else if (document.user.role === 'PROVIDER') {
-          await this.prisma.provider.update({
-            where: { userId: document.userId },
-            data: {
-              isVerified: true,
-            },
-          });
-        }
-      }
-    }
+    // Mettre à jour le document associé
+    await this.prisma.document.update({
+      where: { id: verification.documentId },
+      data: {
+        verificationStatus: status,
+        isVerified: status === VerificationStatus.APPROVED,
+      },
+    });
 
     return updatedVerification;
   }
@@ -524,30 +501,32 @@ export class DocumentService {
 
   async verifyDocument(data: {
     documentId: string;
-    status: DocumentStatus;
+    verificationStatus: VerificationStatus;
     adminId: string;
     rejectionReason?: string;
   }): Promise<Document> {
-    const { documentId, status, adminId, rejectionReason } = data;
+    const { documentId, verificationStatus, adminId, rejectionReason } = data;
 
     const document = await this.prisma.document.update({
       where: { id: documentId },
       data: {
-        status,
+        status: verificationStatus as unknown as DocumentStatus,
+        verificationStatus,
         verifiedBy: adminId,
         verifiedAt: new Date(),
-        rejectionReason: status === DocumentStatus.REJECTED ? rejectionReason : null,
+        rejectionReason: verificationStatus === VerificationStatus.REJECTED ? rejectionReason : null,
+        isVerified: verificationStatus === VerificationStatus.APPROVED,
       },
       include: { user: true },
     });
 
     // Notification par email
-    if (status === DocumentStatus.APPROVED) {
+    if (verificationStatus === VerificationStatus.APPROVED) {
       await this.emailService.sendDocumentApprovedEmail(
         document.user.email as string,
         document.type as DocumentType
       );
-    } else if (status === DocumentStatus.REJECTED) {
+    } else if (verificationStatus === VerificationStatus.REJECTED) {
       await this.emailService.sendDocumentRejectedEmail(
         document.user.email as string,
         document.type as DocumentType,

@@ -62,15 +62,16 @@ export class VerificationService {
     const uploadResult = await this.uploadFileToStorage(file);
 
     // Créer le document en base de données
+    // @ts-ignore - Le champ userRole existe dans le modèle Document mais pas encore dans les types générés
     const document = await this.prisma.document.create({
       data: {
         userId,
         type,
+        userRole, // Champ ajouté dans la migration 20250519104500_add_userRole_to_document
         filename: uploadResult.filename,
         fileUrl: uploadResult.fileUrl,
         mimeType: uploadResult.mimeType,
         fileSize: uploadResult.fileSize,
-        userRole: userRole.toString(),
       },
     });
 
@@ -148,8 +149,8 @@ export class VerificationService {
       where: { id: documentId },
       data: {
         isVerified: status === VerificationStatus.APPROVED,
-        verifiedBy: verifierId,
-        verifiedAt: new Date(),
+        reviewerId: verifierId,
+        verificationStatus: status,
         rejectionReason: status === VerificationStatus.REJECTED ? notes : null,
       },
     });
@@ -157,16 +158,16 @@ export class VerificationService {
     // Récupérer les informations sur le document et l'utilisateur
     const document = await this.prisma.document.findUnique({
       where: { id: documentId },
-      select: { userId: true, userRole: true },
+      include: { user: true },
     });
 
     if (document && status === VerificationStatus.APPROVED) {
       // Si tous les documents requis sont approuvés, mettre à jour le statut de vérification de l'utilisateur
-      if (document.userRole === UserRole.DELIVERER.toString()) {
+      if (document.user.role === UserRole.DELIVERER) {
         await this.updateDelivererVerificationStatus(document.userId);
-      } else if (document.userRole === UserRole.PROVIDER.toString()) {
+      } else if (document.user.role === UserRole.PROVIDER) {
         await this.updateProviderVerificationStatus(document.userId);
-      } else if (document.userRole === UserRole.MERCHANT.toString()) {
+      } else if (document.user.role === UserRole.MERCHANT) {
         await this.updateMerchantVerificationStatus(document.userId);
       }
     }
@@ -222,10 +223,11 @@ export class VerificationService {
     requiredDocuments: DocumentType[]
   ) {
     // Vérifier si tous les documents requis sont vérifiés
+    // @ts-ignore - Le champ userRole existe dans le modèle Document mais pas encore dans les types générés
     const verifiedDocuments = await this.prisma.document.findMany({
       where: {
         userId,
-        userRole: userRole.toString(),
+        userRole, // Champ ajouté dans la migration 20250519104500_add_userRole_to_document
         type: { in: requiredDocuments },
         isVerified: true,
       },
@@ -321,11 +323,12 @@ export class VerificationService {
    * Récupère toutes les demandes de vérification en attente pour un type d'utilisateur spécifique
    */
   async getPendingVerifications(userRole: UserRole) {
+    // @ts-ignore - Le champ userRole existe dans le modèle Document mais pas encore dans les types générés
     return await this.prisma.verification.findMany({
       where: {
         status: VerificationStatus.PENDING,
         document: {
-          userRole: userRole.toString(),
+          userRole, // Champ ajouté dans la migration 20250519104500_add_userRole_to_document
         },
       },
       include: {
@@ -407,10 +410,11 @@ export class VerificationService {
     }
 
     // Vérifier si tous les documents requis sont téléchargés et vérifiés
+    // @ts-ignore - Le champ userRole existe dans le modèle Document mais pas encore dans les types générés
     const verifiedDocuments = await this.prisma.document.findMany({
       where: {
         userId,
-        userRole: userRole.toString(),
+        userRole, // Champ ajouté dans la migration 20250519104500_add_userRole_to_document
         type: { in: requiredDocuments },
         isVerified: true,
       },

@@ -46,6 +46,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle, CheckCircle, Clock, Eye, FileText, RefreshCcw, Trash, X } from 'lucide-react';
 import { useDocuments } from '@/hooks/use-documents';
 import { useToast } from '@/components/ui/use-toast';
+import { api } from '@/trpc/react';
 
 interface DocumentListProps {
   documents?: any[];
@@ -159,26 +160,35 @@ export default function DocumentList({
         description: t('download.starting'),
       });
 
-      // Utiliser la nouvelle API de téléchargement avec le bon type MIME
-      const downloadUrl = `/api/download?path=${encodeURIComponent(document.fileUrl)}&download=true`;
-
+      // Utiliser tRPC pour télécharger le document
+      const result = await api.document.downloadDocument.fetch({ 
+        filePath: document.fileUrl 
+      });
+      
+      // Créer un blob à partir des données base64
+      const binaryData = atob(result.fileData);
+      const bytes = new Uint8Array(binaryData.length);
+      for (let i = 0; i < binaryData.length; i++) {
+        bytes[i] = binaryData.charCodeAt(i);
+      }
+      const blob = new Blob([bytes], { type: result.contentType });
+      
+      // Créer une URL pour le Blob
+      const url = URL.createObjectURL(blob);
+      
       // Créer un élément de lien temporaire pour le téléchargement
       const link = document.createElement('a');
-      link.href = downloadUrl;
-
-      // Définir le nom du fichier à télécharger
-      const fileName =
-        document.filename ||
-        `document-${document.type.toLowerCase()}.${document.mimeType?.split('/').pop() || 'file'}`;
-      link.setAttribute('download', fileName);
-
-      // Cliquer sur le lien pour déclencher le téléchargement
+      link.href = url;
+      link.setAttribute('download', result.fileName);
+      
+      // Déclencher le téléchargement
       document.body.appendChild(link);
       link.click();
-
+      
       // Nettoyer
       setTimeout(() => {
         document.body.removeChild(link);
+        URL.revokeObjectURL(url);
       }, 100);
 
       toast({

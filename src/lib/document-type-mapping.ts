@@ -6,15 +6,15 @@ import { VerificationDocumentType } from '@/types/verification';
  */
 export const documentTypeMapping: Record<VerificationDocumentType, DocumentType> = {
   [VerificationDocumentType.ID_CARD]: DocumentType.ID_CARD,
-  [VerificationDocumentType.PASSPORT]: DocumentType.PASSPORT,
-  [VerificationDocumentType.DRIVERS_LICENSE]: DocumentType.DRIVERS_LICENSE,
+  [VerificationDocumentType.PASSPORT]: DocumentType.OTHER,
+  [VerificationDocumentType.DRIVERS_LICENSE]: DocumentType.DRIVING_LICENSE,
   [VerificationDocumentType.PROOF_OF_ADDRESS]: DocumentType.PROOF_OF_ADDRESS,
-  [VerificationDocumentType.BUSINESS_LICENSE]: DocumentType.BUSINESS_LICENSE,
-  [VerificationDocumentType.TAX_CERTIFICATE]: DocumentType.TAX_CERTIFICATE,
+  [VerificationDocumentType.BUSINESS_LICENSE]: DocumentType.OTHER,
+  [VerificationDocumentType.TAX_CERTIFICATE]: DocumentType.OTHER,
   [VerificationDocumentType.BUSINESS_REGISTRATION]: DocumentType.BUSINESS_REGISTRATION,
-  [VerificationDocumentType.VAT_REGISTRATION]: DocumentType.VAT_REGISTRATION,
-  [VerificationDocumentType.INSURANCE_CERTIFICATE]: DocumentType.INSURANCE_CERTIFICATE,
-  [VerificationDocumentType.PROFESSIONAL_QUALIFICATION]: DocumentType.PROFESSIONAL_QUALIFICATION,
+  [VerificationDocumentType.VAT_REGISTRATION]: DocumentType.OTHER,
+  [VerificationDocumentType.INSURANCE_CERTIFICATE]: DocumentType.INSURANCE,
+  [VerificationDocumentType.PROFESSIONAL_QUALIFICATION]: DocumentType.QUALIFICATION_CERTIFICATE,
 };
 
 /**
@@ -22,19 +22,14 @@ export const documentTypeMapping: Record<VerificationDocumentType, DocumentType>
  */
 export const reverseDocumentTypeMapping: Record<DocumentType, VerificationDocumentType> = {
   [DocumentType.ID_CARD]: VerificationDocumentType.ID_CARD,
-  [DocumentType.PASSPORT]: VerificationDocumentType.PASSPORT,
-  [DocumentType.DRIVERS_LICENSE]: VerificationDocumentType.DRIVERS_LICENSE,
-  [DocumentType.PROOF_OF_ADDRESS]: VerificationDocumentType.PROOF_OF_ADDRESS,
-  [DocumentType.BUSINESS_LICENSE]: VerificationDocumentType.BUSINESS_LICENSE,
-  [DocumentType.TAX_CERTIFICATE]: VerificationDocumentType.TAX_CERTIFICATE, 
-  [DocumentType.BUSINESS_REGISTRATION]: VerificationDocumentType.BUSINESS_REGISTRATION,
-  [DocumentType.VAT_REGISTRATION]: VerificationDocumentType.VAT_REGISTRATION,
-  [DocumentType.INSURANCE_CERTIFICATE]: VerificationDocumentType.INSURANCE_CERTIFICATE,
-  [DocumentType.PROFESSIONAL_QUALIFICATION]: VerificationDocumentType.PROFESSIONAL_QUALIFICATION,
-  // Gérer les autres types qui n'ont pas d'équivalent direct
-  [DocumentType.VEHICLE_INSURANCE]: VerificationDocumentType.INSURANCE_CERTIFICATE,
+  [DocumentType.DRIVING_LICENSE]: VerificationDocumentType.DRIVERS_LICENSE,
   [DocumentType.VEHICLE_REGISTRATION]: VerificationDocumentType.DRIVERS_LICENSE,
-  [DocumentType.OTHER]: VerificationDocumentType.ID_CARD, // Fallback valeur par défaut
+  [DocumentType.INSURANCE]: VerificationDocumentType.INSURANCE_CERTIFICATE,
+  [DocumentType.QUALIFICATION_CERTIFICATE]: VerificationDocumentType.PROFESSIONAL_QUALIFICATION,
+  [DocumentType.PROOF_OF_ADDRESS]: VerificationDocumentType.PROOF_OF_ADDRESS,
+  [DocumentType.BUSINESS_REGISTRATION]: VerificationDocumentType.BUSINESS_REGISTRATION,
+  [DocumentType.SELFIE]: VerificationDocumentType.ID_CARD,
+  [DocumentType.OTHER]: VerificationDocumentType.ID_CARD,
 };
 
 /**
