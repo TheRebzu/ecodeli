@@ -1,14 +1,10 @@
 'use client';
 
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import {
-  merchantRegisterSchema,
-  MerchantRegisterSchemaType,
-} from '@/schemas/auth/merchant-register.schema';
-import { UserRole } from '@/schemas/auth/register.schema';
+import { merchantRegisterSchema, MerchantRegisterSchemaType } from '@/schemas/merchant-register.schema';
+import { UserRole } from '@/schemas/register.schema';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -19,67 +15,67 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useRouter } from 'next/navigation';
 import { Textarea } from '@/components/ui/textarea';
+import { useRouter } from 'next/navigation';
+import { api } from '@/trpc/react';
+import { useToast } from '@/components/ui/use-toast';
 
-type MerchantRegisterFormProps = {
-  locale: string;
-};
-
-export default function MerchantRegisterForm({ locale }: MerchantRegisterFormProps) {
-  const [isLoading, setIsLoading] = useState(false);
+export default function MerchantRegisterForm() {
   const router = useRouter();
   const t = useTranslations('auth.register');
+  const { toast } = useToast();
+
+  const registerMutation = api.auth.register.useMutation({
+    onSuccess: () => {
+      toast({
+        title: t('success.title'),
+        description: t('success.merchant'),
+      });
+      router.push('/login?registered=true&role=merchant');
+    },
+    onError: (error) => {
+      toast({
+        title: t('error.title'),
+        description: error.message || t('error.description'),
+        variant: 'destructive',
+      });
+    },
+  });
 
   const form = useForm<MerchantRegisterSchemaType>({
-    resolver: zodResolver(merchantRegisterSchema) as any,
+    resolver: zodResolver(merchantRegisterSchema),
     defaultValues: {
       email: '',
       password: '',
       confirmPassword: '',
       name: '',
+      phoneNumber: '',
       companyName: '',
+      companyEmail: '',
+      companyPhone: '',
       address: '',
-      phone: '',
+      city: '',
+      postalCode: '',
+      siret: '',
       businessType: '',
-      vatNumber: '',
-      businessAddress: '',
-      businessCity: '',
-      businessState: '',
-      businessPostal: '',
-      businessCountry: '',
-      taxId: '',
-      websiteUrl: '',
+      description: '',
       role: UserRole.MERCHANT,
     },
   });
 
   async function onSubmit(data: MerchantRegisterSchemaType) {
-    setIsLoading(true);
-
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
+      await registerMutation.mutateAsync({
+        email: data.email,
+        password: data.password,
+        name: data.name,
+        role: 'MERCHANT',
+        phone: data.phoneNumber,
+        companyName: data.companyName,
+        address: data.address,
       });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Registration failed');
-      }
-
-      // Après l'inscription, rediriger vers la page de vérification
-      router.push(`/${locale}/login?registered=true`);
     } catch (error) {
-      console.error('Registration error:', error);
-      // Gérer l'erreur (afficher un message toast, etc.)
-    } finally {
-      setIsLoading(false);
+      // L'erreur est déjà gérée par onError
     }
   }
 
@@ -119,7 +115,7 @@ export default function MerchantRegisterForm({ locale }: MerchantRegisterFormPro
 
           <FormField
             control={form.control as any}
-            name="phone"
+            name="phoneNumber"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{t('fields.phone')}</FormLabel>
@@ -179,44 +175,28 @@ export default function MerchantRegisterForm({ locale }: MerchantRegisterFormPro
             )}
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <FormField
-              control={form.control as any}
-              name="businessType"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('fields.businessType')}</FormLabel>
-                  <FormControl>
-                    <Input placeholder={t('placeholders.businessType')} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control as any}
-              name="vatNumber"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>{t('fields.vatNumber')}</FormLabel>
-                  <FormControl>
-                    <Input placeholder={t('placeholders.vatNumber')} {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
+          <FormField
+            control={form.control as any}
+            name="companyEmail"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('fields.companyEmail')}</FormLabel>
+                <FormControl>
+                  <Input type="email" placeholder={t('placeholders.companyEmail')} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <FormField
             control={form.control as any}
-            name="websiteUrl"
+            name="companyPhone"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('fields.websiteUrl')}</FormLabel>
+                <FormLabel>{t('fields.companyPhone')}</FormLabel>
                 <FormControl>
-                  <Input type="url" placeholder={t('placeholders.websiteUrl')} {...field} />
+                  <Input type="tel" placeholder={t('placeholders.companyPhone')} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -229,12 +209,12 @@ export default function MerchantRegisterForm({ locale }: MerchantRegisterFormPro
           
           <FormField
             control={form.control as any}
-            name="businessAddress"
+            name="address"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>{t('fields.businessAddress')}</FormLabel>
+                <FormLabel>{t('fields.address')}</FormLabel>
                 <FormControl>
-                  <Input placeholder={t('placeholders.businessAddress')} {...field} />
+                  <Input placeholder={t('placeholders.address')} {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -244,7 +224,7 @@ export default function MerchantRegisterForm({ locale }: MerchantRegisterFormPro
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control as any}
-              name="businessCity"
+              name="city"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('fields.city')}</FormLabel>
@@ -258,7 +238,7 @@ export default function MerchantRegisterForm({ locale }: MerchantRegisterFormPro
 
             <FormField
               control={form.control as any}
-              name="businessPostal"
+              name="postalCode"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>{t('fields.postalCode')}</FormLabel>
@@ -274,12 +254,12 @@ export default function MerchantRegisterForm({ locale }: MerchantRegisterFormPro
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <FormField
               control={form.control as any}
-              name="businessState"
+              name="siret"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('fields.state')}</FormLabel>
+                  <FormLabel>{t('fields.siret')}</FormLabel>
                   <FormControl>
-                    <Input placeholder={t('placeholders.state')} {...field} />
+                    <Input placeholder={t('placeholders.siret')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -288,12 +268,12 @@ export default function MerchantRegisterForm({ locale }: MerchantRegisterFormPro
 
             <FormField
               control={form.control as any}
-              name="businessCountry"
+              name="businessType"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>{t('fields.country')}</FormLabel>
+                  <FormLabel>{t('fields.businessType')}</FormLabel>
                   <FormControl>
-                    <Input placeholder={t('placeholders.country')} {...field} />
+                    <Input placeholder={t('placeholders.businessType')} {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -302,12 +282,30 @@ export default function MerchantRegisterForm({ locale }: MerchantRegisterFormPro
           </div>
         </div>
 
+        <div className="space-y-4">
+          <h3 className="text-lg font-medium">{t('sections.description')}</h3>
+          
+          <FormField
+            control={form.control as any}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('fields.description')}</FormLabel>
+                <FormControl>
+                  <Textarea placeholder={t('placeholders.description')} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
         <div className="pt-4">
           <p className="text-sm text-muted-foreground mb-4">
             {t('verificationNotice')}
           </p>
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? t('submitting') : t('register')}
+          <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
+            {registerMutation.isPending ? t('submitting') : t('registerAsMerchant')}
           </Button>
         </div>
       </form>

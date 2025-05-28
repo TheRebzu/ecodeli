@@ -420,7 +420,7 @@
     "viewDocuments": "viewDocuments"
   },
   "common": {
-    "loading": "Chargement...",
+    "loading": "Loading",
     "languageName": "Français",
     "switchLanguage": "Changer de langue",
     "currentLanguage": "Langue actuelle",
@@ -498,7 +498,6 @@
     "pagenumber_1": "pageNumber === -1 ? (",
     "go_to_previous_page": "Go to previous page",
     "go_to_next_page": "Go to next page",
-    "loading": "Loading",
     "fieldpath": "= FieldPath",
     "dropdownmenusubtrigger_displayname_dropd": "));\r\nDropdownMenuSubTrigger.displayName = DropdownMenuPrimitive.SubTrigger.displayName;\r\n\r\nconst DropdownMenuSubContent = React.forwardRef",
     "dropdownmenusubcontent_displayname_dropd": "));\r\nDropdownMenuSubContent.displayName = DropdownMenuPrimitive.SubContent.displayName;\r\n\r\nconst DropdownMenuContent = React.forwardRef",
@@ -1416,7 +1415,10 @@
     "PERCENTAGE": "PERCENTAGE",
     "MONTH": "MONTH",
     "PLANNED": "PLANNED",
-    "JSON": "JSON"
+    "JSON": "JSON",
+    "analytics": "[À TRADUIRE] analytics",
+    "liveTracking": "[À TRADUIRE] liveTracking",
+    "liveTrackingDescription": "[À TRADUIRE] liveTrackingDescription"
   },
   "auth": {
     "login": {
@@ -1773,16 +1775,7 @@
       "title": "Problème de vérification?",
       "description": "Si tous vos documents ont été approuvés mais que votre compte n'est toujours pas vérifié, vous pouvez essayer de forcer la vérification."
     },
-    "upload": {
-      "dropFiles": "Déposez vos fichiers ici ou cliquez pour parcourir",
-      "title": "Télécharger un document",
-      "subtitle": "Formats acceptés: PDF, JPG, PNG (max 5MB)",
-      "dropzone": "Déposez votre fichier ici",
-      "orBrowse": "ou parcourir",
-      "maxSize": "Taille maximale: 5MB",
-      "button": "Télécharger",
-      "processing": "Traitement en cours..."
-    },
+    "upload": "Télécharger",
     "form": {
       "documentType": "Type de document",
       "description": "Description (optionnel)",
@@ -1896,7 +1889,8 @@
     },
     "approve": "approve",
     "reject": "reject",
-    "totalDocuments": "totalDocuments"
+    "totalDocuments": "totalDocuments",
+    "refresh": "[À TRADUIRE] refresh"
   },
   "uploadForm": {
     "title": "Télécharger un document",
@@ -1921,7 +1915,9 @@
     "view": "Voir",
     "delete": "Supprimer",
     "subtitle": "Liste de vos documents",
-    "totalDocuments": "{count, plural, =0 {Aucun document} one {# document} other {# documents}}"
+    "totalDocuments": "{count, plural, =0 {Aucun document} one {# document} other {# documents}}",
+    "refresh": "[À TRADUIRE] refresh",
+    "a": "a"
   },
   "preview": {
     "rejectionReason": "Motif de refus",
@@ -2367,11 +2363,11 @@
   "withEcoDeli": "[en] withEcoDeli",
   "expenseEvolution": "[en] expenseEvolution",
   "activityTitles": {
-    "delivery": "[en] delivery",
-    "announcement": "[en] announcement",
-    "payment": "[en] payment",
-    "boxReservation": "[en] boxReservation",
-    "default": "[en] default"
+    "delivery": "Livraison",
+    "announcement": "Annonce",
+    "payment": "Paiement",
+    "boxReservation": "Réservation de box",
+    "default": "Activité"
   },
   "activityDescriptions": {
     "boxReservation": "[en] boxReservation"
@@ -5700,7 +5696,11 @@
     },
     "error": {
       "title": "title",
-      "description": "description"
+      "description": "description",
+      "fileTooLarge": "[À TRADUIRE] fileTooLarge",
+      "invalidFileType": "[À TRADUIRE] invalidFileType",
+      "fileRead": "[À TRADUIRE] fileRead",
+      "unknown": "[À TRADUIRE] unknown"
     },
     "title": "title",
     "description": "description",
@@ -5726,7 +5726,15 @@
     "verification": {
       "notice": "notice"
     },
-    "dropFiles": "dropFiles"
+    "dropFiles": "dropFiles",
+    "processing": {
+      "title": "Titre",
+      "description": "[À TRADUIRE] description"
+    },
+    "uploading": {
+      "title": "Titre",
+      "description": "[À TRADUIRE] description"
+    }
   },
   "download": {
     "preparing": "preparing",
@@ -5901,7 +5909,20 @@
       "delivererInterested": "delivererInterested",
       "noActiveAnnouncements": "noActiveAnnouncements",
       "viewAllAnnouncements": "viewAllAnnouncements",
-      "newAnnouncement": "newAnnouncement"
+      "newAnnouncement": "newAnnouncement",
+      "quickActions": {
+        "title": "Actions rapides"
+      },
+      "actions": {
+        "createAnnouncement": "Créer une annonce",
+        "searchServices": "Rechercher des services",
+        "trackDeliveries": "Suivre mes livraisons",
+        "bookStorage": "Réserver stockage",
+        "scheduleService": "Programmer un service",
+        "viewInvoices": "Voir mes factures",
+        "updateProfile": "Modifier profil",
+        "contactSupport": "Contacter le support"
+      }
     },
     "welcome": "welcome",
     "availableDeliveries": "availableDeliveries",
@@ -6186,5 +6207,30 @@
   "title": "title",
   "liveTracking": "liveTracking",
   "liveTrackingDescription": "liveTrackingDescription",
-  "editTitle": "editTitle"
+  "editTitle": "editTitle",
+  "recentActivities": {
+    "title": "Titre",
+    "time": {
+      "justNow": "[À TRADUIRE] justNow",
+      "minutesAgo": "[À TRADUIRE] minutesAgo",
+      "hoursAgo": "[À TRADUIRE] hoursAgo",
+      "yesterday": "[À TRADUIRE] yesterday",
+      "daysAgo": "[À TRADUIRE] daysAgo"
+    },
+    "types": {
+      "userRegistration": "[À TRADUIRE] userRegistration",
+      "documentSubmission": "[À TRADUIRE] documentSubmission",
+      "deliveryCompleted": "[À TRADUIRE] deliveryCompleted",
+      "transactionCompleted": "[À TRADUIRE] transactionCompleted",
+      "default": "[À TRADUIRE] default"
+    },
+    "descriptions": {
+      "userRegistration": "[À TRADUIRE] userRegistration",
+      "documentSubmission": "[À TRADUIRE] documentSubmission",
+      "deliveryCompleted": "[À TRADUIRE] deliveryCompleted",
+      "transactionCompleted": "[À TRADUIRE] transactionCompleted",
+      "default": "[À TRADUIRE] default"
+    },
+    "noActivities": "[À TRADUIRE] noActivities"
+  }
 }

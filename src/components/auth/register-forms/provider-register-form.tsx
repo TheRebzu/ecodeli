@@ -1,15 +1,10 @@
 'use client';
 
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
-import {
-  providerRegisterSchema,
-  ProviderRegisterSchemaType,
-  ServiceType
-} from '@/schemas/auth/provider-register.schema';
-import { UserRole } from '@/schemas/auth/register.schema';
+import { providerRegisterSchema, ProviderRegisterSchemaType } from '@/schemas/provider-register.schema';
+import { UserRole } from '@/schemas/register.schema';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -21,7 +16,6 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { useRouter } from 'next/navigation';
 import {
   Select,
   SelectContent,
@@ -29,71 +23,67 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { MultiSelect } from '@/components/ui/multi-select';
+import { useRouter } from 'next/navigation';
+import { api } from '@/trpc/react';
+import { useToast } from '@/components/ui/use-toast';
 
-type ProviderRegisterFormProps = {
-  locale: string;
-};
-
-export default function ProviderRegisterForm({ locale }: ProviderRegisterFormProps) {
-  const [isLoading, setIsLoading] = useState(false);
+export default function ProviderRegisterForm() {
   const router = useRouter();
   const t = useTranslations('auth.register');
-  
-  // Options pour les services
-  const serviceOptions = [
-    { value: 'MAINTENANCE', label: t('serviceTypes.maintenance') },
-    { value: 'CLEANING', label: t('serviceTypes.cleaning') },
-    { value: 'REPAIR', label: t('serviceTypes.repair') },
-    { value: 'INSTALLATION', label: t('serviceTypes.installation') },
-    { value: 'CONSULTING', label: t('serviceTypes.consulting') },
-    { value: 'OTHER', label: t('serviceTypes.other') },
-  ];
+  const { toast } = useToast();
+
+  const registerMutation = api.auth.register.useMutation({
+    onSuccess: () => {
+      toast({
+        title: t('success.title'),
+        description: t('success.provider'),
+      });
+      router.push('/login?registered=true&role=provider');
+    },
+    onError: (error) => {
+      toast({
+        title: t('error.title'),
+        description: error.message || t('error.description'),
+        variant: 'destructive',
+      });
+    },
+  });
 
   const form = useForm<ProviderRegisterSchemaType>({
-    resolver: zodResolver(providerRegisterSchema) as any,
+    resolver: zodResolver(providerRegisterSchema),
     defaultValues: {
       email: '',
       password: '',
       confirmPassword: '',
       name: '',
+      phoneNumber: '',
       companyName: '',
       address: '',
-      phone: '',
+      city: '',
+      postalCode: '',
+      serviceType: '',
       services: [],
-      serviceType: undefined,
       description: '',
+      experienceYears: '',
+      certifications: '',
       availability: '',
-      websiteUrl: '',
       role: UserRole.PROVIDER,
     },
   });
 
   async function onSubmit(data: ProviderRegisterSchemaType) {
-    setIsLoading(true);
-
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
+      await registerMutation.mutateAsync({
+        email: data.email,
+        password: data.password,
+        name: data.name,
+        role: 'PROVIDER',
+        phone: data.phoneNumber,
+        companyName: data.companyName,
+        address: data.address,
       });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Registration failed');
-      }
-
-      // Après l'inscription, rediriger vers la page de vérification
-      router.push(`/${locale}/login?registered=true`);
     } catch (error) {
-      console.error('Registration error:', error);
-      // Gérer l'erreur (afficher un message toast, etc.)
-    } finally {
-      setIsLoading(false);
+      // L'erreur est déjà gérée par onError
     }
   }
 
@@ -133,7 +123,7 @@ export default function ProviderRegisterForm({ locale }: ProviderRegisterFormPro
 
           <FormField
             control={form.control as any}
-            name="phone"
+            name="phoneNumber"
             render={({ field }) => (
               <FormItem>
                 <FormLabel>{t('fields.phone')}</FormLabel>
@@ -209,6 +199,34 @@ export default function ProviderRegisterForm({ locale }: ProviderRegisterFormPro
 
           <FormField
             control={form.control as any}
+            name="city"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('fields.city')}</FormLabel>
+                <FormControl>
+                  <Input placeholder={t('placeholders.city')} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control as any}
+            name="postalCode"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('fields.postalCode')}</FormLabel>
+                <FormControl>
+                  <Input placeholder={t('placeholders.postalCode')} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control as any}
             name="serviceType"
             render={({ field }) => (
               <FormItem>
@@ -271,6 +289,37 @@ export default function ProviderRegisterForm({ locale }: ProviderRegisterFormPro
 
           <FormField
             control={form.control as any}
+            name="experienceYears"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('fields.experienceYears')}</FormLabel>
+                <FormControl>
+                  <Input placeholder={t('placeholders.experienceYears')} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control as any}
+            name="certifications"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('fields.certifications')}</FormLabel>
+                <FormControl>
+                  <Textarea
+                    placeholder={t('placeholders.certifications')}
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control as any}
             name="availability"
             render={({ field }) => (
               <FormItem>
@@ -285,28 +334,14 @@ export default function ProviderRegisterForm({ locale }: ProviderRegisterFormPro
               </FormItem>
             )}
           />
-
-          <FormField
-            control={form.control as any}
-            name="websiteUrl"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>{t('fields.websiteUrl')}</FormLabel>
-                <FormControl>
-                  <Input type="url" placeholder={t('placeholders.websiteUrl')} {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
         </div>
 
         <div className="pt-4">
           <p className="text-sm text-muted-foreground mb-4">
             {t('verificationNotice')}
           </p>
-          <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? t('submitting') : t('register')}
+          <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
+            {registerMutation.isPending ? t('submitting') : t('registerAsProvider')}
           </Button>
         </div>
       </form>

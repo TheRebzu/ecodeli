@@ -3,7 +3,9 @@
 import { useState } from 'react';
 import { api } from '@/trpc/react';
 import { useToast } from '@/components/ui/use-toast';
+import { useFileUpload } from '@/hooks/use-file-upload';
 import type { UserDocument } from '@/types/verification';
+import { DocumentType } from '@prisma/client';
 
 /**
  * Hook personnalisé pour gérer les fonctionnalités de vérification
@@ -12,10 +14,10 @@ export function useVerification() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const { toast } = useToast();
+  const { uploadFile, isUploading, uploadProgress: fileUploadProgress } = useFileUpload();
 
   // Mutations tRPC
   const submitVerificationMutation = api.verification.submitVerification.useMutation();
-  const uploadDocumentMutation = api.verification.uploadDocument.useMutation();
   const deleteDocumentMutation = api.verification.deleteDocument.useMutation();
 
   // Queries tRPC
@@ -33,7 +35,7 @@ export function useVerification() {
     setIsSubmitting(true);
     
     try {
-      // Simuler un progrès d'upload pour l'UX (à remplacer par un vrai système de suivi de progression)
+      // Simuler un progrès d'upload pour l'UX
       const progressInterval = setInterval(() => {
         setUploadProgress((prev) => {
           if (prev >= 95) {
@@ -56,6 +58,9 @@ export function useVerification() {
 
       toast({
         title: "Demande envoyée",
+        // @ts-ignore
+        description: "Votre demande de vérification a été envoyée avec succès",
+        // @ts-ignore
         variant: "success",
       });
 
@@ -63,6 +68,8 @@ export function useVerification() {
     } catch (error) {
       toast({
         title: "Erreur",
+        // @ts-ignore
+        description: "Impossible d'envoyer votre demande de vérification",
         variant: "destructive",
       });
       console.error("Erreur de vérification:", error);
@@ -78,43 +85,24 @@ export function useVerification() {
    */
   const uploadDocument = async (file: File, userId: string, documentType: string) => {
     try {
-      // Création d'un FormData pour l'upload
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('userId', userId);
-      formData.append('documentType', documentType);
-
-      // Envoi du fichier au serveur via fetch pour gérer l'upload
-      const uploadResponse = await fetch('/api/documents/upload', {
-        method: 'POST',
-        body: formData,
+      // Utiliser le hook de file upload avec le type de document approprié
+      const fileUrl = await uploadFile(file, {
+        documentType: documentType as DocumentType,
+        onSuccess: (url) => {
+          console.log('Document uploadé avec succès:', url);
+        },
+        onError: (error) => {
+          console.error('Erreur upload document:', error);
+          throw error;
+        }
       });
 
-      if (!uploadResponse.ok) {
-        throw new Error('Échec du téléchargement');
-      }
-
-      const { documentUrl, documentId } = await uploadResponse.json();
-
-      // Enregistrer le document dans la base de données via tRPC
-      await uploadDocumentMutation.mutateAsync({
-        userId,
-        documentType,
-        documentUrl,
-        documentId,
-      });
-
-      toast({
-        title: "Document téléchargé",
-        variant: "success",
-      });
-
-      return { documentUrl, documentId };
+      // Retourner les informations du document
+      return { 
+        documentUrl: fileUrl, 
+        documentId: fileUrl.split('/').pop()?.split('.')[0] || ''
+      };
     } catch (error) {
-      toast({
-        title: "Erreur",
-        variant: "destructive",
-      });
       console.error("Erreur de téléchargement:", error);
       return null;
     }
@@ -129,6 +117,9 @@ export function useVerification() {
       
       toast({
         title: "Document supprimé",
+        // @ts-ignore
+        description: "Le document a été supprimé avec succès",
+        // @ts-ignore
         variant: "success",
       });
       
@@ -136,6 +127,8 @@ export function useVerification() {
     } catch (error) {
       toast({
         title: "Erreur",
+        // @ts-ignore
+        description: "Impossible de supprimer le document",
         variant: "destructive",
       });
       console.error("Erreur de suppression:", error);
@@ -145,7 +138,7 @@ export function useVerification() {
 
   return {
     isSubmitting,
-    uploadProgress,
+    uploadProgress: isUploading ? fileUploadProgress : uploadProgress,
     submitVerification,
     uploadDocument,
     deleteDocument,

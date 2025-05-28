@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
@@ -28,15 +27,36 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { api } from '@/trpc/react';
+import { useToast } from '@/components/ui/use-toast';
 
 type DelivererRegisterFormProps = {
-  locale: string;
+  locale?: string;
 };
 
-export default function DelivererRegisterForm({ locale }: DelivererRegisterFormProps) {
-  const [isLoading, setIsLoading] = useState(false);
+export default function DelivererRegisterForm({
+  locale = 'fr',
+}: DelivererRegisterFormProps = {}) {
   const router = useRouter();
   const t = useTranslations('auth.register');
+  const { toast } = useToast();
+
+  const registerMutation = api.auth.register.useMutation({
+    onSuccess: () => {
+      toast({
+        title: t('success.title'),
+        description: t('success.deliverer'),
+      });
+      router.push('/login?registered=true&role=deliverer');
+    },
+    onError: (error) => {
+      toast({
+        title: t('error.title'),
+        description: error.message || t('error.description'),
+        variant: 'destructive',
+      });
+    },
+  });
 
   const form = useForm<DelivererRegisterSchemaType>({
     resolver: zodResolver(delivererRegisterSchema) as any,
@@ -61,30 +81,17 @@ export default function DelivererRegisterForm({ locale }: DelivererRegisterFormP
   });
 
   async function onSubmit(data: DelivererRegisterSchemaType) {
-    setIsLoading(true);
-
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
+      await registerMutation.mutateAsync({
+        email: data.email,
+        password: data.password,
+        name: data.name,
+        role: 'DELIVERER',
+        phone: data.phoneNumber,
+        address: data.address,
       });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Registration failed');
-      }
-
-      // Redirect to verification page or login
-      router.push(`/${locale}/login?registered=true`);
     } catch (error) {
-      console.error('Registration error:', error);
-      // Handle error (show toast message, etc.)
-    } finally {
-      setIsLoading(false);
+      // L'erreur est déjà gérée par onError
     }
   }
 
@@ -306,8 +313,8 @@ export default function DelivererRegisterForm({ locale }: DelivererRegisterFormP
           />
         </div>
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? t('submitting') : t('register')}
+        <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
+          {registerMutation.isPending ? t('submitting') : t('registerAsDeliverer')}
         </Button>
       </form>
     </Form>

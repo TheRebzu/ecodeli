@@ -256,7 +256,7 @@
     }
   },
   "common": {
-    "loading": "Loading...",
+    "loading": "[TO_TRANSLATE] loading",
     "file": "[TO_TRANSLATE] file",
     "upgrade": "[TO_TRANSLATE] upgrade",
     "path": "[TO_TRANSLATE] path",
@@ -289,7 +289,6 @@
     "systemMode": "[TO_TRANSLATE] systemMode",
     "language": "[TO_TRANSLATE] language",
     "backToHome": "[TO_TRANSLATE] backToHome",
-    "loading": "[TO_TRANSLATE] loading",
     "save": "[TO_TRANSLATE] save",
     "cancel": "[TO_TRANSLATE] cancel",
     "document": "[TO_TRANSLATE] document",
@@ -361,7 +360,10 @@
     "PERCENTAGE": "[TO_TRANSLATE] PERCENTAGE",
     "MONTH": "[TO_TRANSLATE] MONTH",
     "PLANNED": "[TO_TRANSLATE] PLANNED",
-    "JSON": "[TO_TRANSLATE] JSON"
+    "JSON": "[TO_TRANSLATE] JSON",
+    "analytics": "[TO_TRANSLATE] common.analytics",
+    "liveTracking": "[TO_TRANSLATE] common.liveTracking",
+    "liveTrackingDescription": "[TO_TRANSLATE] common.liveTrackingDescription"
   },
   "": {
     "": "[TO_TRANSLATE] "
@@ -769,7 +771,9 @@
     },
     "view": "[TO_TRANSLATE] view",
     "delete": "[TO_TRANSLATE] delete",
-    "totalDocuments": "[TO_TRANSLATE] totalDocuments"
+    "totalDocuments": "[TO_TRANSLATE] totalDocuments",
+    "refresh": "[TO_TRANSLATE] list.refresh",
+    "a": "[TO_TRANSLATE] a"
   },
   "dashboardPage": {
     "metaTitle": "[TO_TRANSLATE] metaTitle",
@@ -3067,7 +3071,8 @@
       "processing": "[TO_TRANSLATE] processing",
       "reject": "[TO_TRANSLATE] reject",
       "approve": "[TO_TRANSLATE] approve"
-    }
+    },
+    "refresh": "[TO_TRANSLATE] documents.refresh"
   },
   "datePickerLocale": {
     "selectDate": "[TO_TRANSLATE] selectDate"
@@ -3661,7 +3666,11 @@
     },
     "error": {
       "title": "[TO_TRANSLATE] title",
-      "description": "[TO_TRANSLATE] description"
+      "description": "[TO_TRANSLATE] description",
+      "fileTooLarge": "[TO_TRANSLATE] upload.error.fileTooLarge",
+      "invalidFileType": "[TO_TRANSLATE] upload.error.invalidFileType",
+      "fileRead": "[TO_TRANSLATE] upload.error.fileRead",
+      "unknown": "[TO_TRANSLATE] upload.error.unknown"
     },
     "title": "[TO_TRANSLATE] title",
     "description": "[TO_TRANSLATE] description",
@@ -3687,7 +3696,15 @@
     "verification": {
       "notice": "[TO_TRANSLATE] notice"
     },
-    "dropFiles": "[TO_TRANSLATE] dropFiles"
+    "dropFiles": "[TO_TRANSLATE] dropFiles",
+    "processing": {
+      "title": "[TO_TRANSLATE] upload.processing.title",
+      "description": "[TO_TRANSLATE] upload.processing.description"
+    },
+    "uploading": {
+      "title": "[TO_TRANSLATE] upload.uploading.title",
+      "description": "[TO_TRANSLATE] upload.uploading.description"
+    }
   },
   "download": {
     "preparing": "[TO_TRANSLATE] preparing",
@@ -4466,5 +4483,30 @@
   "createTitle": "[TO_TRANSLATE] [en] createTitle",
   "createDescription": "[TO_TRANSLATE] [en] createDescription",
   "editTitle": "[TO_TRANSLATE] editTitle",
-  "editDescription": "[TO_TRANSLATE] [en] editDescription"
+  "editDescription": "[TO_TRANSLATE] [en] editDescription",
+  "recentActivities": {
+    "title": "[TO_TRANSLATE] recentActivities.title",
+    "time": {
+      "justNow": "[TO_TRANSLATE] recentActivities.time.justNow",
+      "minutesAgo": "[TO_TRANSLATE] recentActivities.time.minutesAgo",
+      "hoursAgo": "[TO_TRANSLATE] recentActivities.time.hoursAgo",
+      "yesterday": "[TO_TRANSLATE] recentActivities.time.yesterday",
+      "daysAgo": "[TO_TRANSLATE] recentActivities.time.daysAgo"
+    },
+    "types": {
+      "userRegistration": "[TO_TRANSLATE] recentActivities.types.userRegistration",
+      "documentSubmission": "[TO_TRANSLATE] recentActivities.types.documentSubmission",
+      "deliveryCompleted": "[TO_TRANSLATE] recentActivities.types.deliveryCompleted",
+      "transactionCompleted": "[TO_TRANSLATE] recentActivities.types.transactionCompleted",
+      "default": "[TO_TRANSLATE] recentActivities.types.default"
+    },
+    "descriptions": {
+      "userRegistration": "[TO_TRANSLATE] recentActivities.descriptions.userRegistration",
+      "documentSubmission": "[TO_TRANSLATE] recentActivities.descriptions.documentSubmission",
+      "deliveryCompleted": "[TO_TRANSLATE] recentActivities.descriptions.deliveryCompleted",
+      "transactionCompleted": "[TO_TRANSLATE] recentActivities.descriptions.transactionCompleted",
+      "default": "[TO_TRANSLATE] recentActivities.descriptions.default"
+    },
+    "noActivities": "[TO_TRANSLATE] recentActivities.noActivities"
+  }
 }

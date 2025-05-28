@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useTranslations } from 'next-intl';
@@ -18,11 +17,31 @@ import {
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useRouter } from 'next/navigation';
+import { api } from '@/trpc/react';
+import { useToast } from '@/components/ui/use-toast';
 
 export default function ClientRegisterForm() {
-  const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
   const t = useTranslations('auth.register');
+  const { toast } = useToast();
+
+  const registerMutation = api.auth.register.useMutation({
+    onSuccess: () => {
+      toast({
+        title: t('success.title'),
+        description: t('success.description'),
+      });
+      // Rediriger vers la page de connexion avec un message
+      router.push('/login?registered=true');
+    },
+    onError: (error) => {
+      toast({
+        title: t('error.title'),
+        description: error.message || t('error.description'),
+        variant: 'destructive',
+      });
+    },
+  });
 
   const form = useForm<ClientRegisterSchemaType>({
     resolver: zodResolver(clientRegisterSchema),
@@ -43,30 +62,17 @@ export default function ClientRegisterForm() {
   });
 
   async function onSubmit(data: ClientRegisterSchemaType) {
-    setIsLoading(true);
-
     try {
-      const response = await fetch('/api/auth/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(data),
+      await registerMutation.mutateAsync({
+        email: data.email,
+        password: data.password,
+        name: data.name,
+        role: 'CLIENT',
+        phone: data.phoneNumber,
+        address: data.address,
       });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.message || 'Registration failed');
-      }
-
-      // Redirect to verification page or login
-      router.push('/login?registered=true');
     } catch (error) {
-      console.error('Registration error:', error);
-      // Handle error (show toast message, etc.)
-    } finally {
-      setIsLoading(false);
+      // L'erreur est déjà gérée par onError
     }
   }
 
@@ -232,8 +238,8 @@ export default function ClientRegisterForm() {
           )}
         />
 
-        <Button type="submit" className="w-full" disabled={isLoading}>
-          {isLoading ? t('submitting') : t('register')}
+        <Button type="submit" className="w-full" disabled={registerMutation.isPending}>
+          {registerMutation.isPending ? t('submitting') : t('register')}
         </Button>
       </form>
     </Form>

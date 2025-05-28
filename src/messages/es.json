@@ -442,7 +442,11 @@
     },
     "error": {
       "title": "[TO_TRANSLATE] title",
-      "description": "[TO_TRANSLATE] description"
+      "description": "[TO_TRANSLATE] description",
+      "fileTooLarge": "[TO_TRANSLATE] [À TRADUIRE] fileTooLarge",
+      "invalidFileType": "[TO_TRANSLATE] [À TRADUIRE] invalidFileType",
+      "fileRead": "[TO_TRANSLATE] [À TRADUIRE] fileRead",
+      "unknown": "[TO_TRANSLATE] [À TRADUIRE] unknown"
     },
     "title": "[TO_TRANSLATE] title",
     "description": "[TO_TRANSLATE] description",
@@ -471,7 +475,15 @@
     "verification": {
       "notice": "[TO_TRANSLATE] notice"
     },
-    "dropFiles": "[TO_TRANSLATE] dropFiles"
+    "dropFiles": "[TO_TRANSLATE] dropFiles",
+    "processing": {
+      "title": "[TO_TRANSLATE] Titre",
+      "description": "[TO_TRANSLATE] [À TRADUIRE] description"
+    },
+    "uploading": {
+      "title": "[TO_TRANSLATE] Titre",
+      "description": "[TO_TRANSLATE] [À TRADUIRE] description"
+    }
   },
   "tracking": {
     "notAvailable": "[TO_TRANSLATE] notAvailable",
@@ -735,7 +747,8 @@
     "taxCertificate": {
       "label": "[TO_TRANSLATE] label",
       "description": "[TO_TRANSLATE] description"
-    }
+    },
+    "refresh": "[TO_TRANSLATE] [À TRADUIRE] refresh"
   },
   "extend": {
     "title": "[TO_TRANSLATE] title",
@@ -1479,7 +1492,9 @@
     "view": "[TO_TRANSLATE] view",
     "delete": "[TO_TRANSLATE] delete",
     "totalDocuments": "[TO_TRANSLATE] totalDocuments",
-    "subtitle": "[TO_TRANSLATE] subtitle"
+    "subtitle": "[TO_TRANSLATE] subtitle",
+    "a": "[TO_TRANSLATE] a",
+    "refresh": "[TO_TRANSLATE] [À TRADUIRE] refresh"
   },
   "download": {
     "preparing": "[TO_TRANSLATE] preparing",
@@ -4235,5 +4250,30 @@
       "title": "[TO_TRANSLATE] title",
       "description": "[TO_TRANSLATE] description"
     }
+  },
+  "recentActivities": {
+    "title": "[TO_TRANSLATE] Titre",
+    "time": {
+      "justNow": "[TO_TRANSLATE] [À TRADUIRE] justNow",
+      "minutesAgo": "[TO_TRANSLATE] [À TRADUIRE] minutesAgo",
+      "hoursAgo": "[TO_TRANSLATE] [À TRADUIRE] hoursAgo",
+      "yesterday": "[TO_TRANSLATE] [À TRADUIRE] yesterday",
+      "daysAgo": "[TO_TRANSLATE] [À TRADUIRE] daysAgo"
+    },
+    "types": {
+      "userRegistration": "[TO_TRANSLATE] [À TRADUIRE] userRegistration",
+      "documentSubmission": "[TO_TRANSLATE] [À TRADUIRE] documentSubmission",
+      "deliveryCompleted": "[TO_TRANSLATE] [À TRADUIRE] deliveryCompleted",
+      "transactionCompleted": "[TO_TRANSLATE] [À TRADUIRE] transactionCompleted",
+      "default": "[TO_TRANSLATE] [À TRADUIRE] default"
+    },
+    "descriptions": {
+      "userRegistration": "[TO_TRANSLATE] [À TRADUIRE] userRegistration",
+      "documentSubmission": "[TO_TRANSLATE] [À TRADUIRE] documentSubmission",
+      "deliveryCompleted": "[TO_TRANSLATE] [À TRADUIRE] deliveryCompleted",
+      "transactionCompleted": "[TO_TRANSLATE] [À TRADUIRE] transactionCompleted",
+      "default": "[TO_TRANSLATE] [À TRADUIRE] default"
+    },
+    "noActivities": "[TO_TRANSLATE] [À TRADUIRE] noActivities"
   }
 }

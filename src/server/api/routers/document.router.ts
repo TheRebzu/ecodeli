@@ -3,7 +3,7 @@ import { z } from 'zod';
 import { router, protectedProcedure, adminProcedure } from '@/server/api/trpc';
 import { DocumentService } from '@/server/services/document.service';
 import { DocumentStatus, DocumentType } from '../../db/enums';
-import { UserRole, VerificationStatus } from '@prisma/client';
+import { UserRole, VerificationStatus, Prisma } from '@prisma/client';
 import {
   uploadDocumentSchema,
   updateDocumentSchema,
@@ -89,10 +89,11 @@ export const documentRouter = router({
         // Traitement pour faciliter l'utilisation côté client
         const processedDocuments = documents.map(doc => {
           // S'assurer que toutes les propriétés nécessaires sont présentes
+          const verificationStatus = doc.verificationStatus || (doc.verifications[0]?.status as any) || 'PENDING';
           return {
             ...doc,
-            status: doc.status || (doc.verifications[0]?.status as any) || 'PENDING',
-            verificationStatus: doc.verificationStatus || (doc.verifications[0]?.status as any) || 'PENDING',
+            status: verificationStatus,
+            verificationStatus: verificationStatus,
             createdAt: doc.uploadedAt
           };
         });
@@ -180,7 +181,7 @@ export const documentRouter = router({
         // Utiliser correctement le service de document pour mettre à jour le statut
         const document = await documentService.verifyDocument({
           documentId,
-          verificationStatus: status as VerificationStatus,
+          status: status as DocumentStatus,
           adminId,
           rejectionReason,
         });
@@ -547,7 +548,7 @@ export const documentRouter = router({
       return await documentService.updateVerification({
         verificationId: input.verificationId,
         verifierId: ctx.session.user.id,
-        status: input.status as DocumentStatus,
+        status: input.status as VerificationStatus,
         notes: input.notes,
       });
     }),
@@ -576,5 +577,175 @@ export const documentRouter = router({
       }
 
       return await documentService.getDocumentVerifications(input.documentId);
+    }),
+
+  /**
+   * Approuver un document (admin uniquement)
+   */
+  approveDocument: adminProcedure
+    .input(
+      z.object({
+        documentId: z.string(),
+        notes: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const { documentId, notes } = input;
+        const adminId = ctx.session.user.id;
+
+        // Trouver le document
+        const document = await ctx.db.document.findUnique({
+          where: { id: documentId },
+          include: { user: true },
+        });
+
+        if (!document) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Document non trouvé',
+          });
+        }
+
+        // Mettre à jour le statut du document
+        const updatedDocument = await documentService.verifyDocument({
+          documentId,
+          status: DocumentStatus.APPROVED,
+          adminId,
+          rejectionReason: notes,
+        });
+
+        // Vérifier si tous les documents requis sont maintenant vérifiés
+        const requiredDocuments = documentService.getRequiredDocumentTypesByRole(document.user.role);
+
+        const hasAllDocuments = await documentService.hasRequiredDocuments(
+          document.user.id,
+          requiredDocuments
+        );
+
+        // Si tous les documents sont vérifiés, mettre à jour le statut de l'utilisateur
+        if (hasAllDocuments) {
+          await ctx.db.user.update({
+            where: { id: document.user.id },
+            data: {
+              status: 'ACTIVE',
+            },
+          });
+        }
+
+        return { 
+          success: true, 
+          document: updatedDocument 
+        };
+      } catch (error: any) {
+        console.error('Erreur lors de l\'approbation du document:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error.message || 'Erreur lors de l\'approbation du document',
+          cause: error,
+        });
+      }
+    }),
+
+  /**
+   * Rejeter un document (admin uniquement)
+   */
+  rejectDocument: adminProcedure
+    .input(
+      z.object({
+        documentId: z.string(),
+        reason: z.string().min(1, 'La raison du rejet est obligatoire'),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const { documentId, reason } = input;
+        const adminId = ctx.session.user.id;
+
+        // Trouver le document
+        const document = await ctx.db.document.findUnique({
+          where: { id: documentId },
+          include: { user: true },
+        });
+
+        if (!document) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Document non trouvé',
+          });
+        }
+
+        // Mettre à jour le statut du document
+        const updatedDocument = await documentService.verifyDocument({
+          documentId,
+          status: DocumentStatus.REJECTED,
+          adminId,
+          rejectionReason: reason,
+        });
+
+        return { 
+          success: true, 
+          document: updatedDocument 
+        };
+      } catch (error: any) {
+        console.error('Erreur lors du rejet du document:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error.message || 'Erreur lors du rejet du document',
+          cause: error,
+        });
+      }
+    }),
+
+  /**
+   * Télécharger un document (streaming)
+   * Retourne l'URL signée pour le téléchargement direct
+   */
+  getDocumentDownloadUrl: protectedProcedure
+    .input(z.object({ documentId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      try {
+        const { documentId } = input;
+        const userId = ctx.session.user.id;
+        const userRole = ctx.session.user.role;
+
+        // Récupérer le document
+        const document = await ctx.db.document.findUnique({
+          where: { id: documentId },
+          include: { user: true },
+        });
+
+        if (!document) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Document non trouvé',
+          });
+        }
+
+        // Vérifier les permissions
+        const isOwner = document.userId === userId;
+        const isAdmin = userRole === 'ADMIN';
+
+        if (!isOwner && !isAdmin) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Accès non autorisé',
+          });
+        }
+
+        // Retourner l'URL du document pour le téléchargement
+        return {
+          url: document.fileUrl,
+          filename: document.filename,
+          mimeType: document.mimeType || 'application/octet-stream',
+        };
+      } catch (error: any) {
+        console.error('Erreur lors de la récupération de l\'URL du document:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error.message || 'Erreur lors de la récupération du document',
+          cause: error,
+        });
+      }
     }),
 });

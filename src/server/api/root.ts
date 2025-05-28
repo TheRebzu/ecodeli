@@ -24,6 +24,7 @@ import { billingRouter } from './routers/billing.router';
 import { financialTaskRouter } from './routers/financial-task.router';
 import { notificationRouter } from './routers/notification.router';
 import { subscriptionRouter } from './routers/subscription.router';
+import { fileRouter } from './routers/file.router';
 
 // Re-export createTRPCContext from trpc.ts
 export { createTRPCContext } from './trpc';
@@ -61,6 +62,7 @@ export const appRouter = router({
   subscription: subscriptionRouter,
   financialTask: financialTaskRouter,
   notification: notificationRouter,
+  file: fileRouter,
 });
 
 // Type d'export pour le typage côté client

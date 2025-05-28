@@ -171,6 +171,7 @@ const MapEventController = ({
   onMoveEnd?: (center: MapPoint, zoom: number) => void;
 }) => {
   const map = useMap();
+  const eventHandlersRef = useRef<{ [key: string]: any }>({});
 
   useEffect(() => {
     // Notifier que la carte est prête
@@ -178,28 +179,39 @@ const MapEventController = ({
       onMapReady(map);
     }
 
-    // Ajouter les gestionnaires d'événements
+    // Ajouter les gestionnaires d'événements avec références pour le nettoyage
     if (onMapClick) {
+      eventHandlersRef.current.click = onMapClick;
       map.on('click', onMapClick);
     }
 
     if (onMoveEnd) {
-      map.on('moveend', () => {
+      const moveEndHandler = () => {
         const center = map.getCenter();
         onMoveEnd({ lat: center.lat, lng: center.lng }, map.getZoom());
-      });
+      };
+      eventHandlersRef.current.moveend = moveEndHandler;
+      map.on('moveend', moveEndHandler);
     }
 
     // Nettoyer lors du démontage
     return () => {
-      // Vérifier si la carte existe toujours avant d'essayer de détacher les événements
+      // Vérifier si la carte et ses événements existent toujours avant d'essayer de les détacher
       try {
-        if (onMapClick) map.off('click', onMapClick);
-        if (onMoveEnd) map.off('moveend');
+        if (map && (map as any)._leaflet_events) {
+          Object.keys(eventHandlersRef.current).forEach((eventType) => {
+            const handler = eventHandlersRef.current[eventType];
+            if (handler) {
+              map.off(eventType as any, handler);
+            }
+          });
+        }
       } catch (e) {
         // Ignorer les erreurs lors du démontage de la carte
         console.debug('Erreur lors du détachement des événements de la carte', e);
       }
+      // Nettoyer les références
+      eventHandlersRef.current = {};
     };
   }, [map, onMapReady, onMapClick, onMoveEnd]);
 
@@ -259,14 +271,26 @@ const LeafletMap = ({
         ? marker.position
         : [marker.position.lat, marker.position.lng];
       
+      // Vérifier que la position est valide
+      if (!position || position.length !== 2 || typeof position[0] !== 'number' || typeof position[1] !== 'number') {
+        console.warn(`Marker ${index} has invalid position:`, position);
+        return null;
+      }
+      
       // Toujours fournir une icône valide pour éviter l'erreur "iconUrl not set"
       let icon: L.Icon | undefined;
-      if (typeof window !== 'undefined') {
+      if (typeof window !== 'undefined' && defaultIcon) {
         // Utiliser l'icône correspondant au type ou l'icône par défaut
         const markerType = marker.type as keyof typeof markerIcons;
         icon = markerType && markerIcons[markerType] 
           ? markerIcons[markerType] 
           : defaultIcon; // Utiliser notre icône par défaut
+      }
+      
+      // Si aucune icône n'est disponible, ne pas rendre le marker
+      if (!icon) {
+        console.warn(`No icon available for marker ${index}`);
+        return null;
       }
       
       return (
@@ -287,6 +311,15 @@ const LeafletMap = ({
     mapRef.current = map;
     setMapReady(true);
   };
+
+  // Ne pas rendre la carte côté serveur
+  if (typeof window === 'undefined') {
+    return (
+      <div className={cn('relative overflow-hidden rounded-lg bg-gray-200 flex items-center justify-center', className)} style={mapStyle}>
+        <p className="text-gray-500 text-sm">Chargement de la carte...</p>
+      </div>
+    );
+  }
 
   return (
     <div className={cn('relative overflow-hidden rounded-lg', className)} style={mapStyle}>
@@ -321,7 +354,7 @@ const LeafletMap = ({
         />
 
         {/* Éléments de la carte */}
-        {mapReady && typeof window !== 'undefined' && (
+        {mapReady && (
           <>
             {renderMarkers()}
             {polylines}
