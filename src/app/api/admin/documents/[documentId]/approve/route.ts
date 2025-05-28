@@ -1,12 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { db } from '@/server/db';
 import { authOptions } from '@/server/auth/next-auth';
-import { VerificationService } from '@/server/services/verification.service';
-import { VerificationStatus } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
-
-const verificationService = new VerificationService();
+import { createTRPCContext } from '@/server/api/trpc';
+import { appRouter } from '@/server/api/root';
 
 export async function POST(req: NextRequest, { params }: { params: { documentId: string } }) {
   try {
@@ -23,22 +20,66 @@ export async function POST(req: NextRequest, { params }: { params: { documentId:
     const documentId = params.documentId;
     const { notes } = await req.json();
 
-    // Utiliser VerificationService pour approuver le document
-    const updatedVerification = await verificationService.reviewDocument(
-      documentId,
-      session.user.id,
-      VerificationStatus.APPROVED,
-      notes || undefined
-    );
+    // Créer le contexte tRPC pour l'appel au routeur
+    // Note: pour les routes API, on fournit un objet vide pour res et info
+    const ctx = await createTRPCContext({ 
+      req: req as any, 
+      res: {} as any,
+      info: {} as any,
+      auth: { session } 
+    });
+    const caller = appRouter.createCaller(ctx);
 
-    return NextResponse.json({ success: true, verification: updatedVerification });
+    try {
+      // Appeler la procédure tRPC
+      const result = await caller.verification.approveDocument({
+        documentId,
+        notes: notes || undefined,
+      });
+
+      return NextResponse.json({ success: true, verification: result });
+    } catch (error) {
+      if (error instanceof TRPCError) {
+        console.error('tRPC error approving document:', error);
+        return NextResponse.json(
+          { error: error.message },
+          { status: getHttpStatusFromTRPCError(error) }
+        );
+      }
+      throw error;
+    }
   } catch (error) {
     console.error('Error approving document:', error);
-
-    if (error instanceof TRPCError) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
     return NextResponse.json({ error: 'Failed to approve document' }, { status: 500 });
+  }
+}
+
+// Helper pour convertir les codes d'erreur tRPC en codes HTTP
+function getHttpStatusFromTRPCError(error: TRPCError): number {
+  switch (error.code) {
+    case 'BAD_REQUEST':
+      return 400;
+    case 'UNAUTHORIZED':
+      return 401;
+    case 'FORBIDDEN':
+      return 403;
+    case 'NOT_FOUND':
+      return 404;
+    case 'TIMEOUT':
+      return 408;
+    case 'CONFLICT':
+      return 409;
+    case 'PRECONDITION_FAILED':
+      return 412;
+    case 'PAYLOAD_TOO_LARGE':
+      return 413;
+    case 'METHOD_NOT_SUPPORTED':
+      return 405;
+    case 'UNPROCESSABLE_CONTENT':
+      return 422;
+    case 'TOO_MANY_REQUESTS':
+      return 429;
+    default:
+      return 500;
   }
 }

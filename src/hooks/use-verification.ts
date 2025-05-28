@@ -78,38 +78,26 @@ export function useVerification() {
    */
   const uploadDocument = async (file: File, userId: string, documentType: string) => {
     try {
-      // Création d'un FormData pour l'upload
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('userId', userId);
-      formData.append('documentType', documentType);
-
-      // Envoi du fichier au serveur via fetch pour gérer l'upload
-      const uploadResponse = await fetch('/api/documents/upload', {
-        method: 'POST',
-        body: formData,
+      // Utiliser directement la procédure tRPC pour télécharger le fichier
+      const result = await api.document.uploadDocument.mutateAsync({
+        file,
+        type: documentType as DocumentType,
+        userId
       });
 
-      if (!uploadResponse.ok) {
-        throw new Error('Échec du téléchargement');
+      if (result) {
+        toast({
+          title: "Document téléchargé",
+          variant: "success",
+        });
+
+        return { 
+          documentUrl: result.fileUrl, 
+          documentId: result.id 
+        };
       }
 
-      const { documentUrl, documentId } = await uploadResponse.json();
-
-      // Enregistrer le document dans la base de données via tRPC
-      await uploadDocumentMutation.mutateAsync({
-        userId,
-        documentType,
-        documentUrl,
-        documentId,
-      });
-
-      toast({
-        title: "Document téléchargé",
-        variant: "success",
-      });
-
-      return { documentUrl, documentId };
+      throw new Error('Échec du téléchargement');
     } catch (error) {
       toast({
         title: "Erreur",

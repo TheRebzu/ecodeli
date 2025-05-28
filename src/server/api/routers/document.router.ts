@@ -177,10 +177,15 @@ export const documentRouter = router({
         }
         const adminId = ctx.session.user.id;
 
+        // Convertir le status en VerificationStatus
+        const verificationStatus = status === 'APPROVED' 
+          ? VerificationStatus.APPROVED 
+          : VerificationStatus.REJECTED;
+
         // Utiliser correctement le service de document pour mettre à jour le statut
         const document = await documentService.verifyDocument({
           documentId,
-          verificationStatus: status as VerificationStatus,
+          verificationStatus,
           adminId,
           rejectionReason,
         });
@@ -200,6 +205,8 @@ export const documentRouter = router({
 
   /**
    * Téléverser un document
+   * Cette procédure gère à la fois les uploads base64, les objets File et est compatible
+   * avec les anciens appels à l'API Route /api/documents/upload qui utilisaient formidable
    */
   uploadDocument: protectedProcedure
     .input(uploadDocumentSchema)
@@ -252,6 +259,7 @@ export const documentRouter = router({
           // Générer un nom de fichier unique
           const randomId = crypto.randomBytes(8).toString('hex');
           const uniqueFilename = `${randomId}${extension}`;
+          fileName = uniqueFilename;
 
           // Créer le chemin du dossier pour les uploads
           const uploadDir = path.join(process.cwd(), 'public', 'uploads', userId);
@@ -268,99 +276,130 @@ export const documentRouter = router({
 
           // Construire l'URL du fichier
           fileUrl = `/uploads/${userId}/${uniqueFilename}`;
-
-          // Enregistrer les métadonnées dans la base de données
-          const result = await documentService.uploadDocument({
-            userId,
-            type: input.type,
-            filename: uniqueFilename,
-            fileUrl,
-            mimeType,
-            fileSize: buffer.length,
-            notes: input.notes,
-            expiryDate: input.expiryDate,
-          });
-
-          return result;
         } else if (typeof input.file === 'object') {
-          // Cas d'un objet File ou similaire
+          // Cas d'un objet File ou similaire, y compris les fichiers traités par formidable
           console.log("Traitement d'un objet File:", typeof input.file, input.file);
 
-          // Par sécurité, vérifions que ces propriétés existent
-          const originalName = (input.file as { name?: string }).name || `document-${Date.now()}`;
-          mimeType = (input.file as { type?: string }).type || 'application/octet-stream';
-
-          // Déterminer l'extension de fichier
-          let extension = '.bin';
-          if (mimeType === 'image/jpeg') extension = '.jpg';
-          else if (mimeType === 'image/png') extension = '.png';
-          else if (mimeType === 'image/heic') extension = '.heic';
-          else if (mimeType === 'application/pdf') extension = '.pdf';
-
-          // Générer un nom de fichier unique
-          const randomId = crypto.randomBytes(8).toString('hex');
-          const uniqueFilename = `${randomId}${extension}`;
-          fileName = uniqueFilename;
-
-          // Créer le chemin du dossier pour les uploads
-          const uploadDir = path.join(process.cwd(), 'public', 'uploads', userId);
-          await fs.mkdir(uploadDir, { recursive: true });
-
-          // Chemin complet du fichier
-          const filePath = path.join(uploadDir, uniqueFilename);
-          fileUrl = `/uploads/${userId}/${uniqueFilename}`;
-
-          // Extraire le contenu binaire du fichier
-          let fileBuffer: Buffer;
-
-          if ('arrayBuffer' in input.file && typeof input.file.arrayBuffer === 'function') {
-            throw new Error('arrayBuffer method not available in server context');
-          } else if ('buffer' in input.file) {
-            fileBuffer = (input.file as { buffer: Buffer }).buffer;
-          } else if (Buffer.isBuffer(input.file)) {
-            fileBuffer = input.file;
-          } else if ('base64' in input.file) {
-            fileBuffer = Buffer.from((input.file as { base64: string }).base64, 'base64');
-          } else if ('data' in input.file) {
-            fileBuffer = Buffer.from((input.file as { data: string | Buffer }).data);
-          } else {
-            try {
-              console.log(
-                "Tentative de sérialisation de l'objet File:",
-                JSON.stringify(input.file)
-              );
-
-              if (input.file && typeof input.file === 'object') {
-                fileBuffer = Buffer.from(JSON.stringify(input.file));
-                mimeType = 'application/json';
-                extension = '.json';
-              } else {
-                throw new Error('Format de fichier non pris en charge');
-              }
-            } catch (e) {
-              console.error('Erreur lors de la sérialisation du fichier:', e);
+          // Gérer différents types d'objets File
+          if ('originalFilename' in input.file) {
+            // Format provenant de formidable
+            const formidableFile = input.file as { 
+              originalFilename?: string; 
+              mimetype?: string; 
+              size?: number;
+              filepath?: string;
+            };
+            
+            // Extraire les propriétés
+            fileName = formidableFile.originalFilename || `document-${Date.now()}`;
+            mimeType = formidableFile.mimetype || 'application/octet-stream';
+            fileSize = formidableFile.size || 0;
+            
+            // Le fichier est déjà écrit sur le disque par formidable
+            // Nous devons juste le déplacer au bon endroit si nécessaire
+            if (formidableFile.filepath) {
+              // Générer un nom de fichier unique
+              const extension = path.extname(fileName);
+              const randomId = crypto.randomBytes(8).toString('hex');
+              const uniqueFilename = `${randomId}${extension}`;
+              fileName = uniqueFilename;
+              
+              // Créer le répertoire d'upload pour l'utilisateur
+              const uploadDir = path.join(process.cwd(), 'public', 'uploads', userId);
+              await fs.mkdir(uploadDir, { recursive: true });
+              
+              // Destination finale
+              const finalPath = path.join(uploadDir, uniqueFilename);
+              
+              // Déplacer le fichier
+              await fs.rename(formidableFile.filepath, finalPath);
+              console.log(`Fichier déplacé vers: ${finalPath}`);
+              
+              fileUrl = `/uploads/${userId}/${uniqueFilename}`;
+            } else {
               throw new TRPCError({
                 code: 'BAD_REQUEST',
-                message: 'Format de fichier non pris en charge',
+                message: 'Fichier invalide: chemin non trouvé',
               });
             }
-          }
+          } else {
+            // Cas d'un objet File ou similaire (comme dans l'implémentation existante)
+            // Par sécurité, vérifions que ces propriétés existent
+            const originalName = (input.file as { name?: string }).name || `document-${Date.now()}`;
+            mimeType = (input.file as { type?: string }).type || 'application/octet-stream';
 
-          // Écrire le fichier sur le disque
-          try {
-            if (!fileBuffer) {
-              throw new Error("Impossible d'extraire les données du fichier");
+            // Déterminer l'extension de fichier
+            let extension = '.bin';
+            if (mimeType === 'image/jpeg') extension = '.jpg';
+            else if (mimeType === 'image/png') extension = '.png';
+            else if (mimeType === 'image/heic') extension = '.heic';
+            else if (mimeType === 'application/pdf') extension = '.pdf';
+
+            // Générer un nom de fichier unique
+            const randomId = crypto.randomBytes(8).toString('hex');
+            const uniqueFilename = `${randomId}${extension}`;
+            fileName = uniqueFilename;
+
+            // Créer le chemin du dossier pour les uploads
+            const uploadDir = path.join(process.cwd(), 'public', 'uploads', userId);
+            await fs.mkdir(uploadDir, { recursive: true });
+
+            // Chemin complet du fichier
+            const filePath = path.join(uploadDir, uniqueFilename);
+            fileUrl = `/uploads/${userId}/${uniqueFilename}`;
+
+            // Extraire le contenu binaire du fichier
+            let fileBuffer: Buffer;
+
+            if ('arrayBuffer' in input.file && typeof input.file.arrayBuffer === 'function') {
+              throw new Error('arrayBuffer method not available in server context');
+            } else if ('buffer' in input.file) {
+              fileBuffer = (input.file as { buffer: Buffer }).buffer;
+            } else if (Buffer.isBuffer(input.file)) {
+              fileBuffer = input.file;
+            } else if ('base64' in input.file) {
+              fileBuffer = Buffer.from((input.file as { base64: string }).base64, 'base64');
+            } else if ('data' in input.file) {
+              fileBuffer = Buffer.from((input.file as { data: string | Buffer }).data);
+            } else {
+              try {
+                console.log(
+                  "Tentative de sérialisation de l'objet File:",
+                  JSON.stringify(input.file)
+                );
+
+                if (input.file && typeof input.file === 'object') {
+                  fileBuffer = Buffer.from(JSON.stringify(input.file));
+                  mimeType = 'application/json';
+                  extension = '.json';
+                } else {
+                  throw new Error('Format de fichier non pris en charge');
+                }
+              } catch (e) {
+                console.error('Erreur lors de la sérialisation du fichier:', e);
+                throw new TRPCError({
+                  code: 'BAD_REQUEST',
+                  message: 'Format de fichier non pris en charge',
+                });
+              }
             }
 
-            await fs.writeFile(filePath, fileBuffer);
-            fileSize = fileBuffer.length;
-            console.log(`Fichier écrit avec succès: ${filePath}, taille: ${fileSize} octets`);
-          } catch (writeError) {
-            console.error("Erreur lors de l'écriture du fichier:", writeError);
-            throw new TRPCError({
-              code: 'INTERNAL_SERVER_ERROR',
-              message: "Erreur lors de l'enregistrement du fichier",
-            });
+            // Écrire le fichier sur le disque
+            try {
+              if (!fileBuffer) {
+                throw new Error("Impossible d'extraire les données du fichier");
+              }
+
+              await fs.writeFile(filePath, fileBuffer);
+              fileSize = fileBuffer.length;
+              console.log(`Fichier écrit avec succès: ${filePath}, taille: ${fileSize} octets`);
+            } catch (writeError) {
+              console.error("Erreur lors de l'écriture du fichier:", writeError);
+              throw new TRPCError({
+                code: 'INTERNAL_SERVER_ERROR',
+                message: "Erreur lors de l'enregistrement du fichier",
+              });
+            }
           }
         } else {
           throw new TRPCError({
@@ -379,6 +418,7 @@ export const documentRouter = router({
           fileSize: fileSize,
           notes: input.notes,
           expiryDate: input.expiryDate,
+          userRole: ctx.session.user.role // Ajout du rôle utilisateur pour la compatibilité
         });
 
         return result;
@@ -576,5 +616,82 @@ export const documentRouter = router({
       }
 
       return await documentService.getDocumentVerifications(input.documentId);
+    }),
+
+  /**
+   * Télécharger un fichier via l'API
+   */
+  downloadDocument: protectedProcedure
+    .input(z.object({ filePath: z.string() }))
+    .query(async ({ ctx, input }) => {
+      try {
+        // Sécurité: s'assurer que le chemin est dans le répertoire uploads
+        const normalizedPath = path.normalize(input.filePath).replace(/^\/+/, '');
+        if (!normalizedPath.startsWith('uploads/') && !input.filePath.startsWith('/uploads/')) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: 'Chemin non autorisé',
+          });
+        }
+
+        // Chemin complet du fichier sur le serveur
+        // Supprimer le slash initial s'il existe avant de joindre au chemin public
+        const cleanPath = input.filePath.startsWith('/') ? input.filePath.substring(1) : input.filePath;
+        const fullPath = path.join(process.cwd(), 'public', cleanPath);
+
+        // Vérifier si le fichier existe
+        try {
+          await fs.access(fullPath);
+        } catch (error) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Fichier non trouvé',
+          });
+        }
+
+        // Lire le fichier
+        const fileData = await fs.readFile(fullPath);
+        const fileExt = path.extname(fullPath).toLowerCase();
+
+        // Déterminer le type MIME basé sur l'extension
+        let contentType = 'application/octet-stream';
+        switch (fileExt) {
+          case '.pdf':
+            contentType = 'application/pdf';
+            break;
+          case '.jpg':
+          case '.jpeg':
+            contentType = 'image/jpeg';
+            break;
+          case '.png':
+            contentType = 'image/png';
+            break;
+          case '.gif':
+            contentType = 'image/gif';
+            break;
+          case '.webp':
+            contentType = 'image/webp';
+            break;
+        }
+
+        // Retourner les données du fichier
+        return {
+          fileData: Buffer.from(fileData).toString('base64'),
+          fileName: path.basename(fullPath),
+          contentType,
+          size: fileData.length
+        };
+      } catch (error: any) {
+        if (error instanceof TRPCError) {
+          throw error;
+        }
+        
+        console.error('Erreur lors du téléchargement du fichier:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erreur lors du téléchargement du fichier',
+          cause: error,
+        });
+      }
     }),
 });

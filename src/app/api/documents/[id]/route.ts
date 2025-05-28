@@ -1,17 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/server/auth/next-auth';
-import { PrismaClient } from '@prisma/client';
-import { readFile } from 'fs/promises';
+import { createTRPCContext } from '@/server/api/trpc';
+import { appRouter } from '@/server/api/root';
+import { TRPCError } from '@trpc/server';
 import path from 'path';
-
-const prisma = new PrismaClient();
+import { readFile } from 'fs/promises';
 
 /**
  * Gestionnaire GET pour accéder à un document par son ID
  * Vérifie les permissions d'accès et retourne le fichier
+ * Note: Ce point d'API doit rester car il sert les fichiers directement
  */
-export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const documentId = params.id;
 
@@ -26,64 +27,66 @@ export async function GET(_request: NextRequest, { params }: { params: { id: str
       return new NextResponse('Non autorisé', { status: 401 });
     }
 
-    // Récupérer le document
-    const document = await prisma.document.findUnique({
-      where: { id: documentId },
-      include: {
-        user: true,
-      },
+    // Utiliser tRPC pour récupérer le document
+    const ctx = await createTRPCContext({
+      req: request as any,
+      res: {} as any,
+      info: {} as any,
+      auth: { session }
     });
-
-    if (!document) {
-      return new NextResponse('Document non trouvé', { status: 404 });
-    }
-
-    // Vérifier les permissions
-    const userId = session.user.id;
-    const userRole = session.user.role;
-
-    // Autoriser l'accès si:
-    // 1. L'utilisateur est le propriétaire du document
-    // 2. L'utilisateur est un administrateur
-    const isOwner = document.userId === userId;
-    const isAdmin = userRole === 'ADMIN';
-
-    if (!isOwner && !isAdmin) {
-      return new NextResponse('Accès non autorisé', { status: 403 });
-    }
-
-    // Lire le fichier du document
-    const filePath = document.fileUrl;
-    const fullPath = path.join(process.cwd(), 'public', filePath);
-
+    const caller = appRouter.createCaller(ctx);
+    
     try {
-      const fileBuffer = await readFile(fullPath);
-
-      // Déterminer le type MIME du fichier
-      const contentType = document.mimeType || 'application/octet-stream';
-
-      // Configurer les en-têtes pour le téléchargement
-      const headers = new Headers();
-      headers.set('Content-Type', contentType);
-      headers.set('Content-Disposition', `inline; filename="${document.filename}"`);
-
-      return new NextResponse(fileBuffer, {
-        status: 200,
-        headers,
-      });
+      // Appeler la procédure tRPC
+      const document = await caller.document.getDocumentById({ documentId });
+      
+      if (!document) {
+        return new NextResponse('Document non trouvé', { status: 404 });
+      }
+      
+      // Lire le fichier du document
+      const filePath = document.fileUrl;
+      const fullPath = path.join(process.cwd(), 'public', filePath);
+      
+      try {
+        const fileBuffer = await readFile(fullPath);
+        
+        // Déterminer le type MIME du fichier
+        const contentType = document.mimeType || 'application/octet-stream';
+        
+        // Configurer les en-têtes pour le téléchargement
+        const headers = new Headers();
+        headers.set('Content-Type', contentType);
+        headers.set('Content-Disposition', `inline; filename="${document.filename}"`);
+        
+        return new NextResponse(fileBuffer, {
+          status: 200,
+          headers,
+        });
+      } catch (error) {
+        console.error('Erreur lors de la lecture du fichier:', error);
+        return new NextResponse('Fichier introuvable', { status: 404 });
+      }
     } catch (error) {
-      console.error('Erreur lors de la lecture du fichier:', error);
-      return new NextResponse('Fichier introuvable', { status: 404 });
+      if (error instanceof TRPCError) {
+        if (error.code === 'NOT_FOUND') {
+          return new NextResponse('Document non trouvé', { status: 404 });
+        } else if (error.code === 'FORBIDDEN') {
+          return new NextResponse('Accès non autorisé', { status: 403 });
+        }
+      }
+      throw error;
     }
   } catch (error) {
     console.error("Erreur lors de l'accès au document:", error);
     return new NextResponse('Erreur interne du serveur', { status: 500 });
-  } finally {
-    await prisma.$disconnect();
   }
 }
 
-export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
+/**
+ * Gestionnaire DELETE pour supprimer un document par son ID
+ */
+export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
   try {
     const documentId = params.id;
 
@@ -94,37 +97,66 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
       return NextResponse.json({ error: 'Non autorisé' }, { status: 401 });
     }
 
-    // Récupérer le document
-    const document = await prisma.document.findUnique({
-      where: { id: documentId },
+    // Utiliser tRPC pour supprimer le document
+    const ctx = await createTRPCContext({
+      req: request as any,
+      res: {} as any,
+      info: {} as any,
+      auth: { session }
     });
-
-    if (!document) {
-      return NextResponse.json({ error: 'Document non trouvé' }, { status: 404 });
+    const caller = appRouter.createCaller(ctx);
+    
+    try {
+      // Appeler la procédure tRPC
+      await caller.document.deleteDocument({ documentId });
+      return NextResponse.json({ success: true });
+    } catch (error) {
+      if (error instanceof TRPCError) {
+        if (error.code === 'NOT_FOUND') {
+          return NextResponse.json({ error: 'Document non trouvé' }, { status: 404 });
+        } else if (error.code === 'FORBIDDEN') {
+          return NextResponse.json({ error: 'Accès non autorisé' }, { status: 403 });
+        }
+        
+        return NextResponse.json(
+          { error: error.message },
+          { status: getHttpStatusFromTRPCError(error) }
+        );
+      }
+      throw error;
     }
-
-    // Vérifier les permissions
-    const userId = session.user.id;
-    const userRole = session.user.role;
-
-    // Seul le propriétaire ou un admin peut supprimer un document
-    const isOwner = document.userId === userId;
-    const isAdmin = userRole === 'ADMIN';
-
-    if (!isOwner && !isAdmin) {
-      return NextResponse.json({ error: 'Accès non autorisé' }, { status: 403 });
-    }
-
-    // Supprimer le document de la base de données
-    await prisma.document.delete({
-      where: { id: documentId },
-    });
-
-    return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Erreur lors de la suppression du document:', error);
     return NextResponse.json({ error: 'Erreur interne du serveur' }, { status: 500 });
-  } finally {
-    await prisma.$disconnect();
+  }
+}
+
+// Helper pour convertir les codes d'erreur tRPC en codes HTTP
+function getHttpStatusFromTRPCError(error: TRPCError): number {
+  switch (error.code) {
+    case 'BAD_REQUEST':
+      return 400;
+    case 'UNAUTHORIZED':
+      return 401;
+    case 'FORBIDDEN':
+      return 403;
+    case 'NOT_FOUND':
+      return 404;
+    case 'TIMEOUT':
+      return 408;
+    case 'CONFLICT':
+      return 409;
+    case 'PRECONDITION_FAILED':
+      return 412;
+    case 'PAYLOAD_TOO_LARGE':
+      return 413;
+    case 'METHOD_NOT_SUPPORTED':
+      return 405;
+    case 'UNPROCESSABLE_CONTENT':
+      return 422;
+    case 'TOO_MANY_REQUESTS':
+      return 429;
+    default:
+      return 500;
   }
 }

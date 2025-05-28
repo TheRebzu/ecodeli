@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { db } from '@/server/db';
 import { authOptions } from '@/server/auth/next-auth';
-import { DocumentService } from '@/server/services/document.service';
 import { TRPCError } from '@trpc/server';
+import { createTRPCContext } from '@/server/api/trpc';
+import { appRouter } from '@/server/api/root';
 
 // Using a string literal for verification status to avoid the enum mismatch
 const REJECTED_STATUS = 'REJECTED';
-
-const documentService = new DocumentService();
 
 export async function POST(req: NextRequest, { params }: { params: { documentId: string } }) {
   try {
@@ -29,32 +27,66 @@ export async function POST(req: NextRequest, { params }: { params: { documentId:
       return NextResponse.json({ error: 'Rejection reason is required' }, { status: 400 });
     }
 
-    // Find the document
-    const document = await db.document.findUnique({
-      where: { id: documentId },
-      include: { user: true },
+    // Créer le contexte tRPC pour l'appel au routeur
+    // Note: pour les routes API, on fournit un objet vide pour res et info
+    const ctx = await createTRPCContext({ 
+      req: req as any,
+      res: {} as any,
+      info: {} as any, 
+      auth: { session } 
     });
+    const caller = appRouter.createCaller(ctx);
 
-    if (!document) {
-      return NextResponse.json({ error: 'Document not found' }, { status: 404 });
+    try {
+      // Appeler la procédure tRPC
+      const result = await caller.verification.rejectDocument({
+        documentId,
+        reason,
+      });
+
+      return NextResponse.json({ success: true, document: result });
+    } catch (error) {
+      if (error instanceof TRPCError) {
+        console.error('tRPC error rejecting document:', error);
+        return NextResponse.json(
+          { error: error.message },
+          { status: getHttpStatusFromTRPCError(error) }
+        );
+      }
+      throw error;
     }
-
-    // Update document status
-    const updatedDocument = await documentService.updateDocumentFromApi(documentId, {
-      isVerified: false,
-      verificationStatus: REJECTED_STATUS,
-      reviewerId: session.user.id,
-      rejectionReason: reason,
-    });
-
-    return NextResponse.json({ success: true, document: updatedDocument });
   } catch (error) {
     console.error('Error rejecting document:', error);
-
-    if (error instanceof TRPCError) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
-    }
-
     return NextResponse.json({ error: 'Failed to reject document' }, { status: 500 });
+  }
+}
+
+// Helper pour convertir les codes d'erreur tRPC en codes HTTP
+function getHttpStatusFromTRPCError(error: TRPCError): number {
+  switch (error.code) {
+    case 'BAD_REQUEST':
+      return 400;
+    case 'UNAUTHORIZED':
+      return 401;
+    case 'FORBIDDEN':
+      return 403;
+    case 'NOT_FOUND':
+      return 404;
+    case 'TIMEOUT':
+      return 408;
+    case 'CONFLICT':
+      return 409;
+    case 'PRECONDITION_FAILED':
+      return 412;
+    case 'PAYLOAD_TOO_LARGE':
+      return 413;
+    case 'METHOD_NOT_SUPPORTED':
+      return 405;
+    case 'UNPROCESSABLE_CONTENT':
+      return 422;
+    case 'TOO_MANY_REQUESTS':
+      return 429;
+    default:
+      return 500;
   }
 }

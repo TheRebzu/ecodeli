@@ -21,6 +21,12 @@ type CreateContextOptions = {
   headers: any; // Type spécifique à ajouter si nécessaire
 };
 
+type CreateNextContextOptionsWithAuth = CreateNextContextOptions & {
+  auth?: {
+    session: Session | null;
+  };
+};
+
 /**
  * This helper generates the "internals" for a tRPC context. If you need to use it, you can export
  * it from here.
@@ -45,10 +51,19 @@ export const createInnerTRPCContext = (opts: CreateContextOptions) => {
  *
  * @see https://trpc.io/docs/context
  */
-export const createTRPCContext = async (opts?: CreateNextContextOptions) => {
+export const createTRPCContext = async (opts?: CreateNextContextOptionsWithAuth) => {
   // Version adaptée à l'App Router de Next.js
-  // Si opts existe, nous sommes dans un contexte Pages Router
+  // Si opts existe, nous sommes dans un contexte Pages Router ou un appel depuis une API Route
   if (opts) {
+    // S'il y a un paramètre auth explicite, l'utiliser (cas des API routes migrées)
+    if (opts.auth) {
+      return createInnerTRPCContext({
+        session: opts.auth.session,
+        headers: opts.req.headers,
+      });
+    }
+
+    // Sinon, nous sommes dans le contexte Pages Router standard
     const { req, res } = opts;
     const session = await getServerAuthSession({ req, res });
     return createInnerTRPCContext({
