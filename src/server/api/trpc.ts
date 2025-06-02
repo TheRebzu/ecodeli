@@ -223,7 +223,10 @@ export const adminProcedure = t.procedure.use(enforceUserIsAdmin);
 /** Middleware qui vérifie que l'utilisateur est un client */
 const enforceUserIsClient = t.middleware(({ ctx, next }) => {
   if (!ctx.session || !ctx.session.user) {
-    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Vous devez être connecté' });
+    throw new TRPCError({ 
+      code: 'UNAUTHORIZED',
+      message: 'Vous devez être connecté'
+    });
   }
 
   if (ctx.session.user.role !== UserRole.CLIENT) {
@@ -242,6 +245,8 @@ const enforceUserIsClient = t.middleware(({ ctx, next }) => {
 
 /** Procédure protégée pour les clients uniquement */
 export const clientProcedure = t.procedure.use(enforceUserIsClient);
+
+
 
 /** Middleware qui vérifie que l'utilisateur est un commerçant */
 const enforceUserIsMerchant = t.middleware(({ ctx, next }) => {

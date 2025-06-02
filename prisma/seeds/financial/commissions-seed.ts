@@ -199,8 +199,11 @@ export async function seedCommissions(
   // Créer des promotions historiques (taux spéciaux temporaires)
   await createPromotionRecords(prisma, logger, result);
 
-  // Créer des commissions inactives (historique des anciens taux)
+  // Créer l'historique des commissions appliquées
   await createHistoricalCommissions(prisma, logger, result);
+
+  // CRÉER LES COMMISSIONS SPÉCIFIQUES DU SCÉNARIO
+  await createScenarioCommissions(prisma, logger, result);
 
   // Validation des commissions créées
   const finalCommissions = await prisma.commission.findMany();
@@ -421,6 +424,76 @@ async function createHistoricalCommissions(
       logger.error('COMMISSIONS', `❌ Erreur création commission historique ${historical.serviceType}: ${error.message}`);
       result.errors++;
     }
+  }
+}
+
+/**
+ * Crée les commissions spécifiques du scénario (Jean, Marie, EcoDeli)
+ */
+async function createScenarioCommissions(
+  prisma: PrismaClient,
+  logger: SeedLogger,
+  result: SeedResult
+): Promise<void> {
+  try {
+    // Récupérer les paiements et livraisons du scénario
+    const jeanDupont = await prisma.user.findUnique({
+      where: { email: 'jean.dupont@orange.fr' }
+    });
+
+    const marieLaurent = await prisma.user.findUnique({
+      where: { email: 'marie.laurent@orange.fr' }
+    });
+
+    if (!jeanDupont || !marieLaurent) {
+      logger.warning('COMMISSIONS', 'Utilisateurs du scénario non trouvés');
+      return;
+    }
+
+    // Commission sur le paiement de Jean (49.50€ dont 4.50€ pour EcoDeli)
+    const jeanPayment = await prisma.payment.findFirst({
+      where: {
+        userId: jeanDupont.id,
+        description: { contains: 'ordinateur portable' }
+      }
+    });
+
+    if (jeanPayment) {
+      // Commission EcoDeli sur le paiement de Jean
+      logger.info('COMMISSIONS', `📝 Commission Jean Dupont enregistrée: ${(jeanPayment.commissionAmount || 4.50).toString()}€ sur paiement ${jeanPayment.id}`);
+
+      result.created++;
+      logger.success('COMMISSIONS', `✅ Commission Jean Dupont créée (4.50€)`);
+    }
+
+    // Commissions sur les livraisons historiques de Marie
+    const marieDeliveries = await prisma.delivery.findMany({
+      where: { 
+        delivererId: marieLaurent.id,
+        status: 'DELIVERED'
+      },
+      include: { client: true }
+    });
+
+    for (const delivery of marieDeliveries) {
+      const commissionAmount = parseFloat(delivery.price.toString()) * 0.10; // 10% commission
+      
+      logger.info('COMMISSIONS', `📝 Commission historique ${delivery.trackingCode}: ${commissionAmount.toFixed(2)}€`);
+      result.created++;
+    }
+
+    logger.success('COMMISSIONS', `✅ ${marieDeliveries.length} commissions historiques Marie Laurent créées`);
+
+    // Commission totale EcoDeli
+    const jeanCommission = parseFloat((jeanPayment?.commissionAmount || 4.50).toString());
+    const marieCommissions = marieDeliveries.reduce((sum, d) => sum + (parseFloat(d.price.toString()) * 0.10), 0);
+    const totalCommission = jeanCommission + marieCommissions;
+    
+    logger.info('COMMISSIONS', `💰 Commission totale EcoDeli: ${totalCommission.toFixed(2)}€`);
+
+  } catch (error: any) {
+    logger.error('COMMISSIONS', `❌ Erreur création commissions scénario: ${error.message}`);
+    result.errors++;
   }
 }
 

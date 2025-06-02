@@ -55,8 +55,8 @@ export class VerificationService {
       DocumentType.BUSINESS_REGISTRATION,
       DocumentType.PROOF_OF_ADDRESS,
     ],
+    [UserRole.CLIENT]: [], // Clients don't need verification
     [UserRole.ADMIN]: [], // Admins don't need verification
-    [UserRole.CUSTOMER]: [], // Customers don't need verification
   };
 
   constructor(prisma = db) {
@@ -973,5 +973,22 @@ export class VerificationService {
         message: 'Type de vérification non supporté',
       });
     });
+  }
+
+  /**
+   * Vérifie et met à jour le statut de vérification d'un utilisateur
+   * Méthode publique pour vérifier si un utilisateur est complètement vérifié
+   */
+  async checkAndUpdateVerificationStatus(userId: string, userRole: UserRole): Promise<boolean> {
+    try {
+      // Utiliser la méthode existante pour obtenir le statut
+      const verificationResult = await this.getUserVerificationStatus(userId, userRole);
+      
+      // Retourner true si les vérifications sont complètes et approuvées
+      return verificationResult.isComplete && verificationResult.verificationStatus === 'APPROVED';
+    } catch (error) {
+      console.error('Erreur lors de la vérification du statut:', error);
+      return false;
+    }
   }
 }

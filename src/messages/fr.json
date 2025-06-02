@@ -1418,7 +1418,9 @@
     "JSON": "JSON",
     "analytics": "[À TRADUIRE] analytics",
     "liveTracking": "[À TRADUIRE] liveTracking",
-    "liveTrackingDescription": "[À TRADUIRE] liveTrackingDescription"
+    "liveTrackingDescription": "[À TRADUIRE] liveTrackingDescription",
+    "DAY": "DAY",
+    "PENDING": "PENDING"
   },
   "auth": {
     "login": {
@@ -1529,7 +1531,10 @@
         "state": "Île-de-France",
         "country": "France"
       },
-      "verificationNotice": "verificationNotice"
+      "verificationNotice": "verificationNotice",
+      "registerAsProvider": "registerAsProvider",
+      "registerAsMerchant": "registerAsMerchant",
+      "registerAsDeliverer": "registerAsDeliverer"
     },
     "forgotPassword": {
       "pageTitle": "Mot de passe oublié | EcoDeli",
@@ -1878,7 +1883,11 @@
     "tabs": {
       "pending": "pending",
       "approved": "approved",
-      "rejected": "rejected"
+      "rejected": "rejected",
+      "all": "all",
+      "deliverers": "deliverers",
+      "providers": "providers",
+      "merchants": "merchants"
     },
     "columns": {
       "user": "user",
@@ -1890,7 +1899,9 @@
     "approve": "approve",
     "reject": "reject",
     "totalDocuments": "totalDocuments",
-    "refresh": "[À TRADUIRE] refresh"
+    "refresh": "[À TRADUIRE] refresh",
+    "emptyTitle": "emptyTitle",
+    "emptyDescription": "emptyDescription"
   },
   "uploadForm": {
     "title": "Télécharger un document",
@@ -2436,7 +2447,12 @@
     "vehicleType": "vehicleType",
     "licensePlate": "licensePlate",
     "availableWeekends": "availableWeekends",
-    "availableNights": "availableNights"
+    "availableNights": "availableNights",
+    "experienceYears": "experienceYears",
+    "certifications": "certifications",
+    "companyEmail": "companyEmail",
+    "companyPhone": "companyPhone",
+    "siret": "siret"
   },
   "placeholders": {
     "name": "[en] name",
@@ -2471,7 +2487,12 @@
     "message": "message",
     "notificationType": "notificationType",
     "notificationChannel": "notificationChannel",
-    "format": "format"
+    "format": "format",
+    "experienceYears": "experienceYears",
+    "certifications": "certifications",
+    "companyEmail": "companyEmail",
+    "companyPhone": "companyPhone",
+    "siret": "siret"
   },
   "register": "[en] register",
   "boxStatus": {
@@ -2502,7 +2523,19 @@
   "overview": "[en] overview",
   "boxes": "[en] boxes",
   "maintenance": "[en] maintenance",
-  "analytics": "[en] analytics",
+  "analytics": {
+    "totalBookings": "totalBookings",
+    "thisMonth": "thisMonth",
+    "pendingBookings": "pendingBookings",
+    "requiresAction": "requiresAction",
+    "completedBookings": "completedBookings",
+    "availabilitySlots": "availabilitySlots",
+    "activeSlots": "activeSlots",
+    "recentBookings": "recentBookings",
+    "recentBookingsDescription": "recentBookingsDescription",
+    "noBookings": "noBookings",
+    "noBookingsDescription": "noBookingsDescription"
+  },
   "totalWarehouses": "[en] totalWarehouses",
   "occupancyRate": "[en] occupancyRate",
   "maintenanceIssues": "[en] maintenanceIssues",
@@ -2893,7 +2926,11 @@
     "activate": "activate",
     "documents": "documents",
     "created": "created",
-    "lastActive": "lastActive"
+    "lastActive": "lastActive",
+    "monthlyFee": "monthlyFee",
+    "commission": "commission",
+    "signedAt": "signedAt",
+    "expiresAt": "expiresAt"
   },
   "rejection_reason": "[en] rejection_reason",
   "approval_notes": "[en] approval_notes",
@@ -2983,6 +3020,17 @@
       "maxFileSize": "Taille max",
       "remaining": "Restant",
       "announcementPhoto": "Photo d'annonce {index}"
+    },
+    "invoices": {
+      "a": "a",
+      "T": "T"
+    },
+    "contracts": {
+      "title": "title",
+      "description": "description",
+      "searchPlaceholder": "searchPlaceholder",
+      "contractsList": "contractsList",
+      "noContracts": "noContracts"
     }
   },
   "expiresAt": "[en] expiresAt",
@@ -3134,7 +3182,18 @@
       "title": "[en] title",
       "provider": "[en] provider",
       "price": "[en] price"
-    }
+    },
+    "statusUpdated": "statusUpdated",
+    "statusUpdateFailed": "statusUpdateFailed",
+    "details": "details",
+    "client": "client",
+    "time": "time",
+    "service": "service",
+    "status": "status",
+    "notes": "notes",
+    "confirm": "confirm",
+    "cancel": "cancel",
+    "complete": "complete"
   },
   "deliveryNotFound": "[en] deliveryNotFound",
   "confirmDelivery": "[en] confirmDelivery",
@@ -3346,7 +3405,12 @@
     "deliverers": "deliverers",
     "merchants": "merchants",
     "providers": "providers",
-    "problems": "problems"
+    "problems": "problems",
+    "overview": "overview",
+    "deliveries": "deliveries",
+    "earnings": "earnings",
+    "routes": "routes",
+    "activity": "activity"
   },
   "payments": {
     "downloadStarted": "downloadStarted",
@@ -3633,15 +3697,15 @@
     "editAnnouncementInstructions": "editAnnouncementInstructions",
     "uploadError": "Erreur lors de l'upload du fichier",
     "maxPhotosError": "Vous ne pouvez pas uploader plus de {count} photos",
-    "fileSizeError": "La taille du fichier dépasse la limite autorisée (5MB max)",
+    "fileSizeError": "fileSizeError",
     "uploading": "Upload en cours...",
-    "maxPhotosReached": "Limite de {count} photos atteinte",
-    "dropHere": "Déposez vos photos ici",
-    "dragOrClick": "Glissez-déposez vos photos ou cliquez pour sélectionner",
-    "supportedFormats": "Formats supportés",
+    "maxPhotosReached": "maxPhotosReached",
+    "dropHere": "dropHere",
+    "dragOrClick": "dragOrClick",
+    "supportedFormats": "supportedFormats",
     "maxFileSize": "Taille max",
-    "remaining": "Restant",
-    "announcementPhoto": "Photo d'annonce {index}",
+    "remaining": "remaining",
+    "announcementPhoto": "announcementPhoto",
     "noRating": "noRating",
     "pending": "pending",
     "accepted": "accepted",
@@ -3707,13 +3771,6 @@
     "canPickupAtScheduledTimeDescription": "canPickupAtScheduledTimeDescription",
     "submitting": "submitting",
     "submitProposal": "submitProposal",
-    "fileSizeError": "fileSizeError",
-    "maxPhotosReached": "maxPhotosReached",
-    "dropHere": "dropHere",
-    "dragOrClick": "dragOrClick",
-    "supportedFormats": "supportedFormats",
-    "remaining": "remaining",
-    "announcementPhoto": "announcementPhoto",
     "leaflet": "leaflet",
     "deliveryMap": "deliveryMap",
     "deliveryMapDescription": "deliveryMapDescription",
@@ -3857,7 +3914,30 @@
     "messageToClient": "messageToClient",
     "messageToClientPlaceholder": "messageToClientPlaceholder",
     "messageToClientDescription": "messageToClientDescription",
-    "submittingProposal": "submittingProposal"
+    "submittingProposal": "submittingProposal",
+    "dropFilesHere": "dropFilesHere",
+    "dragAndDrop": "dragAndDrop",
+    "or": "or",
+    "selectFiles": "selectFiles",
+    "remainingPhotos": "remainingPhotos",
+    "photoAlt": "photoAlt",
+    "loadingProposals": "loadingProposals",
+    "noProposalsDescription": "noProposalsDescription",
+    "receivedProposals": "receivedProposals",
+    "compatibility": "compatibility",
+    "rating": "rating",
+    "submissionDate": "submissionDate",
+    "pendingProposals": "pendingProposals",
+    "totalProposals": "totalProposals",
+    "deliveries": "deliveries",
+    "hasEquipment": "hasEquipment",
+    "yes": "yes",
+    "no": "no",
+    "canPickupOnTime": "canPickupOnTime",
+    "submittedAt": "submittedAt",
+    "acceptProposal": "acceptProposal",
+    "rejectProposal": "rejectProposal",
+    "uploadSuccess": "uploadSuccess"
   },
   "wallet": {
     "refreshSuccess": "refreshSuccess",
@@ -4007,7 +4087,17 @@
     "flexibilityHoursDescription": "flexibilityHoursDescription",
     "notes": "notes",
     "notesPlaceholder": "notesPlaceholder",
-    "notesDescription": "notesDescription"
+    "notesDescription": "notesDescription",
+    "suggestions": {
+      "title": "title"
+    },
+    "availableDeliveries": "availableDeliveries",
+    "bestTimes": "bestTimes",
+    "selectRoute": "selectRoute",
+    "noSuggestions": "noSuggestions",
+    "noSuggestionsHelp": "noSuggestionsHelp",
+    "manageRoutes": "manageRoutes",
+    "noRoutesYet": "noRoutesYet"
   },
   "days": {
     "monday": "monday",
@@ -4329,7 +4419,12 @@
     "inProgress": "inProgress",
     "completed": "completed",
     "paid": "paid",
-    "dispute": "dispute"
+    "dispute": "dispute",
+    "rescheduled": "rescheduled",
+    "online": "online",
+    "offline": "offline",
+    "busy": "busy",
+    "available": "available"
   },
   "actions": {
     "findDeliveries": "findDeliveries",
@@ -4438,7 +4533,18 @@
     "applicationAdded": "applicationAdded",
     "applicationStatusUpdated": "applicationStatusUpdated",
     "open": "open",
-    "goToEntity": "goToEntity"
+    "goToEntity": "goToEntity",
+    "download": "download",
+    "sign": "sign",
+    "goOffline": "goOffline",
+    "goOnline": "goOnline",
+    "activeDeliveries": "activeDeliveries",
+    "createRoute": "createRoute",
+    "manageSchedule": "manageSchedule",
+    "viewMap": "viewMap",
+    "viewWallet": "viewWallet",
+    "notifications": "notifications",
+    "profileSettings": "profileSettings"
   },
   "admin": {
     "verification": {
@@ -5006,6 +5112,10 @@
         "successDeactivateDescription": "successDeactivateDescription",
         "error": "error"
       }
+    },
+    "dashboard": {
+      "a": "a",
+      "T": "T"
     }
   },
   "error": {
@@ -5080,7 +5190,17 @@
     "confirmBooking": "confirmBooking",
     "uploading": "uploading",
     "submit": "submit",
-    "bookingSuccess": "bookingSuccess"
+    "bookingSuccess": "bookingSuccess",
+    "hideDetails": "hideDetails",
+    "showDetails": "showDetails",
+    "serviceInfo": "serviceInfo",
+    "durationVariable": "durationVariable",
+    "providerInfo": "providerInfo",
+    "provider": "provider",
+    "noAvailableSlots": "noAvailableSlots",
+    "advancedOptions": "advancedOptions",
+    "participantCount": "participantCount",
+    "participants": "participants"
   },
   "statusMessages": {
     "pending": "pending",
@@ -5361,7 +5481,15 @@
       "cancel": "cancel",
       "submitting": "submitting",
       "update": "update",
-      "submit": "submit"
+      "submit": "submit",
+      "generalRating": "generalRating",
+      "detailedRating": "detailedRating",
+      "feedback": "feedback",
+      "wouldRecommend": "wouldRecommend",
+      "prosLabel": "prosLabel",
+      "prosPlaceholder": "prosPlaceholder",
+      "consLabel": "consLabel",
+      "consPlaceholder": "consPlaceholder"
     },
     "confirmation": {
       "title": "title",
@@ -5395,6 +5523,41 @@
       "sortBy": "sortBy",
       "resetFilters": "resetFilters",
       "apply": "apply"
+    },
+    "timeslot": {
+      "start": "start",
+      "end": "end",
+      "duration": "duration",
+      "time": "time",
+      "customTime": "customTime",
+      "quickSelect": "quickSelect",
+      "allSlots": "allSlots"
+    },
+    "calendar": {
+      "title": "title",
+      "subtitle": "subtitle"
+    },
+    "availability": {
+      "added": "added",
+      "addFailed": "addFailed",
+      "formTitle": "formTitle",
+      "formDescription": "formDescription",
+      "applying": "applying",
+      "applyTemplate": "applyTemplate",
+      "selectDays": "selectDays",
+      "day": "day",
+      "selectDay": "selectDay",
+      "startTime": "startTime",
+      "selectStartTime": "selectStartTime",
+      "endTime": "endTime",
+      "selectEndTime": "selectEndTime",
+      "preview": "preview",
+      "from": "from",
+      "to": "to",
+      "cancel": "cancel",
+      "adding": "adding",
+      "addMultiple": "addMultiple",
+      "add": "add"
     }
   },
   "faq": {
@@ -5427,7 +5590,8 @@
     "cancel": "cancel",
     "adding": "adding",
     "noAvailability": "noAvailability",
-    "addSome": "addSome"
+    "addSome": "addSome",
+    "available": "available"
   },
   "calendar": {
     "title": "title",
@@ -5436,7 +5600,8 @@
     "appointmentsCount": "appointmentsCount",
     "noAppointments": "noAppointments",
     "nothingScheduled": "nothingScheduled",
-    "freeDay": "freeDay"
+    "freeDay": "freeDay",
+    "description": "description"
   },
   "calendarEvent": {
     "prefix": "prefix",
@@ -5836,7 +6001,10 @@
   "success": {
     "title": "title",
     "description": "description",
-    "message": "message"
+    "message": "message",
+    "provider": "provider",
+    "merchant": "merchant",
+    "deliverer": "deliverer"
   },
   "Auth": {
     "ForgotPassword": {
@@ -5959,7 +6127,8 @@
     "personalInfo": "personalInfo",
     "professionalInfo": "professionalInfo",
     "businessInfo": "businessInfo",
-    "businessAddress": "businessAddress"
+    "businessAddress": "businessAddress",
+    "description": "description"
   },
   "password": {
     "label": "label",
@@ -6277,5 +6446,83 @@
       "duration": "Durée",
       "status": "Statut"
     }
-  }
+  },
+  "views": {
+    "fullCalendar": "fullCalendar",
+    "listView": "listView",
+    "month": "month",
+    "week": "week",
+    "day": "day",
+    "list": "list"
+  },
+  "templates": {
+    "weekdays": "weekdays",
+    "weekdaysDesc": "weekdaysDesc",
+    "weekend": "weekend",
+    "weekendDesc": "weekendDesc",
+    "fullWeek": "fullWeek",
+    "fullWeekDesc": "fullWeekDesc",
+    "flexible": "flexible",
+    "flexibleDesc": "flexibleDesc"
+  },
+  "mode": {
+    "title": "title",
+    "description": "description",
+    "useTemplate": "useTemplate",
+    "selectTemplate": "selectTemplate",
+    "bulkMode": "bulkMode"
+  },
+  "schedule": {
+    "title": "title",
+    "description": "description"
+  },
+  "warnings": {
+    "existingAvailability": "existingAvailability"
+  },
+  "contractInfo": {
+    "title": "title",
+    "description": "description",
+    "benefits": {
+      "title": "title",
+      "delivery": "delivery",
+      "commission": "commission",
+      "support": "support"
+    },
+    "conditions": {
+      "title": "title",
+      "duration": "duration",
+      "renewal": "renewal",
+      "termination": "termination"
+    },
+    "billing": {
+      "title": "title",
+      "monthly": "monthly",
+      "commission": "commission",
+      "payment": "payment"
+    }
+  },
+  "earnings": {
+    "total": "total",
+    "deliveries": "deliveries",
+    "delivery": "delivery",
+    "hoursWorked": "hoursWorked",
+    "change": "change",
+    "previousPeriod": "previousPeriod",
+    "performance": {
+      "improving": "improving",
+      "declining": "declining"
+    },
+    "title": "title",
+    "periods": {
+      "day": "day",
+      "week": "week",
+      "month": "month"
+    },
+    "quickSummary": "quickSummary",
+    "today": "today",
+    "thisWeek": "thisWeek",
+    "thisMonth": "thisMonth",
+    "viewDetails": "viewDetails"
+  },
+  "delivery_tracking": "delivery_tracking"
 }

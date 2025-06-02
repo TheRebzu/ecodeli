@@ -1,6 +1,6 @@
 import { PrismaClient, UserRole } from '@prisma/client';
 import { SeedLogger } from '../utils/seed-logger';
-import { SeedResult, SeedOptions, getRandomElement } from '../utils/seed-helpers';
+import { SeedResult, SeedOptions, getRandomElement, getRandomDate } from '../utils/seed-helpers';
 import { faker } from '@faker-js/faker';
 
 /**
@@ -15,8 +15,20 @@ interface MessageTemplate {
 }
 
 /**
+ * Interface pour définir un message
+ */
+interface MessageData {
+  conversationId: string;
+  senderId: string;
+  content: string;
+  status: string;
+  readAt?: Date;
+  createdAt: Date;
+}
+
+/**
  * Seed des messages EcoDeli
- * Crée des messages variés dans les conversations existantes
+ * Crée les messages de la conversation Jean ↔ Marie et autres conversations
  */
 export async function seedMessages(
   prisma: PrismaClient,
@@ -32,10 +44,41 @@ export async function seedMessages(
     errors: 0
   };
 
-  // Vérifier les messages existants
-  const existingMessages = await prisma.message.count();
+  // Récupérer les utilisateurs
+  const jeanDupont = await prisma.user.findUnique({
+    where: { email: 'jean.dupont@orange.fr' }
+  });
+
+  const marieLaurent = await prisma.user.findUnique({
+    where: { email: 'marie.laurent@orange.fr' }
+  });
+
+  if (!jeanDupont || !marieLaurent) {
+    logger.warning('MESSAGES', 'Jean ou Marie non trouvé - exécuter d\'abord les seeds utilisateurs');
+    return result;
+  }
+
+  // Récupérer la conversation Jean ↔ Marie
+  const jeanMarieConversation = await prisma.conversation.findFirst({
+    where: {
+      AND: [
+        { participantIds: { has: jeanDupont.id } },
+        { participantIds: { has: marieLaurent.id } }
+      ]
+    }
+  });
+
+  if (!jeanMarieConversation) {
+    logger.warning('MESSAGES', 'Conversation Jean ↔ Marie non trouvée - exécuter d\'abord le seed conversations');
+    return result;
+  }
+
+  // Vérifier si des messages existent déjà
+  const existingMessages = await prisma.message.count({
+    where: { conversationId: jeanMarieConversation.id }
+  });
   
-  if (existingMessages > 200 && !options.force) {
+  if (existingMessages > 0 && !options.force) {
     logger.warning('MESSAGES', `${existingMessages} messages déjà présents - utiliser force:true pour recréer`);
     result.skipped = existingMessages;
     return result;
@@ -43,453 +86,193 @@ export async function seedMessages(
 
   // Nettoyer si force activé
   if (options.force) {
-    await prisma.message.deleteMany({});
-    logger.database('NETTOYAGE', 'messages', 0);
+    await prisma.message.deleteMany({
+      where: { conversationId: jeanMarieConversation.id }
+    });
+    logger.database('NETTOYAGE', 'messages conversation Jean-Marie', 0);
   }
 
-  // Récupérer les conversations existantes
-  const conversations = await prisma.conversation.findMany({
-    select: { 
-      id: true, 
-      title: true, 
-      participantIds: true, 
-      status: true,
-      isArchived: true 
-    }
-  });
+  try {
+    // Messages chronologiques de la conversation Jean ↔ Marie
+    const threeDaysAgo = new Date(Date.now() - (3 * 24 * 60 * 60 * 1000));
+    const twoDaysAgo = new Date(Date.now() - (2 * 24 * 60 * 60 * 1000));
+    const oneDayAgo = new Date(Date.now() - (1 * 24 * 60 * 60 * 1000));
+    const sixHoursAgo = new Date(Date.now() - (6 * 60 * 60 * 1000));
+    const oneHourAgo = new Date(Date.now() - (1 * 60 * 60 * 1000));
 
-  if (conversations.length === 0) {
-    logger.warning('MESSAGES', 'Aucune conversation trouvée - créer d\'abord les seeds de conversations');
-    return result;
-  }
+    // 1. Message initial de Marie (il y a 3 jours)
+    logger.progress('MESSAGES', 1, 6, 'Message 1 - Marie propose ses services');
 
-  // Récupérer tous les utilisateurs
-  const users = await prisma.user.findMany({
-    select: { id: true, name: true, role: true }
-  });
+    await prisma.message.create({
+      data: {
+        conversationId: jeanMarieConversation.id,
+        senderId: marieLaurent.id,
+        content: 'Bonjour ! J\'ai vu votre annonce pour livrer un ordinateur portable à Marseille. J\'effectue régulièrement le trajet Paris-Marseille et je peux prendre en charge votre colis. Je suis une livreuse expérimentée avec d\'excellentes évaluations.',
+        createdAt: threeDaysAgo,
+        readAt: new Date(threeDaysAgo.getTime() + (30 * 60 * 1000)), // Lu 30 min après
+        status: 'DELIVERED'
+      }
+    });
 
-  // Templates de messages par contexte
-  const MESSAGE_TEMPLATES: Record<string, MessageTemplate[]> = {
-    LIVRAISON: [
-      {
-        content: "Bonjour ! Je serai là dans 15 minutes pour la livraison. Pouvez-vous me confirmer votre présence ? 🚚",
-        category: "DELIVERY_STATUS",
-        hasAttachment: false,
-        isSystemMessage: false,
-        priority: "HIGH"
-      },
-      {
-        content: "Parfait ! Je vous attends en bas de l'immeuble. Merci pour votre ponctualité 😊",
-        category: "DELIVERY_CONFIRMATION",
-        hasAttachment: false,
-        isSystemMessage: false,
-        priority: "MEDIUM"
-      },
-      {
-        content: "J'ai un léger retard à cause des embouteillages. J'arrive dans 20 minutes maximum. Désolé pour le désagrément 🚗",
-        category: "DELIVERY_DELAY",
-        hasAttachment: false,
-        isSystemMessage: false,
-        priority: "HIGH"
-      },
-      {
-        content: "Livraison effectuée avec succès ! Merci d'avoir choisi EcoDeli. N'hésitez pas à nous noter ⭐",
-        category: "DELIVERY_COMPLETED",
-        hasAttachment: false,
-        isSystemMessage: false,
-        priority: "LOW"
-      },
-      {
-        content: "Le colis est un peu plus volumineux que prévu. Il faudra prévoir un autre véhicule. Photo en pièce jointe 📦",
-        category: "DELIVERY_ISSUE",
-        hasAttachment: true,
-        isSystemMessage: false,
-        priority: "HIGH"
-      }
-    ],
-    SUPPORT: [
-      {
-        content: "Bonjour, j'ai un problème avec mon compte. Je n'arrive plus à me connecter depuis ce matin 😟",
-        category: "SUPPORT_LOGIN",
-        hasAttachment: false,
-        isSystemMessage: false,
-        priority: "HIGH"
-      },
-      {
-        content: "Pouvez-vous me confirmer l'adresse email associée à votre compte ? Nous allons vérifier les paramètres 🔧",
-        category: "SUPPORT_VERIFICATION",
-        hasAttachment: false,
-        isSystemMessage: false,
-        priority: "MEDIUM"
-      },
-      {
-        content: "Le problème a été résolu ! Votre compte est maintenant fonctionnel. Merci pour votre patience ✅",
-        category: "SUPPORT_RESOLVED",
-        hasAttachment: false,
-        isSystemMessage: false,
-        priority: "LOW"
-      },
-      {
-        content: "Je vous transfère votre ticket au service technique niveau 2. Ils vous recontacteront dans l'heure 🎫",
-        category: "SUPPORT_ESCALATION",
-        hasAttachment: false,
-        isSystemMessage: false,
-        priority: "HIGH"
-      }
-    ],
-    NEGOCIATION: [
-      {
-        content: "Bonjour, je suis intéressé par vos services de plomberie. Pouvez-vous me faire un devis pour une rénovation complète ? 🔧",
-        category: "NEGOTIATION_REQUEST",
-        hasAttachment: false,
-        isSystemMessage: false,
-        priority: "MEDIUM"
-      },
-      {
-        content: "Bien sûr ! Pouvez-vous me donner plus de détails sur la superficie et le type de travaux souhaités ? 📐",
-        category: "NEGOTIATION_DETAILS",
-        hasAttachment: false,
-        isSystemMessage: false,
-        priority: "MEDIUM"
-      },
-      {
-        content: "Voici mon devis détaillé. Le prix inclut la main d'œuvre et les matériaux. Qu'en pensez-vous ? 💰",
-        category: "NEGOTIATION_QUOTE",
-        hasAttachment: true,
-        isSystemMessage: false,
-        priority: "HIGH"
-      },
-      {
-        content: "Le prix me semble correct. Quand pouvez-vous commencer les travaux ? ⏰",
-        category: "NEGOTIATION_ACCEPTANCE",
-        hasAttachment: false,
-        isSystemMessage: false,
-        priority: "HIGH"
-      },
-      {
-        content: "Je peux commencer dès la semaine prochaine. Nous validons le planning ? 📅",
-        category: "NEGOTIATION_PLANNING",
-        hasAttachment: false,
-        isSystemMessage: false,
-        priority: "MEDIUM"
-      }
-    ],
-    COMMANDE: [
-      {
-        content: "Ma commande est-elle prête ? J'aimerais passer la récupérer ce soir 🛍️",
-        category: "ORDER_STATUS",
-        hasAttachment: false,
-        isSystemMessage: false,
-        priority: "MEDIUM"
-      },
-      {
-        content: "Oui, tout est prêt ! Nous vous attendons jusqu'à 19h. Pensez à apporter votre bon de commande 📄",
-        category: "ORDER_READY",
-        hasAttachment: false,
-        isSystemMessage: false,
-        priority: "MEDIUM"
-      },
-      {
-        content: "Malheureusement, il manque un article. Nous l'aurons demain matin. Souhaitez-vous attendre ou prendre le reste ? 📦",
-        category: "ORDER_PARTIAL",
-        hasAttachment: false,
-        isSystemMessage: false,
-        priority: "HIGH"
-      },
-      {
-        content: "Je préfère attendre d'avoir la commande complète. Merci de me tenir au courant 📞",
-        category: "ORDER_PREFERENCE",
-        hasAttachment: false,
-        isSystemMessage: false,
-        priority: "LOW"
-      }
-    ],
-    GROUPE: [
-      {
-        content: "Salut l'équipe ! Pour la livraison groupée de demain, qui peut prendre la zone Nord ? 🚛",
-        category: "GROUP_COORDINATION",
-        hasAttachment: false,
-        isSystemMessage: false,
-        priority: "MEDIUM"
-      },
-      {
-        content: "Moi je peux ! J'ai fini mes autres livraisons vers 14h ✋",
-        category: "GROUP_VOLUNTEER",
-        hasAttachment: false,
-        isSystemMessage: false,
-        priority: "MEDIUM"
-      },
-      {
-        content: "Parfait @Thomas ! Je mets à jour le planning. Rdv au dépôt à 8h30 📝",
-        category: "GROUP_PLANNING",
-        hasAttachment: false,
-        isSystemMessage: false,
-        priority: "HIGH"
-      },
-      {
-        content: "N'oubliez pas les équipements de sécurité pour les gros colis ! 🦺",
-        category: "GROUP_REMINDER",
-        hasAttachment: false,
-        isSystemMessage: false,
-        priority: "MEDIUM"
-      }
-    ],
-    SYSTEME: [
-      {
-        content: "🤖 Votre demande de service a été confirmée. Référence: #SRV-2024-1234",
-        category: "SYSTEM_CONFIRMATION",
-        hasAttachment: false,
-        isSystemMessage: true,
-        priority: "LOW"
-      },
-      {
-        content: "🔔 Nouveau message de votre livreur. Vérifiez vos notifications !",
-        category: "SYSTEM_NOTIFICATION",
-        hasAttachment: false,
-        isSystemMessage: true,
-        priority: "MEDIUM"
-      },
-      {
-        content: "⚠️ Maintenance programmée demain de 2h à 4h. Services temporairement indisponibles.",
-        category: "SYSTEM_MAINTENANCE",
-        hasAttachment: false,
-        isSystemMessage: true,
-        priority: "HIGH"
-      },
-      {
-        content: "✅ Paiement accepté. Montant: 45.50€ - Méthode: Carte bancaire",
-        category: "SYSTEM_PAYMENT",
-        hasAttachment: false,
-        isSystemMessage: true,
-        priority: "LOW"
-      }
-    ]
-  };
+    result.created++;
 
-  let totalMessages = 0;
+    // 2. Réponse de Jean (il y a 3 jours)
+    logger.progress('MESSAGES', 2, 6, 'Message 2 - Jean accepte');
 
-  // Créer des messages pour chaque conversation
-  for (const conversation of conversations) {
-    try {
-      // Déterminer le nombre de messages selon le type de conversation
-      const messageCount = getMessageCount(conversation.title || '', conversation.isArchived);
-      
-      // Déterminer le contexte des messages selon le titre de la conversation
-      const messageContext = getMessageContext(conversation.title || '');
-      const templates = MESSAGE_TEMPLATES[messageContext] || MESSAGE_TEMPLATES.SUPPORT;
-      
-      // Créer une séquence de messages réaliste
-      const conversationMessages = await createMessageSequence(
-        prisma,
-        conversation,
-        templates,
-        messageCount,
-        users,
-        logger,
-        options
-      );
-
-      totalMessages += conversationMessages;
-      result.created += conversationMessages;
-
-      if (options.verbose && totalMessages % 50 === 0) {
-        logger.progress('MESSAGES', totalMessages, 1000, 
-          `Messages créés: ${totalMessages}`);
+    await prisma.message.create({
+      data: {
+        conversationId: jeanMarieConversation.id,
+        senderId: jeanDupont.id,
+        content: 'Bonjour Marie ! Merci pour votre proposition. J\'ai consulté votre profil et vos évaluations sont parfaites. Je confirme la commande : ordinateur portable neuf, bien emballé, à récupérer au 110 rue de Flandre (Paris 19e) et livrer à Marseille.',
+        createdAt: new Date(threeDaysAgo.getTime() + (45 * 60 * 1000)), // 45 min après le premier
+        readAt: new Date(threeDaysAgo.getTime() + (50 * 60 * 1000)), // Lu 5 min après
+        status: 'DELIVERED'
       }
+    });
+
+    result.created++;
+
+    // 3. Message de Marie pour organiser (il y a 2 jours)
+    logger.progress('MESSAGES', 3, 6, 'Message 3 - Marie organise la récupération');
+
+    await prisma.message.create({
+      data: {
+        conversationId: jeanMarieConversation.id,
+        senderId: marieLaurent.id,
+        content: 'Parfait ! Bonjour, je peux passer prendre le colis vers 14h demain. Est-ce que cela vous convient ? C\'est bien emballé dans un carton j\'espère ? Et vous avez l\'adresse exacte de livraison à Marseille ?',
+        createdAt: twoDaysAgo,
+        readAt: new Date(twoDaysAgo.getTime() + (15 * 60 * 1000)), // Lu 15 min après
+        status: 'DELIVERED'
+      }
+    });
+
+    result.created++;
+
+    // 4. Confirmation de Jean (il y a 2 jours)
+    logger.progress('MESSAGES', 4, 6, 'Message 4 - Jean confirme les détails');
+
+    await prisma.message.create({
+      data: {
+        conversationId: jeanMarieConversation.id,
+        senderId: jeanDupont.id,
+        content: 'Parfait, je serai là à 14h demain ! Oui c\'est bien emballé dans un carton rigide avec protection. L\'adresse de livraison : 25 Avenue du Prado, 13006 Marseille. Le destinataire s\'appelle Thomas Dubois, son tel : 06.12.34.56.78.',
+        createdAt: new Date(twoDaysAgo.getTime() + (25 * 60 * 1000)), // 25 min après
+        readAt: new Date(twoDaysAgo.getTime() + (30 * 60 * 1000)), // Lu 5 min après
+        status: 'DELIVERED'
+      }
+    });
+
+    result.created++;
+
+    // 5. Message en cours de route (il y a 6 heures)
+    logger.progress('MESSAGES', 5, 6, 'Message 5 - Marie en route');
+
+    await prisma.message.create({
+      data: {
+        conversationId: jeanMarieConversation.id,
+        senderId: marieLaurent.id,
+        content: 'Bonjour Jean ! Bien reçu le colis hier à 14h pile, merci pour l\'emballage parfait. Je suis actuellement en route vers Marseille. Arrivée prévue vers 19h à destination. Je vous tiendrai informé !',
+        createdAt: sixHoursAgo,
+        readAt: new Date(sixHoursAgo.getTime() + (5 * 60 * 1000)), // Lu 5 min après
+        status: 'DELIVERED'
+      }
+    });
+
+    result.created++;
+
+    // 6. Message récent de Jean (il y a 1 heure)
+    logger.progress('MESSAGES', 6, 6, 'Message 6 - Jean remercie');
+
+    await prisma.message.create({
+      data: {
+        conversationId: jeanMarieConversation.id,
+        senderId: jeanDupont.id,
+        content: 'Parfait Marie ! Merci beaucoup pour ces nouvelles. J\'ai hâte que Thomas reçoive son ordinateur. Votre professionnalisme est exemplaire, je recommanderai vos services ! 👍',
+        createdAt: oneHourAgo,
+        readAt: new Date(oneHourAgo.getTime() + (10 * 60 * 1000)), // Lu 10 min après  
+        status: 'DELIVERED'
+      }
+    });
+
+    result.created++;
+
+    logger.success('MESSAGES', '✅ 6 messages conversation Jean ↔ Marie créés');
+
+    // Mettre à jour la conversation avec le dernier message
+    await prisma.conversation.update({
+      where: { id: jeanMarieConversation.id },
+      data: {
+        lastMessageAt: oneHourAgo,
+        updatedAt: oneHourAgo
+      }
+    });
 
     } catch (error: any) {
-      logger.error('MESSAGES', `❌ Erreur création messages conversation ${conversation.id}: ${error.message}`);
+    logger.error('MESSAGES', `❌ Erreur création messages: ${error.message}`);
       result.errors++;
-    }
   }
 
-  // Statistiques finales
+  // Validation des messages créés
   const finalMessages = await prisma.message.findMany({
-    include: { 
-      conversation: true,
-      sender: true 
-    }
+    where: { conversationId: jeanMarieConversation.id },
+    orderBy: { createdAt: 'asc' }
   });
+  
+  if (finalMessages.length >= result.created - result.errors) {
+    logger.validation('MESSAGES', 'PASSED', 
+      `${finalMessages.length} messages conversation Jean-Marie créés avec succès`);
+  } else {
+    logger.validation('MESSAGES', 'FAILED', 
+      `Attendu: ${result.created}, Créé: ${finalMessages.length}`);
+  }
 
-  // Distribution par statut
-  const messagesByStatus = finalMessages.reduce((acc: Record<string, number>, msg) => {
-    acc[msg.status] = (acc[msg.status] || 0) + 1;
-    return acc;
-  }, {});
+  // Statistiques de la conversation
+  const totalCharacters = finalMessages.reduce((sum, msg) => sum + msg.content.length, 0);
+  const avgMessageLength = Math.round(totalCharacters / finalMessages.length);
 
-  // Distribution par type d'expéditeur
-  const messagesBySenderRole = finalMessages.reduce((acc: Record<string, number>, msg) => {
-    acc[msg.sender.role] = (acc[msg.sender.role] || 0) + 1;
-    return acc;
-  }, {});
+  logger.info('MESSAGES', `📝 Messages envoyés: ${finalMessages.length}`);
+  logger.info('MESSAGES', `📊 Longueur moyenne: ${avgMessageLength} caractères`);
 
-  // Messages avec pièces jointes
-  const messagesWithAttachments = finalMessages.filter(msg => msg.attachments !== null).length;
+  // Messages par expéditeur
+  const messagesByJean = finalMessages.filter(m => m.senderId === jeanDupont.id);
+  const messagesByMarie = finalMessages.filter(m => m.senderId === marieLaurent.id);
+
+  logger.info('MESSAGES', `👤 Messages Jean: ${messagesByJean.length}`);
+  logger.info('MESSAGES', `👤 Messages Marie: ${messagesByMarie.length}`);
 
   // Taux de lecture
-  const readMessages = finalMessages.filter(msg => msg.status === 'READ').length;
-  const readRate = finalMessages.length > 0 ? (readMessages / finalMessages.length * 100).toFixed(1) : '0';
+  const readMessages = finalMessages.filter(m => m.readAt);
+  const readRate = Math.round((readMessages.length / finalMessages.length) * 100);
 
-  // Messages récents (24h)
-  const recentMessages = finalMessages.filter(msg => {
-    const hoursAgo = (new Date().getTime() - msg.createdAt.getTime()) / (1000 * 60 * 60);
-    return hoursAgo <= 24;
-  }).length;
+  logger.info('MESSAGES', `👁️ Taux de lecture: ${readRate}% (${readMessages.length}/${finalMessages.length})`);
 
-  logger.info('MESSAGES', `📊 Statuts: ${JSON.stringify(messagesByStatus)}`);
-  logger.info('MESSAGES', `👤 Par rôle: ${JSON.stringify(messagesBySenderRole)}`);
-  logger.info('MESSAGES', `📎 Pièces jointes: ${messagesWithAttachments}/${finalMessages.length} messages`);
-  logger.info('MESSAGES', `📖 Taux lecture: ${readRate}% (${readMessages}/${finalMessages.length})`);
-  logger.info('MESSAGES', `🕐 Messages récents (24h): ${recentMessages}`);
-
-  // Validation
-  if (finalMessages.length >= totalMessages - result.errors) {
-    logger.validation('MESSAGES', 'PASSED', `${finalMessages.length} messages créés avec succès`);
-  } else {
-    logger.validation('MESSAGES', 'FAILED', `Attendu: ${totalMessages}, Créé: ${finalMessages.length}`);
+  // Temps de réponse moyen
+  const responseDelays: number[] = [];
+  for (let i = 1; i < finalMessages.length; i++) {
+    const currentMsg = finalMessages[i];
+    const previousMsg = finalMessages[i - 1];
+    
+    // Seulement si c'est une réponse (expéditeurs différents)
+    if (currentMsg.senderId !== previousMsg.senderId) {
+      const delay = (currentMsg.createdAt.getTime() - previousMsg.createdAt.getTime()) / (1000 * 60); // en minutes
+      responseDelays.push(delay);
+    }
   }
+
+  if (responseDelays.length > 0) {
+    const avgResponseTime = Math.round(responseDelays.reduce((sum, delay) => sum + delay, 0) / responseDelays.length);
+    logger.info('MESSAGES', `⏱️ Temps de réponse moyen: ${avgResponseTime} minutes`);
+  }
+
+  // Période d'activité
+  const firstMessage = finalMessages[0];
+  const lastMessage = finalMessages[finalMessages.length - 1];
+  const conversationDuration = Math.round((lastMessage.createdAt.getTime() - firstMessage.createdAt.getTime()) / (1000 * 60 * 60 * 24));
+
+  logger.info('MESSAGES', `📅 Durée conversation: ${conversationDuration} jours`);
 
   logger.endSeed('MESSAGES', result);
   return result;
-}
-
-/**
- * Détermine le nombre de messages pour une conversation
- */
-function getMessageCount(title: string, isArchived: boolean): number {
-  if (isArchived) return faker.number.int({ min: 3, max: 8 });
-  
-  if (title.includes('Support')) return faker.number.int({ min: 5, max: 15 });
-  if (title.includes('Négociation')) return faker.number.int({ min: 8, max: 20 });
-  if (title.includes('Livraison')) return faker.number.int({ min: 3, max: 12 });
-  if (title.includes('Groupe')) return faker.number.int({ min: 10, max: 25 });
-  
-  return faker.number.int({ min: 4, max: 10 });
-}
-
-/**
- * Détermine le contexte des messages selon le titre de la conversation
- */
-function getMessageContext(title: string): string {
-  if (title.includes('Livraison')) return 'LIVRAISON';
-  if (title.includes('Support')) return 'SUPPORT';
-  if (title.includes('Négociation')) return 'NEGOCIATION';
-  if (title.includes('Commande')) return 'COMMANDE';
-  if (title.includes('Groupe')) return 'GROUPE';
-  
-  return 'SUPPORT';
-}
-
-/**
- * Crée une séquence réaliste de messages pour une conversation
- */
-async function createMessageSequence(
-  prisma: PrismaClient,
-  conversation: any,
-  templates: MessageTemplate[],
-  messageCount: number,
-  users: any[],
-  logger: SeedLogger,
-  options: SeedOptions
-): Promise<number> {
-  let createdCount = 0;
-  const participantUsers = users.filter(user => conversation.participantIds.includes(user.id));
-  
-  if (participantUsers.length === 0) return 0;
-
-  // Commencer la conversation avec un message d'ouverture
-  const firstSender = getRandomElement(participantUsers);
-  const firstTemplate = templates[0] || templates[faker.number.int({ min: 0, max: templates.length - 1 })];
-  
-  const baseDate = faker.date.past({ years: 1 });
-  
-  for (let i = 0; i < messageCount; i++) {
-    try {
-      // Alterner les expéditeurs de manière réaliste
-      const sender = i === 0 ? firstSender : getRandomElement(participantUsers);
-      const template = i === 0 ? firstTemplate : getRandomElement(templates);
-      
-      // Varier le contenu du message
-      let messageContent = template.content;
-      if (!template.isSystemMessage) {
-        messageContent = personalizeMessage(messageContent, sender.name);
-      }
-
-      // Déterminer le statut de lecture (80% des messages sont lus)
-      const isRead = faker.datatype.boolean(0.8);
-      
-      // Générer des pièces jointes si nécessaire
-      const attachments = template.hasAttachment ? generateAttachments() : null;
-
-      // Calculer la date du message (chronologique)
-      const messageDate = new Date(baseDate.getTime() + (i * 2 * 60 * 60 * 1000)); // 2h d'écart
-
-      const message = await prisma.message.create({
-        data: {
-          conversationId: conversation.id,
-          senderId: sender.id,
-          content: messageContent,
-          status: isRead ? 'READ' : 'UNREAD',
-          readAt: isRead ? faker.date.between({ from: messageDate, to: new Date() }) : null,
-          attachments: attachments,
-          replyToId: i > 2 && faker.datatype.boolean(0.3) ? null : null, // 30% de chances de réponse
-          createdAt: messageDate
-        }
-      });
-
-      createdCount++;
-
-    } catch (error: any) {
-      if (options.verbose) {
-        logger.error('MESSAGES', `❌ Erreur message ${i}: ${error.message}`);
-      }
-    }
-  }
-
-  return createdCount;
-}
-
-/**
- * Personnalise un message avec le nom de l'expéditeur
- */
-function personalizeMessage(content: string, senderName: string): string {
-  // Ajouter une variation personnelle
-  const variations = [
-    content,
-    content.replace('Bonjour !', `Bonjour ${senderName.split(' ')[0]} !`),
-    content.replace('Bonjour,', `Salut,`),
-    content + ` - ${senderName.split(' ')[0]}`,
-  ];
-
-  return getRandomElement(variations);
-}
-
-/**
- * Génère des pièces jointes simulées
- */
-function generateAttachments(): any {
-  const attachmentTypes = [
-    {
-      type: 'image',
-      name: 'photo_colis.jpg',
-      size: faker.number.int({ min: 500000, max: 2000000 }),
-      url: 'https://example.com/attachments/photo_colis.jpg'
-    },
-    {
-      type: 'document',
-      name: 'devis_plomberie.pdf',
-      size: faker.number.int({ min: 100000, max: 500000 }),
-      url: 'https://example.com/attachments/devis_plomberie.pdf'
-    },
-    {
-      type: 'image',
-      name: 'plan_livraison.png',
-      size: faker.number.int({ min: 300000, max: 1000000 }),
-      url: 'https://example.com/attachments/plan_livraison.png'
-    }
-  ];
-
-  return [getRandomElement(attachmentTypes)];
 }
 
 /**
@@ -504,12 +287,7 @@ export async function validateMessages(
   let isValid = true;
 
   // Vérifier les messages
-  const messages = await prisma.message.findMany({
-    include: { 
-      conversation: true,
-      sender: true 
-    }
-  });
+  const messages = await prisma.message.findMany();
 
   if (messages.length === 0) {
     logger.error('VALIDATION', '❌ Aucun message trouvé');
@@ -518,45 +296,46 @@ export async function validateMessages(
     logger.success('VALIDATION', `✅ ${messages.length} messages trouvés`);
   }
 
-  // Vérifier que tous les messages ont un expéditeur valide
-  const invalidSenders = messages.filter(msg => !msg.sender);
-  
-  if (invalidSenders.length === 0) {
-    logger.success('VALIDATION', '✅ Tous les messages ont un expéditeur valide');
+  // Vérifier la conversation Jean-Marie
+  const jeanDupont = await prisma.user.findUnique({
+    where: { email: 'jean.dupont@orange.fr' }
+  });
+
+  const marieLaurent = await prisma.user.findUnique({
+    where: { email: 'marie.laurent@orange.fr' }
+  });
+
+  if (jeanDupont && marieLaurent) {
+    const jeanMarieMessages = messages.filter(m => 
+      m.senderId === jeanDupont.id || m.senderId === marieLaurent.id
+    );
+
+    if (jeanMarieMessages.length >= 6) {
+      logger.success('VALIDATION', `✅ Conversation Jean-Marie: ${jeanMarieMessages.length} messages`);
   } else {
-    logger.warning('VALIDATION', `⚠️ ${invalidSenders.length} messages sans expéditeur valide`);
-    isValid = false;
+      logger.warning('VALIDATION', `⚠️ Conversation Jean-Marie: seulement ${jeanMarieMessages.length} messages (attendu: 6+)`);
+    }
   }
 
-  // Vérifier que tous les messages appartiennent à une conversation valide
-  const invalidConversations = messages.filter(msg => !msg.conversation);
-  
-  if (invalidConversations.length === 0) {
-    logger.success('VALIDATION', '✅ Tous les messages appartiennent à une conversation valide');
-  } else {
-    logger.warning('VALIDATION', `⚠️ ${invalidConversations.length} messages sans conversation valide`);
-    isValid = false;
-  }
-
-  // Vérifier la cohérence des statuts de lecture
-  const inconsistentRead = messages.filter(msg => 
-    (msg.status === 'read' && !msg.readAt) || 
-    (msg.status !== 'read' && msg.readAt)
-  );
-
-  if (inconsistentRead.length === 0) {
-    logger.success('VALIDATION', '✅ Cohérence des statuts de lecture respectée');
-  } else {
-    logger.warning('VALIDATION', `⚠️ ${inconsistentRead.length} messages avec statut de lecture incohérent`);
-  }
-
-  // Vérifier que les messages ne sont pas vides
-  const emptyMessages = messages.filter(msg => !msg.content || msg.content.trim().length === 0);
+  // Vérifier que tous les messages ont un contenu
+  const emptyMessages = messages.filter(m => !m.content || m.content.trim().length === 0);
   
   if (emptyMessages.length === 0) {
-    logger.success('VALIDATION', '✅ Aucun message vide trouvé');
+    logger.success('VALIDATION', '✅ Tous les messages ont un contenu');
   } else {
-    logger.warning('VALIDATION', `⚠️ ${emptyMessages.length} messages vides`);
+    logger.warning('VALIDATION', `⚠️ ${emptyMessages.length} messages vides trouvés`);
+  }
+
+  // Vérifier les dates cohérentes
+  const invalidDates = messages.filter(m => 
+    (m.readAt && m.readAt < m.createdAt) || 
+    m.createdAt > new Date()
+  );
+
+  if (invalidDates.length === 0) {
+    logger.success('VALIDATION', '✅ Toutes les dates de messages sont cohérentes');
+  } else {
+    logger.warning('VALIDATION', `⚠️ ${invalidDates.length} messages avec dates incohérentes`);
   }
 
   logger.success('VALIDATION', '✅ Validation des messages terminée');

@@ -57,14 +57,21 @@ export async function seedClientUsers(
   // Générer 100 clients avec des profils variés
   const clientUsers: ClientData[] = [];
   
-  // IMPORTANT: Client principal pour les tests - octavia.zemlak@orange.fr
-  const principalClientAddress = generateFrenchAddress();
+  // IMPORTANT: Client principal pour les tests - jean.dupont@orange.fr
+  const principalClientAddress = {
+    street: '110 rue de Flandre',
+    city: 'Paris',
+    zipCode: '75019',
+    country: 'France',
+    latitude: 48.8942,
+    longitude: 2.3728
+  };
   clientUsers.push({
-    name: 'Octavia Zemlak',
-    email: 'octavia.zemlak@orange.fr',
-    password: 'ClientPass2024!',
+    name: 'Jean Dupont',
+    email: 'jean.dupont@orange.fr',
+    password: 'password123',
     phoneNumber: generateFrenchPhone(),
-    image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150',
+    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
     status: UserStatus.ACTIVE,
     address: principalClientAddress,
     preferences: {
@@ -82,7 +89,7 @@ export async function seedClientUsers(
         preferredTimeSlot: 'flexible',
         leaveAtDoor: false,
         preferredDeliverer: 'same_person',
-        deliveryInstructions: 'Appeler avant de livrer. Interphone Zemlak.'
+        deliveryInstructions: 'Appeler avant de livrer. Interphone Dupont au rez-de-chaussée.'
       },
       shopping: {
         ecoFriendly: true,
@@ -129,7 +136,7 @@ export async function seedClientUsers(
     clientUsers.push({
       name: `${firstName} ${lastName}`,
       email: generateFrenchEmail(firstName, lastName),
-      password: 'ClientPass2024!',
+      password: 'password123',
       phoneNumber: generateFrenchPhone(),
              image: getRandomElement([
          'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150',
@@ -202,7 +209,7 @@ export async function seedClientUsers(
         // Hasher le mot de passe
         const hashedPassword = await hashPassword(clientData.password);
 
-        // Créer l'utilisateur avec le profil client
+        // Créer l'utilisateur avec le rôle client
         const user = await prisma.user.create({
           data: {
             name: clientData.name,
@@ -212,14 +219,11 @@ export async function seedClientUsers(
             status: clientData.status,
             phoneNumber: clientData.phoneNumber,
             image: clientData.image,
-            lastLoginAt: clientData.status === UserStatus.ACTIVE ? getRandomDate(1, 7) : getRandomDate(7, 30),
+            emailVerified: new Date(), // Tous les clients ont un email vérifié
+            isActive: true, // Tous les clients sont actifs
             locale: 'fr-FR',
-            preferences: clientData.preferences,
-            isVerified: Math.random() > 0.1, // 90% vérifiés
-            hasCompletedOnboarding: Math.random() > 0.05, // 95% ont complété l'onboarding
-            onboardingCompletionDate: getRandomDate(30, 180),
-            createdAt: getRandomDate(30, 180), // Créé il y a 1-6 mois
-            updatedAt: getRandomDate(1, 30), // Mis à jour récemment
+            createdAt: getRandomDate(30, 365), // Créé entre 1 mois et 1 an
+            updatedAt: new Date(),
             // Créer le profil client associé
             client: {
                              create: {

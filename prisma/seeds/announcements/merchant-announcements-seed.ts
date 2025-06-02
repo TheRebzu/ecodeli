@@ -1,4 +1,4 @@
-import { PrismaClient, UserRole } from '@prisma/client';
+import { PrismaClient, UserRole, AnnouncementStatus, AnnouncementType, AnnouncementPriority } from '@prisma/client';
 import { SeedLogger } from '../utils/seed-logger';
 import { SeedResult, SeedOptions, getRandomElement, getRandomDate } from '../utils/seed-helpers';
 import { faker } from '@faker-js/faker';
@@ -56,6 +56,115 @@ export async function seedMerchantAnnouncements(
       }
     });
     logger.database('NETTOYAGE', 'merchant announcements', 0);
+  }
+
+  // Trouver TechShop SARL pour créer ses annonces spécifiques
+  const techShopMerchant = merchants.find(m => m.email === 'techshop.sarl@orange.fr');
+  
+  // Créer les annonces spécifiques pour TechShop SARL
+  if (techShopMerchant) {
+    try {
+      // Annonce 1 : Livraison de matériel informatique vers Lyon
+      logger.progress('MERCHANT_ANNOUNCEMENTS', 1, 2, 'Création annonce TechShop - Livraison Lyon');
+      
+      await prisma.announcement.create({
+        data: {
+          title: 'Livraison matériel informatique - TechShop vers Lyon',
+          description: 'TechShop SARL propose une livraison de matériel informatique (ordinateurs, imprimantes, accessoires) vers Lyon. Commande groupée pour optimiser les coûts. Matériel neuf sous garantie, emballage professionnel sécurisé.',
+          status: AnnouncementStatus.PUBLISHED,
+          type: AnnouncementType.PACKAGE_DELIVERY,
+          priority: AnnouncementPriority.MEDIUM,
+          
+          // Adresses pickup - TechShop SARL
+          pickupAddress: '125 rue de Flandre',
+          pickupCity: 'Paris',
+          pickupPostalCode: '75019',
+          pickupCountry: 'France',
+          pickupLatitude: 48.8948,
+          pickupLongitude: 2.3730,
+          
+          // Adresses delivery - Lyon
+          deliveryAddress: '45 rue Victor Hugo',
+          deliveryCity: 'Lyon',
+          deliveryPostalCode: '69002',
+          deliveryCountry: 'France',
+          deliveryLatitude: 45.7640,
+          deliveryLongitude: 4.8357,
+          
+          // Dates
+          pickupDate: faker.date.soon({ days: 3 }), // Dans 3 jours
+          deliveryDate: faker.date.soon({ days: 4 }), // Dans 4 jours
+          flexibleDate: true,
+          
+          // Prix
+          suggestedPrice: 85.00,
+          priceType: 'negotiable',
+          currency: 'EUR',
+          
+          // Client (TechShop)
+          clientId: techShopMerchant.id,
+          
+          // Métadonnées
+          createdAt: getRandomDate(3, 7),
+          updatedAt: new Date()
+        }
+      });
+      
+      result.created++;
+
+      // Annonce 2 : Service "lâcher de chariot" pour clients locaux
+      logger.progress('MERCHANT_ANNOUNCEMENTS', 2, 2, 'Création annonce TechShop - Service lâcher de chariot');
+      
+      await prisma.announcement.create({
+        data: {
+          title: 'Service lâcher de chariot - TechShop Paris 19ème',
+          description: 'TechShop SARL propose un service de "lâcher de chariot" pour nos clients locaux. Nous nous chargeons de porter vos achats informatiques lourds (UC, écrans, imprimantes) directement à votre véhicule ou point de rdv proche. Service pratique et sécurisé.',
+          status: AnnouncementStatus.PUBLISHED,
+          type: AnnouncementType.HOME_SERVICES,
+          priority: AnnouncementPriority.LOW,
+          
+          // Adresses pickup - TechShop SARL
+          pickupAddress: '125 rue de Flandre',
+          pickupCity: 'Paris',
+          pickupPostalCode: '75019',
+          pickupCountry: 'France',
+          pickupLatitude: 48.8948,
+          pickupLongitude: 2.3730,
+          
+          // Zone de service - Quartier Paris 19ème
+          deliveryAddress: 'Zone Paris 19ème arrondissement',
+          deliveryCity: 'Paris',
+          deliveryPostalCode: '75019',
+          deliveryCountry: 'France',
+          deliveryLatitude: 48.8800,
+          deliveryLongitude: 2.3700,
+          
+          // Dates flexibles
+          pickupDate: null, // Service à la demande
+          deliveryDate: null,
+          flexibleDate: true,
+          
+          // Prix
+          suggestedPrice: 15.00,
+          priceType: 'fixed',
+          currency: 'EUR',
+          
+          // Client (TechShop)
+          clientId: techShopMerchant.id,
+          
+          // Métadonnées
+          createdAt: getRandomDate(1, 3),
+          updatedAt: new Date()
+        }
+      });
+      
+      result.created++;
+      logger.success('MERCHANT_ANNOUNCEMENTS', '✅ Annonces spécifiques TechShop SARL créées');
+
+    } catch (error: any) {
+      logger.error('MERCHANT_ANNOUNCEMENTS', `❌ Erreur création annonces TechShop: ${error.message}`);
+      result.errors += 2;
+    }
   }
 
   // Statuts d'annonce possibles

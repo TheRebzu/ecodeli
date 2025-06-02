@@ -1,4 +1,4 @@
-import { Metadata } from 'next';
+import type { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/server/auth/next-auth';
@@ -7,12 +7,15 @@ import DelivererDashboard from '@/components/dashboard/deliverer/deliverer-dashb
 import { UserStatus } from '@/server/db/enums';
 import { PageProps, MetadataProps } from '@/types/next';
 
-type Props = {
-  params: { locale: string };
-};
+// Interface pour les propriétés de la page
+interface Props {
+  params: Promise<{ locale: string }>;
+}
 
+// Génération des métadonnées pour le dashboard livreur
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const t = await getTranslations({ locale: params.locale, namespace: 'dashboard' });
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'dashboard' });
 
   return {
     title: t('deliverer.title') || 'Tableau de bord Livreur | EcoDeli',
@@ -21,10 +24,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function DelivererDashboardPage({ params }: Props) {
-  // Attendre la résolution des paramètres
-  const resolvedParams = await params;
-  const locale = resolvedParams.locale;
+// Composant principal de la page dashboard livreur
+export default async function DelivererPage({ params }: Props) {
+  const { locale } = await params;
   const session = await getServerSession(authOptions);
 
   // Rediriger vers la page de connexion si l'utilisateur n'est pas connecté
@@ -42,5 +44,9 @@ export default async function DelivererDashboardPage({ params }: Props) {
     redirect(`/${locale}/deliverer/documents?verification_required=true`);
   }
 
-  return <DelivererDashboard locale={locale} />;
+  return (
+    <div className="container mx-auto px-4 py-6">
+      <DelivererDashboard locale={locale} />
+    </div>
+  );
 }

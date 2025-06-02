@@ -80,8 +80,72 @@ export async function seedDelivererUsers(
   // Générer 35 livreurs avec des profils variés
   const delivererUsers: DelivererData[] = [];
   
-  // 20 livreurs actifs et vérifiés
-  for (let i = 0; i < 20; i++) {
+  // IMPORTANT: Livreuse principale pour les tests - marie.laurent@orange.fr
+  const marieVehicle = {
+    type: 'car',
+    name: 'Peugeot 208',
+    capacity: 80,
+    maxWeight: 200,
+    speed: 50
+  };
+  
+  delivererUsers.push({
+    name: 'Marie Laurent',
+    email: 'marie.laurent@orange.fr',
+    password: 'DelivererPass2024!',
+    phoneNumber: generateFrenchPhone(),
+    image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150',
+    status: UserStatus.ACTIVE,
+    address: {
+      street: '95 rue de Marseille',
+      city: 'Paris',
+      zipCode: '75019',
+      country: 'France',
+      latitude: 48.8845,
+      longitude: 2.3712
+    },
+    vehicle: {
+      type: marieVehicle.type,
+      name: marieVehicle.name,
+      licensePlate: 'AB-123-CD',
+      capacity: marieVehicle.capacity,
+      maxWeight: marieVehicle.maxWeight,
+      averageSpeed: marieVehicle.speed,
+      isElectric: false,
+      registrationDate: getRandomDate(365, 1095), // Entre 1 et 3 ans
+      insuranceExpiry: faker.date.future({ years: 1 })
+    },
+    serviceZones: ['Paris', 'Marseille', 'Lyon', 'Paris 19ème', 'Paris 20ème', 'Paris 18ème'],
+    availability: {
+      isActive: true,
+      workingDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'],
+      workingHours: { start: '08:00', end: '20:00' },
+      maxOrdersPerDay: 20,
+      preferredOrderTypes: ['all']
+    },
+    verification: {
+      isVerified: true,
+      verificationDate: getRandomDate(180, 365),
+      documentsStatus: 'APPROVED',
+      backgroundCheckStatus: 'PASSED',
+      drivingLicenseVerified: true,
+      identityVerified: true,
+      addressVerified: true
+    },
+    performance: {
+      rating: 4.9,
+      totalDeliveries: 850,
+      successRate: 0.98,
+      averageDeliveryTime: 25, // en minutes
+      onTimeRate: 0.95,
+      customerRating: 4.8,
+      lastDeliveryDate: getRandomDate(1, 3),
+      totalEarnings: 18500.0
+    }
+  });
+  
+  // 19 autres livreurs actifs et vérifiés
+  for (let i = 0; i < 19; i++) {
     const firstName = faker.person.firstName();
     const lastName = faker.person.lastName();
     const address = generateFrenchAddress();
@@ -290,36 +354,21 @@ export async function seedDelivererUsers(
       try {
         logger.progress('DELIVERER_USERS', i + 1, delivererUsers.length, `Création: ${delivererData.name}`);
 
-        // Hasher le mot de passe
-        const hashedPassword = await hashPassword(delivererData.password);
-
-        // Créer l'utilisateur avec le profil livreur
+        // Créer l'utilisateur avec le rôle livreur
         const user = await prisma.user.create({
           data: {
             name: delivererData.name,
             email: delivererData.email,
-            password: hashedPassword,
+            password: await hashPassword(delivererData.password),
             role: UserRole.DELIVERER,
             status: delivererData.status,
             phoneNumber: delivererData.phoneNumber,
             image: delivererData.image,
-            lastLoginAt: delivererData.status === UserStatus.ACTIVE ? getRandomDate(1, 7) : getRandomDate(7, 30),
+            emailVerified: new Date(), // Tous les livreurs ont un email vérifié
+            isActive: true, // Tous les livreurs sont actifs
             locale: 'fr-FR',
-            preferences: {
-              theme: getRandomElement(['light', 'dark', 'auto']),
-              notifications: {
-                email: true,
-                push: true,
-                sms: Math.random() > 0.5,
-                orderAlerts: true,
-                weeklyReport: true
-              }
-            },
-            isVerified: delivererData.verification.isVerified,
-            hasCompletedOnboarding: delivererData.verification.isVerified,
-            onboardingCompletionDate: delivererData.verification.verificationDate,
-            createdAt: getRandomDate(30, 180),
-            updatedAt: getRandomDate(1, 30),
+            createdAt: getRandomDate(30, 365), // Créé entre 1 mois et 1 an
+            updatedAt: new Date(),
             // Créer le profil livreur associé
             deliverer: {
               create: {

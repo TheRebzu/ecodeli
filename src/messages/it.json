@@ -380,7 +380,17 @@
     "uploading": "uploading",
     "submit": "submit",
     "title": "title",
-    "description": "description"
+    "description": "description",
+    "hideDetails": "[TO_TRANSLATE] hideDetails",
+    "showDetails": "[TO_TRANSLATE] showDetails",
+    "serviceInfo": "[TO_TRANSLATE] serviceInfo",
+    "durationVariable": "[TO_TRANSLATE] durationVariable",
+    "providerInfo": "[TO_TRANSLATE] providerInfo",
+    "provider": "[TO_TRANSLATE] provider",
+    "noAvailableSlots": "[TO_TRANSLATE] noAvailableSlots",
+    "advancedOptions": "[TO_TRANSLATE] advancedOptions",
+    "participantCount": "[TO_TRANSLATE] participantCount",
+    "participants": "[TO_TRANSLATE] participants"
   },
   "manage": {
     "cancelled": "cancelled",
@@ -690,7 +700,12 @@
     "CONFIRMED": "CONFIRMED",
     "COMPLETED": "COMPLETED",
     "CANCELLED": "CANCELLED",
-    "RESCHEDULED": "RESCHEDULED"
+    "RESCHEDULED": "RESCHEDULED",
+    "rescheduled": "[TO_TRANSLATE] rescheduled",
+    "online": "[TO_TRANSLATE] online",
+    "offline": "[TO_TRANSLATE] offline",
+    "busy": "[TO_TRANSLATE] busy",
+    "available": "[TO_TRANSLATE] available"
   },
   "documents": {
     "upload_success": "upload_success",
@@ -787,7 +802,11 @@
     "tabs": {
       "pending": "pending",
       "approved": "approved",
-      "rejected": "rejected"
+      "rejected": "rejected",
+      "all": "[TO_TRANSLATE] all",
+      "deliverers": "[TO_TRANSLATE] deliverers",
+      "providers": "[TO_TRANSLATE] providers",
+      "merchants": "[TO_TRANSLATE] merchants"
     },
     "columns": {
       "user": "user",
@@ -2000,7 +2019,15 @@
       "cancel": "cancel",
       "submitting": "submitting",
       "update": "update",
-      "submit": "submit"
+      "submit": "submit",
+      "generalRating": "[TO_TRANSLATE] generalRating",
+      "detailedRating": "[TO_TRANSLATE] detailedRating",
+      "feedback": "[TO_TRANSLATE] feedback",
+      "wouldRecommend": "[TO_TRANSLATE] wouldRecommend",
+      "prosLabel": "[TO_TRANSLATE] prosLabel",
+      "prosPlaceholder": "[TO_TRANSLATE] prosPlaceholder",
+      "consLabel": "[TO_TRANSLATE] consLabel",
+      "consPlaceholder": "[TO_TRANSLATE] consPlaceholder"
     },
     "confirmation": {
       "title": "title",
@@ -2034,6 +2061,41 @@
       "sortBy": "sortBy",
       "resetFilters": "resetFilters",
       "apply": "apply"
+    },
+    "timeslot": {
+      "start": "[TO_TRANSLATE] start",
+      "end": "[TO_TRANSLATE] end",
+      "duration": "[TO_TRANSLATE] duration",
+      "time": "[TO_TRANSLATE] time",
+      "customTime": "[TO_TRANSLATE] customTime",
+      "quickSelect": "[TO_TRANSLATE] quickSelect",
+      "allSlots": "[TO_TRANSLATE] allSlots"
+    },
+    "calendar": {
+      "title": "[TO_TRANSLATE] title",
+      "subtitle": "[TO_TRANSLATE] subtitle"
+    },
+    "availability": {
+      "added": "[TO_TRANSLATE] added",
+      "addFailed": "[TO_TRANSLATE] addFailed",
+      "formTitle": "[TO_TRANSLATE] formTitle",
+      "formDescription": "[TO_TRANSLATE] formDescription",
+      "applying": "[TO_TRANSLATE] applying",
+      "applyTemplate": "[TO_TRANSLATE] applyTemplate",
+      "selectDays": "[TO_TRANSLATE] selectDays",
+      "day": "[TO_TRANSLATE] day",
+      "selectDay": "[TO_TRANSLATE] selectDay",
+      "startTime": "[TO_TRANSLATE] startTime",
+      "selectStartTime": "[TO_TRANSLATE] selectStartTime",
+      "endTime": "[TO_TRANSLATE] endTime",
+      "selectEndTime": "[TO_TRANSLATE] selectEndTime",
+      "preview": "[TO_TRANSLATE] preview",
+      "from": "[TO_TRANSLATE] from",
+      "to": "[TO_TRANSLATE] to",
+      "cancel": "[TO_TRANSLATE] cancel",
+      "adding": "[TO_TRANSLATE] adding",
+      "addMultiple": "[TO_TRANSLATE] addMultiple",
+      "add": "[TO_TRANSLATE] add"
     }
   },
   "tabs": {
@@ -2073,7 +2135,11 @@
     "clients": "clients",
     "deliverers": "deliverers",
     "merchants": "merchants",
-    "providers": "providers"
+    "providers": "providers",
+    "overview": "[TO_TRANSLATE] overview",
+    "deliveries": "[TO_TRANSLATE] deliveries",
+    "earnings": "[TO_TRANSLATE] earnings",
+    "routes": "[TO_TRANSLATE] routes"
   },
   "faq": {
     "title1": "title1",
@@ -2105,7 +2171,8 @@
     "cancel": "cancel",
     "adding": "adding",
     "noAvailability": "noAvailability",
-    "addSome": "addSome"
+    "addSome": "addSome",
+    "available": "[TO_TRANSLATE] available"
   },
   "days": {
     "sunday": "sunday",
@@ -2123,7 +2190,8 @@
     "appointmentsCount": "appointmentsCount",
     "noAppointments": "noAppointments",
     "nothingScheduled": "nothingScheduled",
-    "freeDay": "freeDay"
+    "freeDay": "freeDay",
+    "description": "[TO_TRANSLATE] description"
   },
   "calendarEvent": {
     "prefix": "prefix",
@@ -3260,7 +3328,24 @@
     "editAnnouncementInstructions": "editAnnouncementInstructions",
     "price": "price",
     "leaflet": "leaflet",
-    "MEDIUM": "MEDIUM"
+    "MEDIUM": "MEDIUM",
+    "uploadSuccess": "[TO_TRANSLATE] uploadSuccess",
+    "loadingProposals": "[TO_TRANSLATE] loadingProposals",
+    "noProposalsDescription": "[TO_TRANSLATE] noProposalsDescription",
+    "receivedProposals": "[TO_TRANSLATE] receivedProposals",
+    "compatibility": "[TO_TRANSLATE] compatibility",
+    "rating": "[TO_TRANSLATE] rating",
+    "submissionDate": "[TO_TRANSLATE] submissionDate",
+    "pendingProposals": "[TO_TRANSLATE] pendingProposals",
+    "totalProposals": "[TO_TRANSLATE] totalProposals",
+    "deliveries": "[TO_TRANSLATE] deliveries",
+    "hasEquipment": "[TO_TRANSLATE] hasEquipment",
+    "yes": "[TO_TRANSLATE] yes",
+    "no": "[TO_TRANSLATE] no",
+    "canPickupOnTime": "[TO_TRANSLATE] canPickupOnTime",
+    "submittedAt": "[TO_TRANSLATE] submittedAt",
+    "acceptProposal": "[TO_TRANSLATE] acceptProposal",
+    "rejectProposal": "[TO_TRANSLATE] rejectProposal"
   },
   "leaflet": "leaflet",
   "emptyState": {
@@ -3406,7 +3491,18 @@
     "UNBAN": {
       "description": "description",
       "label": "label"
-    }
+    },
+    "download": "[TO_TRANSLATE] download",
+    "sign": "[TO_TRANSLATE] sign",
+    "goOffline": "[TO_TRANSLATE] goOffline",
+    "goOnline": "[TO_TRANSLATE] goOnline",
+    "activeDeliveries": "[TO_TRANSLATE] activeDeliveries",
+    "createRoute": "[TO_TRANSLATE] createRoute",
+    "manageSchedule": "[TO_TRANSLATE] manageSchedule",
+    "viewMap": "[TO_TRANSLATE] viewMap",
+    "viewWallet": "[TO_TRANSLATE] viewWallet",
+    "notifications": "[TO_TRANSLATE] notifications",
+    "profileSettings": "[TO_TRANSLATE] profileSettings"
   },
   "maps": {
     "pickupAddress": "pickupAddress",
@@ -3567,7 +3663,10 @@
         "postalCode": "75000",
         "state": "Île-de-France",
         "country": "France"
-      }
+      },
+      "registerAsProvider": "[TO_TRANSLATE] registerAsProvider",
+      "registerAsMerchant": "[TO_TRANSLATE] registerAsMerchant",
+      "registerAsDeliverer": "[TO_TRANSLATE] registerAsDeliverer"
     },
     "T": "T",
     "login": {
@@ -3757,7 +3856,10 @@
   "success": {
     "title": "title",
     "description": "description",
-    "message": "message"
+    "message": "message",
+    "provider": "[TO_TRANSLATE] provider",
+    "merchant": "[TO_TRANSLATE] merchant",
+    "deliverer": "[TO_TRANSLATE] deliverer"
   },
   "Auth": {
     "ForgotPassword": {
@@ -4511,6 +4613,10 @@
       "editCommissionRateDescription": "editCommissionRateDescription",
       "cancel": "cancel",
       "save": "save"
+    },
+    "dashboard": {
+      "a": "[TO_TRANSLATE] a",
+      "T": "[TO_TRANSLATE] T"
     }
   },
   "stats": {
@@ -4701,7 +4807,11 @@
     "id": "[en] id",
     "addresses": "[en] addresses",
     "date": "[en] date",
-    "deliverer": "[en] deliverer"
+    "deliverer": "[en] deliverer",
+    "monthlyFee": "[TO_TRANSLATE] monthlyFee",
+    "commission": "[TO_TRANSLATE] commission",
+    "signedAt": "[TO_TRANSLATE] signedAt",
+    "expiresAt": "[TO_TRANSLATE] expiresAt"
   },
   "pending": {
     "empty": {
@@ -4874,7 +4984,12 @@
     "websiteUrl": "websiteUrl",
     "businessType": "businessType",
     "vatNumber": "vatNumber",
-    "businessAddress": "businessAddress"
+    "businessAddress": "businessAddress",
+    "experienceYears": "[TO_TRANSLATE] experienceYears",
+    "certifications": "[TO_TRANSLATE] certifications",
+    "companyEmail": "[TO_TRANSLATE] companyEmail",
+    "companyPhone": "[TO_TRANSLATE] companyPhone",
+    "siret": "[TO_TRANSLATE] siret"
   },
   "notificationTypes": {
     "info": "info",
@@ -5130,7 +5245,18 @@
     "pageDescription": "[en] pageDescription",
     "title": "[en] title",
     "instructions": "[en] instructions",
-    "description": "description"
+    "description": "description",
+    "invoices": {
+      "a": "[TO_TRANSLATE] a",
+      "T": "[TO_TRANSLATE] T"
+    },
+    "contracts": {
+      "title": "[TO_TRANSLATE] title",
+      "description": "[TO_TRANSLATE] description",
+      "searchPlaceholder": "[TO_TRANSLATE] searchPlaceholder",
+      "contractsList": "[TO_TRANSLATE] contractsList",
+      "noContracts": "[TO_TRANSLATE] noContracts"
+    }
   },
   "noAnnouncements": {
     "title": "title",
@@ -5187,7 +5313,12 @@
     "websiteUrl": "websiteUrl",
     "businessType": "businessType",
     "vatNumber": "vatNumber",
-    "businessAddress": "businessAddress"
+    "businessAddress": "businessAddress",
+    "experienceYears": "[TO_TRANSLATE] experienceYears",
+    "certifications": "[TO_TRANSLATE] certifications",
+    "companyEmail": "[TO_TRANSLATE] companyEmail",
+    "companyPhone": "[TO_TRANSLATE] companyPhone",
+    "siret": "[TO_TRANSLATE] siret"
   },
   "vehicleTypes": {
     "bicycle": "bicycle",
@@ -5405,7 +5536,17 @@
     "flexibilityHoursDescription": "flexibilityHoursDescription",
     "notes": "notes",
     "notesPlaceholder": "notesPlaceholder",
-    "notesDescription": "notesDescription"
+    "notesDescription": "notesDescription",
+    "suggestions": {
+      "title": "[TO_TRANSLATE] title"
+    },
+    "availableDeliveries": "[TO_TRANSLATE] availableDeliveries",
+    "bestTimes": "[TO_TRANSLATE] bestTimes",
+    "selectRoute": "[TO_TRANSLATE] selectRoute",
+    "noSuggestions": "[TO_TRANSLATE] noSuggestions",
+    "noSuggestionsHelp": "[TO_TRANSLATE] noSuggestionsHelp",
+    "manageRoutes": "[TO_TRANSLATE] manageRoutes",
+    "noRoutesYet": "[TO_TRANSLATE] noRoutesYet"
   },
   "dashboardPage": {
     "metaTitle": "[en] metaTitle",
@@ -5539,7 +5680,19 @@
   },
   "title": "title",
   "description": "[en] description",
-  "analytics": "[en] analytics",
+  "analytics": {
+    "totalBookings": "[TO_TRANSLATE] totalBookings",
+    "thisMonth": "[TO_TRANSLATE] thisMonth",
+    "pendingBookings": "[TO_TRANSLATE] pendingBookings",
+    "requiresAction": "[TO_TRANSLATE] requiresAction",
+    "completedBookings": "[TO_TRANSLATE] completedBookings",
+    "availabilitySlots": "[TO_TRANSLATE] availabilitySlots",
+    "activeSlots": "[TO_TRANSLATE] activeSlots",
+    "recentBookings": "[TO_TRANSLATE] recentBookings",
+    "recentBookingsDescription": "[TO_TRANSLATE] recentBookingsDescription",
+    "noBookings": "[TO_TRANSLATE] noBookings",
+    "noBookingsDescription": "[TO_TRANSLATE] noBookingsDescription"
+  },
   "liveTracking": "liveTracking",
   "liveTrackingDescription": "liveTrackingDescription",
   "provider": {
@@ -5573,7 +5726,18 @@
       "title": "[en] title",
       "provider": "[en] provider",
       "price": "[en] price"
-    }
+    },
+    "statusUpdated": "[TO_TRANSLATE] statusUpdated",
+    "statusUpdateFailed": "[TO_TRANSLATE] statusUpdateFailed",
+    "details": "[TO_TRANSLATE] details",
+    "client": "[TO_TRANSLATE] client",
+    "time": "[TO_TRANSLATE] time",
+    "service": "[TO_TRANSLATE] service",
+    "status": "[TO_TRANSLATE] status",
+    "notes": "[TO_TRANSLATE] notes",
+    "confirm": "[TO_TRANSLATE] confirm",
+    "cancel": "[TO_TRANSLATE] cancel",
+    "complete": "[TO_TRANSLATE] complete"
   },
   "searchPage": {
     "metaTitle": "[en] metaTitle",
@@ -5643,7 +5807,8 @@
     "personalInfo": "personalInfo",
     "professionalInfo": "professionalInfo",
     "businessInfo": "businessInfo",
-    "businessAddress": "businessAddress"
+    "businessAddress": "businessAddress",
+    "description": "[TO_TRANSLATE] description"
   },
   "usersVerification": {
     "title": "title",
@@ -6314,5 +6479,83 @@
   "noApplicationsYet": "[en] noApplicationsYet",
   "cannotEditAnnouncement": "[en] cannotEditAnnouncement",
   "cannotEditAnnouncementDescription": "[en] cannotEditAnnouncementDescription",
-  "backToAnnouncement": "[en] backToAnnouncement"
+  "backToAnnouncement": "[en] backToAnnouncement",
+  "delivery_tracking": "[TO_TRANSLATE] delivery_tracking",
+  "views": {
+    "fullCalendar": "[TO_TRANSLATE] fullCalendar",
+    "listView": "[TO_TRANSLATE] listView",
+    "month": "[TO_TRANSLATE] month",
+    "week": "[TO_TRANSLATE] week",
+    "day": "[TO_TRANSLATE] day",
+    "list": "[TO_TRANSLATE] list"
+  },
+  "templates": {
+    "weekdays": "[TO_TRANSLATE] weekdays",
+    "weekdaysDesc": "[TO_TRANSLATE] weekdaysDesc",
+    "weekend": "[TO_TRANSLATE] weekend",
+    "weekendDesc": "[TO_TRANSLATE] weekendDesc",
+    "fullWeek": "[TO_TRANSLATE] fullWeek",
+    "fullWeekDesc": "[TO_TRANSLATE] fullWeekDesc",
+    "flexible": "[TO_TRANSLATE] flexible",
+    "flexibleDesc": "[TO_TRANSLATE] flexibleDesc"
+  },
+  "mode": {
+    "title": "[TO_TRANSLATE] title",
+    "description": "[TO_TRANSLATE] description",
+    "useTemplate": "[TO_TRANSLATE] useTemplate",
+    "selectTemplate": "[TO_TRANSLATE] selectTemplate",
+    "bulkMode": "[TO_TRANSLATE] bulkMode"
+  },
+  "schedule": {
+    "title": "[TO_TRANSLATE] title",
+    "description": "[TO_TRANSLATE] description"
+  },
+  "warnings": {
+    "existingAvailability": "[TO_TRANSLATE] existingAvailability"
+  },
+  "contractInfo": {
+    "title": "[TO_TRANSLATE] title",
+    "description": "[TO_TRANSLATE] description",
+    "benefits": {
+      "title": "[TO_TRANSLATE] title",
+      "delivery": "[TO_TRANSLATE] delivery",
+      "commission": "[TO_TRANSLATE] commission",
+      "support": "[TO_TRANSLATE] support"
+    },
+    "conditions": {
+      "title": "[TO_TRANSLATE] title",
+      "duration": "[TO_TRANSLATE] duration",
+      "renewal": "[TO_TRANSLATE] renewal",
+      "termination": "[TO_TRANSLATE] termination"
+    },
+    "billing": {
+      "title": "[TO_TRANSLATE] title",
+      "monthly": "[TO_TRANSLATE] monthly",
+      "commission": "[TO_TRANSLATE] commission",
+      "payment": "[TO_TRANSLATE] payment"
+    }
+  },
+  "earnings": {
+    "total": "[TO_TRANSLATE] total",
+    "deliveries": "[TO_TRANSLATE] deliveries",
+    "delivery": "[TO_TRANSLATE] delivery",
+    "hoursWorked": "[TO_TRANSLATE] hoursWorked",
+    "change": "[TO_TRANSLATE] change",
+    "previousPeriod": "[TO_TRANSLATE] previousPeriod",
+    "performance": {
+      "improving": "[TO_TRANSLATE] improving",
+      "declining": "[TO_TRANSLATE] declining"
+    },
+    "title": "[TO_TRANSLATE] title",
+    "periods": {
+      "day": "[TO_TRANSLATE] day",
+      "week": "[TO_TRANSLATE] week",
+      "month": "[TO_TRANSLATE] month"
+    },
+    "quickSummary": "[TO_TRANSLATE] quickSummary",
+    "today": "[TO_TRANSLATE] today",
+    "thisWeek": "[TO_TRANSLATE] thisWeek",
+    "thisMonth": "[TO_TRANSLATE] thisMonth",
+    "viewDetails": "[TO_TRANSLATE] viewDetails"
+  }
 }

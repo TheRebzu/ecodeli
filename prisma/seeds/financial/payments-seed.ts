@@ -48,6 +48,26 @@ export async function seedPayments(
     return result;
   }
 
+  // Trouver Jean Dupont et son annonce pour créer le paiement spécifique
+  const jeanDupont = await prisma.user.findUnique({
+    where: { email: 'jean.dupont@orange.fr' }
+  });
+
+  const jeanAnnouncement = await prisma.announcement.findFirst({
+    where: {
+      clientId: jeanDupont?.id,
+      title: { contains: 'Livraison urgente d\'un ordinateur portable vers Marseille' }
+    }
+  });
+
+  const jeanDelivery = await prisma.delivery.findFirst({
+    where: {
+      announcementId: jeanAnnouncement?.id,
+      clientId: jeanDupont?.id,
+      trackingCode: 'ECO-2024-PAR-MAR-001'
+    }
+  });
+
   // Vérifier si des paiements existent déjà
   const existingPayments = await prisma.payment.count();
   
@@ -63,168 +83,91 @@ export async function seedPayments(
     logger.database('NETTOYAGE', 'payments', 0);
   }
 
-  // Types de services avec prix réalistes (en euros)
-  const SERVICE_TYPES = {
-    DELIVERY: { 
-      minPrice: 3.5, 
-      maxPrice: 25, 
-      commission: 0.15,
-      description: 'Livraison'
-    },
-    PLUMBING: { 
-      minPrice: 45, 
-      maxPrice: 300, 
-      commission: 0.12,
-      description: 'Plomberie'
-    },
-    ELECTRICITY: { 
-      minPrice: 60, 
-      maxPrice: 400, 
-      commission: 0.12,
-      description: 'Électricité'
-    },
-    CLEANING: { 
-      minPrice: 25, 
-      maxPrice: 120, 
-      commission: 0.10,
-      description: 'Nettoyage'
-    },
-    IT_SUPPORT: { 
-      minPrice: 40, 
-      maxPrice: 200, 
-      commission: 0.15,
-      description: 'Support informatique'
-    },
-    GARDENING: { 
-      minPrice: 35, 
-      maxPrice: 180, 
-      commission: 0.10,
-      description: 'Jardinage'
-    }
-  };
-
-  // Méthodes de paiement disponibles
-  const PAYMENT_METHODS = [
-    'card', 'sepa_debit', 'bancontact', 'ideal', 'giropay', 'sofort'
-  ];
-
-  // Distribution des statuts (réaliste)
-  const STATUS_DISTRIBUTION = {
-    [PaymentStatus.COMPLETED]: 0.85,  // 85% réussis
-    [PaymentStatus.PENDING]: 0.08,    // 8% en attente
-    [PaymentStatus.FAILED]: 0.05,     // 5% échoués
-    [PaymentStatus.CANCELLED]: 0.02   // 2% annulés
-  };
-
-  // Générer un historique de 6 mois de paiements
-  const startDate = new Date();
-  startDate.setMonth(startDate.getMonth() - 6);
-
-  let totalPayments = 0;
-  const paymentsPerClient = faker.number.int({ min: 3, max: 25 }); // Variation par client
-
-  for (const client of clients) {
+  // 1. CRÉER LE PAIEMENT SPÉCIFIQUE DE JEAN DUPONT
+  if (jeanDupont && jeanDelivery) {
     try {
-      logger.progress('PAYMENTS', totalPayments + 1, clients.length * paymentsPerClient, 
-        `Création paiements: ${client.name}`);
+      logger.progress('PAYMENTS', 1, 1, 'Création paiement Jean Dupont - Livraison Marseille');
 
-      // Nombre de paiements pour ce client (selon profil)
-      const clientPaymentCount = faker.number.int({ 
-        min: Math.floor(paymentsPerClient * 0.3), 
-        max: Math.ceil(paymentsPerClient * 1.5) 
-      });
+      const baseAmount = 45.00; // Prix de la livraison
+      const commissionRate = 0.10; // 10% de commission EcoDeli
+      const commissionAmount = Math.round(baseAmount * commissionRate * 100) / 100; // 4.50€
+      const totalAmount = baseAmount + commissionAmount; // 49.50€
 
-      for (let i = 0; i < clientPaymentCount; i++) {
-        try {
-          // Sélectionner un type de service aléatoire
-          const serviceType = getRandomElement(Object.keys(SERVICE_TYPES));
-          const serviceConfig = SERVICE_TYPES[serviceType as keyof typeof SERVICE_TYPES];
+             await prisma.payment.create({
+         data: {
+           amount: totalAmount,
+           currency: 'EUR',
+           status: PaymentStatus.COMPLETED,
+           description: 'Livraison urgente ordinateur portable Paris → Marseille',
+           userId: jeanDupont.id,
+           stripePaymentId: 'pi_simulated_123456789',
+           paymentIntentId: 'pi_simulated_123',
+           commissionAmount: commissionAmount,
+           taxAmount: 0,
+           taxRate: 0,
+           paymentMethodType: 'card',
+           paymentProvider: 'STRIPE',
+           createdAt: getRandomDate(3, 4),
+           updatedAt: new Date()
+         }
+       });
 
-          // Calculer le montant selon le service
-          const baseAmount = faker.number.float({ 
-            min: serviceConfig.minPrice, 
-            max: serviceConfig.maxPrice
-          });
-
-          // Arrondir à 2 décimales
-          const amount = Math.round(baseAmount * 100) / 100;
-
-          // Calculer la commission et la TVA
-          const commissionRate = serviceConfig.commission;
-          const commissionAmount = Math.round(amount * commissionRate * 100) / 100;
-          const taxRate = 0.20; // TVA française 20%
-          const taxAmount = Math.round(amount * taxRate * 100) / 100;
-
-          // Déterminer le statut selon la distribution
-          const statusRandom = Math.random();
-          let status = PaymentStatus.SUCCEEDED;
-          let cumulative = 0;
-          
-          for (const [paymentStatus, probability] of Object.entries(STATUS_DISTRIBUTION)) {
-            cumulative += probability;
-            if (statusRandom <= cumulative) {
-              status = paymentStatus as PaymentStatus;
-              break;
-            }
-          }
-
-          // Date de création aléatoire dans les 6 derniers mois
-          const createdAt = faker.date.between({
-            from: startDate,
-            to: new Date()
-          });
-
-          // Génération des IDs Stripe réalistes
-          const stripePaymentId = status !== PaymentStatus.FAILED ? 
-            `pi_${faker.string.alphanumeric(24)}` : null;
-          const paymentIntentId = `pi_${faker.string.alphanumeric(24)}`;
-
-          // Sélectionner une méthode de paiement
-          const paymentMethod = getRandomElement(PAYMENT_METHODS);
-
-          // Créer le paiement
-          await prisma.payment.create({
-            data: {
-              amount: amount,
-              currency: 'EUR',
-              status: status,
-              description: `${serviceConfig.description} - ${generatePaymentDescription(serviceType)}`,
-              userId: client.id,
-              stripePaymentId: stripePaymentId,
-              paymentIntentId: paymentIntentId,
-              commissionAmount: commissionAmount,
-              taxAmount: taxAmount,
-              taxRate: taxRate,
-              paymentMethodType: paymentMethod,
-              paymentProvider: 'STRIPE',
-              createdAt: createdAt,
-              capturedAt: status === PaymentStatus.SUCCEEDED ? createdAt : null,
-              errorMessage: status === PaymentStatus.FAILED ? generateFailureReason() : null,
-              receiptUrl: status === PaymentStatus.SUCCEEDED ? 
-                `https://pay.stripe.com/receipts/${faker.string.alphanumeric(32)}` : null,
-              processingFee: Math.round(amount * 0.029 * 100) / 100, // Frais Stripe 2.9%
-              paymentReference: `PAY-${faker.string.alphanumeric(8).toUpperCase()}`,
-              ipAddress: faker.internet.ip(),
-              metadata: {
-                serviceType: serviceType,
-                clientId: client.id,
-                platform: 'web',
-                userAgent: faker.internet.userAgent()
-              }
-            }
-          });
-
-          totalPayments++;
-          result.created++;
-
-        } catch (error: any) {
-          logger.error('PAYMENTS', `❌ Erreur création paiement pour ${client.name}: ${error.message}`);
-          result.errors++;
-        }
-      }
+      result.created++;
+      logger.success('PAYMENTS', '✅ Paiement spécifique Jean Dupont créé (49.50€)');
 
     } catch (error: any) {
-      logger.error('PAYMENTS', `❌ Erreur traitement client ${client.name}: ${error.message}`);
+      logger.error('PAYMENTS', `❌ Erreur création paiement Jean Dupont: ${error.message}`);
+      result.errors++;
+    }
+  }
+
+  // 2. CRÉER L'HISTORIQUE DE PAIEMENTS DE MARIE LAURENT (3 livraisons)
+  const marieLaurent = await prisma.user.findUnique({
+    where: { email: 'marie.laurent@orange.fr' }
+  });
+
+  const marieHistoricalDeliveries = await prisma.delivery.findMany({
+    where: {
+      delivererId: marieLaurent?.id,
+      status: 'DELIVERED',
+      trackingCode: { in: ['ECO-2024-PAR-LYO-847', 'ECO-2024-TOU-PAR-623', 'ECO-2024-MAR-NIC-391'] }
+    },
+    include: { announcement: true, client: true }
+  });
+
+  for (const delivery of marieHistoricalDeliveries) {
+    try {
+      logger.progress('PAYMENTS', result.created + 1, result.created + marieHistoricalDeliveries.length + 1, 
+        `Création paiement historique ${delivery.trackingCode}`);
+
+      const baseAmount = delivery.price; // Prix de la livraison
+      const commissionRate = 0.10; // 10% de commission
+      const commissionAmount = Math.round(baseAmount * commissionRate * 100) / 100;
+      const totalAmount = baseAmount + commissionAmount;
+
+             await prisma.payment.create({
+         data: {
+           amount: totalAmount,
+           currency: 'EUR',
+           status: PaymentStatus.COMPLETED,
+           description: `Livraison ${delivery.trackingCode} par Marie Laurent`,
+           userId: delivery.clientId,
+           stripePaymentId: `pi_${faker.string.alphanumeric(24)}`,
+           paymentIntentId: `pi_${faker.string.alphanumeric(24)}`,
+           commissionAmount: commissionAmount,
+           taxAmount: 0,
+           taxRate: 0,
+           paymentMethodType: 'card',
+           paymentProvider: 'STRIPE',
+           createdAt: delivery.createdAt,
+           updatedAt: delivery.updatedAt
+         }
+       });
+
+      result.created++;
+
+    } catch (error: any) {
+      logger.error('PAYMENTS', `❌ Erreur création paiement ${delivery.trackingCode}: ${error.message}`);
       result.errors++;
     }
   }
@@ -234,10 +177,10 @@ export async function seedPayments(
     include: { user: true }
   });
   
-  if (finalPayments.length >= totalPayments - result.errors) {
+  if (finalPayments.length >= result.created - result.errors) {
     logger.validation('PAYMENTS', 'PASSED', `${finalPayments.length} paiements créés avec succès`);
   } else {
-    logger.validation('PAYMENTS', 'FAILED', `Attendu: ${totalPayments}, Créé: ${finalPayments.length}`);
+    logger.validation('PAYMENTS', 'FAILED', `Attendu: ${result.created}, Créé: ${finalPayments.length}`);
   }
 
   // Statistiques par statut

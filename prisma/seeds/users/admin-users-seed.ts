@@ -155,18 +155,19 @@ export async function seedAdminUsers(
 
     // === ADMINISTRATEURS SUPPORT ===
     {
-      name: 'Sophie Lefevre',
-      email: 's.lefevre@ecodeli.fr',
-      password: 'SupportAdmin2024!',
+      name: 'Sophie Admin',
+      email: 'sophie.admin@ecodeli.fr',
+      password: 'AdminPass2024!',
       role: UserRole.ADMIN,
       status: UserStatus.ACTIVE,
       phoneNumber: generateFrenchPhone(),
-      department: 'Support Client',
+      department: 'Administration Générale',
       permissions: [
-        'USER_MANAGEMENT', 'SUPPORT_TOOLS', 'TICKET_MANAGEMENT',
-        'USER_VERIFICATION', 'COMMUNICATION_TOOLS', 'REFUND_PROCESSING'
+        'SYSTEM_ADMIN', 'USER_MANAGEMENT', 'SUPPORT_TOOLS', 'TICKET_MANAGEMENT',
+        'USER_VERIFICATION', 'COMMUNICATION_TOOLS', 'REFUND_PROCESSING',
+        'PLATFORM_SETTINGS', 'AUDIT_LOGS'
       ],
-      twoFactorEnabled: false,
+      twoFactorEnabled: true,
       image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
       lastLoginAt: getRandomDate(1, 2),
       locale: 'fr-FR',
@@ -175,11 +176,11 @@ export async function seedAdminUsers(
         notifications: {
           email: true,
           push: true,
-          sms: false,
-          criticalAlerts: false
+          sms: true,
+          criticalAlerts: true
         },
         dashboard: {
-          defaultView: 'support',
+          defaultView: 'admin',
           autoRefresh: true
         }
       }
@@ -393,6 +394,8 @@ export async function seedAdminUsers(
           twoFactorEnabled: adminData.twoFactorEnabled,
           locale: adminData.locale,
           preferences: adminData.preferences,
+          emailVerified: new Date(), // Tous les admins ont un email vérifié
+          isActive: true, // Tous les admins sont actifs
           isVerified: true,
           hasCompletedOnboarding: true,
           onboardingCompletionDate: getRandomDate(30, 180), // Onboarding complété il y a 1-6 mois

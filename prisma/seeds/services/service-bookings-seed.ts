@@ -1,26 +1,10 @@
-import { PrismaClient, UserRole, BookingStatus } from '@prisma/client';
+import { PrismaClient, BookingStatus } from '@prisma/client';
 import { SeedLogger } from '../utils/seed-logger';
-import { SeedResult, SeedOptions, getRandomElement, getRandomDate } from '../utils/seed-helpers';
-import { defaultSeedConfig } from '../seed.config';
-import { faker } from '@faker-js/faker';
-
-/**
- * Interface pour définir une réservation de service
- */
-interface ServiceBookingData {
-  serviceId: string;
-  clientId: string;
-  providerId: string;
-  startTime: Date;
-  endTime: Date;
-  status: BookingStatus;
-  totalPrice: number;
-  notes?: string;
-}
+import { SeedResult, SeedOptions, getRandomDate } from '../utils/seed-helpers';
 
 /**
  * Seed des réservations de services EcoDeli
- * Crée des réservations pour les services disponibles
+ * Crée les services de Pierre Martin et leurs réservations
  */
 export async function seedServiceBookings(
   prisma: PrismaClient,
@@ -30,236 +14,330 @@ export async function seedServiceBookings(
   logger.startSeed('SERVICE_BOOKINGS');
   
   const result: SeedResult = {
-    entity: 'ServiceBooking',
+    entity: 'service_bookings',
     created: 0,
     skipped: 0,
     errors: 0
   };
 
-  // Récupérer les services actifs
-  const activeServices = await prisma.service.findMany({
-    where: { isActive: true },
-    include: { 
-      provider: true,
-      category: true 
-    }
+  // Récupérer Pierre Martin
+  const pierreMartin = await prisma.user.findUnique({
+    where: { email: 'pierre.martin@transportservices.fr' },
+    include: { provider: true }
   });
 
-  if (activeServices.length === 0) {
-    logger.warning('SERVICE_BOOKINGS', 'Aucun service actif trouvé - exécuter d\'abord les seeds services');
+  if (!pierreMartin || !pierreMartin.provider) {
+    logger.warning('SERVICE_BOOKINGS', 'Pierre Martin (provider) non trouvé - exécuter d\'abord les seeds utilisateurs');
     return result;
   }
 
-  // Récupérer les clients
+  // Récupérer quelques clients pour les réservations
   const clients = await prisma.user.findMany({
-    where: { role: UserRole.CLIENT },
-    include: { client: true }
+    where: { 
+      role: 'CLIENT',
+      status: 'ACTIVE'
+    },
+    take: 3
   });
 
   if (clients.length === 0) {
-    logger.warning('SERVICE_BOOKINGS', 'Aucun client trouvé - exécuter d\'abord les seeds clients');
+    logger.warning('SERVICE_BOOKINGS', 'Aucun client trouvé - exécuter d\'abord les seeds utilisateurs');
     return result;
   }
 
-  // Vérifier si des réservations existent déjà
-  const existingBookings = await prisma.serviceBooking.findMany();
+  // Vérifier si des services existent déjà
+  const existingServices = await prisma.service.count({
+    where: { providerId: pierreMartin.id }
+  });
   
-  if (existingBookings.length > 0 && !options.force) {
-    logger.warning('SERVICE_BOOKINGS', `${existingBookings.length} réservations déjà présentes - utiliser force:true pour recréer`);
-    result.skipped = existingBookings.length;
+  if (existingServices > 0 && !options.force) {
+    logger.warning('SERVICE_BOOKINGS', `${existingServices} services de Pierre déjà présents - utiliser force:true pour recréer`);
+    result.skipped = existingServices;
     return result;
   }
 
   // Nettoyer si force activé
   if (options.force) {
-    const deleted = await prisma.serviceBooking.deleteMany({});
-    logger.database('NETTOYAGE', 'ServiceBooking', deleted.count);
+    await prisma.serviceBooking.deleteMany({
+      where: { providerId: pierreMartin.id }
+    });
+    await prisma.service.deleteMany({
+      where: { providerId: pierreMartin.id }
+    });
+    logger.database('NETTOYAGE', 'services et réservations Pierre Martin', 0);
   }
 
-  const config = defaultSeedConfig.quantities;
-  const targetBookings = Math.min(config.serviceBookings || 150, activeServices.length * 3);
+  try {
+    // 1. CRÉER OU RÉCUPÉRER LES CATÉGORIES DE SERVICE
+    let transportCategory = await prisma.serviceCategory.findFirst({
+      where: { name: 'Transport' }
+    });
 
-  let totalBookings = 0;
-
-  // Créer des réservations
-  for (let i = 0; i < targetBookings; i++) {
-    try {
-      logger.progress('SERVICE_BOOKINGS', i + 1, targetBookings, 
-        `Création réservation ${i + 1}`);
-
-      const service = getRandomElement(activeServices);
-      const client = getRandomElement(clients);
-      
-      // Générer une date dans les 3 derniers mois ou les 2 prochains mois
-      const startTime = faker.date.between({
-        from: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000), // 3 mois passés
-        to: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000)    // 2 mois futurs
-      });
-
-      // Calculer endTime en ajoutant la durée du service
-      const endTime = new Date(startTime.getTime() + service.duration * 60 * 1000);
-
-      // Déterminer le statut en fonction de la date
-      let status: BookingStatus;
-      const now = new Date();
-      
-      if (startTime < now) {
-        // Réservation passée : 80% completed, 15% cancelled, 5% autres
-        const rand = Math.random();
-        if (rand < 0.8) status = BookingStatus.COMPLETED;
-        else if (rand < 0.95) status = BookingStatus.CANCELLED;
-        else status = BookingStatus.CONFIRMED;
-      } else {
-        // Réservation future : 70% confirmed, 20% pending, 10% cancelled
-        const rand = Math.random();
-        if (rand < 0.7) status = BookingStatus.CONFIRMED;
-        else if (rand < 0.9) status = BookingStatus.PENDING;
-        else status = BookingStatus.CANCELLED;
-      }
-
-      const bookingData: ServiceBookingData = {
-        serviceId: service.id,
-        clientId: client.id,
-        providerId: service.providerId,
-        startTime,
-        endTime,
-        status,
-        totalPrice: Number(service.price),
-        notes: faker.datatype.boolean(0.3) ? 
-          faker.lorem.sentence() : undefined
-      };
-
-      const booking = await prisma.serviceBooking.create({
+    if (!transportCategory) {
+      transportCategory = await prisma.serviceCategory.create({
         data: {
-          service: { connect: { id: bookingData.serviceId } },
-          client: { connect: { id: bookingData.clientId } },
-          provider: { connect: { id: bookingData.providerId } },
-          startTime: bookingData.startTime,
-          endTime: bookingData.endTime,
-          status: bookingData.status,
-          totalPrice: bookingData.totalPrice,
-          notes: bookingData.notes,
-          createdAt: faker.date.between({ 
-            from: new Date('2023-01-01'), 
-            to: startTime 
-          }),
-          updatedAt: new Date()
+          name: 'Transport',
+          description: 'Services de transport et accompagnement'
+        }
+      });
+    }
+
+    let shoppingCategory = await prisma.serviceCategory.findFirst({
+      where: { name: 'Courses' }
+    });
+
+    if (!shoppingCategory) {
+      shoppingCategory = await prisma.serviceCategory.create({
+        data: {
+          name: 'Courses',
+          description: 'Services de courses et achats'
+        }
+      });
+    }
+
+    // 2. CRÉER LES SERVICES DE PIERRE MARTIN
+    logger.progress('SERVICE_BOOKINGS', 1, 5, 'Création service transport personne âgée');
+
+    const transportService = await prisma.service.create({
+      data: {
+        name: 'Transport personne âgée',
+        description: 'Service de transport adapté pour personnes âgées ou à mobilité réduite. Véhicule confortable, aide à la montée/descente, accompagnement bienveillant.',
+        price: 50.00,
+        duration: 120, // 2 heures
+        categoryId: transportCategory.id,
+        providerId: pierreMartin.id,
+        isActive: true
+      }
+    });
+
+    result.created++;
+
+    logger.progress('SERVICE_BOOKINGS', 2, 5, 'Création service courses et achats');
+
+    const shoppingService = await prisma.service.create({
+      data: {
+        name: 'Courses et achats',
+        description: 'Service de courses à domicile : pharmacie, alimentation, petites commissions. Idéal pour personnes âgées ou occupées.',
+        price: 25.00,
+        duration: 60, // 1 heure
+        categoryId: shoppingCategory.id,
+        providerId: pierreMartin.id,
+        isActive: true
+      }
+    });
+
+    result.created++;
+
+    logger.success('SERVICE_BOOKINGS', '✅ 2 services Pierre Martin créés');
+
+    // 3. CRÉER LES RÉSERVATIONS
+    // Réservation 1: Transport dans 2 jours
+    logger.progress('SERVICE_BOOKINGS', 3, 5, 'Création réservation transport');
+
+    const startTime1 = new Date(Date.now() + (2 * 24 * 60 * 60 * 1000)); // Dans 2 jours
+    startTime1.setHours(14, 0, 0, 0); // 14h00
+    const endTime1 = new Date(startTime1.getTime() + (2 * 60 * 60 * 1000)); // +2h
+
+    await prisma.serviceBooking.create({
+      data: {
+        serviceId: transportService.id,
+        clientId: clients[0].id,
+        providerId: pierreMartin.id,
+        startTime: startTime1,
+        endTime: endTime1,
+        status: BookingStatus.CONFIRMED,
+        totalPrice: 50.00,
+        notes: 'Rendez-vous médical à l\'hôpital Saint-Louis, aide pour marcher nécessaire',
+        createdAt: getRandomDate(3, 1) // Réservée récemment
+      }
+    });
+
+    result.created++;
+
+    // Réservation 2: Courses dans 4 jours
+    logger.progress('SERVICE_BOOKINGS', 4, 5, 'Création réservation courses');
+
+    const startTime2 = new Date(Date.now() + (4 * 24 * 60 * 60 * 1000)); // Dans 4 jours
+    startTime2.setHours(10, 0, 0, 0); // 10h00
+    const endTime2 = new Date(startTime2.getTime() + (1 * 60 * 60 * 1000)); // +1h
+
+    await prisma.serviceBooking.create({
+      data: {
+        serviceId: shoppingService.id,
+        clientId: clients[1].id,
+        providerId: pierreMartin.id,
+        startTime: startTime2,
+        endTime: endTime2,
+        status: BookingStatus.CONFIRMED,
+        totalPrice: 25.00,
+        notes: 'Courses hebdomadaires + pharmacie, liste envoyée par message',
+        createdAt: getRandomDate(3, 1) // Réservée récemment
+      }
+    });
+
+    result.created++;
+
+    // Réservation 3: Transport historique (terminé)
+    if (clients.length >= 3) {
+      logger.progress('SERVICE_BOOKINGS', 5, 5, 'Création réservation historique');
+
+      const pastDate = getRandomDate(7, 2); // Il y a 2-7 jours
+      const startTime3 = new Date(pastDate);
+      startTime3.setHours(15, 30, 0, 0);
+      const endTime3 = new Date(startTime3.getTime() + (2 * 60 * 60 * 1000));
+
+      await prisma.serviceBooking.create({
+        data: {
+          serviceId: transportService.id,
+          clientId: clients[2].id,
+          providerId: pierreMartin.id,
+          startTime: startTime3,
+          endTime: endTime3,
+          status: BookingStatus.COMPLETED,
+          totalPrice: 50.00,
+          notes: 'Transport pour kinésithérapeute, très satisfait du service',
+          createdAt: getRandomDate(10, 7) // Réservée il y a 7-10 jours
         }
       });
 
-      totalBookings++;
       result.created++;
-
-    } catch (error: any) {
-      logger.error('SERVICE_BOOKINGS', `❌ Erreur création réservation: ${error.message}`);
-      result.errors++;
     }
+
+    logger.success('SERVICE_BOOKINGS', '✅ Réservations créées');
+
+  } catch (error: any) {
+    logger.error('SERVICE_BOOKINGS', `❌ Erreur création services/réservations: ${error.message}`);
+    result.errors++;
   }
 
-  // Validation des réservations créées
-  const finalBookings = await prisma.serviceBooking.findMany({
+  // Validation des services et réservations créés
+  const finalServices = await prisma.service.findMany({
+    where: { providerId: pierreMartin.id },
     include: { 
-      service: { include: { category: true } },
-      client: true 
+      bookings: true,
+      category: true
     }
   });
   
-  const bookingsByStatus = finalBookings.reduce((acc: Record<string, number>, booking) => {
+  const totalBookings = finalServices.reduce((sum, service) => sum + service.bookings.length, 0);
+  
+  if (finalServices.length >= 2 && totalBookings >= 3) {
+    logger.validation('SERVICE_BOOKINGS', 'PASSED', 
+      `${finalServices.length} services et ${totalBookings} réservations créés`);
+  } else {
+    logger.validation('SERVICE_BOOKINGS', 'FAILED', 
+      `Attendu: 2 services + 3 réservations, Créé: ${finalServices.length} services + ${totalBookings} réservations`);
+  }
+
+  // Statistiques par service
+  finalServices.forEach(service => {
+    logger.info('SERVICE_BOOKINGS', 
+      `📋 ${service.name}: ${service.price}€, ${service.bookings.length} réservations`);
+  });
+
+  // Statistiques par statut de réservation
+  const allBookings = await prisma.serviceBooking.findMany({
+    where: { providerId: pierreMartin.id }
+  });
+
+  const byStatus = allBookings.reduce((acc: Record<string, number>, booking) => {
     acc[booking.status] = (acc[booking.status] || 0) + 1;
     return acc;
   }, {});
 
-  const bookingsByCategory = finalBookings.reduce((acc: Record<string, number>, booking) => {
-    const category = booking.service.category.name;
-    acc[category] = (acc[category] || 0) + 1;
-    return acc;
-  }, {});
+  logger.info('SERVICE_BOOKINGS', `📊 Réservations par statut: ${JSON.stringify(byStatus)}`);
 
-  if (finalBookings.length > 0) {
-    logger.validation('SERVICE_BOOKINGS', 'PASSED', `${finalBookings.length} réservations créées`);
-    logger.info('SERVICE_BOOKINGS', `📊 Réservations par statut: ${JSON.stringify(bookingsByStatus)}`);
-    logger.info('SERVICE_BOOKINGS', `📋 Réservations par catégorie: ${JSON.stringify(bookingsByCategory)}`);
-  } else {
-    logger.validation('SERVICE_BOOKINGS', 'FAILED', 'Aucune réservation créée');
-  }
-
-  // Statistiques financières
-  const totalRevenue = finalBookings
+  // Chiffre d'affaires
+  const totalRevenue = allBookings
     .filter(b => b.status === BookingStatus.COMPLETED)
-    .reduce((sum, b) => sum + Number(b.totalPrice), 0);
+    .reduce((sum, booking) => sum + parseFloat(booking.totalPrice.toString()), 0);
 
-  const completedBookings = finalBookings.filter(b => b.status === BookingStatus.COMPLETED).length;
-  const pendingBookings = finalBookings.filter(b => b.status === BookingStatus.PENDING).length;
-  const cancelledBookings = finalBookings.filter(b => b.status === BookingStatus.CANCELLED).length;
+  const pendingRevenue = allBookings
+    .filter(b => b.status === BookingStatus.CONFIRMED)
+    .reduce((sum, booking) => sum + parseFloat(booking.totalPrice.toString()), 0);
 
-  logger.info('SERVICE_BOOKINGS', `💰 Chiffre d'affaires réalisé: ${totalRevenue.toFixed(2)}€`);
-  logger.info('SERVICE_BOOKINGS', `📈 Taux de conversion: ${((completedBookings / finalBookings.length) * 100).toFixed(1)}%`);
-  logger.info('SERVICE_BOOKINGS', `⏳ En attente: ${pendingBookings}, Annulées: ${cancelledBookings}`);
-
-  // Réservations cette semaine
-  const thisWeekStart = new Date();
-  thisWeekStart.setDate(thisWeekStart.getDate() - thisWeekStart.getDay());
-  const thisWeekEnd = new Date(thisWeekStart);
-  thisWeekEnd.setDate(thisWeekStart.getDate() + 7);
-
-  const thisWeekBookings = finalBookings.filter(b => 
-    b.startTime >= thisWeekStart && b.startTime <= thisWeekEnd
-  ).length;
-
-  logger.info('SERVICE_BOOKINGS', `📅 Réservations cette semaine: ${thisWeekBookings}`);
+  logger.info('SERVICE_BOOKINGS', `💰 CA réalisé: ${totalRevenue}€, En attente: ${pendingRevenue}€`);
 
   logger.endSeed('SERVICE_BOOKINGS', result);
   return result;
 }
 
 /**
- * Valide l'intégrité des réservations de services
+ * Valide l'intégrité des services et réservations
  */
 export async function validateServiceBookings(
   prisma: PrismaClient,
   logger: SeedLogger
 ): Promise<boolean> {
-  logger.info('VALIDATION', '🔍 Validation des réservations de services...');
-  
-  const bookings = await prisma.serviceBooking.findMany({
-    include: { 
-      service: true,
-      client: true 
-    }
-  });
+  logger.info('VALIDATION', '🔍 Validation des services et réservations...');
   
   let isValid = true;
 
-  // Vérifier que toutes les réservations ont un service et un client valides
-  const invalidBookings = bookings.filter(b => !b.service || !b.client);
-  if (invalidBookings.length > 0) {
-    logger.error('VALIDATION', `❌ ${invalidBookings.length} réservations avec relations invalides`);
-    isValid = false;
+  // Vérifier les services de Pierre
+  const pierreMartin = await prisma.user.findUnique({
+    where: { email: 'pierre.martin@transportservices.fr' }
+  });
+
+  if (!pierreMartin) {
+    logger.error('VALIDATION', '❌ Pierre Martin non trouvé');
+    return false;
   }
 
-  // Vérifier la cohérence des montants
-  const invalidAmounts = bookings.filter(b => Number(b.totalPrice) <= 0);
-  if (invalidAmounts.length > 0) {
-    logger.error('VALIDATION', `❌ ${invalidAmounts.length} réservations avec montant invalide`);
+  const services = await prisma.service.findMany({
+    where: { providerId: pierreMartin.id },
+    include: { 
+      bookings: true,
+      category: true
+    }
+  });
+
+  if (services.length === 0) {
+    logger.error('VALIDATION', '❌ Aucun service Pierre Martin trouvé');
     isValid = false;
+  } else {
+    logger.success('VALIDATION', `✅ ${services.length} services Pierre Martin trouvés`);
   }
 
-  // Vérifier les dates
-  const invalidDates = bookings.filter(b => b.startTime >= b.endTime);
-  if (invalidDates.length > 0) {
-    logger.error('VALIDATION', `❌ ${invalidDates.length} réservations avec dates invalides`);
-    isValid = false;
+  // Vérifier que les services ont les bonnes catégories
+  const transportService = services.find(s => s.category.name === 'Transport');
+  const shoppingService = services.find(s => s.category.name === 'Courses');
+
+  if (transportService && shoppingService) {
+    logger.success('VALIDATION', '✅ Services transport et courses trouvés');
+  } else {
+    logger.warning('VALIDATION', '⚠️ Services transport ou courses manquants');
   }
 
-  // Statistiques générales
-  logger.success('VALIDATION', `✅ Validation terminée: ${bookings.length} réservations vérifiées`);
+  // Vérifier les réservations
+  const allBookings = services.reduce((bookings, service) => [...bookings, ...service.bookings], [] as any[]);
+
+  if (allBookings.length >= 3) {
+    logger.success('VALIDATION', `✅ ${allBookings.length} réservations trouvées`);
+  } else {
+    logger.warning('VALIDATION', `⚠️ Seulement ${allBookings.length} réservations trouvées (attendu: 3+)`);
+  }
+
+  // Vérifier qu'il y a des réservations confirmées pour cette semaine
+  const upcomingBookings = allBookings.filter(b => 
+    b.status === BookingStatus.CONFIRMED && 
+    b.startTime > new Date()
+  );
+
+  if (upcomingBookings.length >= 2) {
+    logger.success('VALIDATION', `✅ ${upcomingBookings.length} réservations confirmées à venir`);
+  } else {
+    logger.warning('VALIDATION', `⚠️ ${upcomingBookings.length} réservations à venir (attendu: 2)`);
+  }
+
+  // Vérifier la cohérence des prix
+  const invalidPrices = services.filter(s => parseFloat(s.price.toString()) <= 0);
   
-  const statusCounts = bookings.reduce((acc: Record<string, number>, booking) => {
-    acc[booking.status] = (acc[booking.status] || 0) + 1;
-    return acc;
-  }, {});
-  
-  logger.info('VALIDATION', `📊 Distribution par statut: ${JSON.stringify(statusCounts)}`);
+  if (invalidPrices.length === 0) {
+    logger.success('VALIDATION', '✅ Tous les prix sont valides');
+  } else {
+    logger.warning('VALIDATION', `⚠️ ${invalidPrices.length} services avec prix invalides`);
+  }
 
+  logger.success('VALIDATION', '✅ Validation des services et réservations terminée');
   return isValid;
 } 

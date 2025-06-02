@@ -1,16 +1,15 @@
+import React from 'react';
 import { ProtectedHeader } from '@/components/layout/protected-header';
 import { ProtectedFooter } from '@/components/layout/protected-footer';
 import { ProviderSidebar } from '@/components/layout/sidebars/provider-sidebar';
 
 interface ProviderLayoutProps {
   children: React.ReactNode;
-  params: {
-    locale: string;
-  };
+  params: Promise<{ locale: string }>;
 }
 
-export default function ProviderLayout({ children, params }: ProviderLayoutProps) {
-  const { locale } = params;
+export default async function ProviderLayout({ children, params }: ProviderLayoutProps) {
+  const { locale } = await params;
 
   return (
     <div className="min-h-screen flex flex-col">

@@ -101,8 +101,66 @@ export async function seedMerchantUsers(
   // Générer 20 commerçants avec des profils variés
   const merchantUsers: MerchantData[] = [];
   
-  // 15 commerçants actifs avec boutiques
-  for (let i = 0; i < 15; i++) {
+  // IMPORTANT: Commerçant principal pour les tests - techshop.sarl@orange.fr
+  merchantUsers.push({
+    name: 'Sophie Marchand',
+    email: 'techshop.sarl@orange.fr',
+    password: 'MerchantPass2024!',
+    phoneNumber: generateFrenchPhone(),
+    image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150',
+    status: UserStatus.ACTIVE,
+    business: {
+      companyName: 'TechShop SARL',
+      businessType: 'electronics',
+      category: 'Électronique',
+      subcategory: 'Informatique',
+      siret: generateSiret(),
+      vatNumber: `FR${faker.string.numeric(11)}`,
+      description: 'TechShop SARL - Votre spécialiste en informatique et électronique dans le 19ème arrondissement. Vente, conseil et dépannage de matériel informatique, smartphones, tablettes et accessoires high-tech.',
+      foundingYear: 2018,
+      employeeCount: 3,
+      websiteUrl: 'https://www.techshop-paris19.fr'
+    },
+    address: {
+      street: '125 rue de Flandre',
+      city: 'Paris',
+      zipCode: '75019',
+      country: 'France',
+      latitude: 48.8948,
+      longitude: 2.3730
+    },
+    verification: {
+      isVerified: true,
+      verificationDate: getRandomDate(90, 180),
+      documentsStatus: 'APPROVED',
+      businessLicenseVerified: true,
+      taxDocumentsVerified: true,
+      bankAccountVerified: true,
+      identityVerified: true,
+      addressVerified: true
+    },
+    operationalData: {
+      openingHours: {
+        monday: { open: '10:00', close: '19:00', isOpen: true },
+        tuesday: { open: '10:00', close: '19:00', isOpen: true },
+        wednesday: { open: '10:00', close: '19:00', isOpen: true },
+        thursday: { open: '10:00', close: '19:00', isOpen: true },
+        friday: { open: '10:00', close: '19:00', isOpen: true },
+        saturday: { open: '10:00', close: '18:00', isOpen: true },
+        sunday: { open: '14:00', close: '18:00', isOpen: true }
+      },
+      deliveryOptions: ['express', 'standard'],
+      paymentMethods: ['card', 'cash', 'digital'],
+      deliveryRange: 10,
+      averageOrderValue: 185.50,
+      monthlyOrders: 125,
+      customerRating: 4.7,
+      totalRevenue: 45000.0
+    }
+  });
+  
+  // 14 autres commerçants actifs avec boutiques
+  for (let i = 0; i < 14; i++) {
     const firstName = faker.person.firstName();
     const lastName = faker.person.lastName();
     const businessType = getRandomElement(businessTypes);
@@ -256,8 +314,11 @@ export async function seedMerchantUsers(
             status: merchantData.status,
             phoneNumber: merchantData.phoneNumber,
             image: merchantData.image,
-            lastLoginAt: merchantData.status === UserStatus.ACTIVE ? getRandomDate(1, 7) : getRandomDate(7, 30),
+            emailVerified: new Date(),
+            isActive: true,
             locale: 'fr-FR',
+            createdAt: getRandomDate(30, 365),
+            updatedAt: new Date(),
             preferences: {
               theme: getRandomElement(['light', 'dark', 'auto']),
               notifications: {
@@ -277,8 +338,6 @@ export async function seedMerchantUsers(
             isVerified: merchantData.verification.isVerified,
             hasCompletedOnboarding: merchantData.verification.isVerified,
             onboardingCompletionDate: merchantData.verification.verificationDate,
-            createdAt: getRandomDate(30, 180),
-            updatedAt: getRandomDate(1, 30),
             // Créer le profil commerçant associé
             merchant: {
               create: {

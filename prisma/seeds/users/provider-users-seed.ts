@@ -116,7 +116,75 @@ export async function seedProviderUsers(
   // Générer 25 prestataires avec des profils variés
   const providerUsers: ProviderData[] = [];
   
-  for (let i = 0; i < 25; i++) {
+  // IMPORTANT: Prestataire principal pour les tests - pierre.martin@orange.fr
+  providerUsers.push({
+    name: 'Pierre Martin',
+    email: 'pierre.martin@orange.fr',
+    password: 'ProviderPass2024!',
+    phoneNumber: generateFrenchPhone(),
+    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+    status: UserStatus.ACTIVE,
+    address: {
+      street: '88 avenue Jean Jaurès',
+      city: 'Paris',
+      zipCode: '75019',
+      country: 'France',
+      latitude: 48.8835,
+      longitude: 2.3758
+    },
+    business: {
+      companyName: 'Pierre Martin Services',
+      siret: faker.string.numeric(14),
+      isIndividual: false,
+      yearsFounded: 2020,
+      employeeCount: 2,
+      insuranceNumber: faker.string.alphanumeric(12).toUpperCase()
+    },
+    services: {
+      category: 'Transport et courses',
+      serviceList: ['Transport de personnes', 'Courses et livraisons', 'Déménagement léger', 'Accompagnement'],
+      hourlyRate: 35,
+      minIntervention: 1,
+      emergencyAvailable: true,
+      emergencyRate: 25
+    },
+    qualifications: {
+      yearsExperience: 4,
+      certifications: ['Permis B', 'Formation premiers secours', 'Assurance professionnelle'],
+      equipment: ['Véhicule utilitaire', 'Sangles et sangles', 'Diable de transport'],
+      specializations: ['Transport médicalisé', 'Courses urgentes', 'Livraisons express'],
+      languages: ['français', 'anglais']
+    },
+    operationalData: {
+      interventionZones: ['Paris', 'Hauts-de-Seine', 'Seine-Saint-Denis'],
+      workSchedule: {
+        monday: { start: '08:00', end: '19:00', available: true },
+        tuesday: { start: '08:00', end: '19:00', available: true },
+        wednesday: { start: '08:00', end: '19:00', available: true },
+        thursday: { start: '08:00', end: '19:00', available: true },
+        friday: { start: '08:00', end: '19:00', available: true },
+        saturday: { start: '09:00', end: '17:00', available: true },
+        sunday: { start: '10:00', end: '16:00', available: false }
+      },
+      responseTime: 30,
+      rating: 4.6,
+      completedJobs: 145,
+      cancelledJobs: 3,
+      noShowJobs: 1,
+      totalEarnings: 12500.0,
+      lastJobDate: getRandomDate(1, 5),
+      customerFeedback: 'Service rapide et professionnel. Très ponctuel.',
+      emergencyAvailable: true,
+      cancellationPolicy: 'Annulation gratuite jusqu\'à 2h avant l\'intervention',
+      description: 'Pierre Martin Services - Votre partenaire de confiance pour tous vos besoins de transport et de courses dans Paris et la petite couronne. Service personnalisé et réactif.',
+      professionalBio: 'Professionnel du transport depuis 4 ans, spécialisé dans les courses urgentes et le transport de personnes. Véhicule équipé et assuré.',
+      availabilityText: 'Disponible du lundi au samedi de 8h à 19h. Service d\'urgence possible le dimanche.',
+      portfolioUrls: []
+    }
+  });
+  
+  // 24 autres prestataires
+  for (let i = 0; i < 24; i++) {
     const firstName = faker.person.firstName();
     const lastName = faker.person.lastName();
     const serviceCategory = getRandomElement(serviceCategories);
@@ -223,84 +291,21 @@ export async function seedProviderUsers(
       try {
         logger.progress('PROVIDER_USERS', i + 1, providerUsers.length, `Création: ${providerData.name}`);
 
-        // Hasher le mot de passe
-        const hashedPassword = await hashPassword(providerData.password);
-        
-        // Créer l'utilisateur avec le profil prestataire
+        // Créer l'utilisateur avec le rôle prestataire
         const user = await prisma.user.create({
           data: {
             name: providerData.name,
             email: providerData.email,
-            password: hashedPassword,
+            password: await hashPassword(providerData.password),
             role: UserRole.PROVIDER,
             status: providerData.status,
             phoneNumber: providerData.phoneNumber,
             image: providerData.image,
-            lastLoginAt: providerData.status === UserStatus.ACTIVE ? getRandomDate(1, 7) : getRandomDate(7, 30),
+            emailVerified: new Date(), // Tous les prestataires ont un email vérifié
+            isActive: true, // Tous les prestataires sont actifs
             locale: 'fr-FR',
-            preferences: {
-              theme: getRandomElement(['light', 'dark', 'auto']),
-              notifications: {
-                email: true,
-                push: true,
-                sms: Math.random() > 0.4, // 60% acceptent SMS
-                jobAlerts: true,
-                weeklyReport: providerData.status === UserStatus.ACTIVE,
-                clientMessages: true
-              },
-              work: {
-                autoAcceptJobs: providerData.status === UserStatus.ACTIVE && Math.random() > 0.7,
-                preferredJobTypes: providerData.services.serviceList,
-                maxDailyJobs: faker.number.int({ min: 2, max: 6 }),
-                workWeekends: Math.random() > 0.5
-              }
-            },
-            isVerified: providerData.status === UserStatus.ACTIVE,
-            hasCompletedOnboarding: providerData.status !== UserStatus.INACTIVE,
-            onboardingCompletionDate: providerData.status !== UserStatus.INACTIVE ? getRandomDate(30, 180) : null,
-            createdAt: getRandomDate(30, 180),
-            updatedAt: getRandomDate(1, 30),
-            // Créer le profil prestataire associé
-            provider: {
-              create: {
-                companyName: providerData.business.companyName,
-                address: providerData.address.street,
-                phone: providerData.phoneNumber,
-                services: providerData.services.serviceList,
-                isVerified: providerData.status === UserStatus.ACTIVE,
-                rating: providerData.operationalData.rating,
-                verificationDate: providerData.status === UserStatus.ACTIVE ? getRandomDate(30, 180) : null,
-                serviceType: providerData.services.category,
-                description: generateProviderDescription(providerData.services.category, providerData.qualifications),
-                availability: generateAvailabilityText(providerData.operationalData.workSchedule),
-                professionalBio: generateProfessionalBio(providerData.qualifications),
-                serviceRadius: providerData.operationalData.maxDistance,
-                portfolioUrls: providerData.status === UserStatus.ACTIVE && Math.random() > 0.6 ? 
-                  generatePortfolioUrls() : [],
-                qualifications: providerData.qualifications.certifications,
-                yearsInBusiness: providerData.qualifications.yearsExperience,
-                insuranceInfo: providerData.business.insuranceNumber ? {
-                  provider: 'Allianz Pro',
-                  policyNumber: providerData.business.insuranceNumber,
-                  expiryDate: faker.date.future({ years: 1 }).toISOString()
-                } : undefined,
-                workSchedule: providerData.operationalData.workSchedule,
-                serviceFees: {
-                  hourlyRate: providerData.services.hourlyRate,
-                  minimumCharge: providerData.services.minIntervention * providerData.services.hourlyRate,
-                  emergencyRate: providerData.services.emergencyRate,
-                  travelFee: faker.number.int({ min: 0, max: 25 }),
-                  currency: 'EUR'
-                },
-                cancellationPolicy: providerData.operationalData.cancellationPolicy,
-                languages: providerData.qualifications.languages,
-                createdAt: getRandomDate(30, 180),
-                updatedAt: getRandomDate(1, 30)
-              }
-            }
-          },
-          include: {
-            provider: true
+            createdAt: getRandomDate(30, 365), // Créé entre 1 mois et 1 an
+            updatedAt: new Date()
           }
         });
 

@@ -47,6 +47,7 @@
     "seed:messages:templates": "tsx prisma/seeds/messages/message-templates-seed.ts",
     "seed:messages:preferences": "tsx prisma/seeds/messages/communication-preferences-seed.ts",
     "seed:messages:history": "tsx prisma/seeds/messages/notification-history-seed.ts",
+    "seed:complete": "tsx prisma/seeds/run-all-seeds.ts",
     "seed:dry-run": "npx tsx prisma/seeds/run-all-seeds.ts --dry-run",
     "seed:verbose": "npx tsx prisma/seeds/run-all-seeds.ts --verbose",
     "test:financial": "npx tsx scripts/test-financial-seeds.ts",

@@ -1,4 +1,4 @@
-import { PrismaClient, UserRole } from '@prisma/client';
+import { PrismaClient, UserRole, AnnouncementStatus, AnnouncementType, AnnouncementPriority } from '@prisma/client';
 import { SeedLogger } from '../utils/seed-logger';
 import { SeedResult, SeedOptions, getRandomElement, getRandomDate } from '../utils/seed-helpers';
 import { faker } from '@faker-js/faker';
@@ -30,10 +30,10 @@ export async function seedClientAnnouncements(
     return result;
   }
 
-  // Trouver le client principal (octavia.zemlak@orange.fr)
-  const principalClient = clients.find(c => c.email === 'octavia.zemlak@orange.fr');
+  // Trouver le client principal (jean.dupont@orange.fr)
+  const principalClient = clients.find(c => c.email === 'jean.dupont@orange.fr');
   if (!principalClient) {
-    logger.warning('CLIENT_ANNOUNCEMENTS', 'Client principal octavia.zemlak@orange.fr non trouvé');
+    logger.warning('CLIENT_ANNOUNCEMENTS', 'Client principal jean.dupont@orange.fr non trouvé');
   }
 
   // Vérifier si les annonces existent déjà
@@ -49,6 +49,65 @@ export async function seedClientAnnouncements(
   if (options.force) {
     await prisma.announcement.deleteMany({});
     logger.database('NETTOYAGE', 'announcements', 0);
+  }
+
+  // Créer d'abord l'annonce spécifique de Jean Dupont
+  if (principalClient) {
+    try {
+      logger.progress('CLIENT_ANNOUNCEMENTS', 1, 1, 'Création annonce spécifique Jean Dupont');
+
+      await prisma.announcement.create({
+        data: {
+          title: 'Livraison urgente d\'un ordinateur portable vers Marseille',
+          description: 'Bonjour, j\'ai besoin de faire livrer un ordinateur portable neuf de Paris vers Marseille. Le colis fait environ 3kg et mesure 40x30x8cm. Livraison urgente souhaitée dans les 24-48h. Colis fragile, manipulation avec précaution requise. Valeur 1200€.',
+          status: AnnouncementStatus.ASSIGNED,
+          type: AnnouncementType.PACKAGE_DELIVERY,
+          priority: AnnouncementPriority.HIGH,
+          
+          // Adresses pickup - Jean Dupont
+          pickupAddress: '110 rue de Flandre',
+          pickupCity: 'Paris',
+          pickupPostalCode: '75019',
+          pickupCountry: 'France',
+          pickupLatitude: 48.8942,
+          pickupLongitude: 2.3728,
+          
+          // Adresses delivery - Marseille
+          deliveryAddress: '23 rue de la République',
+          deliveryCity: 'Marseille',
+          deliveryPostalCode: '13001',
+          deliveryCountry: 'France',
+          deliveryLatitude: 43.2965,
+          deliveryLongitude: 5.3698,
+          
+          // Dates
+          pickupDate: faker.date.soon({ days: 1 }), // Demain
+          deliveryDate: faker.date.soon({ days: 2 }), // Après-demain
+          flexibleDate: false,
+          
+          // Prix
+          suggestedPrice: 45.00,
+          priceType: 'fixed',
+          currency: 'EUR',
+          
+          // Client
+          clientId: principalClient.id,
+          
+          // Note: Images seront ajoutées après création
+          
+          // Métadonnées
+          createdAt: getRandomDate(2, 5),
+          updatedAt: new Date()
+        }
+      });
+      
+      result.created++;
+      logger.success('CLIENT_ANNOUNCEMENTS', '✅ Annonce spécifique de Jean Dupont créée');
+
+    } catch (error: any) {
+      logger.error('CLIENT_ANNOUNCEMENTS', `❌ Erreur création annonce Jean Dupont: ${error.message}`);
+      result.errors++;
+    }
   }
 
   // Statuts d'annonce possibles
@@ -83,7 +142,7 @@ export async function seedClientAnnouncements(
       logger.progress('CLIENT_ANNOUNCEMENTS', i + 1, totalAnnouncements, 
         `Création annonce ${i + 1}`);
 
-      // Attribuer 80% des annonces au client principal octavia.zemlak@orange.fr
+      // Attribuer 80% des annonces au client principal jean.dupont@orange.fr
       const client = (principalClient && Math.random() > 0.2) ? principalClient : getRandomElement(clients);
       const isActiveClient = client.status === 'ACTIVE';
 

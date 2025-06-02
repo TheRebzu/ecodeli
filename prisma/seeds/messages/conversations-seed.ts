@@ -1,23 +1,20 @@
 import { PrismaClient, UserRole } from '@prisma/client';
 import { SeedLogger } from '../utils/seed-logger';
-import { SeedResult, SeedOptions, getRandomElement } from '../utils/seed-helpers';
-import { faker } from '@faker-js/faker';
+import { SeedResult, SeedOptions, getRandomDate } from '../utils/seed-helpers';
 
 /**
- * Interface pour définir une conversation type
+ * Interface pour définir une conversation
  */
-interface ConversationType {
-  type: string;
-  titleTemplate: string;
-  status: 'ACTIVE' | 'PENDING' | 'ARCHIVED';
-  participantRoles: UserRole[];
+interface ConversationData {
+  title: string;
+  participantIds: string[];
   isArchived: boolean;
-  priority: 'LOW' | 'MEDIUM' | 'HIGH';
+  status: string;
 }
 
 /**
  * Seed des conversations EcoDeli
- * Crée des conversations variées entre utilisateurs selon leurs rôles
+ * Crée les conversations entre utilisateurs, notamment Jean ↔ Marie
  */
 export async function seedConversations(
   prisma: PrismaClient,
@@ -33,10 +30,32 @@ export async function seedConversations(
     errors: 0
   };
 
-  // Vérifier les conversations existantes
+  // Récupérer les utilisateurs du scénario
+  const jeanDupont = await prisma.user.findUnique({
+    where: { email: 'jean.dupont@orange.fr' }
+  });
+
+  const marieLaurent = await prisma.user.findUnique({
+    where: { email: 'marie.laurent@orange.fr' }
+  });
+
+  const techShop = await prisma.user.findUnique({
+    where: { email: 'contact@techshop-sarl.fr' }
+  });
+
+  const pierreMartin = await prisma.user.findUnique({
+    where: { email: 'pierre.martin@transportservices.fr' }
+  });
+
+  if (!jeanDupont || !marieLaurent) {
+    logger.warning('CONVERSATIONS', 'Utilisateurs principaux non trouvés - exécuter d\'abord les seeds utilisateurs');
+    return result;
+  }
+
+  // Vérifier si des conversations existent déjà
   const existingConversations = await prisma.conversation.count();
   
-  if (existingConversations > 50 && !options.force) {
+  if (existingConversations > 0 && !options.force) {
     logger.warning('CONVERSATIONS', `${existingConversations} conversations déjà présentes - utiliser force:true pour recréer`);
     result.skipped = existingConversations;
     return result;
@@ -44,382 +63,133 @@ export async function seedConversations(
 
   // Nettoyer si force activé
   if (options.force) {
-    await prisma.message.deleteMany({});
     await prisma.conversation.deleteMany({});
-    logger.database('NETTOYAGE', 'conversations + messages', 0);
+    logger.database('NETTOYAGE', 'conversations', 0);
   }
 
-  // Récupérer les utilisateurs par rôle
-  const clients = await prisma.user.findMany({
-    where: { role: UserRole.CLIENT },
-    select: { id: true, name: true, email: true }
-  });
+  try {
+    // 1. CONVERSATION PRINCIPALE : Jean ↔ Marie (livraison active)
+    logger.progress('CONVERSATIONS', 1, 4, 'Création conversation Jean ↔ Marie');
 
-  const deliverers = await prisma.user.findMany({
-    where: { role: UserRole.DELIVERER },
-    select: { id: true, name: true, email: true }
-  });
+    const jeanMarieConversation = await prisma.conversation.create({
+      data: {
+        title: 'Livraison ordinateur portable Paris → Marseille',
+        participantIds: [jeanDupont.id, marieLaurent.id],
+        isArchived: false,
+        lastMessageAt: new Date(),
+        status: 'ACTIVE'
+      }
+    });
 
-  const merchants = await prisma.user.findMany({
-    where: { role: UserRole.MERCHANT },
-    select: { id: true, name: true, email: true }
-  });
+    result.created++;
+    logger.success('CONVERSATIONS', '✅ Conversation Jean ↔ Marie créée');
 
-  const providers = await prisma.user.findMany({
-    where: { role: UserRole.PROVIDER },
-    select: { id: true, name: true, email: true }
-  });
+    // 2. CONVERSATION : Jean ↔ TechShop (commande/SAV)
+    if (techShop) {
+      logger.progress('CONVERSATIONS', 2, 4, 'Création conversation Jean ↔ TechShop');
 
-  const admins = await prisma.user.findMany({
-    where: { role: UserRole.ADMIN },
-    select: { id: true, name: true, email: true }
-  });
-
-  if (clients.length === 0 || deliverers.length === 0) {
-    logger.warning('CONVERSATIONS', 'Pas assez d\'utilisateurs - créer d\'abord les seeds utilisateurs');
-    return result;
-  }
-
-  // Types de conversations possibles
-  const CONVERSATION_TYPES: ConversationType[] = [
-    {
-      type: 'CLIENT_DELIVERER',
-      titleTemplate: 'Livraison #{id} - Questions',
-      status: 'ACTIVE',
-      participantRoles: [UserRole.CLIENT, UserRole.DELIVERER],
-      isArchived: false,
-      priority: 'HIGH'
-    },
-    {
-      type: 'CLIENT_MERCHANT',
-      titleTemplate: 'Commande #{id} - Discussion',
-      status: 'ACTIVE',
-      participantRoles: [UserRole.CLIENT, UserRole.MERCHANT],
-      isArchived: false,
-      priority: 'MEDIUM'
-    },
-    {
-      type: 'CLIENT_PROVIDER',
-      titleTemplate: 'Service #{id} - Négociation',
-      status: 'ACTIVE',
-      participantRoles: [UserRole.CLIENT, UserRole.PROVIDER],
-      isArchived: false,
-      priority: 'MEDIUM'
-    },
-    {
-      type: 'CLIENT_SUPPORT',
-      titleTemplate: 'Support Technique - Incident #{id}',
-      status: 'ACTIVE',
-      participantRoles: [UserRole.CLIENT, UserRole.ADMIN],
-      isArchived: false,
-      priority: 'HIGH'
-    },
-    {
-      type: 'DELIVERER_SUPPORT',
-      titleTemplate: 'Support Livreur - Question #{id}',
-      status: 'ACTIVE',
-      participantRoles: [UserRole.DELIVERER, UserRole.ADMIN],
-      isArchived: false,
-      priority: 'MEDIUM'
-    },
-    {
-      type: 'MERCHANT_SUPPORT',
-      titleTemplate: 'Support Commerçant - Aide #{id}',
-      status: 'ACTIVE',
-      participantRoles: [UserRole.MERCHANT, UserRole.ADMIN],
-      isArchived: false,
-      priority: 'MEDIUM'
-    },
-    {
-      type: 'PROVIDER_SUPPORT',
-      titleTemplate: 'Support Prestataire - Assistance #{id}',
-      status: 'ACTIVE',
-      participantRoles: [UserRole.PROVIDER, UserRole.ADMIN],
-      isArchived: false,
-      priority: 'MEDIUM'
-    },
-    {
-      type: 'NEGOTIATION',
-      titleTemplate: 'Négociation Tarif - Projet #{id}',
-      status: 'ACTIVE',
-      participantRoles: [UserRole.CLIENT, UserRole.PROVIDER],
-      isArchived: false,
-      priority: 'HIGH'
-    },
-    {
-      type: 'GROUP_DELIVERY',
-      titleTemplate: 'Livraison Groupée - Zone #{id}',
-      status: 'ACTIVE',
-      participantRoles: [UserRole.CLIENT, UserRole.DELIVERER, UserRole.MERCHANT],
-      isArchived: false,
-      priority: 'MEDIUM'
-    },
-    {
-      type: 'ARCHIVED_RESOLVED',
-      titleTemplate: 'Problème Résolu - #{id}',
-      status: 'ARCHIVED',
-      participantRoles: [UserRole.CLIENT, UserRole.ADMIN],
-      isArchived: true,
-      priority: 'LOW'
-    }
-  ];
-
-  let totalConversations = 0;
-
-  // Créer des conversations pour chaque type
-  for (const conversationType of CONVERSATION_TYPES) {
-    const conversationCount = getConversationCount(conversationType.type);
-    
-    for (let i = 0; i < conversationCount; i++) {
-      try {
-        // Sélectionner les participants selon les rôles
-        const participants = selectParticipants(conversationType.participantRoles, {
-          clients, deliverers, merchants, providers, admins
-        });
-
-        if (participants.length < 2) {
-          logger.warning('CONVERSATIONS', `Pas assez de participants pour ${conversationType.type}`);
-          continue;
+      await prisma.conversation.create({
+        data: {
+          title: 'Commande ordinateur portable - Questions techniques',
+          participantIds: [jeanDupont.id, techShop.id],
+          isArchived: true, // Conversation terminée
+          lastMessageAt: getRandomDate(5, 2), // Il y a 2-5 jours
+          status: 'ARCHIVED'
         }
+      });
 
-        // Générer un titre personnalisé
-        const conversationId = faker.string.alphanumeric(6).toUpperCase();
-        const title = conversationType.titleTemplate.replace('#{id}', conversationId);
+      result.created++;
+      logger.success('CONVERSATIONS', '✅ Conversation Jean ↔ TechShop créée');
+    }
 
-        // Déterminer la date de dernière activité
-        const lastMessageAt = conversationType.isArchived 
-          ? faker.date.past({ years: 1 })
-          : faker.date.recent({ days: 30 });
+    // 3. CONVERSATION : Client fictif ↔ Pierre Martin (services transport)
+    if (pierreMartin) {
+      logger.progress('CONVERSATIONS', 3, 4, 'Création conversation client ↔ Pierre Martin');
 
-        const conversation = await prisma.conversation.create({
+      // Créer un client fictif ou utiliser un existant
+      const clientForPierre = await prisma.user.findFirst({
+        where: { 
+          role: 'CLIENT',
+          email: { not: jeanDupont.email }
+        }
+      });
+
+      if (clientForPierre) {
+        await prisma.conversation.create({
           data: {
-            title: title,
-            participantIds: participants.map(p => p.id),
-            status: conversationType.status,
-            isArchived: conversationType.isArchived,
-            lastMessageAt: lastMessageAt,
-            createdAt: faker.date.past({ years: 1 })
+            title: 'Réservation transport personne âgée',
+            participantIds: [clientForPierre.id, pierreMartin.id],
+            isArchived: false,
+            lastMessageAt: getRandomDate(2, 1), // Récente
+            status: 'ACTIVE'
           }
         });
 
-        totalConversations++;
         result.created++;
-
-        if (options.verbose && totalConversations % 10 === 0) {
-          logger.progress('CONVERSATIONS', totalConversations, 200, 
-            `Conversations créées: ${totalConversations}`);
-        }
-
-      } catch (error: any) {
-        logger.error('CONVERSATIONS', `❌ Erreur création conversation ${conversationType.type}: ${error.message}`);
-        result.errors++;
+        logger.success('CONVERSATIONS', '✅ Conversation client ↔ Pierre Martin créée');
       }
     }
+
+    // 4. CONVERSATION GROUPE : Support client (Jean + Admin)
+    const adminUser = await prisma.user.findFirst({
+      where: { role: 'ADMIN' }
+    });
+
+    if (adminUser) {
+      logger.progress('CONVERSATIONS', 4, 4, 'Création conversation support admin');
+
+      await prisma.conversation.create({
+        data: {
+          title: 'Demande de modification de livraison',
+          participantIds: [jeanDupont.id, adminUser.id],
+          isArchived: true, // Demande traitée
+          lastMessageAt: getRandomDate(7, 3), // Il y a quelques jours
+          status: 'ARCHIVED'
+        }
+      });
+
+      result.created++;
+      logger.success('CONVERSATIONS', '✅ Conversation support admin créée');
+    }
+
+  } catch (error: any) {
+    logger.error('CONVERSATIONS', `❌ Erreur création conversations: ${error.message}`);
+    result.errors++;
   }
 
-  // Créer des conversations spéciales multi-participants
-  await createMultiParticipantConversations(prisma, logger, { clients, deliverers, merchants, providers, admins }, result, options);
-
-  // Statistiques finales
-  const finalConversations = await prisma.conversation.findMany({
-    select: {
-      id: true,
-      title: true,
-      status: true,
-      isArchived: true,
-      participantIds: true,
-      lastMessageAt: true
-    }
-  });
-
-  // Distribution par statut
-  const conversationsByStatus = finalConversations.reduce((acc: Record<string, number>, conv) => {
-    acc[conv.status] = (acc[conv.status] || 0) + 1;
-    return acc;
-  }, {});
-
-  // Distribution par nombre de participants
-  const conversationsByParticipants = finalConversations.reduce((acc: Record<string, number>, conv) => {
-    const count = conv.participantIds.length;
-    const key = count === 2 ? '2 (privée)' : count === 3 ? '3 (groupe)' : `${count}+ (multi)`;
-    acc[key] = (acc[key] || 0) + 1;
-    return acc;
-  }, {});
-
-  // Conversations actives vs archivées
-  const activeConversations = finalConversations.filter(c => !c.isArchived).length;
-  const archivedConversations = finalConversations.filter(c => c.isArchived).length;
-
-  // Activité récente (7 derniers jours)
-  const recentActivity = finalConversations.filter(c => {
-    if (!c.lastMessageAt) return false;
-    const daysSinceLastMessage = (new Date().getTime() - c.lastMessageAt.getTime()) / (1000 * 60 * 60 * 24);
-    return daysSinceLastMessage <= 7;
-  }).length;
-
-  logger.info('CONVERSATIONS', `📊 Statuts: ${JSON.stringify(conversationsByStatus)}`);
-  logger.info('CONVERSATIONS', `👥 Participants: ${JSON.stringify(conversationsByParticipants)}`);
-  logger.info('CONVERSATIONS', `📈 Active: ${activeConversations}, Archivées: ${archivedConversations}`);
-  logger.info('CONVERSATIONS', `🔥 Activité récente (7j): ${recentActivity}/${finalConversations.length} conversations`);
-
-  // Validation
-  if (finalConversations.length >= totalConversations - result.errors) {
+  // Validation des conversations créées
+  const finalConversations = await prisma.conversation.findMany();
+  
+  if (finalConversations.length >= result.created - result.errors) {
     logger.validation('CONVERSATIONS', 'PASSED', `${finalConversations.length} conversations créées avec succès`);
   } else {
-    logger.validation('CONVERSATIONS', 'FAILED', `Attendu: ${totalConversations}, Créé: ${finalConversations.length}`);
+    logger.validation('CONVERSATIONS', 'FAILED', `Attendu: ${result.created}, Créé: ${finalConversations.length}`);
   }
+
+  // Statistiques par statut
+  const byStatus = finalConversations.reduce((acc: Record<string, number>, conversation) => {
+    acc[conversation.status] = (acc[conversation.status] || 0) + 1;
+    return acc;
+  }, {});
+
+  logger.info('CONVERSATIONS', `📊 Conversations par statut: ${JSON.stringify(byStatus)}`);
+
+  // Conversations actives vs archivées
+  const activeConversations = finalConversations.filter(c => !c.isArchived);
+  const archivedConversations = finalConversations.filter(c => c.isArchived);
+
+  logger.info('CONVERSATIONS', `💬 Conversations actives: ${activeConversations.length}`);
+  logger.info('CONVERSATIONS', `📁 Conversations archivées: ${archivedConversations.length}`);
+
+  // Nombre total de participants
+  const totalParticipants = finalConversations.reduce((sum, conv) => 
+    sum + conv.participantIds.length, 0);
+  const avgParticipants = (totalParticipants / finalConversations.length).toFixed(1);
+
+  logger.info('CONVERSATIONS', `👥 Participants moyen par conversation: ${avgParticipants}`);
 
   logger.endSeed('CONVERSATIONS', result);
   return result;
-}
-
-/**
- * Détermine le nombre de conversations à créer pour chaque type
- */
-function getConversationCount(type: string): number {
-  const counts: Record<string, number> = {
-    'CLIENT_DELIVERER': 25,      // Conversations très fréquentes
-    'CLIENT_MERCHANT': 15,       // Commandes et questions
-    'CLIENT_PROVIDER': 20,       // Négociations services
-    'CLIENT_SUPPORT': 12,        // Support technique
-    'DELIVERER_SUPPORT': 8,      // Questions livreurs
-    'MERCHANT_SUPPORT': 6,       // Aide commerçants
-    'PROVIDER_SUPPORT': 6,       // Assistance prestataires
-    'NEGOTIATION': 18,           // Négociations tarifaires
-    'GROUP_DELIVERY': 10,        // Livraisons groupées
-    'ARCHIVED_RESOLVED': 15      // Problèmes résolus
-  };
-  
-  return counts[type] || 5;
-}
-
-/**
- * Sélectionne les participants selon les rôles requis
- */
-function selectParticipants(
-  requiredRoles: UserRole[],
-  usersByRole: {
-    clients: any[];
-    deliverers: any[];
-    merchants: any[];
-    providers: any[];
-    admins: any[];
-  }
-): any[] {
-  const participants: any[] = [];
-
-  for (const role of requiredRoles) {
-    let userPool: any[] = [];
-    
-    switch (role) {
-      case UserRole.CLIENT:
-        userPool = usersByRole.clients;
-        break;
-      case UserRole.DELIVERER:
-        userPool = usersByRole.deliverers;
-        break;
-      case UserRole.MERCHANT:
-        userPool = usersByRole.merchants;
-        break;
-      case UserRole.PROVIDER:
-        userPool = usersByRole.providers;
-        break;
-      case UserRole.ADMIN:
-        userPool = usersByRole.admins;
-        break;
-    }
-
-    if (userPool.length > 0) {
-               const selectedUser = getRandomElement(userPool);
-         if (selectedUser && !participants.find((p: any) => p.id === selectedUser.id)) {
-           participants.push(selectedUser);
-         }
-    }
-  }
-
-  return participants;
-}
-
-/**
- * Crée des conversations spéciales avec plusieurs participants
- */
-async function createMultiParticipantConversations(
-  prisma: PrismaClient,
-  logger: SeedLogger,
-  usersByRole: any,
-  result: SeedResult,
-  options: SeedOptions
-): Promise<void> {
-  logger.info('CONVERSATIONS', '👥 Création de conversations multi-participants...');
-
-  const multiConversations = [
-    {
-      title: 'Livraison Express - Zone Centre Paris',
-      participants: [
-        getRandomElement(usersByRole.clients),
-        getRandomElement(usersByRole.clients),
-        getRandomElement(usersByRole.deliverers),
-        getRandomElement(usersByRole.merchants)
-      ].filter(Boolean),
-      status: 'ACTIVE'
-    },
-    {
-      title: 'Projet Déménagement - Équipe Coordination',
-      participants: [
-        getRandomElement(usersByRole.clients),
-        getRandomElement(usersByRole.providers),
-        getRandomElement(usersByRole.providers),
-        getRandomElement(usersByRole.deliverers)
-      ].filter(Boolean),
-      status: 'ACTIVE'
-    },
-    {
-      title: 'Support Technique - Escalade Niveau 2',
-      participants: [
-        getRandomElement(usersByRole.clients),
-        getRandomElement(usersByRole.admins),
-        getRandomElement(usersByRole.admins)
-      ].filter(Boolean),
-      status: 'PENDING'
-    },
-    {
-      title: 'Formation Nouveaux Livreurs - Groupe A',
-      participants: [
-        getRandomElement(usersByRole.deliverers),
-        getRandomElement(usersByRole.deliverers),
-        getRandomElement(usersByRole.deliverers),
-        getRandomElement(usersByRole.admins)
-      ].filter(Boolean),
-      status: 'ARCHIVED'
-    }
-  ];
-
-  for (const convConfig of multiConversations) {
-    if (convConfig.participants.length >= 2) {
-      try {
-        await prisma.conversation.create({
-          data: {
-            title: convConfig.title,
-            participantIds: convConfig.participants.map((p: any) => p.id),
-            status: convConfig.status,
-            isArchived: convConfig.status === 'ARCHIVED',
-            lastMessageAt: faker.date.recent(),
-                         createdAt: faker.date.past({ years: 0.16 }) // Approximativement 60 jours
-          }
-        });
-
-        result.created++;
-        
-        if (options.verbose) {
-          logger.success('CONVERSATIONS', `✅ Conversation multi: ${convConfig.title} (${convConfig.participants.length} participants)`);
-        }
-
-      } catch (error: any) {
-        logger.error('CONVERSATIONS', `❌ Erreur conversation multi ${convConfig.title}: ${error.message}`);
-        result.errors++;
-      }
-    }
-  }
 }
 
 /**
@@ -434,11 +204,7 @@ export async function validateConversations(
   let isValid = true;
 
   // Vérifier les conversations
-  const conversations = await prisma.conversation.findMany({
-    include: {
-      messages: true
-    }
-  });
+  const conversations = await prisma.conversation.findMany();
 
   if (conversations.length === 0) {
     logger.error('VALIDATION', '❌ Aucune conversation trouvée');
@@ -447,37 +213,24 @@ export async function validateConversations(
     logger.success('VALIDATION', `✅ ${conversations.length} conversations trouvées`);
   }
 
-  // Vérifier que toutes les conversations ont au moins 2 participants
-  const invalidParticipants = conversations.filter(conv => conv.participantIds.length < 2);
+  // Vérifier que chaque conversation a au moins 2 participants
+  const invalidConversations = conversations.filter(c => c.participantIds.length < 2);
   
-  if (invalidParticipants.length === 0) {
+  if (invalidConversations.length === 0) {
     logger.success('VALIDATION', '✅ Toutes les conversations ont au moins 2 participants');
   } else {
-    logger.warning('VALIDATION', `⚠️ ${invalidParticipants.length} conversations avec moins de 2 participants`);
+    logger.warning('VALIDATION', `⚠️ ${invalidConversations.length} conversations avec moins de 2 participants`);
   }
 
-  // Vérifier la cohérence des statuts
-  const invalidStatus = conversations.filter(conv => 
-    !['ACTIVE', 'PENDING', 'ARCHIVED'].includes(conv.status)
+  // Vérifier que la conversation principale Jean-Marie existe
+  const jeanMarieConv = conversations.find(c => 
+    c.title?.includes('ordinateur portable')
   );
 
-  if (invalidStatus.length === 0) {
-    logger.success('VALIDATION', '✅ Tous les statuts de conversation sont valides');
+  if (jeanMarieConv) {
+    logger.success('VALIDATION', '✅ Conversation principale Jean-Marie trouvée');
   } else {
-    logger.warning('VALIDATION', `⚠️ ${invalidStatus.length} conversations avec statut invalide`);
-    isValid = false;
-  }
-
-  // Vérifier la cohérence isArchived vs status
-  const inconsistentArchive = conversations.filter(conv => 
-    (conv.isArchived && conv.status !== 'ARCHIVED') ||
-    (!conv.isArchived && conv.status === 'ARCHIVED')
-  );
-
-  if (inconsistentArchive.length === 0) {
-    logger.success('VALIDATION', '✅ Cohérence statut archivé/actif respectée');
-  } else {
-    logger.warning('VALIDATION', `⚠️ ${inconsistentArchive.length} conversations avec incohérence archivage`);
+    logger.warning('VALIDATION', '⚠️ Conversation principale Jean-Marie manquante');
   }
 
   logger.success('VALIDATION', '✅ Validation des conversations terminée');

@@ -52,6 +52,20 @@ export async function seedInvoices(
     return result;
   }
 
+  // Trouver Marie Laurent et ses livraisons pour la facture mensuelle
+  const marieLaurent = await prisma.user.findUnique({
+    where: { email: 'marie.laurent@orange.fr' },
+    include: { deliverer: true }
+  });
+
+  const marieDeliveries = await prisma.delivery.findMany({
+    where: { 
+      delivererId: marieLaurent?.id,
+      status: 'DELIVERED'
+    },
+    include: { announcement: true }
+  });
+
   // Vérifier si des factures existent déjà
   const existingInvoices = await prisma.invoice.count();
   
@@ -215,6 +229,87 @@ export async function seedInvoices(
 
     } catch (error: any) {
       logger.error('INVOICES', `❌ Erreur traitement utilisateur ${user.name}: ${error.message}`);
+      result.errors++;
+    }
+  }
+
+  // 1. CRÉER LA FACTURE MENSUELLE DE MARIE LAURENT
+  if (marieLaurent && marieDeliveries.length > 0) {
+    try {
+      logger.progress('INVOICES', 1, 1, 'Création facture mensuelle Marie Laurent');
+
+      // Calculer le total des livraisons terminées
+      const totalEarnings = marieDeliveries.reduce((sum, d) => sum + d.price, 0); // 135€
+      const taxRate = 0; // Pas de TVA pour les livreurs individuels
+      const taxAmount = 0;
+
+      // Période de facturation : mois en cours
+      const now = new Date();
+      const billingStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const billingEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      
+      const invoiceNumber = `ECO-${now.getFullYear()}-MARIE-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
+      const marieInvoice = await prisma.invoice.create({
+        data: {
+          userId: marieLaurent.id,
+          amount: totalEarnings,
+          currency: 'EUR',
+          status: InvoiceStatus.PAID,
+          dueDate: new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000)), // +30 jours
+          paidDate: new Date(now.getTime() - (2 * 24 * 60 * 60 * 1000)), // Payée il y a 2 jours
+          invoiceNumber: invoiceNumber,
+          invoiceType: 'DELIVERY_EARNINGS',
+          issueDate: new Date(now.getTime() - (5 * 24 * 60 * 60 * 1000)), // Émise il y a 5 jours
+          billingPeriodStart: billingStart,
+          billingPeriodEnd: billingEnd,
+          description: `Gains de livraison - ${marieDeliveries.length} livraisons effectuées`,
+          taxAmount: taxAmount,
+          taxRate: taxRate,
+          totalAmount: totalEarnings,
+          locale: 'fr',
+          paymentTerms: 'Virement automatique sous 7 jours',
+          termsAndConditions: 'Conditions générales EcoDeli - Livreurs partenaires',
+          pdfUrl: `/invoices/pdf/${invoiceNumber}.pdf`,
+          billingName: 'Marie Laurent',
+          billingAddress: '95 rue de Marseille',
+          billingCity: 'Paris',
+          billingPostal: '75019',
+          billingCountry: 'France',
+          companyName: null, // Livreur individuel
+          emailSentAt: new Date(now.getTime() - (5 * 24 * 60 * 60 * 1000)),
+          reminderSentAt: null // Pas de rappel car payée
+        }
+      });
+
+      // Créer les lignes détaillées pour chaque livraison
+      for (let i = 0; i < marieDeliveries.length; i++) {
+        const delivery = marieDeliveries[i];
+        
+        await prisma.invoiceItem.create({
+          data: {
+            invoiceId: marieInvoice.id,
+            description: `Livraison ${delivery.trackingCode}`,
+            quantity: 1,
+            unitPrice: delivery.price,
+            amount: delivery.price,
+            taxRate: 0,
+            taxAmount: 0,
+            metadata: JSON.stringify({
+              trackingCode: delivery.trackingCode,
+              deliveryDate: delivery.completionTime,
+              route: `${delivery.announcement?.pickupCity} → ${delivery.announcement?.deliveryCity}`,
+              distance: 'Variable'
+            })
+          }
+        });
+      }
+
+      result.created++;
+      logger.success('INVOICES', `✅ Facture mensuelle Marie Laurent créée (${totalEarnings}€ pour ${marieDeliveries.length} livraisons)`);
+
+    } catch (error: any) {
+      logger.error('INVOICES', `❌ Erreur création facture Marie Laurent: ${error.message}`);
       result.errors++;
     }
   }

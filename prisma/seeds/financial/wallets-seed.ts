@@ -63,6 +63,18 @@ export async function seedWallets(
     return result;
   }
 
+  // Trouver Marie Laurent pour son wallet spécifique
+  const marieLaurent = await prisma.user.findUnique({
+    where: { email: 'marie.laurent@orange.fr' },
+    include: { deliverer: true }
+  });
+
+  // Récupérer les livraisons de Marie pour calculer ses gains
+  const marieDeliveries = await prisma.delivery.findMany({
+    where: { delivererId: marieLaurent?.id },
+    include: { announcement: true }
+  });
+
   // Vérifier si des wallets existent déjà
   const existingWallets = await prisma.wallet.count();
   
@@ -211,6 +223,109 @@ export async function seedWallets(
 
     } catch (error: any) {
       logger.error('WALLETS', `❌ Erreur création wallet pour ${user.name}: ${error.message}`);
+      result.errors++;
+    }
+  }
+
+  // 1. CRÉER LE WALLET SPÉCIFIQUE DE MARIE LAURENT
+  if (marieLaurent && marieDeliveries.length > 0) {
+    try {
+      logger.progress('WALLETS', 1, 1, 'Création wallet Marie Laurent avec historique');
+
+      // Calculer les gains de Marie
+      const completedDeliveries = marieDeliveries.filter(d => d.status === 'DELIVERED');
+      const activeDelivery = marieDeliveries.find(d => d.status === 'IN_TRANSIT');
+      
+      // Gains des livraisons terminées (sans commission EcoDeli)
+      const completedEarnings = completedDeliveries.reduce((sum, d) => sum + d.price, 0); // 135€
+      
+      // Gain en attente pour la livraison active (sera crédité après livraison)
+      const pendingEarnings = activeDelivery ? activeDelivery.price : 0; // 45€
+      
+      // Balance actuelle = gains terminés - retraits effectués + solde résiduel
+      const totalWithdrawn = completedEarnings * 0.85; // 85% retirés
+      const currentBalance = (completedEarnings - totalWithdrawn) + 15.50; // Solde résiduel
+
+      const marieWallet = await prisma.wallet.create({
+        data: {
+          userId: marieLaurent.id,
+          balance: currentBalance,
+          currency: 'EUR',
+          isActive: true,
+          accountVerified: marieLaurent.deliverer?.isVerified || true,
+          accountType: 'INDIVIDUAL',
+          minimumWithdrawalAmount: 10,
+          automaticWithdrawal: false,
+          withdrawalThreshold: 100,
+          withdrawalDay: 15,
+          totalEarned: completedEarnings,
+          totalWithdrawn: totalWithdrawn,
+          earningsThisMonth: completedDeliveries
+            .filter(d => d.completionTime && d.completionTime >= new Date(new Date().getFullYear(), new Date().getMonth(), 1))
+            .reduce((sum, d) => sum + d.price, 0),
+          earningsLastMonth: 0,
+          lastTransactionAt: new Date(Date.now() - (2 * 24 * 60 * 60 * 1000)), // Il y a 2 jours
+          lastWithdrawalAt: new Date(Date.now() - (7 * 24 * 60 * 60 * 1000)), // Il y a 1 semaine
+          notificationThreshold: 50,
+          notificationsEnabled: true,
+          stripeConnectAccountId: `acct_marie_laurent_123`,
+          taxReportingEnabled: false
+        }
+      });
+
+             // Créer les transactions spécifiques de Marie
+       let runningBalance = 0;
+       
+       // Transactions pour chaque livraison terminée
+       for (const delivery of completedDeliveries) {
+         runningBalance += delivery.price;
+         
+         await prisma.walletTransaction.create({
+           data: {
+             walletId: marieWallet.id,
+             amount: delivery.price,
+             currency: 'EUR',
+             type: TransactionType.EARNING,
+             status: TransactionStatus.COMPLETED,
+             description: `Gain livraison ${delivery.trackingCode}`,
+             balanceAfter: runningBalance,
+             createdAt: delivery.completionTime || new Date(),
+             completedAt: delivery.completionTime || new Date(),
+             commissionRate: 0.10,
+             isSystemGenerated: true,
+             reportingCategory: 'DELIVERY_EARNINGS'
+           }
+         });
+       }
+       
+       // Transaction de retrait (85% des gains)
+       const withdrawalAmount = totalWithdrawn;
+       runningBalance -= withdrawalAmount;
+       
+       await prisma.walletTransaction.create({
+         data: {
+           walletId: marieWallet.id,
+           amount: -withdrawalAmount,
+           currency: 'EUR',
+           type: TransactionType.WITHDRAWAL,
+           status: TransactionStatus.COMPLETED,
+           description: 'Retrait vers compte bancaire',
+           balanceAfter: runningBalance,
+           createdAt: new Date(Date.now() - (7 * 24 * 60 * 60 * 1000)),
+           completedAt: new Date(Date.now() - (7 * 24 * 60 * 60 * 1000)),
+           isSystemGenerated: true,
+           reportingCategory: 'WITHDRAWAL'
+         }
+       });
+       
+       // Ajustement pour le solde actuel
+       runningBalance = currentBalance;
+      
+      result.created++;
+      logger.success('WALLETS', `✅ Wallet Marie Laurent créé (${currentBalance.toFixed(2)}€ disponible, ${pendingEarnings}€ en attente)`);
+
+    } catch (error: any) {
+      logger.error('WALLETS', `❌ Erreur création wallet Marie Laurent: ${error.message}`);
       result.errors++;
     }
   }
