@@ -1,1 +1,22 @@
-import * as React from 'react';\n\ninterface VerificationEmailProps {\n  username: string;\n  verificationUrl: string;\n}\n\nexport const VerificationEmail = ({\n  username,\n  verificationUrl,\n}: VerificationEmailProps) => {\n  return (\n    <div>\n      <h1>Vérifiez votre adresse email</h1>\n      <p>Bonjour {username},</p>\n      <p>Merci de vous être inscrit sur EcoDeli. Veuillez cliquer sur le lien ci-dessous pour vérifier votre adresse email :</p>\n      <a href={verificationUrl}>Vérifier mon email</a>\n      <p>Ce lien expirera dans 24 heures.</p>\n      <p>Si vous n'avez pas créé de compte, vous pouvez ignorer cet email.</p>\n    </div>\n  );\n};
+import * as React from 'react';
+
+interface VerificationEmailProps {
+  username: string;
+  verificationUrl: string;
+}
+
+export const VerificationEmail = ({
+  username,
+  verificationUrl,
+}: VerificationEmailProps) => {
+  return (
+    <div>
+      <h1>Vérifiez votre adresse email</h1>
+      <p>Bonjour {username},</p>
+      <p>Merci de vous être inscrit sur EcoDeli. Veuillez cliquer sur le lien ci-dessous pour vérifier votre adresse email :</p>
+      <a href={verificationUrl}>Vérifier mon email</a>
+      <p>Ce lien expirera dans 24 heures.</p>
+      <p>Si vous n'avez pas créé de compte, vous pouvez ignorer cet email.</p>
+    </div>
+  );
+};

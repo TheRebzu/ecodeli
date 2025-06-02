@@ -1,1 +1,7 @@
-export function ChatInterface({ conversationId }) {\n  return <div>Interface de chat</div>;\n}
+interface ChatInterfaceProps {
+  conversationId: string;
+}
+
+export function ChatInterface({ conversationId }: ChatInterfaceProps) {
+  return <div>Interface de chat</div>;
+}

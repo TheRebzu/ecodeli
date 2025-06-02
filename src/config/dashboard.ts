@@ -1,1 +1,22 @@
-export const dashboardConfig = {\n  mainNav: [\n    // Navigation principale\n  ],\n  sidebarNav: {\n    client: [\n      // Navigation sidebar client\n    ],\n    deliverer: [\n      // Navigation sidebar livreur\n    ],\n    merchant: [\n      // Navigation sidebar commerçant\n    ],\n    provider: [\n      // Navigation sidebar prestataire\n    ],\n    admin: [\n      // Navigation sidebar admin\n    ]\n  }\n};
+export const dashboardConfig = {
+  mainNav: [
+    // Navigation principale
+  ],
+  sidebarNav: {
+    client: [
+      // Navigation sidebar client
+    ],
+    deliverer: [
+      // Navigation sidebar livreur
+    ],
+    merchant: [
+      // Navigation sidebar commerçant
+    ],
+    provider: [
+      // Navigation sidebar prestataire
+    ],
+    admin: [
+      // Navigation sidebar admin
+    ]
+  }
+};

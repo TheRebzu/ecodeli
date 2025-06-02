@@ -1,1 +1,51 @@
-import { createContext, useContext, useState, useEffect } from 'react';\nimport { usePathname, useRouter } from 'next/navigation';\n\nconst LanguageContext = createContext(null);\n\nexport function LanguageProvider({ children }) {\n  const [locale, setLocale] = useState('fr');\n  const pathname = usePathname();\n  const router = useRouter();\n  \n  // Détecter la langue à partir de l'URL\n  useEffect(() => {\n    const pathLocale = pathname.split('/')[1];\n    if (pathLocale && ['fr', 'en', 'es'].includes(pathLocale)) {\n      setLocale(pathLocale);\n    }\n  }, [pathname]);\n  \n  const changeLanguage = (newLocale) => {\n    if (newLocale === locale) return;\n    \n    // Construire la nouvelle URL avec la nouvelle langue\n    const segments = pathname.split('/');\n    segments[1] = newLocale;\n    const newPath = segments.join('/');\n    \n    // Rediriger vers la nouvelle URL\n    router.push(newPath);\n  };\n  \n  const value = {\n    locale,\n    changeLanguage,\n  };\n  \n  return (\n    <LanguageContext.Provider value={value}>\n      {children}\n    </LanguageContext.Provider>\n  );\n}\n\nexport function useLanguage() {\n  const context = useContext(LanguageContext);\n  \n  if (!context) {\n    throw new Error('useLanguage must be used within a LanguageProvider');\n  }\n  \n  return context;\n}
+import { createContext, useContext, useState, useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
+
+const LanguageContext = createContext(null);
+
+export function LanguageProvider({ children }) {
+  const [locale, setLocale] = useState('fr');
+  const pathname = usePathname();
+  const router = useRouter();
+  
+  // Détecter la langue à partir de l'URL
+  useEffect(() => {
+    const pathLocale = pathname.split('/')[1];
+    if (pathLocale && ['fr', 'en', 'es'].includes(pathLocale)) {
+      setLocale(pathLocale);
+    }
+  }, [pathname]);
+  
+  const changeLanguage = (newLocale) => {
+    if (newLocale === locale) return;
+    
+    // Construire la nouvelle URL avec la nouvelle langue
+    const segments = pathname.split('/');
+    segments[1] = newLocale;
+    const newPath = segments.join('/');
+    
+    // Rediriger vers la nouvelle URL
+    router.push(newPath);
+  };
+  
+  const value = {
+    locale,
+    changeLanguage,
+  };
+  
+  return (
+    <LanguageContext.Provider value={value}>
+      {children}
+    </LanguageContext.Provider>
+  );
+}
+
+export function useLanguage() {
+  const context = useContext(LanguageContext);
+  
+  if (!context) {
+    throw new Error('useLanguage must be used within a LanguageProvider');
+  }
+  
+  return context;
+}

@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useTranslations } from 'next-intl';
 import { signOut, useSession } from 'next-auth/react';
 import { Ban, Home, LogOut, ShieldCheck } from 'lucide-react';
@@ -81,4 +82,4 @@ export default function AccountSuspendedPage() {
       </Card>
     </div>
   );
-} 
+}
