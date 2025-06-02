@@ -5,14 +5,54 @@
 model ProviderAvailability {
   id         String   @id @default(cuid())
   providerId String
-  dayOfWeek  Int
+  dayOfWeek  Int      // 0 = Dimanche, 1 = Lundi, ..., 6 = Samedi
   startTime  DateTime
   endTime    DateTime
+  isActive   Boolean  @default(true)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   
   // Relation avec User
   provider   User     @relation(fields: [providerId], references: [id])
 
-  @@index([providerId])
+  @@index([providerId, dayOfWeek])
+  @@index([isActive])
+}
+
+/// Exceptions de disponibilité (congés, fermetures exceptionnelles)
+model ProviderException {
+  id           String      @id @default(cuid())
+  providerId   String
+  date         DateTime    // Date de l'exception
+  type         ExceptionType
+  startTime    DateTime?   // Heure de début (si partielle)
+  endTime      DateTime?   // Heure de fin (si partielle)
+  reason       String?     // Raison de l'exception
+  isRecurring  Boolean     @default(false)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  
+  // Relation avec User
+  provider     User        @relation(fields: [providerId], references: [id])
+
+  @@index([providerId, date])
+}
+
+/// Créneaux spéciaux (disponibilités additionnelles)
+model ProviderSpecialSlot {
+  id         String   @id @default(cuid())
+  providerId String
+  date       DateTime
+  startTime  DateTime
+  endTime    DateTime
+  isBooked   Boolean  @default(false)
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  // Relation avec User
+  provider   User     @relation(fields: [providerId], references: [id])
+
+  @@index([providerId, date])
+  @@index([isBooked])
 } 

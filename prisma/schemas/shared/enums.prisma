@@ -269,8 +269,23 @@ enum ContractStatus {
   DRAFT             // Brouillon
   PENDING_SIGNATURE // En attente de signature
   ACTIVE            // Actif
+  SUSPENDED         // Suspendu
   TERMINATED        // Résilié
   EXPIRED           // Expiré
+  CANCELLED         // Annulé
+
+  @@map("ContractStatus")
+}
+
+/// Type de contrat
+enum ContractType {
+  STANDARD      // Contrat standard
+  PREMIUM       // Contrat premium avec avantages
+  PARTNER       // Contrat partenaire privilégié
+  TRIAL         // Contrat d'essai
+  CUSTOM        // Contrat personnalisé
+
+  @@map("ContractType")
 }
 
 /// Type de service
@@ -279,6 +294,17 @@ enum ServiceType {
   SERVICE  // Service
   STORAGE  // Stockage
   CUSTOM   // Personnalisé
+}
+
+/// Type d'exception de disponibilité
+enum ExceptionType {
+  VACATION      // Congés
+  SICK_LEAVE    // Arrêt maladie
+  UNAVAILABLE   // Indisponible
+  MAINTENANCE   // Maintenance
+  EMERGENCY     // Urgence
+  PERSONAL      // Personnel
+  CLOSED        // Fermé
 }
 
 // ===== DOMAINE FINANCIER =====

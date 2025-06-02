@@ -3,35 +3,55 @@
 
 /// Service proposé par un prestataire
 model Service {
-  id          String           @id @default(cuid())
-  name        String
-  description String
-  price       Decimal
-  duration    Int
-  categoryId  String
-  providerId  String
-  isActive    Boolean          @default(true)
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id               String           @id @default(cuid())
+  name             String
+  description      String
+  price            Decimal
+  duration         Int              // Durée en minutes
+  categoryId       String
+  providerId       String
+  isActive         Boolean          @default(true)
+  isOnline         Boolean          @default(false)
+  isAtHome         Boolean          @default(false)
+  isAtShop         Boolean          @default(true)
+  maxParticipants  Int?             // Nombre max de participants (pour cours/groupes)
+  preparationTime  Int?             // Temps de préparation en minutes
+  tags             String[]         // Tags pour recherche
+  images           String[]         // URLs des images du service
+  requirements     String?          // Prérequis ou matériel nécessaire
+  cancellationPolicy String?        // Politique d'annulation
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
   
   // Relations avec CategoryService, User et ServiceBooking
-  category    ServiceCategory  @relation(fields: [categoryId], references: [id])
-  provider    User             @relation(fields: [providerId], references: [id])
-  bookings    ServiceBooking[]
-  payments    Payment[]
+  category         ServiceCategory  @relation(fields: [categoryId], references: [id])
+  provider         User             @relation(fields: [providerId], references: [id])
+  bookings         ServiceBooking[]
+  payments         Payment[]
 
   @@index([providerId])
   @@index([categoryId])
+  @@index([isActive])
 }
 
 /// Catégorie de service
 model ServiceCategory {
   id          String    @id @default(cuid())
-  name        String
+  name        String    @unique
   description String?
+  icon        String?   // Icône pour l'affichage
+  color       String?   // Couleur thématique
+  isActive    Boolean   @default(true)
+  sortOrder   Int       @default(0)
+  parentId    String?   // Pour créer une hiérarchie de catégories
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   
-  // Relation avec Service
+  // Relations
   services    Service[]
+  parent      ServiceCategory? @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    ServiceCategory[] @relation("CategoryHierarchy")
+
+  @@index([isActive, sortOrder])
+  @@index([parentId])
 } 

@@ -1,5 +1,4 @@
 import chalk from 'chalk';
-import fetch from 'node-fetch';
 import config from './extraction.config';
 import * as dotenv from 'dotenv';
 import path from 'path';

@@ -21,7 +21,7 @@ import {
 import { router, adminProcedure } from '@/server/api/trpc';
 import { AdminService } from '@/server/services/admin.service';
 import { AuditService } from '@/server/services/audit.service';
-import { NotificationService } from '@/server/services/notification.service';
+import { NotificationService } from '@/server/services';
 
 export const adminUserRouter = router({
   /**

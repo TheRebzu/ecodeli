@@ -15,11 +15,19 @@ import {
   BarChart4,
   CheckCircle2,
   FileCheck,
+  Home,
+  Route,
+  DollarSign,
+  Activity
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useSession } from 'next-auth/react';
 import { Progress } from '@/components/ui/progress';
 import { api } from '@/trpc/react';
+import { ActiveDeliveries } from '@/components/dashboard/widgets/active-deliveries';
+import { DelivererEarningsSummary } from '@/components/dashboard/widgets/deliverer-earnings-summary';
+import { DelivererQuickActions } from '@/components/dashboard/widgets/deliverer-quick-actions';
+import { DelivererRouteSuggestions } from '@/components/dashboard/widgets/deliverer-route-suggestions';
 
 interface DelivererDashboardProps {
   locale: string;
@@ -40,7 +48,12 @@ export default function DelivererDashboard({ locale }: DelivererDashboardProps) 
 
   // Récupérer les documents de l'utilisateur via tRPC
   const { data: documentsData } = api.document.getUserDocuments.useQuery();
+  // Récupérer les livraisons actives du livreur
+  const { data: activeDeliveries, isLoading: isLoadingDeliveries } = api.delivery.getActiveDeliveries.useQuery();
+  
   const [verificationProgress, setVerificationProgress] = useState(0);
+  const [isAvailable, setIsAvailable] = useState(false);
+  const [pendingNotifications] = useState(3); // Mock data
 
   // Calculer la progression de la vérification
   useEffect(() => {
@@ -159,14 +172,139 @@ export default function DelivererDashboard({ locale }: DelivererDashboardProps) 
         )}
       </div>
 
-      <Tabs defaultValue="quickActions" className="w-full">
-        <TabsList>
-          <TabsTrigger value="quickActions">{t('quickActions.title')}</TabsTrigger>
-          <TabsTrigger value="announcements">{t('availableDeliveries')}</TabsTrigger>
-          <TabsTrigger value="activeDeliveries">{t('activeDeliveries')}</TabsTrigger>
+      <Tabs defaultValue="overview" className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="overview" className="flex items-center gap-2">
+            <Home className="h-4 w-4" />
+            {t('tabs.overview')}
+          </TabsTrigger>
+          <TabsTrigger value="deliveries" className="flex items-center gap-2">
+            <Package2 className="h-4 w-4" />
+            {t('tabs.deliveries')}
+          </TabsTrigger>
+          <TabsTrigger value="earnings" className="flex items-center gap-2">
+            <DollarSign className="h-4 w-4" />
+            {t('tabs.earnings')}
+          </TabsTrigger>
+          <TabsTrigger value="routes" className="flex items-center gap-2">
+            <Route className="h-4 w-4" />
+            {t('tabs.routes')}
+          </TabsTrigger>
+          <TabsTrigger value="activity" className="flex items-center gap-2">
+            <Activity className="h-4 w-4" />
+            {t('tabs.activity')}
+          </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="quickActions" className="space-y-4 mt-4">
+        <TabsContent value="overview" className="space-y-6 mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Actions rapides */}
+            <DelivererQuickActions 
+              isAvailable={isAvailable}
+              hasActiveDeliveries={activeDeliveries && activeDeliveries.length > 0}
+              pendingNotifications={pendingNotifications}
+            />
+            
+            {/* Livraisons actives */}
+            <ActiveDeliveries 
+              deliveries={activeDeliveries}
+              isLoading={isLoadingDeliveries}
+            />
+          </div>
+          
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Suggestions de trajets */}
+            <DelivererRouteSuggestions />
+            
+            {/* Résumé des gains (version compacte) */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <DollarSign className="h-5 w-5" />
+                  {t('earnings.quickSummary')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-3 gap-4 text-center">
+                  <div>
+                    <p className="text-2xl font-bold text-green-600">45.50€</p>
+                    <p className="text-xs text-muted-foreground">{t('earnings.today')}</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">287.40€</p>
+                    <p className="text-xs text-muted-foreground">{t('earnings.thisWeek')}</p>
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">1,156.80€</p>
+                    <p className="text-xs text-muted-foreground">{t('earnings.thisMonth')}</p>
+                  </div>
+                </div>
+                <Button 
+                  variant="outline" 
+                  className="w-full mt-4" 
+                  onClick={() => router.push(`/${locale}/deliverer/wallet`)}
+                >
+                  {t('earnings.viewDetails')}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="deliveries" className="space-y-6 mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Livraisons actives détaillées */}
+            <ActiveDeliveries 
+              deliveries={activeDeliveries}
+              isLoading={isLoadingDeliveries}
+            />
+            
+            {/* Annonces disponibles */}
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('availableDeliveries')}</CardTitle>
+                <CardDescription>{t('availableDeliveriesDescription')}</CardDescription>
+              </CardHeader>
+              <CardContent className="p-4">
+                <div className="flex justify-center py-8">
+                  <Button onClick={() => router.push(`/${locale}/deliverer/announcements`)}>
+                    {t('actions.viewAllAnnouncements')}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="earnings" className="space-y-6 mt-6">
+          <DelivererEarningsSummary />
+        </TabsContent>
+
+        <TabsContent value="routes" className="space-y-6 mt-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <DelivererRouteSuggestions />
+            
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Map className="h-5 w-5" />
+                  {t('routes.myRoutes')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="text-center py-8">
+                  <Map className="h-12 w-12 mx-auto text-muted-foreground opacity-25 mb-2" />
+                  <p className="text-muted-foreground mb-4">{t('routes.noRoutesYet')}</p>
+                  <Button onClick={() => router.push(`/${locale}/deliverer/my-routes/create`)}>
+                    {t('routes.createFirstRoute')}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="activity" className="space-y-6 mt-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {quickActions.map((action, index) => (
               <Card key={index} className="overflow-hidden">
@@ -185,40 +323,6 @@ export default function DelivererDashboard({ locale }: DelivererDashboardProps) 
               </Card>
             ))}
           </div>
-        </TabsContent>
-
-        <TabsContent value="announcements" className="space-y-4 mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('availableDeliveries')}</CardTitle>
-              <CardDescription>{t('availableDeliveriesDescription')}</CardDescription>
-            </CardHeader>
-            <CardContent className="p-4">
-              {/* Ici, vous pouvez ajouter un component pour afficher les annonces disponibles */}
-              <div className="flex justify-center py-8">
-                <Button onClick={() => router.push(`/${locale}/deliverer/announcements`)}>
-                  {t('actions.viewAllAnnouncements')}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="activeDeliveries" className="space-y-4 mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>{t('activeDeliveries')}</CardTitle>
-              <CardDescription>{t('activeDeliveriesDescription')}</CardDescription>
-            </CardHeader>
-            <CardContent className="p-4">
-              {/* Ici, vous pouvez ajouter un component pour afficher les livraisons actives */}
-              <div className="flex justify-center py-8">
-                <Button onClick={() => router.push(`/${locale}/deliverer/deliveries/active`)}>
-                  {t('actions.viewActiveDeliveries')}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
       </Tabs>
     </div>

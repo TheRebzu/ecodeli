@@ -35,6 +35,30 @@ model Announcement {
   priceType         String?             // "fixed", "negotiable", "hourly"
   currency          String              @default("EUR")
   
+  // Système de matching intelligent
+  autoAssign        Boolean             @default(false)  // Assignment automatique activé
+  matchingScore     Float?              // Score de matching calculé
+  estimatedDistance Float?              // Distance estimée en km
+  estimatedDuration Int?                // Durée estimée en minutes
+  urgencyLevel      UrgencyLevel        @default(NORMAL)
+  
+  // Extensions pour matching avancé
+  matchingRadius    Float               @default(15.0)   // Rayon de recherche en km
+  enableSmartMatching Boolean           @default(true)   // Matching intelligent activé
+  routeCompatibility Float?             // Score de compatibilité avec routes existantes
+  trafficFactor     Float               @default(1.0)    // Facteur de trafic au moment de la livraison
+  weatherSensitive  Boolean             @default(false)  // Sensible aux conditions météo
+  
+  // Documents et validation
+  requiresInsurance Boolean             @default(false)
+  requiresSignature Boolean             @default(false)
+  confirmationCode  String?             // Code de confirmation généré
+  
+  // Préférences de livreur
+  preferredGender   Gender?             // Préférence de genre du livreur
+  minRating         Float?              // Note minimale requise du livreur
+  maxApplications   Int                 @default(10)     // Nombre max de candidatures
+  
   // Relations
   clientId          String
   delivererId       String?
@@ -47,6 +71,7 @@ model Announcement {
   applications      DeliveryApplication[]
   favorites         DelivererFavorite[]
   deliveries        Delivery[]
+  matchingResults   AnnouncementMatching[]
   
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
@@ -57,6 +82,9 @@ model Announcement {
   @@index([type])
   @@index([pickupCity])
   @@index([deliveryCity])
+  @@index([autoAssign])
+  @@index([urgencyLevel])
+  @@index([matchingScore])
   @@map("announcements")
 }
 
@@ -75,4 +103,156 @@ model DelivererFavorite {
   @@index([delivererId])
   @@index([announcementId])
   @@map("deliverer_favorites")
+}
+
+/// Résultats du matching automatique annonce-livreur
+model AnnouncementMatching {
+  id                String      @id @default(cuid())
+  announcementId    String
+  delivererId       String
+  matchingScore     Float       // Score de compatibilité (0-100)
+  distanceScore     Float       // Score basé sur la distance
+  ratingScore       Float       // Score basé sur les évaluations
+  availabilityScore Float       // Score basé sur la disponibilité
+  preferenceScore   Float       // Score basé sur les préférences
+  
+  // Nouveaux critères de scoring
+  routeScore        Float       @default(0)  // Score de compatibilité avec routes habituelles
+  experienceScore   Float       @default(0)  // Score basé sur l'expérience du livreur
+  performanceScore  Float       @default(0)  // Score basé sur les performances passées
+  loyaltyScore      Float       @default(0)  // Score de fidélité client-livreur
+  
+  // Détails du calcul
+  distance          Float       // Distance réelle en km
+  estimatedTime     Int         // Temps estimé en minutes
+  isInRoute         Boolean     @default(false) // Dans une route habituelle
+  isAvailable       Boolean     @default(true)  // Livreur disponible
+  
+  // Facteurs contextuels
+  trafficLevel      String      @default("NORMAL") // LOW, NORMAL, HIGH
+  weatherCondition  String?     // Conditions météo
+  timeOfDay         String?     // Matin, Midi, Soir, Nuit
+  dayOfWeek         Int?        // Jour de la semaine (0-6)
+  
+  // Prédictions ML
+  successProbability Float?     // Probabilité de succès prédite (0-100)
+  estimatedEarnings Float?      // Gains estimés pour le livreur
+  customerSatisfactionPrediction Float? // Satisfaction client prédite
+  
+  // Statut du matching
+  status            MatchingStatus @default(SUGGESTED)
+  notifiedAt        DateTime?   // Quand le livreur a été notifié
+  respondedAt       DateTime?   // Quand le livreur a répondu
+  acceptedAt        DateTime?   // Quand accepté
+  rejectedAt        DateTime?   // Quand rejeté
+  rejectionReason   String?     // Raison du rejet
+  
+  // Métadonnées
+  calculatedAt      DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  version           Int         @default(1) // Version de l'algorithme utilisé
+  
+  // Relations
+  announcement      Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  deliverer         User         @relation("DelivererMatchings", fields: [delivererId], references: [id], onDelete: Cascade)
+
+  @@unique([announcementId, delivererId])
+  @@index([announcementId])
+  @@index([delivererId])
+  @@index([matchingScore])
+  @@index([status])
+  @@index([successProbability])
+  @@index([calculatedAt])
+  @@map("announcement_matchings")
+}
+
+/// Historique des notifications envoyées aux livreurs
+model DelivererNotification {
+  id             String             @id @default(cuid())
+  delivererId    String
+  announcementId String?            // Null si notification générale
+  type           NotificationType
+  title          String
+  message        String
+  
+  // Statut de la notification
+  status         NotificationStatus @default(PENDING)
+  sentAt         DateTime?
+  readAt         DateTime?
+  respondedAt    DateTime?
+  
+  // Canaux de notification
+  sentByEmail    Boolean           @default(false)
+  sentByPush     Boolean           @default(false)
+  sentBySms      Boolean           @default(false)
+  
+  // Métadonnées
+  data           Json?             // Données additionnelles
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  
+  // Relations
+  deliverer      User              @relation("DelivererNotifications", fields: [delivererId], references: [id], onDelete: Cascade)
+  announcement   Announcement?     @relation("AnnouncementNotifications", fields: [announcementId], references: [id], onDelete: Cascade)
+
+  @@index([delivererId])
+  @@index([announcementId])
+  @@index([type])
+  @@index([status])
+  @@index([sentAt])
+  @@map("deliverer_notifications")
+}
+
+/// Configuration du système de matching
+model MatchingConfiguration {
+  id                    String   @id @default(cuid())
+  name                  String   @unique
+  description           String?
+  
+  // Poids des différents critères (total = 100)
+  distanceWeight        Float    @default(25)   // Importance de la distance
+  ratingWeight          Float    @default(20)   // Importance des évaluations
+  availabilityWeight    Float    @default(15)   // Importance de la disponibilité
+  preferenceWeight      Float    @default(10)   // Importance des préférences
+  speedWeight           Float    @default(10)   // Importance de la rapidité
+  
+  // Nouveaux poids pour critères avancés
+  routeWeight           Float    @default(10)   // Importance des routes habituelles
+  experienceWeight      Float    @default(5)    // Importance de l'expérience
+  performanceWeight     Float    @default(3)    // Importance des performances
+  loyaltyWeight         Float    @default(2)    // Importance de la fidélité
+  
+  // Seuils
+  minMatchingScore      Float    @default(60)   // Score minimum pour suggérer
+  maxDistance           Float    @default(25)   // Distance maximum en km
+  minDelivererRating    Float    @default(3.0)  // Note minimum du livreur
+  maxDeliveriesPerHour  Int      @default(3)    // Livraisons max par heure par livreur
+  
+  // Configuration temporelle
+  notificationTimeout   Int      @default(15)   // Timeout en minutes
+  maxSuggestions        Int      @default(5)    // Nombre max de suggestions
+  reminderInterval      Int      @default(5)    // Intervalle de rappel en minutes
+  
+  // Facteurs contextuels
+  enableWeatherFactor   Boolean  @default(true) // Prendre en compte la météo
+  enableTrafficFactor   Boolean  @default(true) // Prendre en compte le trafic
+  enableTimeOfDayFactor Boolean  @default(true) // Prendre en compte l'heure
+  
+  // Machine Learning
+  enableMLPredictions   Boolean  @default(false) // Utiliser les prédictions ML
+  mlModelVersion        String?  // Version du modèle ML utilisé
+  minPredictionConfidence Float  @default(0.7)  // Confiance minimum pour ML
+  
+  // A/B Testing
+  experimentGroup       String?  // Groupe d'expérimentation
+  experimentActive      Boolean  @default(false)
+  
+  // Statut
+  isActive              Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([experimentGroup])
+  @@map("matching_configurations")
 } 

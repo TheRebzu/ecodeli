@@ -26,14 +26,17 @@ export class OneSignalService {
     this.apiKey = process.env.ONESIGNAL_API_KEY || '';
     this.appId = process.env.ONESIGNAL_APP_ID || '';
 
-    if (!this.apiKey || !this.appId) {
+    // Seulement avertir en production si non configuré
+    if ((!this.apiKey || !this.appId) && process.env.NODE_ENV === 'production') {
       console.warn('OneSignal API Key or App ID not configured');
     }
   }
 
   private async sendNotification(data: OneSignalNotificationData): Promise<boolean> {
     if (!this.apiKey || !this.appId) {
-      console.error('OneSignal API Key or App ID not configured');
+      if (process.env.NODE_ENV === 'production') {
+        console.error('OneSignal API Key or App ID not configured');
+      }
       return false;
     }
 

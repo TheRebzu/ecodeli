@@ -8,12 +8,14 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import Image from 'next/image';
 import { cn } from '@/lib/utils';
+import { useUpload } from '@/hooks/use-upload';
 
 interface AnnouncementPhotoUploadProps {
   photos: string[];
   onPhotosChange: (photos: string[]) => void;
   maxPhotos?: number;
   disabled?: boolean;
+  announcementId?: string;
 }
 
 export function AnnouncementPhotoUpload({
@@ -21,64 +23,42 @@ export function AnnouncementPhotoUpload({
   onPhotosChange,
   maxPhotos = 5,
   disabled = false,
+  announcementId,
 }: AnnouncementPhotoUploadProps) {
   const t = useTranslations('announcements');
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
+
+  // Utiliser le hook d'upload tRPC
+  const {
+    isUploading,
+    uploadMultipleFiles,
+    errors,
+    reset
+  } = useUpload({
+    type: 'announcement',
+    maxFiles: maxPhotos,
+    maxFileSize: 5, // 5MB
+    onSuccess: (results) => {
+      // Extraire les URLs des résultats et les ajouter aux photos existantes
+      const newPhotoUrls = results.map(result => result.url);
+      onPhotosChange([...photos, ...newPhotoUrls]);
+      reset();
+    },
+    onError: (error) => {
+      console.error('Erreur upload photos:', error);
+    }
+  });
 
   // Gestionnaire de drag & drop avec react-dropzone
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       if (photos.length + acceptedFiles.length > maxPhotos) {
-        setUploadError(t('maxPhotosError', { count: maxPhotos }));
-        return;
+        return; // Le hook gère déjà cette validation
       }
 
-      // Vérifier la taille des fichiers (max 5MB par fichier)
-      const oversizedFiles = acceptedFiles.filter(file => file.size > 5 * 1024 * 1024);
-      if (oversizedFiles.length > 0) {
-        setUploadError(t('fileSizeError'));
-        return;
-      }
-
-      setIsUploading(true);
-      setUploadError(null);
-
-      try {
-        // Créer un tableau de promesses pour l'upload de chaque fichier
-        const uploadPromises = acceptedFiles.map(async file => {
-          // Créer un FormData pour l'upload
-          const formData = new FormData();
-          formData.append('file', file);
-          formData.append('type', 'announcement');
-
-          // Appeler l'API d'upload
-          const response = await fetch('/api/upload', {
-            method: 'POST',
-            body: formData,
-          });
-
-          if (!response.ok) {
-            throw new Error(t('uploadError'));
-          }
-
-          const data = await response.json();
-          return data.url;
-        });
-
-        // Attendre que tous les uploads soient terminés
-        const newPhotoUrls = await Promise.all(uploadPromises);
-
-        // Mettre à jour l'état des photos
-        onPhotosChange([...photos, ...newPhotoUrls]);
-      } catch (error) {
-        console.error("Erreur lors de l'upload des photos:", error);
-        setUploadError(t('uploadError'));
-      } finally {
-        setIsUploading(false);
-      }
+      // Utiliser le hook pour l'upload
+      await uploadMultipleFiles(acceptedFiles, announcementId);
     },
-    [photos, maxPhotos, onPhotosChange, t]
+    [photos.length, maxPhotos, uploadMultipleFiles, announcementId]
   );
 
   // Configuration du dropzone
@@ -127,7 +107,14 @@ export function AnnouncementPhotoUpload({
         </p>
       </div>
 
-      {uploadError && <p className="text-sm text-destructive">{uploadError}</p>}
+      {/* Afficher les erreurs du hook */}
+      {errors.length > 0 && (
+        <div className="space-y-1">
+          {errors.map((error, index) => (
+            <p key={index} className="text-sm text-destructive">{error}</p>
+          ))}
+        </div>
+      )}
 
       {photos && photos.length > 0 && (
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-2">

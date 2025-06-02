@@ -1,4 +1,5 @@
-import { router, protectedProcedure } from '@/server/api/trpc';
+import { router, protectedProcedure, publicProcedure } from '@/server/api/trpc';
+import { serviceService } from '@/server/services/service.service';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 
@@ -232,34 +233,239 @@ export const providerRouter = router({
       });
     }
 
-    // Récupérer les rendez-vous
-    const appointments = await ctx.db.appointment.findMany({
-      where: {
-        providerId: user.provider.id,
-      },
-      include: {
-        client: {
-          include: {
-            user: true,
-          },
-        },
-        service: true,
-      },
-      orderBy: {
-        date: 'asc',
-      },
+    // Récupérer les rendez-vous via le service
+    return serviceService.getProviderBookings(user.provider.id);
+  }),
+
+  // ===== NOUVELLES FONCTIONNALITÉS ÉTENDUES =====
+
+  // Gestion des disponibilités
+  getAvailabilities: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+    
+    const user = await ctx.db.user.findUnique({
+      where: { id: userId },
+      include: { provider: true },
     });
 
-    return appointments.map((appointment: AppointmentWithRelations) => ({
-      id: appointment.id,
-      providerId: appointment.providerId,
-      clientId: appointment.clientId,
-      clientName: appointment.client?.user?.name || 'Client inconnu',
-      serviceId: appointment.serviceId,
-      serviceName: appointment.service?.name || 'Service inconnu',
-      status: appointment.status,
-      date: appointment.date.toISOString(),
-      duration: appointment.service?.duration || 0,
-    }));
+    if (!user || !user.provider) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: "Vous n'êtes pas autorisé à accéder à ces données",
+      });
+    }
+
+    return serviceService.getProviderAvailabilities(user.provider.id);
   }),
+
+  createAvailability: protectedProcedure
+    .input(
+      z.object({
+        dayOfWeek: z.number().min(0).max(6),
+        startTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
+        endTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      
+      const user = await ctx.db.user.findUnique({
+        where: { id: userId },
+        include: { provider: true },
+      });
+
+      if (!user || !user.provider) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: "Vous n'êtes pas autorisé à créer des disponibilités",
+        });
+      }
+
+      return serviceService.createAvailability(user.provider.id, input);
+    }),
+
+  deleteAvailability: protectedProcedure
+    .input(z.object({ availabilityId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      
+      const user = await ctx.db.user.findUnique({
+        where: { id: userId },
+        include: { provider: true },
+      });
+
+      if (!user || !user.provider) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: "Vous n'êtes pas autorisé à supprimer des disponibilités",
+        });
+      }
+
+      return serviceService.deleteAvailability(user.provider.id, input.availabilityId);
+    }),
+
+  // Gestion des créneaux horaires
+  getAvailableTimeSlots: protectedProcedure
+    .input(
+      z.object({
+        serviceId: z.string(),
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      
+      const user = await ctx.db.user.findUnique({
+        where: { id: userId },
+        include: { provider: true },
+      });
+
+      if (!user || !user.provider) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: "Vous n'êtes pas autorisé à consulter ces créneaux",
+        });
+      }
+
+      return serviceService.getAvailableTimeSlots(user.provider.id, input.serviceId, input.date);
+    }),
+
+  // Gestion des réservations avancée
+  updateBookingStatus: protectedProcedure
+    .input(
+      z.object({
+        bookingId: z.string(),
+        status: z.enum(['PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED', 'RESCHEDULED']),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      
+      const user = await ctx.db.user.findUnique({
+        where: { id: userId },
+        include: { provider: true },
+      });
+
+      if (!user || !user.provider) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: "Vous n'êtes pas autorisé à modifier cette réservation",
+        });
+      }
+
+      return serviceService.updateBookingStatus(user.provider.id, { 
+        id: input.bookingId, 
+        status: input.status 
+      });
+    }),
+
+  getBookingDetails: protectedProcedure
+    .input(z.object({ bookingId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      
+      const user = await ctx.db.user.findUnique({
+        where: { id: userId },
+        include: { provider: true },
+      });
+
+      if (!user || !user.provider) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: "Vous n'êtes pas autorisé à consulter cette réservation",
+        });
+      }
+
+      return serviceService.getBookingById(user.provider.id, input.bookingId);
+    }),
+
+  // Gestion des évaluations
+  getMyReviews: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+    
+    const user = await ctx.db.user.findUnique({
+      where: { id: userId },
+      include: { provider: true },
+    });
+
+    if (!user || !user.provider) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: "Vous n'êtes pas autorisé à consulter ces évaluations",
+      });
+    }
+
+    return serviceService.getProviderReviews(user.provider.id);
+  }),
+
+  // Statistiques du prestataire
+  getProviderStats: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+    
+    const user = await ctx.db.user.findUnique({
+      where: { id: userId },
+      include: { provider: true },
+    });
+
+    if (!user || !user.provider) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: "Vous n'êtes pas autorisé à consulter ces statistiques",
+      });
+    }
+
+    return serviceService.getProviderStats(user.provider.id);
+  }),
+
+  // Gestion des catégories de services (consultation)
+  getServiceCategories: publicProcedure.query(async () => {
+    return serviceService.getServiceCategories();
+  }),
+
+  // Recherche de prestataires (pour les clients)
+  searchProviders: publicProcedure
+    .input(
+      z.object({
+        query: z.string().optional(),
+        categoryId: z.string().optional(),
+        city: z.string().optional(),
+        maxDistance: z.number().optional(),
+        location: z.object({
+          lat: z.number(),
+          lng: z.number(),
+        }).optional(),
+        page: z.number().default(1),
+        limit: z.number().default(10),
+      })
+    )
+    .query(async ({ input }) => {
+      return serviceService.searchProviders(input);
+    }),
+
+  // Profil public du prestataire
+  getPublicProfile: publicProcedure
+    .input(z.object({ providerId: z.string() }))
+    .query(async ({ input }) => {
+      return serviceService.getProviderPublicProfile(input.providerId);
+    }),
+
+  // Services publics d'un prestataire
+  getPublicServices: publicProcedure
+    .input(z.object({ providerId: z.string() }))
+    .query(async ({ input }) => {
+      return serviceService.getProviderPublicServices(input.providerId);
+    }),
+
+  // Créneaux disponibles publics
+  getPublicAvailableTimeSlots: publicProcedure
+    .input(
+      z.object({
+        providerId: z.string(),
+        serviceId: z.string(),
+        date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
+      })
+    )
+    .query(async ({ input }) => {
+      return serviceService.getAvailableTimeSlots(input.providerId, input.serviceId, input.date);
+    }),
 });

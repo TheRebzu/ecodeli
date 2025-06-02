@@ -1341,4 +1341,344 @@ export class AdminService {
       return false;
     }
   }
+
+  /**
+   * Génère un rapport de ventes
+   */
+  async getSalesReport(filters: {
+    startDate: Date;
+    endDate: Date;
+    granularity?: string;
+    categoryFilter?: string;
+    comparison?: boolean;
+  }) {
+    try {
+      const { startDate, endDate, granularity = 'day', categoryFilter, comparison } = filters;
+
+      // Rapport des revenus par période
+      const revenueQuery = `
+        SELECT 
+          DATE_TRUNC('${granularity}', "createdAt") as period,
+          SUM("amount") as revenue,
+          COUNT(*) as transactions
+        FROM "payments"
+        WHERE "createdAt" >= $1 AND "createdAt" <= $2
+        AND "status" = 'COMPLETED'
+        ${categoryFilter ? 'AND "category" = $3' : ''}
+        GROUP BY DATE_TRUNC('${granularity}', "createdAt")
+        ORDER BY period
+      `;
+
+      const revenueData = await this.prisma.$queryRawUnsafe(
+        revenueQuery,
+        startDate,
+        endDate,
+        ...(categoryFilter ? [categoryFilter] : [])
+      );
+
+      // Revenus par catégorie
+      const categoryQuery = `
+        SELECT 
+          "category",
+          SUM("amount") as revenue,
+          COUNT(*) as transactions
+        FROM "payments"
+        WHERE "createdAt" >= $1 AND "createdAt" <= $2
+        AND "status" = 'COMPLETED'
+        GROUP BY "category"
+        ORDER BY revenue DESC
+      `;
+
+      const categoryData = await this.prisma.$queryRawUnsafe(categoryQuery, startDate, endDate);
+
+      // Totaux
+      const totalsQuery = `
+        SELECT 
+          SUM("amount") as totalRevenue,
+          COUNT(*) as totalTransactions,
+          AVG("amount") as avgOrderValue
+        FROM "payments"
+        WHERE "createdAt" >= $1 AND "createdAt" <= $2
+        AND "status" = 'COMPLETED'
+      `;
+
+      const totalsData = await this.prisma.$queryRawUnsafe(totalsQuery, startDate, endDate);
+
+      // Données de comparaison si demandées
+      let comparisonData = null;
+      if (comparison) {
+        const periodDiff = endDate.getTime() - startDate.getTime();
+        const comparisonStartDate = new Date(startDate.getTime() - periodDiff);
+        const comparisonEndDate = new Date(startDate.getTime() - 1);
+
+        const comparisonQuery = `
+          SELECT 
+            SUM("amount") as totalRevenue,
+            COUNT(*) as totalTransactions
+          FROM "payments"
+          WHERE "createdAt" >= $1 AND "createdAt" <= $2
+          AND "status" = 'COMPLETED'
+        `;
+
+        comparisonData = await this.prisma.$queryRawUnsafe(
+          comparisonQuery,
+          comparisonStartDate,
+          comparisonEndDate
+        );
+      }
+
+      return {
+        timeSeriesData: revenueData,
+        categoryBreakdown: categoryData,
+        totals: totalsData[0],
+        comparisonData: comparisonData?.[0],
+      };
+    } catch (error) {
+      console.error('Error generating sales report:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Error generating sales report',
+      });
+    }
+  }
+
+  /**
+   * Génère un rapport de performance des livraisons
+   */
+  async getDeliveryPerformanceReport(filters: {
+    startDate: Date;
+    endDate: Date;
+    granularity?: string;
+    comparison?: boolean;
+  }) {
+    try {
+      const { startDate, endDate, granularity = 'day', comparison } = filters;
+
+      // Performance des livraisons par période
+      const performanceQuery = `
+        SELECT 
+          DATE_TRUNC('${granularity}', "createdAt") as period,
+          COUNT(*) as totalDeliveries,
+          COUNT(CASE WHEN "status" = 'DELIVERED' AND "deliveredAt" <= "estimatedDeliveryTime" THEN 1 END) as onTimeDeliveries,
+          COUNT(CASE WHEN "status" = 'DELIVERED' THEN 1 END) as completedDeliveries,
+          COUNT(CASE WHEN "status" = 'PROBLEM' THEN 1 END) as problemDeliveries,
+          AVG(EXTRACT(EPOCH FROM ("deliveredAt" - "createdAt"))/60) as avgDeliveryTime
+        FROM "deliveries"
+        WHERE "createdAt" >= $1 AND "createdAt" <= $2
+        GROUP BY DATE_TRUNC('${granularity}', "createdAt")
+        ORDER BY period
+      `;
+
+      const performanceData = await this.prisma.$queryRawUnsafe(performanceQuery, startDate, endDate);
+
+      // Performance par zone
+      const zoneQuery = `
+        SELECT 
+          "pickupCity" as zone,
+          COUNT(*) as deliveryCount,
+          COUNT(CASE WHEN "status" = 'DELIVERED' AND "deliveredAt" <= "estimatedDeliveryTime" THEN 1 END) as onTimeCount,
+          AVG(EXTRACT(EPOCH FROM ("deliveredAt" - "createdAt"))/60) as avgTime
+        FROM "deliveries"
+        WHERE "createdAt" >= $1 AND "createdAt" <= $2
+        AND "pickupCity" IS NOT NULL
+        GROUP BY "pickupCity"
+        HAVING COUNT(*) >= 5
+        ORDER BY deliveryCount DESC
+        LIMIT 10
+      `;
+
+      const zoneData = await this.prisma.$queryRawUnsafe(zoneQuery, startDate, endDate);
+
+      // Types de problèmes
+      const issuesQuery = `
+        SELECT 
+          "issueType",
+          COUNT(*) as count,
+          (COUNT(*) * 100.0 / (SELECT COUNT(*) FROM "deliveries" WHERE "createdAt" >= $1 AND "createdAt" <= $2 AND "status" = 'PROBLEM')) as percentage
+        FROM "delivery_issues" di
+        JOIN "deliveries" d ON di."deliveryId" = d."id"
+        WHERE d."createdAt" >= $1 AND d."createdAt" <= $2
+        GROUP BY "issueType"
+        ORDER BY count DESC
+      `;
+
+      const issuesData = await this.prisma.$queryRawUnsafe(issuesQuery, startDate, endDate);
+
+      return {
+        timeSeriesData: performanceData,
+        zonePerformance: zoneData,
+        issueBreakdown: issuesData,
+      };
+    } catch (error) {
+      console.error('Error generating delivery performance report:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Error generating delivery performance report',
+      });
+    }
+  }
+
+  /**
+   * Génère un rapport d'activité utilisateur
+   */
+  async getUserActivityReport(filters: {
+    startDate: Date;
+    endDate: Date;
+    granularity?: string;
+    userRoleFilter?: string;
+    comparison?: boolean;
+  }) {
+    try {
+      const { startDate, endDate, granularity = 'day', userRoleFilter, comparison } = filters;
+
+      // Nouvelles inscriptions par période
+      const signupsQuery = `
+        SELECT 
+          DATE_TRUNC('${granularity}', "createdAt") as period,
+          COUNT(*) as signups,
+          COUNT(CASE WHEN "role" = 'CLIENT' THEN 1 END) as clients,
+          COUNT(CASE WHEN "role" = 'DELIVERER' THEN 1 END) as deliverers,
+          COUNT(CASE WHEN "role" = 'MERCHANT' THEN 1 END) as merchants
+        FROM "users"
+        WHERE "createdAt" >= $1 AND "createdAt" <= $2
+        ${userRoleFilter ? 'AND "role" = $3' : ''}
+        GROUP BY DATE_TRUNC('${granularity}', "createdAt")
+        ORDER BY period
+      `;
+
+      const signupsData = await this.prisma.$queryRawUnsafe(
+        signupsQuery,
+        startDate,
+        endDate,
+        ...(userRoleFilter ? [userRoleFilter] : [])
+      );
+
+      // Utilisateurs actifs par période
+      const activeUsersQuery = `
+        SELECT 
+          DATE_TRUNC('${granularity}', "lastLoginAt") as period,
+          COUNT(DISTINCT "userId") as activeUsers
+        FROM "user_activity_logs"
+        WHERE "createdAt" >= $1 AND "createdAt" <= $2
+        GROUP BY DATE_TRUNC('${granularity}', "lastLoginAt")
+        ORDER BY period
+      `;
+
+      const activeUsersData = await this.prisma.$queryRawUnsafe(activeUsersQuery, startDate, endDate);
+
+      // Répartition par rôles
+      const rolesQuery = `
+        SELECT 
+          "role",
+          COUNT(*) as count
+        FROM "users"
+        WHERE "createdAt" >= $1 AND "createdAt" <= $2
+        GROUP BY "role"
+        ORDER BY count DESC
+      `;
+
+      const rolesData = await this.prisma.$queryRawUnsafe(rolesQuery, startDate, endDate);
+
+      // Taux de rétention mensuel
+      const retentionQuery = `
+        SELECT 
+          DATE_TRUNC('month', u."createdAt") as cohortMonth,
+          COUNT(*) as totalUsers,
+          COUNT(CASE WHEN u."lastLoginAt" >= DATE_TRUNC('month', u."createdAt") + INTERVAL '1 month' THEN 1 END) as retainedUsers
+        FROM "users" u
+        WHERE u."createdAt" >= $1 AND u."createdAt" <= $2
+        GROUP BY DATE_TRUNC('month', u."createdAt")
+        ORDER BY cohortMonth
+      `;
+
+      const retentionData = await this.prisma.$queryRawUnsafe(retentionQuery, startDate, endDate);
+
+      return {
+        signupsTimeSeriesData: signupsData,
+        activeUsersTimeSeriesData: activeUsersData,
+        usersByRole: rolesData,
+        retentionRates: retentionData,
+      };
+    } catch (error) {
+      console.error('Error generating user activity report:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Error generating user activity report',
+      });
+    }
+  }
+
+  /**
+   * Génère un rapport financier complet
+   */
+  async getFinancialReport(filters: {
+    startDate: Date;
+    endDate: Date;
+    granularity?: string;
+    includeCommissions?: boolean;
+  }) {
+    try {
+      const { startDate, endDate, granularity = 'day', includeCommissions = true } = filters;
+
+      // Revenus et transactions
+      const revenueQuery = `
+        SELECT 
+          DATE_TRUNC('${granularity}', "createdAt") as period,
+          SUM("amount") as revenue,
+          COUNT(*) as transactions,
+          AVG("amount") as avgTransactionValue
+        FROM "payments"
+        WHERE "createdAt" >= $1 AND "createdAt" <= $2
+        AND "status" = 'COMPLETED'
+        GROUP BY DATE_TRUNC('${granularity}', "createdAt")
+        ORDER BY period
+      `;
+
+      const revenueData = await this.prisma.$queryRawUnsafe(revenueQuery, startDate, endDate);
+
+      let commissionsData = null;
+      if (includeCommissions) {
+        // Commissions par période
+        const commissionsQuery = `
+          SELECT 
+            DATE_TRUNC('${granularity}', "createdAt") as period,
+            SUM("amount") as commissions,
+            COUNT(*) as commissionsCount
+          FROM "commissions"
+          WHERE "createdAt" >= $1 AND "createdAt" <= $2
+          GROUP BY DATE_TRUNC('${granularity}', "createdAt")
+          ORDER BY period
+        `;
+
+        commissionsData = await this.prisma.$queryRawUnsafe(commissionsQuery, startDate, endDate);
+      }
+
+      // Méthodes de paiement
+      const paymentMethodsQuery = `
+        SELECT 
+          "paymentMethod",
+          COUNT(*) as count,
+          SUM("amount") as revenue
+        FROM "payments"
+        WHERE "createdAt" >= $1 AND "createdAt" <= $2
+        AND "status" = 'COMPLETED'
+        GROUP BY "paymentMethod"
+        ORDER BY revenue DESC
+      `;
+
+      const paymentMethodsData = await this.prisma.$queryRawUnsafe(paymentMethodsQuery, startDate, endDate);
+
+      return {
+        revenueTimeSeriesData: revenueData,
+        commissionsTimeSeriesData: commissionsData,
+        paymentMethodsBreakdown: paymentMethodsData,
+      };
+    } catch (error) {
+      console.error('Error generating financial report:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Error generating financial report',
+      });
+    }
+  }
 }

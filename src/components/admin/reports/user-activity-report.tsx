@@ -21,10 +21,13 @@ import {
   PolarAngleAxis,
   PolarRadiusAxis,
   Radar,
+  AreaChart,
+  Area,
 } from 'recharts';
-import { Users, UserCheck, Zap, UserPlus } from 'lucide-react';
+import { Users, UserCheck, Zap, UserPlus, Download, FileText } from 'lucide-react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import { UserRole } from '@prisma/client';
 
 // Types pour les données d'activité utilisateur
@@ -66,6 +69,8 @@ interface UserActivityReportProps {
   isLoading: boolean;
   isError: boolean;
   dateRange: string;
+  onExportPdf?: () => void;
+  onExportCsv?: () => void;
 }
 
 export function UserActivityReport({
@@ -73,6 +78,8 @@ export function UserActivityReport({
   isLoading,
   isError,
   dateRange,
+  onExportPdf,
+  onExportCsv,
 }: UserActivityReportProps) {
   const t = useTranslations('admin.reports');
 
@@ -179,6 +186,28 @@ export function UserActivityReport({
 
   return (
     <div className="space-y-6">
+      {/* En-tête avec boutons d'export */}
+      <div className="flex justify-between items-center">
+        <div>
+          <h2 className="text-2xl font-bold">Rapport d'Activité Utilisateur</h2>
+          <p className="text-muted-foreground">Période: {dateRange}</p>
+        </div>
+        <div className="flex gap-2">
+          {onExportCsv && (
+            <Button variant="outline" size="sm" onClick={onExportCsv}>
+              <Download className="mr-2 h-4 w-4" />
+              Export CSV
+            </Button>
+          )}
+          {onExportPdf && (
+            <Button variant="outline" size="sm" onClick={onExportPdf}>
+              <FileText className="mr-2 h-4 w-4" />
+              Export PDF
+            </Button>
+          )}
+        </div>
+      </div>
+
       {/* KPI Cards */}
       <div className="grid gap-4 md:grid-cols-4">
         <Card>

@@ -144,4 +144,56 @@ export const storageRouter = router({
     }
     return storageService.checkAvailabilityAndNotify();
   }),
+
+  // Nouvelles fonctionnalités client
+
+  // Récupération des recommandations personnalisées de box
+  getBoxRecommendations: protectedProcedure
+    .input(
+      z
+        .object({
+          warehouseId: z.string().optional(),
+          maxPrice: z.number().optional(),
+          startDate: z.coerce.date().optional(),
+          endDate: z.coerce.date().optional(),
+        })
+        .optional()
+    )
+    .query(({ input, ctx }) => {
+      return storageService.getBoxRecommendationsForClient(ctx.session.user.id, input);
+    }),
+
+  // Récupération des statistiques personnelles du client
+  getMyStorageStats: protectedProcedure.query(({ ctx }) => {
+    return storageService.getClientStorageStats(ctx.session.user.id);
+  }),
+
+  // Recherche d'alternatives pour une box non disponible
+  findBoxAlternatives: protectedProcedure
+    .input(
+      z.object({
+        boxId: z.string(),
+        startDate: z.coerce.date(),
+        endDate: z.coerce.date(),
+      })
+    )
+    .query(({ input }) => {
+      return storageService.findBoxAlternatives(input.boxId, input.startDate, input.endDate);
+    }),
+
+  // Calcul du prix optimal avec remises
+  calculateOptimalPricing: protectedProcedure
+    .input(
+      z.object({
+        boxId: z.string(),
+        startDate: z.coerce.date(),
+        endDate: z.coerce.date(),
+      })
+    )
+    .query(({ input, ctx }) => {
+      return storageService.calculateOptimalPricing({
+        ...input,
+        clientId: ctx.session.user.id,
+      });
+    }),
 });

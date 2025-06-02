@@ -33,6 +33,7 @@ import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { cn } from '@/lib/utils';
+import { Announcement } from '@/types/announcement';
 
 // Schéma de validation pour le formulaire de proposition
 const proposalFormSchema = z.object({
@@ -329,6 +330,293 @@ export function AnnouncementProposal({
         </Button>
       </CardFooter>
     </Card>
+  );
+}
+
+/**
+ * Composant pour que les clients puissent voir et gérer les propositions reçues
+ */
+interface ClientProposalViewProps {
+  announcements: Announcement[];
+  onAcceptProposal: (announcementId: string, proposalId: string) => Promise<void>;
+  onRejectProposal: (announcementId: string, proposalId: string) => Promise<void>;
+  onViewDetails: (proposalId: string) => void;
+  isLoading?: boolean;
+}
+
+interface DelivererProposal {
+  id: string;
+  delivererId: string;
+  delivererName: string;
+  delivererImage?: string;
+  proposedPrice: number;
+  estimatedDeliveryTime?: string;
+  message: string;
+  hasRequiredEquipment: boolean;
+  canPickupAtScheduledTime: boolean;
+  rating: number;
+  completedDeliveries: number;
+  status: 'PENDING' | 'ACCEPTED' | 'REJECTED';
+  submittedAt: string;
+  compatibilityScore?: number;
+  distance?: number;
+}
+
+export function ClientProposalManager({
+  announcements,
+  onAcceptProposal,
+  onRejectProposal,
+  onViewDetails,
+  isLoading = false,
+}: ClientProposalViewProps) {
+  const t = useTranslations('announcements');
+  const [expandedAnnouncements, setExpandedAnnouncements] = useState<Set<string>>(new Set());
+  const [sortBy, setSortBy] = useState<'price' | 'rating' | 'compatibility' | 'date'>('compatibility');
+
+  const toggleAnnouncementExpansion = (announcementId: string) => {
+    const newExpanded = new Set(expandedAnnouncements);
+    if (newExpanded.has(announcementId)) {
+      newExpanded.delete(announcementId);
+    } else {
+      newExpanded.add(announcementId);
+    }
+    setExpandedAnnouncements(newExpanded);
+  };
+
+  const sortProposals = (proposals: DelivererProposal[]) => {
+    return [...proposals].sort((a, b) => {
+      switch (sortBy) {
+        case 'price':
+          return a.proposedPrice - b.proposedPrice;
+        case 'rating':
+          return b.rating - a.rating;
+        case 'compatibility':
+          return (b.compatibilityScore || 0) - (a.compatibilityScore || 0);
+        case 'date':
+          return new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime();
+        default:
+          return 0;
+      }
+    });
+  };
+
+  const formatDateTime = (dateTime: string) => {
+    return format(new Date(dateTime), 'PPp', { locale: fr });
+  };
+
+  if (isLoading) {
+    return (
+      <Card className="w-full">
+        <CardContent className="flex items-center justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <span className="ml-2">{t('loadingProposals')}</span>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const announcementsWithProposals = announcements.filter(
+    announcement => announcement.applications && announcement.applications.length > 0
+  );
+
+  if (announcementsWithProposals.length === 0) {
+    return (
+      <Card className="w-full">
+        <CardContent className="text-center py-8">
+          <div className="text-muted-foreground">
+            <Truck className="h-12 w-12 mx-auto mb-4 opacity-50" />
+            <p className="text-lg font-medium mb-2">{t('noProposalsYet')}</p>
+            <p className="text-sm">{t('noProposalsDescription')}</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* En-tête avec options de tri */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <span>{t('receivedProposals')}</span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">{t('sortBy')}:</span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="text-sm border rounded px-2 py-1"
+              >
+                <option value="compatibility">{t('compatibility')}</option>
+                <option value="price">{t('price')}</option>
+                <option value="rating">{t('rating')}</option>
+                <option value="date">{t('submissionDate')}</option>
+              </select>
+            </div>
+          </CardTitle>
+        </CardHeader>
+      </Card>
+
+      {/* Liste des annonces avec propositions */}
+      {announcementsWithProposals.map((announcement) => {
+        const isExpanded = expandedAnnouncements.has(announcement.id);
+        const proposals = sortProposals(announcement.applications || []);
+        const pendingProposals = proposals.filter(p => p.status === 'PENDING');
+
+        return (
+          <Card key={announcement.id} className="w-full">
+            <CardHeader 
+              className="cursor-pointer"
+              onClick={() => toggleAnnouncementExpansion(announcement.id)}
+            >
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-lg">{announcement.title}</CardTitle>
+                  <CardDescription className="flex items-center gap-4 mt-1">
+                    <span>{t('suggestedPrice')}: {announcement.suggestedPrice?.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}</span>
+                    <Badge variant={pendingProposals.length > 0 ? 'default' : 'secondary'}>
+                      {pendingProposals.length} {t('pendingProposals')}
+                    </Badge>
+                    <Badge variant="outline">
+                      {proposals.length} {t('totalProposals')}
+                    </Badge>
+                  </CardDescription>
+                </div>
+                <Button variant="ghost" size="sm">
+                  {isExpanded ? '▼' : '▶'}
+                </Button>
+              </div>
+            </CardHeader>
+
+            {isExpanded && (
+              <CardContent className="space-y-4">
+                {proposals.map((proposal) => (
+                  <div
+                    key={proposal.id}
+                    className={cn(
+                      "border rounded-lg p-4 space-y-3",
+                      proposal.status === 'ACCEPTED' && "border-green-200 bg-green-50",
+                      proposal.status === 'REJECTED' && "border-red-200 bg-red-50",
+                      proposal.status === 'PENDING' && "border-blue-200 bg-blue-50"
+                    )}
+                  >
+                    {/* En-tête de la proposition */}
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                          {proposal.delivererImage ? (
+                            <img 
+                              src={proposal.delivererImage} 
+                              alt={proposal.delivererName}
+                              className="w-full h-full rounded-full object-cover"
+                            />
+                          ) : (
+                            <span className="text-sm font-medium">
+                              {proposal.delivererName.charAt(0)}
+                            </span>
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-medium">{proposal.delivererName}</p>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <span>⭐ {proposal.rating.toFixed(1)}</span>
+                            <span>•</span>
+                            <span>{proposal.completedDeliveries} {t('deliveries')}</span>
+                            {proposal.distance && (
+                              <>
+                                <span>•</span>
+                                <span>{proposal.distance.toFixed(1)} km</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-lg font-semibold text-green-600">
+                          {proposal.proposedPrice.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' })}
+                        </p>
+                        {proposal.compatibilityScore && (
+                          <p className="text-xs text-muted-foreground">
+                            {t('compatibility')}: {proposal.compatibilityScore}%
+                          </p>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Message de la proposition */}
+                    <div className="bg-white rounded p-3 border">
+                      <p className="text-sm">{proposal.message}</p>
+                    </div>
+
+                    {/* Détails de la proposition */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                      {proposal.estimatedDeliveryTime && (
+                        <div className="flex items-center">
+                          <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
+                          <span>{t('estimatedDelivery')}: {formatDateTime(proposal.estimatedDeliveryTime)}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center">
+                        <CheckCircle className="h-4 w-4 mr-2 text-muted-foreground" />
+                        <span>{t('hasEquipment')}: {proposal.hasRequiredEquipment ? t('yes') : t('no')}</span>
+                      </div>
+                      <div className="flex items-center">
+                        <Calendar className="h-4 w-4 mr-2 text-muted-foreground" />
+                        <span>{t('canPickupOnTime')}: {proposal.canPickupAtScheduledTime ? t('yes') : t('no')}</span>
+                      </div>
+                      <div className="flex items-center">
+                        <Clock className="h-4 w-4 mr-2 text-muted-foreground" />
+                        <span>{t('submittedAt')}: {formatDateTime(proposal.submittedAt)}</span>
+                      </div>
+                    </div>
+
+                    {/* Actions pour les propositions en attente */}
+                    {proposal.status === 'PENDING' && (
+                      <div className="flex gap-2 pt-2">
+                        <Button
+                          size="sm"
+                          onClick={() => onAcceptProposal(announcement.id, proposal.id)}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          <CheckCircle className="h-4 w-4 mr-1" />
+                          {t('acceptProposal')}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => onRejectProposal(announcement.id, proposal.id)}
+                        >
+                          <Ban className="h-4 w-4 mr-1" />
+                          {t('rejectProposal')}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => onViewDetails(proposal.id)}
+                        >
+                          {t('viewProfile')}
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Statut de la proposition */}
+                    {proposal.status !== 'PENDING' && (
+                      <div className="pt-2">
+                        <Badge 
+                          variant={proposal.status === 'ACCEPTED' ? 'default' : 'destructive'}
+                        >
+                          {proposal.status === 'ACCEPTED' ? t('accepted') : t('rejected')}
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </CardContent>
+            )}
+          </Card>
+        );
+      })}
+    </div>
   );
 }
 

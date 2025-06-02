@@ -1,11 +1,23 @@
 import { DeliveryStatus as PrismaDeliveryStatus } from '@prisma/client';
 
-// Réexporter avec les valeurs supplémentaires nécessaires
+// Export explicite du type DeliveryStatus avec valeurs étendues
 export type DeliveryStatus = PrismaDeliveryStatus | 
   'EN_ROUTE_TO_PICKUP' |
   'AT_PICKUP' |
   'EN_ROUTE_TO_DROPOFF' |
   'AT_DROPOFF';
+
+// Export des valeurs de l'enum Prisma pour compatibilité
+export { DeliveryStatus as PrismaDeliveryStatus } from '@prisma/client';
+
+// Export explicite pour assurer la compatibilité
+export const DeliveryStatusEnum = {
+  ...PrismaDeliveryStatus,
+  EN_ROUTE_TO_PICKUP: 'EN_ROUTE_TO_PICKUP' as const,
+  AT_PICKUP: 'AT_PICKUP' as const,
+  EN_ROUTE_TO_DROPOFF: 'EN_ROUTE_TO_DROPOFF' as const,
+  AT_DROPOFF: 'AT_DROPOFF' as const,
+} as const;
 
 // Type pour les filtres de livraison
 export interface DeliveryFilters {

@@ -307,23 +307,36 @@ export default function DelivererWalletDashboard({ userId, isDemo = false }: Del
     return data;
   };
 
+  // Récupérer les vraies données de gains via l'API
+  const { data: earningsApiData, isLoading: isLoadingEarnings } = isDemo
+    ? { data: null, isLoading: false }
+    : api.wallet.getWalletStats.useQuery(
+        {
+          period: 'daily',
+          startDate: subDays(new Date(), 7),
+          endDate: new Date(),
+        }
+      );
+
   // État pour stocker les données de gains
   const [earningsData, setEarningsData] = useState<{ date: Date; amount: number }[]>([]);
 
   useEffect(() => {
     if (isDemo) {
       setEarningsData(generateDemoEarningsData());
+    } else if (earningsApiData?.dailyEarnings) {
+      // Utiliser les vraies données d'earnings si disponibles
+      setEarningsData(earningsApiData.dailyEarnings);
     } else {
-      // En mode normal, on pourrait récupérer les données depuis une API
-      // Pour l'instant, on utilise des données fictives similaires
+      // Fallback vers les données générées si pas de données API
       setEarningsData(generateDemoEarningsData());
     }
-  }, [isDemo]);
+  }, [isDemo, earningsApiData]);
 
   // Simuler des données de transactions pour le mode démo
   const generateDemoTransactions = () => {
-    const types: TransactionType[] = ['EARNING', 'WITHDRAWAL', 'PLATFORM_FEE', 'BONUS'];
-    const statuses: TransactionStatus[] = ['COMPLETED', 'PENDING'];
+    const types = ['EARNING', 'WITHDRAWAL', 'PLATFORM_FEE', 'BONUS'] as const;
+    const statuses = ['COMPLETED', 'PENDING'] as const;
     
     return Array(20).fill(0).map((_, i) => ({
       id: `tx_demo_${i}`,
@@ -338,7 +351,7 @@ export default function DelivererWalletDashboard({ userId, isDemo = false }: Del
 
   // Simuler des données de retraits pour le mode démo
   const generateDemoWithdrawals = () => {
-    const statuses: WithdrawalStatus[] = ['COMPLETED', 'PENDING', 'PROCESSING'];
+    const statuses = ['COMPLETED', 'PENDING', 'PROCESSING'] as const;
     
     return Array(5).fill(0).map((_, i) => ({
       id: `wd_demo_${i}`,
@@ -350,7 +363,7 @@ export default function DelivererWalletDashboard({ userId, isDemo = false }: Del
     }));
   };
 
-  // Afficher les données réelles ou de démo selon le mode
+  // Utiliser les vraies données par défaut, sauf si isDemo est explicitement true
   const { data: transactionsData, isLoading: isLoadingTransactions } = isDemo
     ? { data: { transactions: generateDemoTransactions(), pagination: { total: 20, totalPages: 2, page: 1, limit: 10 } }, isLoading: false }
     : api.wallet.getTransactionHistory.useQuery(
@@ -359,19 +372,21 @@ export default function DelivererWalletDashboard({ userId, isDemo = false }: Del
           limit: pageSize,
         },
         {
-          enabled: activeTab === 'transactions' && !isDemo,
+          enabled: activeTab === 'transactions',
         }
       );
 
+  // Utiliser les transactions de type WITHDRAWAL pour les retraits
   const { data: withdrawalsData, isLoading: isLoadingWithdrawals } = isDemo
     ? { data: { withdrawals: generateDemoWithdrawals(), pagination: { total: 5, totalPages: 1, page: 1, limit: 10 } }, isLoading: false }
-    : api.wallet.getWithdrawals.useQuery(
+    : api.wallet.getTransactionHistory.useQuery(
         {
           page: currentPage,
           limit: pageSize,
+          type: 'WITHDRAWAL',
         },
         {
-          enabled: activeTab === 'withdrawals' && !isDemo,
+          enabled: activeTab === 'withdrawals',
         }
       );
 
@@ -390,8 +405,8 @@ export default function DelivererWalletDashboard({ userId, isDemo = false }: Del
 
   const { refetch: refetchWithdrawals } = isDemo
     ? { refetch: () => Promise.resolve() }
-    : api.wallet.getWithdrawals.useQuery(
-        { page: 1, limit: 10 },
+    : api.wallet.getTransactionHistory.useQuery(
+        { page: 1, limit: 10, type: 'WITHDRAWAL' },
         { enabled: false }
       );
 

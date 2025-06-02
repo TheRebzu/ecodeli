@@ -38,7 +38,8 @@ export function useOnboardingNavigation() {
     onError: () => {
       toast({
         variant: 'destructive',
-        title: t('error.title'),
+        title: 'Erreur lors de la mise à jour',
+        description: 'Impossible de mettre à jour votre progression.'
       });
     },
   });
@@ -99,13 +100,15 @@ export function useOnboardingCompletion(
   const updateOnboardingStatus = client.userPreferences.updateOnboardingStatus.useMutation({
     onSuccess: () => {
       toast({
-        title: t('complete.success.title'),
+        title: '🎉 Félicitations !',
+        description: 'Votre tutoriel a été complété avec succès.',
       });
     },
     onError: () => {
       toast({
         variant: 'destructive',
-        title: t('error.title'),
+        title: 'Erreur',
+        description: 'Impossible de sauvegarder votre progression.',
       });
     },
   });
@@ -113,13 +116,15 @@ export function useOnboardingCompletion(
   const resetOnboardingStatus = client.userPreferences.resetOnboardingStatus.useMutation({
     onSuccess: () => {
       toast({
-        title: t('reset.success.title'),
+        title: '🔄 Tutoriel réinitialisé',
+        description: 'Vous pouvez maintenant recommencer le tutoriel.',
       });
     },
     onError: () => {
       toast({
         variant: 'destructive',
-        title: t('error.title'),
+        title: 'Erreur de réinitialisation',
+        description: 'Impossible de réinitialiser le tutoriel.',
       });
     },
   });
@@ -189,5 +194,114 @@ export function useOnboardingCompletion(
     skipOnboarding,
     resetOnboarding,
     isCompleting,
+  };
+}
+
+/**
+ * Hook spécialisé pour la Mission 1 (tutoriel obligatoire)
+ * Combine les fonctionnalités de statut, navigation et completion
+ */
+export function useMission1Onboarding() {
+  const { status, isLoading, error, refetch } = useOnboardingStatus();
+  const navigation = useOnboardingNavigation();
+  const completion = useOnboardingCompletion();
+  const { toast } = useToast();
+  const router = useRouter();
+
+  // Vérifier si Mission 1 est requise
+  const isMission1Required = !status?.hasCompletedOnboarding && !status?.tutorialSkipped;
+  
+  // Bloquer l'accès à l'application si Mission 1 n'est pas complétée
+  const shouldBlockAccess = isMission1Required && !isLoading;
+
+  // Complétion spéciale pour Mission 1 avec redirection automatique
+  const completeMission1 = useCallback(async () => {
+    try {
+      const success = await completion.completeOnboarding({
+        redirectTo: '/client' // Redirection par défaut vers le dashboard client
+      });
+      
+      if (success) {
+        toast({
+          title: '🎉 Mission 1 accomplie !',
+          description: 'Bienvenue dans l\'aventure EcoDeli ! Vous pouvez maintenant utiliser toutes les fonctionnalités.',
+        });
+        
+        // Actualiser le statut
+        refetch();
+        
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error('Erreur lors de la completion de Mission 1:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Erreur de completion',
+        description: 'Impossible de terminer Mission 1. Veuillez réessayer.',
+      });
+      return false;
+    }
+  }, [completion, toast, refetch]);
+
+  // Fonction pour forcer le redémarrage de Mission 1
+  const restartMission1 = useCallback(async () => {
+    try {
+      await completion.resetOnboarding();
+      navigation.goToStep(0);
+      refetch();
+      
+      toast({
+        title: '🔄 Mission 1 redémarrée',
+        description: 'Le tutoriel obligatoire va recommencer.',
+      });
+    } catch (error) {
+      console.error('Erreur lors du redémarrage de Mission 1:', error);
+      toast({
+        variant: 'destructive',
+        title: 'Erreur',
+        description: 'Impossible de redémarrer Mission 1.',
+      });
+    }
+  }, [completion, navigation, refetch, toast]);
+
+  return {
+    // État de Mission 1
+    isMission1Required,
+    shouldBlockAccess,
+    isLoading,
+    error,
+    
+    // Navigation
+    ...navigation,
+    
+    // Completion spécialisée
+    completeMission1,
+    restartMission1,
+    isCompleting: completion.isCompleting,
+    
+    // Statut utilisateur
+    status,
+    refetch,
+  };
+}
+
+/**
+ * Hook simplifié pour vérifier si Mission 1 bloque l'accès
+ */
+export function useMission1AccessControl() {
+  const { status, isLoading } = useOnboardingStatus();
+  
+  const shouldBlockAccess = (
+    !isLoading &&
+    !status?.hasCompletedOnboarding &&
+    !status?.tutorialSkipped
+  );
+  
+  return {
+    shouldBlockAccess,
+    isLoading,
+    hasCompletedOnboarding: status?.hasCompletedOnboarding || false,
+    tutorialSkipped: status?.tutorialSkipped || false,
   };
 }

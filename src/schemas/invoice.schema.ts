@@ -20,7 +20,14 @@ export const invoiceBaseSchema = z.object({
 // Schéma pour la création d'une facture
 export const createInvoiceSchema = invoiceBaseSchema.extend({
   userId: z.string().cuid('ID utilisateur invalide'),
-  invoiceType: z.enum(['SERVICE', 'DELIVERY', 'SUBSCRIPTION', 'COMMISSION', 'OTHER']).default('SERVICE'),
+  invoiceType: z.enum(['SERVICE', 'DELIVERY', 'SUBSCRIPTION', 'COMMISSION', 'MERCHANT_FEE', 'OTHER']).default('SERVICE'),
+  
+  // Informations spécifiques à la facturation marchande
+  merchantId: z.string().cuid('ID commerçant invalide').optional(),
+  providerId: z.string().cuid('ID prestataire invalide').optional(),
+  billingPeriodStart: z.date().optional(),
+  billingPeriodEnd: z.date().optional(),
+  serviceDescription: z.string().optional(),
   paymentTerms: z.string().optional(),
   notes: z.string().optional(),
   
@@ -63,7 +70,7 @@ export const createInvoiceSchema = invoiceBaseSchema.extend({
 export const invoiceFilterSchema = z.object({
   userId: z.string().cuid('ID utilisateur invalide').optional(),
   status: z.enum([InvoiceStatus.DRAFT, InvoiceStatus.ISSUED, InvoiceStatus.PAID, InvoiceStatus.OVERDUE, InvoiceStatus.CANCELLED]).optional(),
-  invoiceType: z.enum(['SERVICE', 'DELIVERY', 'SUBSCRIPTION', 'COMMISSION', 'OTHER']).optional(),
+  invoiceType: z.enum(['SERVICE', 'DELIVERY', 'SUBSCRIPTION', 'COMMISSION', 'MERCHANT_FEE', 'OTHER']).optional(),
   minAmount: z.number().optional(),
   maxAmount: z.number().optional(),
   issueDateFrom: z.date().optional(),
@@ -127,6 +134,49 @@ export const invoiceStatsSchema = z.object({
   groupBy: z.enum(['DAY', 'WEEK', 'MONTH', 'QUARTER', 'YEAR']).default('MONTH'),
 });
 
+// Schéma pour la facturation automatique mensuelle des marchands
+export const monthlyMerchantBillingSchema = z.object({
+  merchantId: z.string().cuid('ID commerçant invalide').optional(),
+  periodStart: z.date().optional(),
+  periodEnd: z.date().optional(),
+  forceGenerate: z.boolean().default(false),
+  autoProcess: z.boolean().default(true),
+  includeFixedFees: z.boolean().default(true),
+  includeCommissions: z.boolean().default(true),
+  isDemo: z.boolean().default(true)
+});
+
+// Schéma pour la facturation automatique mensuelle des prestataires
+export const monthlyProviderBillingSchema = z.object({
+  providerId: z.string().cuid('ID prestataire invalide').optional(),
+  periodStart: z.date().optional(),
+  periodEnd: z.date().optional(),
+  forceGenerate: z.boolean().default(false),
+  autoProcess: z.boolean().default(true),
+  includeCommissions: z.boolean().default(true),
+  isDemo: z.boolean().default(true)
+});
+
+// Schéma pour les cycles de facturation
+export const billingCycleSchema = z.object({
+  merchantId: z.string().cuid('ID commerçant invalide').optional(),
+  providerId: z.string().cuid('ID prestataire invalide').optional(),
+  periodStart: z.date(),
+  periodEnd: z.date(),
+  scheduledRunDate: z.date(),
+  autoExecute: z.boolean().default(true),
+  isDemo: z.boolean().default(true)
+});
+
+// Schéma pour les statistiques de facturation
+export const billingStatsSchema = z.object({
+  period: z.enum(['MONTH', 'QUARTER', 'YEAR']).default('MONTH'),
+  startDate: z.date().optional(),
+  endDate: z.date().optional(),
+  entityType: z.enum(['ALL', 'MERCHANT', 'PROVIDER']).default('ALL'),
+  includeDetails: z.boolean().default(false)
+});
+
 // Export des types pour TypeScript
 export type CreateInvoiceInput = z.infer<typeof createInvoiceSchema>;
 export type InvoiceFilterInput = z.infer<typeof invoiceFilterSchema>;
@@ -135,3 +185,7 @@ export type CreateCreditNoteInput = z.infer<typeof createCreditNoteSchema>;
 export type SendInvoiceEmailInput = z.infer<typeof sendInvoiceEmailSchema>;
 export type GenerateInvoicePdfInput = z.infer<typeof generateInvoicePdfSchema>;
 export type InvoiceStatsInput = z.infer<typeof invoiceStatsSchema>;
+export type MonthlyMerchantBillingInput = z.infer<typeof monthlyMerchantBillingSchema>;
+export type MonthlyProviderBillingInput = z.infer<typeof monthlyProviderBillingSchema>;
+export type BillingCycleInput = z.infer<typeof billingCycleSchema>;
+export type BillingStatsInput = z.infer<typeof billingStatsSchema>;

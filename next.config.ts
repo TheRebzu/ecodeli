@@ -6,9 +6,21 @@ import path from 'path';
 const nextConfig: NextConfig = {
   // Configurer le serveur de fichiers statiques
   output: 'standalone',
-  // Activer les images externes
+  // Activer les images externes avec la nouvelle configuration
   images: {
-    domains: ['localhost'],
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3000',
+        pathname: '/uploads/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'localhost',
+        pathname: '/uploads/**',
+      },
+    ],
   },
   webpack: (config, { isServer }) => {
     // Configurer les alias pour s'assurer que @/ pointe vers src/

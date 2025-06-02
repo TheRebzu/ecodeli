@@ -878,6 +878,533 @@ class StorageService {
       orderBy: { name: 'asc' },
     });
   }
+
+  // Récupération des recommandations de box pour un client basées sur son historique
+  async getBoxRecommendationsForClient(clientId: string, filters?: {
+    warehouseId?: string;
+    maxPrice?: number;
+    startDate?: Date;
+    endDate?: Date;
+  }) {
+    try {
+      // Récupérer l'historique du client pour comprendre ses préférences
+      const clientHistory = await db.reservation.findMany({
+        where: {
+          clientId,
+          status: { in: ['COMPLETED', 'ACTIVE'] },
+        },
+        include: {
+          box: {
+            include: {
+              warehouse: true,
+            },
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 10,
+      });
+
+      // Analyser les préférences du client
+      const preferences = this.analyzeClientPreferences(clientHistory);
+
+      // Construire les critères de recherche basés sur les préférences et les filtres
+      const searchCriteria: Prisma.BoxWhereInput & PrismaBoxExtension = {
+        isOccupied: false,
+        ...(filters?.warehouseId && { warehouseId: filters.warehouseId }),
+        ...(filters?.maxPrice && { pricePerDay: { lte: filters.maxPrice } }),
+        
+        // Recommandations basées sur l'historique
+        ...(preferences.preferredBoxTypes.length > 0 && {
+          boxType: { in: preferences.preferredBoxTypes as unknown as BoxType[] },
+        }),
+        ...(preferences.preferredSizeRange && {
+          size: {
+            gte: preferences.preferredSizeRange.min,
+            lte: preferences.preferredSizeRange.max,
+          },
+        }),
+      };
+
+      // Si des dates sont spécifiées, vérifier la disponibilité
+      if (filters?.startDate && filters?.endDate) {
+        searchCriteria.NOT = {
+          reservations: {
+            some: {
+              AND: [
+                {
+                  OR: [
+                    {
+                      startDate: { lte: filters.endDate },
+                      endDate: { gte: filters.startDate },
+                    },
+                  ],
+                },
+                {
+                  status: { in: ['PENDING', 'ACTIVE', 'EXTENDED'] },
+                },
+              ],
+            },
+          },
+        };
+      }
+
+      // Récupérer les box recommandées
+      const recommendedBoxes = await db.box.findMany({
+        where: searchCriteria as Prisma.BoxWhereInput,
+        include: {
+          warehouse: {
+            select: {
+              id: true,
+              name: true,
+              location: true,
+              address: true,
+              description: true,
+            },
+          },
+        },
+        orderBy: [
+          { pricePerDay: 'asc' },
+          { size: 'asc' },
+        ],
+        take: 20,
+      });
+
+      return {
+        recommendations: recommendedBoxes,
+        preferences,
+        total: recommendedBoxes.length,
+      };
+    } catch (error) {
+      console.error('Erreur lors de la récupération des recommandations:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la récupération des recommandations',
+      });
+    }
+  }
+
+  // Analyser les préférences d'un client basées sur son historique
+  private analyzeClientPreferences(reservationHistory: any[]) {
+    if (reservationHistory.length === 0) {
+      return {
+        preferredBoxTypes: [],
+        preferredSizeRange: null,
+        preferredPriceRange: null,
+        favoriteWarehouses: [],
+        averageReservationDuration: 7,
+      };
+    }
+
+    // Analyser les types de box préférés
+    const boxTypeCounts: Record<string, number> = {};
+    const sizesUsed: number[] = [];
+    const pricesUsed: number[] = [];
+    const warehouseCounts: Record<string, number> = {};
+    const durations: number[] = [];
+
+    reservationHistory.forEach(reservation => {
+      // Types de box
+      const boxType = reservation.box.boxType;
+      boxTypeCounts[boxType] = (boxTypeCounts[boxType] || 0) + 1;
+
+      // Tailles
+      if (reservation.box.size) {
+        sizesUsed.push(reservation.box.size);
+      }
+
+      // Prix
+      if (reservation.box.pricePerDay) {
+        pricesUsed.push(reservation.box.pricePerDay);
+      }
+
+      // Entrepôts
+      const warehouseId = reservation.box.warehouse.id;
+      warehouseCounts[warehouseId] = (warehouseCounts[warehouseId] || 0) + 1;
+
+      // Durées
+      const duration = Math.ceil(
+        (new Date(reservation.endDate).getTime() - new Date(reservation.startDate).getTime()) /
+          (1000 * 60 * 60 * 24)
+      );
+      durations.push(duration);
+    });
+
+    // Déterminer les préférences
+    const preferredBoxTypes = Object.entries(boxTypeCounts)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 3)
+      .map(([type]) => type);
+
+    const preferredSizeRange = sizesUsed.length > 0 ? {
+      min: Math.min(...sizesUsed) * 0.8,
+      max: Math.max(...sizesUsed) * 1.2,
+    } : null;
+
+    const preferredPriceRange = pricesUsed.length > 0 ? {
+      min: Math.min(...pricesUsed),
+      max: Math.max(...pricesUsed) * 1.1,
+    } : null;
+
+    const favoriteWarehouses = Object.entries(warehouseCounts)
+      .sort(([, a], [, b]) => b - a)
+      .slice(0, 3)
+      .map(([warehouseId]) => warehouseId);
+
+    const averageReservationDuration = durations.length > 0 
+      ? Math.round(durations.reduce((sum, d) => sum + d, 0) / durations.length)
+      : 7;
+
+    return {
+      preferredBoxTypes,
+      preferredSizeRange,
+      preferredPriceRange,
+      favoriteWarehouses,
+      averageReservationDuration,
+    };
+  }
+
+  // Récupérer les statistiques d'un client
+  async getClientStorageStats(clientId: string) {
+    try {
+      // Statistiques de base
+      const [totalReservations, activeReservations, completedReservations] = await Promise.all([
+        db.reservation.count({ where: { clientId } }),
+        db.reservation.count({ 
+          where: { 
+            clientId, 
+            status: { in: ['PENDING', 'ACTIVE', 'EXTENDED'] }
+          } 
+        }),
+        db.reservation.count({ 
+          where: { 
+            clientId, 
+            status: 'COMPLETED' 
+          } 
+        }),
+      ]);
+
+      // Calcul des dépenses totales
+      const reservations = await db.reservation.findMany({
+        where: { clientId },
+        select: { totalPrice: true, startDate: true, endDate: true },
+      });
+
+      const totalSpent = reservations.reduce((sum, r) => sum + r.totalPrice, 0);
+      const totalDaysUsed = reservations.reduce((sum, r) => {
+        const days = Math.ceil(
+          (new Date(r.endDate).getTime() - new Date(r.startDate).getTime()) / 
+          (1000 * 60 * 60 * 24)
+        );
+        return sum + days;
+      }, 0);
+
+      // Récupérer les box favorites (les plus utilisées)
+      const boxUsage = await db.reservation.groupBy({
+        by: ['boxId'],
+        where: { clientId },
+        _count: { boxId: true },
+        orderBy: { _count: { boxId: 'desc' } },
+        take: 5,
+      });
+
+      const favoriteBoxes = await Promise.all(
+        boxUsage.map(async (usage) => {
+          const box = await db.box.findUnique({
+            where: { id: usage.boxId },
+            include: { warehouse: true },
+          });
+          return {
+            box,
+            usageCount: usage._count.boxId,
+          };
+        })
+      );
+
+      // Calculer l'empreinte écologique (estimation)
+      const estimatedCO2Saved = totalDaysUsed * 0.5; // 0.5kg CO2 économisé par jour d'utilisation
+      const estimatedWastReduced = totalDaysUsed * 2; // 2kg de déchets d'emballage évités par jour
+
+      return {
+        totalReservations,
+        activeReservations,
+        completedReservations,
+        totalSpent,
+        totalDaysUsed,
+        averageReservationValue: totalReservations > 0 ? totalSpent / totalReservations : 0,
+        favoriteBoxes: favoriteBoxes.filter(fb => fb.box),
+        sustainability: {
+          co2Saved: estimatedCO2Saved,
+          wasteReduced: estimatedWastReduced,
+          sustainabilityScore: Math.min(100, Math.round(totalDaysUsed / 365 * 100)),
+        },
+      };
+    } catch (error) {
+      console.error('Erreur lors de la récupération des statistiques client:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la récupération des statistiques',
+      });
+    }
+  }
+
+  // Trouver des alternatives si une box n'est pas disponible
+  async findBoxAlternatives(boxId: string, startDate: Date, endDate: Date) {
+    try {
+      // Récupérer la box originale pour connaître ses caractéristiques
+      const originalBox = await db.box.findUnique({
+        where: { id: boxId },
+        include: { warehouse: true },
+      });
+
+      if (!originalBox) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Box non trouvée',
+        });
+      }
+
+      // Chercher des alternatives similaires
+      const alternatives = await db.box.findMany({
+        where: {
+          id: { not: boxId },
+          warehouseId: originalBox.warehouseId, // Même entrepôt en priorité
+          isOccupied: false,
+          size: {
+            gte: originalBox.size * 0.8, // Taille similaire (±20%)
+            lte: originalBox.size * 1.2,
+          },
+          pricePerDay: {
+            lte: originalBox.pricePerDay * 1.3, // Prix similaire ou inférieur (+30% max)
+          },
+          NOT: {
+            reservations: {
+              some: {
+                AND: [
+                  {
+                    OR: [
+                      {
+                        startDate: { lte: endDate },
+                        endDate: { gte: startDate },
+                      },
+                    ],
+                  },
+                  {
+                    status: { in: ['PENDING', 'ACTIVE', 'EXTENDED'] },
+                  },
+                ],
+              },
+            },
+          },
+        },
+        include: {
+          warehouse: true,
+        },
+        orderBy: [
+          { pricePerDay: 'asc' },
+          { size: 'asc' },
+        ],
+        take: 10,
+      });
+
+      // Si pas d'alternatives dans le même entrepôt, chercher dans d'autres entrepôts
+      let alternativesOtherWarehouses: any[] = [];
+      if (alternatives.length < 3) {
+        alternativesOtherWarehouses = await db.box.findMany({
+          where: {
+            id: { not: boxId },
+            warehouseId: { not: originalBox.warehouseId },
+            isOccupied: false,
+            boxType: originalBox.boxType,
+            size: {
+              gte: originalBox.size * 0.7,
+              lte: originalBox.size * 1.5,
+            },
+            pricePerDay: {
+              lte: originalBox.pricePerDay * 1.5,
+            },
+            NOT: {
+              reservations: {
+                some: {
+                  AND: [
+                    {
+                      OR: [
+                        {
+                          startDate: { lte: endDate },
+                          endDate: { gte: startDate },
+                        },
+                      ],
+                    },
+                    {
+                      status: { in: ['PENDING', 'ACTIVE', 'EXTENDED'] },
+                    },
+                  ],
+                },
+              },
+            },
+          },
+          include: {
+            warehouse: true,
+          },
+          orderBy: [
+            { pricePerDay: 'asc' },
+          ],
+          take: 5,
+        });
+      }
+
+      const allAlternatives = [...alternatives, ...alternativesOtherWarehouses];
+
+      // Calculer les scores de compatibilité
+      const scoredAlternatives = allAlternatives.map(box => {
+        let compatibilityScore = 100;
+
+        // Pénalité pour différence de taille
+        const sizeDiff = Math.abs(box.size - originalBox.size) / originalBox.size;
+        compatibilityScore -= sizeDiff * 30;
+
+        // Pénalité pour différence de prix
+        const priceDiff = Math.abs(box.pricePerDay - originalBox.pricePerDay) / originalBox.pricePerDay;
+        compatibilityScore -= priceDiff * 20;
+
+        // Pénalité si différent entrepôt
+        if (box.warehouseId !== originalBox.warehouseId) {
+          compatibilityScore -= 25;
+        }
+
+        // Pénalité si différent type
+        if (box.boxType !== originalBox.boxType) {
+          compatibilityScore -= 15;
+        }
+
+        return {
+          ...box,
+          compatibilityScore: Math.max(0, Math.round(compatibilityScore)),
+        };
+      });
+
+      return {
+        originalBox,
+        alternatives: scoredAlternatives
+          .sort((a, b) => b.compatibilityScore - a.compatibilityScore)
+          .slice(0, 8),
+      };
+    } catch (error) {
+      console.error('Erreur lors de la recherche d\'alternatives:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la recherche d\'alternatives',
+      });
+    }
+  }
+
+  // Calcul du prix prévisionnel avec remises potentielles
+  async calculateOptimalPricing(input: {
+    boxId: string;
+    startDate: Date;
+    endDate: Date;
+    clientId: string;
+  }) {
+    try {
+      const { boxId, startDate, endDate, clientId } = input;
+
+      // Récupérer la box et l'historique client
+      const [box, clientHistory] = await Promise.all([
+        db.box.findUnique({ where: { id: boxId } }),
+        db.reservation.findMany({
+          where: { clientId, status: 'COMPLETED' },
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+        }),
+      ]);
+
+      if (!box) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Box non trouvée',
+        });
+      }
+
+      // Calcul de base
+      const days = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+      const basePrice = box.pricePerDay * days;
+      let finalPrice = basePrice;
+      const discounts: Array<{ type: string; amount: number; description: string }> = [];
+
+      // Remise fidélité
+      if (clientHistory.length >= 5) {
+        const loyaltyDiscount = Math.min(0.15, clientHistory.length * 0.02); // Max 15%
+        const discountAmount = basePrice * loyaltyDiscount;
+        discounts.push({
+          type: 'LOYALTY',
+          amount: discountAmount,
+          description: `Remise fidélité ${Math.round(loyaltyDiscount * 100)}% (${clientHistory.length} réservations)`,
+        });
+        finalPrice -= discountAmount;
+      }
+
+      // Remise longue durée
+      if (days >= 30) {
+        const longTermDiscount = 0.1; // 10% pour 30 jours ou plus
+        const discountAmount = basePrice * longTermDiscount;
+        discounts.push({
+          type: 'LONG_TERM',
+          amount: discountAmount,
+          description: `Remise longue durée 10% (${days} jours)`,
+        });
+        finalPrice -= discountAmount;
+      } else if (days >= 14) {
+        const mediumTermDiscount = 0.05; // 5% pour 14 jours ou plus
+        const discountAmount = basePrice * mediumTermDiscount;
+        discounts.push({
+          type: 'MEDIUM_TERM',
+          amount: discountAmount,
+          description: `Remise moyenne durée 5% (${days} jours)`,
+        });
+        finalPrice -= discountAmount;
+      }
+
+      // Remise early bird (réservation à l'avance)
+      const daysInAdvance = Math.ceil((startDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+      if (daysInAdvance >= 14) {
+        const earlyBirdDiscount = 0.05; // 5% pour réservation 14 jours à l'avance
+        const discountAmount = basePrice * earlyBirdDiscount;
+        discounts.push({
+          type: 'EARLY_BIRD',
+          amount: discountAmount,
+          description: `Remise réservation anticipée 5% (${daysInAdvance} jours à l'avance)`,
+        });
+        finalPrice -= discountAmount;
+      }
+
+      // TVA
+      const vatRate = 0.2; // 20%
+      const vatAmount = finalPrice * vatRate;
+      const totalWithVat = finalPrice + vatAmount;
+
+      return {
+        basePrice,
+        discounts,
+        totalDiscounts: discounts.reduce((sum, d) => sum + d.amount, 0),
+        priceBeforeVat: finalPrice,
+        vatAmount,
+        finalPrice: totalWithVat,
+        days,
+        pricePerDay: box.pricePerDay,
+        breakdown: {
+          basePrice,
+          discountedPrice: finalPrice,
+          vat: vatAmount,
+          total: totalWithVat,
+        },
+      };
+    } catch (error) {
+      console.error('Erreur lors du calcul du prix optimal:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors du calcul du prix',
+      });
+    }
+  }
 }
 
 export const storageService = new StorageService();

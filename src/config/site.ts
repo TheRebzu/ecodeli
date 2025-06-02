@@ -7,4 +7,14 @@ export const siteConfig = {
     twitter: 'https://twitter.com/ecodeli',
     github: 'https://github.com/ecodeli'
   }
+<<<<<<< Updated upstream
+=======
+};
+
+// Configuration OneSignal (optionnelle)
+export const oneSignalConfig = {
+  enabled: false, // Désactivé en développement
+  appId: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || '',
+  apiKey: process.env.ONESIGNAL_API_KEY || '',
+>>>>>>> Stashed changes
 };

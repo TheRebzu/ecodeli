@@ -33,11 +33,12 @@ import { Separator } from '@/components/ui/separator';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { CalendarIcon, Clock, PlusCircle, Trash2 } from 'lucide-react';
+import { CalendarIcon, Clock, PlusCircle, Trash2, Grid3X3, List, Calendar as CalendarGridIcon } from 'lucide-react';
 import { formatDate, formatTime, formatDateTime } from '@/lib/format';
 import { useRouter } from 'next/navigation';
 import { api } from '@/trpc/react';
 import { toast } from 'sonner';
+import { CalendarView } from '@/components/schedule/calendar-view';
 
 interface Booking {
   id: string;
@@ -71,10 +72,12 @@ export function ProviderCalendar() {
 
   const [date, setDate] = useState<Date | undefined>(new Date());
   const [showAddAvailability, setShowAddAvailability] = useState(false);
+  const [showCalendarView, setShowCalendarView] = useState(false);
   const [dayOfWeek, setDayOfWeek] = useState<string>('1'); // Lundi par défaut
   const [startTime, setStartTime] = useState<string>('09:00');
   const [endTime, setEndTime] = useState<string>('17:00');
   const [isRecurring, setIsRecurring] = useState(true);
+  const [selectedBookingId, setSelectedBookingId] = useState<string | null>(null);
 
   // Récupérer les réservations pour le prestataire
   const bookingsQuery = api.service.getMyProviderBookings.useQuery({});
@@ -172,11 +175,41 @@ export function ProviderCalendar() {
 
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="calendar">
-        <TabsList className="grid grid-cols-2 w-full max-w-md mx-auto mb-6">
-          <TabsTrigger value="calendar">{t('tabs.calendar')}</TabsTrigger>
-          <TabsTrigger value="availability">{t('tabs.availability')}</TabsTrigger>
-        </TabsList>
+      <div className="flex justify-between items-center">
+        <div>
+          <h1 className="text-2xl font-bold">{t('calendar.title')}</h1>
+          <p className="text-muted-foreground">{t('calendar.description')}</p>
+        </div>
+        
+        <div className="flex gap-2">
+          <Button
+            variant={showCalendarView ? "default" : "outline"}
+            onClick={() => setShowCalendarView(true)}
+            className="flex items-center gap-2"
+          >
+            <CalendarGridIcon className="h-4 w-4" />
+            {t('views.fullCalendar')}
+          </Button>
+          <Button
+            variant={!showCalendarView ? "default" : "outline"}
+            onClick={() => setShowCalendarView(false)}
+            className="flex items-center gap-2"
+          >
+            <List className="h-4 w-4" />
+            {t('views.listView')}
+          </Button>
+        </div>
+      </div>
+
+      {showCalendarView ? (
+        <CalendarView />
+      ) : (
+        <Tabs defaultValue="calendar">
+          <TabsList className="grid grid-cols-3 w-full max-w-lg mx-auto mb-6">
+            <TabsTrigger value="calendar">{t('tabs.calendar')}</TabsTrigger>
+            <TabsTrigger value="availability">{t('tabs.availability')}</TabsTrigger>
+            <TabsTrigger value="analytics">{t('tabs.analytics')}</TabsTrigger>
+          </TabsList>
 
         <TabsContent value="calendar" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -376,7 +409,133 @@ export function ProviderCalendar() {
             </CardContent>
           </Card>
         </TabsContent>
-      </Tabs>
+
+        <TabsContent value="analytics" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Statistiques rapides */}
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">{t('analytics.totalBookings')}</CardTitle>
+                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{bookingsQuery.data?.length || 0}</div>
+                <p className="text-xs text-muted-foreground">
+                  {t('analytics.thisMonth')}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">{t('analytics.pendingBookings')}</CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {bookingsQuery.data?.filter(b => b.status === 'PENDING').length || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {t('analytics.requiresAction')}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">{t('analytics.completedBookings')}</CardTitle>
+                <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">
+                  {bookingsQuery.data?.filter(b => b.status === 'COMPLETED').length || 0}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  {t('analytics.thisMonth')}
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">{t('analytics.availabilitySlots')}</CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{availabilitiesQuery.data?.length || 0}</div>
+                <p className="text-xs text-muted-foreground">
+                  {t('analytics.activeSlots')}
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Réservations récentes */}
+          <Card>
+            <CardHeader>
+              <CardTitle>{t('analytics.recentBookings')}</CardTitle>
+              <CardDescription>{t('analytics.recentBookingsDescription')}</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {bookingsQuery.isLoading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="h-16 bg-gray-100 animate-pulse rounded-lg" />
+                  ))}
+                </div>
+              ) : !bookingsQuery.data?.length ? (
+                <div className="text-center py-10">
+                  <CalendarIcon className="mx-auto h-12 w-12 text-gray-300" />
+                  <h3 className="mt-2 text-base font-medium text-gray-900">
+                    {t('analytics.noBookings')}
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500">{t('analytics.noBookingsDescription')}</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {bookingsQuery.data
+                    .sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime())
+                    .slice(0, 5)
+                    .map(booking => (
+                      <div
+                        key={booking.id}
+                        className={`p-4 border rounded-lg ${getStatusColor(booking.status)} flex justify-between items-center cursor-pointer hover:opacity-90 transition-opacity`}
+                        onClick={() => goToBookingDetails(booking.id)}
+                      >
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <Clock className="h-4 w-4" />
+                            <span className="font-medium">
+                              {formatDate(booking.startTime)} à {formatTime(booking.startTime)}
+                            </span>
+                          </div>
+                          <div className="mt-1 flex justify-between">
+                            <span className="text-sm font-medium truncate">
+                              {booking.service.name}
+                            </span>
+                            <span className="text-sm">{booking.client.name}</span>
+                          </div>
+                        </div>
+                        <div className="ml-4">
+                          <Badge variant={
+                            booking.status === 'PENDING' ? 'secondary' :
+                            booking.status === 'CONFIRMED' ? 'default' :
+                            booking.status === 'COMPLETED' ? 'secondary' :
+                            booking.status === 'CANCELLED' ? 'destructive' :
+                            'outline'
+                          }>
+                            {booking.status}
+                          </Badge>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+        </Tabs>
+      )}
     </div>
   );
 }

@@ -27,19 +27,30 @@ export enum SupportedLanguage {
   EN = 'en',
 }
 
-// Paramètres de notifications pour un utilisateur
+// Paramètres de notifications pour un utilisateur - Version étendue
 export interface UserNotificationSettings {
-  userId: string;
-  emailEnabled: boolean;
-  pushEnabled: boolean;
-  smsEnabled: boolean;
-  inAppEnabled: boolean;
-  emailFrequency: 'INSTANT' | 'DAILY' | 'WEEKLY';
-  deliveryUpdates: boolean;
-  paymentUpdates: boolean;
-  marketingUpdates: boolean;
-  systemUpdates: boolean;
-  language: SupportedLanguage;
+  userId?: string;
+  emailEnabled?: boolean;
+  pushEnabled?: boolean;
+  smsEnabled?: boolean;
+  inAppEnabled?: boolean;
+  emailFrequency?: 'INSTANT' | 'DAILY' | 'WEEKLY';
+  deliveryUpdates?: boolean;
+  paymentUpdates?: boolean;
+  marketingUpdates?: boolean;
+  systemUpdates?: boolean;
+  language?: SupportedLanguage;
+  
+  // Anciens noms pour compatibilité
+  emailNotifications?: boolean;
+  pushNotifications?: boolean;
+  smsNotifications?: boolean;
+  marketingEmails?: boolean;
+  securityAlerts?: boolean;
+  loginAlerts?: boolean;
+  paymentAlerts?: boolean;
+  weeklyDigest?: boolean;
+  notificationCategories?: string[];
 }
 
 // Options pour l'envoi de notifications
@@ -48,10 +59,16 @@ export interface SendUserNotificationOptions {
   type: NotificationType;
   title: string;
   content: string;
+  message?: string; // Alias pour content
   channels?: NotificationChannel[];
+  channel?: NotificationChannel; // Canal unique
   metadata?: Record<string, any>;
   requiresAction?: boolean;
+  requiresConfirmation?: boolean;
   actionUrl?: string;
+  actionLabel?: string;
+  attachmentUrl?: string;
+  deliverAt?: Date;
   priority?: 'LOW' | 'NORMAL' | 'HIGH';
   expiresAt?: Date;
   templateId?: string;

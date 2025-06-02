@@ -1054,7 +1054,7 @@
     "le_concept_de_crowdshipping": "Le concept de crowdshipping",
     "notre_concept": "Notre concept",
     "ecodeli_une_plateforme_de_crowdshipping_": "EcoDeli, une plateforme de crowdshipping innovante",
-    "ecodeli_est_une_plateforme_de_crowdshipp": "EcoDeli est une plateforme de crowdshipping qui permet aux particuliers de confier\r\n                  leurs colis à d'autres particuliers pour des livraisons écologiques et\r\n                  économiques.",
+    "ecodeli_est_une_plateforme_de_crowdshipping_": "EcoDeli est une plateforme de crowdshipping qui permet aux particuliers de confier\r\n                  leurs colis à d'autres particuliers pour des livraisons écologiques et\r\n                  économiques.",
     "notre_concept_repose_sur_l_optimisation_": "Notre concept repose sur l'optimisation des trajets existants : au lieu de créer\r\n                  de nouveaux déplacements, nous utilisons ceux que des personnes effectuent déjà\r\n                  pour transporter des colis ou proposer des services.",
     "cette_approche_permet_de_r_duire_l_empre": "Cette approche permet de réduire l'empreinte carbone des livraisons, de générer\r\n                  des revenus complémentaires pour les livreurs, et d'offrir des tarifs plus\r\n                  avantageux aux utilisateurs.",
     "au_del_du_transport_de_colis_notre_plate": "Au-delà du transport de colis, notre plateforme propose également des services à\r\n                  la personne, tels que le transport de personnes, les courses, ou la garde\r\n                  d'animaux, toujours dans une logique d'optimisation des déplacements.",
@@ -1781,7 +1781,7 @@
       "description": "Description (optionnel)",
       "uploading": "Téléchargement en cours...",
       "uploadSuccess": "Document téléchargé avec succès",
-      "uploadError": "Erreur lors du téléchargement",
+      "uploadError": "Erreur lors de l'upload du fichier",
       "submit": "Soumettre",
       "cancel": "Annuler"
     },
@@ -2970,8 +2970,19 @@
         "saveDraft": "saveDraft",
         "publish": "publish"
       },
-      "statusUpdateSuccess": "statusUpdateSuccess",
-      "statusUpdateError": "statusUpdateError"
+      "statusUpdateSuccess": "Statut mis à jour avec succès",
+      "statusUpdateError": "Erreur lors de la mise à jour du statut",
+      "uploadError": "Erreur lors de l'upload du fichier",
+      "maxPhotosError": "Vous ne pouvez pas uploader plus de {count} photos",
+      "fileSizeError": "La taille du fichier dépasse la limite autorisée (5MB max)",
+      "uploading": "Upload en cours...",
+      "maxPhotosReached": "Limite de {count} photos atteinte",
+      "dropHere": "Déposez vos photos ici",
+      "dragOrClick": "Glissez-déposez vos photos ou cliquez pour sélectionner",
+      "supportedFormats": "Formats supportés",
+      "maxFileSize": "Taille max",
+      "remaining": "Restant",
+      "announcementPhoto": "Photo d'annonce {index}"
     }
   },
   "expiresAt": "[en] expiresAt",
@@ -3620,16 +3631,17 @@
     "announcementUpdatedDescription": "announcementUpdatedDescription",
     "editAnnouncementDescription": "editAnnouncementDescription",
     "editAnnouncementInstructions": "editAnnouncementInstructions",
-    "uploadError": "uploadError",
-    "maxPhotosError": "maxPhotosError",
-    "dropFilesHere": "dropFilesHere",
-    "dragAndDrop": "dragAndDrop",
-    "or": "or",
-    "uploading": "uploading",
-    "selectFiles": "selectFiles",
-    "maxFileSize": "maxFileSize",
-    "remainingPhotos": "remainingPhotos",
-    "photoAlt": "photoAlt",
+    "uploadError": "Erreur lors de l'upload du fichier",
+    "maxPhotosError": "Vous ne pouvez pas uploader plus de {count} photos",
+    "fileSizeError": "La taille du fichier dépasse la limite autorisée (5MB max)",
+    "uploading": "Upload en cours...",
+    "maxPhotosReached": "Limite de {count} photos atteinte",
+    "dropHere": "Déposez vos photos ici",
+    "dragOrClick": "Glissez-déposez vos photos ou cliquez pour sélectionner",
+    "supportedFormats": "Formats supportés",
+    "maxFileSize": "Taille max",
+    "remaining": "Restant",
+    "announcementPhoto": "Photo d'annonce {index}",
     "noRating": "noRating",
     "pending": "pending",
     "accepted": "accepted",
@@ -5316,10 +5328,15 @@
     "error": "error"
   },
   "services": {
-    "title": "title",
+    "title": "Services",
+    "list": {
+      "title": "Services disponibles",
+      "subtitle": "Découvrez tous les services proposés par notre communauté",
+      "description": "Trouvez le service qu'il vous faut parmi notre large sélection de prestataires vérifiés"
+    },
     "detail": {
-      "verifiedProvider": "verifiedProvider",
-      "descriptionTitle": "descriptionTitle",
+      "verifiedProvider": "Prestataire vérifié",
+      "descriptionTitle": "Description du service",
       "noReviews": "noReviews",
       "beFirstReviewer": "beFirstReviewer",
       "bookingTitle": "bookingTitle",
@@ -6232,5 +6249,33 @@
       "default": "[À TRADUIRE] default"
     },
     "noActivities": "[À TRADUIRE] noActivities"
+  },
+  "storage": {
+    "title": "Stockage",
+    "description": "Gérez vos espaces de stockage et réservations",
+    "dashboard": {
+      "title": "Tableau de bord du stockage",
+      "myReservations": "Mes réservations",
+      "availableBoxes": "Boîtes disponibles",
+      "upcomingPickups": "Récupérations prévues"
+    },
+    "boxes": {
+      "title": "Boîtes de stockage",
+      "reserve": "Réserver",
+      "available": "Disponible",
+      "reserved": "Réservé",
+      "size": "Taille",
+      "location": "Emplacement"
+    },
+    "reservations": {
+      "title": "Mes réservations",
+      "active": "Actives",
+      "completed": "Terminées",
+      "cancelled": "Annulées",
+      "startDate": "Date de début",
+      "endDate": "Date de fin",
+      "duration": "Durée",
+      "status": "Statut"
+    }
   }
 }

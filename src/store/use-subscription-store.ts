@@ -1,1 +1,15 @@
-import { create } from 'zustand';\n\ninterface SubscriptionState {\n  currentPlan: any | null;\n  availablePlans: any[];\n  setCurrentPlan: (plan: any | null) => void;\n  setAvailablePlans: (plans: any[]) => void;\n}\n\nexport const useSubscriptionStore = create<SubscriptionState>((set) => ({\n  currentPlan: null,\n  availablePlans: [],\n  setCurrentPlan: (plan) => set({ currentPlan: plan }),\n  setAvailablePlans: (plans) => set({ availablePlans: plans }),\n}));
+import { create } from 'zustand';
+
+interface SubscriptionState {
+  currentPlan: any | null;
+  availablePlans: any[];
+  setCurrentPlan: (plan: any | null) => void;
+  setAvailablePlans: (plans: any[]) => void;
+}
+
+export const useSubscriptionStore = create<SubscriptionState>((set) => ({
+  currentPlan: null,
+  availablePlans: [],
+  setCurrentPlan: (plan) => set({ currentPlan: plan }),
+  setAvailablePlans: (plans) => set({ availablePlans: plans }),
+})); 

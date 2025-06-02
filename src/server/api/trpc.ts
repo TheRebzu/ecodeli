@@ -73,23 +73,27 @@ export const createTRPCContext = async (opts?: CreateNextContextOptionsWithAuth)
   }
   
   // Sinon, nous sommes dans un contexte App Router
+  let headers = {};
+  let session = null;
+  
   try {
-    const headers = getHeaders();
+    headers = getHeaders();
     // Récupérer la session sans req/res avec Next.js App Router
-    const session = await getServerAuthSession();
-    
-    return createInnerTRPCContext({
-      session,
-      headers,
-    });
-  } catch (error) {
-    // Fallback si une erreur se produit
-    console.error("Erreur lors de la création du contexte tRPC:", error);
-    return createInnerTRPCContext({
-      session: null,
-      headers: {},
-    });
+    session = await getServerAuthSession();
+  } catch (error: any) {
+    // Log plus détaillé pour debugging
+    if (error?.name === 'JWEInvalid' || error?.message?.includes('Invalid Compact JWE')) {
+      console.warn("Session JWT invalide - l'utilisateur sera déconnecté:", error.message);
+    } else {
+      console.error("Erreur lors de la création du contexte tRPC:", error);
+    }
+    // Continue avec session=null et headers={}
   }
+  
+  return createInnerTRPCContext({
+    session,
+    headers,
+  });
 };
 
 // Exporter le type Context pour la réutilisation dans d'autres fichiers

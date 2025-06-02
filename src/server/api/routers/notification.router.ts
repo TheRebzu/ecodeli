@@ -1,7 +1,7 @@
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { router, protectedProcedure } from '@/server/api/trpc';
-import { NotificationService } from '@/server/services/notification.service';
+import { notificationService } from '@/server/services';
 
 export const notificationRouter = router({
   // Get all notifications with pagination and optional type filtering
@@ -15,7 +15,7 @@ export const notificationRouter = router({
     )
     .query(async ({ ctx, input }) => {
       try {
-        const result = await NotificationService.getUserNotifications(ctx.session.user.id, {
+        const result = await notificationService.getUserNotifications(ctx.session.user.id, {
           limit: input.limit,
           // Autres paramètres comme nécessaire
         });
@@ -40,8 +40,8 @@ export const notificationRouter = router({
     )
     .query(async ({ ctx, input }) => {
       try {
-        const result = await NotificationService.getUserNotifications(ctx.session.user.id, {
-          unreadOnly: true,
+        const result = await notificationService.getUserNotifications(ctx.session.user.id, {
+          includeRead: false,
         });
         return result.notifications;
       } catch (error) {
@@ -64,10 +64,10 @@ export const notificationRouter = router({
     )
     .query(async ({ ctx, input }) => {
       try {
-        const result = await NotificationService.getUserNotifications(ctx.session.user.id, {
-          unreadOnly: true,
+        const result = await notificationService.getUserNotifications(ctx.session.user.id, {
+          includeRead: false,
         });
-        return result.unreadCount;
+        return result.total;
       } catch (error) {
         console.error('Error fetching unread count:', error);
         throw new TRPCError({
@@ -82,7 +82,7 @@ export const notificationRouter = router({
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {
       try {
-        return await NotificationService.markAsRead(input.id);
+        return await notificationService.markAsRead(input.id);
       } catch (error) {
         console.error('Error marking notification as read:', error);
         throw new TRPCError({
@@ -103,7 +103,7 @@ export const notificationRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        return await NotificationService.markAllAsRead(ctx.session.user.id);
+        return await notificationService.markAllAsRead(ctx.session.user.id);
       } catch (error) {
         console.error('Error marking all notifications as read:', error);
         throw new TRPCError({

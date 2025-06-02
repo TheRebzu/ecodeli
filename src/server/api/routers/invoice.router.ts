@@ -2,9 +2,14 @@ import { router, protectedProcedure, adminProcedure } from '@/server/api/trpc';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import { invoiceService } from '@/server/services/invoice.service';
+import { billingService } from '@/server/services/billing.service';
 import { 
   createInvoiceSchema, 
-  invoiceBaseSchema 
+  invoiceBaseSchema,
+  monthlyMerchantBillingSchema,
+  monthlyProviderBillingSchema,
+  billingCycleSchema,
+  billingStatsSchema
 } from '@/schemas/invoice.schema';
 import { 
   UserRole, 
@@ -27,7 +32,7 @@ export const invoiceRouter = router({
     .input(z.object({
       page: z.number().int().positive().default(1),
       limit: z.number().int().positive().max(100).default(10),
-      status: z.enum(['ALL', 'DRAFT', 'PENDING', 'PAID', 'CANCELLED', 'REFUNDED']).optional(),
+      status: z.nativeEnum(InvoiceStatus).optional(),
       startDate: z.date().optional(),
       endDate: z.date().optional(),
       sortOrder: z.enum(['asc', 'desc']).default('desc')
@@ -42,21 +47,21 @@ export const invoiceRouter = router({
           userId
         };
         
-        if (status && status !== 'ALL') {
+        if (status) {
           where.status = status;
         }
         
         if (startDate || endDate) {
-          where.issuedDate = {};
-          if (startDate) where.issuedDate.gte = startDate;
-          if (endDate) where.issuedDate.lte = endDate;
+          where.issueDate = {};
+          if (startDate) where.issueDate.gte = startDate;
+          if (endDate) where.issueDate.lte = endDate;
         }
         
         // Récupérer les factures
         const [invoices, total] = await Promise.all([
           ctx.db.invoice.findMany({
             where,
-            orderBy: { issuedDate: sortOrder },
+            orderBy: { issueDate: sortOrder },
             skip: (page - 1) * limit,
             take: limit,
             include: {
@@ -117,13 +122,7 @@ export const invoiceRouter = router({
                 role: true
               }
             },
-            subscription: {
-              select: {
-                id: true,
-                planType: true,
-                planName: true
-              }
-            }
+            items: true
           }
         });
         
@@ -150,6 +149,211 @@ export const invoiceRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: error.message || "Erreur lors de la récupération de la facture",
+          cause: error,
+        });
+      }
+    }),
+
+  /**
+   * Récupère les détails d'une facture (alias pour getInvoiceById)
+   */
+  getInvoiceDetails: protectedProcedure
+    .input(z.object({
+      invoiceId: z.string()
+    }))
+    .query(async ({ ctx, input }) => {
+      try {
+        const userId = ctx.session.user.id;
+        const { invoiceId } = input;
+        
+        // Récupérer la facture avec tous les détails
+        const invoice = await ctx.db.invoice.findUnique({
+          where: { id: invoiceId },
+          include: {
+            payments: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                role: true
+              }
+            },
+            items: true
+          }
+        });
+        
+        if (!invoice) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: "Facture non trouvée"
+          });
+        }
+        
+        // Vérifier l'accès
+        if (invoice.userId !== userId && !isRoleAllowed(ctx.session.user.role, [UserRole.ADMIN])) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: "Vous n'avez pas accès à cette facture"
+          });
+        }
+        
+        return {
+          invoice,
+          isDemoMode: process.env.DEMO_MODE === 'true'
+        };
+      } catch (error: any) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error.message || "Erreur lors de la récupération des détails de la facture",
+          cause: error,
+        });
+      }
+    }),
+
+  /**
+   * Récupère les statistiques de factures de l'utilisateur connecté
+   */
+  getMyInvoiceStats: protectedProcedure
+    .input(z.object({
+      period: z.enum(['day', 'week', 'month', 'quarter', 'year']).default('month'),
+      compareWithPrevious: z.boolean().default(true),
+      startDate: z.date().optional(),
+      endDate: z.date().optional()
+    }))
+    .query(async ({ ctx, input }) => {
+      try {
+        const userId = ctx.session.user.id;
+        const { period, compareWithPrevious, startDate, endDate } = input;
+        
+        // Calculer les dates de la période actuelle et précédente
+        const now = new Date();
+        let currentStart: Date, currentEnd: Date, previousStart: Date, previousEnd: Date;
+        
+        if (startDate && endDate) {
+          currentStart = startDate;
+          currentEnd = endDate;
+        } else {
+          // Définir la période basée sur le paramètre
+          switch (period) {
+            case 'day':
+              currentStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+              currentEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
+              break;
+            case 'week':
+              const dayOfWeek = now.getDay();
+              currentStart = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dayOfWeek);
+              currentEnd = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dayOfWeek + 7);
+              break;
+            case 'month':
+              currentStart = new Date(now.getFullYear(), now.getMonth(), 1);
+              currentEnd = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+              break;
+            case 'quarter':
+              const quarter = Math.floor(now.getMonth() / 3);
+              currentStart = new Date(now.getFullYear(), quarter * 3, 1);
+              currentEnd = new Date(now.getFullYear(), quarter * 3 + 3, 1);
+              break;
+            case 'year':
+              currentStart = new Date(now.getFullYear(), 0, 1);
+              currentEnd = new Date(now.getFullYear() + 1, 0, 1);
+              break;
+          }
+        }
+        
+        // Calculer la période précédente pour comparaison
+        const periodDiff = currentEnd.getTime() - currentStart.getTime();
+        previousEnd = new Date(currentStart.getTime());
+        previousStart = new Date(currentStart.getTime() - periodDiff);
+        
+        // Récupérer les statistiques pour la période actuelle
+        const [currentInvoices, currentPaidInvoices, previousInvoices, previousPaidInvoices] = await Promise.all([
+          ctx.db.invoice.findMany({
+            where: {
+              userId,
+              issueDate: {
+                gte: currentStart,
+                lt: currentEnd
+              }
+            }
+          }),
+          ctx.db.invoice.findMany({
+            where: {
+              userId,
+              status: InvoiceStatus.PAID,
+              paidDate: {
+                gte: currentStart,
+                lt: currentEnd
+              }
+            }
+          }),
+          compareWithPrevious ? ctx.db.invoice.findMany({
+            where: {
+              userId,
+              issueDate: {
+                gte: previousStart,
+                lt: previousEnd
+              }
+            }
+          }) : [],
+          compareWithPrevious ? ctx.db.invoice.findMany({
+            where: {
+              userId,
+              status: InvoiceStatus.PAID,
+              paidDate: {
+                gte: previousStart,
+                lt: previousEnd
+              }
+            }
+          }) : []
+        ]);
+        
+        // Calculer les statistiques
+        const currentTotal = currentInvoices.reduce((sum, inv) => sum + Number(inv.totalAmount), 0);
+        const currentPaidTotal = currentPaidInvoices.reduce((sum, inv) => sum + Number(inv.totalAmount), 0);
+        const previousTotal = previousInvoices.reduce((sum, inv) => sum + Number(inv.totalAmount), 0);
+        const previousPaidTotal = previousPaidInvoices.reduce((sum, inv) => sum + Number(inv.totalAmount), 0);
+        
+        // Calculer les changements en pourcentage
+        const totalChange = previousTotal > 0 ? ((currentTotal - previousTotal) / previousTotal) * 100 : 0;
+        const paidChange = previousPaidTotal > 0 ? ((currentPaidTotal - previousPaidTotal) / previousPaidTotal) * 100 : 0;
+        
+        const stats = {
+          totalInvoices: currentInvoices.length,
+          totalAmount: currentTotal,
+          paidInvoices: currentPaidInvoices.length,
+          paidAmount: currentPaidTotal,
+          pendingInvoices: currentInvoices.filter(inv => inv.status === InvoiceStatus.PENDING).length,
+          overdueInvoices: currentInvoices.filter(inv => 
+            inv.status === InvoiceStatus.PENDING && 
+            inv.dueDate && 
+            inv.dueDate < now
+          ).length,
+          averageInvoiceAmount: currentInvoices.length > 0 ? currentTotal / currentInvoices.length : 0,
+          paymentRate: currentInvoices.length > 0 ? (currentPaidInvoices.length / currentInvoices.length) * 100 : 0,
+          period: {
+            start: currentStart,
+            end: currentEnd,
+            type: period
+          },
+          comparison: compareWithPrevious ? {
+            previousTotal,
+            previousPaidTotal,
+            totalChange,
+            paidChange,
+            invoiceCountChange: previousInvoices.length > 0 ? 
+              ((currentInvoices.length - previousInvoices.length) / previousInvoices.length) * 100 : 0
+          } : null
+        };
+        
+        return {
+          stats,
+          isDemoMode: process.env.DEMO_MODE === 'true'
+        };
+      } catch (error: any) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error.message || "Erreur lors de la récupération des statistiques",
           cause: error,
         });
       }
@@ -939,6 +1143,633 @@ export const invoiceRouter = router({
           cause: error,
         });
       }
+    }),
+
+  // ==== NOUVEAUX ENDPOINTS POUR LA FACTURATION AUTOMATIQUE ====
+
+  /**
+   * Génère les factures mensuelles pour les marchands (admin uniquement)
+   */
+  generateMonthlyMerchantBilling: adminProcedure
+    .input(monthlyMerchantBillingSchema)
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const adminId = ctx.session.user.id;
+
+        // Si un merchantId spécifique est fourni, traiter seulement ce marchand
+        if (input.merchantId) {
+          const result = await billingService.generateMerchantInvoice(
+            input.merchantId,
+            input.periodStart || new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1),
+            input.periodEnd || new Date(new Date().getFullYear(), new Date().getMonth(), 0)
+          );
+
+          // Log d'audit
+          await ctx.db.auditLog.create({
+            data: {
+              entityType: 'INVOICE',
+              entityId: result.invoice.id,
+              performedById: adminId,
+              action: 'GENERATE_MERCHANT_INVOICE',
+              changes: {
+                merchantId: input.merchantId,
+                amount: String(result.totalAmount),
+                period: `${input.periodStart?.toISOString()} - ${input.periodEnd?.toISOString()}`
+              }
+            }
+          });
+
+          return {
+            success: true,
+            invoice: result.invoice,
+            totalAmount: result.totalAmount,
+            serviceFees: result.serviceFees,
+            commissionFees: result.commissionFees,
+            message: "Facture marchande générée avec succès"
+          };
+        }
+
+        // Sinon, générer pour tous les marchands
+        const result = await billingService.generateMonthlyProviderInvoices(
+          input.periodEnd || new Date()
+        );
+
+        return {
+          success: true,
+          results: result.results,
+          period: result.period,
+          message: "Facturation mensuelle des marchands terminée"
+        };
+      } catch (error: any) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error.message || "Erreur lors de la génération des factures marchandes",
+          cause: error,
+        });
+      }
+    }),
+
+  /**
+   * Génère les factures mensuelles pour les prestataires (admin uniquement)
+   */
+  generateMonthlyProviderBilling: adminProcedure
+    .input(monthlyProviderBillingSchema)
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const adminId = ctx.session.user.id;
+
+        // Si un providerId spécifique est fourni, traiter seulement ce prestataire
+        if (input.providerId) {
+          const result = await billingService.generateProviderInvoice(
+            input.providerId,
+            input.periodStart || new Date(new Date().getFullYear(), new Date().getMonth() - 1, 1),
+            input.periodEnd || new Date(new Date().getFullYear(), new Date().getMonth(), 0)
+          );
+
+          // Log d'audit
+          await ctx.db.auditLog.create({
+            data: {
+              entityType: 'INVOICE',
+              entityId: result.invoice.id,
+              performedById: adminId,
+              action: 'GENERATE_PROVIDER_INVOICE',
+              changes: {
+                providerId: input.providerId,
+                amount: String(result.totalAmount),
+                period: `${input.periodStart?.toISOString()} - ${input.periodEnd?.toISOString()}`
+              }
+            }
+          });
+
+          return {
+            success: true,
+            invoice: result.invoice,
+            totalAmount: result.totalAmount,
+            serviceFees: result.serviceFees,
+            commissionFees: result.commissionFees,
+            message: "Facture prestataire générée avec succès"
+          };
+        }
+
+        // Sinon, générer pour tous les prestataires
+        const result = await billingService.generateMonthlyProviderInvoices(
+          input.periodEnd || new Date()
+        );
+
+        return {
+          success: true,
+          results: result.results,
+          period: result.period,
+          message: "Facturation mensuelle des prestataires terminée"
+        };
+      } catch (error: any) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error.message || "Erreur lors de la génération des factures prestataires",
+          cause: error,
+        });
+      }
+    }),
+
+  /**
+   * Crée un cycle de facturation programmé (admin uniquement)
+   */
+  createBillingCycle: adminProcedure
+    .input(billingCycleSchema)
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const adminId = ctx.session.user.id;
+
+        const cycle = await billingService.createBillingCycle({
+          merchantId: input.merchantId,
+          providerId: input.providerId,
+          periodStart: input.periodStart,
+          periodEnd: input.periodEnd,
+          scheduledRunDate: input.scheduledRunDate
+        });
+
+        // Si l'exécution automatique est demandée et que la date est aujourd'hui
+        if (input.autoExecute && new Date().toDateString() === input.scheduledRunDate.toDateString()) {
+          await billingService.executeBillingCycle(cycle.id);
+        }
+
+        // Log d'audit
+        await ctx.db.auditLog.create({
+          data: {
+            entityType: 'BILLING_CYCLE',
+            entityId: cycle.id,
+            performedById: adminId,
+            action: 'CREATE_BILLING_CYCLE',
+            changes: {
+              merchantId: input.merchantId,
+              providerId: input.providerId,
+              scheduledRunDate: input.scheduledRunDate.toISOString(),
+              autoExecute: input.autoExecute
+            }
+          }
+        });
+
+        return {
+          success: true,
+          cycle,
+          message: "Cycle de facturation créé avec succès"
+        };
+      } catch (error: any) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error.message || "Erreur lors de la création du cycle de facturation",
+          cause: error,
+        });
+      }
+    }),
+
+  /**
+   * Exécute un cycle de facturation spécifique (admin uniquement)
+   */
+  executeBillingCycle: adminProcedure
+    .input(z.object({
+      billingCycleId: z.string().cuid('ID cycle invalide')
+    }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const adminId = ctx.session.user.id;
+        const { billingCycleId } = input;
+
+        const result = await billingService.executeBillingCycle(billingCycleId);
+
+        // Log d'audit
+        await ctx.db.auditLog.create({
+          data: {
+            entityType: 'BILLING_CYCLE',
+            entityId: billingCycleId,
+            performedById: adminId,
+            action: 'EXECUTE_BILLING_CYCLE',
+            changes: {
+              invoiceId: result.invoice?.id,
+              status: 'COMPLETED'
+            }
+          }
+        });
+
+        return {
+          success: true,
+          result,
+          message: "Cycle de facturation exécuté avec succès"
+        };
+      } catch (error: any) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error.message || "Erreur lors de l'exécution du cycle de facturation",
+          cause: error,
+        });
+      }
+    }),
+
+  /**
+   * Exécute la facturation mensuelle automatique (admin uniquement)
+   */
+  runMonthlyBilling: adminProcedure
+    .input(z.object({
+      forceRun: z.boolean().default(false)
+    }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const adminId = ctx.session.user.id;
+
+        const result = await billingService.runMonthlyBilling();
+
+        // Log d'audit
+        await ctx.db.auditLog.create({
+          data: {
+            entityType: 'SYSTEM',
+            entityId: 'monthly-billing',
+            performedById: adminId,
+            action: 'RUN_MONTHLY_BILLING',
+            changes: {
+              forceRun: input.forceRun,
+              success: result.success,
+              date: result.date
+            }
+          }
+        });
+
+        return {
+          success: true,
+          result,
+          message: result.success ? "Facturation mensuelle exécutée avec succès" : "Facturation mensuelle non exécutée"
+        };
+      } catch (error: any) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error.message || "Erreur lors de l'exécution de la facturation mensuelle",
+          cause: error,
+        });
+      }
+    }),
+
+  /**
+   * Récupère les statistiques de facturation (admin uniquement)
+   */
+  getBillingStats: adminProcedure
+    .input(billingStatsSchema)
+    .query(async ({ ctx, input }) => {
+      try {
+        const stats = await billingService.getBillingStats(input.period);
+
+        return {
+          success: true,
+          stats,
+          period: input.period,
+          isDemoMode: process.env.DEMO_MODE === 'true'
+        };
+      } catch (error: any) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error.message || "Erreur lors de la récupération des statistiques",
+          cause: error,
+        });
+      }
+    }),
+
+  /**
+   * Programme les cycles de facturation mensuelle (admin uniquement)
+   */
+  scheduleMonthlyCycles: adminProcedure
+    .input(z.object({
+      scheduledDate: z.date().default(() => new Date())
+    }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const adminId = ctx.session.user.id;
+
+        const result = await billingService.scheduleMonthlyCycles(input.scheduledDate);
+
+        // Log d'audit
+        await ctx.db.auditLog.create({
+          data: {
+            entityType: 'SYSTEM',
+            entityId: 'schedule-monthly-cycles',
+            performedById: adminId,
+            action: 'SCHEDULE_MONTHLY_CYCLES',
+            changes: {
+              scheduledDate: input.scheduledDate.toISOString(),
+              merchantsScheduled: result.merchantsScheduled,
+              providersScheduled: result.providersScheduled,
+              cyclesCreated: result.cyclesCreated
+            }
+          }
+        });
+
+        return {
+          success: true,
+          result,
+          message: `${result.cyclesCreated} cycles de facturation programmés pour le ${input.scheduledDate.toLocaleDateString()}`
+        };
+      } catch (error: any) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error.message || "Erreur lors de la programmation des cycles",
+          cause: error,
+        });
+      }
+    }),
+
+  /**
+   * Exécute les cycles de facturation programmés pour aujourd'hui (admin uniquement)
+   */
+  executeScheduledCycles: adminProcedure
+    .mutation(async ({ ctx }) => {
+      try {
+        const adminId = ctx.session.user.id;
+
+        const result = await billingService.executeScheduledCycles();
+
+        // Log d'audit
+        await ctx.db.auditLog.create({
+          data: {
+            entityType: 'SYSTEM',
+            entityId: 'execute-scheduled-cycles',
+            performedById: adminId,
+            action: 'EXECUTE_SCHEDULED_CYCLES',
+            changes: {
+              cyclesFound: result.cyclesFound,
+              merchantsProcessed: result.report.merchantsProcessed,
+              providersProcessed: result.report.providersProcessed,
+              invoicesGenerated: result.report.invoicesGenerated,
+              totalAmount: result.report.totalAmount
+            }
+          }
+        });
+
+        return {
+          success: true,
+          result,
+          message: `${result.report.invoicesGenerated} factures générées lors de l'exécution des cycles programmés`
+        };
+      } catch (error: any) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error.message || "Erreur lors de l'exécution des cycles programmés",
+          cause: error,
+        });
+      }
+    }),
+
+  // ===== NOUVEAUX ENDPOINTS POUR FACTURATION AUTOMATIQUE MERCHANTS =====
+
+  /**
+   * Lance la facturation automatique mensuelle pour tous les merchants (admin)
+   */
+  runMonthlyMerchantBilling: adminProcedure
+    .input(z.object({
+      date: z.date().optional(),
+      forceRun: z.boolean().default(false)
+    }))
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const { merchantBillingService } = await import('@/server/services/billing-merchant.service');
+        const result = await merchantBillingService.runMonthlyMerchantBilling(input.date);
+        
+        // Log d'audit
+        await ctx.db.auditLog.create({
+          data: {
+            entityType: 'SYSTEM',
+            entityId: 'monthly-merchant-billing',
+            performedById: ctx.session.user.id,
+            action: 'RUN_MONTHLY_MERCHANT_BILLING',
+            changes: {
+              merchantsProcessed: result.merchantsProcessed,
+              invoicesGenerated: result.invoicesGenerated,
+              totalAmount: result.totalAmount,
+              errors: result.errors
+            }
+          }
+        });
+
+        return {
+          success: true,
+          result,
+          message: `Facturation merchants: ${result.invoicesGenerated} factures générées pour ${result.merchantsProcessed} merchants`
+        };
+      } catch (error: any) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error.message || "Erreur lors de la facturation merchants",
+          cause: error,
+        });
+      }
+    }),
+
+  /**
+   * Traite les paiements automatiques programmés (admin)
+   */
+  processScheduledMerchantPayments: adminProcedure
+    .mutation(async ({ ctx }) => {
+      try {
+        const { merchantBillingService } = await import('@/server/services/billing-merchant.service');
+        const result = await merchantBillingService.processScheduledMerchantPayments();
+        
+        // Log d'audit
+        await ctx.db.auditLog.create({
+          data: {
+            entityType: 'SYSTEM',
+            entityId: 'scheduled-merchant-payments',
+            performedById: ctx.session.user.id,
+            action: 'PROCESS_SCHEDULED_MERCHANT_PAYMENTS',
+            changes: result
+          }
+        });
+
+        return {
+          success: true,
+          result,
+          message: `${result.successfulPayments}/${result.paymentsProcessed} paiements traités avec succès`
+        };
+      } catch (error: any) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error.message || "Erreur lors du traitement des paiements automatiques",
+          cause: error,
+        });
+      }
+    }),
+
+  /**
+   * Récupère les factures du merchant connecté avec filtres étendus
+   */
+  getMerchantInvoices: protectedProcedure
+    .input(z.object({
+      page: z.number().int().positive().default(1),
+      limit: z.number().int().positive().max(100).default(10),
+      status: z.enum(['ALL', 'DRAFT', 'PENDING', 'PAID', 'CANCELLED', 'REFUNDED']).optional(),
+      startDate: z.date().optional(),
+      endDate: z.date().optional(),
+      invoiceType: z.enum(['MERCHANT_FEE', 'SERVICE', 'OTHER']).optional(),
+      sortOrder: z.enum(['asc', 'desc']).default('desc')
+    }))
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      
+      // Vérifier que l'utilisateur est un merchant
+      const merchant = await ctx.db.merchant.findUnique({
+        where: { userId },
+        select: { id: true }
+      });
+      
+      if (!merchant) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Vous devez être un commerçant pour accéder à cette ressource'
+        });
+      }
+      
+      const where: any = {
+        userId,
+        invoiceType: input.invoiceType || 'MERCHANT_FEE'
+      };
+      
+      if (input.status && input.status !== 'ALL') {
+        where.status = input.status;
+      }
+      
+      if (input.startDate || input.endDate) {
+        where.issuedDate = {};
+        if (input.startDate) where.issuedDate.gte = input.startDate;
+        if (input.endDate) where.issuedDate.lte = input.endDate;
+      }
+      
+      const [invoices, total] = await Promise.all([
+        ctx.db.invoice.findMany({
+          where,
+          orderBy: { issuedDate: input.sortOrder },
+          skip: (input.page - 1) * input.limit,
+          take: input.limit,
+          include: {
+            items: true,
+            payments: {
+              select: {
+                id: true,
+                amount: true,
+                status: true,
+                createdAt: true
+              }
+            }
+          }
+        }),
+        ctx.db.invoice.count({ where })
+      ]);
+      
+      return {
+        invoices,
+        pagination: {
+          total,
+          page: input.page,
+          limit: input.limit,
+          pages: Math.ceil(total / input.limit)
+        }
+      };
+    }),
+
+  /**
+   * Récupère les statistiques de facturation pour un merchant
+   */
+  getMerchantBillingStats: protectedProcedure
+    .input(z.object({
+      period: z.enum(['MONTH', 'QUARTER', 'YEAR']).default('MONTH'),
+      startDate: z.date().optional(),
+      endDate: z.date().optional()
+    }))
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+      
+      const merchant = await ctx.db.merchant.findUnique({
+        where: { userId },
+        select: { id: true }
+      });
+      
+      if (!merchant) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Vous devez être un commerçant pour accéder à cette ressource'
+        });
+      }
+      
+      let startDate: Date;
+      let endDate: Date = new Date();
+      
+      if (input.startDate && input.endDate) {
+        startDate = input.startDate;
+        endDate = input.endDate;
+      } else {
+        const now = new Date();
+        switch (input.period) {
+          case 'MONTH':
+            startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+            endDate = new Date(now.getFullYear(), now.getMonth(), 0);
+            break;
+          case 'QUARTER':
+            startDate = new Date(now.getFullYear(), now.getMonth() - 3, 1);
+            break;
+          case 'YEAR':
+            startDate = new Date(now.getFullYear() - 1, now.getMonth(), 1);
+            break;
+        }
+      }
+      
+      // Statistiques des factures du merchant
+      const [totalInvoices, totalAmount, paidInvoices, paidAmount, pendingInvoices] = await Promise.all([
+        ctx.db.invoice.count({
+          where: {
+            userId,
+            invoiceType: 'MERCHANT_FEE',
+            issuedDate: { gte: startDate, lte: endDate }
+          }
+        }),
+        ctx.db.invoice.aggregate({
+          where: {
+            userId,
+            invoiceType: 'MERCHANT_FEE',
+            issuedDate: { gte: startDate, lte: endDate }
+          },
+          _sum: { totalAmount: true }
+        }),
+        ctx.db.invoice.count({
+          where: {
+            userId,
+            invoiceType: 'MERCHANT_FEE',
+            status: 'PAID',
+            issuedDate: { gte: startDate, lte: endDate }
+          }
+        }),
+        ctx.db.invoice.aggregate({
+          where: {
+            userId,
+            invoiceType: 'MERCHANT_FEE',
+            status: 'PAID',
+            issuedDate: { gte: startDate, lte: endDate }
+          },
+          _sum: { totalAmount: true }
+        }),
+        ctx.db.invoice.count({
+          where: {
+            userId,
+            invoiceType: 'MERCHANT_FEE',
+            status: 'PENDING',
+            issuedDate: { gte: startDate, lte: endDate }
+          }
+        })
+      ]);
+      
+      return {
+        period: input.period,
+        dateRange: { startDate, endDate },
+        totalInvoices,
+        totalAmount: parseFloat(totalAmount._sum.totalAmount?.toString() || '0'),
+        paidInvoices,
+        paidAmount: parseFloat(paidAmount._sum.totalAmount?.toString() || '0'),
+        pendingInvoices,
+        paymentRate: totalInvoices > 0 ? (paidInvoices / totalInvoices) * 100 : 0
+      };
     })
 });
 

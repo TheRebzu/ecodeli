@@ -4,6 +4,7 @@ import { authRouter } from './routers/auth.router';
 import { userRouter } from './routers/user.router';
 import { announcementRouter } from './routers/announcement.router';
 import { deliveryRouter } from './routers/delivery.router';
+import { delivererRouter } from './routers/deliverer.router';
 import { serviceRouter } from './routers/service.router';
 import { paymentRouter } from './routers/payment.router';
 import { invoiceRouter } from './routers/invoice.router';
@@ -25,6 +26,9 @@ import { financialTaskRouter } from './routers/financial-task.router';
 import { notificationRouter } from './routers/notification.router';
 import { subscriptionRouter } from './routers/subscription.router';
 import { fileRouter } from './routers/file.router';
+import { providerRouter } from './routers/provider.router';
+import { contractRouter } from './routers/contract.router';
+import { uploadRouter } from './routers/upload.router';
 
 // Re-export createTRPCContext from trpc.ts
 export { createTRPCContext } from './trpc';
@@ -42,7 +46,9 @@ export const appRouter = router({
   user: userRouter,
   announcement: announcementRouter,
   delivery: deliveryRouter,
+  deliverer: delivererRouter,
   service: serviceRouter,
+  provider: providerRouter,
   payment: paymentRouter,
   invoice: invoiceRouter,
   warehouse: warehouseRouter,
@@ -63,6 +69,8 @@ export const appRouter = router({
   financialTask: financialTaskRouter,
   notification: notificationRouter,
   file: fileRouter,
+  contract: contractRouter,
+  upload: uploadRouter,
 });
 
 // Type d'export pour le typage côté client

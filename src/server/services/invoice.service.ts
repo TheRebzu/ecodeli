@@ -434,6 +434,383 @@ export const invoiceService = {
   },
   
   /**
+   * NOUVELLE FONCTIONNALITÉ - Planification automatique des factures récurrentes
+   */
+  async scheduleRecurringInvoices(options: {
+    scheduleType: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'QUARTERLY',
+    targetDate?: Date,
+    userType?: 'MERCHANT' | 'PROVIDER' | 'DELIVERER',
+    dryRun?: boolean,
+    adminId?: string
+  }) {
+    const {
+      scheduleType,
+      targetDate = new Date(),
+      userType,
+      dryRun = false,
+      adminId
+    } = options;
+
+    // Créer une tâche financière pour la planification
+    const financialTask = await db.financialTask.create({
+      data: {
+        type: 'INVOICE_GENERATION',
+        status: 'PENDING',
+        priority: 'MEDIUM',
+        scheduledDate: targetDate,
+        metadata: {
+          scheduleType,
+          userType: userType || 'ALL',
+          dryRun,
+          createdBy: adminId || 'system'
+        },
+        title: `Génération de factures ${scheduleType.toLowerCase()}`,
+        description: `Génération automatique de factures pour ${userType || 'tous les types'} d'utilisateurs`,
+        assignedToId: adminId
+      }
+    });
+
+    // Si ce n'est pas un dry run, programmer l'exécution
+    if (!dryRun) {
+      // Ici, on pourrait utiliser un job scheduler comme Bull/BullMQ
+      // Pour la démo, on marque la tâche comme programmée
+      await db.financialTask.update({
+        where: { id: financialTask.id },
+        data: { 
+          status: 'SCHEDULED',
+          scheduledDate: targetDate
+        }
+      });
+    }
+
+    return {
+      taskId: financialTask.id,
+      scheduledFor: targetDate,
+      scheduleType,
+      userType: userType || 'ALL',
+      dryRun,
+      demo: process.env.DEMO_MODE === 'true'
+    };
+  },
+
+  /**
+   * NOUVELLE FONCTIONNALITÉ - Génération de factures avec templates personnalisés
+   */
+  async generateInvoiceWithTemplate(invoiceId: string, templateType: 'DEFAULT' | 'SIMPLE' | 'DETAILED' = 'DEFAULT'): Promise<string> {
+    const invoice = await db.invoice.findUnique({
+      where: { id: invoiceId },
+      include: {
+        items: true,
+        user: true
+      }
+    });
+    
+    if (!invoice) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Facture non trouvée'
+      });
+    }
+
+    // Vérifier si on est en mode démo
+    if (process.env.DEMO_MODE === 'true') {
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const fileHash = createHash('md5')
+        .update(`${invoice.id}-${templateType}-${Date.now()}`)
+        .digest('hex')
+        .substring(0, 8);
+      
+      return `/demo/invoices/${invoice.invoiceNumber}-${templateType.toLowerCase()}-${fileHash}.pdf`;
+    }
+
+    // Préparer les données selon le template
+    const pdfData: InvoicePdfData = {
+      invoiceNumber: invoice.invoiceNumber,
+      date: invoice.issueDate,
+      dueDate: invoice.dueDate,
+      customerName: invoice.billingName,
+      customerEmail: invoice.user.email,
+      items: invoice.items.map(item => ({
+        description: item.description,
+        quantity: Number(item.quantity),
+        unitPrice: Number(item.unitPrice)
+      })),
+      subtotal: Number(invoice.subtotalAmount || invoice.amount),
+      tax: Number(invoice.taxAmount || 0),
+      total: Number(invoice.totalAmount || invoice.amount),
+      currency: invoice.currency || 'EUR',
+      notes: invoice.notes || undefined
+    };
+
+    // Générer le PDF avec le template spécifique
+    let pdfBuffer: Buffer;
+    switch (templateType) {
+      case 'SIMPLE':
+        pdfBuffer = await PdfService.generateSimpleInvoicePdf?.(pdfData) || await PdfService.generateInvoicePdf(pdfData);
+        break;
+      case 'DETAILED':
+        pdfBuffer = await PdfService.generateDetailedInvoicePdf?.(pdfData) || await PdfService.generateInvoicePdf(pdfData);
+        break;
+      default:
+        pdfBuffer = await PdfService.generateInvoicePdf(pdfData);
+    }
+
+    // Stocker le PDF avec le template dans le nom
+    const uploadPath = process.env.NODE_ENV === 'development' 
+      ? './public/uploads/invoices' 
+      : '/app/public/uploads/invoices';
+    
+    try {
+      await mkdir(uploadPath, { recursive: true });
+      
+      const filename = `${invoice.invoiceNumber}-${templateType.toLowerCase()}-${Date.now()}.pdf`;
+      const filePath = path.join(uploadPath, filename);
+      
+      await writeFile(filePath, pdfBuffer);
+      
+      // Mettre à jour la facture avec l'URL du PDF
+      await db.invoice.update({
+        where: { id: invoiceId },
+        data: { pdfUrl: `/uploads/invoices/${filename}` }
+      });
+      
+      return `/uploads/invoices/${filename}`;
+    } catch (error) {
+      console.error('Erreur lors du stockage du PDF:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Impossible de stocker le PDF de la facture'
+      });
+    }
+  },
+
+  /**
+   * NOUVELLE FONCTIONNALITÉ - Génération de factures en lot pour un type d'utilisateur
+   */
+  async batchGenerateInvoices(options: {
+    userType: 'MERCHANT' | 'PROVIDER' | 'DELIVERER',
+    period: { start: Date, end: Date },
+    template?: 'DEFAULT' | 'SIMPLE' | 'DETAILED',
+    autoSend?: boolean,
+    adminId?: string
+  }) {
+    const {
+      userType,
+      period,
+      template = 'DEFAULT',
+      autoSend = false,
+      adminId
+    } = options;
+
+    // Créer une tâche financière pour le traitement en lot
+    const batchTask = await db.financialTask.create({
+      data: {
+        type: 'BATCH_INVOICE_GENERATION',
+        status: 'IN_PROGRESS',
+        priority: 'HIGH',
+        scheduledDate: new Date(),
+        metadata: {
+          userType,
+          period,
+          template,
+          autoSend,
+          processedBy: adminId || 'system'
+        },
+        title: `Génération en lot - ${userType}`,
+        description: `Génération de factures en lot pour ${userType} du ${format(period.start, 'dd/MM/yyyy')} au ${format(period.end, 'dd/MM/yyyy')}`,
+        assignedToId: adminId
+      }
+    });
+
+    const results = {
+      taskId: batchTask.id,
+      processed: 0,
+      success: 0,
+      errors: [] as string[],
+      invoiceIds: [] as string[]
+    };
+
+    try {
+      // Récupérer les utilisateurs selon le type
+      const users = await this._getUsersByType(userType);
+      results.processed = users.length;
+
+      for (const user of users) {
+        try {
+          // Calculer les données pour cette période
+          const invoiceData = await this._calculateUserInvoiceData(user, period, userType);
+          
+          if (invoiceData.items.length > 0) {
+            // Créer la facture
+            const invoice = await this.createInvoice({
+              userId: user.id,
+              items: invoiceData.items,
+              issueDate: new Date(),
+              dueDate: addDays(new Date(), 15),
+              notes: `Facture générée automatiquement pour la période ${format(period.start, 'dd/MM/yyyy')} - ${format(period.end, 'dd/MM/yyyy')}`,
+              invoiceType: invoiceData.type,
+              metadata: {
+                batchTaskId: batchTask.id,
+                period,
+                template,
+                generatedAt: new Date().toISOString()
+              }
+            });
+
+            // Générer le PDF avec le template spécifié
+            if (template !== 'DEFAULT') {
+              await this.generateInvoiceWithTemplate(invoice.id, template);
+            }
+
+            results.invoiceIds.push(invoice.id);
+            results.success++;
+
+            // Envoyer par email si demandé
+            if (autoSend) {
+              await this._sendInvoiceEmail(invoice.id, user.email);
+            }
+          }
+        } catch (error) {
+          console.error(`Erreur génération facture pour ${user.id}:`, error);
+          results.errors.push(`${user.name}: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
+        }
+      }
+
+      // Mettre à jour la tâche
+      await db.financialTask.update({
+        where: { id: batchTask.id },
+        data: {
+          status: results.errors.length === 0 ? 'COMPLETED' : 'COMPLETED_WITH_ERRORS',
+          completedAt: new Date(),
+          metadata: {
+            ...batchTask.metadata,
+            results
+          }
+        }
+      });
+
+      return results;
+    } catch (error) {
+      // Marquer la tâche comme échouée
+      await db.financialTask.update({
+        where: { id: batchTask.id },
+        data: {
+          status: 'FAILED',
+          completedAt: new Date(),
+          metadata: {
+            ...batchTask.metadata,
+            error: error instanceof Error ? error.message : 'Erreur inconnue'
+          }
+        }
+      });
+
+      throw error;
+    }
+  },
+
+  /**
+   * NOUVELLE FONCTIONNALITÉ - Analyse des revenus de facturation
+   */
+  async getInvoiceAnalytics(options: {
+    period: { start: Date, end: Date },
+    groupBy?: 'DAY' | 'WEEK' | 'MONTH',
+    userType?: 'MERCHANT' | 'PROVIDER' | 'DELIVERER',
+    includeProjections?: boolean
+  }) {
+    const {
+      period,
+      groupBy = 'MONTH',
+      userType,
+      includeProjections = false
+    } = options;
+
+    // Filtres de base
+    const baseWhere: any = {
+      issueDate: {
+        gte: period.start,
+        lte: period.end
+      },
+      status: {
+        in: ['ISSUED', 'PAID']
+      }
+    };
+
+    if (userType) {
+      baseWhere.invoiceType = this._getInvoiceTypeForUser(userType);
+    }
+
+    // Statistiques globales
+    const globalStats = await db.invoice.aggregate({
+      where: baseWhere,
+      _count: true,
+      _sum: {
+        totalAmount: true,
+        taxAmount: true
+      },
+      _avg: {
+        totalAmount: true
+      }
+    });
+
+    // Répartition par statut
+    const statusBreakdown = await db.invoice.groupBy({
+      by: ['status'],
+      where: baseWhere,
+      _count: true,
+      _sum: {
+        totalAmount: true
+      }
+    });
+
+    // Répartition par type
+    const typeBreakdown = await db.invoice.groupBy({
+      by: ['invoiceType'],
+      where: baseWhere,
+      _count: true,
+      _sum: {
+        totalAmount: true
+      }
+    });
+
+    // Évolution temporelle (simplifié pour la démo)
+    const timeSeriesData = await this._getInvoiceTimeSeries(baseWhere, groupBy);
+
+    // Projections (si demandées)
+    let projections = null;
+    if (includeProjections) {
+      projections = await this._calculateInvoiceProjections(globalStats, period);
+    }
+
+    return {
+      period,
+      groupBy,
+      userType,
+      globalStats: {
+        totalInvoices: globalStats._count,
+        totalRevenue: Number(globalStats._sum.totalAmount || 0),
+        totalTax: Number(globalStats._sum.taxAmount || 0),
+        averageAmount: Number(globalStats._avg.totalAmount || 0)
+      },
+      breakdown: {
+        byStatus: statusBreakdown.map(item => ({
+          status: item.status,
+          count: item._count,
+          amount: Number(item._sum.totalAmount || 0)
+        })),
+        byType: typeBreakdown.map(item => ({
+          type: item.invoiceType,
+          count: item._count,
+          amount: Number(item._sum.totalAmount || 0)
+        }))
+      },
+      timeSeriesData,
+      projections,
+      demo: process.env.DEMO_MODE === 'true'
+    };
+  },
+
+  /**
    * Génère automatiquement les factures mensuelles
    */
   async generateMonthlyInvoices(options: {
@@ -877,6 +1254,317 @@ export const invoiceService = {
     if (user.provider?.taxId) return user.provider.taxId;
     if (user.client?.taxId) return user.client.taxId;
     return '';
+  },
+
+  /**
+   * NOUVELLES MÉTHODES HELPER - Support pour les nouvelles fonctionnalités
+   */
+
+  /**
+   * Récupère les utilisateurs par type
+   * @private
+   */
+  async _getUsersByType(userType: 'MERCHANT' | 'PROVIDER' | 'DELIVERER') {
+    const roleMap = {
+      'MERCHANT': 'MERCHANT',
+      'PROVIDER': 'PROVIDER', 
+      'DELIVERER': 'DELIVERER'
+    };
+
+    return await db.user.findMany({
+      where: {
+        role: roleMap[userType],
+        isActive: true
+      },
+      include: {
+        merchant: userType === 'MERCHANT',
+        provider: userType === 'PROVIDER',
+        deliverer: userType === 'DELIVERER'
+      }
+    });
+  },
+
+  /**
+   * Calcule les données de facturation pour un utilisateur sur une période
+   * @private
+   */
+  async _calculateUserInvoiceData(user: any, period: { start: Date, end: Date }, userType: 'MERCHANT' | 'PROVIDER' | 'DELIVERER') {
+    // En mode démo, simuler des données
+    if (process.env.DEMO_MODE === 'true') {
+      return this._generateDemoInvoiceData(user, period, userType);
+    }
+
+    // Logic pour calculer les vraies données basées sur l'activité
+    switch (userType) {
+      case 'MERCHANT':
+        return await this._calculateMerchantData(user, period);
+      case 'PROVIDER':
+        return await this._calculateProviderData(user, period);
+      case 'DELIVERER':
+        return await this._calculateDelivererData(user, period);
+      default:
+        return { items: [], type: 'OTHER' };
+    }
+  },
+
+  /**
+   * Génère des données de démonstration pour la facturation
+   * @private
+   */
+  _generateDemoInvoiceData(user: any, period: { start: Date, end: Date }, userType: 'MERCHANT' | 'PROVIDER' | 'DELIVERER') {
+    const items = [];
+    
+    switch (userType) {
+      case 'MERCHANT':
+        items.push({
+          description: `Frais d'abonnement plateforme - ${format(period.start, 'MMMM yyyy', { locale: fr })}`,
+          quantity: 1,
+          unitPrice: 29.99,
+          taxRate: 0.20
+        });
+        if (Math.random() > 0.5) {
+          items.push({
+            description: 'Frais de transaction supplémentaires',
+            quantity: Math.floor(Math.random() * 50) + 10,
+            unitPrice: 0.30,
+            taxRate: 0.20
+          });
+        }
+        return { items, type: 'MERCHANT_FEE' };
+
+      case 'PROVIDER':
+        const serviceCount = Math.floor(Math.random() * 8) + 2;
+        for (let i = 0; i < serviceCount; i++) {
+          const serviceAmount = Math.floor(Math.random() * 150) + 50;
+          const commissionRate = 0.15;
+          items.push({
+            description: `Commission service #${i + 1} - ${format(period.start, 'MMM yyyy', { locale: fr })}`,
+            quantity: 1,
+            unitPrice: serviceAmount * commissionRate,
+            taxRate: 0.20
+          });
+        }
+        return { items, type: 'COMMISSION' };
+
+      case 'DELIVERER':
+        const deliveryCount = Math.floor(Math.random() * 15) + 5;
+        for (let i = 0; i < deliveryCount; i++) {
+          const deliveryAmount = Math.floor(Math.random() * 25) + 8;
+          const commissionRate = 0.10;
+          items.push({
+            description: `Commission livraison #${i + 1} - ${format(period.start, 'MMM yyyy', { locale: fr })}`,
+            quantity: 1,
+            unitPrice: deliveryAmount * commissionRate,
+            taxRate: 0.20
+          });
+        }
+        return { items, type: 'COMMISSION' };
+
+      default:
+        return { items: [], type: 'OTHER' };
+    }
+  },
+
+  /**
+   * Calcule les données réelles pour un marchand
+   * @private
+   */
+  async _calculateMerchantData(user: any, period: { start: Date, end: Date }) {
+    // Récupérer les transactions du marchand pour la période
+    const transactions = await db.payment.findMany({
+      where: {
+        userId: user.id,
+        status: 'COMPLETED',
+        capturedAt: {
+          gte: period.start,
+          lte: period.end
+        }
+      }
+    });
+
+    const items = [];
+    
+    // Frais d'abonnement mensuel
+    items.push({
+      description: `Abonnement plateforme - ${format(period.start, 'MMMM yyyy', { locale: fr })}`,
+      quantity: 1,
+      unitPrice: 29.99,
+      taxRate: 0.20
+    });
+
+    // Frais de transaction (1% du volume)
+    if (transactions.length > 0) {
+      const totalVolume = transactions.reduce((sum, t) => sum + Number(t.amount), 0);
+      const transactionFee = totalVolume * 0.01; // 1%
+      
+      if (transactionFee > 0) {
+        items.push({
+          description: `Frais de transaction (${transactions.length} transactions)`,
+          quantity: 1,
+          unitPrice: transactionFee,
+          taxRate: 0.20
+        });
+      }
+    }
+
+    return { items, type: 'MERCHANT_FEE' };
+  },
+
+  /**
+   * Calcule les données réelles pour un prestataire
+   * @private
+   */
+  async _calculateProviderData(user: any, period: { start: Date, end: Date }) {
+    // Récupérer les services du prestataire pour la période
+    const serviceBookings = await db.serviceBooking.findMany({
+      where: {
+        service: {
+          providerId: user.id
+        },
+        status: 'COMPLETED',
+        createdAt: {
+          gte: period.start,
+          lte: period.end
+        }
+      },
+      include: {
+        payment: true,
+        service: true
+      }
+    });
+
+    const items = serviceBookings.map((booking, index) => {
+      const serviceAmount = Number(booking.payment?.amount || 0);
+      const commissionRate = 0.15; // 15% de commission
+      const commissionAmount = serviceAmount * commissionRate;
+
+      return {
+        description: `Commission service "${booking.service.name}" - ${format(booking.createdAt, 'dd/MM/yyyy')}`,
+        quantity: 1,
+        unitPrice: commissionAmount,
+        taxRate: 0.20,
+        serviceId: booking.serviceId
+      };
+    });
+
+    return { items, type: 'COMMISSION' };
+  },
+
+  /**
+   * Calcule les données réelles pour un livreur
+   * @private
+   */
+  async _calculateDelivererData(user: any, period: { start: Date, end: Date }) {
+    // Récupérer les livraisons du livreur pour la période
+    const deliveries = await db.delivery.findMany({
+      where: {
+        delivererId: user.id,
+        currentStatus: 'DELIVERED',
+        updatedAt: {
+          gte: period.start,
+          lte: period.end
+        }
+      },
+      include: {
+        payment: true
+      }
+    });
+
+    const items = deliveries.map((delivery, index) => {
+      const deliveryAmount = Number(delivery.payment?.amount || 0);
+      const commissionRate = 0.10; // 10% de commission
+      const commissionAmount = deliveryAmount * commissionRate;
+
+      return {
+        description: `Commission livraison #${delivery.trackingNumber} - ${format(delivery.updatedAt, 'dd/MM/yyyy')}`,
+        quantity: 1,
+        unitPrice: commissionAmount,
+        taxRate: 0.20,
+        deliveryId: delivery.id
+      };
+    });
+
+    return { items, type: 'COMMISSION' };
+  },
+
+  /**
+   * Envoie une facture par email
+   * @private
+   */
+  async _sendInvoiceEmail(invoiceId: string, recipientEmail: string) {
+    // En mode démo, simuler l'envoi
+    if (process.env.DEMO_MODE === 'true') {
+      console.log(`[DEMO] Envoi email facture ${invoiceId} à ${recipientEmail}`);
+      return { sent: true, demo: true };
+    }
+
+    // Ici, implémenter l'envoi réel d'email
+    // Utiliser un service comme SendGrid, Mailgun, etc.
+    return { sent: false, reason: 'Service email non configuré' };
+  },
+
+  /**
+   * Obtient le type de facture pour un type d'utilisateur
+   * @private
+   */
+  _getInvoiceTypeForUser(userType: 'MERCHANT' | 'PROVIDER' | 'DELIVERER'): string {
+    switch (userType) {
+      case 'MERCHANT':
+        return 'MERCHANT_FEE';
+      case 'PROVIDER':
+      case 'DELIVERER':
+        return 'COMMISSION';
+      default:
+        return 'OTHER';
+    }
+  },
+
+  /**
+   * Génère des données de séries temporelles pour les factures
+   * @private
+   */
+  async _getInvoiceTimeSeries(baseWhere: any, groupBy: 'DAY' | 'WEEK' | 'MONTH') {
+    // En mode démo, générer des données simulées
+    if (process.env.DEMO_MODE === 'true') {
+      const data = [];
+      const days = groupBy === 'DAY' ? 30 : groupBy === 'WEEK' ? 12 : 6;
+      
+      for (let i = days - 1; i >= 0; i--) {
+        const date = new Date();
+        date.setDate(date.getDate() - i * (groupBy === 'DAY' ? 1 : groupBy === 'WEEK' ? 7 : 30));
+        
+        data.push({
+          period: format(date, groupBy === 'DAY' ? 'dd/MM' : groupBy === 'WEEK' ? 'ww/yyyy' : 'MM/yyyy'),
+          date: date,
+          count: Math.floor(Math.random() * 20) + 5,
+          amount: Math.floor(Math.random() * 5000) + 1000
+        });
+      }
+      
+      return data;
+    }
+
+    // Implémentation réelle basée sur groupBy
+    // Pour simplifier, retourner des données vides pour l'instant
+    return [];
+  },
+
+  /**
+   * Calcule les projections de revenus
+   * @private
+   */
+  async _calculateInvoiceProjections(globalStats: any, period: { start: Date, end: Date }) {
+    const periodDays = Math.ceil((period.end.getTime() - period.start.getTime()) / (1000 * 60 * 60 * 24));
+    const dailyAverage = Number(globalStats._sum.totalAmount || 0) / periodDays;
+    
+    // Projections simples basées sur la moyenne
+    return {
+      nextMonth: dailyAverage * 30,
+      nextQuarter: dailyAverage * 90,
+      nextYear: dailyAverage * 365,
+      confidence: 'medium', // low, medium, high
+      basedOnDays: periodDays
+    };
   }
 };
 
@@ -886,10 +1574,14 @@ export const {
   calculateAmounts,
   createInvoice,
   generateInvoice,
+  generateInvoiceWithTemplate,
   storeInvoice,
   getInvoiceById,
   listInvoices,
   generateMonthlyInvoices,
+  scheduleRecurringInvoices,
+  batchGenerateInvoices,
+  getInvoiceAnalytics,
   finalizeInvoice,
   markInvoiceAsPaid,
   createSubscriptionInvoice,
