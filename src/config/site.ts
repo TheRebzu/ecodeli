@@ -9,7 +9,10 @@ export const siteConfig = {
   }
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 };
@@ -20,6 +23,9 @@ export const oneSignalConfig = {
   appId: process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID || '',
   apiKey: process.env.ONESIGNAL_API_KEY || '',
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
