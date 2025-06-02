@@ -2,15 +2,15 @@ import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { api } from '@/trpc/react';
 import { useToast } from '@/components/ui/use-toast';
-import { DocumentType, DocumentStatus } from '@prisma/client';
+import { DocumentType, VerificationStatus } from '@prisma/client';
 
 interface UseDocumentsProps {
   userId?: string;
-  status?: DocumentStatus | 'ALL';
+  status?: VerificationStatus | 'ALL';
 }
 
-export function useDocuments(userId?: string, status: DocumentStatus | 'ALL' = 'ALL') {
-  const [filter, setFilter] = useState<DocumentStatus | 'ALL'>(status);
+export function useDocuments(userId?: string, status: VerificationStatus | 'ALL' = 'ALL') {
+  const [filter, setFilter] = useState<VerificationStatus | 'ALL'>(status);
   const [documents, setDocuments] = useState<any[]>([]);
   const t = useTranslations('documents');
   const { toast } = useToast();

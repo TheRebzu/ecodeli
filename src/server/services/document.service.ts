@@ -821,12 +821,12 @@ export class DocumentService {
             data: { status: 'ACTIVE' },
           });
         }
-      } else if (userRole === 'PROVIDER') {
-        // Documents requis pour les prestataires
+      } else if (userRole === 'PROVIDER') {        // Documents requis pour les prestataires
         const requiredDocumentTypes = [
           'ID_CARD',
           'QUALIFICATION_CERTIFICATE',
           'INSURANCE',
+          'PROOF_OF_ADDRESS',
         ];
 
         const approvedDocuments = await db.document.findMany({
@@ -854,23 +854,26 @@ export class DocumentService {
       // Ne pas propager l'erreur pour éviter de bloquer la vérification du document
     }
   }
-
   /**
    * Récupère le nom lisible d'un type de document
    */
   private static getDocumentTypeName(type: DocumentType): string {
-    const documentTypeNames: Record<DocumentType, string> = {
-      [DocumentType.ID_CARD]: "Carte d'identité",
-      [DocumentType.DRIVER_LICENSE]: 'Permis de conduire',
-      [DocumentType.VEHICLE_REGISTRATION]: 'Carte grise',
-      [DocumentType.INSURANCE]: "Attestation d'assurance",
-      [DocumentType.CRIMINAL_RECORD]: 'Casier judiciaire',
-      [DocumentType.PROFESSIONAL_CERTIFICATION]: 'Certification professionnelle',
-      [DocumentType.SELFIE]: 'Photo de profil',
-      [DocumentType.OTHER]: 'Autre document',
+    // Import dynamiquement depuis le module partagé pour éviter les dépendances circulaires
+    const { documentTypeNames } = require('@/lib/document-utils');
+    
+    // Vérifier si le type existe dans le mapping
+    if (documentTypeNames[type]) {
+      return documentTypeNames[type];
+    }
+    
+    // Fallback pour les types qui ne sont plus dans l'enum actuel
+    const legacyTypes: Record<string, string> = {
+      'DRIVER_LICENSE': 'Permis de conduire',
+      'CRIMINAL_RECORD': 'Casier judiciaire',
+      'PROFESSIONAL_CERTIFICATION': 'Certification professionnelle',
     };
-
-    return documentTypeNames[type] || 'Document';
+    
+    return legacyTypes[type as string] || 'Document';
   }
 
   // Create a new document
@@ -1060,35 +1063,11 @@ export class DocumentService {
       },
     });
   }
-
   // Get required document types by user role
   getRequiredDocumentTypesByRole(role: string): DocumentType[] {
-    switch (role) {
-      case 'deliverer':
-      case 'DELIVERER':
-        return [
-          DocumentType.ID_CARD,
-          DocumentType.DRIVING_LICENSE,
-          DocumentType.VEHICLE_REGISTRATION,
-          DocumentType.INSURANCE,
-        ];
-      case 'merchant':
-      case 'MERCHANT':
-        return [
-          DocumentType.ID_CARD,
-          DocumentType.BUSINESS_REGISTRATION,
-          DocumentType.PROOF_OF_ADDRESS,
-        ];
-      case 'provider':
-      case 'PROVIDER':
-        return [
-          DocumentType.ID_CARD,
-          DocumentType.QUALIFICATION_CERTIFICATE,
-          DocumentType.INSURANCE,
-        ];
-      default:
-        return [DocumentType.ID_CARD];
-    }
+    // Utiliser la fonction centralisée dans document-utils
+    const { getRequiredDocumentTypesByRole } = require('@/lib/document-utils');
+    return getRequiredDocumentTypesByRole(role);
   }
 
   // Send reminders for missing documents
@@ -1100,6 +1079,55 @@ export class DocumentService {
       const locale = getUserPreferredLocale(user);
       await this.notificationService.sendMissingDocumentsReminder(user, missingDocuments, locale);
     }
+  }
+
+  /**
+   * Obtient les documents filtrés par statut de vérification et rôle utilisateur
+   * Cette méthode est utilisée à la fois par l'admin et par les commerçants
+   */
+  async getDocumentsByStatusAndRole(status: string, userRole?: UserRole) {
+    const where: any = {
+      verificationStatus: status,
+    };
+
+    if (userRole) {
+      where.user = {
+        role: userRole
+      };
+    }
+
+    const documents = await this.prisma.document.findMany({
+      where,
+      orderBy: { uploadedAt: 'desc' },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            role: true,
+          },
+        },
+        verifications: {
+          orderBy: { requestedAt: 'desc' },
+          select: {
+            id: true,
+            status: true,
+            verifiedAt: true,
+            notes: true,
+            rejectionReason: true,
+            requestedAt: true,
+          },
+        },
+      },
+    });
+
+    // Ensure consistent data format for both admin and merchant interfaces
+    return documents.map(doc => ({
+      ...doc,
+      status: doc.verificationStatus,
+      createdAt: doc.uploadedAt
+    }));
   }
 }
 

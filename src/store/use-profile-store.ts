@@ -12,6 +12,15 @@ interface ProfileState {
   editingAddressId: string | null;
   selectedDocumentType: string | null;
 
+  // Profile spécifique aux marchands et aux fournisseurs
+  profile: {
+    companyName?: string;
+    businessAddress?: string;
+    vatNumber?: string;
+    serviceType?: string;
+    serviceRadius?: number;
+  } | null;
+
   // Actions
   setProfileView: (view: ProfileState['profileView']) => void;
   setIsEditingProfile: (isEditing: boolean) => void;
@@ -32,6 +41,7 @@ const initialState = {
   isAddingAddress: false,
   editingAddressId: null,
   selectedDocumentType: null,
+  profile: null,
 };
 
 export const useProfileStore = create<ProfileState>()(

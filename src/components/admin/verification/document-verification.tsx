@@ -40,16 +40,8 @@ interface Document {
   };
 }
 
-// Mapping pour les types de documents (pour l'affichage)
-const documentTypeLabels: Record<DocumentType, string> = {
-  ID_CARD: "Carte d'identité",
-  DRIVING_LICENSE: 'Permis de conduire',
-  VEHICLE_REGISTRATION: 'Carte grise',
-  INSURANCE: "Attestation d'assurance",
-  QUALIFICATION_CERTIFICATE: 'Certificat de qualification',
-  SELFIE: 'Photo de profil',
-  OTHER: 'Autre document',
-};
+// Import de la fonction partagée pour afficher le nom du type de document
+import { getDocumentTypeName } from '@/lib/document-utils';
 
 export function DocumentVerification() {
   const [selectedRole, setSelectedRole] = useState<UserRole>(UserRole.DELIVERER);
@@ -191,9 +183,8 @@ export function DocumentVerification() {
       <Card key={document.id} className="border border-muted">
         <CardHeader className="pb-2">
           <div className="flex justify-between items-center">
-            <div>
-              <CardTitle className="text-base font-medium">
-                {documentTypeLabels[document.type]}
+            <div>              <CardTitle className="text-base font-medium">
+                {getDocumentTypeName(document.type)}
               </CardTitle>
               <CardDescription>{document.filename}</CardDescription>
             </div>

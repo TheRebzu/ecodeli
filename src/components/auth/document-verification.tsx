@@ -38,17 +38,8 @@ import {
 import { api } from '@/hooks/use-trpc';
 import Image from 'next/image';
 
-// Mappage des types de documents pour l'affichage
-const documentTypeLabels: Record<DocumentType, string> = {
-  ID_CARD: "Carte d'identité",
-  DRIVER_LICENSE: 'Permis de conduire',
-  VEHICLE_REGISTRATION: 'Carte grise',
-  INSURANCE: "Attestation d'assurance",
-  CRIMINAL_RECORD: 'Extrait de casier judiciaire',
-  PROFESSIONAL_CERTIFICATION: 'Certification professionnelle',
-  SELFIE: 'Photo de profil',
-  OTHER: 'Autre document',
-};
+// Import de la fonction partagée pour afficher le nom du type de document
+import { getDocumentTypeName } from '@/lib/document-utils';
 
 export function DocumentVerification() {
   const { user, role } = useAuth();
@@ -93,9 +84,13 @@ export function DocumentVerification() {
           DocumentType.DRIVER_LICENSE,
           DocumentType.VEHICLE_REGISTRATION,
           DocumentType.INSURANCE,
+        ];      case 'PROVIDER':
+        return [
+          DocumentType.ID_CARD,
+          DocumentType.QUALIFICATION_CERTIFICATE,
+          DocumentType.INSURANCE,
+          DocumentType.PROOF_OF_ADDRESS,
         ];
-      case 'PROVIDER':
-        return [DocumentType.ID_CARD, DocumentType.PROFESSIONAL_CERTIFICATION];
       default:
         return [DocumentType.ID_CARD];
     }

@@ -64,12 +64,19 @@ class ProfileService {
       MERCHANT: async () =>
         await db.merchant.findUnique({
           where: { userId },
+          select: {
+            companyName: true,
+            businessAddress: true,
+            vatNumber: true,
+          },
         }),
       PROVIDER: async () =>
         await db.provider.findUnique({
           where: { userId },
-          include: {
-            skills: true,
+          select: {
+            companyName: true,
+            serviceType: true,
+            serviceRadius: true,
           },
         }),
       ADMIN: async () =>

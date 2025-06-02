@@ -26,7 +26,18 @@ export const profileRouter = router({
   getMyRoleSpecificProfile: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
     const role = ctx.session.user.role;
-    return profileService.getRoleSpecificProfile(userId, role);
+
+    if (!['CLIENT', 'DELIVERER', 'MERCHANT', 'PROVIDER'].includes(role)) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'Invalid user role',
+      });
+    }
+
+    const profile = await profileService.getRoleSpecificProfile(userId, role);
+
+    // Explicitly cast the profile to the expected type
+    return profile as MerchantProfile | ProviderProfile;
   }),
 
   /**

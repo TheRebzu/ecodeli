@@ -58,18 +58,9 @@ interface UserWithDocuments {
   phoneNumber?: string | null;
 }
 
-// Mappings pour afficher les noms compréhensibles des types de documents
-const documentTypeLabels: Record<string, string> = {
-  ID_CARD: "Carte d'identité",
-  DRIVING_LICENSE: 'Permis de conduire',
-  VEHICLE_REGISTRATION: 'Carte grise',
-  INSURANCE: 'Assurance',
-  QUALIFICATION_CERTIFICATE: 'Certificat de qualification',
-  PROOF_OF_ADDRESS: 'Justificatif de domicile',
-  BUSINESS_REGISTRATION: 'Registre du commerce',
-  SELFIE: 'Selfie',
-  OTHER: 'Autre document',
-};
+// Import des utilities pour les documents
+import { getDocumentTypeName, getRequiredDocumentTypesByRole } from '@/lib/document-utils';
+import { DocumentType } from '@prisma/client';
 
 export function UserDocumentVerification({
   user,
@@ -143,14 +134,12 @@ export function UserDocumentVerification({
 
       // Créer un élément de lien temporaire pour le téléchargement
       const link = document.createElement('a');
-      link.href = downloadUrl;
-
-      // Extraire le nom original du fichier
+      link.href = downloadUrl;      // Extraire le nom original du fichier
       const originalFilename = doc.filename;
       // Utiliser le nom original ou générer un nom basé sur le type de document
       const fileName =
         originalFilename ||
-        `${documentTypeLabels[doc.type] || doc.type}.${doc.mimeType?.split('/').pop() || 'pdf'}`;
+        `${getDocumentTypeName(doc.type as DocumentType) || doc.type}.${doc.mimeType?.split('/').pop() || 'pdf'}`;
       link.setAttribute('download', fileName);
 
       // Cliquer sur le lien pour déclencher le téléchargement
@@ -218,22 +207,8 @@ export function UserDocumentVerification({
       });
     },
   });
-
-  // Déterminer quels documents sont requis en fonction du rôle
-  const getRequiredDocumentTypes = (role: string): string[] => {
-    switch (role) {
-      case 'DELIVERER':
-        return ['ID_CARD', 'DRIVING_LICENSE', 'SELFIE'];
-      case 'MERCHANT':
-        return ['ID_CARD', 'BUSINESS_REGISTRATION', 'PROOF_OF_ADDRESS'];
-      case 'PROVIDER':
-        return ['ID_CARD', 'QUALIFICATION_CERTIFICATE', 'INSURANCE'];
-      default:
-        return [];
-    }
-  };
-
-  const requiredDocuments = getRequiredDocumentTypes(user.role);
+  // Utiliser la fonction centralisée pour déterminer les documents requis
+  const requiredDocuments = getRequiredDocumentTypesByRole(user.role).map(type => type.toString());
 
   // Handler pour approuver un document
   const handleApprove = (documentId: string) => {
@@ -324,10 +299,9 @@ export function UserDocumentVerification({
               )}
             </div>
           </div>
-        </CardHeader>
-        <CardContent className="pb-2 pt-0">
+        </CardHeader>        <CardContent className="pb-2 pt-0">
           <div className="text-sm text-muted-foreground">
-            Documents requis: {requiredDocuments.map(type => documentTypeLabels[type]).join(', ')}
+            Documents requis: {requiredDocuments.map(type => getDocumentTypeName(type as DocumentType)).join(', ')}
           </div>
         </CardContent>
         <CardFooter className="border-t pt-4">
@@ -358,10 +332,9 @@ export function UserDocumentVerification({
                       : 'border-dashed border-muted-foreground/20'
               }
             >
-              <CardHeader>
-                <div className="flex items-center justify-between">
+              <CardHeader>                <div className="flex items-center justify-between">
                   <CardTitle className="text-base font-medium">
-                    {documentTypeLabels[docType]}
+                    {getDocumentTypeName(docType as DocumentType)}
                   </CardTitle>
                   {document && (
                     <Badge
@@ -470,11 +443,10 @@ export function UserDocumentVerification({
               <div className="flex items-center gap-2">
                 {selectedDocument?.mimeType.startsWith('image/') ? (
                   <ImageIcon className="h-5 w-5" />
-                ) : (
-                  <FileText className="h-5 w-5" />
+                ) : (                <FileText className="h-5 w-5" />
                 )}
                 {selectedDocument
-                  ? documentTypeLabels[selectedDocument.type] || selectedDocument.filename
+                  ? getDocumentTypeName(selectedDocument.type as DocumentType) || selectedDocument.filename
                   : 'Aperçu du document'}
               </div>
             </div>
@@ -482,18 +454,16 @@ export function UserDocumentVerification({
             {selectedDocument && (
               <div className="p-4">
                 {selectedDocument.mimeType.startsWith('image/') ? (
-                  <div className="relative w-full h-[500px]">
-                    <img
+                  <div className="relative w-full h-[500px]">                    <img
                       src={getFullDocumentUrl(selectedDocument.fileUrl)}
-                      alt={selectedDocument.filename || documentTypeLabels[selectedDocument.type]}
+                      alt={selectedDocument.filename || getDocumentTypeName(selectedDocument.type as DocumentType)}
                       className="w-full h-full object-contain rounded-lg"
                     />
                   </div>
-                ) : selectedDocument.mimeType === 'application/pdf' ? (
-                  <iframe
+                ) : selectedDocument.mimeType === 'application/pdf' ? (                  <iframe
                     src={`${getFullDocumentUrl(selectedDocument.fileUrl)}#toolbar=0`}
                     className="w-full h-[500px]"
-                    title={selectedDocument.filename || documentTypeLabels[selectedDocument.type]}
+                    title={selectedDocument.filename || getDocumentTypeName(selectedDocument.type as DocumentType)}
                   />
                 ) : (
                   <div className="flex flex-col items-center justify-center h-64 bg-muted rounded-lg">

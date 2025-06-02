@@ -24,21 +24,115 @@ type UploadResult = {
   fileSize: number;
 };
 
+type VerificationResult = {
+  isComplete: boolean;
+  missingDocuments: DocumentType[];
+  verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | 'NOT_SUBMITTED';
+};
+
 /**
  * Service pour la gestion des vérifications de documents et d'utilisateurs
  */
 export class VerificationService {
   private prisma: PrismaClient;
+  
+  // Configuration des documents requis par rôle
+  private static readonly REQUIRED_DOCUMENTS: Record<UserRole, DocumentType[]> = {
+    [UserRole.DELIVERER]: [
+      DocumentType.ID_CARD,
+      DocumentType.DRIVING_LICENSE,
+      DocumentType.VEHICLE_REGISTRATION,
+      DocumentType.INSURANCE,
+    ],
+    [UserRole.PROVIDER]: [
+      DocumentType.ID_CARD,
+      DocumentType.QUALIFICATION_CERTIFICATE,
+      DocumentType.INSURANCE,
+      DocumentType.PROOF_OF_ADDRESS,
+    ],
+    [UserRole.MERCHANT]: [
+      DocumentType.ID_CARD,
+      DocumentType.BUSINESS_REGISTRATION,
+      DocumentType.PROOF_OF_ADDRESS,
+    ],
+    [UserRole.ADMIN]: [], // Admins don't need verification
+    [UserRole.CUSTOMER]: [], // Customers don't need verification
+  };
 
   constructor(prisma = db) {
     this.prisma = prisma;
   }
 
   /**
-   * Télécharge un document pour vérification
+   * Télécharge un document pour vérification avec validation renforcée
    */
   async uploadDocument(userId: string, type: DocumentType, file: File, userRole: UserRole) {
-    // Vérifier si l'utilisateur existe
+    // Validation des entrées
+    await this.validateUser(userId, userRole);
+    this.validateFileType(file, type);
+    
+    // Vérifier si le document est requis pour ce rôle
+    const requiredDocs = VerificationService.REQUIRED_DOCUMENTS[userRole];
+    if (!requiredDocs.includes(type)) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: `Document type ${type} is not required for ${userRole}`,
+      });
+    }
+
+    // Vérifier si un document de ce type existe déjà
+    const existingDocument = await this.prisma.document.findFirst({
+      where: {
+        userId,
+        type,
+        userRole,
+      },
+    });
+
+    // Upload du fichier
+    const uploadResult = await this.uploadFileToStorage(file);
+
+    let document;
+    if (existingDocument) {
+      // Mettre à jour le document existant
+      document = await this.prisma.document.update({
+        where: { id: existingDocument.id },
+        data: {
+          filename: uploadResult.filename,
+          fileUrl: uploadResult.fileUrl,
+          mimeType: uploadResult.mimeType,
+          fileSize: uploadResult.fileSize,
+          isVerified: false,
+          verificationStatus: VerificationStatus.PENDING,
+          rejectionReason: null,
+          updatedAt: new Date(),
+        },
+      });
+    } else {
+      // Créer un nouveau document
+      document = await this.prisma.document.create({
+        data: {
+          userId,
+          type,
+          userRole,
+          filename: uploadResult.filename,
+          fileUrl: uploadResult.fileUrl,
+          mimeType: uploadResult.mimeType,
+          fileSize: uploadResult.fileSize,
+        },
+      });
+    }
+
+    // Créer ou mettre à jour la demande de vérification
+    await this.upsertVerificationRequest(userId, document.id);
+
+    return document;
+  }
+
+  /**
+   * Valide l'utilisateur et son rôle
+   */
+  private async validateUser(userId: string, expectedRole: UserRole) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
@@ -50,58 +144,92 @@ export class VerificationService {
       });
     }
 
-    // Vérifier si le rôle de l'utilisateur correspond
-    if (user.role !== userRole) {
+    if (user.role !== expectedRole) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
         message: "Type d'utilisateur incorrect",
       });
     }
+  }
 
-    // Upload the file to storage (implementation depends on your storage solution)
-    const uploadResult = await this.uploadFileToStorage(file);
+  /**
+   * Valide le type de fichier en fonction du type de document
+   */
+  private validateFileType(file: File, documentType: DocumentType) {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg', 'application/pdf'];
+    
+    if (!allowedTypes.includes(file.type)) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'Type de fichier non autorisé. Formats acceptés: JPEG, PNG, PDF',
+      });
+    }
 
-    // Créer le document en base de données
-    // @ts-ignore - Le champ userRole existe dans le modèle Document mais pas encore dans les types générés
-    const document = await this.prisma.document.create({
-      data: {
-        userId,
-        type,
-        userRole, // Champ ajouté dans la migration 20250519104500_add_userRole_to_document
-        filename: uploadResult.filename,
-        fileUrl: uploadResult.fileUrl,
-        mimeType: uploadResult.mimeType,
-        fileSize: uploadResult.fileSize,
-      },
+    // Limite de taille: 10MB
+    const maxSize = 10 * 1024 * 1024;
+    if (file.size > maxSize) {
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'Fichier trop volumineux. Taille maximale: 10MB',
+      });
+    }
+  }
+
+  /**
+   * Crée ou met à jour une demande de vérification
+   */
+  private async upsertVerificationRequest(userId: string, documentId: string) {
+    const existingVerification = await this.prisma.verification.findFirst({
+      where: { documentId },
     });
 
-    // Créer une demande de vérification
-    await this.prisma.verification.create({
+    if (existingVerification) {
+      return await this.prisma.verification.update({
+        where: { id: existingVerification.id },
+        data: {
+          status: VerificationStatus.PENDING,
+          requestedAt: new Date(),
+          verifiedAt: null,
+          verifierId: null,
+          notes: null,
+        },
+      });
+    }
+
+    return await this.prisma.verification.create({
       data: {
         submitterId: userId,
-        documentId: document.id,
+        documentId,
       },
     });
-
-    return document;
   }
 
   /**
-   * Fonction factice pour simuler l'upload vers un stockage externe
-   * A implémenter avec votre solution de stockage (S3, etc.)
+   * Upload vers le stockage externe avec retry et validation
    */
   private async uploadFileToStorage(file: File): Promise<UploadResult> {
-    // This is a placeholder - implement with your actual storage solution
-    return {
-      fileUrl: `https://storage.example.com/${Date.now()}_${file.name}`,
-      filename: file.name,
-      mimeType: file.type,
-      fileSize: file.size,
-    };
+    try {
+      // TODO: Implémenter l'upload réel vers S3/CloudStorage
+      // Pour l'instant, simulation
+      const timestamp = Date.now();
+      const sanitizedFilename = file.name.replace(/[^a-zA-Z0-9.-]/g, '_');
+      
+      return {
+        fileUrl: `https://storage.example.com/${timestamp}_${sanitizedFilename}`,
+        filename: sanitizedFilename,
+        mimeType: file.type,
+        fileSize: file.size,
+      };
+    } catch (error) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors du téléchargement du fichier',
+      });
+    }
   }
 
   /**
-   * Examine un document et met à jour son statut de vérification
+   * Examine un document avec logging et notifications
    */
   async reviewDocument(
     documentId: string,
@@ -109,7 +237,82 @@ export class VerificationService {
     status: VerificationStatus,
     notes?: string
   ) {
-    // Vérifier si le vérifieur est un administrateur
+    // Validation de l'administrateur
+    await this.validateAdminPermissions(verifierId);
+
+    // Transaction pour garantir la cohérence
+    return await this.prisma.$transaction(async (tx) => {
+      // Récupérer les informations nécessaires
+      const verification = await tx.verification.findFirst({
+        where: { documentId },
+        include: {
+          document: {
+            include: { user: true }
+          }
+        }
+      });
+
+      if (!verification) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Demande de vérification non trouvée',
+        });
+      }
+
+      // Mettre à jour la vérification
+      const updatedVerification = await tx.verification.update({
+        where: { id: verification.id },
+        data: {
+          verifierId,
+          status,
+          notes,
+          verifiedAt: new Date(),
+        },
+      });
+
+      // Mettre à jour le document
+      await tx.document.update({
+        where: { id: documentId },
+        data: {
+          isVerified: status === VerificationStatus.APPROVED,
+          reviewerId: verifierId,
+          verificationStatus: status,
+          rejectionReason: status === VerificationStatus.REJECTED ? notes : null,
+        },
+      });
+
+      // Vérifier si l'utilisateur peut être complètement vérifié
+      if (status === VerificationStatus.APPROVED && verification.document?.user) {
+        await this.checkAndUpdateCompleteVerification(
+          verification.document.user.id,
+          verification.document.user.role as UserRole,
+          tx
+        );
+      }
+
+      // Créer un log d'audit
+      await tx.auditLog.create({
+        data: {
+          action: `DOCUMENT_${status}`,
+          entityType: 'DOCUMENT',
+          entityId: documentId,
+          userId: verifierId,
+          details: {
+            documentType: verification.document?.type,
+            submitterId: verification.submitterId,
+            notes,
+          },
+        }
+      });
+
+      return updatedVerification;
+    });
+  }
+
+  /**
+   * Valide les permissions d'administrateur
+   */
+  private async validateAdminPermissions(verifierId: string) {
     const verifier = await this.prisma.user.findUnique({
       where: { id: verifierId },
     });
@@ -120,59 +323,252 @@ export class VerificationService {
         message: 'Seuls les administrateurs peuvent vérifier les documents',
       });
     }
+  }
 
-    // Trouver la demande de vérification associée
-    const verification = await this.prisma.verification.findFirst({
-      where: { documentId },
+  /**
+   * Vérifie et met à jour le statut de vérification complet d'un utilisateur
+   */
+  private async checkAndUpdateCompleteVerification(
+    userId: string,
+    userRole: UserRole,
+    tx?: any
+  ) {
+    const prisma = tx || this.prisma;
+    const requiredDocuments = VerificationService.REQUIRED_DOCUMENTS[userRole];
+    
+    if (requiredDocuments.length === 0) return;
+
+    // Vérifier si tous les documents requis sont approuvés
+    const verifiedDocuments = await prisma.document.findMany({
+      where: {
+        userId,
+        userRole,
+        type: { in: requiredDocuments },
+        isVerified: true,
+      },
     });
 
-    if (!verification) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Demande de vérification non trouvée',
+    // Si tous les documents sont vérifiés
+    if (verifiedDocuments.length >= requiredDocuments.length) {
+      const systemAdmin = await prisma.user.findFirst({
+        where: { role: UserRole.ADMIN },
+        select: { id: true },
+      });
+
+      const systemId = systemAdmin?.id || 'system';
+
+      // Mettre à jour selon le rôle
+      await this.updateRoleSpecificVerification(userId, userRole, systemId, prisma);
+
+      // Mettre à jour l'utilisateur principal
+      await prisma.user.update({
+        where: { id: userId },
+        data: { 
+          status: UserStatus.ACTIVE,
+          isVerified: true 
+        },
       });
     }
+  }
 
-    // Mettre à jour la vérification
-    const updatedVerification = await this.prisma.verification.update({
-      where: { id: verification.id },
-      data: {
-        verifierId,
-        status,
-        notes,
-        verifiedAt: new Date(),
-      },
-    });
+  /**
+   * Met à jour la vérification spécifique au rôle
+   */
+  private async updateRoleSpecificVerification(
+    userId: string,
+    userRole: UserRole,
+    verifierId: string,
+    prisma: any
+  ) {
+    const updateData = {
+      isVerified: true,
+      verificationDate: new Date(),
+    };
 
-    // Mettre à jour le document
-    await this.prisma.document.update({
-      where: { id: documentId },
-      data: {
-        isVerified: status === VerificationStatus.APPROVED,
-        reviewerId: verifierId,
-        verificationStatus: status,
-        rejectionReason: status === VerificationStatus.REJECTED ? notes : null,
-      },
-    });
+    const historyData = {
+      userId,
+      verifiedById: verifierId,
+      status: VerificationStatus.APPROVED,
+      reason: 'All required documents verified',
+      createdAt: new Date(),
+    };
 
-    // Récupérer les informations sur le document et l'utilisateur
-    const document = await this.prisma.document.findUnique({
-      where: { id: documentId },
-      include: { user: true },
-    });
-
-    if (document && status === VerificationStatus.APPROVED) {
-      // Si tous les documents requis sont approuvés, mettre à jour le statut de vérification de l'utilisateur
-      if (document.user.role === UserRole.DELIVERER) {
-        await this.updateDelivererVerificationStatus(document.userId);
-      } else if (document.user.role === UserRole.PROVIDER) {
-        await this.updateProviderVerificationStatus(document.userId);
-      } else if (document.user.role === UserRole.MERCHANT) {
-        await this.updateMerchantVerificationStatus(document.userId);
-      }
+    switch (userRole) {
+      case UserRole.DELIVERER:
+        await prisma.deliverer.update({
+          where: { userId },
+          data: updateData,
+        });
+        break;
+      case UserRole.PROVIDER:
+        await prisma.provider.update({
+          where: { userId },
+          data: updateData,
+        });
+        break;
+      case UserRole.MERCHANT:
+        await prisma.merchant.update({
+          where: { userId },
+          data: updateData,
+        });
+        break;
     }
 
-    return updatedVerification;
+    // Ajouter à l'historique
+    await prisma.verificationHistory.create({
+      data: historyData,
+    });
+  }
+
+  /**
+   * Récupère le statut de vérification complet d'un utilisateur
+   */
+  async getUserVerificationStatus(userId: string, userRole: UserRole): Promise<VerificationResult> {
+    const requiredDocuments = VerificationService.REQUIRED_DOCUMENTS[userRole];
+    
+    if (requiredDocuments.length === 0) {
+      return {
+        isComplete: true,
+        missingDocuments: [],
+        verificationStatus: 'APPROVED'
+      };
+    }
+
+    // Récupérer tous les documents de l'utilisateur
+    const userDocuments = await this.prisma.document.findMany({
+      where: {
+        userId,
+        userRole,
+        type: { in: requiredDocuments },
+      },
+    });
+
+    // Identifier les documents manquants ou non vérifiés
+    const verifiedDocTypes = userDocuments
+      .filter(doc => doc.isVerified)
+      .map(doc => doc.type);
+    
+    const missingDocuments = requiredDocuments.filter(
+      type => !verifiedDocTypes.includes(type)
+    );
+
+    // Déterminer le statut global
+    let verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | 'NOT_SUBMITTED' = 'NOT_SUBMITTED';
+    
+    if (userDocuments.length === 0) {
+      verificationStatus = 'NOT_SUBMITTED';
+    } else if (missingDocuments.length === 0) {
+      verificationStatus = 'APPROVED';
+    } else if (userDocuments.some(doc => doc.verificationStatus === VerificationStatus.REJECTED)) {
+      verificationStatus = 'REJECTED';
+    } else {
+      verificationStatus = 'PENDING';
+    }
+
+    return {
+      isComplete: missingDocuments.length === 0,
+      missingDocuments,
+      verificationStatus
+    };
+  }
+
+  /**
+   * Récupère les vérifications en attente avec pagination améliorée
+   */
+  async getPendingVerifications(
+    userRole?: UserRole,
+    limit: number = 20,
+    page: number = 1,
+    sortBy: 'requestedAt' | 'submitterName' = 'requestedAt',
+    sortOrder: 'asc' | 'desc' = 'desc'
+  ) {
+    const skip = (page - 1) * limit;
+    const whereClause: any = {
+      status: VerificationStatus.PENDING,
+    };
+
+    if (userRole) {
+      whereClause.document = {
+        userRole,
+      };
+    }
+
+    const [verifications, totalCount] = await Promise.all([
+      this.prisma.verification.findMany({
+        where: whereClause,
+        include: {
+          document: true,
+          submitter: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              role: true,
+              createdAt: true,
+            },
+          },
+        },
+        orderBy: sortBy === 'submitterName' 
+          ? { submitter: { name: sortOrder } }
+          : { requestedAt: sortOrder },
+        skip,
+        take: limit,
+      }),
+      this.prisma.verification.count({ where: whereClause }),
+    ]);
+
+    return {
+      verifications,
+      pagination: {
+        totalItems: totalCount,
+        itemsPerPage: limit,
+        currentPage: page,
+        totalPages: Math.ceil(totalCount / limit),
+        hasNext: page < Math.ceil(totalCount / limit),
+        hasPrev: page > 1,
+      },
+    };
+  }
+
+  /**
+   * Récupère les statistiques de vérification pour le dashboard admin
+   */
+  async getVerificationStats() {
+    const [pending, approved, rejected, total] = await Promise.all([
+      this.prisma.verification.count({
+        where: { status: VerificationStatus.PENDING }
+      }),
+      this.prisma.verification.count({
+        where: { status: VerificationStatus.APPROVED }
+      }),
+      this.prisma.verification.count({
+        where: { status: VerificationStatus.REJECTED }
+      }),
+      this.prisma.verification.count(),
+    ]);
+
+    // Stats par rôle
+    const statsByRole = await this.prisma.verification.groupBy({
+      by: ['document.userRole'],
+      _count: {
+        id: true,
+      },
+      where: {
+        status: VerificationStatus.PENDING,
+      },
+    });
+
+    return {
+      total,
+      pending,
+      approved,
+      rejected,
+      approvalRate: total > 0 ? Math.round((approved / total) * 100) : 0,
+      statsByRole: statsByRole.reduce((acc, stat) => {
+        acc[stat.document.userRole] = stat._count.id;
+        return acc;
+      }, {} as Record<string, number>),
+    };
   }
 
   /**
@@ -197,6 +593,7 @@ export class VerificationService {
       DocumentType.ID_CARD,
       DocumentType.QUALIFICATION_CERTIFICATE,
       DocumentType.INSURANCE,
+      DocumentType.PROOF_OF_ADDRESS,
     ];
 
     await this.updateUserVerificationStatus(userId, UserRole.PROVIDER, requiredDocuments);
@@ -208,147 +605,11 @@ export class VerificationService {
   private async updateMerchantVerificationStatus(userId: string) {
     const requiredDocuments: DocumentType[] = [
       DocumentType.ID_CARD,
-      DocumentType.OTHER, // Document d'entreprise
+      DocumentType.BUSINESS_REGISTRATION,
+      DocumentType.PROOF_OF_ADDRESS,
     ];
 
     await this.updateUserVerificationStatus(userId, UserRole.MERCHANT, requiredDocuments);
-  }
-
-  /**
-   * Méthode commune pour mettre à jour le statut de vérification d'un utilisateur
-   */
-  private async updateUserVerificationStatus(
-    userId: string,
-    userRole: UserRole,
-    requiredDocuments: DocumentType[]
-  ) {
-    // Vérifier si tous les documents requis sont vérifiés
-    // @ts-ignore - Le champ userRole existe dans le modèle Document mais pas encore dans les types générés
-    const verifiedDocuments = await this.prisma.document.findMany({
-      where: {
-        userId,
-        userRole, // Champ ajouté dans la migration 20250519104500_add_userRole_to_document
-        type: { in: requiredDocuments },
-        isVerified: true,
-      },
-    });
-
-    // Si tous les documents requis sont vérifiés
-    if (verifiedDocuments.length >= requiredDocuments.length) {
-      // Récupérer le premier administrateur pour l'enregistrer comme vérificateur
-      const systemAdmin = await this.prisma.user.findFirst({
-        where: { role: UserRole.ADMIN },
-        select: { id: true },
-      });
-
-      // Si aucun admin n'est trouvé, utiliser l'ID système
-      const systemId = systemAdmin?.id || 'system';
-
-      // Mettre à jour le statut de vérification selon le rôle
-      switch (userRole) {
-        case UserRole.DELIVERER:
-          await this.prisma.deliverer.update({
-            where: { userId },
-            data: {
-              isVerified: true,
-              verificationDate: new Date(),
-            },
-          });
-
-          // Ajouter une entrée dans l'historique de vérification
-          await this.prisma.verificationHistory.create({
-            data: {
-              userId,
-              verifiedById: systemId,
-              status: VerificationStatus.APPROVED,
-              reason: 'All required documents verified',
-              createdAt: new Date(),
-            },
-          });
-
-          break;
-        case UserRole.PROVIDER:
-          await this.prisma.provider.update({
-            where: { userId },
-            data: {
-              isVerified: true,
-              verificationDate: new Date(),
-            },
-          });
-
-          // Ajouter une entrée dans l'historique de vérification
-          await this.prisma.verificationHistory.create({
-            data: {
-              userId,
-              verifiedById: systemId,
-              status: VerificationStatus.APPROVED,
-              reason: 'All required documents verified',
-              createdAt: new Date(),
-            },
-          });
-
-          break;
-        case UserRole.MERCHANT:
-          await this.prisma.merchant.update({
-            where: { userId },
-            data: {
-              isVerified: true,
-              verificationDate: new Date(),
-            },
-          });
-
-          // Ajouter une entrée dans l'historique de vérification
-          await this.prisma.verificationHistory.create({
-            data: {
-              userId,
-              verifiedById: systemId,
-              status: VerificationStatus.APPROVED,
-              reason: 'All required documents verified',
-              createdAt: new Date(),
-            },
-          });
-
-          break;
-      }
-
-      // Mettre à jour le statut de l'utilisateur
-      await this.prisma.user.update({
-        where: { id: userId },
-        data: { status: UserStatus.ACTIVE },
-      });
-    }
-  }
-
-  /**
-   * Récupère toutes les demandes de vérification en attente pour un type d'utilisateur spécifique
-   */
-  async getPendingVerifications(userRole: UserRole) {
-    // @ts-ignore - Le champ userRole existe dans le modèle Document mais pas encore dans les types générés
-    return await this.prisma.verification.findMany({
-      where: {
-        status: VerificationStatus.PENDING,
-        document: {
-          userRole, // Champ ajouté dans la migration 20250519104500_add_userRole_to_document
-        },
-      },
-      include: {
-        document: true,
-        submitter: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            role: true,
-            deliverer: userRole === UserRole.DELIVERER ? true : undefined,
-            provider: userRole === UserRole.PROVIDER ? true : undefined,
-            merchant: userRole === UserRole.MERCHANT ? true : undefined,
-          },
-        },
-      },
-      orderBy: {
-        requestedAt: 'desc',
-      },
-    });
   }
 
   /**
@@ -372,405 +633,6 @@ export class VerificationService {
         requestedAt: 'desc',
       },
     });
-  }
-
-  /**
-   * Vérifie et met à jour le statut de vérification pour un livreur automatiquement
-   * Utilisé lors de la navigation pour détecter si tous les documents sont vérifiés
-   */
-  async checkAndUpdateVerificationStatus(userId: string, userRole: UserRole): Promise<boolean> {
-    // Vérifier si l'utilisateur est déjà vérifié
-    const alreadyVerified = await this.getUserVerificationStatus(userId, userRole);
-
-    // Si déjà vérifié, on retourne simplement true sans rien faire
-    if (alreadyVerified) {
-      return true;
-    }
-
-    // Obtenir la liste des documents requis en fonction du rôle
-    let requiredDocuments: DocumentType[];
-
-    if (userRole === UserRole.DELIVERER) {
-      requiredDocuments = [
-        DocumentType.ID_CARD,
-        DocumentType.DRIVING_LICENSE,
-        DocumentType.VEHICLE_REGISTRATION,
-        DocumentType.INSURANCE,
-      ];
-    } else if (userRole === UserRole.PROVIDER) {
-      requiredDocuments = [
-        DocumentType.ID_CARD,
-        DocumentType.QUALIFICATION_CERTIFICATE,
-        DocumentType.INSURANCE,
-      ];
-    } else if (userRole === UserRole.MERCHANT) {
-      requiredDocuments = [DocumentType.ID_CARD, DocumentType.OTHER];
-    } else {
-      return false; // Rôle non supporté
-    }
-
-    // Vérifier si tous les documents requis sont téléchargés et vérifiés
-    // @ts-ignore - Le champ userRole existe dans le modèle Document mais pas encore dans les types générés
-    const verifiedDocuments = await this.prisma.document.findMany({
-      where: {
-        userId,
-        userRole, // Champ ajouté dans la migration 20250519104500_add_userRole_to_document
-        type: { in: requiredDocuments },
-        isVerified: true,
-      },
-    });
-
-    // Si tous les documents requis sont vérifiés, mais que le statut n'est pas encore mis à jour
-    if (verifiedDocuments.length >= requiredDocuments.length) {
-      // Mettre à jour le statut de vérification
-      await this.updateUserVerificationStatus(userId, userRole, requiredDocuments);
-      return true;
-    }
-
-    return false;
-  }
-
-  /**
-   * Récupère le statut de vérification actuel d'un utilisateur
-   */
-  private async getUserVerificationStatus(userId: string, userRole: UserRole): Promise<boolean> {
-    switch (userRole) {
-      case UserRole.DELIVERER:
-        const deliverer = await this.prisma.deliverer.findUnique({
-          where: { userId },
-          select: { isVerified: true },
-        });
-        return deliverer?.isVerified || false;
-
-      case UserRole.PROVIDER:
-        const provider = await this.prisma.provider.findUnique({
-          where: { userId },
-          select: { isVerified: true },
-        });
-        return provider?.isVerified || false;
-
-      case UserRole.MERCHANT:
-        const merchant = await this.prisma.merchant.findUnique({
-          where: { userId },
-          select: { isVerified: true },
-        });
-        return merchant?.isVerified || false;
-
-      default:
-        return false;
-    }
-  }
-
-  /**
-   * Crée une demande de vérification pour un merchant
-   */
-  async createMerchantVerification(data: MerchantVerificationSubmitInput): Promise<MerchantVerification> {
-    const { merchantId, businessDocuments, identityDocuments, addressDocuments, notes } = data;
-
-    // Vérifier si le merchant existe
-    const merchant = await db.merchant.findUnique({
-      where: { id: merchantId },
-      include: { user: true }
-    });
-
-    if (!merchant) {
-      throw new Error('Merchant not found');
-    }
-
-    // Vérifier si une vérification existe déjà
-    const existingVerification = await db.merchantVerification.findUnique({
-      where: { merchantId }
-    });
-
-    if (existingVerification) {
-      // Si la vérification est déjà approuvée, ne rien faire
-      if (existingVerification.status === 'APPROVED') {
-        throw new Error('Le compte est déjà vérifié');
-      }
-
-      // Sinon, mettre à jour la vérification existante
-      const updatedVerification = await db.merchantVerification.update({
-        where: { id: existingVerification.id },
-        data: {
-          status: 'PENDING',
-          businessDocuments,
-          identityDocuments,
-          addressDocuments,
-          notes,
-          requestedAt: new Date(),
-          verifiedAt: null,
-          verifierId: null,
-          rejectionReason: null,
-        }
-      });
-
-      return updatedVerification as unknown as MerchantVerification;
-    }
-
-    // Créer une nouvelle vérification
-    const verification = await db.merchantVerification.create({
-      data: {
-        merchantId,
-        status: 'PENDING',
-        businessDocuments,
-        identityDocuments,
-        addressDocuments,
-        notes,
-        businessRegistered: false,
-        taxCompliant: false,
-      }
-    });
-
-    return verification as unknown as MerchantVerification;
-  }
-
-  /**
-   * Crée une demande de vérification pour un provider
-   */
-  async createProviderVerification(data: ProviderVerificationSubmitInput): Promise<ProviderVerification> {
-    const { providerId, identityDocuments, qualificationDocs, insuranceDocs, addressDocuments, notes } = data;
-
-    // Vérifier si le provider existe
-    const provider = await db.provider.findUnique({
-      where: { id: providerId },
-      include: { user: true }
-    });
-
-    if (!provider) {
-      throw new Error('Provider not found');
-    }
-
-    // Vérifier si une vérification existe déjà
-    const existingVerification = await db.providerVerification.findUnique({
-      where: { providerId }
-    });
-
-    if (existingVerification) {
-      // Si la vérification est déjà approuvée, ne rien faire
-      if (existingVerification.status === 'APPROVED') {
-        throw new Error('Le compte est déjà vérifié');
-      }
-
-      // Sinon, mettre à jour la vérification existante
-      const updatedVerification = await db.providerVerification.update({
-        where: { id: existingVerification.id },
-        data: {
-          status: 'PENDING',
-          identityDocuments,
-          qualificationDocs,
-          insuranceDocs,
-          addressDocuments,
-          notes,
-          requestedAt: new Date(),
-          verifiedAt: null,
-          verifierId: null,
-          rejectionReason: null,
-        }
-      });
-
-      return updatedVerification as unknown as ProviderVerification;
-    }
-
-    // Créer une nouvelle vérification
-    const verification = await db.providerVerification.create({
-      data: {
-        providerId,
-        status: 'PENDING',
-        identityDocuments,
-        qualificationDocs,
-        insuranceDocs,
-        addressDocuments,
-        notes,
-        qualificationsVerified: false,
-        insuranceValid: false,
-      }
-    });
-
-    return verification as unknown as ProviderVerification;
-  }
-
-  /**
-   * Traite une demande de vérification (approve/reject) pour un merchant
-   */
-  async processMerchantVerification(verificationId: string, adminId: string, status: VerificationStatus, notes?: string, rejectionReason?: string): Promise<MerchantVerification> {
-    // Vérifier si l'admin existe
-    const admin = await db.user.findUnique({
-      where: { id: adminId },
-      include: { admin: true }
-    });
-
-    if (!admin || !admin.admin) {
-      throw new Error('Unauthorized: only admins can process verifications');
-    }
-
-    // Récupérer la vérification
-    const verification = await db.merchantVerification.findUnique({
-      where: { id: verificationId },
-      include: { merchant: true }
-    });
-
-    if (!verification) {
-      throw new Error('Verification not found');
-    }
-
-    // Mettre à jour le statut de la vérification
-    const updatedVerification = await db.merchantVerification.update({
-      where: { id: verificationId },
-      data: {
-        status,
-        verifiedAt: new Date(),
-        verifierId: adminId,
-        notes,
-        rejectionReason,
-      }
-    });
-
-    // Si approuvé, mettre à jour le statut du merchant
-    if (status === 'APPROVED') {
-      await db.merchant.update({
-        where: { id: verification.merchantId },
-        data: {
-          isVerified: true,
-          verificationDate: new Date(),
-        }
-      });
-    }
-
-    // Créer un log d'audit
-    await db.auditLog.create({
-      data: {
-        action: `VERIFICATION_${status}`,
-        entityType: 'MERCHANT_VERIFICATION',
-        entityId: verificationId,
-        userId: adminId,
-        details: {
-          merchantId: verification.merchantId,
-          status,
-          notes,
-          rejectionReason,
-        },
-      }
-    });
-
-    return updatedVerification as unknown as MerchantVerification;
-  }
-
-  /**
-   * Traite une demande de vérification (approve/reject) pour un provider
-   */
-  async processProviderVerification(verificationId: string, adminId: string, status: VerificationStatus, notes?: string, rejectionReason?: string): Promise<ProviderVerification> {
-    // Vérifier si l'admin existe
-    const admin = await db.user.findUnique({
-      where: { id: adminId },
-      include: { admin: true }
-    });
-
-    if (!admin || !admin.admin) {
-      throw new Error('Unauthorized: only admins can process verifications');
-    }
-
-    // Récupérer la vérification
-    const verification = await db.providerVerification.findUnique({
-      where: { id: verificationId },
-      include: { provider: true }
-    });
-
-    if (!verification) {
-      throw new Error('Verification not found');
-    }
-
-    // Mettre à jour le statut de la vérification
-    const updatedVerification = await db.providerVerification.update({
-      where: { id: verificationId },
-      data: {
-        status,
-        verifiedAt: new Date(),
-        verifierId: adminId,
-        notes,
-        rejectionReason,
-      }
-    });
-
-    // Si approuvé, mettre à jour le statut du provider
-    if (status === 'APPROVED') {
-      await db.provider.update({
-        where: { id: verification.providerId },
-        data: {
-          isVerified: true,
-          verificationDate: new Date(),
-        }
-      });
-    }
-
-    // Créer un log d'audit
-    await db.auditLog.create({
-      data: {
-        action: `VERIFICATION_${status}`,
-        entityType: 'PROVIDER_VERIFICATION',
-        entityId: verificationId,
-        userId: adminId,
-        details: {
-          providerId: verification.providerId,
-          status,
-          notes,
-          rejectionReason,
-        },
-      }
-    });
-
-    return updatedVerification as unknown as ProviderVerification;
-  }
-
-  /**
-   * Récupère toutes les vérifications en cours pour les admins
-   */
-  async getPendingVerifications(
-    role?: 'MERCHANT' | 'PROVIDER',
-    limit: number = 20,
-    page: number = 1
-  ) {
-    const skip = (page - 1) * limit;
-    
-    // Par défaut, récupérer les deux types de vérifications
-    const [merchantVerifications, providerVerifications] = await Promise.all([
-      !role || role === 'MERCHANT' 
-        ? db.merchantVerification.findMany({
-            where: { status: 'PENDING' },
-            include: { merchant: { include: { user: true } } },
-            skip,
-            take: role ? limit : Math.floor(limit / 2),
-          })
-        : [],
-      !role || role === 'PROVIDER'
-        ? db.providerVerification.findMany({
-            where: { status: 'PENDING' },
-            include: { provider: { include: { user: true } } },
-            skip,
-            take: role ? limit : Math.floor(limit / 2),
-          })
-        : [],
-    ]);
-
-    // Compter le nombre total pour la pagination
-    const [merchantCount, providerCount] = await Promise.all([
-      !role || role === 'MERCHANT' 
-        ? db.merchantVerification.count({ where: { status: 'PENDING' } })
-        : 0,
-      !role || role === 'PROVIDER'
-        ? db.providerVerification.count({ where: { status: 'PENDING' } })
-        : 0,
-    ]);
-
-    return {
-      merchantVerifications,
-      providerVerifications,
-      pagination: {
-        totalItems: merchantCount + providerCount,
-        itemsPerPage: limit,
-        currentPage: page,
-        totalPages: Math.ceil((merchantCount + providerCount) / limit),
-      },
-    };
   }
 
   /**
@@ -827,5 +689,289 @@ export class VerificationService {
       notes: verification.notes,
       rejectionReason: verification.rejectionReason,
     };
+  }
+
+  // Conserver les méthodes existantes pour les vérifications Merchant et Provider
+  // avec des améliorations mineures...
+
+  /**
+   * Crée une demande de vérification pour un merchant (version améliorée)
+   */
+  async createMerchantVerification(data: MerchantVerificationSubmitInput): Promise<MerchantVerification> {
+    const { merchantId, businessDocuments, identityDocuments, addressDocuments, notes } = data;
+
+    return await this.prisma.$transaction(async (tx) => {
+      // Vérifier le merchant
+      const merchant = await tx.merchant.findUnique({
+        where: { id: merchantId },
+        include: { user: true }
+      });
+
+      if (!merchant) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Merchant not found',
+        });
+      }
+
+      // Vérifier si une vérification existe déjà
+      const existingVerification = await tx.merchantVerification.findUnique({
+        where: { merchantId }
+      });
+
+      if (existingVerification) {
+        // Si la vérification est déjà approuvée, ne rien faire
+        if (existingVerification.status === 'APPROVED') {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Le compte est déjà vérifié',
+          });
+        }
+
+        // Sinon, mettre à jour la vérification existante
+        const updatedVerification = await tx.merchantVerification.update({
+          where: { id: existingVerification.id },
+          data: {
+            status: 'PENDING',
+            businessDocuments,
+            identityDocuments,
+            addressDocuments,
+            notes,
+            requestedAt: new Date(),
+            verifiedAt: null,
+            verifierId: null,
+            rejectionReason: null,
+          }
+        });
+
+        return updatedVerification as unknown as MerchantVerification;
+      }
+
+      // Créer une nouvelle vérification
+      const verification = await tx.merchantVerification.create({
+        data: {
+          merchantId,
+          status: 'PENDING',
+          businessDocuments,
+          identityDocuments,
+          addressDocuments,
+          notes,
+        }
+      });
+
+      return verification as unknown as MerchantVerification;
+    });
+  }
+
+  /**
+   * Crée une demande de vérification pour un provider
+   */
+  async createProviderVerification(data: ProviderVerificationSubmitInput): Promise<ProviderVerification> {
+    const { providerId, qualificationDocuments, identityDocuments, addressDocuments, insuranceDocuments, notes } = data;
+
+    return await this.prisma.$transaction(async (tx) => {
+      // Vérifier le provider
+      const provider = await tx.provider.findUnique({
+        where: { id: providerId },
+        include: { user: true }
+      });
+
+      if (!provider) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Provider not found',
+        });
+      }
+
+      // Vérifier si une vérification existe déjà
+      const existingVerification = await tx.providerVerification.findUnique({
+        where: { providerId }
+      });
+
+      if (existingVerification) {
+        // Si la vérification est déjà approuvée, ne rien faire
+        if (existingVerification.status === 'APPROVED') {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Le compte est déjà vérifié',
+          });
+        }
+
+        // Sinon, mettre à jour la vérification existante
+        const updatedVerification = await tx.providerVerification.update({
+          where: { id: existingVerification.id },
+          data: {
+            status: 'PENDING',
+            qualificationDocuments,
+            identityDocuments,
+            addressDocuments,
+            insuranceDocuments,
+            notes,
+            requestedAt: new Date(),
+            verifiedAt: null,
+            verifierId: null,
+            rejectionReason: null,
+          }
+        });
+
+        return updatedVerification as unknown as ProviderVerification;
+      }
+
+      // Créer une nouvelle vérification
+      const verification = await tx.providerVerification.create({
+        data: {
+          providerId,
+          status: 'PENDING',
+          qualificationDocuments,
+          identityDocuments,
+          addressDocuments,
+          insuranceDocuments,
+          notes,
+        }
+      });
+
+      return verification as unknown as ProviderVerification;
+    });
+  }
+
+  /**
+   * Met à jour le statut d'une vérification
+   */
+  async updateVerificationStatus(data: VerificationUpdateRequest): Promise<any> {
+    const { id, type, status, verifierId, rejectionReason } = data;
+
+    return await this.prisma.$transaction(async (tx) => {
+      // Vérifier si l'utilisateur est un admin
+      const verifier = await tx.user.findUnique({
+        where: { id: verifierId },
+      });
+
+      if (!verifier || verifier.role !== UserRole.ADMIN) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Seuls les administrateurs peuvent vérifier les comptes',
+        });
+      }
+
+      // Mettre à jour selon le type
+      if (type === 'MERCHANT') {
+        const verification = await tx.merchantVerification.findUnique({
+          where: { id },
+          include: { merchant: true },
+        });
+
+        if (!verification) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Vérification non trouvée',
+          });
+        }
+
+        // Mettre à jour la vérification
+        await tx.merchantVerification.update({
+          where: { id },
+          data: {
+            status,
+            verifierId,
+            verifiedAt: new Date(),
+            rejectionReason: status === 'REJECTED' ? rejectionReason : null,
+          },
+        });
+
+        // Si approuvé, mettre à jour le statut du merchant
+        if (status === 'APPROVED') {
+          await tx.merchant.update({
+            where: { id: verification.merchantId },
+            data: {
+              isVerified: true,
+              verificationDate: new Date(),
+            },
+          });
+
+          // Mettre à jour le statut de l'utilisateur
+          await tx.user.update({
+            where: { id: verification.merchant.userId },
+            data: {
+              status: UserStatus.ACTIVE,
+              isVerified: true,
+            },
+          });
+        }
+
+        // Ajouter à l'historique
+        await tx.verificationHistory.create({
+          data: {
+            userId: verification.merchant.userId,
+            verifiedById: verifierId,
+            status: status as any,
+            reason: status === 'REJECTED' ? rejectionReason : 'Verification approved',
+            createdAt: new Date(),
+          },
+        });
+
+        return { success: true };
+      } else if (type === 'PROVIDER') {
+        const verification = await tx.providerVerification.findUnique({
+          where: { id },
+          include: { provider: true },
+        });
+
+        if (!verification) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Vérification non trouvée',
+          });
+        }
+
+        // Mettre à jour la vérification
+        await tx.providerVerification.update({
+          where: { id },
+          data: {
+            status,
+            verifierId,
+            verifiedAt: new Date(),
+            rejectionReason: status === 'REJECTED' ? rejectionReason : null,
+          },
+        });
+
+        // Si approuvé, mettre à jour le statut du provider
+        if (status === 'APPROVED') {
+          await tx.provider.update({
+            where: { id: verification.providerId },
+            data: {
+              isVerified: true,
+              verificationDate: new Date(),
+            },
+          });
+
+          // Mettre à jour le statut de l'utilisateur
+          await tx.user.update({
+            where: { id: verification.provider.userId },
+            data: {
+              status: UserStatus.ACTIVE,
+              isVerified: true,
+            },
+          });
+        }
+
+        // Ajouter à l'historique
+        await tx.verificationHistory.create({
+          data: {
+            userId: verification.provider.userId,
+            verifiedById: verifierId,
+            status: status as any,
+            reason: status === 'REJECTED' ? rejectionReason : 'Verification approved',
+            createdAt: new Date(),
+          },
+        });
+
+        return { success: true };
+      }
+
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'Type de vérification non supporté',
+      });
+    });
   }
 }

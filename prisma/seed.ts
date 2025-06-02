@@ -1046,11 +1046,11 @@ async function createAnnouncements(clientUsers: any[], merchantUsers: any[]) {
 }
 
 // Create verification documents for providers
-async function createProviderDocuments(userId: string) {
-  const documentTypes = [
+async function createProviderDocuments(userId: string) {  const documentTypes = [
     { type: DocumentType.ID_CARD, filename: 'carte_identite.jpg', required: true },
     { type: DocumentType.QUALIFICATION_CERTIFICATE, filename: 'certification.pdf', required: true },
     { type: DocumentType.INSURANCE, filename: 'assurance.pdf', required: true },
+    { type: DocumentType.PROOF_OF_ADDRESS, filename: 'justificatif_adresse.pdf', required: true },
   ];
 
   for (const doc of documentTypes) {

@@ -75,48 +75,8 @@ const DocumentItem = ({
   );
 };
 
-// Fonction pour déterminer les types de documents requis par rôle
-const getRequiredDocumentTypes = (role: UserRole) => {
-  switch (role) {
-    case UserRole.DELIVERER:
-      return [
-        DocumentType.ID_CARD,
-        DocumentType.DRIVING_LICENSE,
-        DocumentType.VEHICLE_REGISTRATION,
-        DocumentType.INSURANCE,
-      ];
-    case UserRole.MERCHANT:
-      return [
-        DocumentType.BUSINESS_REGISTRATION,
-        DocumentType.PROOF_OF_ADDRESS,
-        DocumentType.OTHER,
-      ];
-    case UserRole.PROVIDER:
-      return [
-        DocumentType.BUSINESS_REGISTRATION,
-        DocumentType.QUALIFICATION_CERTIFICATE,
-        DocumentType.INSURANCE,
-      ];
-    default:
-      return [];
-  }
-};
-
-// Fonction pour afficher le nom lisible du type de document
-const getDocumentTypeName = (type: DocumentType) => {
-  const typeNames: Record<string, string> = {
-    ID_CARD: "Carte d'identité",
-    DRIVING_LICENSE: 'Permis de conduire',
-    VEHICLE_REGISTRATION: 'Carte grise',
-    INSURANCE: 'Assurance',
-    QUALIFICATION_CERTIFICATE: 'Certification professionnelle',
-    PROOF_OF_ADDRESS: 'Justificatif de domicile',
-    BUSINESS_REGISTRATION: 'Extrait K-bis',
-    OTHER: 'Autre document',
-  };
-
-  return typeNames[type] || type;
-};
+// Import des fonctions partagées depuis document-utils
+import { getDocumentTypeName, getRequiredDocumentTypesByRole } from '@/lib/document-utils';
 
 export function ProfileDocumentsList() {
   const [uploadType, setUploadType] = useState<DocumentType | null>(null);
