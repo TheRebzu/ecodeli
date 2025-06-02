@@ -63,31 +63,32 @@ const documentTypeLabels: Record<DocumentType, string> = {
   VEHICLE_REGISTRATION: 'Carte grise',
   INSURANCE: "Attestation d'assurance",
   QUALIFICATION_CERTIFICATE: 'Certificat de qualification',
+  PROOF_OF_ADDRESS: 'Justificatif de domicile',
+  BUSINESS_REGISTRATION: 'Extrait K-bis',
   SELFIE: 'Photo de profil',
   OTHER: 'Autre document',
 };
 
+// Import de la fonction centralisée pour les documents requis par rôle
+import { getRequiredDocumentTypesByRole } from '@/lib/document-utils';
+
+// Fonction pour obtenir la liste des documents disponibles par rôle (incluant le type OTHER)
+const getAvailableDocumentTypesByRole = (role: string): DocumentType[] => {
+  const requiredTypes = getRequiredDocumentTypesByRole(role);
+  
+  // Ajouter le type OTHER s'il n'est pas déjà présent
+  if (!requiredTypes.includes(DocumentType.OTHER)) {
+    return [...requiredTypes, DocumentType.OTHER];
+  }
+  
+  return requiredTypes;
+};
+
 // Mapping des types de documents par rôle utilisateur
 const documentTypesByRole: Record<string, DocumentType[]> = {
-  DELIVERER: [
-    DocumentType.ID_CARD,
-    DocumentType.DRIVING_LICENSE,
-    DocumentType.VEHICLE_REGISTRATION,
-    DocumentType.INSURANCE,
-    DocumentType.SELFIE,
-    DocumentType.OTHER,
-  ],
-  MERCHANT: [
-    DocumentType.ID_CARD,
-    DocumentType.INSURANCE,
-    DocumentType.OTHER,
-  ],
-  PROVIDER: [
-    DocumentType.ID_CARD,
-    DocumentType.QUALIFICATION_CERTIFICATE,
-    DocumentType.INSURANCE,
-    DocumentType.OTHER,
-  ],
+  DELIVERER: getAvailableDocumentTypesByRole('DELIVERER'),
+  MERCHANT: getAvailableDocumentTypesByRole('MERCHANT'),
+  PROVIDER: getAvailableDocumentTypesByRole('PROVIDER'),
 };
 
 interface DocumentUploadProps {

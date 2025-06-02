@@ -1,1 +1,22 @@
-import * as React from 'react';\n\ninterface PasswordResetEmailProps {\n  username: string;\n  resetUrl: string;\n}\n\nexport const PasswordResetEmail = ({\n  username,\n  resetUrl,\n}: PasswordResetEmailProps) => {\n  return (\n    <div>\n      <h1>Réinitialisation de mot de passe</h1>\n      <p>Bonjour {username},</p>\n      <p>Vous avez demandé la réinitialisation de votre mot de passe. Veuillez cliquer sur le lien ci-dessous pour le réinitialiser :</p>\n      <a href={resetUrl}>Réinitialiser mon mot de passe</a>\n      <p>Ce lien expirera dans 1 heure.</p>\n      <p>Si vous n'avez pas demandé cette réinitialisation, vous pouvez ignorer cet email.</p>\n    </div>\n  );\n};
+import * as React from 'react';
+
+interface PasswordResetEmailProps {
+  username: string;
+  resetUrl: string;
+}
+
+export const PasswordResetEmail = ({
+  username,
+  resetUrl,
+}: PasswordResetEmailProps) => {
+  return (
+    <div>
+      <h1>Réinitialisation de mot de passe</h1>
+      <p>Bonjour {username},</p>
+      <p>Vous avez demandé la réinitialisation de votre mot de passe. Veuillez cliquer sur le lien ci-dessous pour le réinitialiser :</p>
+      <a href={resetUrl}>Réinitialiser mon mot de passe</a>
+      <p>Ce lien expirera dans 1 heure.</p>
+      <p>Si vous n'avez pas demandé cette réinitialisation, vous pouvez ignorer cet email.</p>
+    </div>
+  );
+};

@@ -1,1 +1,9 @@
-export const API_ENDPOINTS = {\n  AUTH: '/api/auth',\n  USERS: '/api/users',\n  ANNOUNCEMENTS: '/api/announcements',\n  DELIVERIES: '/api/deliveries',\n  SERVICES: '/api/services',\n  PAYMENTS: '/api/payments',\n  INVOICES: '/api/invoices'\n};
+export const API_ENDPOINTS = {
+  AUTH: '/api/auth',
+  USERS: '/api/users',
+  ANNOUNCEMENTS: '/api/announcements',
+  DELIVERIES: '/api/deliveries',
+  SERVICES: '/api/services',
+  PAYMENTS: '/api/payments',
+  INVOICES: '/api/invoices'
+};

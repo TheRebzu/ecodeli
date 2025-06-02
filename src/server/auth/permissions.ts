@@ -1,1 +1,65 @@
-import { TRPCError } from '@trpc/server';\nimport { db } from '../db';\nimport { UserRole } from '@prisma/client';\n\n// Vérification spécifique pour les livreurs vérifiés\nexport const isVerifiedDeliverer = async (userId: string) => {\n  const deliverer = await db.deliverer.findFirst({\n    where: { userId, isVerified: true }\n  });\n  \n  if (!deliverer) {\n    throw new TRPCError({\n      code: 'FORBIDDEN',\n      message: 'Cette action nécessite un compte livreur vérifié.'\n    });\n  }\n  \n  return deliverer;\n};\n\n// Vérification spécifique pour les prestataires vérifiés\nexport const isVerifiedProvider = async (userId: string) => {\n  const provider = await db.provider.findFirst({\n    where: { userId, isVerified: true }\n  });\n  \n  if (!provider) {\n    throw new TRPCError({\n      code: 'FORBIDDEN',\n      message: 'Cette action nécessite un compte prestataire vérifié.'\n    });\n  }\n  \n  return provider;\n};\n\n// Vérification pour les actions sur les ressources possédées\nexport const ownsResource = async (resourceType: string, resourceId: string, userId: string) => {\n  let resource: any = null;\n  \n  switch (resourceType) {\n    case 'announcement':\n      resource = await db.announcement.findUnique({\n        where: { id: resourceId },\n        select: { clientId: true, merchantId: true, delivererId: true }\n      });\n      break;\n    case 'delivery':\n      // Vérification pour livraison\n      break;\n    // Autres cas\n  }\n  \n  if (!resource) {\n    throw new TRPCError({\n      code: 'NOT_FOUND',\n      message: 'Ressource non trouvée'\n    });\n  }\n  \n  // Vérification de la propriété selon le type de ressource\n  // ...\n  \n  return true;\n};
+import { TRPCError } from '@trpc/server';
+import { db } from '../db';
+import { UserRole } from '@prisma/client';
+
+// Vérification spécifique pour les livreurs vérifiés
+export const isVerifiedDeliverer = async (userId: string) => {
+  const deliverer = await db.deliverer.findFirst({
+    where: { userId, isVerified: true }
+  });
+  
+  if (!deliverer) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Cette action nécessite un compte livreur vérifié.'
+    });
+  }
+  
+  return deliverer;
+};
+
+// Vérification spécifique pour les prestataires vérifiés
+export const isVerifiedProvider = async (userId: string) => {
+  const provider = await db.provider.findFirst({
+    where: { userId, isVerified: true }
+  });
+  
+  if (!provider) {
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Cette action nécessite un compte prestataire vérifié.'
+    });
+  }
+  
+  return provider;
+};
+
+// Vérification pour les actions sur les ressources possédées
+export const ownsResource = async (resourceType: string, resourceId: string, userId: string) => {
+  let resource: any = null;
+  
+  switch (resourceType) {
+    case 'announcement':
+      resource = await db.announcement.findUnique({
+        where: { id: resourceId },
+        select: { clientId: true, merchantId: true, delivererId: true }
+      });
+      break;
+    case 'delivery':
+      // Vérification pour livraison
+      break;
+    // Autres cas
+  }
+  
+  if (!resource) {
+    throw new TRPCError({
+      code: 'NOT_FOUND',
+      message: 'Ressource non trouvée'
+    });
+  }
+  
+  // Vérification de la propriété selon le type de ressource
+  // ...
+  
+  return true;
+};

@@ -1,1 +1,18 @@
-import { NotificationProvider } from '@/context/notification-context';\nimport { LanguageProvider } from '@/context/language-context';\nimport { ThemeProvider } from '@/context/theme-context';\nimport { TRPCProvider } from './trpc-provider';\n\nexport function AppProviders({ children }) {\n  return (\n    <TRPCProvider>\n      <ThemeProvider>\n        <LanguageProvider>\n          <NotificationProvider>\n            {children}\n          </NotificationProvider>\n        </LanguageProvider>\n      </ThemeProvider>\n    </TRPCProvider>\n  );\n}
+import { NotificationProvider } from '@/context/notification-context';
+import { LanguageProvider } from '@/context/language-context';
+import { ThemeProvider } from '@/context/theme-context';
+import { TRPCProvider } from './trpc-provider';
+
+export function AppProviders({ children }) {
+  return (
+    <TRPCProvider>
+      <ThemeProvider>
+        <LanguageProvider>
+          <NotificationProvider>
+            {children}
+          </NotificationProvider>
+        </LanguageProvider>
+      </ThemeProvider>
+    </TRPCProvider>
+  );
+}

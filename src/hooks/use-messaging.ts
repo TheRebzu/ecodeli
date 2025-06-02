@@ -1,1 +1,61 @@
-import { useEffect } from 'react';\nimport { api } from './use-trpc';\nimport { useMessagingStore } from '@/store/use-messaging-store';\nimport { useSocket } from './use-socket';\n\nexport function useMessaging(conversationId?: string) {\n  const socket = useSocket();\n  const { setConversations, setMessages, addMessage } = useMessagingStore();\n  \n  // Requêtes tRPC\n  const conversationsQuery = api.messaging.getConversations.useQuery();\n  const messagesQuery = conversationId \n    ? api.messaging.getMessages.useQuery({ conversationId })\n    : { data: undefined, isLoading: false };\n  \n  // Mutation pour envoyer un message\n  const sendMessageMutation = api.messaging.sendMessage.useMutation();\n  \n  useEffect(() => {\n    if (conversationsQuery.data) {\n      setConversations(conversationsQuery.data);\n    }\n  }, [conversationsQuery.data, setConversations]);\n  \n  useEffect(() => {\n    if (messagesQuery.data) {\n      setMessages(conversationId!, messagesQuery.data);\n    }\n  }, [messagesQuery.data, conversationId, setMessages]);\n  \n  // Écouter les nouveaux messages via socket\n  useEffect(() => {\n    if (socket && conversationId) {\n      socket.on(message:, (message) => {\n        addMessage(conversationId, message);\n      });\n      \n      return () => {\n        socket.off(message:);\n      };\n    }\n  }, [socket, conversationId, addMessage]);\n  \n  const sendMessage = async (content: string) => {\n    if (!conversationId) return;\n    \n    await sendMessageMutation.mutateAsync({\n      conversationId,\n      content,\n    });\n  };\n  \n  return {\n    conversations: conversationsQuery.data,\n    messages: messagesQuery.data,\n    isLoadingConversations: conversationsQuery.isLoading,\n    isLoadingMessages: messagesQuery.isLoading,\n    sendMessage,\n    createConversation: api.messaging.createConversation.useMutation(),\n  };\n}
+import { useEffect } from 'react';
+import { api } from './use-trpc';
+import { useMessagingStore } from '@/store/use-messaging-store';
+import { useSocket } from './use-socket';
+
+export function useMessaging(conversationId?: string) {
+  const socket = useSocket();
+  const { setConversations, setMessages, addMessage } = useMessagingStore();
+  
+  // Requêtes tRPC
+  const conversationsQuery = api.messaging.getConversations.useQuery();
+  const messagesQuery = conversationId 
+    ? api.messaging.getMessages.useQuery({ conversationId })
+    : { data: undefined, isLoading: false };
+  
+  // Mutation pour envoyer un message
+  const sendMessageMutation = api.messaging.sendMessage.useMutation();
+  
+  useEffect(() => {
+    if (conversationsQuery.data) {
+      setConversations(conversationsQuery.data);
+    }
+  }, [conversationsQuery.data, setConversations]);
+  
+  useEffect(() => {
+    if (messagesQuery.data) {
+      setMessages(conversationId!, messagesQuery.data);
+    }
+  }, [messagesQuery.data, conversationId, setMessages]);
+  
+  // Écouter les nouveaux messages via socket
+  useEffect(() => {
+    if (socket && conversationId) {
+      socket.on('message', (message) => {
+        addMessage(conversationId, message);
+      });
+      
+      return () => {
+        socket.off('message');
+      };
+    }
+  }, [socket, conversationId, addMessage]);
+  
+  const sendMessage = async (content: string) => {
+    if (!conversationId) return;
+    
+    await sendMessageMutation.mutateAsync({
+      conversationId,
+      content,
+    });
+  };
+  
+  return {
+    conversations: conversationsQuery.data,
+    messages: messagesQuery.data,
+    isLoadingConversations: conversationsQuery.isLoading,
+    isLoadingMessages: messagesQuery.isLoading,
+    sendMessage,
+    createConversation: api.messaging.createConversation.useMutation(),
+  };
+}

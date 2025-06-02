@@ -1,1 +1,64 @@
-import { createContext, useContext, useState, useEffect } from 'react';\nimport { api } from '@/hooks/use-trpc';\nimport { useNotificationStore } from '@/store/use-notification-store';\nimport { useSocket } from '@/hooks/use-socket';\n\nconst NotificationContext = createContext(null);\n\nexport function NotificationProvider({ children }) {\n  const socket = useSocket();\n  const { notifications, unreadCount, addNotification, markAsRead } = useNotificationStore();\n  \n  // Charger les notifications initiales\n  const { data } = api.notification.getAll.useQuery();\n  \n  useEffect(() => {\n    if (data) {\n      // Mettre à jour le store avec les notifications initiales\n    }\n  }, [data]);\n  \n  // Écouter les nouvelles notifications via socket\n  useEffect(() => {\n    if (!socket) return;\n    \n    socket.on('notification', (notification) => {\n      addNotification(notification);\n    });\n    \n    return () => {\n      socket.off('notification');\n    };\n  }, [socket, addNotification]);\n  \n  const handleMarkAsRead = async (id) => {\n    try {\n      await api.notification.markAsRead.mutate({ id });\n      markAsRead(id);\n    } catch (error) {\n      console.error('Erreur lors du marquage de la notification comme lue:', error);\n    }\n  };\n  \n  const value = {\n    notifications,\n    unreadCount,\n    markAsRead: handleMarkAsRead,\n  };\n  \n  return (\n    <NotificationContext.Provider value={value}>\n      {children}\n    </NotificationContext.Provider>\n  );\n}\n\nexport function useNotifications() {\n  const context = useContext(NotificationContext);\n  \n  if (!context) {\n    throw new Error('useNotifications must be used within a NotificationProvider');\n  }\n  \n  return context;\n}
+import { createContext, useContext, useState, useEffect } from 'react';
+import { api } from '@/hooks/use-trpc';
+import { useNotificationStore } from '@/store/use-notification-store';
+import { useSocket } from '@/hooks/use-socket';
+
+const NotificationContext = createContext(null);
+
+export function NotificationProvider({ children }) {
+  const socket = useSocket();
+  const { notifications, unreadCount, addNotification, markAsRead } = useNotificationStore();
+  
+  // Charger les notifications initiales
+  const { data } = api.notification.getAll.useQuery();
+  
+  useEffect(() => {
+    if (data) {
+      // Mettre à jour le store avec les notifications initiales
+    }
+  }, [data]);
+  
+  // Écouter les nouvelles notifications via socket
+  useEffect(() => {
+    if (!socket) return;
+    
+    socket.on('notification', (notification) => {
+      addNotification(notification);
+    });
+    
+    return () => {
+      socket.off('notification');
+    };
+  }, [socket, addNotification]);
+  
+  const handleMarkAsRead = async (id) => {
+    try {
+      await api.notification.markAsRead.mutate({ id });
+      markAsRead(id);
+    } catch (error) {
+      console.error('Erreur lors du marquage de la notification comme lue:', error);
+    }
+  };
+  
+  const value = {
+    notifications,
+    unreadCount,
+    markAsRead: handleMarkAsRead,
+  };
+  
+  return (
+    <NotificationContext.Provider value={value}>
+      {children}
+    </NotificationContext.Provider>
+  );
+}
+
+export function useNotifications() {
+  const context = useContext(NotificationContext);
+  
+  if (!context) {
+    throw new Error('useNotifications must be used within a NotificationProvider');
+  }
+  
+  return context;
+}

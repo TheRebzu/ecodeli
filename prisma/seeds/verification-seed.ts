@@ -343,14 +343,12 @@ async function createProviderDocuments(userId: string) {
     if (existingDocuments.length > 0) {
       console.log(`${existingDocuments.length} documents existent déjà pour l'utilisateur ${userId}`);
       return existingDocuments;
-    }
-
-    // Types de documents requis pour un prestataire
+    }    // Types de documents requis pour un prestataire
     const documentTypes: DocumentInfo[] = [
       { type: DocumentType.ID_CARD, name: "Carte d'identité" },
-      { type: DocumentType.PROFESSIONAL_LICENSE, name: "Licence professionnelle" },
-      { type: DocumentType.DIPLOMA, name: "Diplômes et certifications" },
+      { type: DocumentType.QUALIFICATION_CERTIFICATE, name: "Certificat de qualification" },
       { type: DocumentType.INSURANCE, name: "Assurance responsabilité civile" },
+      { type: DocumentType.PROOF_OF_ADDRESS, name: "Justificatif d'adresse" },
     ];
 
     const documents = [];

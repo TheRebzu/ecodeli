@@ -5,6 +5,7 @@ import { ProfileHeader } from '@/components/profile/profile-header';
 import { ProfileInfoCard } from '@/components/profile/profile-info-card';
 import { ProfilePreferences } from '@/components/profile/profile-preferences';
 import { ProfileDocumentsList } from '@/components/profile/profile-documents-list';
+import { MerchantProfileForm } from '@/components/profile/merchant/merchant-profile-form';
 import { useProfileStore } from '@/store/use-profile-store';
 
 export default function MerchantProfilePage() {
@@ -26,16 +27,7 @@ function MerchantProfileContent() {
 
   // Afficher le formulaire si le mode édition est activé
   if (isEditingProfile) {
-    // Ici nous pourrions utiliser un formulaire spécifique aux marchands
-    // Pour l'instant, nous utilisons simplement la carte d'informations
-    return (
-      <div className="text-center py-10">
-        <h2 className="text-xl font-medium mb-2">Mode édition</h2>
-        <p className="text-muted-foreground">
-          Le formulaire d'édition pour les marchands n'est pas encore disponible.
-        </p>
-      </div>
-    );
+    return <MerchantProfileForm />;
   }
 
   // Afficher différentes sections en fonction de la vue sélectionnée

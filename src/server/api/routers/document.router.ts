@@ -53,12 +53,11 @@ export const documentRouter = router({
       try {
         const userId = input?.userId || ctx.session.user.id;
         console.log(`Récupération des documents pour l'utilisateur ${userId}`);
-        
-        // Requête directe à la base de données pour récupérer les documents
+          // Requête directe à la base de données pour récupérer les documents
         const documents = await ctx.db.document.findMany({
           where: { 
             userId,
-            ...(input?.status ? { status: input.status } : {})
+            ...(input?.status ? { verificationStatus: input.status } : {})
           },
           orderBy: { uploadedAt: 'desc' },
           include: {
@@ -85,13 +84,12 @@ export const documentRouter = router({
         });
         
         console.log(`${documents.length} documents trouvés pour l'utilisateur ${userId}`);
-        
-        // Traitement pour faciliter l'utilisation côté client
+          // Traitement pour faciliter l'utilisation côté client
         const processedDocuments = documents.map(doc => {
           // S'assurer que toutes les propriétés nécessaires sont présentes
           return {
             ...doc,
-            status: doc.status || (doc.verifications[0]?.status as any) || 'PENDING',
+            status: doc.verificationStatus || (doc.verifications[0]?.status as any) || 'PENDING',
             verificationStatus: doc.verificationStatus || (doc.verifications[0]?.status as any) || 'PENDING',
             createdAt: doc.uploadedAt
           };
@@ -119,7 +117,9 @@ export const documentRouter = router({
     )
     .query(async ({ input }) => {
       try {
-        const types = documentService.getRequiredDocumentTypesByRole(input.userRole);
+        // Utiliser la fonction centralisée depuis document-utils
+        const { getRequiredDocumentTypesByRole } = require('@/lib/document-utils');
+        const types = getRequiredDocumentTypesByRole(input.userRole);
         return types;
       } catch (error: any) {
         throw new TRPCError({
@@ -129,7 +129,6 @@ export const documentRouter = router({
         });
       }
     }),
-
   /**
    * Obtenir les documents en attente de vérification (admin)
    */
@@ -137,14 +136,16 @@ export const documentRouter = router({
     .input(
       z
         .object({
-          userRole: z.enum(['DELIVERER', 'PROVIDER']).optional(),
+          status: z.enum(['PENDING', 'APPROVED', 'REJECTED']).default('PENDING'),
+          userRole: z.enum(['DELIVERER', 'PROVIDER', 'MERCHANT']).optional(),
         })
         .optional()
     )
     .query(async ({ input }) => {
       try {
+        const status = input?.status || 'PENDING';
         const userRole = input?.userRole;
-        const documents = await documentService.getPendingDocuments(userRole);
+        const documents = await documentService.getDocumentsByStatusAndRole(status, userRole);
         return { documents };
       } catch (error: any) {
         throw new TRPCError({

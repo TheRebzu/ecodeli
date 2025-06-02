@@ -1,1 +1,43 @@
-import { createContext, useContext, useState, useEffect } from 'react';\n\nconst ThemeContext = createContext(null);\n\nexport function ThemeProvider({ children }) {\n  const [theme, setTheme] = useState('light');\n  \n  // Charger le thème depuis localStorage au chargement\n  useEffect(() => {\n    const savedTheme = localStorage.getItem('theme');\n    if (savedTheme) {\n      setTheme(savedTheme);\n      document.documentElement.setAttribute('data-theme', savedTheme);\n    }\n  }, []);\n  \n  const changeTheme = (newTheme) => {\n    setTheme(newTheme);\n    localStorage.setItem('theme', newTheme);\n    document.documentElement.setAttribute('data-theme', newTheme);\n  };\n  \n  const value = {\n    theme,\n    changeTheme,\n  };\n  \n  return (\n    <ThemeContext.Provider value={value}>\n      {children}\n    </ThemeContext.Provider>\n  );\n}\n\nexport function useTheme() {\n  const context = useContext(ThemeContext);\n  \n  if (!context) {\n    throw new Error('useTheme must be used within a ThemeProvider');\n  }\n  \n  return context;\n}
+import { createContext, useContext, useState, useEffect } from 'react';
+
+const ThemeContext = createContext(null);
+
+export function ThemeProvider({ children }) {
+  const [theme, setTheme] = useState('light');
+  
+  // Charger le thème depuis localStorage au chargement
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme) {
+      setTheme(savedTheme);
+      document.documentElement.setAttribute('data-theme', savedTheme);
+    }
+  }, []);
+  
+  const changeTheme = (newTheme) => {
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+    document.documentElement.setAttribute('data-theme', newTheme);
+  };
+  
+  const value = {
+    theme,
+    changeTheme,
+  };
+  
+  return (
+    <ThemeContext.Provider value={value}>
+      {children}
+    </ThemeContext.Provider>
+  );
+}
+
+export function useTheme() {
+  const context = useContext(ThemeContext);
+  
+  if (!context) {
+    throw new Error('useTheme must be used within a ThemeProvider');
+  }
+  
+  return context;
+}

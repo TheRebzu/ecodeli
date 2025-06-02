@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { useTranslations } from 'next-intl';
 import { signOut } from 'next-auth/react';
 import { AlertOctagon, Home, LogOut } from 'lucide-react';
@@ -50,4 +51,4 @@ export default function AccountInactivePage() {
       </Card>
     </div>
   );
-} 
+}

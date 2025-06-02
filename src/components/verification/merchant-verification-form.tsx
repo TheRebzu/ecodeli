@@ -20,11 +20,6 @@ export function MerchantVerificationForm() {
       description: t('documents.businessLicense.description'),
     },
     {
-      type: VerificationDocumentType.TAX_CERTIFICATE,
-      label: t('documents.taxCertificate.label'),
-      description: t('documents.taxCertificate.description'),
-    },
-    {
       type: VerificationDocumentType.PROOF_OF_ADDRESS,
       label: t('documents.proofOfAddress.label'),
       description: t('documents.proofOfAddress.description'),

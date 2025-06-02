@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { DocumentStatus, DocumentType } from '@prisma/client';
+import { DocumentType, VerificationStatus } from '@prisma/client';
 import { formatDistanceToNow } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
 import {

@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { api } from '@/trpc/react';
-import { DocumentStatus, DocumentType } from '@prisma/client';
+import { VerificationStatus, DocumentType } from '@prisma/client';
 import { format, formatDistanceToNow } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
 import {
@@ -57,19 +57,22 @@ export default function DocumentVerificationList() {
   const [selectedDocument, setSelectedDocument] = useState<any | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [verificationOpen, setVerificationOpen] = useState(false);
-  const [rejectionReason, setRejectionReason] = useState('');
-  const [activeTab, setActiveTab] = useState<DocumentStatus>('PENDING');
+  const [rejectionReason, setRejectionReason] = useState('');  const [activeTab, setActiveTab] = useState<VerificationStatus>('PENDING');
+  const [activeRole, setActiveRole] = useState<'ALL' | 'DELIVERER' | 'PROVIDER' | 'MERCHANT'>('ALL');
   const locale = 'fr'; // Set this based on your app's locale state
 
-  // Query documents with filters for status
+  // Query documents with filters for status and role
   const {
-    data: documents,
+    data: documentsData,
     isLoading,
     isError,
     refetch,
-  } = api.admin.getPendingDocuments.useQuery({
+  } = api.document.getPendingDocuments.useQuery({
     status: activeTab,
+    userRole: activeRole !== 'ALL' ? activeRole as any : undefined,
   });
+
+  const documents = documentsData?.documents || [];
 
   // Mutation for verifying documents
   const verifyDocument = api.auth.verifyDocument.useMutation({
@@ -124,7 +127,7 @@ export default function DocumentVerificationList() {
     });
   };
 
-  const getStatusBadgeProps = (status: DocumentStatus) => {
+  const getStatusBadgeProps = (status: VerificationStatus) => {
     switch (status) {
       case 'PENDING':
         return { variant: 'outline' as const, icon: <Clock className="mr-1 h-3 w-3" /> };
@@ -201,25 +204,43 @@ export default function DocumentVerificationList() {
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
-          <Tabs
-            defaultValue="PENDING"
-            value={activeTab}
-            onValueChange={value => setActiveTab(value as DocumentStatus)}
-            className="w-full"
-          >
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="PENDING">
-                {t('documents.tabs.pending')}{' '}
-                {documents?.filter(doc => doc.status === 'PENDING').length > 0 && (
-                  <Badge className="ml-2">
-                    {documents?.filter(doc => doc.status === 'PENDING').length}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger value="APPROVED">{t('documents.tabs.approved')}</TabsTrigger>
-              <TabsTrigger value="REJECTED">{t('documents.tabs.rejected')}</TabsTrigger>
-            </TabsList>
+        <CardContent>          <div className="flex flex-col space-y-4">
+            <Tabs
+              defaultValue="PENDING"
+              value={activeTab}
+              onValueChange={value => setActiveTab(value as VerificationStatus)}
+              className="w-full"
+            >
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="PENDING">
+                  {t('documents.status.pending')}{' '}
+                  {activeTab === 'PENDING' && documents?.length > 0 && (
+                    <Badge className="ml-2">
+                      {documents?.length}
+                    </Badge>
+                  )}
+                </TabsTrigger>
+                <TabsTrigger value="APPROVED">{t('documents.status.approved')}</TabsTrigger>
+                <TabsTrigger value="REJECTED">{t('documents.status.rejected')}</TabsTrigger>
+              </TabsList>
+            </Tabs>
+            
+            <Tabs
+              defaultValue="ALL"
+              value={activeRole}
+              onValueChange={value => setActiveRole(value as 'ALL' | 'DELIVERER' | 'PROVIDER' | 'MERCHANT')}
+              className="w-full"
+            >
+              <TabsList className="grid w-full grid-cols-4">
+                <TabsTrigger value="ALL">
+                  {t('documents.tabs.all')}
+                </TabsTrigger>
+                <TabsTrigger value="DELIVERER">{t('documents.tabs.deliverers')}</TabsTrigger>
+                <TabsTrigger value="PROVIDER">{t('documents.tabs.providers')}</TabsTrigger>
+                <TabsTrigger value="MERCHANT">{t('documents.tabs.merchants')}</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
 
             <TabsContent value={activeTab} className="mt-6">
               {documents && documents.length === 0 ? (
@@ -245,9 +266,8 @@ export default function DocumentVerificationList() {
                       <TableHead className="text-right">{t('documents.columns.actions')}</TableHead>
                     </TableRow>
                   </TableHeader>
-                  <TableBody>
-                    {documents?.map(doc => {
-                      const { variant, icon } = getStatusBadgeProps(doc.status as DocumentStatus);
+                  <TableBody>                    {documents?.map(doc => {
+                      const { variant, icon } = getStatusBadgeProps(doc.verificationStatus as VerificationStatus);
                       return (
                         <TableRow key={doc.id}>
                           <TableCell className="font-medium">
@@ -259,7 +279,7 @@ export default function DocumentVerificationList() {
                               <span>{tDocuments(`documentTypes.${doc.type}`)}</span>
                               <Badge variant={variant} className="flex w-fit items-center">
                                 {icon}
-                                {tDocuments(`status.${doc.status?.toLowerCase()}`)}
+                                {tDocuments(`status.${doc.verificationStatus?.toLowerCase()}`)}
                               </Badge>
                             </div>
                           </TableCell>
@@ -332,10 +352,8 @@ export default function DocumentVerificationList() {
                       );
                     })}
                   </TableBody>
-                </Table>
-              )}
+                </Table>              )}
             </TabsContent>
-          </Tabs>
         </CardContent>
         <CardFooter className="border-t bg-muted/50 px-6 py-3">
           <p className="text-xs text-muted-foreground">
