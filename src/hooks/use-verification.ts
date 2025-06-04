@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { api } from '@/trpc/react';
 import { useToast } from '@/components/ui/use-toast';
 import type { UserDocument } from '@/types/verification';
+import { useAuthStore } from '@/store/use-auth-store';
 
 /**
  * Hook personnalisé pour gérer les fonctionnalités de vérification
@@ -12,6 +13,7 @@ export function useVerification() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
   const { toast } = useToast();
+  const userRole = useAuthStore((state) => state.role);
 
   // Mutations tRPC
   const submitVerificationMutation = api.verification.submitVerification.useMutation();
@@ -76,13 +78,14 @@ export function useVerification() {
   /**
    * Charge un document sur le serveur et retourne son URL
    */
-  const uploadDocument = async (file: File, userId: string, documentType: string) => {
+  // Patch: accept userRole as an argument for uploadDocument
+  const uploadDocument = async (file: File, userId: string, documentType: string, userRoleArg?: string) => {
     try {
-      // Utiliser directement la procédure tRPC pour télécharger le fichier
       const result = await api.document.uploadDocument.mutateAsync({
         file,
-        type: documentType as DocumentType,
-        userId
+        type: documentType as any, // Accept string or enum
+        userId,
+        userRole: userRoleArg || userRole,
       });
 
       if (result) {
@@ -140,4 +143,4 @@ export function useVerification() {
     getVerificationStatus,
     getDocuments,
   };
-} 
+}

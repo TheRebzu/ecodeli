@@ -10,6 +10,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { X, Upload, CheckCircle, AlertTriangle, File } from 'lucide-react';
+import { useAuthStore } from '@/store/use-auth-store';
 
 interface DocumentUploadProps {
   userId: string;
@@ -33,6 +34,7 @@ export function DocumentUpload({
   fieldName,
 }: DocumentUploadProps) {
   const { uploadDocument } = useVerification();
+  const userRole = useAuthStore((state) => state.role);
   const [isUploading, setIsUploading] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const { toast } = useToast();
@@ -46,7 +48,6 @@ export function DocumentUpload({
   const onDrop = useCallback(
     async (acceptedFiles: File[]) => {
       if (acceptedFiles.length === 0) return;
-      
       const selectedFile = acceptedFiles[0];
       
       // Vérifier la taille du fichier
@@ -70,7 +71,7 @@ export function DocumentUpload({
       
       try {
         // Uploader le fichier
-        const result = await uploadDocument(selectedFile, userId, documentType);
+        const result = await uploadDocument(selectedFile, userId, documentType, userRole);
         
         if (result) {
           // Ajout du document avec succès
@@ -111,7 +112,7 @@ export function DocumentUpload({
         setIsUploading(false);
       }
     },
-    [userId, documentType, maxSize, uploadDocument, toast, addDocument, updateUploadProgress, setUploadStatus, form, fieldName]
+    [userId, documentType, maxSize, uploadDocument, toast, addDocument, updateUploadProgress, setUploadStatus, form, fieldName, userRole]
   );
   
   // Configuration de react-dropzone
@@ -167,4 +168,4 @@ export function DocumentUpload({
       )}
     </div>
   );
-} 
+}

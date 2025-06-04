@@ -24,6 +24,7 @@ import { generateTOTPSecret, generateBackupCodes } from '@/lib/totp';
 import { format } from 'date-fns';
 import path from 'path';
 import fs from 'fs/promises';
+import { getUserDocumentsWithFullStatus } from '@/utils/document-utils';
 
 const authService = new AuthService();
 const documentService = new DocumentService();
@@ -395,22 +396,13 @@ export const authRouter = router({
       }
     }),
 
-  // Récupérer les documents de l'utilisateur
+  // Récupérer les documents de l'utilisateur avec le statut consistant
   getUserDocuments: protectedProcedure.query(async ({ ctx }) => {
     const { user } = ctx.session;
-
-    const documents = await ctx.db.document.findMany({
-      where: {
-        userId: user.id,
-      },
-      orderBy: {
-        uploadedAt: 'desc',
-      },
-      include: {
-        verifications: true,
-      },
-    });
-
+    
+    // Utiliser la fonction utilitaire pour récupérer les documents avec statut complet
+    const documents = await getUserDocumentsWithFullStatus(user.id, user.role);
+    
     // Map uploadedAt to createdAt for frontend compatibility
     // Also handle SELFIE documents stored as OTHER with notes containing "SELFIE"
     return documents.map(doc => ({
@@ -419,8 +411,8 @@ export const authRouter = router({
       // If document is OTHER type but has notes containing "SELFIE" (case insensitive), correct the type for frontend
       type:
         doc.type === 'OTHER' &&
-        (doc.notes === 'SELFIE' ||
-          (typeof doc.notes === 'string' && doc.notes.toLowerCase().includes('selfie')))
+        doc.notes &&
+        doc.notes.toLowerCase().includes('selfie')
           ? 'SELFIE'
           : doc.type,
     }));
@@ -699,6 +691,12 @@ export const authRouter = router({
 
     const missingFields: string[] = [];
 
+    // Récupérer tous les documents de l'utilisateur avec statut complet
+    const documents = await getUserDocumentsWithFullStatus(user.id, user.role);
+
+    // Helper pour vérifier la présence d'un type de document
+    const hasDoc = (type: string) => documents.some(doc => doc.type === type);
+
     // Vérifier selon le rôle de l'utilisateur
     switch (user.role) {
       case 'CLIENT':
@@ -706,59 +704,27 @@ export const authRouter = router({
         break;
       case 'DELIVERER':
         if (!profile.deliverer?.phone) missingFields.push('phone');
-
-        // Vérifier les documents requis
-        const delivererDocs = await ctx.db.document.findMany({
-          where: { userId: user.id },
-        });
-
-        const hasIDCard = delivererDocs.some(doc => doc.type === 'ID_CARD');
-        const hasDrivingLicense = delivererDocs.some(doc => doc.type === 'DRIVING_LICENSE');
-        const hasVehicleReg = delivererDocs.some(doc => doc.type === 'VEHICLE_REGISTRATION');
-        const hasInsurance = delivererDocs.some(doc => doc.type === 'INSURANCE');
-
-        if (!hasIDCard) missingFields.push('ID_CARD');
-        if (!hasDrivingLicense) missingFields.push('DRIVING_LICENSE');
-        if (!hasVehicleReg) missingFields.push('VEHICLE_REGISTRATION');
-        if (!hasInsurance) missingFields.push('INSURANCE');
+        if (!hasDoc('ID_CARD')) missingFields.push('ID_CARD');
+        if (!hasDoc('DRIVING_LICENSE')) missingFields.push('DRIVING_LICENSE');
+        if (!hasDoc('VEHICLE_REGISTRATION')) missingFields.push('VEHICLE_REGISTRATION');
+        if (!hasDoc('INSURANCE')) missingFields.push('INSURANCE');
         break;
       case 'MERCHANT':
         if (!profile.merchant?.companyName) missingFields.push('companyName');
         if (!profile.merchant?.siret) missingFields.push('siret');
         if (!profile.merchant?.address) missingFields.push('address');
-
-        // Vérifier les documents requis
-        const merchantDocs = await ctx.db.document.findMany({
-          where: { userId: user.id },
-        });
-
-        const merchantHasIDCard = merchantDocs.some(doc => doc.type === 'ID_CARD');
-        const hasBusinessReg = merchantDocs.some(doc => doc.type === 'BUSINESS_REGISTRATION');
-        const hasProofAddress = merchantDocs.some(doc => doc.type === 'PROOF_OF_ADDRESS');
-
-        if (!merchantHasIDCard) missingFields.push('ID_CARD');
-        if (!hasBusinessReg) missingFields.push('BUSINESS_REGISTRATION');
-        if (!hasProofAddress) missingFields.push('PROOF_OF_ADDRESS');
+        if (!hasDoc('ID_CARD')) missingFields.push('ID_CARD');
+        if (!hasDoc('BUSINESS_REGISTRATION')) missingFields.push('BUSINESS_REGISTRATION');
+        if (!hasDoc('PROOF_OF_ADDRESS')) missingFields.push('PROOF_OF_ADDRESS');
         break;
       case 'PROVIDER':
         if (!profile.provider?.companyName) missingFields.push('companyName');
         if (!profile.provider?.siret) missingFields.push('siret');
         if (!profile.provider?.address) missingFields.push('address');
-
-        // Vérifier les documents requis
-        const providerDocs = await ctx.db.document.findMany({
-          where: { userId: user.id },
-        });
-
-        const providerHasIDCard = providerDocs.some(doc => doc.type === 'ID_CARD');
-        const hasQualifCert = providerDocs.some(doc => doc.type === 'QUALIFICATION_CERTIFICATE');
-        const providerHasProofAddress = providerDocs.some(doc => doc.type === 'PROOF_OF_ADDRESS');
-        const providerHasInsurance = providerDocs.some(doc => doc.type === 'INSURANCE');
-
-        if (!providerHasIDCard) missingFields.push('ID_CARD');
-        if (!hasQualifCert) missingFields.push('QUALIFICATION_CERTIFICATE');
-        if (!providerHasProofAddress) missingFields.push('PROOF_OF_ADDRESS');
-        if (!providerHasInsurance) missingFields.push('INSURANCE');
+        if (!hasDoc('ID_CARD')) missingFields.push('ID_CARD');
+        if (!hasDoc('QUALIFICATION_CERTIFICATE')) missingFields.push('QUALIFICATION_CERTIFICATE');
+        if (!hasDoc('PROOF_OF_ADDRESS')) missingFields.push('PROOF_OF_ADDRESS');
+        if (!hasDoc('INSURANCE')) missingFields.push('INSURANCE');
         break;
     }
 

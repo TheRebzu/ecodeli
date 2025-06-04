@@ -127,6 +127,10 @@ export function DocumentList({
     return null;
   };
 
+  // Debug log for document statuses
+  console.debug('[DocumentList] documents:', documents);
+  console.debug('[DocumentList] documentStatuses:', documentStatuses);
+
   if (!documents.length) {
     return (
       <div className={cn("space-y-2", className)}>
@@ -220,4 +224,4 @@ export function DocumentList({
       </Dialog>
     </div>
   );
-} 
+}

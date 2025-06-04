@@ -15,6 +15,7 @@ import {
   providerVerificationSubmitSchema,
   verificationProcessSchema
 } from '@/schemas/verification.schema';
+import { getUserDocumentsWithFullStatus } from '@/utils/document-utils';
 
 const verificationService = new VerificationService();
 
@@ -306,30 +307,30 @@ export const verificationRouter = router({
           perPage: limit,
         },
       };
-    }),
-
-  // Vérification automatique pour les livreurs
-  checkAndUpdateDelivererVerification: protectedProcedure
-    .query(async ({ ctx }) => {
+    }),  // Vérification automatique pour les livreurs
+  verifyDelivererDocuments: protectedProcedure
+    .mutation(async ({ ctx }) => {
       try {
         const userId = ctx.session.user.id;
         
-        if (ctx.session.user.role !== 'DELIVERER') {
+        if (ctx.session.user.role !== UserRole.DELIVERER) {
           throw new TRPCError({
             code: 'FORBIDDEN',
             message: "Vous n'êtes pas un livreur"
           });
         }
         
-        // Vérifier et mettre à jour le statut
-        const isVerified = await verificationService.checkAndUpdateVerificationStatus(
+        // Vérifier et mettre à jour le statut avec la nouvelle méthode plus complète
+        const result = await verificationService.manualCheckAndUpdateVerification(
           userId,
           UserRole.DELIVERER
         );
         
         return {
           success: true,
-          isVerified
+          isVerified: result.wasUpdated || (result.currentStatus?.isVerified === true),
+          message: result.message,
+          details: result
         };
       } catch (error) {
         console.error("Erreur lors de la vérification:", error);
@@ -339,29 +340,30 @@ export const verificationRouter = router({
         });
       }
     }),
-    
-  // Vérification automatique pour les marchands
-  checkAndUpdateMerchantVerification: protectedProcedure
-    .query(async ({ ctx }) => {
+    // Vérification automatique pour les marchands
+  verifyMerchantDocuments: protectedProcedure
+    .mutation(async ({ ctx }) => {
       try {
         const userId = ctx.session.user.id;
         
-        if (ctx.session.user.role !== 'MERCHANT') {
+        if (ctx.session.user.role !== UserRole.MERCHANT) {
           throw new TRPCError({
             code: 'FORBIDDEN',
             message: "Vous n'êtes pas un marchand"
           });
         }
         
-        // Vérifier et mettre à jour le statut
-        const isVerified = await verificationService.checkAndUpdateVerificationStatus(
+        // Vérifier et mettre à jour le statut avec la nouvelle méthode plus complète
+        const result = await verificationService.manualCheckAndUpdateVerification(
           userId,
           UserRole.MERCHANT
         );
         
         return {
           success: true,
-          isVerified
+          isVerified: result.wasUpdated || (result.currentStatus?.isVerified === true),
+          message: result.message,
+          details: result
         };
       } catch (error) {
         console.error("Erreur lors de la vérification:", error);
@@ -371,29 +373,30 @@ export const verificationRouter = router({
         });
       }
     }),
-    
-  // Vérification automatique pour les prestataires
-  checkAndUpdateProviderVerification: protectedProcedure
-    .query(async ({ ctx }) => {
+    // Vérification automatique pour les prestataires
+  verifyProviderDocuments: protectedProcedure
+    .mutation(async ({ ctx }) => {
       try {
         const userId = ctx.session.user.id;
         
-        if (ctx.session.user.role !== 'PROVIDER') {
+        if (ctx.session.user.role !== UserRole.PROVIDER) {
           throw new TRPCError({
             code: 'FORBIDDEN',
             message: "Vous n'êtes pas un prestataire"
           });
         }
         
-        // Vérifier et mettre à jour le statut
-        const isVerified = await verificationService.checkAndUpdateVerificationStatus(
+        // Vérifier et mettre à jour le statut avec la nouvelle méthode plus complète
+        const result = await verificationService.manualCheckAndUpdateVerification(
           userId,
           UserRole.PROVIDER
         );
         
         return {
           success: true,
-          isVerified
+          isVerified: result.wasUpdated || (result.currentStatus?.isVerified === true),
+          message: result.message,
+          details: result
         };
       } catch (error) {
         console.error("Erreur lors de la vérification:", error);
@@ -456,6 +459,159 @@ export const verificationRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: `Une erreur est survenue lors du rejet du document: ${error instanceof Error ? error.message : String(error)}`
+        });
+      }
+    }),
+    
+  // Obtenir le statut de vérification d'un utilisateur (avec la nouvelle logique alignée)
+  getUserVerificationStatus: protectedProcedure
+    .query(async ({ ctx }) => {
+      try {
+        const userId = ctx.session.user.id;
+        const userRole = ctx.session.user.role as UserRole;
+        
+        return await verificationService.getUserVerificationStatus(userId, userRole);
+      } catch (error) {
+        console.error("Erreur lors de la récupération du statut de vérification:", error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Erreur lors de la récupération du statut: ${error instanceof Error ? error.message : String(error)}`
+        });
+      }
+    }),
+
+  // Vérification manuelle et diagnostic (pour déboguer les problèmes de vérification automatique)
+  manualCheckAndUpdateVerification: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      try {
+        const userId = ctx.session.user.id;
+        const userRole = ctx.session.user.role as UserRole;
+        
+        console.log(`🔧 Déclenchement vérification manuelle pour ${userId} (${userRole})`);
+        
+        return await verificationService.manualCheckAndUpdateVerification(userId, userRole);
+      } catch (error) {
+        console.error("Erreur lors de la vérification manuelle:", error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Erreur lors de la vérification manuelle: ${error instanceof Error ? error.message : String(error)}`
+        });
+      }
+    }),
+
+  // Obtenir les documents avec leur statut effectif de façon consistante
+  getConsistentUserDocuments: protectedProcedure
+    .query(async ({ ctx }) => {
+      try {
+        const userId = ctx.session.user.id;
+        const userRole = ctx.session.user.role as UserRole;
+        
+        // Utiliser la fonction utilitaire pour récupérer les documents avec statut complet
+        return await getUserDocumentsWithFullStatus(userId, userRole);
+      } catch (error) {
+        console.error("Erreur lors de la récupération des documents:", error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Erreur lors de la récupération des documents: ${error instanceof Error ? error.message : String(error)}`
+        });
+      }
+    }),
+
+  // Vérifie et met à jour automatiquement le statut de vérification d'un livreur
+  checkAndUpdateDelivererVerification: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      try {
+        // Vérifier si l'utilisateur est un livreur
+        if (ctx.session.user.role !== UserRole.DELIVERER) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: "Seuls les livreurs peuvent utiliser cette fonction",
+          });
+        }
+        
+        const userId = ctx.session.user.id;
+        // Obtenir le statut actuel et les détails de vérification
+        const result = await verificationService.manualCheckAndUpdateVerification(
+          userId, 
+          UserRole.DELIVERER
+        );
+        
+        return {
+          isVerified: result.wasUpdated || (result.currentStatus?.isVerified === true),
+          message: result.message,
+          details: result
+        };
+      } catch (error) {
+        console.error("Erreur lors de la vérification automatique du livreur:", error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Erreur lors de la vérification: ${error instanceof Error ? error.message : String(error)}`
+        });
+      }
+    }),
+    
+  // Vérifie et met à jour automatiquement le statut de vérification d'un commerçant
+  checkAndUpdateMerchantVerification: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      try {
+        // Vérifier si l'utilisateur est un commerçant
+        if (ctx.session.user.role !== UserRole.MERCHANT) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: "Seuls les commerçants peuvent utiliser cette fonction",
+          });
+        }
+        
+        const userId = ctx.session.user.id;
+        // Obtenir le statut actuel et les détails de vérification
+        const result = await verificationService.manualCheckAndUpdateVerification(
+          userId, 
+          UserRole.MERCHANT
+        );
+        
+        return {
+          isVerified: result.wasUpdated || (result.currentStatus?.isVerified === true),
+          message: result.message,
+          details: result
+        };
+      } catch (error) {
+        console.error("Erreur lors de la vérification automatique du commerçant:", error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Erreur lors de la vérification: ${error instanceof Error ? error.message : String(error)}`
+        });
+      }
+    }),
+    
+  // Vérifie et met à jour automatiquement le statut de vérification d'un prestataire
+  checkAndUpdateProviderVerification: protectedProcedure
+    .mutation(async ({ ctx }) => {
+      try {
+        // Vérifier si l'utilisateur est un prestataire
+        if (ctx.session.user.role !== UserRole.PROVIDER) {
+          throw new TRPCError({
+            code: 'FORBIDDEN',
+            message: "Seuls les prestataires peuvent utiliser cette fonction",
+          });
+        }
+        
+        const userId = ctx.session.user.id;
+        // Obtenir le statut actuel et les détails de vérification
+        const result = await verificationService.manualCheckAndUpdateVerification(
+          userId, 
+          UserRole.PROVIDER
+        );
+        
+        return {
+          isVerified: result.wasUpdated || (result.currentStatus?.isVerified === true),
+          message: result.message,
+          details: result
+        };
+      } catch (error) {
+        console.error("Erreur lors de la vérification automatique du prestataire:", error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: `Erreur lors de la vérification: ${error instanceof Error ? error.message : String(error)}`
         });
       }
     }),

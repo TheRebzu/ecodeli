@@ -185,6 +185,7 @@ export class DocumentService {
           fileSize,
           fileUrl,
           uploadedAt: new Date(),
+          status: 'PENDING', // Add status to match document list component expectation
           verificationStatus: VerificationStatus.PENDING,
           notes,
           expiryDate,
@@ -365,6 +366,95 @@ export class DocumentService {
     } catch (error) {
       console.error(`Erreur lors de la récupération des documents: ${error}`);
       throw error;
+    }
+  }
+
+  /**
+   * Obtient tous les documents d'un utilisateur avec leurs informations complètes de statut
+   * Méthode consistante pour récupérer les documents à travers l'application
+   */
+  async getUserDocumentsWithStatus(userId: string, userRole?: UserRole) {
+    try {
+      console.log(`Récupération des documents avec statut pour l'utilisateur ${userId}`);
+      
+      const documents = await this.prisma.document.findMany({
+        where: { 
+          userId,
+          ...(userRole ? { userRole } : {})
+        },
+        orderBy: { uploadedAt: 'desc' },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              role: true,
+            },
+          },
+          verifications: {
+            orderBy: { requestedAt: 'desc' },
+            take: 1, // Récupère seulement la dernière vérification
+            select: {
+              id: true,
+              status: true,
+              verifiedAt: true,
+              notes: true,
+              rejectionReason: true,
+              requestedAt: true,
+            },
+          },
+        },
+      });
+      
+      // Amélioration: Ajoute des informations dérivées pour chaque document
+      return documents.map(doc => {
+        // Détermine le statut effectif en fonction du statut et de la date d'expiration
+        const isExpired = doc.expiryDate ? new Date(doc.expiryDate) < new Date() : false;
+        const lastVerification = doc.verifications && doc.verifications.length > 0 
+          ? doc.verifications[0] 
+          : null;
+        
+        let effectiveStatus = doc.verificationStatus;
+        
+        // Si le document est expiré, remplacer le statut par EXPIRED
+        if (isExpired && effectiveStatus === 'APPROVED') {
+          effectiveStatus = 'EXPIRED';
+        }
+        
+        // Détermine le badge à afficher en fonction du statut
+        const statusInfo = this.getStatusBadgeProps(effectiveStatus);
+        
+        return {
+          ...doc,
+          effectiveStatus,
+          statusInfo,
+          isExpired,
+          lastVerification,
+          canResubmit: ['REJECTED', 'EXPIRED'].includes(effectiveStatus),
+        };
+      });
+    } catch (error) {
+      console.error('Erreur lors de la récupération des documents:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * Obtient les propriétés d'affichage pour un statut de document (badge)
+   */
+  getStatusBadgeProps(status: string) {
+    switch (status?.toUpperCase()) {
+      case 'PENDING':
+        return { variant: 'outline' as const, label: 'En attente' };
+      case 'APPROVED':
+        return { variant: 'success' as const, label: 'Approuvé' };
+      case 'REJECTED':
+        return { variant: 'destructive' as const, label: 'Rejeté' };
+      case 'EXPIRED':
+        return { variant: 'warning' as const, label: 'Expiré' };
+      default:
+        return { variant: 'outline' as const, label: 'Inconnu' };
     }
   }
 
@@ -585,15 +675,41 @@ export class DocumentService {
 
   /**
    * Récupère tous les documents d'un utilisateur
-   */
-  static async getUserDocuments(userId: string): Promise<Document[]> {
+   */  static async getUserDocuments(userId: string): Promise<Document[]> {
     try {
       const documents = await db.document.findMany({
         where: { userId },
-        orderBy: { uploadDate: 'desc' },
+        orderBy: { uploadedAt: 'desc' },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              role: true,
+            },
+          },
+          verifications: {
+            orderBy: { requestedAt: 'desc' },
+            select: {
+              id: true,
+              status: true,
+              verifiedAt: true,
+              notes: true,
+              rejectionReason: true,
+              requestedAt: true,
+            },
+          },
+        },
       });
 
-      return documents;
+      // Assurer la cohérence avec l'instance method et le frontend
+      return documents.map(doc => ({
+        ...doc,
+        verificationStatus: doc.verifications?.[0]?.status || doc.verificationStatus || 'PENDING',
+        status: doc.status || doc.verificationStatus || (doc.verifications?.[0]?.status as any) || 'PENDING',
+        createdAt: doc.uploadedAt
+      }));
     } catch (error) {
       console.error('Erreur lors de la récupération des documents:', error);
       throw new Error('Impossible de récupérer les documents');
@@ -661,34 +777,32 @@ export class DocumentService {
           code: 'BAD_REQUEST',
           message: 'Ce document a déjà été traité',
         });
-      }
-
-      // Mise à jour du document
+      }      // Mise à jour du document avec status et verificationStatus pour être cohérent avec le frontend
       const updatedDocument = await db.document.update({
         where: { id: documentId },
         data: {
           status,
+          verificationStatus: status as unknown as VerificationStatus, // Ajouter verificationStatus 
           rejectionReason: status === 'REJECTED' ? rejectionReason : null,
           reviewedBy: adminId,
           reviewedAt: new Date(),
+          isVerified: status === 'APPROVED', // Mise à jour cohérente avec verifyDocument
         },
       });
 
       // Envoyer une notification à l'utilisateur
       const emailService = new EmailService();
-      const userEmail = existingDocument.user.email;
-
-      if (userEmail) {
+      const userEmail = existingDocument.user.email;      if (userEmail) {
         if (status === 'APPROVED') {
           await emailService.sendDocumentApprovedEmail(
             userEmail,
-            existingDocument.fileName,
+            existingDocument.filename,
             this.getDocumentTypeName(existingDocument.type as DocumentType)
           );
         } else if (status === 'REJECTED' && rejectionReason) {
           await emailService.sendDocumentRejectedEmail(
             userEmail,
-            existingDocument.fileName,
+            existingDocument.filename,
             this.getDocumentTypeName(existingDocument.type as DocumentType),
             rejectionReason
           );
@@ -715,8 +829,7 @@ export class DocumentService {
    * Crée un nouveau document
    */
   static async createDocument(input: DocumentCreateInput): Promise<Document> {
-    try {
-      const document = await db.document.create({
+    try {      const document = await db.document.create({
         data: {
           type: input.type,
           filePath: input.filePath,
@@ -726,6 +839,7 @@ export class DocumentService {
           userId: input.userId,
           userRole: input.userRole,
           status: 'PENDING',
+          verificationStatus: 'PENDING', // Add verificationStatus to match frontend expectations
         },
       });
 

@@ -27,11 +27,20 @@ type UploadResult = {
 type VerificationResult = {
   isComplete: boolean;
   missingDocuments: DocumentType[];
-  verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | 'NOT_SUBMITTED';
+  verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | 'EXPIRED' | 'NOT_SUBMITTED';
 };
 
 /**
  * Service pour la gestion des vérifications de documents et d'utilisateurs
+ * 
+ * Utilise maintenant la même logique de statut que document-list.tsx :
+ * - PENDING: Document en attente de vérification
+ * - APPROVED: Document vérifié et approuvé  
+ * - REJECTED: Document rejeté, nécessite une nouvelle soumission
+ * - EXPIRED: Document expiré, renouvellement requis
+ * - NOT_SUBMITTED: Aucun document soumis
+ * 
+ * Les documents expirés sont automatiquement détectés en fonction de leur expiryDate
  */
 export class VerificationService {
   private prisma: PrismaClient;
@@ -61,6 +70,53 @@ export class VerificationService {
 
   constructor(prisma = db) {
     this.prisma = prisma;
+  }
+
+  /**
+   * Obtient les propriétés de statut pour l'affichage (même logique que document-list.tsx)
+   */
+  static getStatusBadgeProps(status: string) {
+    switch (status?.toUpperCase()) {
+      case 'PENDING':
+        return { variant: 'outline' as const, label: 'En attente' };
+      case 'APPROVED':
+        return { variant: 'success' as const, label: 'Approuvé' };
+      case 'REJECTED':
+        return { variant: 'destructive' as const, label: 'Rejeté' };
+      case 'EXPIRED':
+        return { variant: 'warning' as const, label: 'Expiré' };
+      default:
+        return { variant: 'outline' as const, label: 'Inconnu' };
+    }
+  }
+
+  /**
+   * Vérifie si un document est expiré
+   */
+  private isDocumentExpired(document: any): boolean {
+    if (!document.expiryDate) return false;
+    
+    const now = new Date();
+    const expiryDate = new Date(document.expiryDate);
+    return expiryDate < now;
+  }
+
+  /**
+   * Détermine le statut effectif d'un document (même logique que document-list.tsx)
+   */
+  private getEffectiveDocumentStatus(document: any): string {
+    // Si le document est expiré, retourner EXPIRED indépendamment du statut de vérification
+    if (this.isDocumentExpired(document)) {
+      return 'EXPIRED';
+    }
+
+    // Si le document n'est pas vérifié, retourner le statut de vérification
+    if (!document.isVerified) {
+      return document.verificationStatus || 'PENDING';
+    }
+
+    // Si vérifié et non expiré, retourner APPROVED
+    return 'APPROVED';
   }
 
   /**
@@ -227,9 +283,9 @@ export class VerificationService {
       });
     }
   }
-
   /**
    * Examine un document avec logging et notifications
+   * Utilise maintenant la même logique de statut que document-list.tsx
    */
   async reviewDocument(
     documentId: string,
@@ -288,16 +344,14 @@ export class VerificationService {
           verification.document.user.role as UserRole,
           tx
         );
-      }
-
-      // Créer un log d'audit
+      }      // Créer un log d'audit
       await tx.auditLog.create({
         data: {
           action: `DOCUMENT_${status}`,
           entityType: 'DOCUMENT',
           entityId: documentId,
-          userId: verifierId,
-          details: {
+          performedById: verifierId,
+          changes: {
             documentType: verification.document?.type,
             submitterId: verification.submitterId,
             notes,
@@ -324,9 +378,9 @@ export class VerificationService {
       });
     }
   }
-
   /**
    * Vérifie et met à jour le statut de vérification complet d'un utilisateur
+   * Utilise maintenant la même logique que document-list.tsx pour déterminer le statut effectif
    */
   private async checkAndUpdateCompleteVerification(
     userId: string,
@@ -335,21 +389,39 @@ export class VerificationService {
   ) {
     const prisma = tx || this.prisma;
     const requiredDocuments = VerificationService.REQUIRED_DOCUMENTS[userRole];
-    
     if (requiredDocuments.length === 0) return;
 
-    // Vérifier si tous les documents requis sont approuvés
-    const verifiedDocuments = await prisma.document.findMany({
+    // Récupérer tous les documents de l'utilisateur
+    const userDocuments = await prisma.document.findMany({
       where: {
         userId,
         userRole,
         type: { in: requiredDocuments },
-        isVerified: true,
       },
     });
 
-    // Si tous les documents sont vérifiés
-    if (verifiedDocuments.length >= requiredDocuments.length) {
+    // Statut effectif de chaque document
+    const statusByType: Record<string, string> = {};
+    userDocuments.forEach(doc => {
+      statusByType[doc.type] = this.getEffectiveDocumentStatus(doc);
+    });
+
+    // Documents approuvés
+    const approvedDocTypes = userDocuments
+      .filter(doc => this.getEffectiveDocumentStatus(doc) === 'APPROVED')
+      .map(doc => doc.type);
+
+    // Documents bloquants
+    const expiredDocs = userDocuments.filter(doc => this.getEffectiveDocumentStatus(doc) === 'EXPIRED');
+    const rejectedDocs = userDocuments.filter(doc => this.getEffectiveDocumentStatus(doc) === 'REJECTED');
+    const pendingDocs = userDocuments.filter(doc => this.getEffectiveDocumentStatus(doc) === 'PENDING');
+
+    // Vérifier si tous les documents requis sont approuvés
+    const allDocumentsApproved = requiredDocuments.every(docType => approvedDocTypes.includes(docType));
+
+    if (allDocumentsApproved) {
+      console.log(`🔄 Verification automatique pour utilisateur ${userId} (${userRole}): tous les documents sont valides`);
+      
       const systemAdmin = await prisma.user.findFirst({
         where: { role: UserRole.ADMIN },
         select: { id: true },
@@ -368,6 +440,21 @@ export class VerificationService {
           isVerified: true 
         },
       });
+
+      console.log(`✅ Utilisateur ${userId} automatiquement vérifié`);
+    } else {
+      console.log(`⏸️ Vérification automatique pour utilisateur ${userId} (${userRole}): documents non valides`);
+      console.log('Statut par type:', statusByType);
+      if (expiredDocs.length > 0) {
+        console.log('Documents expirés:', expiredDocs.map(d => d.type));
+      }
+      if (rejectedDocs.length > 0) {
+        console.log('Documents rejetés:', rejectedDocs.map(d => d.type));
+      }
+      if (pendingDocs.length > 0) {
+        console.log('Documents en attente:', pendingDocs.map(d => d.type));
+      }
+      console.log('Documents requis manquants ou non approuvés:', requiredDocuments.filter(doc => !approvedDocTypes.includes(doc)));
     }
   }
 
@@ -419,7 +506,6 @@ export class VerificationService {
       data: historyData,
     });
   }
-
   /**
    * Récupère le statut de vérification complet d'un utilisateur
    */
@@ -443,32 +529,139 @@ export class VerificationService {
       },
     });
 
+    // Analyser le statut de chaque document avec la même logique que document-list.tsx
+    const documentStatuses = userDocuments.map(doc => this.getEffectiveDocumentStatus(doc));
+    
     // Identifier les documents manquants ou non vérifiés
     const verifiedDocTypes = userDocuments
-      .filter(doc => doc.isVerified)
+      .filter(doc => {
+        const effectiveStatus = this.getEffectiveDocumentStatus(doc);
+        return effectiveStatus === 'APPROVED';
+      })
       .map(doc => doc.type);
     
     const missingDocuments = requiredDocuments.filter(
       type => !verifiedDocTypes.includes(type)
     );
 
-    // Déterminer le statut global
-    let verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | 'NOT_SUBMITTED' = 'NOT_SUBMITTED';
+    // Déterminer le statut global selon la même logique que document-list.tsx
+    let verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | 'EXPIRED' | 'NOT_SUBMITTED' = 'NOT_SUBMITTED';
     
     if (userDocuments.length === 0) {
       verificationStatus = 'NOT_SUBMITTED';
     } else if (missingDocuments.length === 0) {
       verificationStatus = 'APPROVED';
-    } else if (userDocuments.some(doc => doc.verificationStatus === VerificationStatus.REJECTED)) {
-      verificationStatus = 'REJECTED';
     } else {
-      verificationStatus = 'PENDING';
-    }
+      // Vérifier s'il y a des documents expirés
+      const hasExpiredDocs = documentStatuses.includes('EXPIRED');
+      // Vérifier s'il y a des documents rejetés (non expirés)
+      const hasRejectedDocs = documentStatuses.includes('REJECTED');
+      // Vérifier s'il y a des documents en attente
+      const hasPendingDocs = documentStatuses.includes('PENDING');
 
-    return {
+      if (hasExpiredDocs) {
+        verificationStatus = 'EXPIRED';
+      } else if (hasRejectedDocs) {
+        verificationStatus = 'REJECTED';
+      } else if (hasPendingDocs) {
+        verificationStatus = 'PENDING';
+      } else {
+        verificationStatus = 'PENDING'; // Par défaut
+      }
+    }    return {
       isComplete: missingDocuments.length === 0,
       missingDocuments,
       verificationStatus
+    };
+  }
+
+  /**
+   * Récupère les documents d'un utilisateur avec leur statut effectif (même logique que document-list.tsx)
+   */
+  async getUserDocumentsWithStatus(userId: string, userRole: UserRole) {
+    const documents = await this.prisma.document.findMany({
+      where: {
+        userId,
+        userRole,
+      },
+      orderBy: {
+        uploadedAt: 'desc',
+      },
+    });
+
+    return documents.map(doc => ({
+      ...doc,
+      effectiveStatus: this.getEffectiveDocumentStatus(doc),
+      statusInfo: VerificationService.getStatusBadgeProps(this.getEffectiveDocumentStatus(doc)),
+      isExpired: this.isDocumentExpired(doc),
+      canResubmit: ['REJECTED', 'EXPIRED'].includes(this.getEffectiveDocumentStatus(doc)),
+    }));
+  }
+
+  /**
+   * Vérifie et marque les documents expirés (utilise la même logique que document-list.tsx)
+   */
+  async checkAndMarkExpiredDocuments(userId?: string) {
+    const whereClause: any = {
+      isVerified: true,
+      expiryDate: {
+        lt: new Date(), // Documents dont la date d'expiration est passée
+      },
+    };
+
+    if (userId) {
+      whereClause.userId = userId;
+    }
+
+    // Récupérer les documents expirés qui ne sont pas encore marqués comme tels
+    const expiredDocuments = await this.prisma.document.findMany({
+      where: {
+        ...whereClause,
+        NOT: {
+          verificationStatus: 'EXPIRED' as any, // Éviter les documents déjà marqués
+        },
+      },
+    });
+
+    if (expiredDocuments.length === 0) {
+      return { updated: 0, documents: [] };
+    }
+
+    // Marquer les documents comme expirés
+    const updateResult = await this.prisma.document.updateMany({
+      where: {
+        id: { in: expiredDocuments.map(doc => doc.id) },
+      },
+      data: {
+        isVerified: false,
+        verificationStatus: 'EXPIRED' as any,
+        rejectionReason: 'Document expiré automatiquement',
+      },
+    });    // Créer des logs d'audit pour les documents expirés
+    const auditLogs = expiredDocuments.map(doc => ({
+      action: 'DOCUMENT_EXPIRED',
+      entityType: 'DOCUMENT' as const,
+      entityId: doc.id,
+      performedById: 'SYSTEM', // Utiliser performedById au lieu de userId
+      details: {
+        documentType: doc.type,
+        expiryDate: doc.expiryDate,
+        autoExpired: true,
+      },
+    }));
+
+    await this.prisma.auditLog.createMany({
+      data: auditLogs,
+    });
+
+    return {
+      updated: updateResult.count,
+      documents: expiredDocuments.map(doc => ({
+        id: doc.id,
+        type: doc.type,
+        userId: doc.userId,
+        expiryDate: doc.expiryDate,
+      })),
     };
   }
 
@@ -989,6 +1182,85 @@ export class VerificationService {
     } catch (error) {
       console.error('Erreur lors de la vérification du statut:', error);
       return false;
+    }
+  }
+
+  /**
+   * Effectue une vérification manuelle du statut d'un utilisateur et déclenche la mise à jour automatique si nécessaire
+   * Utile pour déboguer les problèmes de vérification automatique
+   */
+  async manualCheckAndUpdateVerification(userId: string, userRole: UserRole) {
+    console.log(`🔍 Vérification manuelle pour utilisateur ${userId} (${userRole})`);
+    
+    try {
+      // 1. Obtenir le statut actuel de l'utilisateur
+      const currentUser = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { isVerified: true, status: true, role: true }
+      });
+
+      console.log(`👤 Statut actuel utilisateur:`, currentUser);
+
+      // 2. Obtenir le statut de vérification des documents
+      const verificationStatus = await this.getUserVerificationStatus(userId, userRole);
+      console.log(`📄 Statut des documents:`, verificationStatus);
+
+      // 3. Obtenir les documents avec leur statut effectif
+      const documentsWithStatus = await this.getUserDocumentsWithStatus(userId, userRole);
+      console.log(`📋 Documents avec statut:`, documentsWithStatus.map(doc => ({
+        type: doc.type,
+        effectiveStatus: doc.effectiveStatus,
+        isVerified: doc.isVerified,
+        isExpired: doc.isExpired,
+        expiryDate: doc.expiryDate
+      })));
+
+      // 4. Si l'utilisateur n'est pas vérifié mais tous ses documents sont approuvés
+      if (!currentUser?.isVerified && verificationStatus.isComplete && verificationStatus.verificationStatus === 'APPROVED') {
+        console.log(`🚀 Déclenchement de la vérification automatique...`);
+        
+        // Déclencher la vérification automatique
+        await this.checkAndUpdateCompleteVerification(userId, userRole);
+        
+        // Vérifier le nouveau statut
+        const updatedUser = await this.prisma.user.findUnique({
+          where: { id: userId },
+          select: { isVerified: true, status: true }
+        });
+
+        console.log(`✅ Statut après mise à jour:`, updatedUser);
+
+        return {
+          success: true,
+          wasUpdated: true,
+          oldStatus: currentUser,
+          newStatus: updatedUser,
+          verificationDetails: verificationStatus,
+          message: 'Utilisateur automatiquement vérifié'
+        };
+      } else {
+        const reasons = [];
+        if (currentUser?.isVerified) reasons.push('Déjà vérifié');
+        if (!verificationStatus.isComplete) reasons.push('Documents manquants');
+        if (verificationStatus.verificationStatus !== 'APPROVED') reasons.push(`Statut: ${verificationStatus.verificationStatus}`);
+
+        console.log(`⏸️ Pas de mise à jour nécessaire: ${reasons.join(', ')}`);
+
+        return {
+          success: true,
+          wasUpdated: false,
+          currentStatus: currentUser,
+          verificationDetails: verificationStatus,
+          reason: reasons.join(', '),
+          message: `Vérification non nécessaire: ${reasons.join(', ')}`
+        };
+      }
+    } catch (error) {
+      console.error(`❌ Erreur lors de la vérification manuelle:`, error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: `Erreur lors de la vérification: ${error.message}`,
+      });
     }
   }
 }

@@ -94,11 +94,9 @@ export function UserDocumentVerification({
       return url;
     }
 
-    // Transformer les URLs qui pointent vers /uploads/ pour utiliser la nouvelle API
+    // Pour les fichiers uploadés, servir directement via /uploads/ (public)
     if (url.startsWith('/uploads/')) {
-      // Extraire le chemin après /uploads/
-      const uploadPath = url.replace('/uploads/', '');
-      return `${window.location.origin}/api/uploads/${uploadPath}`;
+      return `${window.location.origin}${url}`;
     }
 
     // Ensure the URL is properly formatted

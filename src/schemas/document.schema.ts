@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { DocumentType, VerificationStatus } from '@prisma/client';
+import { DocumentType, VerificationStatus, UserRole } from '@prisma/client';
 
 // Create a custom document type schema that includes SELFIE
 export const documentTypeSchema = z.enum([
@@ -43,6 +43,7 @@ export const uploadDocumentSchema = z.object({
   file: fileSchema,
   notes: z.string().optional(),
   expiryDate: z.date().optional(),
+  userRole: z.nativeEnum(UserRole).optional(),
 });
 
 // Schéma pour la mise à jour d'un document

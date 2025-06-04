@@ -13,6 +13,7 @@ import {
 import fs from 'fs/promises';
 import path from 'path';
 import crypto from 'crypto';
+import { getUserDocumentsWithFullStatus } from '@/utils/document-utils';
 
 const documentService = new DocumentService();
 
@@ -23,11 +24,8 @@ export const documentRouter = router({
   getMyDocuments: protectedProcedure.query(async ({ ctx }) => {
     try {
       const userId = ctx.session.user.id;
-      const documents = await ctx.db.document.findMany({
-        where: { userId },
-        orderBy: { uploadedAt: 'desc' },
-      });
-      return documents;
+      // Utiliser la fonction utilitaire pour récupérer les documents avec statut complet
+      return await getUserDocumentsWithFullStatus(userId);
     } catch (error: any) {
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
@@ -53,49 +51,16 @@ export const documentRouter = router({
       try {
         const userId = input?.userId || ctx.session.user.id;
         console.log(`Récupération des documents pour l'utilisateur ${userId}`);
-          // Requête directe à la base de données pour récupérer les documents
-        const documents = await ctx.db.document.findMany({
-          where: { 
-            userId,
-            ...(input?.status ? { verificationStatus: input.status } : {})
-          },
-          orderBy: { uploadedAt: 'desc' },
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-                role: true,
-              },
-            },
-            verifications: {
-              orderBy: { requestedAt: 'desc' },
-              select: {
-                id: true,
-                status: true,
-                verifiedAt: true,
-                notes: true,
-                rejectionReason: true,
-                requestedAt: true,
-              },
-            },
-          },
-        });
         
-        console.log(`${documents.length} documents trouvés pour l'utilisateur ${userId}`);
-          // Traitement pour faciliter l'utilisation côté client
-        const processedDocuments = documents.map(doc => {
-          // S'assurer que toutes les propriétés nécessaires sont présentes
-          return {
-            ...doc,
-            status: doc.verificationStatus || (doc.verifications[0]?.status as any) || 'PENDING',
-            verificationStatus: doc.verificationStatus || (doc.verifications[0]?.status as any) || 'PENDING',
-            createdAt: doc.uploadedAt
-          };
-        });
+        // Utiliser la fonction utilitaire pour récupérer les documents avec statut complet
+        const documents = await getUserDocumentsWithFullStatus(userId);
         
-        return processedDocuments;
+        // Filtrer par statut si nécessaire
+        if (input?.status) {
+          return documents.filter(doc => doc.effectiveStatus === input.status);
+        }
+        
+        return documents;
       } catch (error: any) {
         console.error('Erreur lors de la récupération des documents:', error);
         throw new TRPCError({
@@ -410,19 +375,22 @@ export const documentRouter = router({
         }
 
         // Enregistrer les métadonnées dans la base de données
-        const result = await documentService.uploadDocument({
+        // Patch: use userRole from input if provided, else from session
+        const userRole = input.userRole || ctx.session.user.role;
+        // Pass userRole to documentService.uploadDocument
+        const document = await documentService.uploadDocument({
           userId,
           type: input.type,
           filename: fileName,
-          fileUrl: fileUrl,
-          mimeType: mimeType,
-          fileSize: fileSize,
+          fileUrl,
+          mimeType,
+          fileSize,
           notes: input.notes,
           expiryDate: input.expiryDate,
-          userRole: ctx.session.user.role // Ajout du rôle utilisateur pour la compatibilité
+          userRole,
         });
 
-        return result;
+        return document;
       } catch (error: any) {
         console.error('Erreur lors du téléversement du document:', error);
         throw new TRPCError({

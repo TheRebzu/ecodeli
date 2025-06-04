@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import DashboardOverview from '@/components/admin/dashboard/DashboardOverview';
+import { DashboardOverview } from '@/components/admin/dashboard';
 
 export const metadata: Metadata = {
   title: 'Admin Dashboard | EcoDeli',

@@ -4,7 +4,6 @@ import * as React from 'react';
 import { AreaChart as TremorAreaChart } from '@tremor/react';
 import { BarChart as TremorBarChart } from '@tremor/react';
 import { LineChart as TremorLineChart } from '@tremor/react';
-import { PieChart as TremorPieChart } from '@tremor/react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 // Types communs pour les graphiques
@@ -180,6 +179,7 @@ export function PieChart({
   valueFormatter = value => `${value}`,
   className = '',
 }: PieChartProps) {
+  // TODO: Implémenter avec recharts ou autre, car @tremor/react n'a pas de PieChart
   return (
     <div className={className}>
       {title && (
@@ -188,15 +188,9 @@ export function PieChart({
           {description && <p className="text-sm text-muted-foreground">{description}</p>}
         </div>
       )}
-
-      <TremorPieChart
-        data={data}
-        category={category}
-        index={index}
-        colors={colors}
-        valueFormatter={valueFormatter}
-        className="h-full"
-      />
+      <div className="h-64 flex items-center justify-center text-muted-foreground">
+        <span>PieChart non supporté par @tremor/react. À implémenter avec recharts.</span>
+      </div>
     </div>
   );
 }
