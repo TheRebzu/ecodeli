@@ -15,7 +15,7 @@ program
   .option('-v, --verbose', 'Afficher des informations détaillées')
   .option('-s, --skip-validation', 'Ignorer la validation des traductions')
   .option('-f, --fix-only', 'Exécuter uniquement la correction des problèmes')
-  .option('-e, --extract-only', 'Exécuter uniquement l\'extraction des clés')
+  .option('-e, --extract-only', "Exécuter uniquement l'extraction des clés")
   .option('--no-color', 'Désactiver les couleurs dans la sortie')
   .parse(process.argv);
 
@@ -46,9 +46,12 @@ async function runWorkflow() {
   try {
     // 1. Extraction des clés de traduction des fichiers source
     if (!options.fixOnly) {
-      success = runCommand('npx tsx scripts/i18n/extract-labels.ts', 'Extraction des clés de traduction');
+      success = runCommand(
+        'npx tsx scripts/i18n/extract-labels.ts',
+        'Extraction des clés de traduction'
+      );
       if (!success) {
-        console.warn(chalk.yellow('⚠️ L\'extraction des clés a échoué mais le workflow continue'));
+        console.warn(chalk.yellow("⚠️ L'extraction des clés a échoué mais le workflow continue"));
       }
     }
 
@@ -58,9 +61,14 @@ async function runWorkflow() {
 
     // 3. Génération des traductions manquantes (sauf si extract-only est spécifié)
     if (!options.extractOnly) {
-      success = runCommand('npx tsx scripts/i18n/run-generation.ts', 'Génération des traductions manquantes');
+      success = runCommand(
+        'npx tsx scripts/i18n/run-generation.ts',
+        'Génération des traductions manquantes'
+      );
       if (!success) {
-        console.warn(chalk.yellow('⚠️ La génération des traductions a échoué mais le workflow continue'));
+        console.warn(
+          chalk.yellow('⚠️ La génération des traductions a échoué mais le workflow continue')
+        );
       }
     }
 
@@ -68,13 +76,19 @@ async function runWorkflow() {
     if (!options.skipValidation && !options.extractOnly) {
       success = runCommand('npx tsx scripts/i18n/run-validation.ts', 'Validation des traductions');
       if (!success) {
-        console.warn(chalk.yellow('⚠️ La validation des traductions a échoué, des problèmes peuvent subsister'));
+        console.warn(
+          chalk.yellow('⚠️ La validation des traductions a échoué, des problèmes peuvent subsister')
+        );
       }
     }
 
     console.log(chalk.green.bold('✅ Workflow i18n terminé avec succès'));
-    console.log(chalk.blue('\nPour utiliser les clés générées dans votre application, redémarrez le serveur de développement si nécessaire'));
-    
+    console.log(
+      chalk.blue(
+        '\nPour utiliser les clés générées dans votre application, redémarrez le serveur de développement si nécessaire'
+      )
+    );
+
     return 0;
   } catch (error) {
     console.error(chalk.red(`❌ Erreur lors de l'exécution du workflow i18n: ${error}`));
@@ -93,4 +107,4 @@ runWorkflow()
   .catch(error => {
     console.error(chalk.red(`❌ Erreur non gérée dans le workflow i18n: ${error}`));
     process.exit(1);
-  }); 
+  });

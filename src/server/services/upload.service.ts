@@ -14,15 +14,15 @@ const ALLOWED_TYPES = {
   announcement: ['image/jpeg', 'image/png', 'image/webp'],
   profile: ['image/jpeg', 'image/png', 'image/webp'],
   service: ['image/jpeg', 'image/png', 'image/webp'],
-  document: ['image/jpeg', 'image/png', 'image/webp', 'application/pdf']
+  document: ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'],
 };
 
 // Tailles maximales par type (en octets)
 const MAX_FILE_SIZES = {
   announcement: 5 * 1024 * 1024, // 5MB
-  profile: 2 * 1024 * 1024,      // 2MB
-  service: 5 * 1024 * 1024,      // 5MB
-  document: 10 * 1024 * 1024     // 10MB
+  profile: 2 * 1024 * 1024, // 2MB
+  service: 5 * 1024 * 1024, // 5MB
+  document: 10 * 1024 * 1024, // 10MB
 };
 
 export interface UploadFileInput {
@@ -54,7 +54,7 @@ export class UploadService {
       if (!ALLOWED_TYPES[type]) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
-          message: `Type d'upload non supporté: ${type}`
+          message: `Type d'upload non supporté: ${type}`,
         });
       }
 
@@ -84,7 +84,7 @@ export class UploadService {
       if (!ALLOWED_TYPES[type].includes(mimeType)) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
-          message: `Type de fichier non autorisé pour ${type}. Types acceptés: ${ALLOWED_TYPES[type].join(', ')}`
+          message: `Type de fichier non autorisé pour ${type}. Types acceptés: ${ALLOWED_TYPES[type].join(', ')}`,
         });
       }
 
@@ -93,7 +93,7 @@ export class UploadService {
         const maxSizeMB = MAX_FILE_SIZES[type] / (1024 * 1024);
         throw new TRPCError({
           code: 'BAD_REQUEST',
-          message: `Fichier trop volumineux. Taille maximale: ${maxSizeMB}MB`
+          message: `Fichier trop volumineux. Taille maximale: ${maxSizeMB}MB`,
         });
       }
 
@@ -110,14 +110,16 @@ export class UploadService {
             fileSize,
             verificationStatus: VerificationStatus.PENDING,
             notes: description,
-            uploadedAt: new Date()
-          }
+            uploadedAt: new Date(),
+          },
         });
         uploadId = documentRecord.id;
       }
 
       // Log de l'upload pour audit
-      console.log(`[UPLOAD] ${userId} uploaded ${fileName} (${fileSize} bytes) as ${type} to ${fileUrl}`);
+      console.log(
+        `[UPLOAD] ${userId} uploaded ${fileName} (${fileSize} bytes) as ${type} to ${fileUrl}`
+      );
 
       return {
         success: true,
@@ -125,19 +127,18 @@ export class UploadService {
         filename: fileName,
         size: fileSize,
         type: mimeType,
-        id: uploadId
+        id: uploadId,
       };
-
     } catch (error: any) {
-      console.error('Erreur lors de l\'upload:', error);
-      
+      console.error("Erreur lors de l'upload:", error);
+
       if (error instanceof TRPCError) {
         throw error;
       }
-      
+
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: error.message || 'Erreur interne lors de l\'upload'
+        message: error.message || "Erreur interne lors de l'upload",
       });
     }
   }
@@ -148,11 +149,11 @@ export class UploadService {
   private static async processBase64File(base64: string, type: UploadType, userId: string) {
     // Extraire le type MIME et les données
     const matches = base64.match(/^data:([A-Za-z-+/]+);base64,(.+)$/);
-    
+
     if (!matches || matches.length !== 3) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
-        message: 'Format base64 invalide'
+        message: 'Format base64 invalide',
       });
     }
 
@@ -173,7 +174,7 @@ export class UploadService {
       url: this.getPublicUrl(type, userId, filename),
       filename,
       mimeType,
-      size: buffer.length
+      size: buffer.length,
     };
   }
 
@@ -190,21 +191,21 @@ export class UploadService {
       // Format formidable
       mimeType = file.mimetype;
       originalName = file.originalFilename || 'file';
-      
+
       if (file.filepath) {
         const fs = await import('fs/promises');
         buffer = await fs.readFile(file.filepath);
       } else {
         throw new TRPCError({
           code: 'BAD_REQUEST',
-          message: 'Fichier invalide: données manquantes'
+          message: 'Fichier invalide: données manquantes',
         });
       }
     } else {
       // Objet File standard
       mimeType = (file as any).type || 'application/octet-stream';
       originalName = (file as any).name || 'file';
-      
+
       if ('buffer' in file) {
         buffer = file.buffer;
       } else if (Buffer.isBuffer(file)) {
@@ -212,7 +213,7 @@ export class UploadService {
       } else {
         throw new TRPCError({
           code: 'BAD_REQUEST',
-          message: 'Format de fichier non supporté'
+          message: 'Format de fichier non supporté',
         });
       }
     }
@@ -230,7 +231,7 @@ export class UploadService {
       url: this.getPublicUrl(type, userId, filename),
       filename,
       mimeType,
-      size: buffer.length
+      size: buffer.length,
     };
   }
 
@@ -244,8 +245,8 @@ export class UploadService {
         where: {
           fileUrl,
           userId,
-          verificationStatus: { not: VerificationStatus.REJECTED }
-        }
+          verificationStatus: { not: VerificationStatus.REJECTED },
+        },
       });
 
       // Construire le chemin du fichier
@@ -262,24 +263,23 @@ export class UploadService {
       if (documentRecord) {
         await db.document.update({
           where: { id: documentRecord.id },
-          data: { verificationStatus: VerificationStatus.REJECTED }
+          data: { verificationStatus: VerificationStatus.REJECTED },
         });
       }
 
       console.log(`[DELETE] ${userId} deleted file ${fileUrl}`);
-      
-      return { success: true };
 
+      return { success: true };
     } catch (error: any) {
       console.error('Erreur lors de la suppression:', error);
-      
+
       if (error instanceof TRPCError) {
         throw error;
       }
-      
+
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la suppression du fichier'
+        message: 'Erreur lors de la suppression du fichier',
       });
     }
   }
@@ -287,7 +287,10 @@ export class UploadService {
   /**
    * Récupère les informations d'un fichier
    */
-  static async getFileInfo(filename: string, userId?: string): Promise<{
+  static async getFileInfo(
+    filename: string,
+    userId?: string
+  ): Promise<{
     exists: boolean;
     url?: string;
     type?: UploadType;
@@ -300,8 +303,8 @@ export class UploadService {
           where: {
             filename,
             userId,
-            verificationStatus: { not: VerificationStatus.REJECTED }
-          }
+            verificationStatus: { not: VerificationStatus.REJECTED },
+          },
         });
 
         if (documentRecord) {
@@ -309,28 +312,27 @@ export class UploadService {
             exists: true,
             url: documentRecord.fileUrl,
             type: 'document',
-            metadata: { type: documentRecord.type, notes: documentRecord.notes }
+            metadata: { type: documentRecord.type, notes: documentRecord.notes },
           };
         }
       }
 
       // Chercher dans le système de fichiers
       const uploadTypes: UploadType[] = ['announcement', 'profile', 'service', 'document'];
-      
+
       for (const type of uploadTypes) {
         const filepath = path.join(process.cwd(), 'public', 'uploads', type, filename);
-        
+
         if (existsSync(filepath)) {
           return {
             exists: true,
             url: `/uploads/${type}/${filename}`,
-            type
+            type,
           };
         }
       }
 
       return { exists: false };
-
     } catch (error: any) {
       console.error('Erreur lors de la récupération du fichier:', error);
       return { exists: false };
@@ -342,19 +344,25 @@ export class UploadService {
    */
   private static getFileExtension(mimeType: string): string {
     switch (mimeType) {
-      case 'image/jpeg': return '.jpg';
-      case 'image/png': return '.png';
-      case 'image/webp': return '.webp';
-      case 'image/heic': return '.heic';
-      case 'application/pdf': return '.pdf';
-      default: return '.bin';
+      case 'image/jpeg':
+        return '.jpg';
+      case 'image/png':
+        return '.png';
+      case 'image/webp':
+        return '.webp';
+      case 'image/heic':
+        return '.heic';
+      case 'application/pdf':
+        return '.pdf';
+      default:
+        return '.bin';
     }
   }
 
   private static getFilePaths(type: UploadType, userId: string, filename: string) {
     const uploadDir = path.join(process.cwd(), 'public', 'uploads', type);
     const filepath = path.join(uploadDir, filename);
-    
+
     return { uploadDir, filepath };
   }
 

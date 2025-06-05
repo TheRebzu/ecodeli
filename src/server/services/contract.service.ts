@@ -62,11 +62,11 @@ export class ContractService {
     const count = await db.contract.count({
       where: {
         createdAt: {
-          gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1)
-        }
-      }
+          gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+        },
+      },
     });
-    
+
     return `CONT-${date}-${(count + 1).toString().padStart(4, '0')}`;
   }
 
@@ -75,17 +75,17 @@ export class ContractService {
    */
   async createContract(data: ContractCreateInput) {
     const contractNumber = await this.generateContractNumber();
-    
+
     // Vérifier que le merchant existe
     const merchant = await db.merchant.findUnique({
       where: { id: data.merchantId },
-      include: { user: true }
+      include: { user: true },
     });
-    
+
     if (!merchant) {
       throw new TRPCError({
         code: 'NOT_FOUND',
-        message: 'Commerçant non trouvé'
+        message: 'Commerçant non trouvé',
       });
     }
 
@@ -93,13 +93,13 @@ export class ContractService {
     let templateData = null;
     if (data.templateId) {
       templateData = await db.contractTemplate.findUnique({
-        where: { id: data.templateId }
+        where: { id: data.templateId },
       });
-      
+
       if (!templateData) {
         throw new TRPCError({
           code: 'NOT_FOUND',
-          message: 'Template de contrat non trouvé'
+          message: 'Template de contrat non trouvé',
         });
       }
     }
@@ -123,15 +123,15 @@ export class ContractService {
         notes: data.notes,
         metadata: {
           createdFromTemplate: !!data.templateId,
-          templateVersion: templateData?.version || null
-        }
+          templateVersion: templateData?.version || null,
+        },
       },
       include: {
         merchant: {
-          include: { user: true }
+          include: { user: true },
         },
-        template: true
-      }
+        template: true,
+      },
     });
 
     return contract;
@@ -142,22 +142,24 @@ export class ContractService {
    */
   async updateContract(contractId: string, data: ContractUpdateInput) {
     const contract = await db.contract.findUnique({
-      where: { id: contractId }
+      where: { id: contractId },
     });
 
     if (!contract) {
       throw new TRPCError({
         code: 'NOT_FOUND',
-        message: 'Contrat non trouvé'
+        message: 'Contrat non trouvé',
       });
     }
 
     // Certaines modifications ne sont autorisées que sur les brouillons
-    if (contract.status !== ContractStatus.DRAFT && 
-        (data.content || data.monthlyFee || data.commissionRate)) {
+    if (
+      contract.status !== ContractStatus.DRAFT &&
+      (data.content || data.monthlyFee || data.commissionRate)
+    ) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
-        message: 'Les modifications de contenu ne sont autorisées que sur les brouillons'
+        message: 'Les modifications de contenu ne sont autorisées que sur les brouillons',
       });
     }
 
@@ -173,14 +175,14 @@ export class ContractService {
         expiresAt: data.expiresAt,
         terms: data.terms,
         notes: data.notes,
-        status: data.status
+        status: data.status,
       },
       include: {
         merchant: {
-          include: { user: true }
+          include: { user: true },
         },
-        template: true
-      }
+        template: true,
+      },
     });
   }
 
@@ -192,29 +194,31 @@ export class ContractService {
       where: { id: data.contractId },
       include: {
         merchant: {
-          include: { user: true }
-        }
-      }
+          include: { user: true },
+        },
+      },
     });
 
     if (!contract) {
       throw new TRPCError({
         code: 'NOT_FOUND',
-        message: 'Contrat non trouvé'
+        message: 'Contrat non trouvé',
       });
     }
 
-    if (contract.status !== ContractStatus.DRAFT && 
-        contract.status !== ContractStatus.PENDING_SIGNATURE) {
+    if (
+      contract.status !== ContractStatus.DRAFT &&
+      contract.status !== ContractStatus.PENDING_SIGNATURE
+    ) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
-        message: 'Ce contrat ne peut plus être signé'
+        message: 'Ce contrat ne peut plus être signé',
       });
     }
 
     const updateData: any = {
       merchantSignature: data.merchantSignature,
-      signedAt: new Date()
+      signedAt: new Date(),
     };
 
     // Si signature admin
@@ -223,7 +227,7 @@ export class ContractService {
       updateData.adminSignature = `admin_signature_${Date.now()}`;
       updateData.validatedAt = new Date();
       updateData.status = ContractStatus.ACTIVE;
-      
+
       // Si pas de date d'entrée en vigueur, utiliser maintenant
       if (!contract.effectiveDate) {
         updateData.effectiveDate = new Date();
@@ -238,10 +242,10 @@ export class ContractService {
       data: updateData,
       include: {
         merchant: {
-          include: { user: true }
+          include: { user: true },
         },
-        template: true
-      }
+        template: true,
+      },
     });
   }
 
@@ -249,7 +253,7 @@ export class ContractService {
    * Récupère les contrats d'un merchant
    */
   async getMerchantContracts(
-    merchantId: string, 
+    merchantId: string,
     options: {
       status?: ContractStatus;
       page?: number;
@@ -274,11 +278,11 @@ export class ContractService {
           template: true,
           amendments: {
             orderBy: { createdAt: 'desc' },
-            take: 3
-          }
-        }
+            take: 3,
+          },
+        },
       }),
-      db.contract.count({ where })
+      db.contract.count({ where }),
     ]);
 
     return {
@@ -287,8 +291,8 @@ export class ContractService {
         total,
         page,
         limit,
-        pages: Math.ceil(total / limit)
-      }
+        pages: Math.ceil(total / limit),
+      },
     };
   }
 
@@ -301,18 +305,15 @@ export class ContractService {
         merchantId,
         status: ContractStatus.ACTIVE,
         effectiveDate: { lte: new Date() },
-        OR: [
-          { expiresAt: null },
-          { expiresAt: { gt: new Date() } }
-        ]
+        OR: [{ expiresAt: null }, { expiresAt: { gt: new Date() } }],
       },
       include: {
         template: true,
         amendments: {
           where: { status: ContractStatus.ACTIVE },
-          orderBy: { createdAt: 'desc' }
-        }
-      }
+          orderBy: { createdAt: 'desc' },
+        },
+      },
     });
   }
 
@@ -321,20 +322,20 @@ export class ContractService {
    */
   async terminateContract(contractId: string, reason?: string) {
     const contract = await db.contract.findUnique({
-      where: { id: contractId }
+      where: { id: contractId },
     });
 
     if (!contract) {
       throw new TRPCError({
         code: 'NOT_FOUND',
-        message: 'Contrat non trouvé'
+        message: 'Contrat non trouvé',
       });
     }
 
     if (contract.status !== ContractStatus.ACTIVE) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
-        message: 'Seuls les contrats actifs peuvent être résiliés'
+        message: 'Seuls les contrats actifs peuvent être résiliés',
       });
     }
 
@@ -342,8 +343,8 @@ export class ContractService {
       where: { id: contractId },
       data: {
         status: ContractStatus.TERMINATED,
-        notes: reason ? `${contract.notes || ''}\nRésilié: ${reason}` : contract.notes
-      }
+        notes: reason ? `${contract.notes || ''}\nRésilié: ${reason}` : contract.notes,
+      },
     });
   }
 
@@ -352,20 +353,20 @@ export class ContractService {
    */
   async renewContract(contractId: string, newExpiryDate: Date) {
     const contract = await db.contract.findUnique({
-      where: { id: contractId }
+      where: { id: contractId },
     });
 
     if (!contract) {
       throw new TRPCError({
         code: 'NOT_FOUND',
-        message: 'Contrat non trouvé'
+        message: 'Contrat non trouvé',
       });
     }
 
     if (contract.status !== ContractStatus.ACTIVE) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
-        message: 'Seuls les contrats actifs peuvent être renouvelés'
+        message: 'Seuls les contrats actifs peuvent être renouvelés',
       });
     }
 
@@ -374,11 +375,11 @@ export class ContractService {
       data: {
         expiresAt: newExpiryDate,
         metadata: {
-          ...contract.metadata as any,
+          ...(contract.metadata as any),
           renewed: true,
-          renewedAt: new Date().toISOString()
-        }
-      }
+          renewedAt: new Date().toISOString(),
+        },
+      },
     });
   }
 
@@ -393,19 +394,21 @@ export class ContractService {
         content: data.content,
         defaultType: data.defaultType,
         defaultMonthlyFee: data.defaultMonthlyFee ? new Decimal(data.defaultMonthlyFee) : null,
-        defaultCommissionRate: data.defaultCommissionRate ? new Decimal(data.defaultCommissionRate) : null,
+        defaultCommissionRate: data.defaultCommissionRate
+          ? new Decimal(data.defaultCommissionRate)
+          : null,
         defaultDuration: data.defaultDuration,
-        createdById: data.createdById
+        createdById: data.createdById,
       },
       include: {
         createdBy: {
           select: {
             id: true,
             name: true,
-            email: true
-          }
-        }
-      }
+            email: true,
+          },
+        },
+      },
     });
   }
 
@@ -420,37 +423,32 @@ export class ContractService {
         createdBy: {
           select: {
             id: true,
-            name: true
-          }
-        }
-      }
+            name: true,
+          },
+        },
+      },
     });
   }
 
   /**
    * Crée un amendement à un contrat
    */
-  async createAmendment(
-    contractId: string, 
-    title: string, 
-    description: string, 
-    content: string
-  ) {
+  async createAmendment(contractId: string, title: string, description: string, content: string) {
     const contract = await db.contract.findUnique({
-      where: { id: contractId }
+      where: { id: contractId },
     });
 
     if (!contract) {
       throw new TRPCError({
         code: 'NOT_FOUND',
-        message: 'Contrat non trouvé'
+        message: 'Contrat non trouvé',
       });
     }
 
     if (contract.status !== ContractStatus.ACTIVE) {
       throw new TRPCError({
         code: 'BAD_REQUEST',
-        message: 'Seuls les contrats actifs peuvent être amendés'
+        message: 'Seuls les contrats actifs peuvent être amendés',
       });
     }
 
@@ -460,8 +458,8 @@ export class ContractService {
         title,
         description,
         content,
-        status: ContractStatus.DRAFT
-      }
+        status: ContractStatus.DRAFT,
+      },
     });
   }
 
@@ -469,32 +467,30 @@ export class ContractService {
    * Récupère les statistiques des contrats
    */
   async getContractStats(adminOnly = true) {
-    const [
-      totalContracts,
-      activeContracts,
-      pendingContracts,
-      expiredContracts,
-      contractsByType
-    ] = await Promise.all([
-      db.contract.count(),
-      db.contract.count({ where: { status: ContractStatus.ACTIVE } }),
-      db.contract.count({ where: { status: ContractStatus.PENDING_SIGNATURE } }),
-      db.contract.count({ where: { status: ContractStatus.EXPIRED } }),
-      db.contract.groupBy({
-        by: ['type'],
-        _count: { _all: true }
-      })
-    ]);
+    const [totalContracts, activeContracts, pendingContracts, expiredContracts, contractsByType] =
+      await Promise.all([
+        db.contract.count(),
+        db.contract.count({ where: { status: ContractStatus.ACTIVE } }),
+        db.contract.count({ where: { status: ContractStatus.PENDING_SIGNATURE } }),
+        db.contract.count({ where: { status: ContractStatus.EXPIRED } }),
+        db.contract.groupBy({
+          by: ['type'],
+          _count: { _all: true },
+        }),
+      ]);
 
     return {
       total: totalContracts,
       active: activeContracts,
       pending: pendingContracts,
       expired: expiredContracts,
-      byType: contractsByType.reduce((acc, item) => {
-        acc[item.type] = item._count._all;
-        return acc;
-      }, {} as Record<string, number>)
+      byType: contractsByType.reduce(
+        (acc, item) => {
+          acc[item.type] = item._count._all;
+          return acc;
+        },
+        {} as Record<string, number>
+      ),
     };
   }
 
@@ -510,15 +506,15 @@ export class ContractService {
         status: ContractStatus.ACTIVE,
         expiresAt: {
           lte: futureDate,
-          gt: new Date()
-        }
+          gt: new Date(),
+        },
       },
       include: {
         merchant: {
-          include: { user: true }
-        }
+          include: { user: true },
+        },
       },
-      orderBy: { expiresAt: 'asc' }
+      orderBy: { expiresAt: 'asc' },
     });
   }
 
@@ -527,17 +523,17 @@ export class ContractService {
    */
   async markExpiredContracts() {
     const now = new Date();
-    
+
     const expiredContracts = await db.contract.updateMany({
       where: {
         status: ContractStatus.ACTIVE,
         expiresAt: {
-          lt: now
-        }
+          lt: now,
+        },
       },
       data: {
-        status: ContractStatus.EXPIRED
-      }
+        status: ContractStatus.EXPIRED,
+      },
     });
 
     return expiredContracts.count;
@@ -551,35 +547,36 @@ export class ContractService {
       where: { id: contractId },
       include: {
         merchant: {
-          include: { user: true }
+          include: { user: true },
         },
-        template: true
-      }
+        template: true,
+      },
     });
 
     if (!contract) {
       throw new TRPCError({
         code: 'NOT_FOUND',
-        message: 'Contrat non trouvé'
+        message: 'Contrat non trouvé',
       });
     }
 
     // En mode démo, retourner une URL simulée
     if (process.env.DEMO_MODE === 'true') {
-      const fileHash = crypto.createHash('md5')
+      const fileHash = crypto
+        .createHash('md5')
         .update(`${contract.id}-${Date.now()}`)
         .digest('hex')
         .substring(0, 8);
-      
+
       return `/demo/contracts/${contract.contractNumber}-${fileHash}.pdf`;
     }
 
     // TODO: Implémenter la génération PDF réelle
     // Utiliser un service comme Puppeteer ou une API externe
-    
+
     throw new TRPCError({
       code: 'NOT_IMPLEMENTED',
-      message: 'Génération PDF non encore implémentée'
+      message: 'Génération PDF non encore implémentée',
     });
   }
 }

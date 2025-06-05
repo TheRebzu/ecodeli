@@ -28,17 +28,17 @@ export default async function ProviderVerificationPage({
 }) {
   // Vérifier si l'utilisateur est connecté et est un provider
   const session = await getServerSession(authOptions);
-  
+
   if (!session) {
     redirect(`/${locale}/login?callbackUrl=/${locale}/provider/verification`);
   }
-  
+
   if (session.user.role !== 'PROVIDER') {
     redirect(`/${locale}/dashboard`);
   }
-  
+
   const userId = session.user.id;
-  
+
   // Récupérer le statut de vérification actuel
   const providerVerification = await db.providerVerification.findFirst({
     where: {
@@ -50,9 +50,9 @@ export default async function ProviderVerificationPage({
       createdAt: 'desc',
     },
   });
-  
+
   const verificationStatus = providerVerification?.status || null;
-  
+
   // Traduire les textes
   const t = await getTranslations({ locale, namespace: 'verification' });
 
@@ -60,34 +60,32 @@ export default async function ProviderVerificationPage({
     <div className="container max-w-4xl py-8">
       {verificationStatus && (
         <div className="mb-8">
-          <VerificationStatusBanner 
+          <VerificationStatusBanner
             status={verificationStatus as VerificationStatus}
             title={
               verificationStatus === 'APPROVED'
                 ? t('statusBanner.approved.title')
                 : verificationStatus === 'REJECTED'
-                ? t('statusBanner.rejected.title')
-                : t('statusBanner.pending.title')
+                  ? t('statusBanner.rejected.title')
+                  : t('statusBanner.pending.title')
             }
             description={
               verificationStatus === 'APPROVED'
                 ? t('statusBanner.approved.description')
                 : verificationStatus === 'REJECTED'
-                ? t('statusBanner.rejected.description')
-                : t('statusBanner.pending.description')
+                  ? t('statusBanner.rejected.description')
+                  : t('statusBanner.pending.description')
             }
             rejectionReason={providerVerification?.rejectionReason || undefined}
           />
         </div>
       )}
-      
+
       {!verificationStatus || verificationStatus === 'REJECTED' ? (
         <ProviderVerificationForm />
       ) : (
         <div className="border rounded-lg p-6 text-center">
-          <h2 className="text-xl font-semibold mb-2">
-            {t('alreadySubmitted.title')}
-          </h2>
+          <h2 className="text-xl font-semibold mb-2">{t('alreadySubmitted.title')}</h2>
           <p className="text-muted-foreground">
             {verificationStatus === 'PENDING'
               ? t('alreadySubmitted.pending')
@@ -97,4 +95,4 @@ export default async function ProviderVerificationPage({
       )}
     </div>
   );
-} 
+}

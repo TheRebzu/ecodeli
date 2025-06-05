@@ -10,15 +10,17 @@ async function main() {
 
   try {
     logger.info('MAIN', '🚀 Démarrage de la correction des services prestataires');
-    
+
     // Debug: vérifier les prestataires
     const providerCount = await prisma.provider.count();
     logger.info('MAIN', `📊 Prestataires trouvés: ${providerCount}`);
-    
+
     const result = await seedFixProviderServices(prisma, logger, { force: true, verbose: true });
-    
-    logger.success('MAIN', `✅ Correction terminée: ${result.created} services créés, ${result.errors} erreurs`);
-    
+
+    logger.success(
+      'MAIN',
+      `✅ Correction terminée: ${result.created} services créés, ${result.errors} erreurs`
+    );
   } catch (error: any) {
     logger.error('MAIN', `❌ Erreur lors de la correction: ${error.message}`);
     console.error('Stack trace:', error.stack);
@@ -28,4 +30,4 @@ async function main() {
   }
 }
 
-main().catch(console.error); 
+main().catch(console.error);

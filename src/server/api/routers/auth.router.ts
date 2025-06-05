@@ -115,7 +115,7 @@ export const authRouter = router({
 
         return { success: true };
       } catch (error) {
-        console.error('Erreur lors de la vérification de l\'email:', error);
+        console.error("Erreur lors de la vérification de l'email:", error);
         throw new TRPCError({
           code: 'NOT_FOUND',
           message: 'Token de vérification invalide ou expiré',
@@ -275,8 +275,12 @@ export const authRouter = router({
       const { user } = ctx.session;
       const { type, fileData, fileName, mimeType, expiryDate, description } = input;
 
-      console.log(`Début de l'upload de document: ${type} pour l'utilisateur ${user.id} (${user.role})`);
-      console.log(`Le document a une date d'expiration: ${expiryDate ? format(expiryDate, 'yyyy-MM-dd') : 'Non'}`);
+      console.log(
+        `Début de l'upload de document: ${type} pour l'utilisateur ${user.id} (${user.role})`
+      );
+      console.log(
+        `Le document a une date d'expiration: ${expiryDate ? format(expiryDate, 'yyyy-MM-dd') : 'Non'}`
+      );
 
       // Vérifier si l'utilisateur est autorisé à uploader des documents
       if (!['DELIVERER', 'MERCHANT', 'PROVIDER'].includes(user.role)) {
@@ -289,10 +293,10 @@ export const authRouter = router({
       try {
         // Créer un nom de fichier unique
         const uniqueFilename = `${user.id}_${Date.now()}_${fileName.replace(/[^a-z0-9.]/gi, '_')}`;
-        
+
         // Définir le chemin du répertoire utilisateur
         const userUploadDir = path.join(process.cwd(), 'public', 'uploads', user.id);
-        
+
         // S'assurer que le répertoire utilisateur existe
         try {
           await fs.mkdir(userUploadDir, { recursive: true });
@@ -301,16 +305,16 @@ export const authRouter = router({
           console.error(`Erreur lors de la création du répertoire: ${userUploadDir}`, dirError);
           throw new TRPCError({
             code: 'INTERNAL_SERVER_ERROR',
-            message: "Impossible de créer le répertoire de stockage"
+            message: 'Impossible de créer le répertoire de stockage',
           });
         }
-        
+
         // Chemin complet du fichier
         const filePath = path.join(userUploadDir, uniqueFilename);
-        
+
         // URL relative pour accéder au fichier depuis le web
         const fileUrl = `/uploads/${user.id}/${uniqueFilename}`;
-        
+
         // Extraire les données du base64
         let fileBuffer: Buffer;
         try {
@@ -318,13 +322,13 @@ export const authRouter = router({
           const base64Data = fileData.split(',')[1] || fileData;
           fileBuffer = Buffer.from(base64Data, 'base64');
         } catch (base64Error) {
-          console.error("Erreur lors du décodage base64:", base64Error);
+          console.error('Erreur lors du décodage base64:', base64Error);
           throw new TRPCError({
             code: 'BAD_REQUEST',
-            message: "Format de fichier invalide"
+            message: 'Format de fichier invalide',
           });
         }
-        
+
         // Écrire le fichier sur le disque
         try {
           await fs.writeFile(filePath, fileBuffer);
@@ -333,10 +337,10 @@ export const authRouter = router({
           console.error("Erreur lors de l'écriture du fichier:", writeError);
           throw new TRPCError({
             code: 'INTERNAL_SERVER_ERROR',
-            message: "Erreur lors de l'enregistrement du fichier"
+            message: "Erreur lors de l'enregistrement du fichier",
           });
         }
-        
+
         // Taille réelle du fichier
         const fileSize = fileBuffer.length;
 
@@ -359,15 +363,15 @@ export const authRouter = router({
           // @ts-ignore - Ignorer l'erreur TypeScript ici car nous savons que le champ existe
           documentData.expiryDate = expiryDate;
         }
-        
+
         if (description) {
           // @ts-ignore - Ignorer l'erreur TypeScript ici car nous savons que le champ existe
           documentData.notes = description;
         }
 
-        console.log("Création du document avec les données:", {
+        console.log('Création du document avec les données:', {
           ...documentData,
-          fileData: "[CONTENU REDACTÉ]"
+          fileData: '[CONTENU REDACTÉ]',
         });
 
         // Créer le document
@@ -399,10 +403,10 @@ export const authRouter = router({
   // Récupérer les documents de l'utilisateur avec le statut consistant
   getUserDocuments: protectedProcedure.query(async ({ ctx }) => {
     const { user } = ctx.session;
-    
+
     // Utiliser la fonction utilitaire pour récupérer les documents avec statut complet
     const documents = await getUserDocumentsWithFullStatus(user.id, user.role);
-    
+
     // Map uploadedAt to createdAt for frontend compatibility
     // Also handle SELFIE documents stored as OTHER with notes containing "SELFIE"
     return documents.map(doc => ({
@@ -410,9 +414,7 @@ export const authRouter = router({
       createdAt: doc.uploadedAt,
       // If document is OTHER type but has notes containing "SELFIE" (case insensitive), correct the type for frontend
       type:
-        doc.type === 'OTHER' &&
-        doc.notes &&
-        doc.notes.toLowerCase().includes('selfie')
+        doc.type === 'OTHER' && doc.notes && doc.notes.toLowerCase().includes('selfie')
           ? 'SELFIE'
           : doc.type,
     }));

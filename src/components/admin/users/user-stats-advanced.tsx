@@ -95,7 +95,16 @@ interface UserStatsAdvancedProps {
 
 // Palette de couleurs pour les graphiques
 const CHART_COLORS = [
-  '#8884d8', '#82ca9d', '#ffc658', '#ff8042', '#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884d8', '#82ca9d'
+  '#8884d8',
+  '#82ca9d',
+  '#ffc658',
+  '#ff8042',
+  '#0088FE',
+  '#00C49F',
+  '#FFBB28',
+  '#FF8042',
+  '#8884d8',
+  '#82ca9d',
 ];
 
 // Données fictives pour les graphiques de démonstration
@@ -265,12 +274,7 @@ export default function UserStatsAdvanced({ initialFilters }: UserStatsAdvancedP
           <div className="mb-6 grid gap-4 md:grid-cols-3">
             <div className="space-y-2">
               <Label htmlFor="period">Période</Label>
-              <Select
-                value={filters.period}
-                onValueChange={(value) => 
-                  handleToggleChange('period')
-                }
-              >
+              <Select value={filters.period} onValueChange={value => handleToggleChange('period')}>
                 <SelectTrigger id="period">
                   <SelectValue placeholder="Sélectionner une période" />
                 </SelectTrigger>
@@ -287,9 +291,7 @@ export default function UserStatsAdvanced({ initialFilters }: UserStatsAdvancedP
                 <Switch
                   id="compare"
                   checked={filters.compareWithPrevious}
-                  onCheckedChange={(checked) =>
-                    handleToggleChange('compareWithPrevious')
-                  }
+                  onCheckedChange={checked => handleToggleChange('compareWithPrevious')}
                 />
                 <Label htmlFor="compare">Comparer avec période précédente</Label>
               </div>
@@ -299,15 +301,13 @@ export default function UserStatsAdvanced({ initialFilters }: UserStatsAdvancedP
                 <Switch
                   id="breakdownByRole"
                   checked={filters.breakdownByRole}
-                  onCheckedChange={(checked) =>
-                    handleToggleChange('breakdownByRole')
-                  }
+                  onCheckedChange={checked => handleToggleChange('breakdownByRole')}
                 />
                 <Label htmlFor="breakdownByRole">Répartition par rôle</Label>
               </div>
             </div>
           </div>
-          
+
           {statsQuery.isLoading ? (
             <div className="flex h-[400px] items-center justify-center">
               <p className="text-muted-foreground">Chargement des statistiques...</p>
@@ -331,9 +331,9 @@ export default function UserStatsAdvanced({ initialFilters }: UserStatsAdvancedP
                     margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
                   >
                     <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis 
-                      dataKey="date" 
-                      tickFormatter={(date) => {
+                    <XAxis
+                      dataKey="date"
+                      tickFormatter={date => {
                         // Simplifie la date pour l'affichage (juste le mois)
                         return new Date(date).toLocaleDateString('fr', { month: 'short' });
                       }}
@@ -382,9 +382,9 @@ export default function UserStatsAdvanced({ initialFilters }: UserStatsAdvancedP
                           label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                         >
                           {Object.entries(stats.usersByRole).map(([role, _], index) => (
-                            <Cell 
-                              key={`cell-${index}`} 
-                              fill={ROLE_COLORS[role as UserRole] || COLORS[index % COLORS.length]} 
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={ROLE_COLORS[role as UserRole] || COLORS[index % COLORS.length]}
                             />
                           ))}
                         </Pie>
@@ -414,8 +414,8 @@ export default function UserStatsAdvanced({ initialFilters }: UserStatsAdvancedP
                           label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
                         >
                           {Object.entries(stats.usersByStatus).map(([status, _], index) => (
-                            <Cell 
-                              key={`cell-${index}`} 
+                            <Cell
+                              key={`cell-${index}`}
                               fill={
                                 STATUS_COLORS[status as UserStatus] || COLORS[index % COLORS.length]
                               }
@@ -444,11 +444,7 @@ export default function UserStatsAdvanced({ initialFilters }: UserStatsAdvancedP
                       <YAxis />
                       <Tooltip />
                       <Legend />
-                      <Bar 
-                        dataKey="rate" 
-                        name="Taux de rétention (%)" 
-                        fill="#0088FE" 
-                      />
+                      <Bar dataKey="rate" name="Taux de rétention (%)" fill="#0088FE" />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>

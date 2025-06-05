@@ -1,6 +1,16 @@
 import { PrismaClient, UserRole, UserStatus } from '@prisma/client';
 import { SeedLogger } from '../utils/seed-logger';
-import { SeedResult, SeedOptions, generateFrenchPhone, generateFrenchAddress, generateFrenchEmail, generateSiret, hashPassword, getRandomElement, getRandomDate } from '../utils/seed-helpers';
+import {
+  SeedResult,
+  SeedOptions,
+  generateFrenchPhone,
+  generateFrenchAddress,
+  generateFrenchEmail,
+  generateSiret,
+  hashPassword,
+  getRandomElement,
+  getRandomDate,
+} from '../utils/seed-helpers';
 import { faker } from '@faker-js/faker';
 
 /**
@@ -23,35 +33,36 @@ interface MerchantData {
  * Seed des utilisateurs commerçants EcoDeli
  */
 export async function seedMerchantUsers(
-  prisma: PrismaClient, 
+  prisma: PrismaClient,
   logger: SeedLogger,
   options: SeedOptions = {}
 ): Promise<SeedResult> {
   logger.startSeed('MERCHANT_USERS');
-  
+
   const result: SeedResult = {
     entity: 'merchant_users',
     created: 0,
     skipped: 0,
-    errors: 0
+    errors: 0,
   };
 
   // Vérifier si les commerçants existent déjà
   const existingMerchants = await prisma.user.findMany({
-    where: { role: UserRole.MERCHANT }
+    where: { role: UserRole.MERCHANT },
   });
-  
+
   if (existingMerchants.length > 0 && !options.force) {
-    logger.warning('MERCHANT_USERS', `${existingMerchants.length} commerçants déjà présents - utiliser force:true pour recréer`);
+    logger.warning(
+      'MERCHANT_USERS',
+      `${existingMerchants.length} commerçants déjà présents - utiliser force:true pour recréer`
+    );
     result.skipped = existingMerchants.length;
     return result;
   }
 
-  // Nettoyer si force activé
-  if (options.force) {
-    await prisma.merchant.deleteMany({});
-    await prisma.user.deleteMany({ where: { role: UserRole.MERCHANT } });
-    logger.database('NETTOYAGE', 'merchant users', 0);
+  // Note: Le nettoyage est géré au niveau de l'orchestrateur pour éviter les conflits de contraintes FK
+  if (options.force && existingMerchants.length > 0) {
+    logger.info('MERCHANT_USERS', '♻️ Mode force activé - Les données existantes seront écrasées');
   }
 
   // Types de commerces disponibles
@@ -59,10 +70,16 @@ export async function seedMerchantUsers(
     {
       type: 'restaurant',
       category: 'Restauration',
-      subcategories: ['Restaurant traditionnel', 'Fast-food', 'Pizzeria', 'Boulangerie-pâtisserie', 'Traiteur'],
+      subcategories: [
+        'Restaurant traditionnel',
+        'Fast-food',
+        'Pizzeria',
+        'Boulangerie-pâtisserie',
+        'Traiteur',
+      ],
       avgOrderValue: { min: 15, max: 45 },
       workingHours: { start: '11:00', end: '22:00' },
-      deliveryRange: { min: 2, max: 8 }
+      deliveryRange: { min: 2, max: 8 },
     },
     {
       type: 'pharmacy',
@@ -70,7 +87,7 @@ export async function seedMerchantUsers(
       subcategories: ['Pharmacie générale', 'Parapharmacie', 'Pharmacie de garde'],
       avgOrderValue: { min: 8, max: 35 },
       workingHours: { start: '08:30', end: '19:30' },
-      deliveryRange: { min: 1, max: 5 }
+      deliveryRange: { min: 1, max: 5 },
     },
     {
       type: 'grocery',
@@ -78,7 +95,7 @@ export async function seedMerchantUsers(
       subcategories: ['Épicerie fine', 'Superette', 'Primeur', 'Fromagerie', 'Boucherie'],
       avgOrderValue: { min: 12, max: 60 },
       workingHours: { start: '09:00', end: '19:00' },
-      deliveryRange: { min: 3, max: 10 }
+      deliveryRange: { min: 3, max: 10 },
     },
     {
       type: 'electronics',
@@ -86,7 +103,7 @@ export async function seedMerchantUsers(
       subcategories: ['Informatique', 'Téléphonie', 'Électroménager', 'Hi-Fi/Vidéo'],
       avgOrderValue: { min: 50, max: 800 },
       workingHours: { start: '10:00', end: '19:00' },
-      deliveryRange: { min: 5, max: 15 }
+      deliveryRange: { min: 5, max: 15 },
     },
     {
       type: 'fashion',
@@ -94,13 +111,13 @@ export async function seedMerchantUsers(
       subcategories: ['Prêt-à-porter', 'Chaussures', 'Cosmétiques', 'Bijouterie'],
       avgOrderValue: { min: 25, max: 200 },
       workingHours: { start: '10:00', end: '19:00' },
-      deliveryRange: { min: 3, max: 12 }
-    }
+      deliveryRange: { min: 3, max: 12 },
+    },
   ];
 
   // Générer 20 commerçants avec des profils variés
   const merchantUsers: MerchantData[] = [];
-  
+
   // IMPORTANT: Commerçant principal pour les tests - techshop.sarl@orange.fr
   merchantUsers.push({
     name: 'Sophie Marchand',
@@ -116,10 +133,11 @@ export async function seedMerchantUsers(
       subcategory: 'Informatique',
       siret: generateSiret(),
       vatNumber: `FR${faker.string.numeric(11)}`,
-      description: 'TechShop SARL - Votre spécialiste en informatique et électronique dans le 19ème arrondissement. Vente, conseil et dépannage de matériel informatique, smartphones, tablettes et accessoires high-tech.',
+      description:
+        'TechShop SARL - Votre spécialiste en informatique et électronique dans le 19ème arrondissement. Vente, conseil et dépannage de matériel informatique, smartphones, tablettes et accessoires high-tech.',
       foundingYear: 2018,
       employeeCount: 3,
-      websiteUrl: 'https://www.techshop-paris19.fr'
+      websiteUrl: 'https://www.techshop-paris19.fr',
     },
     address: {
       street: '125 rue de Flandre',
@@ -127,7 +145,7 @@ export async function seedMerchantUsers(
       zipCode: '75019',
       country: 'France',
       latitude: 48.8948,
-      longitude: 2.3730
+      longitude: 2.373,
     },
     verification: {
       isVerified: true,
@@ -137,7 +155,7 @@ export async function seedMerchantUsers(
       taxDocumentsVerified: true,
       bankAccountVerified: true,
       identityVerified: true,
-      addressVerified: true
+      addressVerified: true,
     },
     operationalData: {
       openingHours: {
@@ -147,18 +165,18 @@ export async function seedMerchantUsers(
         thursday: { open: '10:00', close: '19:00', isOpen: true },
         friday: { open: '10:00', close: '19:00', isOpen: true },
         saturday: { open: '10:00', close: '18:00', isOpen: true },
-        sunday: { open: '14:00', close: '18:00', isOpen: true }
+        sunday: { open: '14:00', close: '18:00', isOpen: true },
       },
       deliveryOptions: ['express', 'standard'],
       paymentMethods: ['card', 'cash', 'digital'],
       deliveryRange: 10,
-      averageOrderValue: 185.50,
+      averageOrderValue: 185.5,
       monthlyOrders: 125,
       customerRating: 4.7,
-      totalRevenue: 45000.0
-    }
+      totalRevenue: 45000.0,
+    },
   });
-  
+
   // 14 autres commerçants actifs avec boutiques
   for (let i = 0; i < 14; i++) {
     const firstName = faker.person.firstName();
@@ -168,7 +186,7 @@ export async function seedMerchantUsers(
     const address = generateFrenchAddress();
     const companyName = generateCompanyName(businessType.category, address.city);
     const isEstablished = Math.random() > 0.3; // 70% sont établis depuis longtemps
-    
+
     merchantUsers.push({
       name: `${firstName} ${lastName}`,
       email: generateFrenchEmail(firstName, lastName),
@@ -179,7 +197,8 @@ export async function seedMerchantUsers(
         'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
         'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
         'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150',
-        undefined, undefined // 30% sans photo
+        undefined,
+        undefined, // 30% sans photo
       ]),
       status: UserStatus.ACTIVE,
       business: {
@@ -190,11 +209,14 @@ export async function seedMerchantUsers(
         siret: generateSiret(),
         vatNumber: `FR${faker.string.numeric(11)}`,
         description: generateBusinessDescription(businessType.category, subcategory),
-        foundingYear: isEstablished 
-          ? faker.number.int({ min: 1995, max: 2020 }) 
+        foundingYear: isEstablished
+          ? faker.number.int({ min: 1995, max: 2020 })
           : faker.number.int({ min: 2021, max: 2024 }),
         employeeCount: faker.number.int({ min: 1, max: 25 }),
-        websiteUrl: Math.random() > 0.4 ? `https://www.${companyName.toLowerCase().replace(/\s+/g, '-')}.fr` : null
+        websiteUrl:
+          Math.random() > 0.4
+            ? `https://www.${companyName.toLowerCase().replace(/\s+/g, '-')}.fr`
+            : null,
       },
       address,
       verification: {
@@ -205,7 +227,7 @@ export async function seedMerchantUsers(
         taxDocumentsVerified: true,
         bankAccountVerified: true,
         identityVerified: true,
-        addressVerified: true
+        addressVerified: true,
       },
       operationalData: {
         openingHours: generateOpeningHours(businessType.workingHours),
@@ -213,27 +235,27 @@ export async function seedMerchantUsers(
           ['express', 'standard'],
           ['standard', 'scheduled'],
           ['express', 'standard', 'scheduled'],
-          ['standard']
+          ['standard'],
         ]),
         paymentMethods: getRandomElement([
           ['card', 'cash', 'digital'],
           ['card', 'digital'],
           ['card', 'cash'],
-          ['card', 'cash', 'digital', 'check']
+          ['card', 'cash', 'digital', 'check'],
         ]),
         deliveryRange: faker.number.int(businessType.deliveryRange),
         averageOrderValue: faker.number.float({
           min: businessType.avgOrderValue.min,
-          max: businessType.avgOrderValue.max
+          max: businessType.avgOrderValue.max,
         }),
-        monthlyOrders: isEstablished 
+        monthlyOrders: isEstablished
           ? faker.number.int({ min: 80, max: 400 })
           : faker.number.int({ min: 20, max: 80 }),
         customerRating: faker.number.float({ min: 4.0, max: 5.0 }),
-        totalRevenue: isEstablished 
+        totalRevenue: isEstablished
           ? faker.number.float({ min: 15000, max: 80000 })
-          : faker.number.float({ min: 2000, max: 15000 })
-      }
+          : faker.number.float({ min: 2000, max: 15000 }),
+      },
     });
   }
 
@@ -245,7 +267,7 @@ export async function seedMerchantUsers(
     const subcategory = getRandomElement(businessType.subcategories);
     const address = generateFrenchAddress();
     const companyName = generateCompanyName(businessType.category, address.city);
-    
+
     merchantUsers.push({
       name: `${firstName} ${lastName}`,
       email: generateFrenchEmail(firstName, lastName),
@@ -253,7 +275,9 @@ export async function seedMerchantUsers(
       phoneNumber: generateFrenchPhone(),
       image: getRandomElement([
         'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-        undefined, undefined, undefined // 75% sans photo pour les nouveaux
+        undefined,
+        undefined,
+        undefined, // 75% sans photo pour les nouveaux
       ]),
       status: UserStatus.INACTIVE, // En cours de validation
       business: {
@@ -266,7 +290,10 @@ export async function seedMerchantUsers(
         description: generateBusinessDescription(businessType.category, subcategory),
         foundingYear: faker.number.int({ min: 2023, max: 2024 }), // Récents
         employeeCount: faker.number.int({ min: 1, max: 5 }),
-        websiteUrl: Math.random() > 0.7 ? `https://www.${companyName.toLowerCase().replace(/\s+/g, '-')}.fr` : null
+        websiteUrl:
+          Math.random() > 0.7
+            ? `https://www.${companyName.toLowerCase().replace(/\s+/g, '-')}.fr`
+            : null,
       },
       address,
       verification: {
@@ -277,7 +304,7 @@ export async function seedMerchantUsers(
         taxDocumentsVerified: Math.random() > 0.6, // 40% ont fourni
         bankAccountVerified: Math.random() > 0.5, // 50% ont fourni
         identityVerified: Math.random() > 0.2, // 80% ont fourni
-        addressVerified: Math.random() > 0.3 // 70% ont fourni
+        addressVerified: Math.random() > 0.3, // 70% ont fourni
       },
       operationalData: {
         openingHours: generateOpeningHours(businessType.workingHours),
@@ -287,8 +314,8 @@ export async function seedMerchantUsers(
         averageOrderValue: 0,
         monthlyOrders: 0,
         customerRating: null,
-        totalRevenue: 0
-      }
+        totalRevenue: 0,
+      },
     });
   }
 
@@ -296,14 +323,19 @@ export async function seedMerchantUsers(
   const batchSize = 5;
   for (let i = 0; i < merchantUsers.length; i += batchSize) {
     const batch = merchantUsers.slice(i, i + batchSize);
-    
+
     for (const merchantData of batch) {
       try {
-        logger.progress('MERCHANT_USERS', i + 1, merchantUsers.length, `Création: ${merchantData.name}`);
+        logger.progress(
+          'MERCHANT_USERS',
+          i + 1,
+          merchantUsers.length,
+          `Création: ${merchantData.name}`
+        );
 
         // Hasher le mot de passe
         const hashedPassword = await hashPassword(merchantData.password);
-        
+
         // Créer l'utilisateur avec le profil commerçant
         const user = await prisma.user.create({
           data: {
@@ -327,13 +359,13 @@ export async function seedMerchantUsers(
                 sms: Math.random() > 0.3, // 70% acceptent SMS
                 orderAlerts: true,
                 weeklyReport: true,
-                promotionalEmails: Math.random() > 0.4
+                promotionalEmails: Math.random() > 0.4,
               },
               business: {
                 autoAcceptOrders: merchantData.status === UserStatus.ACTIVE && Math.random() > 0.3,
                 workingMode: getRandomElement(['full_time', 'part_time', 'weekends_only']),
-                preferredPaymentMethod: getRandomElement(['bank_transfer', 'digital_wallet'])
-              }
+                preferredPaymentMethod: getRandomElement(['bank_transfer', 'digital_wallet']),
+              },
             },
             isVerified: merchantData.verification.isVerified,
             hasCompletedOnboarding: merchantData.verification.isVerified,
@@ -363,62 +395,88 @@ export async function seedMerchantUsers(
                 foundingYear: merchantData.business.foundingYear,
                 employeeCount: merchantData.business.employeeCount,
                 createdAt: getRandomDate(30, 180),
-                updatedAt: getRandomDate(1, 30)
-              }
-            }
+                updatedAt: getRandomDate(1, 30),
+              },
+            },
           },
           include: {
-            merchant: true
-          }
+            merchant: true,
+          },
         });
 
-        logger.success('MERCHANT_USERS', `✅ Commerçant créé: ${user.name} - ${merchantData.business.companyName}`);
+        logger.success(
+          'MERCHANT_USERS',
+          `✅ Commerçant créé: ${user.name} - ${merchantData.business.companyName}`
+        );
         result.created++;
-        
       } catch (error: any) {
-        logger.error('MERCHANT_USERS', `❌ Erreur création commerçant ${merchantData.name}: ${error.message}`);
+        logger.error(
+          'MERCHANT_USERS',
+          `❌ Erreur création commerçant ${merchantData.name}: ${error.message}`
+        );
         result.errors++;
       }
     }
-    
+
     // Progression par batch
     if (i + batchSize < merchantUsers.length) {
-      logger.progress('MERCHANT_USERS', Math.min(i + batchSize, merchantUsers.length), merchantUsers.length);
+      logger.progress(
+        'MERCHANT_USERS',
+        Math.min(i + batchSize, merchantUsers.length),
+        merchantUsers.length
+      );
     }
   }
 
   // Validation des commerçants créés
   const finalMerchants = await prisma.user.findMany({
     where: { role: UserRole.MERCHANT },
-    include: { merchant: true }
+    include: { merchant: true },
   });
-  
+
   if (finalMerchants.length >= merchantUsers.length - result.errors) {
-    logger.validation('MERCHANT_USERS', 'PASSED', `${finalMerchants.length} commerçants créés avec succès`);
+    logger.validation(
+      'MERCHANT_USERS',
+      'PASSED',
+      `${finalMerchants.length} commerçants créés avec succès`
+    );
   } else {
-    logger.validation('MERCHANT_USERS', 'FAILED', `Attendu: ${merchantUsers.length}, Créé: ${finalMerchants.length}`);
+    logger.validation(
+      'MERCHANT_USERS',
+      'FAILED',
+      `Attendu: ${merchantUsers.length}, Créé: ${finalMerchants.length}`
+    );
   }
 
   // Statistiques par statut
-  const byStatus = finalMerchants.reduce((acc, merchant) => {
-    acc[merchant.status] = (acc[merchant.status] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  const byStatus = finalMerchants.reduce(
+    (acc, merchant) => {
+      acc[merchant.status] = (acc[merchant.status] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
 
   logger.info('MERCHANT_USERS', `📊 Répartition par statut: ${JSON.stringify(byStatus)}`);
 
   // Statistiques par type d'activité
-  const byBusinessType = finalMerchants.reduce((acc, merchant) => {
-    const businessType = merchant.merchant?.businessType || 'Non défini';
-    acc[businessType] = (acc[businessType] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  const byBusinessType = finalMerchants.reduce(
+    (acc, merchant) => {
+      const businessType = merchant.merchant?.businessType || 'Non défini';
+      acc[businessType] = (acc[businessType] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
 
   logger.info('MERCHANT_USERS', `🏪 Répartition par activité: ${JSON.stringify(byBusinessType)}`);
 
   // Statistiques de vérification
   const verifiedMerchants = finalMerchants.filter(merchant => merchant.merchant?.isVerified);
-  logger.info('MERCHANT_USERS', `✅ Commerçants vérifiés: ${verifiedMerchants.length} (${Math.round(verifiedMerchants.length / finalMerchants.length * 100)}%)`);
+  logger.info(
+    'MERCHANT_USERS',
+    `✅ Commerçants vérifiés: ${verifiedMerchants.length} (${Math.round((verifiedMerchants.length / finalMerchants.length) * 100)}%)`
+  );
 
   logger.endSeed('MERCHANT_USERS', result);
   return result;
@@ -429,23 +487,23 @@ export async function seedMerchantUsers(
  */
 function generateCompanyName(category: string, city: string): string {
   const prefixes = {
-    'Restauration': ['Restaurant', 'Brasserie', 'Café', 'Bistrot', 'Chez'],
-    'Pharmacie': ['Pharmacie', 'Parapharmacie'],
-    'Alimentation': ['Épicerie', 'Marché', 'Primeur', 'Les Saveurs de'],
-    'Électronique': ['TechStore', 'Digital', 'Électro', 'High-Tech'],
-    'Mode & Beauté': ['Boutique', 'Mode', 'Style', 'Élégance']
+    Restauration: ['Restaurant', 'Brasserie', 'Café', 'Bistrot', 'Chez'],
+    Pharmacie: ['Pharmacie', 'Parapharmacie'],
+    Alimentation: ['Épicerie', 'Marché', 'Primeur', 'Les Saveurs de'],
+    Électronique: ['TechStore', 'Digital', 'Électro', 'High-Tech'],
+    'Mode & Beauté': ['Boutique', 'Mode', 'Style', 'Élégance'],
   };
 
-     const suffixes = [
-     `du ${city}`,
-     'Central',
-     'Plus',
-     'Express',
-     faker.person.lastName(),
-     faker.location.street()
-   ];
+  const suffixes = [
+    `du ${city}`,
+    'Central',
+    'Plus',
+    'Express',
+    faker.person.lastName(),
+    faker.location.street(),
+  ];
 
-   const categoryPrefixes = prefixes[category as keyof typeof prefixes] || ['Commerce'];
+  const categoryPrefixes = prefixes[category as keyof typeof prefixes] || ['Commerce'];
   const prefix = getRandomElement(categoryPrefixes);
   const suffix = getRandomElement(suffixes);
 
@@ -457,34 +515,36 @@ function generateCompanyName(category: string, city: string): string {
  */
 function generateBusinessDescription(category: string, subcategory: string): string {
   const descriptions = {
-    'Restauration': [
+    Restauration: [
       `${subcategory} proposant une cuisine authentique et des produits frais`,
       `Spécialisé dans la ${subcategory.toLowerCase()}, nous privilégions les circuits courts`,
-      `${subcategory} familial avec des recettes traditionnelles revisitées`
+      `${subcategory} familial avec des recettes traditionnelles revisitées`,
     ],
-    'Pharmacie': [
+    Pharmacie: [
       `${subcategory} de proximité, conseil personnalisé et livraison rapide`,
       `Votre ${subcategory.toLowerCase()} de confiance pour tous vos besoins santé et bien-être`,
-      `${subcategory} moderne avec un large choix de produits de santé et beauté`
+      `${subcategory} moderne avec un large choix de produits de santé et beauté`,
     ],
-    'Alimentation': [
+    Alimentation: [
       `${subcategory} proposant des produits frais et de qualité`,
       `Spécialisé en produits bio et locaux, ${subcategory.toLowerCase()} de quartier`,
-      `${subcategory} avec un choix varié de produits du terroir français`
+      `${subcategory} avec un choix varié de produits du terroir français`,
     ],
-    'Électronique': [
+    Électronique: [
       `${subcategory} avec les dernières technologies et un service client expert`,
       `Spécialisé en ${subcategory.toLowerCase()}, vente et service après-vente`,
-      `${subcategory} proposant les meilleures marques aux meilleurs prix`
+      `${subcategory} proposant les meilleures marques aux meilleurs prix`,
     ],
     'Mode & Beauté': [
       `${subcategory} tendance avec les dernières collections de mode`,
       `Spécialisé en ${subcategory.toLowerCase()}, style et élégance`,
-      `${subcategory} proposant un large choix de marques et conseils personnalisés`
-    ]
+      `${subcategory} proposant un large choix de marques et conseils personnalisés`,
+    ],
   };
 
-     const categoryDescriptions = descriptions[category as keyof typeof descriptions] || [`${subcategory} de qualité avec un service client exceptionnel`];
+  const categoryDescriptions = descriptions[category as keyof typeof descriptions] || [
+    `${subcategory} de qualité avec un service client exceptionnel`,
+  ];
   return getRandomElement(categoryDescriptions);
 }
 
@@ -498,16 +558,16 @@ function generateOpeningHours(baseHours: { start: string; end: string }): any {
     wednesday: { open: baseHours.start, close: baseHours.end, closed: false },
     thursday: { open: baseHours.start, close: baseHours.end, closed: false },
     friday: { open: baseHours.start, close: baseHours.end, closed: false },
-    saturday: { 
-      open: baseHours.start, 
-      close: getRandomElement([baseHours.end, '18:00', '17:00']), 
-      closed: Math.random() > 0.8 // 20% fermés le samedi
+    saturday: {
+      open: baseHours.start,
+      close: getRandomElement([baseHours.end, '18:00', '17:00']),
+      closed: Math.random() > 0.8, // 20% fermés le samedi
     },
-    sunday: { 
-      open: '10:00', 
-      close: '17:00', 
-      closed: Math.random() > 0.3 // 70% fermés le dimanche
-    }
+    sunday: {
+      open: '10:00',
+      close: '17:00',
+      closed: Math.random() > 0.3, // 70% fermés le dimanche
+    },
   };
 
   // Certains commerces ferment le lundi
@@ -526,10 +586,10 @@ export async function validateMerchantUsers(
   logger: SeedLogger
 ): Promise<boolean> {
   logger.info('VALIDATION', '🔍 Validation des commerçants...');
-  
+
   const merchants = await prisma.user.findMany({
     where: { role: UserRole.MERCHANT },
-    include: { merchant: true }
+    include: { merchant: true },
   });
 
   let isValid = true;
@@ -544,26 +604,35 @@ export async function validateMerchantUsers(
   }
 
   // Vérifier la cohérence statut/vérification
-  const activeButNotVerified = merchants.filter(merchant => 
-    merchant.status === UserStatus.ACTIVE && !merchant.merchant?.isVerified
+  const activeButNotVerified = merchants.filter(
+    merchant => merchant.status === UserStatus.ACTIVE && !merchant.merchant?.isVerified
   );
-  
+
   if (activeButNotVerified.length > 0) {
-    logger.error('VALIDATION', `❌ ${activeButNotVerified.length} commerçants actifs mais non vérifiés`);
+    logger.error(
+      'VALIDATION',
+      `❌ ${activeButNotVerified.length} commerçants actifs mais non vérifiés`
+    );
     isValid = false;
   } else {
     logger.success('VALIDATION', '✅ Cohérence statut/vérification respectée');
   }
 
   // Vérifier les données d'entreprise obligatoires
-  const merchantsWithoutBusinessData = merchants.filter(merchant => 
-    !merchant.merchant?.companyName || !merchant.merchant?.address || !merchant.merchant?.businessType
+  const merchantsWithoutBusinessData = merchants.filter(
+    merchant =>
+      !merchant.merchant?.companyName ||
+      !merchant.merchant?.address ||
+      !merchant.merchant?.businessType
   );
-  
+
   if (merchantsWithoutBusinessData.length > 0) {
-    logger.warning('VALIDATION', `⚠️ ${merchantsWithoutBusinessData.length} commerçants avec données d'entreprise incomplètes`);
+    logger.warning(
+      'VALIDATION',
+      `⚠️ ${merchantsWithoutBusinessData.length} commerçants avec données d'entreprise incomplètes`
+    );
   } else {
-    logger.success('VALIDATION', '✅ Toutes les données d\'entreprise sont complètes');
+    logger.success('VALIDATION', "✅ Toutes les données d'entreprise sont complètes");
   }
 
   // Vérifier la diversité des types d'activité
@@ -571,8 +640,11 @@ export async function validateMerchantUsers(
   if (businessTypes.size < 3) {
     logger.warning('VALIDATION', `⚠️ Faible diversité d'activités: ${businessTypes.size} types`);
   } else {
-    logger.success('VALIDATION', `✅ Bonne diversité d'activités: ${businessTypes.size} types différents`);
+    logger.success(
+      'VALIDATION',
+      `✅ Bonne diversité d'activités: ${businessTypes.size} types différents`
+    );
   }
 
   return isValid;
-} 
+}

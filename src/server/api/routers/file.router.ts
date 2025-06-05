@@ -38,13 +38,8 @@ export const fileRouter = router({
         }
 
         // Vérifier le type de fichier
-        const allowedTypes = [
-          'image/jpeg',
-          'image/png',
-          'image/webp',
-          'application/pdf',
-        ];
-        
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+
         if (!allowedTypes.includes(fileType)) {
           throw new TRPCError({
             code: 'BAD_REQUEST',
@@ -80,10 +75,10 @@ export const fileRouter = router({
           allowedTypes,
         };
       } catch (error) {
-        console.error('Erreur lors de la préparation de l\'upload:', error);
+        console.error("Erreur lors de la préparation de l'upload:", error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la préparation de l\'upload',
+          message: "Erreur lors de la préparation de l'upload",
         });
       }
     }),
@@ -124,10 +119,10 @@ export const fileRouter = router({
           token: downloadToken,
         };
       } catch (error) {
-        console.error('Erreur lors de la génération de l\'URL de téléchargement:', error);
+        console.error("Erreur lors de la génération de l'URL de téléchargement:", error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la génération de l\'URL de téléchargement',
+          message: "Erreur lors de la génération de l'URL de téléchargement",
         });
       }
     }),
@@ -163,7 +158,7 @@ export const fileRouter = router({
         if (fileUserId !== userId && userRole !== 'ADMIN') {
           throw new TRPCError({
             code: 'FORBIDDEN',
-            message: 'Vous n\'êtes pas autorisé à supprimer ce fichier',
+            message: "Vous n'êtes pas autorisé à supprimer ce fichier",
           });
         }
 
@@ -195,7 +190,7 @@ export const fileRouter = router({
     .query(async ({ ctx, input }) => {
       try {
         const { fileUrl } = input;
-        
+
         // Vérifier que l'URL est valide
         if (!fileUrl.startsWith('/uploads/')) {
           throw new TRPCError({
@@ -229,4 +224,4 @@ export const fileRouter = router({
         });
       }
     }),
-}); 
+});

@@ -24,7 +24,7 @@ import {
   Eye,
   Send,
   Printer,
-  BarChart2
+  BarChart2,
 } from 'lucide-react';
 
 import { api } from '@/trpc/react';
@@ -66,13 +66,9 @@ import {
   PaginationItem,
   PaginationLink,
   PaginationNext,
-  PaginationPrevious
+  PaginationPrevious,
 } from '@/components/ui/pagination';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { AreaChart, LineChart, BarChart } from '@/components/ui/charts';
 import { PageHeader } from '@/components/ui/page-header';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -92,7 +88,7 @@ export default function AdminInvoicesPage() {
   const { data: session } = useSession();
   const { toast } = useToast();
   const router = useRouter();
-  
+
   // États pour la pagination, le filtrage et la recherche
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
@@ -108,12 +104,12 @@ export default function AdminInvoicesPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedUserType, setSelectedUserType] = useState<string | undefined>();
-  
+
   // Récupérer toutes les factures (admin uniquement)
-  const { 
-    data: invoices, 
+  const {
+    data: invoices,
     isLoading: isLoadingInvoices,
-    refetch: refetchInvoices 
+    refetch: refetchInvoices,
   } = api.invoice.getAllInvoices.useQuery(
     {
       page: currentPage,
@@ -129,12 +125,12 @@ export default function AdminInvoicesPage() {
       refetchOnWindowFocus: false,
     }
   );
-  
+
   // Récupérer les statistiques des factures
-  const { 
-    data: invoiceStats, 
+  const {
+    data: invoiceStats,
     isLoading: isLoadingStats,
-    refetch: refetchStats 
+    refetch: refetchStats,
   } = api.invoice.getInvoiceStats.useQuery(
     {
       period: 'month',
@@ -146,27 +142,27 @@ export default function AdminInvoicesPage() {
       refetchOnWindowFocus: false,
     }
   );
-  
+
   // Générer une facture (PDF)
   const generateInvoiceMutation = api.invoice.generateInvoicePdf.useMutation({
-    onSuccess: (data) => {
+    onSuccess: data => {
       toast({
         title: t('invoiceGenerated'),
         description: t('invoiceGeneratedSuccess'),
       });
-      
+
       // Rediriger vers le PDF (dans un cas réel)
       // window.open(data.pdfUrl, '_blank');
     },
-    onError: (error) => {
+    onError: error => {
       toast({
-        variant: "destructive",
+        variant: 'destructive',
         title: t('generationFailed'),
         description: error.message || t('genericError'),
       });
-    }
+    },
   });
-  
+
   // Envoyer une facture par email
   const sendInvoiceMutation = api.invoice.sendInvoiceByEmail.useMutation({
     onSuccess: () => {
@@ -175,15 +171,15 @@ export default function AdminInvoicesPage() {
         description: t('invoiceSentSuccess'),
       });
     },
-    onError: (error) => {
+    onError: error => {
       toast({
-        variant: "destructive",
+        variant: 'destructive',
         title: t('sendFailed'),
         description: error.message || t('genericError'),
       });
-    }
+    },
   });
-  
+
   // Télécharger le rapport des factures
   const handleDownloadReport = async () => {
     try {
@@ -191,7 +187,7 @@ export default function AdminInvoicesPage() {
         title: t('downloadStarted'),
         description: t('invoiceReportDownloadStarted'),
       });
-      
+
       // Simuler un délai pour la démo
       setTimeout(() => {
         toast({
@@ -201,13 +197,13 @@ export default function AdminInvoicesPage() {
       }, 2000);
     } catch (error) {
       toast({
-        variant: "destructive",
+        variant: 'destructive',
         title: t('downloadError'),
         description: typeof error === 'string' ? error : t('genericError'),
       });
     }
   };
-  
+
   // Rafraîchir les données
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -219,7 +215,7 @@ export default function AdminInvoicesPage() {
       });
     } catch (error) {
       toast({
-        variant: "destructive",
+        variant: 'destructive',
         title: t('refreshError'),
         description: typeof error === 'string' ? error : t('genericError'),
       });
@@ -227,7 +223,7 @@ export default function AdminInvoicesPage() {
       setIsRefreshing(false);
     }
   };
-  
+
   // Réinitialiser les filtres
   const resetFilters = () => {
     setSearchQuery('');
@@ -239,45 +235,45 @@ export default function AdminInvoicesPage() {
     });
     setCurrentPage(1);
   };
-  
+
   // Générer un PDF pour une facture
   const handleGeneratePdf = async (invoiceId: string) => {
     try {
       await generateInvoiceMutation.mutateAsync({
         invoiceId,
-        template: 'DEFAULT'
+        template: 'DEFAULT',
       });
     } catch (error) {
       // Erreur déjà gérée par la mutation
     }
   };
-  
+
   // Envoyer une facture par email
   const handleSendInvoice = async (invoiceId: string, email: string) => {
     try {
       await sendInvoiceMutation.mutateAsync({
         invoiceId,
-        recipientEmail: email
+        recipientEmail: email,
       });
     } catch (error) {
       // Erreur déjà gérée par la mutation
     }
   };
-  
+
   // Créer une nouvelle facture
   const handleCreateInvoice = () => {
     setIsCreateModalOpen(true);
   };
-  
+
   // Rediriger vers la page de création de facture
   const handleRedirectToCreateInvoice = () => {
     // Fermer la modal
     setIsCreateModalOpen(false);
-    
+
     // Rediriger vers la page de création avec le type d'utilisateur présélectionné
     router.push(`/admin/invoices/create?userType=${selectedUserType || 'CLIENT'}`);
   };
-  
+
   // Obtenir la couleur selon le type de facture
   const getInvoiceTypeColor = (type: string) => {
     switch (type) {
@@ -293,7 +289,7 @@ export default function AdminInvoicesPage() {
         return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
-  
+
   // Obtenir l'icône selon le type de facture
   const getInvoiceTypeIcon = (type: string) => {
     switch (type) {
@@ -309,7 +305,7 @@ export default function AdminInvoicesPage() {
         return <FileText className="h-4 w-4" />;
     }
   };
-  
+
   // Obtenir la couleur selon le statut de la facture
   const getInvoiceStatusColor = (status: string) => {
     switch (status) {
@@ -327,7 +323,7 @@ export default function AdminInvoicesPage() {
         return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
-  
+
   // Obtenir l'icône selon le statut de la facture
   const getInvoiceStatusIcon = (status: string) => {
     switch (status) {
@@ -348,7 +344,7 @@ export default function AdminInvoicesPage() {
 
   // Calculer le nombre total de pages
   const totalPages = Math.ceil((invoices?.total || 0) / pageSize);
-  
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -361,7 +357,7 @@ export default function AdminInvoicesPage() {
           </Button>
         }
       />
-      
+
       <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="flex items-center w-full sm:w-auto">
           <DateRange
@@ -371,27 +367,19 @@ export default function AdminInvoicesPage() {
             align="start"
           />
         </div>
-        
+
         <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-          >
+          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
             <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
             {t('refresh')}
           </Button>
-          <Button 
-            size="sm" 
-            onClick={handleDownloadReport}
-          >
+          <Button size="sm" onClick={handleDownloadReport}>
             <Download className="h-4 w-4 mr-2" />
             {t('downloadReport')}
           </Button>
         </div>
       </div>
-      
+
       <Tabs defaultValue="invoices" value={currentTab} onValueChange={setCurrentTab}>
         <TabsList className="mb-4">
           <TabsTrigger value="overview">
@@ -403,7 +391,7 @@ export default function AdminInvoicesPage() {
             {t('invoices')}
           </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="overview" className="space-y-6">
           {/* Cartes d'aperçu */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -424,7 +412,7 @@ export default function AdminInvoicesPage() {
                 </p>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm">{t('paidInvoices')}</CardTitle>
@@ -442,7 +430,7 @@ export default function AdminInvoicesPage() {
                 </p>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm">{t('pendingInvoices')}</CardTitle>
@@ -460,7 +448,7 @@ export default function AdminInvoicesPage() {
                 </p>
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm">{t('overdueInvoices')}</CardTitle>
@@ -479,7 +467,7 @@ export default function AdminInvoicesPage() {
               </CardContent>
             </Card>
           </div>
-          
+
           {/* Graphiques */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <Card>
@@ -496,12 +484,12 @@ export default function AdminInvoicesPage() {
                     categories={['amount']}
                     index="month"
                     colors={['#3b82f6']}
-                    valueFormatter={(value) => `€${value.toFixed(2)}`}
+                    valueFormatter={value => `€${value.toFixed(2)}`}
                   />
                 )}
               </CardContent>
             </Card>
-            
+
             <Card>
               <CardHeader>
                 <CardTitle>{t('invoicesByType')}</CardTitle>
@@ -512,22 +500,26 @@ export default function AdminInvoicesPage() {
                   <Skeleton className="h-[300px] w-full" />
                 ) : (
                   <BarChart
-                    data={invoiceStats?.stats.byType ? Object.entries(invoiceStats.stats.byType).map(([type, data]) => ({
-                      type,
-                      amount: data.amount,
-                      count: data.count
-                    })) : []}
+                    data={
+                      invoiceStats?.stats.byType
+                        ? Object.entries(invoiceStats.stats.byType).map(([type, data]) => ({
+                            type,
+                            amount: data.amount,
+                            count: data.count,
+                          }))
+                        : []
+                    }
                     categories={['amount']}
                     index="type"
                     colors={['#8b5cf6']}
-                    valueFormatter={(value) => `€${value.toFixed(2)}`}
+                    valueFormatter={value => `€${value.toFixed(2)}`}
                   />
                 )}
               </CardContent>
             </Card>
           </div>
         </TabsContent>
-        
+
         <TabsContent value="invoices" className="space-y-6">
           <Card>
             <CardHeader className="pb-2">
@@ -538,7 +530,7 @@ export default function AdminInvoicesPage() {
                 </div>
               </div>
             </CardHeader>
-            
+
             <CardContent className="space-y-4">
               {/* Barre de recherche et filtres */}
               <div className="flex flex-col sm:flex-row gap-2">
@@ -549,10 +541,10 @@ export default function AdminInvoicesPage() {
                     placeholder={t('searchInvoices')}
                     className="pl-8"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={e => setSearchQuery(e.target.value)}
                   />
                 </div>
-                
+
                 <Collapsible
                   open={isFiltersOpen}
                   onOpenChange={setIsFiltersOpen}
@@ -562,13 +554,15 @@ export default function AdminInvoicesPage() {
                     <Button variant="outline" className="w-full sm:w-auto">
                       <Filter className="h-4 w-4 mr-2" />
                       {t('filters')}
-                      <Badge className="ml-2" variant="secondary">{
-                        (statusFilter ? 1 : 0) + (typeFilter ? 1 : 0)
-                      }</Badge>
-                      <ChevronDown className={`h-4 w-4 ml-2 transition-transform ${isFiltersOpen ? 'rotate-180' : ''}`} />
+                      <Badge className="ml-2" variant="secondary">
+                        {(statusFilter ? 1 : 0) + (typeFilter ? 1 : 0)}
+                      </Badge>
+                      <ChevronDown
+                        className={`h-4 w-4 ml-2 transition-transform ${isFiltersOpen ? 'rotate-180' : ''}`}
+                      />
                     </Button>
                   </CollapsibleTrigger>
-                  
+
                   <CollapsibleContent className="mt-2 space-y-2 p-2 border rounded-md">
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <div className="space-y-1">
@@ -587,7 +581,7 @@ export default function AdminInvoicesPage() {
                           </SelectContent>
                         </Select>
                       </div>
-                      
+
                       <div className="space-y-1">
                         <label className="text-sm font-medium">{t('status')}</label>
                         <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -605,9 +599,14 @@ export default function AdminInvoicesPage() {
                         </Select>
                       </div>
                     </div>
-                    
+
                     <div className="flex justify-end">
-                      <Button variant="ghost" size="sm" onClick={resetFilters} className="flex items-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={resetFilters}
+                        className="flex items-center"
+                      >
                         <XCircle className="h-4 w-4 mr-2" />
                         {t('resetFilters')}
                       </Button>
@@ -619,11 +618,13 @@ export default function AdminInvoicesPage() {
               {/* Tableau des factures */}
               {isLoadingInvoices ? (
                 <div className="space-y-2">
-                  {Array(5).fill(0).map((_, i) => (
-                    <Skeleton key={i} className="h-16 w-full" />
-                  ))}
+                  {Array(5)
+                    .fill(0)
+                    .map((_, i) => (
+                      <Skeleton key={i} className="h-16 w-full" />
+                    ))}
                 </div>
-              ) : (invoices?.invoices && invoices.invoices.length > 0) ? (
+              ) : invoices?.invoices && invoices.invoices.length > 0 ? (
                 <div className="rounded-md border overflow-hidden">
                   <Table>
                     <TableHeader>
@@ -639,19 +640,29 @@ export default function AdminInvoicesPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {invoices.invoices.map((invoice) => (
+                      {invoices.invoices.map(invoice => (
                         <TableRow key={invoice.id} className="cursor-pointer hover:bg-muted/50">
                           <TableCell>
                             <div className="font-medium">{invoice.number}</div>
-                            <div className="text-xs text-muted-foreground">{invoice.id.substring(0, 8)}...</div>
-                          </TableCell>
-                          <TableCell>{format(new Date(invoice.issuedDate), 'dd/MM/yyyy')}</TableCell>
-                          <TableCell>
-                            {invoice.dueDate ? format(new Date(invoice.dueDate), 'dd/MM/yyyy') : '-'}
+                            <div className="text-xs text-muted-foreground">
+                              {invoice.id.substring(0, 8)}...
+                            </div>
                           </TableCell>
                           <TableCell>
-                            <div className="font-medium">{invoice.user?.name || 'Client inconnu'}</div>
-                            <div className="text-xs text-muted-foreground">{invoice.user?.email}</div>
+                            {format(new Date(invoice.issuedDate), 'dd/MM/yyyy')}
+                          </TableCell>
+                          <TableCell>
+                            {invoice.dueDate
+                              ? format(new Date(invoice.dueDate), 'dd/MM/yyyy')
+                              : '-'}
+                          </TableCell>
+                          <TableCell>
+                            <div className="font-medium">
+                              {invoice.user?.name || 'Client inconnu'}
+                            </div>
+                            <div className="text-xs text-muted-foreground">
+                              {invoice.user?.email}
+                            </div>
                           </TableCell>
                           <TableCell>
                             <Badge variant="outline" className={getInvoiceTypeColor(invoice.type)}>
@@ -662,7 +673,10 @@ export default function AdminInvoicesPage() {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline" className={getInvoiceStatusColor(invoice.status)}>
+                            <Badge
+                              variant="outline"
+                              className={getInvoiceStatusColor(invoice.status)}
+                            >
                               <div className="flex items-center gap-1">
                                 {getInvoiceStatusIcon(invoice.status)}
                                 <span>{t(`status${invoice.status}`)}</span>
@@ -674,15 +688,29 @@ export default function AdminInvoicesPage() {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center justify-center gap-1">
-                              <Button variant="ghost" size="icon" onClick={() => router.push(`/admin/invoices/${invoice.id}`)}>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => router.push(`/admin/invoices/${invoice.id}`)}
+                              >
                                 <Eye className="h-4 w-4" />
                                 <span className="sr-only">{t('view')}</span>
                               </Button>
-                              <Button variant="ghost" size="icon" onClick={() => handleGeneratePdf(invoice.id)}>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => handleGeneratePdf(invoice.id)}
+                              >
                                 <Printer className="h-4 w-4" />
                                 <span className="sr-only">{t('print')}</span>
                               </Button>
-                              <Button variant="ghost" size="icon" onClick={() => handleSendInvoice(invoice.id, invoice.user?.email || '')}>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() =>
+                                  handleSendInvoice(invoice.id, invoice.user?.email || '')
+                                }
+                              >
                                 <Send className="h-4 w-4" />
                                 <span className="sr-only">{t('send')}</span>
                               </Button>
@@ -709,7 +737,7 @@ export default function AdminInvoicesPage() {
                   )}
                 </div>
               )}
-              
+
               {/* Pagination */}
               {invoices?.invoices && invoices.invoices.length > 0 && totalPages > 1 && (
                 <Pagination className="mt-4">
@@ -717,22 +745,22 @@ export default function AdminInvoicesPage() {
                     <PaginationItem>
                       <PaginationPrevious
                         href="#"
-                        onClick={(e) => {
+                        onClick={e => {
                           e.preventDefault();
                           if (currentPage > 1) setCurrentPage(currentPage - 1);
                         }}
                         className={currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
                       />
                     </PaginationItem>
-                    
+
                     {Array.from({ length: Math.min(totalPages, 5) }).map((_, i) => {
                       let pageNumber = i + 1;
-                      
+
                       return (
                         <PaginationItem key={pageNumber}>
                           <PaginationLink
                             href="#"
-                            onClick={(e) => {
+                            onClick={e => {
                               e.preventDefault();
                               setCurrentPage(pageNumber);
                             }}
@@ -743,15 +771,17 @@ export default function AdminInvoicesPage() {
                         </PaginationItem>
                       );
                     })}
-                    
+
                     <PaginationItem>
                       <PaginationNext
                         href="#"
-                        onClick={(e) => {
+                        onClick={e => {
                           e.preventDefault();
                           if (currentPage < totalPages) setCurrentPage(currentPage + 1);
                         }}
-                        className={currentPage >= totalPages ? 'pointer-events-none opacity-50' : ''}
+                        className={
+                          currentPage >= totalPages ? 'pointer-events-none opacity-50' : ''
+                        }
                       />
                     </PaginationItem>
                   </PaginationContent>
@@ -761,10 +791,7 @@ export default function AdminInvoicesPage() {
 
             <CardFooter className="flex justify-between border-t pt-4">
               <div className="text-sm text-muted-foreground">
-                {invoices?.total 
-                  ? t('totalResults', { count: invoices.total })
-                  : t('noResults')
-                }
+                {invoices?.total ? t('totalResults', { count: invoices.total }) : t('noResults')}
               </div>
               <Button variant="outline" size="sm" onClick={handleDownloadReport}>
                 <Download className="h-4 w-4 mr-2" />
@@ -774,7 +801,7 @@ export default function AdminInvoicesPage() {
           </Card>
         </TabsContent>
       </Tabs>
-      
+
       {/* Modal de création de facture */}
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
         <DialogContent>
@@ -782,13 +809,10 @@ export default function AdminInvoicesPage() {
             <DialogTitle>{t('createNewInvoice')}</DialogTitle>
             <DialogDescription>{t('selectClientType')}</DialogDescription>
           </DialogHeader>
-          
+
           <div className="py-4">
             <div className="space-y-4">
-              <Select
-                value={selectedUserType}
-                onValueChange={setSelectedUserType}
-              >
+              <Select value={selectedUserType} onValueChange={setSelectedUserType}>
                 <SelectTrigger>
                   <SelectValue placeholder={t('selectClientType')} />
                 </SelectTrigger>
@@ -799,20 +823,16 @@ export default function AdminInvoicesPage() {
                   <SelectItem value="PROVIDER">{t('providerUser')}</SelectItem>
                 </SelectContent>
               </Select>
-              
-              <p className="text-sm text-muted-foreground">
-                {t('invoiceTypeDescription')}
-              </p>
+
+              <p className="text-sm text-muted-foreground">{t('invoiceTypeDescription')}</p>
             </div>
           </div>
-          
+
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCreateModalOpen(false)}>
               {t('cancel')}
             </Button>
-            <Button onClick={handleRedirectToCreateInvoice}>
-              {t('continue')}
-            </Button>
+            <Button onClick={handleRedirectToCreateInvoice}>{t('continue')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

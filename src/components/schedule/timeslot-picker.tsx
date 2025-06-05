@@ -1,294 +1,153 @@
 'use client';
 
+import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { useState, useMemo } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Clock, ChevronDown, Check } from 'lucide-react';
+import { Clock, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface TimeslotPickerProps {
   value?: string;
   onChange: (value: string) => void;
   placeholder?: string;
-  mode?: 'start' | 'end' | 'duration';
+  mode?: 'start' | 'end';
   minTime?: string;
   maxTime?: string;
-  step?: number; // en minutes
-  showQuickSelect?: boolean;
+  interval?: number; // Minutes entre chaque créneau
   disabled?: boolean;
   className?: string;
 }
 
 /**
- * Sélecteur de créneaux horaires avancé
- * Supporte les modes rapides et la saisie manuelle
+ * Composant pour sélectionner un créneau horaire
  */
 export function TimeslotPicker({
   value,
   onChange,
-  placeholder = 'Sélectionnez une heure',
+  placeholder = 'Sélectionner une heure',
   mode = 'start',
   minTime,
   maxTime,
-  step = 15,
-  showQuickSelect = true,
+  interval = 30,
   disabled = false,
   className,
 }: TimeslotPickerProps) {
-  const t = useTranslations('services.timeslot');
+  const t = useTranslations('timeslot');
   const [isOpen, setIsOpen] = useState(false);
-  const [customTime, setCustomTime] = useState('');
 
-  // Générer les créneaux horaires
-  const timeSlots = useMemo(() => {
+  // Générer les créneaux horaires disponibles
+  const generateTimeSlots = () => {
     const slots: string[] = [];
-    const startHour = minTime ? parseInt(minTime.split(':')[0]) : 6;
-    const startMinute = minTime ? parseInt(minTime.split(':')[1]) : 0;
-    const endHour = maxTime ? parseInt(maxTime.split(':')[0]) : 22;
-    const endMinute = maxTime ? parseInt(maxTime.split(':')[1]) : 0;
-
-    const startTotalMinutes = startHour * 60 + startMinute;
-    const endTotalMinutes = endHour * 60 + endMinute;
-
-    for (let minutes = startTotalMinutes; minutes <= endTotalMinutes; minutes += step) {
-      const hours = Math.floor(minutes / 60);
-      const mins = minutes % 60;
-      const timeString = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}`;
-      slots.push(timeString);
+    const startHour = 8; // 8h00
+    const endHour = 20; // 20h00
+    
+    for (let hour = startHour; hour < endHour; hour++) {
+      for (let minute = 0; minute < 60; minute += interval) {
+        const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        
+        // Filtrer selon minTime et maxTime si définis
+        if (minTime && timeString <= minTime) continue;
+        if (maxTime && timeString >= maxTime) continue;
+        
+        slots.push(timeString);
+      }
     }
-
+    
     return slots;
-  }, [minTime, maxTime, step]);
-
-  // Créneaux rapides prédéfinis
-  const quickSlots = useMemo(() => {
-    const common = {
-      start: ['08:00', '09:00', '10:00', '14:00', '15:00', '16:00'],
-      end: ['12:00', '13:00', '17:00', '18:00', '19:00', '20:00'],
-      duration: ['08:00', '09:00', '12:00', '17:00', '18:00'],
-    };
-
-    return common[mode] || common.start;
-  }, [mode]);
-
-  // Filtrer les créneaux rapides selon les contraintes
-  const filteredQuickSlots = useMemo(() => {
-    return quickSlots.filter(slot => {
-      if (minTime && slot < minTime) return false;
-      if (maxTime && slot > maxTime) return false;
-      return true;
-    });
-  }, [quickSlots, minTime, maxTime]);
-
-  // Valider une heure personnalisée
-  const validateCustomTime = (time: string): boolean => {
-    const timeRegex = /^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/;
-    if (!timeRegex.test(time)) return false;
-
-    if (minTime && time < minTime) return false;
-    if (maxTime && time > maxTime) return false;
-
-    return true;
   };
 
-  // Gestionnaire de sélection
-  const handleSelect = (selectedTime: string) => {
-    onChange(selectedTime);
+  const timeSlots = generateTimeSlots();
+
+  const handleTimeSelect = (time: string) => {
+    onChange(time);
     setIsOpen(false);
   };
 
-  // Gestionnaire de saisie personnalisée
-  const handleCustomTimeSubmit = () => {
-    if (validateCustomTime(customTime)) {
-      handleSelect(customTime);
-      setCustomTime('');
-    }
-  };
-
-  // Gestionnaire de changement de l'input personnalisé
-  const handleCustomTimeChange = (time: string) => {
-    setCustomTime(time);
-    if (validateCustomTime(time)) {
-      onChange(time);
-    }
-  };
-
-  // Obtenir le label pour le mode
-  const getModeLabel = () => {
-    switch (mode) {
-      case 'start':
-        return t('start');
-      case 'end':
-        return t('end');
-      case 'duration':
-        return t('duration');
-      default:
-        return t('time');
-    }
-  };
-
-  // Obtenir l'icône pour le mode
-  const getModeColor = () => {
-    switch (mode) {
-      case 'start':
-        return 'text-green-600';
-      case 'end':
-        return 'text-red-600';
-      case 'duration':
-        return 'text-blue-600';
-      default:
-        return 'text-gray-600';
-    }
+  const formatDisplayTime = (timeString: string) => {
+    if (!timeString) return placeholder;
+    const [hour, minute] = timeString.split(':');
+    return `${hour}:${minute}`;
   };
 
   return (
-    <div className={cn('space-y-2', className)}>
-      {/* Sélecteur principal */}
-      <Popover open={isOpen} onOpenChange={setIsOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            className={cn(
-              'w-full justify-between',
-              !value && 'text-muted-foreground'
-            )}
-            disabled={disabled}
-          >
-            <div className="flex items-center gap-2">
-              <Clock className={cn('h-4 w-4', getModeColor())} />
-              {value ? (
-                <span>{value}</span>
-              ) : (
-                <span>{placeholder}</span>
-              )}
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          variant="outline"
+          role="combobox"
+          aria-expanded={isOpen}
+          className={cn(
+            'w-full justify-between text-left font-normal',
+            !value && 'text-muted-foreground',
+            className
+          )}
+          disabled={disabled}
+        >
+          <div className="flex items-center">
+            <Clock className="mr-2 h-4 w-4" />
+            {formatDisplayTime(value || '')}
+          </div>
+          <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      
+      <PopoverContent className="w-[200px] p-0" align="start">
+        <div className="max-h-[300px] overflow-y-auto">
+          <div className="p-2">
+            <div className="text-sm font-medium text-muted-foreground mb-2">
+              {mode === 'start' ? t('start') : t('end')}
             </div>
-            <ChevronDown className="h-4 w-4 opacity-50" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-80 p-0" align="start">
-          <div className="p-4 space-y-4">
-            {/* En-tête */}
-            <div className="flex items-center gap-2">
-              <Clock className={cn('h-4 w-4', getModeColor())} />
-              <span className="font-medium">{getModeLabel()}</span>
-            </div>
-
-            {/* Saisie manuelle */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">{t('customTime')}</label>
-              <div className="flex gap-2">
-                <Input
-                  type="time"
-                  value={customTime}
-                  onChange={(e) => handleCustomTimeChange(e.target.value)}
-                  placeholder="HH:MM"
-                  className="flex-1"
-                />
+            
+            <div className="grid gap-1">
+              {timeSlots.map((time) => (
                 <Button
-                  size="sm"
-                  onClick={handleCustomTimeSubmit}
-                  disabled={!validateCustomTime(customTime)}
+                  key={time}
+                  variant={value === time ? 'default' : 'ghost'}
+                  className="justify-start text-sm h-8"
+                  onClick={() => handleTimeSelect(time)}
                 >
-                  <Check className="h-4 w-4" />
+                  {formatDisplayTime(time)}
                 </Button>
-              </div>
+              ))}
             </div>
-
-            {/* Créneaux rapides */}
-            {showQuickSelect && filteredQuickSlots.length > 0 && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium">{t('quickSelect')}</label>
-                <div className="grid grid-cols-3 gap-2">
-                  {filteredQuickSlots.map((slot) => (
-                    <Button
-                      key={slot}
-                      variant={value === slot ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => handleSelect(slot)}
-                      className="text-xs"
-                    >
-                      {slot}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Liste complète des créneaux */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">{t('allSlots')}</label>
-              <ScrollArea className="h-32 border rounded-md">
-                <div className="p-2 space-y-1">
-                  {timeSlots.map((slot) => (
-                    <Button
-                      key={slot}
-                      variant={value === slot ? 'default' : 'ghost'}
-                      size="sm"
-                      onClick={() => handleSelect(slot)}
-                      className="w-full justify-start text-sm h-8"
-                    >
-                      <Clock className="h-3 w-3 mr-2" />
-                      {slot}
-                      {value === slot && <Check className="h-3 w-3 ml-auto" />}
-                    </Button>
-                  ))}
-                </div>
-              </ScrollArea>
-            </div>
-
-            {/* Contraintes affichées */}
-            {(minTime || maxTime) && (
-              <div className="text-xs text-muted-foreground space-y-1">
-                {minTime && (
-                  <div className="flex items-center gap-1">
-                    <Badge variant="outline" className="px-1 py-0 text-xs">
-                      Min: {minTime}
-                    </Badge>
-                  </div>
-                )}
-                {maxTime && (
-                  <div className="flex items-center gap-1">
-                    <Badge variant="outline" className="px-1 py-0 text-xs">
-                      Max: {maxTime}
-                    </Badge>
-                  </div>
-                )}
+            
+            {timeSlots.length === 0 && (
+              <div className="p-4 text-center text-sm text-muted-foreground">
+                Aucun créneau disponible
               </div>
             )}
           </div>
-        </PopoverContent>
-      </Popover>
-
-      {/* Affichage des contraintes en mode compact */}
-      {(minTime || maxTime) && (
-        <div className="flex gap-1 text-xs">
-          {minTime && (
-            <Badge variant="secondary" className="px-1 py-0">
-              ≥ {minTime}
-            </Badge>
-          )}
-          {maxTime && (
-            <Badge variant="secondary" className="px-1 py-0">
-              ≤ {maxTime}
-            </Badge>
-          )}
         </div>
-      )}
-    </div>
+      </PopoverContent>
+    </Popover>
   );
 }
+
+// Composant alternatif avec input direct
+export function TimeslotInput({
+  value,
+  onChange,
+  placeholder = 'HH:MM',
+  disabled = false,
+  className,
+}: Omit<TimeslotPickerProps, 'mode' | 'minTime' | 'maxTime' | 'interval'>) {
+  return (
+    <div className="relative">
+      <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+      <Input
+        type="time"
+        value={value || ''}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        disabled={disabled}
+        className={cn('pl-9', className)}
+      />
+    </div>
+  );
+} 

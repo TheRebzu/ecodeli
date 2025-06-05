@@ -23,7 +23,7 @@ export function DocumentCard({
   if (!document) return null;
 
   const status = document.verificationStatus || document.status;
-  
+
   // Compact view for more condensed UI
   if (compact) {
     return (
@@ -35,9 +35,7 @@ export function DocumentCard({
           </div>
         </div>
         <div className="flex items-center gap-1">
-          {showStatus && status && (
-            <DocumentStatusBadge status={status} variant="compact" />
-          )}
+          {showStatus && status && <DocumentStatusBadge status={status} variant="compact" />}
           {showActions && (
             <>
               {onView && (
@@ -85,15 +83,13 @@ export function DocumentCard({
                 <span className="inline-block h-1 w-1 bg-muted-foreground rounded-full"></span>
               </>
             )}
-            <span>
-              Ajouté le {formatDate(document.uploadedAt || document.createdAt)}
-            </span>
+            <span>Ajouté le {formatDate(document.uploadedAt || document.createdAt)}</span>
           </div>
         </div>
       </div>
       <div className="flex items-center gap-2">
         {showStatus && status && <DocumentStatusBadge status={status} />}
-        
+
         {showActions && (
           <>
             {onView && (
@@ -106,7 +102,7 @@ export function DocumentCard({
                 <EyeIcon className="h-4 w-4" />
               </Button>
             )}
-            
+
             {onDownload && (
               <Button
                 variant="ghost"
@@ -117,7 +113,7 @@ export function DocumentCard({
                 <DownloadIcon className="h-4 w-4" />
               </Button>
             )}
-            
+
             {onDelete && (
               <Button
                 variant="ghost"

@@ -47,7 +47,7 @@ export function useFileUpload() {
         const xhr = new XMLHttpRequest();
 
         // Gérer la progression
-        xhr.upload.addEventListener('progress', (event) => {
+        xhr.upload.addEventListener('progress', event => {
           if (event.lengthComputable) {
             const percentComplete = (event.loaded / event.total) * 100;
             setUploadProgress(Math.round(percentComplete));
@@ -62,7 +62,7 @@ export function useFileUpload() {
               if (response.success && response.fileUrl) {
                 resolve(response.fileUrl);
               } else {
-                reject(new Error(response.message || 'Erreur lors de l\'upload'));
+                reject(new Error(response.message || "Erreur lors de l'upload"));
               }
             } else {
               reject(new Error(`Erreur HTTP: ${xhr.status}`));
@@ -70,7 +70,7 @@ export function useFileUpload() {
           };
 
           xhr.onerror = () => {
-            reject(new Error('Erreur réseau lors de l\'upload'));
+            reject(new Error("Erreur réseau lors de l'upload"));
           };
         });
 
@@ -89,12 +89,11 @@ export function useFileUpload() {
         options?.onSuccess?.(fileUrl);
         return fileUrl;
       } catch (error) {
-        console.error('Erreur lors de l\'upload:', error);
-        
-        const errorMessage = error instanceof Error 
-          ? error.message 
-          : 'Erreur lors de l\'upload du fichier';
-        
+        console.error("Erreur lors de l'upload:", error);
+
+        const errorMessage =
+          error instanceof Error ? error.message : "Erreur lors de l'upload du fichier";
+
         toast({
           title: 'Erreur',
           description: errorMessage,
@@ -139,7 +138,7 @@ export function useFileDownload() {
         });
 
         if (!data) {
-          throw new Error('Impossible d\'obtenir l\'URL de téléchargement');
+          throw new Error("Impossible d'obtenir l'URL de téléchargement");
         }
 
         // Créer un lien temporaire pour télécharger
@@ -158,13 +157,13 @@ export function useFileDownload() {
         });
       } catch (error) {
         console.error('Erreur lors du téléchargement:', error);
-        
+
         toast({
           title: 'Erreur',
           description: 'Impossible de télécharger le fichier',
           variant: 'destructive',
         });
-        
+
         throw error;
       } finally {
         setIsDownloading(false);
@@ -199,13 +198,13 @@ export function useFileDelete() {
         return result;
       } catch (error) {
         console.error('Erreur lors de la suppression:', error);
-        
+
         toast({
           title: 'Erreur',
           description: 'Impossible de supprimer le fichier',
           variant: 'destructive',
         });
-        
+
         throw error;
       }
     },
@@ -216,4 +215,4 @@ export function useFileDelete() {
     deleteFile,
     isDeleting: deleteFileMutation.isPending,
   };
-} 
+}

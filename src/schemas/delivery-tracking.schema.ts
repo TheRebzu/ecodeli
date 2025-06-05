@@ -48,7 +48,7 @@ export const updateLocationSchema = z.object({
 export const deliveryStatusEnumSchema = z.enum([
   // Statuts Prisma
   'PENDING',
-  'ASSIGNED',
+  'ACCEPTED',
   'PICKED_UP',
   'IN_TRANSIT',
   'DELIVERED',
@@ -92,10 +92,12 @@ export const updateDeliveryStatusSchema = z.object({
   previousStatus: deliveryStatusEnumSchema.optional(),
   notes: z.string().optional(),
   reason: z.string().optional(),
-  location: z.object({
-    latitude: z.number().min(-90).max(90),
-    longitude: z.number().min(-180).max(180),
-  }).optional(),
+  location: z
+    .object({
+      latitude: z.number().min(-90).max(90),
+      longitude: z.number().min(-180).max(180),
+    })
+    .optional(),
   notifyCustomer: z.boolean().default(true),
 });
 
@@ -184,10 +186,12 @@ export const deliveryIssueCreateSchema = z.object({
   type: z.enum(['DELAY', 'DAMAGE', 'LOSS', 'ACCIDENT', 'WEATHER', 'VEHICLE_ISSUE', 'OTHER']),
   description: z.string().min(10).max(500),
   severity: z.enum(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL']).default('MEDIUM'),
-  location: z.object({
-    latitude: z.number().min(-90).max(90),
-    longitude: z.number().min(-180).max(180),
-  }).optional(),
+  location: z
+    .object({
+      latitude: z.number().min(-90).max(90),
+      longitude: z.number().min(-180).max(180),
+    })
+    .optional(),
   photoUrls: z.array(z.string().url()).optional(),
   expectedResolutionTime: z.coerce.date().optional(),
 });
@@ -234,7 +238,7 @@ export const deliveryPositionFilterSchema = trackingQuerySchema.pick({
   startDate: true,
   endDate: true,
   limit: true,
-  page: true
+  page: true,
 });
 
 // Alias pour la cohérence des noms

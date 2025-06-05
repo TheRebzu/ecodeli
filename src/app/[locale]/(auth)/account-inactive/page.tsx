@@ -5,7 +5,14 @@ import { useTranslations } from 'next-intl';
 import { signOut } from 'next-auth/react';
 import { AlertOctagon, Home, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Link } from '@/navigation';
 
 export default function AccountInactivePage() {
@@ -19,23 +26,21 @@ export default function AccountInactivePage() {
             <AlertOctagon className="text-yellow-600 dark:text-yellow-300 w-6 h-6" />
           </div>
           <CardTitle className="text-2xl font-bold">Compte inactif</CardTitle>
-          <CardDescription>
-            Votre compte est actuellement inactif.
-          </CardDescription>
+          <CardDescription>Votre compte est actuellement inactif.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <p>
-            Pour réactiver votre compte, veuillez contacter notre équipe de support ou vérifier vos emails 
-            pour plus d'informations sur les prochaines étapes à suivre.
+            Pour réactiver votre compte, veuillez contacter notre équipe de support ou vérifier vos
+            emails pour plus d'informations sur les prochaines étapes à suivre.
           </p>
           <p className="text-sm text-muted-foreground">
             Référence: {new Date().toISOString().split('T')[0]}
           </p>
         </CardContent>
         <CardFooter className="flex flex-col space-y-2">
-          <Button 
-            variant="destructive" 
-            className="w-full" 
+          <Button
+            variant="destructive"
+            className="w-full"
             onClick={() => signOut({ callbackUrl: '/' })}
           >
             <LogOut className="mr-2 h-4 w-4" />

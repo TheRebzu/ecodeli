@@ -15,7 +15,7 @@ let socket: Socket | null = null;
 export const initializeSocket = (token: string): Socket => {
   // Si on a déjà un socket connecté, le retourner
   if (socket?.connected) return socket;
-  
+
   // Si on a un socket non connecté, le nettoyer d'abord
   if (socket) {
     socket.disconnect();
@@ -35,7 +35,9 @@ export const initializeSocket = (token: string): Socket => {
   };
 
   // Déterminer l'URL du serveur (par défaut, même origine)
-  const socketUrl = process.env.NEXT_PUBLIC_SOCKET_URL || (typeof window !== 'undefined' ? window.location.origin : '');
+  const socketUrl =
+    process.env.NEXT_PUBLIC_SOCKET_URL ||
+    (typeof window !== 'undefined' ? window.location.origin : '');
 
   try {
     // Créer une nouvelle instance socket
@@ -46,15 +48,15 @@ export const initializeSocket = (token: string): Socket => {
       console.log('Socket connecté');
     });
 
-    socket.on('connect_error', (error) => {
+    socket.on('connect_error', error => {
       console.error('Erreur de connexion socket:', error.message);
     });
 
-    socket.on('disconnect', (reason) => {
+    socket.on('disconnect', reason => {
       console.log(`Socket déconnecté: ${reason}`);
     });
 
-    socket.on('reconnect_attempt', (attemptNumber) => {
+    socket.on('reconnect_attempt', attemptNumber => {
       console.log(`Tentative de reconnexion #${attemptNumber}`);
     });
 
@@ -62,7 +64,7 @@ export const initializeSocket = (token: string): Socket => {
       console.error('Échec de reconnexion après plusieurs tentatives');
     });
 
-    socket.on('error', (error) => {
+    socket.on('error', error => {
       console.error('Erreur socket:', error);
     });
 
@@ -92,4 +94,4 @@ export const closeSocket = (): void => {
       console.error('Erreur lors de la fermeture du socket:', error);
     }
   }
-}; 
+};

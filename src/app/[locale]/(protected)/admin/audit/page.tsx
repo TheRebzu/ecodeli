@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { api } from '@/trpc/react';
 import { useTranslations } from 'next-intl';
 import { AuditLogTable } from '@/components/admin/audit/audit-log-table';
-import { DashboardHeader } from '@/components/layout/dashboard-header';
+import { DashboardHeader } from '@/components/layout/protected/page-header';
 import { DashboardShell } from '@/components/layout/dashboard-shell';
 import { Skeleton } from '@/components/ui/skeleton';
 import { format } from 'date-fns';

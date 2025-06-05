@@ -53,7 +53,7 @@ export default async function MerchantRegisterPage({ params }: { params: { local
           <h1 className="text-2xl font-semibold tracking-tight">{t('merchant.title')}</h1>
           <p className="text-sm text-muted-foreground">{t('merchant.description')}</p>
         </div>
-        
+
         <MerchantRegisterForm locale={locale} />
       </div>
     </div>

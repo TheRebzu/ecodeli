@@ -314,22 +314,27 @@ export const requestWithdrawalSchema = z.object({
 });
 
 // Schéma pour le traitement d'une demande de virement
-export const processWithdrawalSchema = z.object({
-  withdrawalId: z.string().cuid('ID retrait invalide'),
-  status: z.nativeEnum(WithdrawalStatus),
-  processorComments: z.string().optional(),
-  reference: z.string().optional(),
-  rejectionReason: z.string().optional(),
-}).refine((data) => {
-  // La raison de rejet est obligatoire si le statut est REJECTED
-  if (data.status === WithdrawalStatus.REJECTED && !data.rejectionReason) {
-    return false;
-  }
-  return true;
-}, {
-  message: 'La raison de rejet est requise pour un retrait rejeté',
-  path: ['rejectionReason']
-});
+export const processWithdrawalSchema = z
+  .object({
+    withdrawalId: z.string().cuid('ID retrait invalide'),
+    status: z.nativeEnum(WithdrawalStatus),
+    processorComments: z.string().optional(),
+    reference: z.string().optional(),
+    rejectionReason: z.string().optional(),
+  })
+  .refine(
+    data => {
+      // La raison de rejet est obligatoire si le statut est REJECTED
+      if (data.status === WithdrawalStatus.REJECTED && !data.rejectionReason) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: 'La raison de rejet est requise pour un retrait rejeté',
+      path: ['rejectionReason'],
+    }
+  );
 
 // Schéma pour la mise à jour des paramètres de virement automatique
 export const updateAutomaticWithdrawalSettingsSchema = z.object({
@@ -381,12 +386,12 @@ export const walletTransactionSchema = z.object({
   description: z.string().optional(),
   reference: z.string().optional(),
   metadata: z.record(z.any()).optional(),
-  
+
   // Relations optionnelles
   deliveryId: z.string().cuid('ID livraison invalide').optional(),
   paymentId: z.string().cuid('ID paiement invalide').optional(),
   serviceId: z.string().cuid('ID service invalide').optional(),
-  
+
   // Champs spécifiques au mode démonstration
   isDemo: z.boolean().default(true).optional(),
   demoSuccessScenario: z.boolean().default(true).optional(),

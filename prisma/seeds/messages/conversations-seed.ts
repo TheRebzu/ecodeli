@@ -22,41 +22,47 @@ export async function seedConversations(
   options: SeedOptions = {}
 ): Promise<SeedResult> {
   logger.startSeed('CONVERSATIONS');
-  
+
   const result: SeedResult = {
     entity: 'conversations',
     created: 0,
     skipped: 0,
-    errors: 0
+    errors: 0,
   };
 
   // Récupérer les utilisateurs du scénario
   const jeanDupont = await prisma.user.findUnique({
-    where: { email: 'jean.dupont@orange.fr' }
+    where: { email: 'jean.dupont@orange.fr' },
   });
 
   const marieLaurent = await prisma.user.findUnique({
-    where: { email: 'marie.laurent@orange.fr' }
+    where: { email: 'marie.laurent@orange.fr' },
   });
 
   const techShop = await prisma.user.findUnique({
-    where: { email: 'contact@techshop-sarl.fr' }
+    where: { email: 'contact@techshop-sarl.fr' },
   });
 
   const pierreMartin = await prisma.user.findUnique({
-    where: { email: 'pierre.martin@transportservices.fr' }
+    where: { email: 'pierre.martin@transportservices.fr' },
   });
 
   if (!jeanDupont || !marieLaurent) {
-    logger.warning('CONVERSATIONS', 'Utilisateurs principaux non trouvés - exécuter d\'abord les seeds utilisateurs');
+    logger.warning(
+      'CONVERSATIONS',
+      "Utilisateurs principaux non trouvés - exécuter d'abord les seeds utilisateurs"
+    );
     return result;
   }
 
   // Vérifier si des conversations existent déjà
   const existingConversations = await prisma.conversation.count();
-  
+
   if (existingConversations > 0 && !options.force) {
-    logger.warning('CONVERSATIONS', `${existingConversations} conversations déjà présentes - utiliser force:true pour recréer`);
+    logger.warning(
+      'CONVERSATIONS',
+      `${existingConversations} conversations déjà présentes - utiliser force:true pour recréer`
+    );
     result.skipped = existingConversations;
     return result;
   }
@@ -77,8 +83,8 @@ export async function seedConversations(
         participantIds: [jeanDupont.id, marieLaurent.id],
         isArchived: false,
         lastMessageAt: new Date(),
-        status: 'ACTIVE'
-      }
+        status: 'ACTIVE',
+      },
     });
 
     result.created++;
@@ -94,8 +100,8 @@ export async function seedConversations(
           participantIds: [jeanDupont.id, techShop.id],
           isArchived: true, // Conversation terminée
           lastMessageAt: getRandomDate(5, 2), // Il y a 2-5 jours
-          status: 'ARCHIVED'
-        }
+          status: 'ARCHIVED',
+        },
       });
 
       result.created++;
@@ -108,10 +114,10 @@ export async function seedConversations(
 
       // Créer un client fictif ou utiliser un existant
       const clientForPierre = await prisma.user.findFirst({
-        where: { 
+        where: {
           role: 'CLIENT',
-          email: { not: jeanDupont.email }
-        }
+          email: { not: jeanDupont.email },
+        },
       });
 
       if (clientForPierre) {
@@ -121,8 +127,8 @@ export async function seedConversations(
             participantIds: [clientForPierre.id, pierreMartin.id],
             isArchived: false,
             lastMessageAt: getRandomDate(2, 1), // Récente
-            status: 'ACTIVE'
-          }
+            status: 'ACTIVE',
+          },
         });
 
         result.created++;
@@ -132,7 +138,7 @@ export async function seedConversations(
 
     // 4. CONVERSATION GROUPE : Support client (Jean + Admin)
     const adminUser = await prisma.user.findFirst({
-      where: { role: 'ADMIN' }
+      where: { role: 'ADMIN' },
     });
 
     if (adminUser) {
@@ -144,14 +150,13 @@ export async function seedConversations(
           participantIds: [jeanDupont.id, adminUser.id],
           isArchived: true, // Demande traitée
           lastMessageAt: getRandomDate(7, 3), // Il y a quelques jours
-          status: 'ARCHIVED'
-        }
+          status: 'ARCHIVED',
+        },
       });
 
       result.created++;
       logger.success('CONVERSATIONS', '✅ Conversation support admin créée');
     }
-
   } catch (error: any) {
     logger.error('CONVERSATIONS', `❌ Erreur création conversations: ${error.message}`);
     result.errors++;
@@ -159,11 +164,19 @@ export async function seedConversations(
 
   // Validation des conversations créées
   const finalConversations = await prisma.conversation.findMany();
-  
+
   if (finalConversations.length >= result.created - result.errors) {
-    logger.validation('CONVERSATIONS', 'PASSED', `${finalConversations.length} conversations créées avec succès`);
+    logger.validation(
+      'CONVERSATIONS',
+      'PASSED',
+      `${finalConversations.length} conversations créées avec succès`
+    );
   } else {
-    logger.validation('CONVERSATIONS', 'FAILED', `Attendu: ${result.created}, Créé: ${finalConversations.length}`);
+    logger.validation(
+      'CONVERSATIONS',
+      'FAILED',
+      `Attendu: ${result.created}, Créé: ${finalConversations.length}`
+    );
   }
 
   // Statistiques par statut
@@ -182,8 +195,10 @@ export async function seedConversations(
   logger.info('CONVERSATIONS', `📁 Conversations archivées: ${archivedConversations.length}`);
 
   // Nombre total de participants
-  const totalParticipants = finalConversations.reduce((sum, conv) => 
-    sum + conv.participantIds.length, 0);
+  const totalParticipants = finalConversations.reduce(
+    (sum, conv) => sum + conv.participantIds.length,
+    0
+  );
   const avgParticipants = (totalParticipants / finalConversations.length).toFixed(1);
 
   logger.info('CONVERSATIONS', `👥 Participants moyen par conversation: ${avgParticipants}`);
@@ -200,7 +215,7 @@ export async function validateConversations(
   logger: SeedLogger
 ): Promise<boolean> {
   logger.info('VALIDATION', '🔍 Validation des conversations...');
-  
+
   let isValid = true;
 
   // Vérifier les conversations
@@ -215,17 +230,18 @@ export async function validateConversations(
 
   // Vérifier que chaque conversation a au moins 2 participants
   const invalidConversations = conversations.filter(c => c.participantIds.length < 2);
-  
+
   if (invalidConversations.length === 0) {
     logger.success('VALIDATION', '✅ Toutes les conversations ont au moins 2 participants');
   } else {
-    logger.warning('VALIDATION', `⚠️ ${invalidConversations.length} conversations avec moins de 2 participants`);
+    logger.warning(
+      'VALIDATION',
+      `⚠️ ${invalidConversations.length} conversations avec moins de 2 participants`
+    );
   }
 
   // Vérifier que la conversation principale Jean-Marie existe
-  const jeanMarieConv = conversations.find(c => 
-    c.title?.includes('ordinateur portable')
-  );
+  const jeanMarieConv = conversations.find(c => c.title?.includes('ordinateur portable'));
 
   if (jeanMarieConv) {
     logger.success('VALIDATION', '✅ Conversation principale Jean-Marie trouvée');
@@ -235,4 +251,4 @@ export async function validateConversations(
 
   logger.success('VALIDATION', '✅ Validation des conversations terminée');
   return isValid;
-} 
+}

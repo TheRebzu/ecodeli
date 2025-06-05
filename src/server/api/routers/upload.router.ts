@@ -10,147 +10,133 @@ const uploadFileSchema = z.object({
   file: z.string().min(1, 'Fichier requis'), // Base64 string
   type: uploadTypeSchema,
   description: z.string().optional(),
-  metadata: z.record(z.any()).optional()
+  metadata: z.record(z.any()).optional(),
 });
 
 const deleteFileSchema = z.object({
-  fileUrl: z.string().min(1, 'URL du fichier requise')
+  fileUrl: z.string().min(1, 'URL du fichier requise'),
 });
 
 const getFileInfoSchema = z.object({
-  filename: z.string().min(1, 'Nom de fichier requis')
+  filename: z.string().min(1, 'Nom de fichier requis'),
 });
 
 export const uploadRouter = router({
-
   /**
    * Upload un fichier (base64)
    */
-  uploadFile: protectedProcedure
-    .input(uploadFileSchema)
-    .mutation(async ({ ctx, input }) => {
-      if (!ctx.session?.user?.id) {
-        throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'Authentification requise'
-        });
+  uploadFile: protectedProcedure.input(uploadFileSchema).mutation(async ({ ctx, input }) => {
+    if (!ctx.session?.user?.id) {
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'Authentification requise',
+      });
+    }
+
+    try {
+      const result = await UploadService.uploadFile({
+        file: input.file,
+        type: input.type,
+        userId: ctx.session.user.id,
+        description: input.description,
+        metadata: input.metadata,
+      });
+
+      return {
+        success: true,
+        data: result,
+        message: 'Fichier uploadé avec succès',
+      };
+    } catch (error: any) {
+      console.error('Erreur upload tRPC:', error);
+
+      if (error instanceof TRPCError) {
+        throw error;
       }
 
-      try {
-        const result = await UploadService.uploadFile({
-          file: input.file,
-          type: input.type,
-          userId: ctx.session.user.id,
-          description: input.description,
-          metadata: input.metadata
-        });
-
-        return {
-          success: true,
-          data: result,
-          message: 'Fichier uploadé avec succès'
-        };
-
-      } catch (error: any) {
-        console.error('Erreur upload tRPC:', error);
-        
-        if (error instanceof TRPCError) {
-          throw error;
-        }
-        
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de l\'upload'
-        });
-      }
-    }),
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: error.message || "Erreur lors de l'upload",
+      });
+    }
+  }),
 
   /**
    * Supprime un fichier uploadé
    */
-  deleteFile: protectedProcedure
-    .input(deleteFileSchema)
-    .mutation(async ({ ctx, input }) => {
-      if (!ctx.session?.user?.id) {
-        throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'Authentification requise'
-        });
+  deleteFile: protectedProcedure.input(deleteFileSchema).mutation(async ({ ctx, input }) => {
+    if (!ctx.session?.user?.id) {
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'Authentification requise',
+      });
+    }
+
+    try {
+      const result = await UploadService.deleteFile(input.fileUrl, ctx.session.user.id);
+
+      return {
+        success: result.success,
+        message: 'Fichier supprimé avec succès',
+      };
+    } catch (error: any) {
+      console.error('Erreur suppression tRPC:', error);
+
+      if (error instanceof TRPCError) {
+        throw error;
       }
 
-      try {
-        const result = await UploadService.deleteFile(
-          input.fileUrl,
-          ctx.session.user.id
-        );
-
-        return {
-          success: result.success,
-          message: 'Fichier supprimé avec succès'
-        };
-
-      } catch (error: any) {
-        console.error('Erreur suppression tRPC:', error);
-        
-        if (error instanceof TRPCError) {
-          throw error;
-        }
-        
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la suppression'
-        });
-      }
-    }),
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la suppression',
+      });
+    }
+  }),
 
   /**
    * Récupère les informations d'un fichier
    */
-  getFileInfo: protectedProcedure
-    .input(getFileInfoSchema)
-    .query(async ({ ctx, input }) => {
-      if (!ctx.session?.user?.id) {
-        throw new TRPCError({
-          code: 'UNAUTHORIZED',
-          message: 'Authentification requise'
-        });
-      }
+  getFileInfo: protectedProcedure.input(getFileInfoSchema).query(async ({ ctx, input }) => {
+    if (!ctx.session?.user?.id) {
+      throw new TRPCError({
+        code: 'UNAUTHORIZED',
+        message: 'Authentification requise',
+      });
+    }
 
-      try {
-        const result = await UploadService.getFileInfo(
-          input.filename,
-          ctx.session.user.id
-        );
+    try {
+      const result = await UploadService.getFileInfo(input.filename, ctx.session.user.id);
 
-        return {
-          success: true,
-          data: result
-        };
+      return {
+        success: true,
+        data: result,
+      };
+    } catch (error: any) {
+      console.error('Erreur récupération fichier tRPC:', error);
 
-      } catch (error: any) {
-        console.error('Erreur récupération fichier tRPC:', error);
-        
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la récupération du fichier'
-        });
-      }
-    }),
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la récupération du fichier',
+      });
+    }
+  }),
 
   /**
    * Upload multiple pour les photos d'annonces
    */
   uploadAnnouncementPhotos: protectedProcedure
-    .input(z.object({
-      photos: z.array(z.string()).min(1, 'Au moins une photo requise').max(5, 'Maximum 5 photos'),
-      announcementId: z.string().optional(),
-      metadata: z.record(z.any()).optional()
-    }))
+    .input(
+      z.object({
+        photos: z.array(z.string()).min(1, 'Au moins une photo requise').max(5, 'Maximum 5 photos'),
+        announcementId: z.string().optional(),
+        metadata: z.record(z.any()).optional(),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       if (!ctx.session?.user?.id) {
         throw new TRPCError({
           code: 'UNAUTHORIZED',
-          message: 'Authentification requise'
+          message: 'Authentification requise',
         });
       }
 
@@ -164,8 +150,8 @@ export const uploadRouter = router({
             metadata: {
               ...input.metadata,
               announcementId: input.announcementId,
-              photoIndex: index
-            }
+              photoIndex: index,
+            },
           });
         });
 
@@ -175,21 +161,20 @@ export const uploadRouter = router({
           success: true,
           data: {
             photos: results,
-            count: results.length
+            count: results.length,
           },
-          message: `${results.length} photo(s) uploadée(s) avec succès`
+          message: `${results.length} photo(s) uploadée(s) avec succès`,
         };
-
       } catch (error: any) {
         console.error('Erreur upload photos tRPC:', error);
-        
+
         if (error instanceof TRPCError) {
           throw error;
         }
-        
+
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de l\'upload des photos'
+          message: "Erreur lors de l'upload des photos",
         });
       }
     }),
@@ -198,16 +183,18 @@ export const uploadRouter = router({
    * Récupère les uploads d'un utilisateur
    */
   getUserUploads: protectedProcedure
-    .input(z.object({
-      type: uploadTypeSchema.optional(),
-      page: z.number().min(1).default(1),
-      limit: z.number().min(1).max(50).default(10)
-    }))
+    .input(
+      z.object({
+        type: uploadTypeSchema.optional(),
+        page: z.number().min(1).default(1),
+        limit: z.number().min(1).max(50).default(10),
+      })
+    )
     .query(async ({ ctx, input }) => {
       if (!ctx.session?.user?.id) {
         throw new TRPCError({
           code: 'UNAUTHORIZED',
-          message: 'Authentification requise'
+          message: 'Authentification requise',
         });
       }
 
@@ -217,7 +204,7 @@ export const uploadRouter = router({
           const documents = await ctx.db.document.findMany({
             where: {
               userId: ctx.session.user.id,
-              ...(input.type && { type: { not: undefined } })
+              ...(input.type && { type: { not: undefined } }),
             },
             select: {
               id: true,
@@ -227,18 +214,18 @@ export const uploadRouter = router({
               mimeType: true,
               uploadedAt: true,
               verificationStatus: true,
-              notes: true
+              notes: true,
             },
             orderBy: { uploadedAt: 'desc' },
             skip: (input.page - 1) * input.limit,
-            take: input.limit
+            take: input.limit,
           });
 
           const total = await ctx.db.document.count({
             where: {
               userId: ctx.session.user.id,
-              ...(input.type && { type: { not: undefined } })
-            }
+              ...(input.type && { type: { not: undefined } }),
+            },
           });
 
           return {
@@ -249,9 +236,9 @@ export const uploadRouter = router({
                 page: input.page,
                 limit: input.limit,
                 total,
-                pages: Math.ceil(total / input.limit)
-              }
-            }
+                pages: Math.ceil(total / input.limit),
+              },
+            },
           };
         }
 
@@ -264,18 +251,17 @@ export const uploadRouter = router({
               page: input.page,
               limit: input.limit,
               total: 0,
-              pages: 0
-            }
-          }
+              pages: 0,
+            },
+          },
         };
-
       } catch (error: any) {
         console.error('Erreur récupération uploads tRPC:', error);
-        
+
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la récupération des uploads'
+          message: 'Erreur lors de la récupération des uploads',
         });
       }
-    })
-}); 
+    }),
+});

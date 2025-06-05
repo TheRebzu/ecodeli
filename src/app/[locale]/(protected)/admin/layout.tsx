@@ -1,8 +1,8 @@
 'use client';
 
 import React from 'react';
-import { ProtectedHeader } from '@/components/layout/protected-header';
-import { ProtectedFooter } from '@/components/layout/protected-footer';
+import { ProtectedHeader } from '@/components/layout/protected/header';
+import { ProtectedFooter } from '@/components/layout/protected/footer';
 import { AdminSidebar } from '@/components/layout/sidebars/admin-sidebar';
 
 interface AdminLayoutProps {
@@ -13,7 +13,7 @@ interface AdminLayoutProps {
 }
 
 export default function AdminLayout({ children, params }: AdminLayoutProps) {
-  const paramsValue = React.use(params as unknown as Promise<{locale: string}>);
+  const paramsValue = React.use(params as unknown as Promise<{ locale: string }>);
   const locale = paramsValue.locale;
 
   return (

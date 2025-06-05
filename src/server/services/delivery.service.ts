@@ -1,12 +1,18 @@
 import { db } from '../db';
 import { TRPCError } from '@trpc/server';
-import { DeliveryStatus, DocumentVerificationStatus, ApplicationStatus, MatchingStatus, RequiredDocumentType } from '@prisma/client';
-import type { 
-  DeliveryFilters, 
-  DeliveryStatusUpdate, 
+import {
+  DeliveryStatus,
+  DocumentVerificationStatus,
+  ApplicationStatus,
+  MatchingStatus,
+  RequiredDocumentType,
+} from '@prisma/client';
+import type {
+  DeliveryFilters,
+  DeliveryStatusUpdate,
   DeliveryCoordinatesInput,
   DeliveryConfirmation,
-  DeliveryRatingInput
+  DeliveryRatingInput,
 } from '@/types/delivery';
 import { NotificationService } from './notification.service';
 
@@ -16,14 +22,14 @@ export const DeliveryService = {
    */
   async getAll(filters: DeliveryFilters, userId: string, userRole: string) {
     const where: any = {};
-    
+
     // Filtrage par rôle utilisateur
     if (userRole === 'DELIVERER') {
       where.delivererId = userId;
     } else if (userRole === 'CLIENT') {
       where.clientId = userId;
     }
-    
+
     // Application des filtres
     if (filters.status) where.status = filters.status;
     if (filters.startDate || filters.endDate) {
@@ -34,7 +40,7 @@ export const DeliveryService = {
     if (filters.search) {
       where.OR = [
         { trackingCode: { contains: filters.search, mode: 'insensitive' } },
-        { announcement: { title: { contains: filters.search, mode: 'insensitive' } } }
+        { announcement: { title: { contains: filters.search, mode: 'insensitive' } } },
       ];
     }
 
@@ -46,24 +52,40 @@ export const DeliveryService = {
             title: true,
             pickupAddress: true,
             deliveryAddress: true,
-            pickupDate: true
-          }
+            pickupDate: true,
+          },
         },
         client: {
-          select: { id: true, profile: { select: { firstName: true, lastName: true, phone: true } } }
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phoneNumber: true,
+            client: {
+              select: { phone: true },
+            },
+          },
         },
         deliverer: {
-          select: { id: true, profile: { select: { firstName: true, lastName: true, phone: true } } }
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phoneNumber: true,
+            deliverer: {
+              select: { phone: true },
+            },
+          },
         },
         coordinates: {
           orderBy: { timestamp: 'desc' },
-          take: 1
-        }
+          take: 1,
+        },
       },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'desc' },
     });
   },
-  
+
   /**
    * Récupère une livraison par ID avec détails complets
    */
@@ -73,21 +95,21 @@ export const DeliveryService = {
       include: {
         announcement: true,
         client: {
-          include: { profile: true }
+          include: { client: true },
         },
         deliverer: {
-          include: { profile: true }
+          include: { deliverer: true },
         },
         logs: {
-          orderBy: { createdAt: 'desc' }
+          orderBy: { createdAt: 'desc' },
         },
         coordinates: {
           orderBy: { timestamp: 'desc' },
-          take: 20
+          take: 20,
         },
         proofs: true,
-        ratings: true
-      }
+        ratings: true,
+      },
     });
 
     if (!delivery) {
@@ -101,14 +123,14 @@ export const DeliveryService = {
 
     return delivery;
   },
-  
+
   /**
    * Assigne automatiquement une livraison au livreur le plus proche
    */
   async assignDelivery(announcementId: string) {
     const announcement = await db.announcement.findUnique({
       where: { id: announcementId },
-      include: { proposals: { include: { deliverer: { include: { profile: true } } } } }
+      include: { proposals: { include: { deliverer: { include: { profile: true } } } } },
     });
 
     if (!announcement) {
@@ -117,7 +139,7 @@ export const DeliveryService = {
 
     // Logique d'assignment intelligent (proximité, évaluations, disponibilité)
     const bestDeliverer = await this.findBestDeliverer(announcement);
-    
+
     if (!bestDeliverer) {
       throw new TRPCError({ code: 'NOT_FOUND', message: 'Aucun livreur disponible' });
     }
@@ -129,15 +151,15 @@ export const DeliveryService = {
         clientId: announcement.clientId,
         status: DeliveryStatus.PENDING,
         trackingCode: this.generateTrackingCode(),
-        price: announcement.price
-      }
+        price: announcement.price,
+      },
     });
 
     // Notification au livreur
     await NotificationService.sendToUser(bestDeliverer.id, {
       title: 'Nouvelle livraison assignée',
       body: `Livraison ${delivery.trackingCode} vous a été assignée`,
-      data: { deliveryId: delivery.id, type: 'DELIVERY_ASSIGNED' }
+      data: { deliveryId: delivery.id, type: 'DELIVERY_ASSIGNED' },
     });
 
     return delivery;
@@ -149,7 +171,7 @@ export const DeliveryService = {
   async updateStatus(statusUpdate: DeliveryStatusUpdate, userId: string) {
     const delivery = await db.delivery.findUnique({
       where: { id: statusUpdate.deliveryId },
-      include: { client: true, deliverer: true }
+      include: { client: true, deliverer: true },
     });
 
     if (!delivery) {
@@ -157,19 +179,22 @@ export const DeliveryService = {
     }
 
     if (delivery.delivererId !== userId) {
-      throw new TRPCError({ code: 'FORBIDDEN', message: 'Seul le livreur assigné peut modifier le statut' });
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Seul le livreur assigné peut modifier le statut',
+      });
     }
 
     // Transaction pour mise à jour atomique
-    const result = await db.$transaction(async (tx) => {
+    const result = await db.$transaction(async tx => {
       // Mise à jour du statut
       const updatedDelivery = await tx.delivery.update({
         where: { id: statusUpdate.deliveryId },
         data: {
           status: statusUpdate.status,
           ...(statusUpdate.status === DeliveryStatus.PICKED_UP && { startTime: new Date() }),
-          ...(statusUpdate.status === DeliveryStatus.DELIVERED && { completionTime: new Date() })
-        }
+          ...(statusUpdate.status === DeliveryStatus.DELIVERED && { completionTime: new Date() }),
+        },
       });
 
       // Ajout du log
@@ -178,8 +203,10 @@ export const DeliveryService = {
           deliveryId: statusUpdate.deliveryId,
           status: statusUpdate.status,
           message: statusUpdate.comment || `Statut mis à jour: ${statusUpdate.status}`,
-          location: statusUpdate.location ? `${statusUpdate.location.latitude},${statusUpdate.location.longitude}` : null
-        }
+          location: statusUpdate.location
+            ? `${statusUpdate.location.latitude},${statusUpdate.location.longitude}`
+            : null,
+        },
       });
 
       // Enregistrement des coordonnées si fournies
@@ -188,8 +215,8 @@ export const DeliveryService = {
           data: {
             deliveryId: statusUpdate.deliveryId,
             latitude: statusUpdate.location.latitude,
-            longitude: statusUpdate.location.longitude
-          }
+            longitude: statusUpdate.location.longitude,
+          },
         });
       }
 
@@ -200,7 +227,7 @@ export const DeliveryService = {
     await NotificationService.sendToUser(delivery.clientId, {
       title: 'Mise à jour de livraison',
       body: `Votre livraison ${delivery.trackingCode} : ${statusUpdate.status}`,
-      data: { deliveryId: delivery.id, status: statusUpdate.status }
+      data: { deliveryId: delivery.id, status: statusUpdate.status },
     });
 
     return result;
@@ -211,7 +238,7 @@ export const DeliveryService = {
    */
   async updateCoordinates(coordinates: DeliveryCoordinatesInput, userId: string) {
     const delivery = await db.delivery.findUnique({
-      where: { id: coordinates.deliveryId }
+      where: { id: coordinates.deliveryId },
     });
 
     if (!delivery) {
@@ -226,18 +253,18 @@ export const DeliveryService = {
       data: {
         deliveryId: coordinates.deliveryId,
         latitude: coordinates.latitude,
-        longitude: coordinates.longitude
-      }
+        longitude: coordinates.longitude,
+      },
     });
   },
-  
+
   /**
    * Valide le code de livraison pour confirmer la réception
    */
   async validateDeliveryCode(confirmation: DeliveryConfirmation, userId: string) {
     const delivery = await db.delivery.findUnique({
       where: { id: confirmation.deliveryId },
-      include: { announcement: true }
+      include: { announcement: true },
     });
 
     if (!delivery) {
@@ -255,8 +282,8 @@ export const DeliveryService = {
       where: { id: confirmation.deliveryId },
       data: {
         status: DeliveryStatus.DELIVERED,
-        completionTime: new Date()
-      }
+        completionTime: new Date(),
+      },
     });
 
     // Enregistrement de la preuve si fournie
@@ -265,8 +292,8 @@ export const DeliveryService = {
         data: {
           deliveryId: confirmation.deliveryId,
           type: confirmation.proofType,
-          fileUrl: confirmation.proofUrl
-        }
+          fileUrl: confirmation.proofUrl,
+        },
       });
     }
 
@@ -286,14 +313,14 @@ export const DeliveryService = {
       where: {
         role: 'DELIVERER',
         isActive: true,
-        verificationStatus: 'VERIFIED'
+        verificationStatus: 'VERIFIED',
       },
       include: {
         profile: true,
         delivererDeliveries: {
-          where: { status: { in: ['PENDING', 'ACCEPTED', 'PICKED_UP', 'IN_TRANSIT'] } }
-        }
-      }
+          where: { status: { in: ['PENDING', 'ACCEPTED', 'PICKED_UP', 'IN_TRANSIT'] } },
+        },
+      },
     });
 
     // Filtre les livreurs non surchargés (max 3 livraisons actives)
@@ -309,7 +336,11 @@ export const DeliveryService = {
    * Génère un code de suivi unique
    */
   generateTrackingCode(): string {
-    return 'ECO' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substr(2, 3).toUpperCase();
+    return (
+      'ECO' +
+      Date.now().toString(36).toUpperCase() +
+      Math.random().toString(36).substr(2, 3).toUpperCase()
+    );
   },
 
   /**
@@ -317,7 +348,7 @@ export const DeliveryService = {
    */
   async rateDelivery(rating: DeliveryRatingInput, userId: string) {
     const delivery = await db.delivery.findUnique({
-      where: { id: rating.deliveryId }
+      where: { id: rating.deliveryId },
     });
 
     if (!delivery) {
@@ -325,7 +356,10 @@ export const DeliveryService = {
     }
 
     if (delivery.status !== DeliveryStatus.DELIVERED) {
-      throw new TRPCError({ code: 'BAD_REQUEST', message: 'La livraison doit être terminée pour être évaluée' });
+      throw new TRPCError({
+        code: 'BAD_REQUEST',
+        message: 'La livraison doit être terminée pour être évaluée',
+      });
     }
 
     // Détermine qui évalue qui
@@ -338,8 +372,8 @@ export const DeliveryService = {
         ratedById: userId,
         targetId,
         rating: rating.rating,
-        comment: rating.comment
-      }
+        comment: rating.comment,
+      },
     });
   },
 
@@ -355,32 +389,32 @@ export const DeliveryService = {
         profile: true,
         stats: true,
         schedules: {
-          orderBy: { dayOfWeek: 'asc' }
+          orderBy: { dayOfWeek: 'asc' },
         },
         routes: {
           where: { isActive: true },
           include: {
-            zones: true
-          }
+            zones: true,
+          },
         },
         availabilities: {
           where: {
-            endDate: { gte: new Date() }
+            endDate: { gte: new Date() },
           },
-          orderBy: { startDate: 'asc' }
+          orderBy: { startDate: 'asc' },
         },
         preferences: true,
         delivererDeliveries: {
           where: {
-            status: { in: ['PENDING', 'ACCEPTED', 'PICKED_UP', 'IN_TRANSIT'] }
+            status: { in: ['PENDING', 'ACCEPTED', 'PICKED_UP', 'IN_TRANSIT'] },
           },
           include: {
             announcement: {
-              select: { title: true, pickupAddress: true, deliveryAddress: true }
-            }
-          }
-        }
-      }
+              select: { title: true, pickupAddress: true, deliveryAddress: true },
+            },
+          },
+        },
+      },
     });
 
     if (!deliverer) {
@@ -402,12 +436,12 @@ export const DeliveryService = {
       }
     }
 
-    return await db.$transaction(async (tx) => {
+    return await db.$transaction(async tx => {
       // Mise à jour du profil principal
       if (profileData.profile) {
         await tx.userProfile.update({
           where: { userId: delivererId },
-          data: profileData.profile
+          data: profileData.profile,
         });
       }
 
@@ -417,9 +451,9 @@ export const DeliveryService = {
           where: { delivererId },
           create: {
             delivererId,
-            ...profileData.preferences
+            ...profileData.preferences,
           },
-          update: profileData.preferences
+          update: profileData.preferences,
         });
       }
 
@@ -438,7 +472,7 @@ export const DeliveryService = {
 
     // Créer une application fictive pour les documents du profil
     let application = await db.deliveryApplication.findFirst({
-      where: { delivererId, announcementId: 'profile-documents' }
+      where: { delivererId, announcementId: 'profile-documents' },
     });
 
     if (!application) {
@@ -448,19 +482,19 @@ export const DeliveryService = {
           delivererId,
           announcementId: 'profile-documents', // ID spécial pour les documents de profil
           status: ApplicationStatus.PENDING,
-          verificationStatus: DocumentVerificationStatus.PENDING
-        }
+          verificationStatus: DocumentVerificationStatus.PENDING,
+        },
       });
     }
 
-    return await db.$transaction(async (tx) => {
+    return await db.$transaction(async tx => {
       // Calculer la version suivante
       const lastVersion = await tx.applicationDocument.findFirst({
         where: {
           applicationId: application.id,
-          documentType: documentData.type
+          documentType: documentData.type,
         },
-        orderBy: { version: 'desc' }
+        orderBy: { version: 'desc' },
       });
 
       const newVersion = (lastVersion?.version || 0) + 1;
@@ -478,8 +512,8 @@ export const DeliveryService = {
           fileSize: documentData.fileSize,
           mimeType: documentData.mimeType,
           checksum: documentData.checksum,
-          previousVersionId: lastVersion?.id
-        }
+          previousVersionId: lastVersion?.id,
+        },
       });
 
       // Créer l'audit log
@@ -491,8 +525,8 @@ export const DeliveryService = {
           actionBy: userId,
           actionType: 'UPLOAD',
           notes: `Document uploadé - version ${newVersion}`,
-          automated: false
-        }
+          automated: false,
+        },
       });
 
       return document;
@@ -517,16 +551,18 @@ export const DeliveryService = {
         requiredDocuments: {
           include: {
             auditLogs: {
-              include: { actor: { select: { profile: { select: { firstName: true, lastName: true } } } } },
-              orderBy: { createdAt: 'desc' }
+              include: {
+                actor: { select: { profile: { select: { firstName: true, lastName: true } } } },
+              },
+              orderBy: { createdAt: 'desc' },
             },
             verifier: {
-              select: { profile: { select: { firstName: true, lastName: true } } }
-            }
+              select: { profile: { select: { firstName: true, lastName: true } } },
+            },
           },
-          orderBy: { version: 'desc' }
-        }
-      }
+          orderBy: { version: 'desc' },
+        },
+      },
     });
 
     if (!application) {
@@ -551,7 +587,7 @@ export const DeliveryService = {
   async autoValidateDocument(documentId: string) {
     const document = await db.applicationDocument.findUnique({
       where: { id: documentId },
-      include: { application: true }
+      include: { application: true },
     });
 
     if (!document) {
@@ -561,12 +597,12 @@ export const DeliveryService = {
     // Simulation de validation automatique (à remplacer par vrai OCR/AI)
     const validationScore = Math.random() * 100;
     const validationFlags = [];
-    
+
     // Règles de validation basiques
     if (document.fileSize && document.fileSize > 10 * 1024 * 1024) {
       validationFlags.push('FILE_TOO_LARGE');
     }
-    
+
     if (!document.mimeType?.includes('image') && !document.mimeType?.includes('pdf')) {
       validationFlags.push('INVALID_FILE_TYPE');
     }
@@ -577,9 +613,11 @@ export const DeliveryService = {
     }
 
     const autoValidated = validationScore > 80 && validationFlags.length === 0;
-    const newStatus = autoValidated ? DocumentVerificationStatus.APPROVED : DocumentVerificationStatus.PENDING;
+    const newStatus = autoValidated
+      ? DocumentVerificationStatus.APPROVED
+      : DocumentVerificationStatus.PENDING;
 
-    return await db.$transaction(async (tx) => {
+    return await db.$transaction(async tx => {
       // Mettre à jour le document
       const updatedDocument = await tx.applicationDocument.update({
         where: { id: documentId },
@@ -588,8 +626,8 @@ export const DeliveryService = {
           validationScore,
           validationFlags,
           status: newStatus,
-          ...(autoValidated && { verifiedAt: new Date(), verifiedBy: 'system' })
-        }
+          ...(autoValidated && { verifiedAt: new Date(), verifiedBy: 'system' }),
+        },
       });
 
       // Créer l'audit log
@@ -603,8 +641,8 @@ export const DeliveryService = {
           notes: `Validation automatique - Score: ${validationScore}`,
           automated: true,
           validationData: { score: validationScore, flags: validationFlags },
-          confidence: validationScore / 100
-        }
+          confidence: validationScore / 100,
+        },
       });
 
       // Notification si validation réussie
@@ -612,7 +650,7 @@ export const DeliveryService = {
         await NotificationService.sendToUser(document.application.delivererId, {
           title: 'Document approuvé automatiquement',
           body: `Votre document ${document.documentType} a été validé automatiquement`,
-          data: { documentId, type: 'DOCUMENT_AUTO_APPROVED' }
+          data: { documentId, type: 'DOCUMENT_AUTO_APPROVED' },
         });
       }
 
@@ -635,20 +673,20 @@ export const DeliveryService = {
         status: validation.status,
         verifiedAt: new Date(),
         verifiedBy: adminId,
-        rejectionReason: validation.rejectionReason
+        rejectionReason: validation.rejectionReason,
       },
       include: {
         application: {
-          include: { deliverer: true }
-        }
-      }
+          include: { deliverer: true },
+        },
+      },
     });
 
     // Notification au livreur
     await NotificationService.sendToUser(document.application.delivererId, {
       title: validation.status === 'APPROVED' ? 'Document approuvé' : 'Document rejeté',
       body: `Votre document ${document.documentType} a été ${validation.status === 'APPROVED' ? 'approuvé' : 'rejeté'}`,
-      data: { documentId: document.id, status: validation.status }
+      data: { documentId: document.id, status: validation.status },
     });
 
     return document;
@@ -664,7 +702,7 @@ export const DeliveryService = {
       throw new TRPCError({ code: 'FORBIDDEN', message: 'Accès refusé' });
     }
 
-    return await db.$transaction(async (tx) => {
+    return await db.$transaction(async tx => {
       const route = await tx.delivererRoute.create({
         data: {
           delivererId,
@@ -677,8 +715,8 @@ export const DeliveryService = {
           trafficFactor: routeData.trafficFactor || 1.0,
           weatherSensitive: routeData.weatherSensitive || false,
           preferredTimeSlots: routeData.preferredTimeSlots || [],
-          dayPreferences: routeData.dayPreferences || [1, 2, 3, 4, 5] // Lundi à Vendredi par défaut
-        }
+          dayPreferences: routeData.dayPreferences || [1, 2, 3, 4, 5], // Lundi à Vendredi par défaut
+        },
       });
 
       // Ajouter les zones géographiques
@@ -697,14 +735,14 @@ export const DeliveryService = {
             accessNotes: zone.accessNotes,
             timeRestrictions: zone.timeRestrictions || [],
             vehicleRestrictions: zone.vehicleRestrictions || [],
-            weatherSensitive: zone.weatherSensitive || false
-          }))
+            weatherSensitive: zone.weatherSensitive || false,
+          })),
         });
       }
 
       return await tx.delivererRoute.findUnique({
         where: { id: route.id },
-        include: { zones: true }
+        include: { zones: true },
       });
     });
   },
@@ -722,24 +760,24 @@ export const DeliveryService = {
             statistics: {
               where: {
                 date: {
-                  gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // 30 derniers jours
-                }
-              }
-            }
-          }
+                  gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 derniers jours
+                },
+              },
+            },
+          },
         },
         delivererDeliveries: {
           where: {
             status: DeliveryStatus.DELIVERED,
             completionTime: {
-              gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-            }
+              gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+            },
           },
           include: {
-            announcement: true
-          }
-        }
-      }
+            announcement: true,
+          },
+        },
+      },
     });
 
     if (!deliverer) {
@@ -752,7 +790,8 @@ export const DeliveryService = {
       const stats = route.statistics;
       const avgEarnings = stats.reduce((sum, s) => sum + s.totalEarnings, 0) / (stats.length || 1);
       const avgTime = stats.reduce((sum, s) => sum + (s.averageTime || 0), 0) / (stats.length || 1);
-      const successRate = stats.reduce((sum, s) => sum + (s.onTimeRate || 0), 0) / (stats.length || 1);
+      const successRate =
+        stats.reduce((sum, s) => sum + (s.onTimeRate || 0), 0) / (stats.length || 1);
 
       routeAnalysis.push({
         routeId: route.id,
@@ -760,24 +799,31 @@ export const DeliveryService = {
         efficiency: avgEarnings / (avgTime || 1), // Gains par minute
         successRate,
         totalDeliveries: stats.reduce((sum, s) => sum + s.completedDeliveries, 0),
-        recommendation: this.generateRouteRecommendation(avgEarnings, avgTime, successRate)
+        recommendation: this.generateRouteRecommendation(avgEarnings, avgTime, successRate),
       });
     }
 
     // Identifier les zones populaires non couvertes
     const popularZones = await this.findPopularDeliveryZones(deliverer.delivererDeliveries);
-    const uncoveredZones = popularZones.filter(zone => 
-      !deliverer.routes.some(route => 
-        route.zones.some(rzone => 
-          this.calculateDistanceSync(zone.lat, zone.lng, rzone.centerLatitude, rzone.centerLongitude) <= rzone.radiusKm
+    const uncoveredZones = popularZones.filter(
+      zone =>
+        !deliverer.routes.some(route =>
+          route.zones.some(
+            rzone =>
+              this.calculateDistanceSync(
+                zone.lat,
+                zone.lng,
+                rzone.centerLatitude,
+                rzone.centerLongitude
+              ) <= rzone.radiusKm
+          )
         )
-      )
     );
 
     return {
       currentRoutes: routeAnalysis,
       uncoveredOpportunities: uncoveredZones,
-      recommendations: this.generateOptimizationRecommendations(routeAnalysis, uncoveredZones)
+      recommendations: this.generateOptimizationRecommendations(routeAnalysis, uncoveredZones),
     };
   },
 
@@ -790,21 +836,22 @@ export const DeliveryService = {
         delivererId,
         status: DeliveryStatus.DELIVERED,
         completionTime: {
-          gte: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000) // 60 derniers jours
-        }
+          gte: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), // 60 derniers jours
+        },
       },
       include: {
-        announcement: true
-      }
+        announcement: true,
+      },
     });
 
     // Analyser les patterns de livraisons
     const deliveryPatterns = this.analyzeDeliveryPatterns(recentDeliveries);
-    
+
     // Générer des suggestions basées sur les patterns
     const suggestions = [];
     for (const pattern of deliveryPatterns) {
-      if (pattern.frequency >= 3) { // Au moins 3 livraisons dans cette zone
+      if (pattern.frequency >= 3) {
+        // Au moins 3 livraisons dans cette zone
         const suggestion = {
           from: pattern.mostCommonPickup,
           to: pattern.mostCommonDelivery,
@@ -813,7 +860,7 @@ export const DeliveryService = {
           frequency: pattern.frequency,
           successRate: pattern.successRate,
           bestTimeSlots: pattern.bestTimeSlots,
-          priority: this.calculateSuggestionPriority(pattern)
+          priority: this.calculateSuggestionPriority(pattern),
         };
         suggestions.push(suggestion);
       }
@@ -833,11 +880,11 @@ export const DeliveryService = {
         deliverer: {
           include: {
             routes: {
-              include: { zones: true }
-            }
-          }
-        }
-      }
+              include: { zones: true },
+            },
+          },
+        },
+      },
     });
 
     if (!delivery || delivery.status !== DeliveryStatus.DELIVERED) {
@@ -845,14 +892,15 @@ export const DeliveryService = {
     }
 
     // Trouver la route correspondante
-    const matchingRoute = delivery.deliverer.routes.find(route => 
-      route.zones.some(zone => 
-        this.calculateDistanceSync(
-          delivery.announcement.pickupLatitude!,
-          delivery.announcement.pickupLongitude!,
-          zone.centerLatitude,
-          zone.centerLongitude
-        ) <= zone.radiusKm
+    const matchingRoute = delivery.deliverer.routes.find(route =>
+      route.zones.some(
+        zone =>
+          this.calculateDistanceSync(
+            delivery.announcement.pickupLatitude!,
+            delivery.announcement.pickupLongitude!,
+            zone.centerLatitude,
+            zone.centerLongitude
+          ) <= zone.radiusKm
       )
     );
 
@@ -864,16 +912,17 @@ export const DeliveryService = {
     today.setHours(0, 0, 0, 0);
 
     // Calculer les métriques
-    const deliveryTime = delivery.completionTime && delivery.startTime 
-      ? (delivery.completionTime.getTime() - delivery.startTime.getTime()) / (1000 * 60) 
-      : null;
+    const deliveryTime =
+      delivery.completionTime && delivery.startTime
+        ? (delivery.completionTime.getTime() - delivery.startTime.getTime()) / (1000 * 60)
+        : null;
 
     await db.routeStatistics.upsert({
       where: {
         routeId_date: {
           routeId: matchingRoute.id,
-          date: today
-        }
+          date: today,
+        },
       },
       create: {
         routeId: matchingRoute.id,
@@ -883,13 +932,13 @@ export const DeliveryService = {
         averageTime: deliveryTime,
         totalDistance: 0, // À calculer avec GPS
         totalEarnings: delivery.price,
-        dayOfWeek: today.getDay()
+        dayOfWeek: today.getDay(),
       },
       update: {
         totalDeliveries: { increment: 1 },
         completedDeliveries: { increment: 1 },
-        totalEarnings: { increment: delivery.price }
-      }
+        totalEarnings: { increment: delivery.price },
+      },
     });
 
     // Mettre à jour les stats de la route
@@ -897,8 +946,8 @@ export const DeliveryService = {
       where: { id: matchingRoute.id },
       data: {
         completedDeliveries: { increment: 1 },
-        lastUsed: new Date()
-      }
+        lastUsed: new Date(),
+      },
     });
   },
 
@@ -907,7 +956,7 @@ export const DeliveryService = {
    */
   async calculateMatchingScore(announcementId: string, delivererId: string) {
     const announcement = await db.announcement.findUnique({
-      where: { id: announcementId }
+      where: { id: announcementId },
     });
 
     const deliverer = await db.user.findUnique({
@@ -915,17 +964,17 @@ export const DeliveryService = {
       include: {
         stats: true,
         routes: {
-          include: { zones: true }
+          include: { zones: true },
         },
         availabilities: {
           where: {
             startDate: { lte: new Date() },
             endDate: { gte: new Date() },
-            isAvailable: true
-          }
+            isAvailable: true,
+          },
         },
-        preferences: true
-      }
+        preferences: true,
+      },
     });
 
     if (!announcement || !deliverer) {
@@ -946,7 +995,7 @@ export const DeliveryService = {
       deliverer.availabilities[0]?.currentLng || 0
     );
 
-    distanceScore = Math.max(0, 100 - (distance * 2)); // 2 points par km
+    distanceScore = Math.max(0, 100 - distance * 2); // 2 points par km
 
     // 2. Score d'évaluation (25%)
     ratingScore = (deliverer.stats?.averageRating || 3) * 20; // Sur 100
@@ -963,21 +1012,20 @@ export const DeliveryService = {
     const routeScore = isInRoute ? 100 : 30;
 
     // Calcul du score final pondéré
-    totalScore = (
-      distanceScore * 0.30 +
+    totalScore =
+      distanceScore * 0.3 +
       ratingScore * 0.25 +
-      availabilityScore * 0.20 +
+      availabilityScore * 0.2 +
       preferenceScore * 0.15 +
-      routeScore * 0.10
-    );
+      routeScore * 0.1;
 
     // Enregistrer le résultat du matching
     await db.announcementMatching.upsert({
       where: {
         announcementId_delivererId: {
           announcementId,
-          delivererId
-        }
+          delivererId,
+        },
       },
       create: {
         announcementId,
@@ -990,7 +1038,7 @@ export const DeliveryService = {
         distance,
         estimatedTime: Math.round(distance * 2), // 2 min par km
         isInRoute,
-        isAvailable: availabilityScore > 0
+        isAvailable: availabilityScore > 0,
       },
       update: {
         matchingScore: totalScore,
@@ -1002,8 +1050,8 @@ export const DeliveryService = {
         estimatedTime: Math.round(distance * 2),
         isInRoute,
         isAvailable: availabilityScore > 0,
-        updatedAt: new Date()
-      }
+        updatedAt: new Date(),
+      },
     });
 
     return {
@@ -1013,7 +1061,7 @@ export const DeliveryService = {
       availabilityScore,
       preferenceScore,
       distance,
-      isInRoute
+      isInRoute,
     };
   },
 
@@ -1026,8 +1074,8 @@ export const DeliveryService = {
       where: {
         role: 'DELIVERER',
         isActive: true,
-        verificationStatus: 'VERIFIED'
-      }
+        verificationStatus: 'VERIFIED',
+      },
     });
 
     // Calculer le score pour chaque livreur
@@ -1041,18 +1089,18 @@ export const DeliveryService = {
     return await db.announcementMatching.findMany({
       where: {
         announcementId,
-        matchingScore: { gte: 60 } // Score minimum
+        matchingScore: { gte: 60 }, // Score minimum
       },
       include: {
         deliverer: {
           include: {
             profile: true,
-            stats: true
-          }
-        }
+            stats: true,
+          },
+        },
       },
       orderBy: { matchingScore: 'desc' },
-      take: limit
+      take: limit,
     });
   },
 
@@ -1066,10 +1114,10 @@ export const DeliveryService = {
       throw new TRPCError({ code: 'FORBIDDEN', message: 'Accès refusé' });
     }
 
-    return await db.$transaction(async (tx) => {
+    return await db.$transaction(async tx => {
       // Supprimer l'ancien planning
       await tx.delivererSchedule.deleteMany({
-        where: { delivererId }
+        where: { delivererId },
       });
 
       // Créer le nouveau planning
@@ -1086,15 +1134,15 @@ export const DeliveryService = {
             breakStart: schedule.breakStart,
             breakEnd: schedule.breakEnd,
             timeSlots: schedule.timeSlots || 4,
-            preferredZones: schedule.preferredZones || []
-          }))
+            preferredZones: schedule.preferredZones || [],
+          })),
         });
       }
 
       return await tx.delivererSchedule.findMany({
         where: { delivererId },
         include: { exceptions: true },
-        orderBy: { dayOfWeek: 'asc' }
+        orderBy: { dayOfWeek: 'asc' },
       });
     });
   },
@@ -1110,8 +1158,8 @@ export const DeliveryService = {
     const schedule = await db.delivererSchedule.findFirst({
       where: {
         delivererId,
-        dayOfWeek: new Date(exceptionData.date).getDay()
-      }
+        dayOfWeek: new Date(exceptionData.date).getDay(),
+      },
     });
 
     if (!schedule) {
@@ -1125,8 +1173,8 @@ export const DeliveryService = {
         isAvailable: exceptionData.isAvailable,
         startTime: exceptionData.startTime,
         endTime: exceptionData.endTime,
-        reason: exceptionData.reason
-      }
+        reason: exceptionData.reason,
+      },
     });
   },
 
@@ -1138,38 +1186,40 @@ export const DeliveryService = {
       db.delivererSchedule.findMany({
         where: { delivererId },
         include: { exceptions: true },
-        orderBy: { dayOfWeek: 'asc' }
+        orderBy: { dayOfWeek: 'asc' },
       }),
       db.scheduleException.findMany({
         where: {
           schedule: { delivererId },
-          date: { gte: startDate, lte: endDate }
-        }
+          date: { gte: startDate, lte: endDate },
+        },
       }),
       db.routeStatistics.findMany({
         where: {
           route: { delivererId },
-          date: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) }
+          date: { gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) },
         },
-        include: { route: true }
-      })
+        include: { route: true },
+      }),
     ]);
 
     // Analyser les créneaux les plus rentables
     const profitableTimeSlots = this.analyzeProfitableTimeSlots(recentStats);
-    
+
     // Générer des suggestions d'optimisation
     const optimizationSuggestions = [];
     for (const daySchedule of schedule) {
       const dayStats = recentStats.filter(s => s.dayOfWeek === daySchedule.dayOfWeek);
-      const avgEarnings = dayStats.reduce((sum, s) => sum + s.totalEarnings, 0) / (dayStats.length || 1);
-      
-      if (avgEarnings < 50) { // Seuil configurable
+      const avgEarnings =
+        dayStats.reduce((sum, s) => sum + s.totalEarnings, 0) / (dayStats.length || 1);
+
+      if (avgEarnings < 50) {
+        // Seuil configurable
         optimizationSuggestions.push({
           day: daySchedule.dayOfWeek,
           type: 'LOW_EARNINGS',
           suggestion: 'Envisager de modifier les créneaux horaires',
-          potentialImprovement: profitableTimeSlots[daySchedule.dayOfWeek] || null
+          potentialImprovement: profitableTimeSlots[daySchedule.dayOfWeek] || null,
         });
       }
     }
@@ -1179,7 +1229,7 @@ export const DeliveryService = {
       exceptions,
       optimizationSuggestions,
       profitableTimeSlots,
-      weeklyEarningsProjection: this.calculateWeeklyProjection(schedule, recentStats)
+      weeklyEarningsProjection: this.calculateWeeklyProjection(schedule, recentStats),
     };
   },
 
@@ -1200,15 +1250,15 @@ export const DeliveryService = {
         isAvailable: availabilityData.isAvailable,
         reason: availabilityData.reason,
         currentLat: availabilityData.latitude,
-        currentLng: availabilityData.longitude
+        currentLng: availabilityData.longitude,
       },
       update: {
         isAvailable: availabilityData.isAvailable,
         reason: availabilityData.reason,
         currentLat: availabilityData.latitude,
         currentLng: availabilityData.longitude,
-        lastUpdate: new Date()
-      }
+        lastUpdate: new Date(),
+      },
     });
   },
 
@@ -1225,9 +1275,9 @@ export const DeliveryService = {
           some: {
             isAvailable: true,
             startDate: { lte: new Date() },
-            endDate: { gte: new Date() }
-          }
-        }
+            endDate: { gte: new Date() },
+          },
+        },
       },
       include: {
         profile: true,
@@ -1236,15 +1286,15 @@ export const DeliveryService = {
           where: {
             isAvailable: true,
             startDate: { lte: new Date() },
-            endDate: { gte: new Date() }
-          }
+            endDate: { gte: new Date() },
+          },
         },
         delivererDeliveries: {
           where: {
-            status: { in: ['PENDING', 'ACCEPTED', 'PICKED_UP', 'IN_TRANSIT'] }
-          }
-        }
-      }
+            status: { in: ['PENDING', 'ACCEPTED', 'PICKED_UP', 'IN_TRANSIT'] },
+          },
+        },
+      },
     });
 
     // Filtrer par distance et charge de travail
@@ -1264,7 +1314,7 @@ export const DeliveryService = {
         filtered.push({
           ...deliverer,
           distance,
-          currentLoad: deliverer.delivererDeliveries.length
+          currentLoad: deliverer.delivererDeliveries.length,
         });
       }
     }
@@ -1288,7 +1338,7 @@ export const DeliveryService = {
       db.delivery.findMany({
         where: {
           delivererId,
-          status: { in: ['PENDING', 'ACCEPTED', 'PICKED_UP', 'IN_TRANSIT'] }
+          status: { in: ['PENDING', 'ACCEPTED', 'PICKED_UP', 'IN_TRANSIT'] },
         },
         include: {
           announcement: {
@@ -1296,28 +1346,28 @@ export const DeliveryService = {
               title: true,
               pickupAddress: true,
               deliveryAddress: true,
-              pickupDate: true
-            }
+              pickupDate: true,
+            },
           },
           coordinates: {
             orderBy: { timestamp: 'desc' },
-            take: 1
-          }
+            take: 1,
+          },
         },
-        orderBy: { createdAt: 'asc' }
+        orderBy: { createdAt: 'asc' },
       }),
 
       // Livraisons du jour
       db.delivery.count({
         where: {
           delivererId,
-          createdAt: { gte: today, lt: tomorrow }
-        }
+          createdAt: { gte: today, lt: tomorrow },
+        },
       }),
 
       // Statistiques
       db.delivererStats.findUnique({
-        where: { delivererId }
+        where: { delivererId },
       }),
 
       // Notifications non lues
@@ -1325,9 +1375,9 @@ export const DeliveryService = {
         where: {
           delivererId,
           status: 'SENT',
-          readAt: null
-        }
-      })
+          readAt: null,
+        },
+      }),
     ]);
 
     return {
@@ -1338,18 +1388,22 @@ export const DeliveryService = {
       earnings: {
         today: 0, // À calculer selon la logique métier
         week: 0,
-        month: 0
-      }
+        month: 0,
+      },
     };
   },
 
   /**
    * Accepter/Refuser une proposition de livraison
    */
-  async respondToDeliveryProposal(matchingId: string, response: 'ACCEPTED' | 'DECLINED', delivererId: string) {
+  async respondToDeliveryProposal(
+    matchingId: string,
+    response: 'ACCEPTED' | 'DECLINED',
+    delivererId: string
+  ) {
     const matching = await db.announcementMatching.findUnique({
       where: { id: matchingId },
-      include: { announcement: true }
+      include: { announcement: true },
     });
 
     if (!matching || matching.delivererId !== delivererId) {
@@ -1365,8 +1419,8 @@ export const DeliveryService = {
           clientId: matching.announcement.clientId,
           status: DeliveryStatus.ACCEPTED,
           trackingCode: this.generateTrackingCode(),
-          price: matching.announcement.suggestedPrice || 0
-        }
+          price: matching.announcement.suggestedPrice || 0,
+        },
       });
 
       // Mettre à jour le matching
@@ -1374,15 +1428,15 @@ export const DeliveryService = {
         where: { id: matchingId },
         data: {
           status: 'ACCEPTED',
-          respondedAt: new Date()
-        }
+          respondedAt: new Date(),
+        },
       });
 
       // Notification au client
       await NotificationService.sendToUser(matching.announcement.clientId, {
         title: 'Livreur trouvé !',
         body: `Un livreur a accepté votre annonce "${matching.announcement.title}"`,
-        data: { deliveryId: delivery.id, announcementId: matching.announcementId }
+        data: { deliveryId: delivery.id, announcementId: matching.announcementId },
       });
 
       return delivery;
@@ -1392,8 +1446,8 @@ export const DeliveryService = {
         where: { id: matchingId },
         data: {
           status: 'DECLINED',
-          respondedAt: new Date()
-        }
+          respondedAt: new Date(),
+        },
       });
 
       return { success: true, message: 'Proposition refusée' };
@@ -1408,21 +1462,21 @@ export const DeliveryService = {
     await db.delivererAvailability.updateMany({
       where: {
         delivererId,
-        isAvailable: true
+        isAvailable: true,
       },
       data: {
         currentLat: location.latitude,
         currentLng: location.longitude,
-        lastUpdate: new Date()
-      }
+        lastUpdate: new Date(),
+      },
     });
 
     // Mettre à jour les coordonnées des livraisons actives
     const activeDeliveries = await db.delivery.findMany({
       where: {
         delivererId,
-        status: { in: ['ACCEPTED', 'PICKED_UP', 'IN_TRANSIT'] }
-      }
+        status: { in: ['ACCEPTED', 'PICKED_UP', 'IN_TRANSIT'] },
+      },
     });
 
     if (activeDeliveries.length > 0) {
@@ -1430,8 +1484,8 @@ export const DeliveryService = {
         data: activeDeliveries.map(delivery => ({
           deliveryId: delivery.id,
           latitude: location.latitude,
-          longitude: location.longitude
-        }))
+          longitude: location.longitude,
+        })),
       });
     }
 
@@ -1445,11 +1499,14 @@ export const DeliveryService = {
    */
   async calculateDistance(lat1: number, lon1: number, lat2: number, lon2: number): Promise<number> {
     const R = 6371; // Rayon de la Terre en km
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   },
@@ -1479,11 +1536,14 @@ export const DeliveryService = {
    */
   calculateDistanceSync(lat1: number, lon1: number, lat2: number, lon2: number): number {
     const R = 6371; // Rayon de la Terre en km
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLon = (lon2 - lon1) * Math.PI / 180;
-    const a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLon / 2) * Math.sin(dLon / 2);
+    const dLat = ((lat2 - lat1) * Math.PI) / 180;
+    const dLon = ((lon2 - lon1) * Math.PI) / 180;
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos((lat1 * Math.PI) / 180) *
+        Math.cos((lat2 * Math.PI) / 180) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   },
@@ -1493,10 +1553,10 @@ export const DeliveryService = {
    */
   analyzeDeliveryPatterns(deliveries: any[]) {
     const patterns = new Map();
-    
+
     for (const delivery of deliveries) {
       const key = `${delivery.announcement.pickupCity}-${delivery.announcement.deliveryCity}`;
-      
+
       if (!patterns.has(key)) {
         patterns.set(key, {
           mostCommonPickup: delivery.announcement.pickupAddress,
@@ -1505,20 +1565,21 @@ export const DeliveryService = {
           totalEarnings: 0,
           totalTime: 0,
           deliveries: [],
-          timeSlots: []
+          timeSlots: [],
         });
       }
-      
+
       const pattern = patterns.get(key);
       pattern.frequency++;
       pattern.totalEarnings += delivery.price;
       pattern.deliveries.push(delivery);
-      
+
       if (delivery.completionTime && delivery.startTime) {
-        const duration = (delivery.completionTime.getTime() - delivery.startTime.getTime()) / (1000 * 60);
+        const duration =
+          (delivery.completionTime.getTime() - delivery.startTime.getTime()) / (1000 * 60);
         pattern.totalTime += duration;
       }
-      
+
       // Analyser les créneaux horaires
       const hour = delivery.createdAt.getHours();
       pattern.timeSlots.push(hour);
@@ -1530,7 +1591,7 @@ export const DeliveryService = {
       averageEarnings: pattern.totalEarnings / pattern.frequency,
       averageTime: pattern.totalTime / pattern.frequency,
       successRate: 100, // À calculer selon la logique métier
-      bestTimeSlots: this.findMostCommonTimeSlots(pattern.timeSlots)
+      bestTimeSlots: this.findMostCommonTimeSlots(pattern.timeSlots),
     }));
   },
 
@@ -1539,11 +1600,11 @@ export const DeliveryService = {
    */
   findMostCommonTimeSlots(timeSlots: number[]): string[] {
     const hourCounts = new Map();
-    
+
     for (const hour of timeSlots) {
       hourCounts.set(hour, (hourCounts.get(hour) || 0) + 1);
     }
-    
+
     return Array.from(hourCounts.entries())
       .sort((a, b) => b[1] - a[1])
       .slice(0, 3)
@@ -1555,17 +1616,17 @@ export const DeliveryService = {
    */
   calculateSuggestionPriority(pattern: any): number {
     let priority = 0;
-    
+
     // Fréquence (40%)
-    priority += (pattern.frequency * 10) * 0.4;
-    
+    priority += pattern.frequency * 10 * 0.4;
+
     // Rentabilité (35%)
     priority += (pattern.averageEarnings / 10) * 0.35;
-    
+
     // Efficacité temps (25%)
     const efficiency = pattern.averageEarnings / (pattern.averageTime || 60);
     priority += efficiency * 25 * 0.25;
-    
+
     return Math.min(100, priority);
   },
 
@@ -1589,20 +1650,20 @@ export const DeliveryService = {
    */
   async findPopularDeliveryZones(deliveries: any[]) {
     const zoneCounts = new Map();
-    
+
     for (const delivery of deliveries) {
       const key = `${delivery.announcement.deliveryCity}`;
-      
+
       if (!zoneCounts.has(key)) {
         zoneCounts.set(key, {
           lat: delivery.announcement.deliveryLatitude,
           lng: delivery.announcement.deliveryLongitude,
           city: delivery.announcement.deliveryCity,
           count: 0,
-          totalEarnings: 0
+          totalEarnings: 0,
         });
       }
-      
+
       const zone = zoneCounts.get(key);
       zone.count++;
       zone.totalEarnings += delivery.price;
@@ -1619,24 +1680,24 @@ export const DeliveryService = {
    */
   generateOptimizationRecommendations(routeAnalysis: any[], uncoveredZones: any[]): string[] {
     const recommendations = [];
-    
+
     // Routes peu performantes
     const underperformingRoutes = routeAnalysis.filter(r => r.efficiency < 0.5);
     if (underperformingRoutes.length > 0) {
       recommendations.push('Revoir les routes peu rentables');
     }
-    
+
     // Zones non couvertes
     if (uncoveredZones.length > 0) {
       recommendations.push(`Créer des routes pour ${uncoveredZones.length} zones populaires`);
     }
-    
+
     // Routes trop chargées
     const overloadedRoutes = routeAnalysis.filter(r => r.totalDeliveries > 50);
     if (overloadedRoutes.length > 0) {
       recommendations.push('Diviser les routes surchargées');
     }
-    
+
     return recommendations;
   },
 
@@ -1645,22 +1706,22 @@ export const DeliveryService = {
    */
   analyzeProfitableTimeSlots(stats: any[]): Record<number, any> {
     const dayAnalysis: Record<number, any> = {};
-    
+
     for (let day = 0; day < 7; day++) {
       const dayStats = stats.filter(s => s.dayOfWeek === day);
-      
+
       if (dayStats.length > 0) {
         const bestEarnings = Math.max(...dayStats.map(s => s.totalEarnings));
         const bestStat = dayStats.find(s => s.totalEarnings === bestEarnings);
-        
+
         dayAnalysis[day] = {
           bestTimeSlot: this.estimateTimeSlotFromStats(bestStat),
           averageEarnings: dayStats.reduce((sum, s) => sum + s.totalEarnings, 0) / dayStats.length,
-          totalDeliveries: dayStats.reduce((sum, s) => sum + s.completedDeliveries, 0)
+          totalDeliveries: dayStats.reduce((sum, s) => sum + s.completedDeliveries, 0),
         };
       }
     }
-    
+
     return dayAnalysis;
   },
 
@@ -1679,18 +1740,19 @@ export const DeliveryService = {
    */
   calculateWeeklyProjection(schedule: any[], recentStats: any[]): number {
     let weeklyProjection = 0;
-    
+
     for (const daySchedule of schedule) {
       if (daySchedule.isAvailable) {
         const dayStats = recentStats.filter(s => s.dayOfWeek === daySchedule.dayOfWeek);
-        const avgDailyEarnings = dayStats.length > 0 
-          ? dayStats.reduce((sum, s) => sum + s.totalEarnings, 0) / dayStats.length
-          : 30; // Valeur par défaut
-        
+        const avgDailyEarnings =
+          dayStats.length > 0
+            ? dayStats.reduce((sum, s) => sum + s.totalEarnings, 0) / dayStats.length
+            : 30; // Valeur par défaut
+
         weeklyProjection += avgDailyEarnings;
       }
     }
-    
+
     return weeklyProjection;
   },
 
@@ -1700,13 +1762,10 @@ export const DeliveryService = {
   async getActiveDeliveries(userId: string) {
     try {
       const where: any = {
-        OR: [
-          { clientId: userId },
-          { delivererId: userId }
-        ],
+        OR: [{ clientId: userId }, { delivererId: userId }],
         status: {
-          in: ['PENDING', 'ASSIGNED', 'PICKED_UP', 'IN_TRANSIT']
-        }
+          in: ['PENDING', 'ACCEPTED', 'PICKED_UP', 'IN_TRANSIT'],
+        },
       };
 
       const deliveries = await db.delivery.findMany({
@@ -1717,31 +1776,37 @@ export const DeliveryService = {
               title: true,
               pickupAddress: true,
               deliveryAddress: true,
-              pickupDate: true
-            }
+              pickupDate: true,
+            },
           },
           client: {
-            select: { 
-              id: true, 
-              profile: { 
-                select: { firstName: true, lastName: true, phone: true } 
-              } 
-            }
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              phoneNumber: true,
+              client: {
+                select: { phone: true },
+              },
+            },
           },
           deliverer: {
-            select: { 
-              id: true, 
-              profile: { 
-                select: { firstName: true, lastName: true, phone: true } 
-              } 
-            }
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              phoneNumber: true,
+              deliverer: {
+                select: { phone: true },
+              },
+            },
           },
           coordinates: {
             orderBy: { timestamp: 'desc' },
-            take: 1
-          }
+            take: 1,
+          },
         },
-        orderBy: { updatedAt: 'desc' }
+        orderBy: { updatedAt: 'desc' },
       });
 
       return deliveries;
@@ -1749,8 +1814,8 @@ export const DeliveryService = {
       console.error('Erreur getActiveDeliveries:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la récupération des livraisons actives'
+        message: 'Erreur lors de la récupération des livraisons actives',
       });
     }
-  }
+  },
 };

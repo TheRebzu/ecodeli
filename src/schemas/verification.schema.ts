@@ -103,14 +103,17 @@ export type DocumentVerificationSchemaType = z.infer<typeof documentVerification
 export const documentUploadSchema = z.object({
   type: z.nativeEnum(DocumentType, {
     required_error: 'Le type de document est requis',
-    invalid_type_error: 'Type de document invalide'
+    invalid_type_error: 'Type de document invalide',
   }),
   file: z.any(), // Représente un fichier uploadé
   notes: z.string().optional(),
-  expiryDate: z.date({
-    required_error: 'La date est requise',
-    invalid_type_error: 'Format de date invalide'
-  }).optional().transform(val => val ? new Date(val) : undefined),
+  expiryDate: z
+    .date({
+      required_error: 'La date est requise',
+      invalid_type_error: 'Format de date invalide',
+    })
+    .optional()
+    .transform(val => (val ? new Date(val) : undefined)),
 });
 
 export type DocumentUploadInput = z.infer<typeof documentUploadSchema>;
@@ -122,9 +125,9 @@ export const merchantVerificationSubmitSchema = z.object({
   merchantId: z.string({
     required_error: "L'ID du commerçant est requis",
   }),
-  businessDocuments: z.array(z.string()).min(1, 'Au moins un document d\'entreprise est requis'),
-  identityDocuments: z.array(z.string()).min(1, 'Au moins un document d\'identité est requis'),
-  addressDocuments: z.array(z.string()).min(1, 'Au moins un justificatif d\'adresse est requis'),
+  businessDocuments: z.array(z.string()).min(1, "Au moins un document d'entreprise est requis"),
+  identityDocuments: z.array(z.string()).min(1, "Au moins un document d'identité est requis"),
+  addressDocuments: z.array(z.string()).min(1, "Au moins un justificatif d'adresse est requis"),
   notes: z.string().optional(),
 });
 
@@ -137,10 +140,10 @@ export const providerVerificationSubmitSchema = z.object({
   providerId: z.string({
     required_error: "L'ID du prestataire est requis",
   }),
-  identityDocuments: z.array(z.string()).min(1, 'Au moins un document d\'identité est requis'),
+  identityDocuments: z.array(z.string()).min(1, "Au moins un document d'identité est requis"),
   qualificationDocs: z.array(z.string()).min(1, 'Au moins un document de qualification est requis'),
-  insuranceDocs: z.array(z.string()).min(1, 'Au moins un document d\'assurance est requis'),
-  addressDocuments: z.array(z.string()).min(1, 'Au moins un justificatif d\'adresse est requis'),
+  insuranceDocs: z.array(z.string()).min(1, "Au moins un document d'assurance est requis"),
+  addressDocuments: z.array(z.string()).min(1, "Au moins un justificatif d'adresse est requis"),
   notes: z.string().optional(),
 });
 
@@ -154,29 +157,31 @@ type VerificationProcessContext = {
 /**
  * Schéma pour le traitement de vérification par un admin
  */
-export const verificationProcessSchema = z.object({
-  verificationId: z.string({
-    required_error: "L'ID de la vérification est requis",
-  }),
-  status: z.nativeEnum(VerificationStatus, {
-    required_error: 'Le statut est requis',
-    invalid_type_error: 'Statut invalide'
-  }),
-  notes: z.string().optional(),
-  rejectionReason: z.nativeEnum(RejectionReason).optional(),
-}).refine(
-  (data) => {
-    // Si le statut est REJECTED, rejectionReason doit être fourni
-    if (data.status === 'REJECTED' && !data.rejectionReason) {
-      return false;
+export const verificationProcessSchema = z
+  .object({
+    verificationId: z.string({
+      required_error: "L'ID de la vérification est requis",
+    }),
+    status: z.nativeEnum(VerificationStatus, {
+      required_error: 'Le statut est requis',
+      invalid_type_error: 'Statut invalide',
+    }),
+    notes: z.string().optional(),
+    rejectionReason: z.nativeEnum(RejectionReason).optional(),
+  })
+  .refine(
+    data => {
+      // Si le statut est REJECTED, rejectionReason doit être fourni
+      if (data.status === 'REJECTED' && !data.rejectionReason) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: 'Une raison est requise en cas de rejet',
+      path: ['rejectionReason'],
     }
-    return true;
-  },
-  {
-    message: 'Une raison est requise en cas de rejet',
-    path: ['rejectionReason'],
-  }
-);
+  );
 
 export type VerificationProcessInput = z.infer<typeof verificationProcessSchema>;
 

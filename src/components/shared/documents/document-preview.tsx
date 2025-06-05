@@ -1,12 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { DocumentPreviewProps } from './document-types';
 import { getDocumentTypeName } from '@/lib/document-utils';
@@ -83,7 +78,7 @@ export function DocumentPreview({
           <DialogTitle className="flex items-center gap-2">
             {getDocumentTypeName(document.type)}
           </DialogTitle>
-          
+
           {document.rejectionReason && (
             <div className="mt-2 rounded-md bg-destructive/10 p-3 text-sm">
               <p className="font-semibold text-destructive">Motif de rejet:</p>
@@ -93,9 +88,7 @@ export function DocumentPreview({
         </DialogHeader>
 
         <div className="space-y-4">
-          <div className="rounded-md border">
-            {renderPreview()}
-          </div>
+          <div className="rounded-md border">{renderPreview()}</div>
 
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div>

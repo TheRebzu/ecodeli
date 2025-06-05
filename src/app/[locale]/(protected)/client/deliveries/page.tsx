@@ -54,13 +54,14 @@ export default function ClientDeliveriesPage() {
   const itemsPerPage = 5;
 
   // Récupérer les livraisons avec notre hook personnalisé
-  const { deliveries, isLoading, error, refetch, hasActiveDeliveries, pagination } = useClientDeliveries({
-    status: activeTab,
-    searchQuery,
-    sortOrder,
-    page: currentPage,
-    limit: itemsPerPage,
-  });
+  const { deliveries, isLoading, error, refetch, hasActiveDeliveries, pagination } =
+    useClientDeliveries({
+      status: activeTab,
+      searchQuery,
+      sortOrder,
+      page: currentPage,
+      limit: itemsPerPage,
+    });
 
   // Filtrer selon le statut actif
   const getStatusFilter = (status: FilterStatus) => {
@@ -77,7 +78,10 @@ export default function ClientDeliveriesPage() {
   };
 
   // Vérifier si une livraison est "arrivant bientôt" (dans les 30 minutes)
-  const isArrivingSoon = (delivery: { status: DeliveryStatus; estimatedArrival?: Date | string }): boolean => {
+  const isArrivingSoon = (delivery: {
+    status: DeliveryStatus;
+    estimatedArrival?: Date | string;
+  }): boolean => {
     if (delivery?.status === DeliveryStatus.IN_TRANSIT && delivery?.estimatedArrival) {
       const now = new Date();
       const eta = new Date(delivery.estimatedArrival);
@@ -326,12 +330,13 @@ export default function ClientDeliveriesPage() {
                         <PaginationPrevious
                           onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                           isActive={currentPage > 1}
-                          className={currentPage <= 1 ? "cursor-not-allowed opacity-50" : ""}
+                          className={currentPage <= 1 ? 'cursor-not-allowed opacity-50' : ''}
                           href="#"
                         />
                       </PaginationItem>
 
-                      {pagination && pagination.totalPages > 0 && (
+                      {pagination &&
+                        pagination.totalPages > 0 &&
                         Array.from({ length: Math.min(5, pagination.totalPages) }).map((_, i) => {
                           // Logique pour afficher les bonnes pages en fonction de la page courante
                           let pageToShow: number;
@@ -358,17 +363,18 @@ export default function ClientDeliveriesPage() {
                               </PaginationLink>
                             </PaginationItem>
                           );
-                        })
-                      )}
+                        })}
 
                       <PaginationItem>
                         <PaginationNext
-                          onClick={() => setCurrentPage(prev => Math.min(prev + 1, pagination?.totalPages || 1))}
+                          onClick={() =>
+                            setCurrentPage(prev => Math.min(prev + 1, pagination?.totalPages || 1))
+                          }
                           isActive={pagination && currentPage < pagination.totalPages}
                           className={
                             !pagination || currentPage >= pagination.totalPages
-                              ? "cursor-not-allowed opacity-50"
-                              : ""
+                              ? 'cursor-not-allowed opacity-50'
+                              : ''
                           }
                           href="#"
                         />

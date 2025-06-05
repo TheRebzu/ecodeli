@@ -210,7 +210,7 @@ export const authOptions: NextAuthOptions = {
             // Mettre à jour le token avec les informations actuelles
             token.status = currentUser.status;
             token.isVerified = currentUser.isVerified;
-            
+
             // Mettre à jour également les informations spécifiques au rôle
             if (token.role === 'DELIVERER' && currentUser.deliverer) {
               token.isVerified = currentUser.deliverer.isVerified;
@@ -219,11 +219,13 @@ export const authOptions: NextAuthOptions = {
             } else if (token.role === 'MERCHANT' && currentUser.merchant) {
               token.isVerified = currentUser.merchant.isVerified;
             }
-            
-            console.log(`Session mise à jour pour ${currentUser.email}: status=${token.status}, isVerified=${token.isVerified}`);
+
+            console.log(
+              `Session mise à jour pour ${currentUser.email}: status=${token.status}, isVerified=${token.isVerified}`
+            );
           }
         } catch (error) {
-          console.error("Erreur lors de la mise à jour dynamique de la session:", error);
+          console.error('Erreur lors de la mise à jour dynamique de la session:', error);
           // Ne pas bloquer le processus en cas d'erreur
         }
       }

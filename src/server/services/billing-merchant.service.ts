@@ -33,14 +33,13 @@ interface VolumeFees {
  * Étend le BillingService existant avec les fonctionnalités spécifiques aux merchants
  */
 export class MerchantBillingService extends BillingService {
-
   /**
    * Lance la facturation automatique mensuelle pour tous les merchants
    * Génère les factures basées sur les contrats actifs et l'activité
    */
   async runMonthlyMerchantBilling(date = new Date()) {
     try {
-      // Calculer la période de facturation (mois précédent)  
+      // Calculer la période de facturation (mois précédent)
       const billingPeriod = this.calculateBillingPeriod(date);
       const monthYear = format(billingPeriod.endDate, 'MMMM yyyy', { locale: fr });
 
@@ -51,20 +50,17 @@ export class MerchantBillingService extends BillingService {
         where: {
           isVerified: true,
           user: {
-            status: 'ACTIVE'
+            status: 'ACTIVE',
           },
           contracts: {
             some: {
               status: 'ACTIVE',
               effectiveDate: {
-                lte: billingPeriod.endDate
+                lte: billingPeriod.endDate,
               },
-              OR: [
-                { expiresAt: null },
-                { expiresAt: { gte: billingPeriod.startDate } }
-              ]
-            }
-          }
+              OR: [{ expiresAt: null }, { expiresAt: { gte: billingPeriod.startDate } }],
+            },
+          },
         },
         include: {
           user: true,
@@ -72,15 +68,12 @@ export class MerchantBillingService extends BillingService {
             where: {
               status: 'ACTIVE',
               effectiveDate: {
-                lte: billingPeriod.endDate
+                lte: billingPeriod.endDate,
               },
-              OR: [
-                { expiresAt: null },
-                { expiresAt: { gte: billingPeriod.startDate } }
-              ]
-            }
-          }
-        }
+              OR: [{ expiresAt: null }, { expiresAt: { gte: billingPeriod.startDate } }],
+            },
+          },
+        },
       });
 
       const results = {
@@ -90,7 +83,7 @@ export class MerchantBillingService extends BillingService {
         totalAmount: 0,
         failedMerchants: [] as string[],
         failedProviders: [] as string[],
-        errors: [] as string[]
+        errors: [] as string[],
       };
 
       // Traiter chaque merchant
@@ -98,12 +91,12 @@ export class MerchantBillingService extends BillingService {
         try {
           // Utiliser la méthode améliorée avec contrat
           const result = await this.generateEnhancedMerchantInvoice(
-            merchant.id, 
+            merchant.id,
             merchant.contracts[0].id,
-            billingPeriod.startDate, 
+            billingPeriod.startDate,
             billingPeriod.endDate
           );
-          
+
           if (result && result.invoice) {
             results.merchantsProcessed++;
             results.invoicesGenerated++;
@@ -115,12 +108,14 @@ export class MerchantBillingService extends BillingService {
         } catch (error) {
           console.error(`[MERCHANT BILLING] Erreur merchant ${merchant.id}:`, error);
           results.failedMerchants.push(merchant.id);
-          results.errors.push(`Merchant ${merchant.user.name}: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
+          results.errors.push(
+            `Merchant ${merchant.user.name}: ${error instanceof Error ? error.message : 'Erreur inconnue'}`
+          );
         }
       }
 
       console.log(`[MERCHANT BILLING] Facturation mensuelle merchants terminée:`, results);
-      
+
       // Envoyer rapport admin si des erreurs
       if (results.errors.length > 0) {
         await this.sendBillingErrorReport(results, 'MERCHANT', monthYear);
@@ -137,16 +132,21 @@ export class MerchantBillingService extends BillingService {
    * Génère la facture d'un merchant avec intégration contrat
    * Prend en compte les frais fixes, commissions et termes du contrat
    */
-  async generateEnhancedMerchantInvoice(merchantId: string, contractId: string, startDate: Date, endDate: Date) {
+  async generateEnhancedMerchantInvoice(
+    merchantId: string,
+    contractId: string,
+    startDate: Date,
+    endDate: Date
+  ) {
     // Récupérer le merchant et son contrat
     const merchant = await db.merchant.findUnique({
       where: { id: merchantId },
       include: {
         user: true,
         contracts: {
-          where: { id: contractId, status: 'ACTIVE' }
-        }
-      }
+          where: { id: contractId, status: 'ACTIVE' },
+        },
+      },
     });
 
     if (!merchant || merchant.contracts.length === 0) {
@@ -154,7 +154,7 @@ export class MerchantBillingService extends BillingService {
     }
 
     const contract = merchant.contracts[0];
-    
+
     // Vérifier si une facture existe déjà pour cette période
     const existingInvoice = await db.invoice.findFirst({
       where: {
@@ -162,23 +162,25 @@ export class MerchantBillingService extends BillingService {
         invoiceType: 'MERCHANT_FEE',
         billingPeriodStart: {
           gte: startDate,
-          lt: endDate
+          lt: endDate,
         },
         billingPeriodEnd: {
           gt: startDate,
-          lte: endDate
-        }
-      }
+          lte: endDate,
+        },
+      },
     });
 
     if (existingInvoice) {
-      console.log(`Facture déjà existante pour merchant ${merchantId}, période ${startDate.toISOString()} - ${endDate.toISOString()}`);
+      console.log(
+        `Facture déjà existante pour merchant ${merchantId}, période ${startDate.toISOString()} - ${endDate.toISOString()}`
+      );
       return null;
     }
 
     // Calculer les frais selon le contrat
     const contractTerms = this.calculateContractBasedFees(contract, startDate, endDate);
-    
+
     // Récupérer l'activité du merchant (livraisons, commandes)
     const merchantActivity = await this.getMerchantActivity(merchantId, startDate, endDate);
 
@@ -190,14 +192,14 @@ export class MerchantBillingService extends BillingService {
     if (contract.monthlyFee && contractTerms.daysInPeriod > 0) {
       const monthlyFee = new Decimal(contract.monthlyFee.toString());
       const proRatedFee = monthlyFee.mul(contractTerms.daysInPeriod).div(contractTerms.daysInMonth);
-      
+
       invoiceItems.push({
         description: `Frais mensuels fixes - ${contract.title}`,
         quantity: 1,
         unitPrice: parseFloat(proRatedFee.toString()),
-        taxRate: 20
+        taxRate: 20,
       });
-      
+
       totalAmount = totalAmount.add(proRatedFee);
     }
 
@@ -205,14 +207,18 @@ export class MerchantBillingService extends BillingService {
     if (contract.commissionRate && merchantActivity.totalDeliveryValue > 0) {
       const commissionRate = new Decimal(contract.commissionRate.toString());
       const commissionAmount = new Decimal(merchantActivity.totalDeliveryValue).mul(commissionRate);
-      
+
       invoiceItems.push({
-        description: `Commission sur livraisons (${(commissionRate.mul(100)).toString()}%) - ${merchantActivity.deliveryCount} livraisons`,
+        description: `Commission sur livraisons (${commissionRate.mul(100).toString()}%) - ${merchantActivity.deliveryCount} livraisons`,
         quantity: merchantActivity.deliveryCount,
-        unitPrice: parseFloat(new Decimal(merchantActivity.totalDeliveryValue).div(merchantActivity.deliveryCount).toString()),
-        taxRate: 20
+        unitPrice: parseFloat(
+          new Decimal(merchantActivity.totalDeliveryValue)
+            .div(merchantActivity.deliveryCount)
+            .toString()
+        ),
+        taxRate: 20,
       });
-      
+
       totalAmount = totalAmount.add(commissionAmount);
     }
 
@@ -224,9 +230,9 @@ export class MerchantBillingService extends BillingService {
           description: volumeFees.description,
           quantity: 1,
           unitPrice: volumeFees.amount,
-          taxRate: 20
+          taxRate: 20,
         });
-        
+
         totalAmount = totalAmount.add(new Decimal(volumeFees.amount));
       }
     }
@@ -234,14 +240,14 @@ export class MerchantBillingService extends BillingService {
     // 4. Frais d'assurance si requis
     if (contract.insuranceRequired && contract.insuranceAmount) {
       const insuranceFee = new Decimal(contract.insuranceAmount.toString()).div(12); // Mensuel
-      
+
       invoiceItems.push({
-        description: 'Frais d\'assurance mensuelle',
+        description: "Frais d'assurance mensuelle",
         quantity: 1,
         unitPrice: parseFloat(insuranceFee.toString()),
-        taxRate: 20
+        taxRate: 20,
       });
-      
+
       totalAmount = totalAmount.add(insuranceFee);
     }
 
@@ -269,8 +275,8 @@ export class MerchantBillingService extends BillingService {
         merchantId: merchant.id,
         billingPeriod: { startDate, endDate },
         contractTerms: contractTerms,
-        merchantActivity: merchantActivity
-      }
+        merchantActivity: merchantActivity,
+      },
     });
 
     // Intégrer avec le service de paiement pour traitement automatique
@@ -280,7 +286,7 @@ export class MerchantBillingService extends BillingService {
       invoice,
       contractTerms,
       merchantActivity,
-      totalAmount: parseFloat(totalAmount.toString())
+      totalAmount: parseFloat(totalAmount.toString()),
     };
   }
 
@@ -291,7 +297,7 @@ export class MerchantBillingService extends BillingService {
     try {
       // Marquer la facture comme émise
       const invoice = await invoiceService.finalizeInvoice(invoiceId);
-      
+
       // Générer le PDF si pas encore fait
       if (!invoice.pdfUrl) {
         await invoiceService.generateInvoicePdf(invoiceId);
@@ -300,7 +306,7 @@ export class MerchantBillingService extends BillingService {
       // Envoyer par email au merchant
       const merchant = await db.merchant.findUnique({
         where: { userId: invoice.userId },
-        include: { user: true }
+        include: { user: true },
       });
 
       if (merchant && merchant.user.email) {
@@ -312,7 +318,7 @@ export class MerchantBillingService extends BillingService {
           amount: parseFloat(invoice.totalAmount.toString()),
           currency: invoice.currency,
           dueDate: invoice.dueDate,
-          downloadUrl: `/api/invoices/${invoice.id}/download`
+          downloadUrl: `/api/invoices/${invoice.id}/download`,
         });
       }
 
@@ -322,7 +328,7 @@ export class MerchantBillingService extends BillingService {
         type: 'INVOICE_ISSUED',
         title: 'Nouvelle facture disponible',
         message: `Votre facture ${invoice.invoiceNumber} d'un montant de ${parseFloat(invoice.totalAmount.toString())}€ est disponible`,
-        data: { invoiceId: invoice.id }
+        data: { invoiceId: invoice.id },
       });
 
       return invoice;
@@ -342,14 +348,17 @@ export class MerchantBillingService extends BillingService {
         where: {
           userId: merchant.userId,
           isDefault: true,
-          type: 'SEPA' // ou 'CARD' selon configuration
-        }
+          type: 'SEPA', // ou 'CARD' selon configuration
+        },
       });
 
       if (paymentMethods.length > 0 && contract.autoPayment) {
         // Programmer le prélèvement selon les termes du contrat
-        const paymentDate = addDays(new Date(), contract.paymentTerms ? parseInt(contract.paymentTerms) : 7);
-        
+        const paymentDate = addDays(
+          new Date(),
+          contract.paymentTerms ? parseInt(contract.paymentTerms) : 7
+        );
+
         await db.scheduledPayment.create({
           data: {
             invoiceId,
@@ -361,12 +370,14 @@ export class MerchantBillingService extends BillingService {
             status: 'SCHEDULED',
             metadata: {
               contractId: contract.id,
-              autoPayment: true
-            }
-          }
+              autoPayment: true,
+            },
+          },
         });
 
-        console.log(`Paiement automatique programmé pour facture ${invoiceId} le ${paymentDate.toISOString()}`);
+        console.log(
+          `Paiement automatique programmé pour facture ${invoiceId} le ${paymentDate.toISOString()}`
+        );
       }
     } catch (error) {
       console.error(`Erreur programmation paiement automatique facture ${invoiceId}:`, error);
@@ -391,18 +402,18 @@ export class MerchantBillingService extends BillingService {
           status: 'SCHEDULED',
           scheduledDate: {
             gte: today,
-            lt: tomorrow
-          }
+            lt: tomorrow,
+          },
         },
         include: {
           invoice: true,
           paymentMethod: true,
           user: {
             include: {
-              merchant: true
-            }
-          }
-        }
+              merchant: true,
+            },
+          },
+        },
       });
 
       const results = {
@@ -410,7 +421,7 @@ export class MerchantBillingService extends BillingService {
         successfulPayments: 0,
         failedPayments: 0,
         totalAmount: 0,
-        errors: [] as string[]
+        errors: [] as string[],
       };
 
       for (const scheduledPayment of scheduledPayments) {
@@ -427,8 +438,8 @@ export class MerchantBillingService extends BillingService {
             metadata: {
               scheduledPaymentId: scheduledPayment.id,
               contractId: scheduledPayment.metadata?.contractId,
-              autoPayment: true
-            }
+              autoPayment: true,
+            },
           });
 
           if (paymentResult.payment) {
@@ -438,8 +449,8 @@ export class MerchantBillingService extends BillingService {
               data: {
                 status: 'COMPLETED',
                 processedAt: new Date(),
-                paymentId: paymentResult.payment.id
-              }
+                paymentId: paymentResult.payment.id,
+              },
             });
 
             results.successfulPayments++;
@@ -447,19 +458,21 @@ export class MerchantBillingService extends BillingService {
           }
         } catch (error) {
           console.error(`Erreur traitement paiement programmé ${scheduledPayment.id}:`, error);
-          
+
           // Marquer comme échoué
           await db.scheduledPayment.update({
             where: { id: scheduledPayment.id },
             data: {
               status: 'FAILED',
               errorMessage: error instanceof Error ? error.message : 'Erreur inconnue',
-              processedAt: new Date()
-            }
+              processedAt: new Date(),
+            },
           });
 
           results.failedPayments++;
-          results.errors.push(`Paiement ${scheduledPayment.id}: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
+          results.errors.push(
+            `Paiement ${scheduledPayment.id}: ${error instanceof Error ? error.message : 'Erreur inconnue'}`
+          );
         }
       }
 
@@ -479,21 +492,23 @@ export class MerchantBillingService extends BillingService {
       processed: 0,
       successful: 0,
       failed: 0,
-      errors: [] as string[]
+      errors: [] as string[],
     };
 
     for (const invoiceId of invoiceIds) {
       try {
         results.processed++;
-        
+
         // Utiliser le service PDF existant
         await invoiceService.generateInvoicePdf(invoiceId);
-        
+
         results.successful++;
       } catch (error) {
         console.error(`Erreur génération PDF facture ${invoiceId}:`, error);
         results.failed++;
-        results.errors.push(`Facture ${invoiceId}: ${error instanceof Error ? error.message : 'Erreur inconnue'}`);
+        results.errors.push(
+          `Facture ${invoiceId}: ${error instanceof Error ? error.message : 'Erreur inconnue'}`
+        );
       }
     }
 
@@ -503,23 +518,33 @@ export class MerchantBillingService extends BillingService {
   /**
    * Calcule les frais selon les termes du contrat
    */
-  private calculateContractBasedFees(contract: any, startDate: Date, endDate: Date): MerchantContractTerms {
-    const daysInPeriod = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+  private calculateContractBasedFees(
+    contract: any,
+    startDate: Date,
+    endDate: Date
+  ): MerchantContractTerms {
+    const daysInPeriod = Math.ceil(
+      (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
+    );
     const daysInMonth = new Date(startDate.getFullYear(), startDate.getMonth() + 1, 0).getDate();
-    
+
     return {
       daysInPeriod,
       daysInMonth,
       proRationFactor: daysInPeriod / daysInMonth,
       paymentTerms: contract.paymentTerms || '30',
-      exclusivityDiscount: contract.exclusivityClause ? 0.05 : 0 // 5% de remise si exclusivité
+      exclusivityDiscount: contract.exclusivityClause ? 0.05 : 0, // 5% de remise si exclusivité
     };
   }
 
   /**
    * Récupère l'activité du merchant pour la période
    */
-  private async getMerchantActivity(merchantId: string, startDate: Date, endDate: Date): Promise<MerchantActivity> {
+  private async getMerchantActivity(
+    merchantId: string,
+    startDate: Date,
+    endDate: Date
+  ): Promise<MerchantActivity> {
     // Récupérer les livraisons via le merchant
     const deliveries = await db.delivery.findMany({
       where: {
@@ -527,17 +552,19 @@ export class MerchantBillingService extends BillingService {
         status: 'COMPLETED',
         completedAt: {
           gte: startDate,
-          lte: endDate
-        }
+          lte: endDate,
+        },
       },
       include: {
-        payment: true
-      }
+        payment: true,
+      },
     });
 
     const deliveryCount = deliveries.length;
-    const totalDeliveryValue = deliveries.reduce((sum, delivery) => 
-      sum + (delivery.payment ? parseFloat(delivery.payment.amount.toString()) : 0), 0
+    const totalDeliveryValue = deliveries.reduce(
+      (sum, delivery) =>
+        sum + (delivery.payment ? parseFloat(delivery.payment.amount.toString()) : 0),
+      0
     );
 
     const avgOrderValue = deliveryCount > 0 ? totalDeliveryValue / deliveryCount : 0;
@@ -546,7 +573,7 @@ export class MerchantBillingService extends BillingService {
       deliveryCount,
       totalDeliveryValue,
       avgOrderValue,
-      period: { startDate, endDate }
+      period: { startDate, endDate },
     };
   }
 
@@ -574,7 +601,7 @@ export class MerchantBillingService extends BillingService {
       const discountAmount = -(activity.totalDeliveryValue * discountRate);
       return {
         amount: discountAmount,
-        description: `Remise volume ${(discountRate * 100).toFixed(1)}% (${activity.deliveryCount} livraisons ≥ ${threshold})`
+        description: `Remise volume ${(discountRate * 100).toFixed(1)}% (${activity.deliveryCount} livraisons ≥ ${threshold})`,
       };
     }
 
@@ -584,11 +611,15 @@ export class MerchantBillingService extends BillingService {
   /**
    * Envoie un rapport d'erreurs de facturation aux admins
    */
-  private async sendBillingErrorReport(results: any, type: 'MERCHANT' | 'PROVIDER', period: string) {
+  private async sendBillingErrorReport(
+    results: any,
+    type: 'MERCHANT' | 'PROVIDER',
+    period: string
+  ) {
     try {
       const adminUsers = await db.user.findMany({
         where: { role: 'ADMIN' },
-        select: { email: true, name: true }
+        select: { email: true, name: true },
       });
 
       for (const admin of adminUsers) {
@@ -597,7 +628,7 @@ export class MerchantBillingService extends BillingService {
           recipientName: admin.name,
           period,
           type,
-          results
+          results,
         });
       }
     } catch (error) {
@@ -607,4 +638,4 @@ export class MerchantBillingService extends BillingService {
 }
 
 // Export de l'instance du service
-export const merchantBillingService = new MerchantBillingService(); 
+export const merchantBillingService = new MerchantBillingService();

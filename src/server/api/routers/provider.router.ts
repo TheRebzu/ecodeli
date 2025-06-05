@@ -242,7 +242,7 @@ export const providerRouter = router({
   // Gestion des disponibilités
   getAvailabilities: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
-    
+
     const user = await ctx.db.user.findUnique({
       where: { id: userId },
       include: { provider: true },
@@ -268,7 +268,7 @@ export const providerRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
-      
+
       const user = await ctx.db.user.findUnique({
         where: { id: userId },
         include: { provider: true },
@@ -288,7 +288,7 @@ export const providerRouter = router({
     .input(z.object({ availabilityId: z.string() }))
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
-      
+
       const user = await ctx.db.user.findUnique({
         where: { id: userId },
         include: { provider: true },
@@ -314,7 +314,7 @@ export const providerRouter = router({
     )
     .query(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
-      
+
       const user = await ctx.db.user.findUnique({
         where: { id: userId },
         include: { provider: true },
@@ -340,7 +340,7 @@ export const providerRouter = router({
     )
     .mutation(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
-      
+
       const user = await ctx.db.user.findUnique({
         where: { id: userId },
         include: { provider: true },
@@ -353,9 +353,9 @@ export const providerRouter = router({
         });
       }
 
-      return serviceService.updateBookingStatus(user.provider.id, { 
-        id: input.bookingId, 
-        status: input.status 
+      return serviceService.updateBookingStatus(user.provider.id, {
+        id: input.bookingId,
+        status: input.status,
       });
     }),
 
@@ -363,7 +363,7 @@ export const providerRouter = router({
     .input(z.object({ bookingId: z.string() }))
     .query(async ({ ctx, input }) => {
       const userId = ctx.session.user.id;
-      
+
       const user = await ctx.db.user.findUnique({
         where: { id: userId },
         include: { provider: true },
@@ -382,7 +382,7 @@ export const providerRouter = router({
   // Gestion des évaluations
   getMyReviews: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
-    
+
     const user = await ctx.db.user.findUnique({
       where: { id: userId },
       include: { provider: true },
@@ -401,7 +401,7 @@ export const providerRouter = router({
   // Statistiques du prestataire
   getProviderStats: protectedProcedure.query(async ({ ctx }) => {
     const userId = ctx.session.user.id;
-    
+
     const user = await ctx.db.user.findUnique({
       where: { id: userId },
       include: { provider: true },
@@ -430,10 +430,12 @@ export const providerRouter = router({
         categoryId: z.string().optional(),
         city: z.string().optional(),
         maxDistance: z.number().optional(),
-        location: z.object({
-          lat: z.number(),
-          lng: z.number(),
-        }).optional(),
+        location: z
+          .object({
+            lat: z.number(),
+            lng: z.number(),
+          })
+          .optional(),
         page: z.number().default(1),
         limit: z.number().default(10),
       })

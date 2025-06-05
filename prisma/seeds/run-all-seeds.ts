@@ -23,10 +23,22 @@ import { seedMerchantUsers } from './users/merchant-users-seed';
 import { seedProviderUsers } from './users/provider-users-seed';
 
 // Import des seeds de vérification
-import { seedDelivererDocuments, validateDelivererDocuments } from './verifications/deliverer-documents-seed';
-import { seedProviderDocuments, validateProviderDocuments } from './verifications/provider-documents-seed';
-import { seedMerchantDocuments, validateMerchantDocuments } from './verifications/merchant-documents-seed';
-import { seedVerificationStates, validateVerificationStates } from './verifications/verification-states-seed';
+import {
+  seedDelivererDocuments,
+  validateDelivererDocuments,
+} from './verifications/deliverer-documents-seed';
+import {
+  seedProviderDocuments,
+  validateProviderDocuments,
+} from './verifications/provider-documents-seed';
+import {
+  seedMerchantDocuments,
+  validateMerchantDocuments,
+} from './verifications/merchant-documents-seed';
+import {
+  seedVerificationStates,
+  validateVerificationStates,
+} from './verifications/verification-states-seed';
 import { seedVerificationHistory } from './verifications/verification-history-seed';
 
 // Import des seeds stockage
@@ -43,7 +55,7 @@ import { seedBillingCycles } from './financial/billing-cycles-seed';
 import { seedClientAnnouncements } from './announcements/client-announcements-seed';
 import { seedMerchantAnnouncements } from './announcements/merchant-announcements-seed';
 
-// Import des seeds de notifications  
+// Import des seeds de notifications
 import { seedNotificationTemplates } from './notifications/notification-templates-seed';
 
 // Import des seeds de services
@@ -61,7 +73,11 @@ interface SeedDefinition {
   name: string;
   category: string;
   dependencies: string[];
-  seedFunction: (prisma: PrismaClient, logger: SeedLogger, options: SeedOptions) => Promise<SeedResult>;
+  seedFunction: (
+    prisma: PrismaClient,
+    logger: SeedLogger,
+    options: SeedOptions
+  ) => Promise<SeedResult>;
   description: string;
   priority: number; // 1 = haute priorité (base), 5 = basse priorité
 }
@@ -77,15 +93,15 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
     dependencies: [],
     seedFunction: seedPermissions,
     description: 'Permissions système par rôle',
-    priority: 1
+    priority: 1,
   },
   {
     name: 'service-categories',
-    category: 'base', 
+    category: 'base',
     dependencies: [],
     seedFunction: seedServiceCategories,
     description: 'Catégories de services disponibles',
-    priority: 1
+    priority: 1,
   },
 
   // 2. Seeds utilisateurs (priorité 2)
@@ -95,7 +111,7 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
     dependencies: ['permissions'],
     seedFunction: seedAdminUsers,
     description: 'Utilisateurs administrateurs',
-    priority: 2
+    priority: 2,
   },
   {
     name: 'client-users',
@@ -103,7 +119,7 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
     dependencies: ['permissions'],
     seedFunction: seedClientUsers,
     description: 'Utilisateurs clients',
-    priority: 2
+    priority: 2,
   },
   {
     name: 'deliverer-users',
@@ -111,7 +127,7 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
     dependencies: ['permissions'],
     seedFunction: seedDelivererUsers,
     description: 'Utilisateurs livreurs',
-    priority: 2
+    priority: 2,
   },
   {
     name: 'merchant-users',
@@ -119,7 +135,7 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
     dependencies: ['permissions'],
     seedFunction: seedMerchantUsers,
     description: 'Utilisateurs commerçants',
-    priority: 2
+    priority: 2,
   },
   {
     name: 'provider-users',
@@ -127,7 +143,7 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
     dependencies: ['permissions'],
     seedFunction: seedProviderUsers,
     description: 'Utilisateurs prestataires',
-    priority: 2
+    priority: 2,
   },
 
   // 3. Seeds vérifications (priorité 3)
@@ -137,7 +153,7 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
     dependencies: ['deliverer-users'],
     seedFunction: seedDelivererDocuments,
     description: 'Documents des livreurs',
-    priority: 3
+    priority: 3,
   },
   {
     name: 'provider-documents',
@@ -145,7 +161,7 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
     dependencies: ['provider-users'],
     seedFunction: seedProviderDocuments,
     description: 'Documents des prestataires',
-    priority: 3
+    priority: 3,
   },
   {
     name: 'merchant-documents',
@@ -153,7 +169,7 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
     dependencies: ['merchant-users'],
     seedFunction: seedMerchantDocuments,
     description: 'Documents des commerçants',
-    priority: 3
+    priority: 3,
   },
   {
     name: 'verification-states',
@@ -161,7 +177,7 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
     dependencies: ['deliverer-documents', 'provider-documents', 'merchant-documents'],
     seedFunction: seedVerificationStates,
     description: 'États des vérifications',
-    priority: 3
+    priority: 3,
   },
   {
     name: 'verification-history',
@@ -169,7 +185,7 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
     dependencies: ['verification-states'],
     seedFunction: seedVerificationHistory,
     description: 'Historique des vérifications',
-    priority: 3
+    priority: 3,
   },
 
   // 4. Seeds infrastructure (priorité 4)
@@ -179,7 +195,7 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
     dependencies: [],
     seedFunction: seedWarehouses,
     description: 'Entrepôts de stockage',
-    priority: 4
+    priority: 4,
   },
 
   // 5. Seeds financiers (priorité 5)
@@ -189,7 +205,7 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
     dependencies: ['deliverer-users', 'provider-users', 'merchant-users'],
     seedFunction: seedWallets,
     description: 'Portefeuilles utilisateurs et transactions',
-    priority: 5
+    priority: 5,
   },
   {
     name: 'commissions',
@@ -197,7 +213,7 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
     dependencies: [],
     seedFunction: seedCommissions,
     description: 'Taux de commission et promotions',
-    priority: 5
+    priority: 5,
   },
   {
     name: 'payments',
@@ -205,7 +221,7 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
     dependencies: ['client-users', 'commissions'],
     seedFunction: seedPayments,
     description: 'Paiements Stripe et méthodes',
-    priority: 5
+    priority: 5,
   },
   {
     name: 'invoices',
@@ -213,7 +229,7 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
     dependencies: ['deliverer-users', 'provider-users', 'merchant-users', 'client-users'],
     seedFunction: seedInvoices,
     description: 'Factures et lignes de détail',
-    priority: 5
+    priority: 5,
   },
   {
     name: 'billing-cycles',
@@ -221,7 +237,7 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
     dependencies: ['wallets', 'payments', 'invoices'],
     seedFunction: seedBillingCycles,
     description: 'Cycles de facturation et rappels',
-    priority: 5
+    priority: 5,
   },
 
   // 6. Seeds spécifiques
@@ -231,7 +247,7 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
     dependencies: ['service-categories'],
     seedFunction: seedServiceTypes,
     description: 'Types de services détaillés',
-    priority: 6
+    priority: 6,
   },
   {
     name: 'provider-availability',
@@ -239,7 +255,7 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
     dependencies: ['service-types'],
     seedFunction: seedProviderAvailability,
     description: 'Disponibilités des prestataires',
-    priority: 6
+    priority: 6,
   },
   {
     name: 'service-ratings',
@@ -247,7 +263,7 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
     dependencies: ['provider-availability'],
     seedFunction: seedServiceRatings,
     description: 'Évaluations de services',
-    priority: 6
+    priority: 6,
   },
   {
     name: 'provider-services',
@@ -255,7 +271,7 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
     dependencies: ['provider-users', 'service-categories'],
     seedFunction: seedProviderServices,
     description: 'Services proposés par les prestataires',
-    priority: 6
+    priority: 6,
   },
   {
     name: 'service-bookings',
@@ -263,7 +279,7 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
     dependencies: ['provider-services', 'client-users'],
     seedFunction: seedServiceBookings,
     description: 'Réservations de services',
-    priority: 7
+    priority: 7,
   },
 
   // 7. Seeds d'annonces (priorité 7)
@@ -273,7 +289,7 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
     dependencies: ['client-users'],
     seedFunction: seedClientAnnouncements,
     description: 'Annonces des clients',
-    priority: 7
+    priority: 7,
   },
   {
     name: 'merchant-announcements',
@@ -281,7 +297,7 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
     dependencies: ['merchant-users'],
     seedFunction: seedMerchantAnnouncements,
     description: 'Annonces des commerçants',
-    priority: 7
+    priority: 7,
   },
 
   // 8. Seeds de notifications (priorité 8)
@@ -291,8 +307,8 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
     dependencies: [],
     seedFunction: seedNotificationTemplates,
     description: 'Modèles de notifications',
-    priority: 8
-  }
+    priority: 8,
+  },
 ];
 
 /**
@@ -328,7 +344,10 @@ class SeedOrchestrator {
   async run(): Promise<void> {
     try {
       this.logger.info('ORCHESTRATOR', '🚀 Démarrage du système de seeds EcoDeli');
-      this.logger.info('ORCHESTRATOR', `📊 Configuration: ${JSON.stringify(defaultSeedConfig.quantities, null, 2)}`);
+      this.logger.info(
+        'ORCHESTRATOR',
+        `📊 Configuration: ${JSON.stringify(defaultSeedConfig.quantities, null, 2)}`
+      );
 
       if (this.options.dryRun) {
         await this.dryRun();
@@ -340,8 +359,8 @@ class SeedOrchestrator {
         return;
       }
 
-      // Nettoyer la base si demandé
-      if (this.options.clean) {
+      // Nettoyer la base si demandé ou en mode force
+      if (this.options.clean || this.options.force) {
         await this.cleanDatabase();
       }
 
@@ -353,7 +372,6 @@ class SeedOrchestrator {
       await this.finalValidation();
 
       this.logger.success('ORCHESTRATOR', '✅ Tous les seeds ont été exécutés avec succès');
-
     } catch (error: any) {
       this.logger.error('ORCHESTRATOR', `❌ Erreur fatale: ${error.message}`);
       throw error;
@@ -367,13 +385,16 @@ class SeedOrchestrator {
    */
   private async dryRun(): Promise<void> {
     this.logger.info('DRY_RUN', '🔍 Mode simulation - aucune modification ne sera effectuée');
-    
+
     const seedsToRun = this.resolveDependencies();
-    
+
     this.logger.info('DRY_RUN', `📋 ${seedsToRun.length} seeds seraient exécutés dans cet ordre:`);
-    
+
     seedsToRun.forEach((seed, index) => {
-      this.logger.info('DRY_RUN', `${index + 1}. [${seed.category}] ${seed.name} - ${seed.description}`);
+      this.logger.info(
+        'DRY_RUN',
+        `${index + 1}. [${seed.category}] ${seed.name} - ${seed.description}`
+      );
       if (seed.dependencies.length > 0) {
         this.logger.info('DRY_RUN', `   Dépendances: ${seed.dependencies.join(', ')}`);
       }
@@ -387,21 +408,21 @@ class SeedOrchestrator {
    */
   private async validateOnly(): Promise<void> {
     this.logger.info('VALIDATION', '🔍 Mode validation uniquement');
-    
+
     const validator = createSeedValidator(this.prisma, this.logger);
-    
+
     const validationOptions: ValidationOptions = {
       categories: this.options.categories,
       verbose: true,
-      strict: true
+      strict: true,
     };
 
     const stats = await validator.validate(validationOptions);
-    
+
     if (stats.failedRules > 0) {
       throw new Error(`Validation échouée: ${stats.failedRules} règles non respectées`);
     }
-    
+
     this.logger.success('VALIDATION', '✅ Toutes les validations sont passées');
   }
 
@@ -413,16 +434,14 @@ class SeedOrchestrator {
 
     // Filtrer par catégories si spécifié
     if (this.options.categories && this.options.categories.length > 0) {
-      availableSeeds = availableSeeds.filter(seed => 
+      availableSeeds = availableSeeds.filter(seed =>
         this.options.categories!.includes(seed.category)
       );
     }
 
     // Filtrer par seeds spécifiques si spécifié
     if (this.options.seeds && this.options.seeds.length > 0) {
-      availableSeeds = availableSeeds.filter(seed => 
-        this.options.seeds!.includes(seed.name)
-      );
+      availableSeeds = availableSeeds.filter(seed => this.options.seeds!.includes(seed.name));
     }
 
     // Tri topologique pour résoudre les dépendances
@@ -466,7 +485,10 @@ class SeedOrchestrator {
    * Exécute les seeds dans l'ordre résolu
    */
   private async executeSeedsInOrder(seeds: SeedDefinition[]): Promise<void> {
-    this.logger.info('EXECUTION', `📋 Exécution de ${seeds.length} seeds dans l'ordre des dépendances`);
+    this.logger.info(
+      'EXECUTION',
+      `📋 Exécution de ${seeds.length} seeds dans l'ordre des dépendances`
+    );
 
     const results: { [key: string]: SeedResult } = {};
     let totalCreated = 0;
@@ -474,36 +496,32 @@ class SeedOrchestrator {
 
     for (let i = 0; i < seeds.length; i++) {
       const seed = seeds[i];
-      
+
       this.logger.info('EXECUTION', `[${i + 1}/${seeds.length}] Exécution: ${seed.name}`);
-      
+
       try {
-        const result = await seed.seedFunction(
-          this.prisma, 
-          this.logger, 
-          {
-            clean: this.options.clean,
-            force: this.options.force,
-            verbose: this.options.verbose
-          }
-        );
+        const result = await seed.seedFunction(this.prisma, this.logger, {
+          clean: this.options.clean,
+          force: this.options.force,
+          verbose: this.options.verbose,
+        });
 
         results[seed.name] = result;
         totalCreated += result.created;
         totalErrors += result.errors;
 
         if (result.errors > 0) {
-          this.logger.warning('EXECUTION', 
-            `⚠️ ${seed.name} terminé avec ${result.errors} erreurs`);
+          this.logger.warning('EXECUTION', `⚠️ ${seed.name} terminé avec ${result.errors} erreurs`);
         } else {
-          this.logger.success('EXECUTION', 
-            `✅ ${seed.name} terminé: ${result.created} créés, ${result.skipped} ignorés`);
+          this.logger.success(
+            'EXECUTION',
+            `✅ ${seed.name} terminé: ${result.created} créés, ${result.skipped} ignorés`
+          );
         }
-
       } catch (error: any) {
         this.logger.error('EXECUTION', `❌ Échec du seed ${seed.name}: ${error.message}`);
         totalErrors++;
-        
+
         // Continuer avec les autres seeds ou s'arrêter selon la configuration
         if (!this.options.force) {
           throw new Error(`Arrêt suite à l'échec du seed: ${seed.name}`);
@@ -512,13 +530,15 @@ class SeedOrchestrator {
     }
 
     // Résumé final
-    this.logger.info('EXECUTION', '📊 Résumé de l\'exécution:');
+    this.logger.info('EXECUTION', "📊 Résumé de l'exécution:");
     this.logger.info('EXECUTION', `   • Total créé: ${totalCreated} entités`);
     this.logger.info('EXECUTION', `   • Total erreurs: ${totalErrors}`);
-    
+
     Object.entries(results).forEach(([name, result]) => {
-      this.logger.info('EXECUTION', 
-        `   • ${name}: ${result.created} créés, ${result.skipped} ignorés, ${result.errors} erreurs`);
+      this.logger.info(
+        'EXECUTION',
+        `   • ${name}: ${result.created} créés, ${result.skipped} ignorés, ${result.errors} erreurs`
+      );
     });
   }
 
@@ -527,23 +547,26 @@ class SeedOrchestrator {
    */
   private async cleanDatabase(): Promise<void> {
     this.logger.warning('CLEAN', '🧹 Nettoyage de la base de données...');
-    
+
     if (!this.options.force) {
-      throw new Error('Le nettoyage nécessite l\'option --force pour éviter les suppressions accidentelles');
+      throw new Error(
+        "Le nettoyage nécessite l'option --force pour éviter les suppressions accidentelles"
+      );
     }
 
     const cleaner = createSeedCleaner(this.prisma, this.logger);
-    
+
     const cleanOptions: CleanOptions = {
       categories: this.options.categories,
       force: this.options.force,
       dryRun: this.options.dryRun,
-      preserveUsers: false
+      preserveUsers: false,
     };
 
     try {
       const stats = await cleaner.clean(cleanOptions);
-      this.logger.success('CLEAN', 
+      this.logger.success(
+        'CLEAN',
         `✅ Nettoyage terminé: ${stats.recordsDeleted} enregistrements supprimés de ${stats.tablesProcessed} tables`
       );
     } catch (error: any) {
@@ -557,24 +580,26 @@ class SeedOrchestrator {
    */
   private async finalValidation(): Promise<void> {
     this.logger.info('VALIDATION', '🔍 Validation finale du système...');
-    
+
     const validator = createSeedValidator(this.prisma, this.logger);
-    
+
     const validationOptions: ValidationOptions = {
       categories: this.options.categories,
       verbose: this.options.verbose,
-      strict: false
+      strict: false,
     };
 
     try {
       const stats = await validator.validate(validationOptions);
-      
+
       if (stats.failedRules === 0) {
-        this.logger.success('VALIDATION', 
+        this.logger.success(
+          'VALIDATION',
           `✅ Validation réussie: ${stats.passedRules}/${stats.totalRules} règles passées`
         );
       } else {
-        this.logger.warning('VALIDATION', 
+        this.logger.warning(
+          'VALIDATION',
           `⚠️ Validation partielle: ${stats.failedRules} règles échouées sur ${stats.totalRules}`
         );
       }
@@ -594,7 +619,7 @@ async function main() {
   // Parser les arguments
   for (let i = 0; i < args.length; i++) {
     const arg = args[i];
-    
+
     switch (arg) {
       case '--categories':
         options.categories = args[++i]?.split(',') || [];
@@ -659,10 +684,10 @@ Exemples:
 
 // Exécuter automatiquement
 console.log('🚀 Démarrage du script seeds...');
-main().catch((error) => {
+main().catch(error => {
   console.error('❌ Erreur fatale:', error);
   console.error(error.stack);
   process.exit(1);
 });
 
-export { SeedOrchestrator, SEED_DEFINITIONS }; 
+export { SeedOrchestrator, SEED_DEFINITIONS };

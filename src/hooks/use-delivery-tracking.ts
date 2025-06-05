@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { useSocket } from '@/hooks/use-socket';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { trpc } from '@/trpc/client';
+import { api } from '@/trpc/react';
 import { DeliveryPosition, DeliveryTracker } from '@/socket/delivery-tracking-client';
 import { DeliveryStatus as PrismaDeliveryStatus } from '@prisma/client';
 import {
@@ -91,7 +91,10 @@ interface DeliveryTrackingState {
  * Hook pour suivre une livraison en temps réel avec la nouvelle infrastructure Socket.IO
  * Utilise Socket.IO de manière sécurisée côté client
  */
-export function useDeliveryTrackingRealtime({ deliveryId, autoTrack = true }: UseDeliveryTrackingProps) {
+export function useDeliveryTrackingRealtime({
+  deliveryId,
+  autoTrack = true,
+}: UseDeliveryTrackingProps) {
   const { socket } = useSocket();
   const [tracker, setTracker] = useState<DeliveryTracker | null>(null);
   const [state, setState] = useState<DeliveryTrackingState>({
@@ -127,10 +130,10 @@ export function useDeliveryTrackingRealtime({ deliveryId, autoTrack = true }: Us
         setState(prev => ({ ...prev, isTracking: true, error: null }));
       } catch (error) {
         console.error('Erreur de suivi:', error);
-        setState(prev => ({ 
-          ...prev, 
-          isTracking: false, 
-          error: error instanceof Error ? error : new Error('Erreur de suivi de livraison') 
+        setState(prev => ({
+          ...prev,
+          isTracking: false,
+          error: error instanceof Error ? error : new Error('Erreur de suivi de livraison'),
         }));
       }
     };
@@ -147,18 +150,19 @@ export function useDeliveryTrackingRealtime({ deliveryId, autoTrack = true }: Us
     if (!tracker || !state.isTracking) return;
 
     // S'abonner aux mises à jour de position
-    const unsubPosition = tracker.onLocationUpdate(deliveryId, (position) => {
-      setState(prev => ({ 
-        ...prev, 
+    const unsubPosition = tracker.onLocationUpdate(deliveryId, position => {
+      setState(prev => ({
+        ...prev,
         position: {
           ...position,
           // Convertir le timestamp de nombre à Date si nécessaire
-          timestamp: typeof position.timestamp === 'number' 
-            ? position.timestamp 
-            : (position.timestamp instanceof Date 
-                ? position.timestamp.getTime() 
-                : Date.now())
-        }
+          timestamp:
+            typeof position.timestamp === 'number'
+              ? position.timestamp
+              : position.timestamp instanceof Date
+                ? position.timestamp.getTime()
+                : Date.now(),
+        },
       }));
     });
 
@@ -169,8 +173,8 @@ export function useDeliveryTrackingRealtime({ deliveryId, autoTrack = true }: Us
 
     // S'abonner aux mises à jour d'ETA
     const unsubETA = tracker.onETAUpdate(deliveryId, ({ estimatedTime, distanceRemaining }) => {
-      setState(prev => ({ 
-        ...prev, 
+      setState(prev => ({
+        ...prev,
         eta: estimatedTime,
         distanceRemaining: distanceRemaining ?? prev.distanceRemaining,
       }));
@@ -186,9 +190,9 @@ export function useDeliveryTrackingRealtime({ deliveryId, autoTrack = true }: Us
   // Fonction pour commencer le suivi manuellement
   const startTracking = async () => {
     if (!tracker) {
-      setState(prev => ({ 
-        ...prev, 
-        error: new Error('Socket non disponible') 
+      setState(prev => ({
+        ...prev,
+        error: new Error('Socket non disponible'),
       }));
       return;
     }
@@ -197,9 +201,9 @@ export function useDeliveryTrackingRealtime({ deliveryId, autoTrack = true }: Us
       await tracker.trackDelivery(deliveryId);
       setState(prev => ({ ...prev, isTracking: true, error: null }));
     } catch (error) {
-      setState(prev => ({ 
-        ...prev, 
-        error: error instanceof Error ? error : new Error('Erreur de suivi de livraison') 
+      setState(prev => ({
+        ...prev,
+        error: error instanceof Error ? error : new Error('Erreur de suivi de livraison'),
       }));
     }
   };
@@ -212,25 +216,26 @@ export function useDeliveryTrackingRealtime({ deliveryId, autoTrack = true }: Us
       await tracker.untrackDelivery(deliveryId);
       setState(prev => ({ ...prev, isTracking: false }));
     } catch (error) {
-      console.error('Erreur lors de l\'arrêt du suivi:', error);
+      console.error("Erreur lors de l'arrêt du suivi:", error);
     }
   };
 
   // Fonctions pour les livreurs
   const updatePosition = async (position: DeliveryPosition) => {
     if (!tracker) return;
-    
+
     try {
       // Assurer que le timestamp est un nombre comme attendu par le tracker
       const positionWithNumberTimestamp: DeliveryPosition = {
         ...position,
-        timestamp: position.timestamp instanceof Date 
-          ? position.timestamp.getTime() 
-          : (typeof position.timestamp === 'number' 
-              ? position.timestamp 
-              : Date.now())
+        timestamp:
+          position.timestamp instanceof Date
+            ? position.timestamp.getTime()
+            : typeof position.timestamp === 'number'
+              ? position.timestamp
+              : Date.now(),
       };
-      
+
       await tracker.updateDeliveryPosition(deliveryId, positionWithNumberTimestamp);
     } catch (error) {
       console.error('Erreur lors de la mise à jour de position:', error);
@@ -240,7 +245,7 @@ export function useDeliveryTrackingRealtime({ deliveryId, autoTrack = true }: Us
 
   const updateStatus = async (status: PrismaDeliveryStatus, notes?: string) => {
     if (!tracker) return;
-    
+
     try {
       await tracker.updateDeliveryStatus(deliveryId, status, notes);
     } catch (error) {

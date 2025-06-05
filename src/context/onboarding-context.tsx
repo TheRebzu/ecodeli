@@ -139,12 +139,12 @@ export function OnboardingProvider({ children, t: externalT }: OnboardingProvide
     try {
       // Fermer immédiatement la fenêtre pour une meilleure expérience utilisateur
       setIsActive(false);
-      
+
       // Puis mettre à jour l'état dans la base de données
       const result = await completion.skipOnboarding(options);
       return result;
     } catch (error) {
-      console.error("Erreur lors du saut du tutoriel:", error);
+      console.error('Erreur lors du saut du tutoriel:', error);
       return false;
     }
   };

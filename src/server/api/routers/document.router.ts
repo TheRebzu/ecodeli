@@ -51,15 +51,15 @@ export const documentRouter = router({
       try {
         const userId = input?.userId || ctx.session.user.id;
         console.log(`Récupération des documents pour l'utilisateur ${userId}`);
-        
+
         // Utiliser la fonction utilitaire pour récupérer les documents avec statut complet
         const documents = await getUserDocumentsWithFullStatus(userId);
-        
+
         // Filtrer par statut si nécessaire
         if (input?.status) {
           return documents.filter(doc => doc.effectiveStatus === input.status);
         }
-        
+
         return documents;
       } catch (error: any) {
         console.error('Erreur lors de la récupération des documents:', error);
@@ -144,9 +144,8 @@ export const documentRouter = router({
         const adminId = ctx.session.user.id;
 
         // Convertir le status en VerificationStatus
-        const verificationStatus = status === 'APPROVED' 
-          ? VerificationStatus.APPROVED 
-          : VerificationStatus.REJECTED;
+        const verificationStatus =
+          status === 'APPROVED' ? VerificationStatus.APPROVED : VerificationStatus.REJECTED;
 
         // Utiliser correctement le service de document pour mettre à jour le statut
         const document = await documentService.verifyDocument({
@@ -249,18 +248,18 @@ export const documentRouter = router({
           // Gérer différents types d'objets File
           if ('originalFilename' in input.file) {
             // Format provenant de formidable
-            const formidableFile = input.file as { 
-              originalFilename?: string; 
-              mimetype?: string; 
+            const formidableFile = input.file as {
+              originalFilename?: string;
+              mimetype?: string;
               size?: number;
               filepath?: string;
             };
-            
+
             // Extraire les propriétés
             fileName = formidableFile.originalFilename || `document-${Date.now()}`;
             mimeType = formidableFile.mimetype || 'application/octet-stream';
             fileSize = formidableFile.size || 0;
-            
+
             // Le fichier est déjà écrit sur le disque par formidable
             // Nous devons juste le déplacer au bon endroit si nécessaire
             if (formidableFile.filepath) {
@@ -269,18 +268,18 @@ export const documentRouter = router({
               const randomId = crypto.randomBytes(8).toString('hex');
               const uniqueFilename = `${randomId}${extension}`;
               fileName = uniqueFilename;
-              
+
               // Créer le répertoire d'upload pour l'utilisateur
               const uploadDir = path.join(process.cwd(), 'public', 'uploads', userId);
               await fs.mkdir(uploadDir, { recursive: true });
-              
+
               // Destination finale
               const finalPath = path.join(uploadDir, uniqueFilename);
-              
+
               // Déplacer le fichier
               await fs.rename(formidableFile.filepath, finalPath);
               console.log(`Fichier déplacé vers: ${finalPath}`);
-              
+
               fileUrl = `/uploads/${userId}/${uniqueFilename}`;
             } else {
               throw new TRPCError({
@@ -605,7 +604,9 @@ export const documentRouter = router({
 
         // Chemin complet du fichier sur le serveur
         // Supprimer le slash initial s'il existe avant de joindre au chemin public
-        const cleanPath = input.filePath.startsWith('/') ? input.filePath.substring(1) : input.filePath;
+        const cleanPath = input.filePath.startsWith('/')
+          ? input.filePath.substring(1)
+          : input.filePath;
         const fullPath = path.join(process.cwd(), 'public', cleanPath);
 
         // Vérifier si le fichier existe
@@ -648,13 +649,13 @@ export const documentRouter = router({
           fileData: Buffer.from(fileData).toString('base64'),
           fileName: path.basename(fullPath),
           contentType,
-          size: fileData.length
+          size: fileData.length,
         };
       } catch (error: any) {
         if (error instanceof TRPCError) {
           throw error;
         }
-        
+
         console.error('Erreur lors du téléchargement du fichier:', error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',

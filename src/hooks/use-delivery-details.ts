@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { trpc } from '@/trpc/client';
+import { api } from '@/trpc/react';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { DeliveryStatus } from '@prisma/client';
@@ -17,19 +17,19 @@ export function useDeliveryDetails(deliveryId: string) {
   const router = useRouter();
 
   // Requête pour obtenir les détails
-  const { 
-    data: deliveryDetails, 
+  const {
+    data: deliveryDetails,
     isLoading,
     error,
-    refetch
+    refetch,
   } = trpc.deliveryTracking.getDeliveryById.useQuery(
     { deliveryId },
     {
       enabled: !!deliveryId && !!session,
-      refetchInterval: (query) => {
+      refetchInterval: query => {
         // Vérifier si les données existent
         if (!query.state.data) return 60000; // 1 minute par défaut
-        
+
         // Rafraîchir plus fréquemment pour les livraisons en cours
         const status = query.state.data.status;
         if (status === DeliveryStatus.IN_TRANSIT) {
@@ -39,7 +39,7 @@ export function useDeliveryDetails(deliveryId: string) {
           return 30000; // 30 secondes
         }
         return 60000; // 1 minute pour les autres statuts
-      }
+      },
     }
   );
 
@@ -52,37 +52,40 @@ export function useDeliveryDetails(deliveryId: string) {
   }, [error, router]);
 
   // Mutation pour confirmer la livraison
-  const { mutate: confirmDelivery, isPending: isConfirming } = trpc.deliveryTracking.confirmDelivery.useMutation({
-    onSuccess: () => {
-      toast.success("Livraison confirmée avec succès");
-      refetch();
-    },
-    onError: (error: ErrorResponse) => {
-      toast.error(`Erreur: ${error.message || "Impossible de confirmer la livraison"}`);
-    }
-  });
+  const { mutate: confirmDelivery, isPending: isConfirming } =
+    trpc.deliveryTracking.confirmDelivery.useMutation({
+      onSuccess: () => {
+        toast.success('Livraison confirmée avec succès');
+        refetch();
+      },
+      onError: (error: ErrorResponse) => {
+        toast.error(`Erreur: ${error.message || 'Impossible de confirmer la livraison'}`);
+      },
+    });
 
   // Mutation pour signaler un problème
-  const { mutate: reportIssue, isPending: isReporting } = trpc.deliveryTracking.reportIssue.useMutation({
-    onSuccess: () => {
-      toast.success("Problème signalé avec succès");
-      refetch();
-    },
-    onError: (error: ErrorResponse) => {
-      toast.error(`Erreur: ${error.message || "Impossible de signaler le problème"}`);
-    }
-  });
+  const { mutate: reportIssue, isPending: isReporting } =
+    trpc.deliveryTracking.reportIssue.useMutation({
+      onSuccess: () => {
+        toast.success('Problème signalé avec succès');
+        refetch();
+      },
+      onError: (error: ErrorResponse) => {
+        toast.error(`Erreur: ${error.message || 'Impossible de signaler le problème'}`);
+      },
+    });
 
   // Mutation pour noter la livraison
-  const { mutate: rateDelivery, isPending: isRating } = trpc.deliveryTracking.rateDelivery.useMutation({
-    onSuccess: () => {
-      toast.success("Merci pour votre évaluation!");
-      refetch();
-    },
-    onError: (error: ErrorResponse) => {
-      toast.error(`Erreur: ${error.message || "Impossible d'enregistrer votre évaluation"}`);
-    }
-  });
+  const { mutate: rateDelivery, isPending: isRating } =
+    trpc.deliveryTracking.rateDelivery.useMutation({
+      onSuccess: () => {
+        toast.success('Merci pour votre évaluation!');
+        refetch();
+      },
+      onError: (error: ErrorResponse) => {
+        toast.error(`Erreur: ${error.message || "Impossible d'enregistrer votre évaluation"}`);
+      },
+    });
 
   return {
     deliveryDetails,
@@ -93,6 +96,6 @@ export function useDeliveryDetails(deliveryId: string) {
     isReporting,
     rateDelivery,
     isRating,
-    refetch
+    refetch,
   };
 }

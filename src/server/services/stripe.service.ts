@@ -23,7 +23,7 @@ if (hasStripeKey) {
       apiVersion: '2025-04-30.basil',
     });
   } catch (error) {
-    console.warn('Impossible d\'initialiser Stripe:', error);
+    console.warn("Impossible d'initialiser Stripe:", error);
     stripeClient = null;
   }
 }
@@ -36,7 +36,11 @@ export const stripeService = {
    * Crée une intention de paiement Stripe
    * En mode démo, simule une intention de paiement sans appeler Stripe API
    */
-  async createPaymentIntent(amount: number, currency: string = 'eur', metadata: Record<string, string> = {}) {
+  async createPaymentIntent(
+    amount: number,
+    currency: string = 'eur',
+    metadata: Record<string, string> = {}
+  ) {
     // En mode démo ou sans clé API, simuler le paiement
     if (isDemoMode || !stripeClient) {
       return {
@@ -47,11 +51,11 @@ export const stripeService = {
         status: 'succeeded',
         metadata: {
           ...metadata,
-          demo: 'true'
-        }
+          demo: 'true',
+        },
       };
     }
-    
+
     // Code réel pour Stripe en production
     try {
       return await stripeClient.paymentIntents.create({
@@ -60,8 +64,8 @@ export const stripeService = {
         payment_method_types: ['card'],
         metadata: {
           ...metadata,
-          demo: 'false'
-        }
+          demo: 'false',
+        },
       });
     } catch (error) {
       console.error('Erreur lors de la création du paiement Stripe:', error);
@@ -75,8 +79,8 @@ export const stripeService = {
         metadata: {
           ...metadata,
           demo: 'true',
-          error: 'true'
-        }
+          error: 'true',
+        },
       };
     }
   },
@@ -86,16 +90,21 @@ export const stripeService = {
    * En mode démo, simule une réponse sans appeler Stripe API
    */
   async retrievePaymentIntent(paymentIntentId: string) {
-    if (isDemoMode || !stripeClient || paymentIntentId.startsWith('demo_pi_') || paymentIntentId.startsWith('error_pi_')) {
+    if (
+      isDemoMode ||
+      !stripeClient ||
+      paymentIntentId.startsWith('demo_pi_') ||
+      paymentIntentId.startsWith('error_pi_')
+    ) {
       return {
         id: paymentIntentId,
         status: 'succeeded',
         amount: 1000, // Exemple
         currency: 'eur',
-        metadata: { demo: 'true' }
+        metadata: { demo: 'true' },
       };
     }
-    
+
     try {
       return await stripeClient.paymentIntents.retrieve(paymentIntentId);
     } catch (error) {
@@ -106,7 +115,7 @@ export const stripeService = {
         status: 'succeeded',
         amount: 1000,
         currency: 'eur',
-        metadata: { demo: 'true', error: 'true' }
+        metadata: { demo: 'true', error: 'true' },
       };
     }
   },
@@ -115,7 +124,11 @@ export const stripeService = {
    * Simule un retrait vers un compte bancaire externe
    * En mode démo, retourne une simulation sans réellement effectuer de transfert
    */
-  async simulatePayoutToBank(amount: number, userId: string, metadata: Record<string, string> = {}) {
+  async simulatePayoutToBank(
+    amount: number,
+    userId: string,
+    metadata: Record<string, string> = {}
+  ) {
     if (isDemoMode || !stripeClient) {
       return {
         id: `demo_po_${Math.random().toString(36).substring(2, 15)}`,
@@ -126,11 +139,11 @@ export const stripeService = {
         metadata: {
           ...metadata,
           userId,
-          demo: 'true'
-        }
+          demo: 'true',
+        },
       };
     }
-    
+
     // En production, utiliser Stripe Connect pour les virements
     // Code non implémenté pour la démo
     return {
@@ -142,24 +155,27 @@ export const stripeService = {
       metadata: {
         ...metadata,
         userId,
-        demo: 'false'
-      }
+        demo: 'false',
+      },
     };
   },
 
   /**
    * STRIPE CONNECT - Crée un compte Connect pour un livreur
    */
-  async createConnectAccount(delivererId: string, accountInfo: {
-    email: string;
-    country?: string;
-    type?: string;
-  }) {
+  async createConnectAccount(
+    delivererId: string,
+    accountInfo: {
+      email: string;
+      country?: string;
+      type?: string;
+    }
+  ) {
     const { email, country = 'FR', type = 'express' } = accountInfo;
-    
+
     if (isDemoMode || !stripeClient) {
       const demoAccountId = `acct_demo_${Math.random().toString(36).substring(2, 15)}`;
-      
+
       // Créer ou mettre à jour le wallet avec l'ID du compte Connect démo
       const wallet = await walletService.getOrCreateWallet(delivererId);
       await db.wallet.update({
@@ -167,10 +183,10 @@ export const stripeService = {
         data: {
           stripeAccountId: demoAccountId,
           accountType: type,
-          accountVerified: true // En mode démo, on considère le compte comme vérifié
-        }
+          accountVerified: true, // En mode démo, on considère le compte comme vérifié
+        },
       });
-      
+
       return {
         id: demoAccountId,
         type,
@@ -184,12 +200,12 @@ export const stripeService = {
           eventually_due: [],
           past_due: [],
           pending_verification: [],
-          disabled_reason: null
+          disabled_reason: null,
         },
-        demo: true
+        demo: true,
       };
     }
-    
+
     try {
       const account = await stripeClient.accounts.create({
         type,
@@ -197,19 +213,19 @@ export const stripeService = {
         email,
         capabilities: {
           card_payments: { requested: true },
-          transfers: { requested: true }
+          transfers: { requested: true },
         },
         business_type: 'individual',
         settings: {
           payouts: {
             schedule: {
               interval: 'weekly',
-              weekly_anchor: 'friday'
-            }
-          }
-        }
+              weekly_anchor: 'friday',
+            },
+          },
+        },
       });
-      
+
       // Mettre à jour le wallet avec l'ID du compte Connect
       const wallet = await walletService.getOrCreateWallet(delivererId);
       await db.wallet.update({
@@ -217,21 +233,21 @@ export const stripeService = {
         data: {
           stripeAccountId: account.id,
           accountType: account.type,
-          accountVerified: account.details_submitted && !account.requirements?.disabled_reason
-        }
+          accountVerified: account.details_submitted && !account.requirements?.disabled_reason,
+        },
       });
-      
+
       return account;
     } catch (error) {
       console.error('Erreur lors de la création du compte Connect:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Échec de la création du compte Connect',
-        cause: error
+        cause: error,
       });
     }
   },
-  
+
   /**
    * STRIPE CONNECT - Génère un lien d'onboarding pour un compte Connect
    */
@@ -242,27 +258,27 @@ export const stripeService = {
         url: `${returnUrl}?demo=true&account=${accountId}&success=true`,
         created: Math.floor(Date.now() / 1000),
         expires_at: Math.floor(Date.now() / 1000) + 3600,
-        demo: true
+        demo: true,
       };
     }
-    
+
     try {
       return await stripeClient.accountLinks.create({
         account: accountId,
         refresh_url: refreshUrl,
         return_url: returnUrl,
-        type: 'account_onboarding'
+        type: 'account_onboarding',
       });
     } catch (error) {
-      console.error('Erreur lors de la création du lien d\'onboarding:', error);
+      console.error("Erreur lors de la création du lien d'onboarding:", error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: 'Échec de la création du lien d\'onboarding',
-        cause: error
+        message: "Échec de la création du lien d'onboarding",
+        cause: error,
       });
     }
   },
-  
+
   /**
    * STRIPE CONNECT - Récupère les informations d'un compte Connect
    */
@@ -279,16 +295,16 @@ export const stripeService = {
           eventually_due: [],
           past_due: [],
           pending_verification: [],
-          disabled_reason: null
+          disabled_reason: null,
         },
         capabilities: {
           card_payments: 'active',
-          transfers: 'active'
+          transfers: 'active',
         },
-        demo: true
+        demo: true,
       };
     }
-    
+
     try {
       return await stripeClient.accounts.retrieve(accountId);
     } catch (error) {
@@ -296,23 +312,23 @@ export const stripeService = {
       throw new TRPCError({
         code: 'NOT_FOUND',
         message: 'Compte Connect non trouvé',
-        cause: error
+        cause: error,
       });
     }
   },
-  
+
   /**
    * STRIPE CONNECT - Crée un transfert vers un compte Connect
    */
   async createTransfer(accountId: string, amount: number, metadata: Record<string, string> = {}) {
     if (isDemoMode || !stripeClient) {
       const transferId = `tr_demo_${Math.random().toString(36).substring(2, 15)}`;
-      
+
       // En mode démo, simuler l'ajout immédiat des fonds au wallet
       const wallet = await db.wallet.findFirst({
-        where: { stripeAccountId: accountId }
+        where: { stripeAccountId: accountId },
       });
-      
+
       if (wallet) {
         await walletService.createWalletTransaction(wallet.id, {
           amount,
@@ -322,11 +338,11 @@ export const stripeService = {
           metadata: {
             ...metadata,
             demo: true,
-            stripeTransferId: transferId
-          }
+            stripeTransferId: transferId,
+          },
         });
       }
-      
+
       return {
         id: transferId,
         amount: amount * 100, // Stripe utilise les centimes
@@ -335,25 +351,25 @@ export const stripeService = {
         created: Math.floor(Date.now() / 1000),
         metadata: {
           ...metadata,
-          demo: 'true'
+          demo: 'true',
         },
-        demo: true
+        demo: true,
       };
     }
-    
+
     try {
       const transfer = await stripeClient.transfers.create({
         amount: Math.round(amount * 100), // Convertir en centimes
         currency: 'eur',
         destination: accountId,
-        metadata
+        metadata,
       });
-      
+
       // Mettre à jour le wallet correspondant
       const wallet = await db.wallet.findFirst({
-        where: { stripeAccountId: accountId }
+        where: { stripeAccountId: accountId },
       });
-      
+
       if (wallet) {
         await walletService.createWalletTransaction(wallet.id, {
           amount,
@@ -362,34 +378,34 @@ export const stripeService = {
           reference: transfer.id,
           metadata: {
             ...metadata,
-            stripeTransferId: transfer.id
-          }
+            stripeTransferId: transfer.id,
+          },
         });
       }
-      
+
       return transfer;
     } catch (error) {
       console.error('Erreur lors du transfert Stripe Connect:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Échec du transfert',
-        cause: error
+        cause: error,
       });
     }
   },
-  
+
   /**
    * STRIPE CONNECT - Crée un payout depuis un compte Connect
    */
   async createPayout(accountId: string, amount: number, method: string = 'standard') {
     if (isDemoMode || !stripeClient) {
       const payoutId = `po_demo_${Math.random().toString(36).substring(2, 15)}`;
-      
+
       // En mode démo, simuler le retrait des fonds du wallet
       const wallet = await db.wallet.findFirst({
-        where: { stripeAccountId: accountId }
+        where: { stripeAccountId: accountId },
       });
-      
+
       if (wallet) {
         await walletService.createWalletTransaction(wallet.id, {
           amount: -amount,
@@ -399,11 +415,11 @@ export const stripeService = {
           metadata: {
             demo: true,
             stripePayoutId: payoutId,
-            method
-          }
+            method,
+          },
         });
       }
-      
+
       return {
         id: payoutId,
         amount: amount * 100,
@@ -412,24 +428,27 @@ export const stripeService = {
         status: 'paid',
         arrival_date: Math.floor(Date.now() / 1000) + (method === 'instant' ? 0 : 86400),
         created: Math.floor(Date.now() / 1000),
-        demo: true
+        demo: true,
       };
     }
-    
+
     try {
-      const payout = await stripeClient.payouts.create({
-        amount: Math.round(amount * 100),
-        currency: 'eur',
-        method
-      }, {
-        stripeAccount: accountId
-      });
-      
+      const payout = await stripeClient.payouts.create(
+        {
+          amount: Math.round(amount * 100),
+          currency: 'eur',
+          method,
+        },
+        {
+          stripeAccount: accountId,
+        }
+      );
+
       // Mettre à jour le wallet correspondant
       const wallet = await db.wallet.findFirst({
-        where: { stripeAccountId: accountId }
+        where: { stripeAccountId: accountId },
       });
-      
+
       if (wallet) {
         await walletService.createWalletTransaction(wallet.id, {
           amount: -amount,
@@ -438,18 +457,18 @@ export const stripeService = {
           reference: payout.id,
           metadata: {
             stripePayoutId: payout.id,
-            method
-          }
+            method,
+          },
         });
       }
-      
+
       return payout;
     } catch (error) {
       console.error('Erreur lors du payout Stripe Connect:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Échec du paiement',
-        cause: error
+        cause: error,
       });
     }
   },
@@ -467,37 +486,37 @@ export const stripeService = {
         created: Math.floor(Date.now() / 1000),
         metadata: {
           ...metadata,
-          demo: 'true'
+          demo: 'true',
         },
-        demo: true
+        demo: true,
       };
     }
-    
+
     try {
       return await stripeClient.customers.create({
         email,
         name,
-        metadata
+        metadata,
       });
     } catch (error) {
       console.error('Erreur lors de la création du customer:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Échec de la création du customer',
-        cause: error
+        cause: error,
       });
     }
   },
-  
+
   /**
    * ABONNEMENTS - Récupère ou crée un customer Stripe
    */
   async getOrCreateCustomer(userId: string, email: string, name?: string) {
     // Vérifier si l'utilisateur a déjà un customer ID
     const user = await db.user.findUnique({
-      where: { id: userId }
+      where: { id: userId },
     });
-    
+
     if (user?.stripeCustomerId) {
       // Récupérer le customer existant
       if (isDemoMode || !stripeClient) {
@@ -505,30 +524,30 @@ export const stripeService = {
           id: user.stripeCustomerId,
           email,
           name,
-          demo: true
+          demo: true,
         };
       }
-      
+
       try {
         return await stripeClient.customers.retrieve(user.stripeCustomerId);
       } catch (error) {
-        console.warn('Customer Stripe non trouvé, création d\'un nouveau:', error);
+        console.warn("Customer Stripe non trouvé, création d'un nouveau:", error);
         // Continuer pour créer un nouveau customer
       }
     }
-    
+
     // Créer un nouveau customer
     const customer = await this.createCustomer(email, name, { userId });
-    
+
     // Mettre à jour l'utilisateur avec le customer ID
     await db.user.update({
       where: { id: userId },
-      data: { stripeCustomerId: customer.id }
+      data: { stripeCustomerId: customer.id },
     });
-    
+
     return customer;
   },
-  
+
   /**
    * ABONNEMENTS - Crée un Setup Intent pour enregistrer une méthode de paiement
    */
@@ -541,42 +560,46 @@ export const stripeService = {
         status: 'succeeded',
         metadata: {
           ...metadata,
-          demo: 'true'
+          demo: 'true',
         },
-        demo: true
+        demo: true,
       };
     }
-    
+
     try {
       return await stripeClient.setupIntents.create({
         customer: customerId,
         payment_method_types: ['card'],
-        metadata
+        metadata,
       });
     } catch (error) {
       console.error('Erreur lors de la création du Setup Intent:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Échec de la création du Setup Intent',
-        cause: error
+        cause: error,
       });
     }
   },
-  
+
   /**
    * ABONNEMENTS - Crée un abonnement récurrent pour un marchand
    */
-  async createRecurringSubscription(customerId: string, priceId: string, options: {
-    trialPeriodDays?: number;
-    metadata?: Record<string, string>;
-    defaultPaymentMethod?: string;
-  } = {}) {
+  async createRecurringSubscription(
+    customerId: string,
+    priceId: string,
+    options: {
+      trialPeriodDays?: number;
+      metadata?: Record<string, string>;
+      defaultPaymentMethod?: string;
+    } = {}
+  ) {
     const { trialPeriodDays, metadata = {}, defaultPaymentMethod } = options;
-    
+
     if (isDemoMode || !stripeClient) {
       const now = Math.floor(Date.now() / 1000);
       const subscriptionId = `sub_demo_${Math.random().toString(36).substring(2, 15)}`;
-      
+
       return {
         id: subscriptionId,
         customer: customerId,
@@ -586,56 +609,61 @@ export const stripeService = {
         trial_start: trialPeriodDays ? now : null,
         trial_end: trialPeriodDays ? now + trialPeriodDays * 86400 : null,
         items: {
-          data: [{
-            id: `si_demo_${Math.random().toString(36).substring(2, 10)}`,
-            price: { id: priceId },
-            quantity: 1
-          }]
+          data: [
+            {
+              id: `si_demo_${Math.random().toString(36).substring(2, 10)}`,
+              price: { id: priceId },
+              quantity: 1,
+            },
+          ],
         },
         metadata: {
           ...metadata,
-          demo: 'true'
+          demo: 'true',
         },
-        demo: true
+        demo: true,
       };
     }
-    
+
     try {
       const subscriptionData: any = {
         customer: customerId,
         items: [{ price: priceId }],
         metadata,
-        expand: ['latest_invoice.payment_intent']
+        expand: ['latest_invoice.payment_intent'],
       };
-      
+
       if (trialPeriodDays) {
         subscriptionData.trial_period_days = trialPeriodDays;
       }
-      
+
       if (defaultPaymentMethod) {
         subscriptionData.default_payment_method = defaultPaymentMethod;
       }
-      
+
       return await stripeClient.subscriptions.create(subscriptionData);
     } catch (error) {
-      console.error('Erreur lors de la création de l\'abonnement récurrent:', error);
+      console.error("Erreur lors de la création de l'abonnement récurrent:", error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: 'Échec de la création de l\'abonnement',
-        cause: error
+        message: "Échec de la création de l'abonnement",
+        cause: error,
       });
     }
   },
-  
+
   /**
    * ABONNEMENTS - Met à jour un abonnement existant
    */
-  async updateSubscription(subscriptionId: string, updates: {
-    priceId?: string;
-    quantity?: number;
-    metadata?: Record<string, string>;
-    cancelAtPeriodEnd?: boolean;
-  }) {
+  async updateSubscription(
+    subscriptionId: string,
+    updates: {
+      priceId?: string;
+      quantity?: number;
+      metadata?: Record<string, string>;
+      cancelAtPeriodEnd?: boolean;
+    }
+  ) {
     if (isDemoMode || !stripeClient || subscriptionId.startsWith('sub_demo_')) {
       const now = Math.floor(Date.now() / 1000);
       return {
@@ -645,49 +673,53 @@ export const stripeService = {
         current_period_start: now,
         current_period_end: now + 86400 * 30,
         items: {
-          data: [{
-            id: `si_demo_${Math.random().toString(36).substring(2, 10)}`,
-            price: { id: updates.priceId || 'price_demo' },
-            quantity: updates.quantity || 1
-          }]
+          data: [
+            {
+              id: `si_demo_${Math.random().toString(36).substring(2, 10)}`,
+              price: { id: updates.priceId || 'price_demo' },
+              quantity: updates.quantity || 1,
+            },
+          ],
         },
         metadata: updates.metadata || {},
-        demo: true
+        demo: true,
       };
     }
-    
+
     try {
       const updateData: any = {};
-      
+
       if (updates.cancelAtPeriodEnd !== undefined) {
         updateData.cancel_at_period_end = updates.cancelAtPeriodEnd;
       }
-      
+
       if (updates.metadata) {
         updateData.metadata = updates.metadata;
       }
-      
+
       if (updates.priceId) {
         // Pour changer le prix, il faut mettre à jour les items
         const subscription = await stripeClient.subscriptions.retrieve(subscriptionId);
-        updateData.items = [{
-          id: subscription.items.data[0]?.id,
-          price: updates.priceId,
-          quantity: updates.quantity || 1
-        }];
+        updateData.items = [
+          {
+            id: subscription.items.data[0]?.id,
+            price: updates.priceId,
+            quantity: updates.quantity || 1,
+          },
+        ];
       }
-      
+
       return await stripeClient.subscriptions.update(subscriptionId, updateData);
     } catch (error) {
-      console.error('Erreur lors de la mise à jour de l\'abonnement:', error);
+      console.error("Erreur lors de la mise à jour de l'abonnement:", error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: 'Échec de la mise à jour de l\'abonnement',
-        cause: error
+        message: "Échec de la mise à jour de l'abonnement",
+        cause: error,
       });
     }
   },
-  
+
   /**
    * ABONNEMENTS - Annule un abonnement
    */
@@ -698,28 +730,28 @@ export const stripeService = {
         status: cancelImmediately ? 'canceled' : 'active',
         cancel_at_period_end: !cancelImmediately,
         canceled_at: cancelImmediately ? Math.floor(Date.now() / 1000) : null,
-        demo: true
+        demo: true,
       };
     }
-    
+
     try {
       if (cancelImmediately) {
         return await stripeClient.subscriptions.cancel(subscriptionId);
       } else {
         return await stripeClient.subscriptions.update(subscriptionId, {
-          cancel_at_period_end: true
+          cancel_at_period_end: true,
         });
       }
     } catch (error) {
-      console.error('Erreur lors de l\'annulation de l\'abonnement:', error);
+      console.error("Erreur lors de l'annulation de l'abonnement:", error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: 'Échec de l\'annulation de l\'abonnement',
-        cause: error
+        message: "Échec de l'annulation de l'abonnement",
+        cause: error,
       });
     }
   },
-  
+
   /**
    * Crée un abonnement Stripe (méthode legacy, maintenant redirigée vers createRecurringSubscription)
    */
@@ -735,10 +767,10 @@ export const stripeService = {
       { type: 'Visa', number: '4242424242424242', expMonth: 12, expYear: 2030, cvc: '123' },
       { type: 'Mastercard', number: '5555555555554444', expMonth: 12, expYear: 2030, cvc: '123' },
       { type: 'Découverte', number: '6011111111111117', expMonth: 12, expYear: 2030, cvc: '123' },
-      { type: 'Échec', number: '4000000000000002', expMonth: 12, expYear: 2030, cvc: '123' }
+      { type: 'Échec', number: '4000000000000002', expMonth: 12, expYear: 2030, cvc: '123' },
     ];
   },
-  
+
   /**
    * Utilitaires pour les webhooks Connect
    */
@@ -756,32 +788,32 @@ export const stripeService = {
         console.log(`Événement Connect non géré: ${event.type}`);
     }
   },
-  
+
   async _handleAccountUpdated(account: any) {
     const wallet = await db.wallet.findFirst({
-      where: { stripeAccountId: account.id }
+      where: { stripeAccountId: account.id },
     });
-    
+
     if (wallet) {
       await db.wallet.update({
         where: { id: wallet.id },
         data: {
           accountVerified: account.details_submitted && !account.requirements?.disabled_reason,
-          accountType: account.type
-        }
+          accountType: account.type,
+        },
       });
     }
   },
-  
+
   async _handlePayoutCreated(payout: any) {
     // Géré par le webhook principal
   },
-  
+
   async _handlePayoutFailed(payout: any) {
     // Géré par le webhook principal
   },
-  
+
   async _handleTransferCreated(transfer: any) {
     // Géré automatiquement par createTransfer
-  }
+  },
 };

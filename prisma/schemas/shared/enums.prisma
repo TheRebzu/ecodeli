@@ -428,4 +428,137 @@ enum RejectionReason {
   LOW_QUALITY        // Qualité d'image insuffisante
   INFORMATION_MISMATCH // Informations ne correspondent pas
   OTHER              // Autre raison
+}
+
+// ===== DOMAINE RENDEZ-VOUS =====
+
+/// Statut d'un rendez-vous
+enum AppointmentStatus {
+  PENDING      // En attente de confirmation
+  CONFIRMED    // Confirmé par le prestataire
+  RESCHEDULED  // Reprogrammé
+  IN_PROGRESS  // En cours
+  COMPLETED    // Terminé
+  CANCELLED    // Annulé
+  NO_SHOW      // Client absent
+  PROVIDER_ABSENT // Prestataire absent
+}
+
+/// Raison de reprogrammation d'un rendez-vous
+enum RescheduleReason {
+  CLIENT_REQUEST    // Demande du client
+  PROVIDER_REQUEST  // Demande du prestataire
+  WEATHER_CONDITION // Conditions météorologiques
+  EMERGENCY         // Urgence
+  ILLNESS           // Maladie
+  TECHNICAL_ISSUE   // Problème technique
+  TRAFFIC_DELAY     // Retard de circulation
+  DOUBLE_BOOKING    // Double réservation
+  LOCATION_ISSUE    // Problème de lieu
+  OTHER            // Autre raison
+}
+
+/// Raison d'annulation d'un rendez-vous
+enum CancellationReason {
+  CLIENT_CANCELLED     // Annulation client
+  PROVIDER_CANCELLED   // Annulation prestataire
+  SYSTEM_CANCELLED     // Annulation système
+  NO_PAYMENT          // Défaut de paiement
+  SERVICE_UNAVAILABLE // Service indisponible
+  LOCATION_INACCESSIBLE // Lieu inaccessible
+  WEATHER_CONDITION   // Conditions météorologiques
+  EMERGENCY           // Urgence
+  ILLNESS             // Maladie
+  MUTUAL_AGREEMENT    // Accord mutuel
+  POLICY_VIOLATION    // Violation des conditions
+  OTHER              // Autre raison
+}
+
+/// Type de notification pour les rendez-vous
+enum AppointmentNotificationType {
+  REMINDER_24H     // Rappel 24h avant
+  REMINDER_2H      // Rappel 2h avant
+  REMINDER_30MIN   // Rappel 30min avant
+  CONFIRMATION     // Confirmation du rendez-vous
+  RESCHEDULE       // Notification de reprogrammation
+  CANCELLATION     // Notification d'annulation
+  PROVIDER_EN_ROUTE // Prestataire en route
+  ARRIVAL          // Arrivée du prestataire
+  COMPLETION       // Fin du rendez-vous
+}
+
+// ===== ENUMS MANQUANTS POUR DELIVERIES =====
+
+/// Statut de vérification de document
+enum DocumentVerificationStatus {
+  PENDING    // En attente de vérification
+  APPROVED   // Approuvé
+  REJECTED   // Rejeté
+  EXPIRED    // Expiré
+}
+
+/// Type de document requis
+enum RequiredDocumentType {
+  IDENTITY         // Pièce d'identité
+  DRIVING_LICENSE  // Permis de conduire
+  INSURANCE        // Assurance
+  VEHICLE_REGISTRATION // Carte grise
+  BANK_RIB         // RIB bancaire
+  BUSINESS_LICENSE // Licence commerciale
+  OTHER            // Autre
+}
+
+/// Type de véhicule
+enum VehicleType {
+  CAR        // Voiture
+  MOTORCYCLE // Moto
+  BICYCLE    // Vélo
+  SCOOTER    // Scooter
+  VAN        // Camionnette
+  TRUCK      // Camion
+  FOOT       // À pied
+  OTHER      // Autre
+}
+
+/// Niveau d'urgence
+enum UrgencyLevel {
+  LOW     // Faible
+  NORMAL  // Normal
+  HIGH    // Élevé
+  URGENT  // Urgent
+}
+
+/// Genre
+enum Gender {
+  MALE    // Homme
+  FEMALE  // Femme
+  OTHER   // Autre
+  NO_PREFERENCE // Aucune préférence
+}
+
+/// Statut de matching
+enum MatchingStatus {
+  SUGGESTED  // Suggéré
+  ACCEPTED   // Accepté
+  REJECTED   // Rejeté
+  EXPIRED    // Expiré
+}
+
+/// Type de notification
+enum NotificationType {
+  INFO     // Information
+  WARNING  // Avertissement
+  ERROR    // Erreur
+  SUCCESS  // Succès
+  REMINDER // Rappel
+  ALERT    // Alerte
+}
+
+/// Statut de notification
+enum NotificationStatus {
+  PENDING   // En attente
+  SENT      // Envoyée
+  DELIVERED // Délivrée
+  READ      // Lue
+  FAILED    // Échec
 } 

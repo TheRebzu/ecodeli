@@ -6,13 +6,15 @@ export const warehouseRouter = router({
   // Récupération des entrepôts actifs avec leurs informations complètes
   getWarehouses: protectedProcedure
     .input(
-      z.object({
-        includeBoxes: z.boolean().optional().default(false),
-        city: z.string().optional(),
-        lat: z.number().optional(),
-        lng: z.number().optional(),
-        radius: z.number().optional(), // En kilomètres
-      }).optional()
+      z
+        .object({
+          includeBoxes: z.boolean().optional().default(false),
+          city: z.string().optional(),
+          lat: z.number().optional(),
+          lng: z.number().optional(),
+          radius: z.number().optional(), // En kilomètres
+        })
+        .optional()
     )
     .query(async ({ input = {} }) => {
       return warehouseService.getActiveWarehouses(input);
@@ -69,7 +71,16 @@ export const warehouseRouter = router({
         warehouseId: z.string(),
         startDate: z.coerce.date(),
         endDate: z.coerce.date(),
-        boxType: z.enum(['STANDARD', 'CLIMATE_CONTROLLED', 'SECURE', 'EXTRA_LARGE', 'REFRIGERATED', 'FRAGILE']).optional(),
+        boxType: z
+          .enum([
+            'STANDARD',
+            'CLIMATE_CONTROLLED',
+            'SECURE',
+            'EXTRA_LARGE',
+            'REFRIGERATED',
+            'FRAGILE',
+          ])
+          .optional(),
         minSize: z.number().optional(),
       })
     )

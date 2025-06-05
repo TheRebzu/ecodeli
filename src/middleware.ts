@@ -39,7 +39,7 @@ const publicPaths = [
   '/become-delivery',
   '/shipping',
   '/home',
-  // Add debug paths for development
+  // Chemins de debug pour le développement
   '/debug',
   '/test',
 ];
@@ -62,8 +62,22 @@ const roleBasedPaths: Record<UserRole, string[]> = {
 // Chemins autorisés même pour les utilisateurs non vérifiés
 const allowedNonVerifiedPaths: Record<UserRole, string[]> = {
   DELIVERER: ['/deliverer/documents', '/api/upload', '/api/trpc/document', '/api/documents'], // Ajout des chemins API pour le téléchargement
-  MERCHANT: ['/merchant/documents', '/merchant/verification', '/merchant/profile', '/api/upload', '/api/trpc/document', '/api/documents'],
-  PROVIDER: ['/provider/documents', '/provider/verification', '/provider/profile', '/api/upload', '/api/trpc/document', '/api/documents'],
+  MERCHANT: [
+    '/merchant/documents',
+    '/merchant/verification',
+    '/merchant/profile',
+    '/api/upload',
+    '/api/trpc/document',
+    '/api/documents',
+  ],
+  PROVIDER: [
+    '/provider/documents',
+    '/provider/verification',
+    '/provider/profile',
+    '/api/upload',
+    '/api/trpc/document',
+    '/api/documents',
+  ],
   CLIENT: [], // Les clients n'ont pas besoin de vérification
   ADMIN: [], // Les admins n'ont pas besoin de vérification
 };
@@ -187,7 +201,9 @@ export async function middleware(request: NextRequest) {
     const isVerified = !!token.isVerified;
     const userStatus = (token.status as UserStatus) || UserStatus.ACTIVE;
 
-    console.log(`Middleware - User ${token.email || token.id} - Role: ${userRole}, isVerified: ${isVerified}, Status: ${userStatus}, Path: ${pathname}`);
+    console.log(
+      `Middleware - User ${token.email || token.id} - Role: ${userRole}, isVerified: ${isVerified}, Status: ${userStatus}, Path: ${pathname}`
+    );
 
     // Vérification du statut de l'utilisateur
     if (userStatus === UserStatus.SUSPENDED) {
@@ -195,12 +211,12 @@ export async function middleware(request: NextRequest) {
       const isSpecialStatusPath = specialStatusPaths[UserStatus.SUSPENDED].some(
         path => pathWithoutLocale === path || pathWithoutLocale.startsWith(`${path}/`)
       );
-      
+
       if (isSpecialStatusPath) {
         // Laisser passer la requête si l'utilisateur est déjà sur la page account-suspended
         return NextResponse.next();
       }
-      
+
       // Rediriger vers une page expliquant que le compte est suspendu
       return NextResponse.redirect(new URL(`/${locale}/account-suspended`, request.url));
     }
@@ -210,12 +226,12 @@ export async function middleware(request: NextRequest) {
       const isSpecialStatusPath = specialStatusPaths[UserStatus.INACTIVE].some(
         path => pathWithoutLocale === path || pathWithoutLocale.startsWith(`${path}/`)
       );
-      
+
       if (isSpecialStatusPath) {
         // Laisser passer la requête si l'utilisateur est déjà sur la page account-inactive
         return NextResponse.next();
       }
-      
+
       // Rediriger vers une page expliquant que le compte est inactif
       return NextResponse.redirect(new URL(`/${locale}/account-inactive`, request.url));
     }
@@ -246,8 +262,12 @@ export async function middleware(request: NextRequest) {
         path => pathWithoutLocale === path || pathWithoutLocale.startsWith(`${path}/`)
       );
 
-      console.log(`Middleware - Path Check - Role: ${userRole}, Path: ${pathWithoutLocale}, isAllowedPath: ${isAllowedPath}`);
-      console.log(`Allowed Paths for ${userRole}: ${JSON.stringify(allowedNonVerifiedPaths[userRole])}`);
+      console.log(
+        `Middleware - Path Check - Role: ${userRole}, Path: ${pathWithoutLocale}, isAllowedPath: ${isAllowedPath}`
+      );
+      console.log(
+        `Allowed Paths for ${userRole}: ${JSON.stringify(allowedNonVerifiedPaths[userRole])}`
+      );
 
       if (!isAllowedPath) {
         // Rediriger vers la page de vérification appropriée en fonction du rôle
@@ -265,7 +285,7 @@ export async function middleware(request: NextRequest) {
           default:
             verificationPath = `/${locale}/login`;
         }
-        
+
         // Ajouter un paramètre pour indiquer qu'une vérification automatique est requise
         const redirectUrl = new URL(verificationPath, request.url);
         redirectUrl.searchParams.set('verification_required', 'true');

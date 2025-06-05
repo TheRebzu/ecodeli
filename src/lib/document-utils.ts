@@ -21,10 +21,7 @@ export const documentTypeNames: Record<DocumentType, string> = {
  * @param t Fonction optionnelle de traduction
  * @returns Le nom du type de document formaté pour l'affichage
  */
-export function getDocumentTypeName(
-  type: DocumentType, 
-  t?: (key: string) => string
-): string {
+export function getDocumentTypeName(type: DocumentType, t?: (key: string) => string): string {
   // Si une fonction de traduction est fournie, essayer de l'utiliser d'abord
   if (t) {
     try {
@@ -50,7 +47,7 @@ export function getDocumentTypeName(
 export function getRequiredDocumentTypesByRole(role: UserRole | string): DocumentType[] {
   // Normaliser le rôle pour accepter à la fois les strings et l'enum UserRole
   const normalizedRole = typeof role === 'string' ? role.toUpperCase() : role;
-  
+
   switch (normalizedRole) {
     case UserRole.DELIVERER:
     case 'DELIVERER':

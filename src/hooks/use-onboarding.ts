@@ -1,7 +1,7 @@
 'use client';
 
 import { useCallback, useState } from 'react';
-import { useTrpc } from '@/trpc/client';
+import { api } from '@/trpc/react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/components/ui/use-toast';
 
@@ -9,8 +9,7 @@ import { useToast } from '@/components/ui/use-toast';
 type TranslationFunction = (key: string, params?: Record<string, unknown>) => string;
 
 export function useOnboardingStatus() {
-  const { client } = useTrpc();
-  const { data, isLoading, error, refetch } = client.userPreferences.getOnboardingStatus.useQuery(
+  const { data, isLoading, error, refetch } = api.userPreferences.getOnboardingStatus.useQuery(
     undefined,
     {
       refetchOnWindowFocus: false,
@@ -28,18 +27,17 @@ export function useOnboardingStatus() {
 }
 
 export function useOnboardingNavigation() {
-  const { client } = useTrpc();
   const { toast } = useToast();
   const [currentStep, setCurrentStep] = useState(0);
   const [totalSteps, setTotalSteps] = useState(0);
   const [isUpdating, setIsUpdating] = useState(false);
 
-  const updateOnboardingStatus = client.userPreferences.updateOnboardingStatus.useMutation({
+  const updateOnboardingStatus = api.userPreferences.updateOnboardingStatus.useMutation({
     onError: () => {
       toast({
         variant: 'destructive',
         title: 'Erreur lors de la mise à jour',
-        description: 'Impossible de mettre à jour votre progression.'
+        description: 'Impossible de mettre à jour votre progression.',
       });
     },
   });
@@ -92,12 +90,11 @@ export function useOnboardingNavigation() {
 export function useOnboardingCompletion(
   t: TranslationFunction = key => key // Fonction de traduction par défaut
 ) {
-  const { client } = useTrpc();
   const { toast } = useToast();
   const router = useRouter();
   const [isCompleting, setIsCompleting] = useState(false);
 
-  const updateOnboardingStatus = client.userPreferences.updateOnboardingStatus.useMutation({
+  const updateOnboardingStatus = api.userPreferences.updateOnboardingStatus.useMutation({
     onSuccess: () => {
       toast({
         title: '🎉 Félicitations !',
@@ -113,7 +110,7 @@ export function useOnboardingCompletion(
     },
   });
 
-  const resetOnboardingStatus = client.userPreferences.resetOnboardingStatus.useMutation({
+  const resetOnboardingStatus = api.userPreferences.resetOnboardingStatus.useMutation({
     onSuccess: () => {
       toast({
         title: '🔄 Tutoriel réinitialisé',
@@ -210,7 +207,7 @@ export function useMission1Onboarding() {
 
   // Vérifier si Mission 1 est requise
   const isMission1Required = !status?.hasCompletedOnboarding && !status?.tutorialSkipped;
-  
+
   // Bloquer l'accès à l'application si Mission 1 n'est pas complétée
   const shouldBlockAccess = isMission1Required && !isLoading;
 
@@ -218,18 +215,19 @@ export function useMission1Onboarding() {
   const completeMission1 = useCallback(async () => {
     try {
       const success = await completion.completeOnboarding({
-        redirectTo: '/client' // Redirection par défaut vers le dashboard client
+        redirectTo: '/client', // Redirection par défaut vers le dashboard client
       });
-      
+
       if (success) {
         toast({
           title: '🎉 Mission 1 accomplie !',
-          description: 'Bienvenue dans l\'aventure EcoDeli ! Vous pouvez maintenant utiliser toutes les fonctionnalités.',
+          description:
+            "Bienvenue dans l'aventure EcoDeli ! Vous pouvez maintenant utiliser toutes les fonctionnalités.",
         });
-        
+
         // Actualiser le statut
         refetch();
-        
+
         return true;
       }
       return false;
@@ -250,7 +248,7 @@ export function useMission1Onboarding() {
       await completion.resetOnboarding();
       navigation.goToStep(0);
       refetch();
-      
+
       toast({
         title: '🔄 Mission 1 redémarrée',
         description: 'Le tutoriel obligatoire va recommencer.',
@@ -271,15 +269,15 @@ export function useMission1Onboarding() {
     shouldBlockAccess,
     isLoading,
     error,
-    
+
     // Navigation
     ...navigation,
-    
+
     // Completion spécialisée
     completeMission1,
     restartMission1,
     isCompleting: completion.isCompleting,
-    
+
     // Statut utilisateur
     status,
     refetch,
@@ -291,13 +289,10 @@ export function useMission1Onboarding() {
  */
 export function useMission1AccessControl() {
   const { status, isLoading } = useOnboardingStatus();
-  
-  const shouldBlockAccess = (
-    !isLoading &&
-    !status?.hasCompletedOnboarding &&
-    !status?.tutorialSkipped
-  );
-  
+
+  const shouldBlockAccess =
+    !isLoading && !status?.hasCompletedOnboarding && !status?.tutorialSkipped;
+
   return {
     shouldBlockAccess,
     isLoading,

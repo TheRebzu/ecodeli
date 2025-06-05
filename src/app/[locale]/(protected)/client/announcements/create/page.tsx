@@ -7,6 +7,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, AlertCircle, ArrowRight, CheckCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import { useSession } from 'next-auth/react';
 import { useAnnouncement, useClientAnnouncements } from '@/hooks/use-announcement';
 import AnnouncementForm from '@/components/announcements/announcement-form';
 import { CreateAnnouncementInput } from '@/schemas/announcement.schema';
@@ -19,6 +20,7 @@ export default function CreateAnnouncementPage() {
   useRoleProtection(['CLIENT']);
   const t = useTranslations('announcements');
   const router = useRouter();
+  const { data: session } = useSession();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -26,13 +28,25 @@ export default function CreateAnnouncementPage() {
 
   const { createAnnouncement } = useAnnouncement();
 
-  const handleSubmit = async (data: CreateAnnouncementInput) => {
+  const handleSubmit = async (data: any) => {
     try {
       setIsSubmitting(true);
       setError(null);
 
+      // Vérifier que l'utilisateur est connecté
+      if (!session?.user?.id) {
+        throw new Error('Utilisateur non connecté');
+      }
+
+      // Ajouter l'ID du client connecté et les champs manquants
+      const dataWithClientId: CreateAnnouncementInput = {
+        ...data,
+        clientId: session.user.id,
+        tags: [], // Ajouter tags vide par défaut
+      };
+
       // Créer l'annonce via le hook
-      const response = await createAnnouncement(data);
+      const response = await createAnnouncement(dataWithClientId);
 
       if (response) {
         setSuccess(true);

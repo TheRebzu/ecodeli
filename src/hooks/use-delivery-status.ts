@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
-import { trpc } from '@/trpc/client';
+import { api } from '@/trpc/react';
 import { useDeliveryTrackingStore, useStatusHistory } from '@/store/use-delivery-tracking-store';
 import { DeliveryStatus } from '@prisma/client';
 import { socket, emitDeliveryTrackingEvent } from '@/socket';

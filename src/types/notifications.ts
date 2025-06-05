@@ -40,7 +40,7 @@ export interface UserNotificationSettings {
   marketingUpdates?: boolean;
   systemUpdates?: boolean;
   language?: SupportedLanguage;
-  
+
   // Anciens noms pour compatibilité
   emailNotifications?: boolean;
   pushNotifications?: boolean;

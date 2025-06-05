@@ -1,13 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { 
-  Card, 
-  CardHeader, 
-  CardTitle, 
-  CardDescription, 
-  CardContent 
-} from '@/components/ui/card';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { RefreshCwIcon } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -29,10 +23,10 @@ export function DocumentList({
   onDownload,
   onApprove,
   onReject,
-  emptyMessage = "Aucun document disponible.",
+  emptyMessage = 'Aucun document disponible.',
 }: DocumentListProps) {
   const [selectedDocument, setSelectedDocument] = useState<BaseDocument | null>(null);
-  
+
   if (isLoading) {
     return (
       <Card>
@@ -59,21 +53,18 @@ export function DocumentList({
   // Generate actions for document preview
   const renderPreviewActions = () => {
     if (!selectedDocument) return null;
-    
+
     return (
       <div className="flex gap-2">
         {onDownload && (
-          <Button 
-            variant="outline"
-            onClick={() => onDownload(selectedDocument)}
-          >
+          <Button variant="outline" onClick={() => onDownload(selectedDocument)}>
             Télécharger
           </Button>
         )}
-        
+
         {onApprove && selectedDocument.status === 'PENDING' && (
-          <Button 
-            variant="default" 
+          <Button
+            variant="default"
             className="bg-green-600 hover:bg-green-700"
             onClick={() => {
               onApprove(selectedDocument.id);
@@ -83,12 +74,12 @@ export function DocumentList({
             Approuver
           </Button>
         )}
-        
+
         {onReject && selectedDocument.status === 'PENDING' && (
-          <Button 
+          <Button
             variant="destructive"
             onClick={() => {
-              onReject(selectedDocument.id, "");
+              onReject(selectedDocument.id, '');
               setSelectedDocument(null);
             }}
           >
@@ -107,11 +98,11 @@ export function DocumentList({
           <CardDescription>{description}</CardDescription>
         </div>
       </CardHeader>
-      
+
       <CardContent>
         {documents.length > 0 ? (
           <div className="space-y-2">
-            {documents.map((document) => (
+            {documents.map(document => (
               <DocumentCard
                 key={document.id}
                 document={document}
@@ -123,13 +114,11 @@ export function DocumentList({
             ))}
           </div>
         ) : (
-          <div className="text-center py-10 text-muted-foreground">
-            {emptyMessage}
-          </div>
+          <div className="text-center py-10 text-muted-foreground">{emptyMessage}</div>
         )}
-        
+
         {/* Document Preview Dialog */}
-        <DocumentPreview 
+        <DocumentPreview
           document={selectedDocument}
           onClose={() => setSelectedDocument(null)}
           actions={renderPreviewActions()}

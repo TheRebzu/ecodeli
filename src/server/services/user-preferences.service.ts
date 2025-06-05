@@ -280,8 +280,8 @@ export const userPreferencesService = {
       select: {
         notificationPreferences: true,
         preferences: true,
-        locale: true
-      }
+        locale: true,
+      },
     });
 
     if (!user) {
@@ -304,14 +304,14 @@ export const userPreferencesService = {
           enabled: false,
           startTime: '22:00',
           endTime: '08:00',
-          timezone: 'Europe/Paris'
+          timezone: 'Europe/Paris',
         },
         frequency: {
           immediate: true,
           hourly: false,
           daily: false,
-          weekly: false
-        }
+          weekly: false,
+        },
       };
     }
 
@@ -331,19 +331,23 @@ export const userPreferencesService = {
       announcementNotifications: notifPrefs.announcementNotifications ?? true,
       serviceReminders: notifPrefs.serviceReminders ?? true,
       storageAlerts: notifPrefs.storageAlerts ?? true,
-      notificationCategories: notifPrefs.notificationCategories || ['security', 'payments', 'deliveries'],
+      notificationCategories: notifPrefs.notificationCategories || [
+        'security',
+        'payments',
+        'deliveries',
+      ],
       quietHours: notifPrefs.quietHours || {
         enabled: false,
         startTime: '22:00',
         endTime: '08:00',
-        timezone: generalPrefs.timeZone || 'Europe/Paris'
+        timezone: generalPrefs.timeZone || 'Europe/Paris',
       },
       frequency: notifPrefs.frequency || {
         immediate: true,
         hourly: false,
         daily: false,
-        weekly: false
-      }
+        weekly: false,
+      },
     };
   },
 
@@ -384,7 +388,7 @@ export const userPreferencesService = {
       // Récupérer les préférences actuelles
       const currentUser = await db.user.findUnique({
         where: { id: userId },
-        select: { notificationPreferences: true }
+        select: { notificationPreferences: true },
       });
 
       if (!currentUser) {
@@ -392,29 +396,33 @@ export const userPreferencesService = {
       }
 
       const currentPrefs = (currentUser.notificationPreferences as any) || {};
-      
+
       // Fusionner avec les nouvelles préférences
       const updatedPrefs = {
         ...currentPrefs,
         ...preferences,
         // S'assurer que les heures de silence sont correctement formatées
-        quietHours: preferences.quietHours ? {
-          ...currentPrefs.quietHours,
-          ...preferences.quietHours
-        } : currentPrefs.quietHours,
+        quietHours: preferences.quietHours
+          ? {
+              ...currentPrefs.quietHours,
+              ...preferences.quietHours,
+            }
+          : currentPrefs.quietHours,
         // S'assurer que la fréquence est correctement formatée
-        frequency: preferences.frequency ? {
-          ...currentPrefs.frequency,
-          ...preferences.frequency
-        } : currentPrefs.frequency
+        frequency: preferences.frequency
+          ? {
+              ...currentPrefs.frequency,
+              ...preferences.frequency,
+            }
+          : currentPrefs.frequency,
       };
 
       // Mettre à jour dans la base de données
       await db.user.update({
         where: { id: userId },
         data: {
-          notificationPreferences: updatedPrefs
-        }
+          notificationPreferences: updatedPrefs,
+        },
       });
 
       return true;
@@ -444,16 +452,16 @@ export const userPreferencesService = {
       if (prefs.quietHours.enabled) {
         const now = new Date();
         const userTimeZone = prefs.quietHours.timezone;
-        
+
         // Créer les heures de début et fin en tenant compte du fuseau horaire
         const startTime = prefs.quietHours.startTime;
         const endTime = prefs.quietHours.endTime;
-        
+
         // Logique simplifiée - dans un vrai système, utilisez une bibliothèque comme date-fns-tz
         const currentHour = now.getHours();
         const startHour = parseInt(startTime.split(':')[0]);
         const endHour = parseInt(endTime.split(':')[0]);
-        
+
         if (startHour > endHour) {
           // Les heures de silence traversent minuit
           if (currentHour >= startHour || currentHour < endHour) {
@@ -502,7 +510,7 @@ export const userPreferencesService = {
       const unsnoozeAt = new Date(Date.now() + duration * 60 * 1000);
 
       const currentPrefs = await this.getNotificationPreferences(userId);
-      
+
       await db.user.update({
         where: { id: userId },
         data: {
@@ -515,22 +523,22 @@ export const userPreferencesService = {
               originalPrefs: {
                 emailNotifications: currentPrefs.emailNotifications,
                 pushNotifications: currentPrefs.pushNotifications,
-                smsNotifications: currentPrefs.smsNotifications
-              }
-            }
-          }
-        }
+                smsNotifications: currentPrefs.smsNotifications,
+              },
+            },
+          },
+        },
       });
 
       return {
         success: true,
-        unsnoozeAt
+        unsnoozeAt,
       };
     } catch (error) {
       console.error('Erreur lors de la mise en pause des notifications:', error);
       return {
         success: false,
-        unsnoozeAt: new Date()
+        unsnoozeAt: new Date(),
       };
     }
   },
@@ -542,7 +550,7 @@ export const userPreferencesService = {
     try {
       const currentUser = await db.user.findUnique({
         where: { id: userId },
-        select: { notificationPreferences: true }
+        select: { notificationPreferences: true },
       });
 
       if (!currentUser) {
@@ -550,10 +558,10 @@ export const userPreferencesService = {
       }
 
       const prefs = (currentUser.notificationPreferences as any) || {};
-      
+
       if (prefs.snoozed?.enabled) {
         const originalPrefs = prefs.snoozed.originalPrefs || {};
-        
+
         await db.user.update({
           where: { id: userId },
           data: {
@@ -563,10 +571,10 @@ export const userPreferencesService = {
               pushNotifications: originalPrefs.pushNotifications,
               smsNotifications: originalPrefs.smsNotifications,
               snoozed: {
-                enabled: false
-              }
-            }
-          }
+                enabled: false,
+              },
+            },
+          },
         });
       }
 
@@ -575,5 +583,5 @@ export const userPreferencesService = {
       console.error('Erreur lors de la réactivation des notifications:', error);
       return false;
     }
-  }
+  },
 };

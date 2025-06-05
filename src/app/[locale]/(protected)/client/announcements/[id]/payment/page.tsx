@@ -39,36 +39,35 @@ export default function AnnouncementPaymentPage({ params }: PaymentPageProps) {
   const [paymentSuccess, setPaymentSuccess] = useState(false);
 
   // Récupérer les détails de l'annonce
-  const { data: announcement, isLoading: isLoadingAnnouncement } = api.announcement.getAnnouncementById.useQuery(
-    { id },
-    {
-      enabled: !!id,
-      refetchOnWindowFocus: false,
-    }
-  );
+  const { data: announcement, isLoading: isLoadingAnnouncement } =
+    api.announcement.getAnnouncementById.useQuery(
+      { id },
+      {
+        enabled: !!id,
+        refetchOnWindowFocus: false,
+      }
+    );
 
   // Récupérer les méthodes de paiement disponibles
-  const { data: paymentMethods, isLoading: isLoadingPaymentMethods } = api.payment.getPaymentMethods.useQuery(
-    undefined,
-    { 
+  const { data: paymentMethods, isLoading: isLoadingPaymentMethods } =
+    api.payment.getPaymentMethods.useQuery(undefined, {
       enabled: !paymentSuccess,
-      refetchOnWindowFocus: false
-    }
-  );
+      refetchOnWindowFocus: false,
+    });
 
   // Mutation pour effectuer le paiement
   const paymentMutation = api.payment.processAnnouncementPayment.useMutation({
     onSuccess: () => {
       setPaymentSuccess(true);
       toast({
-        variant: "default",
+        variant: 'default',
         title: t('paymentSuccessTitle'),
         description: t('paymentSuccessDescription'),
       });
     },
-    onError: (error) => {
+    onError: error => {
       toast({
-        variant: "destructive",
+        variant: 'destructive',
         title: t('paymentErrorTitle'),
         description: error.message || t('paymentErrorDescription'),
       });
@@ -79,9 +78,9 @@ export default function AnnouncementPaymentPage({ params }: PaymentPageProps) {
   // Fonction pour traiter le paiement
   const handlePayment = async () => {
     if (!announcement) return;
-    
+
     setIsProcessing(true);
-    
+
     try {
       await paymentMutation.mutateAsync({
         announcementId: id,
@@ -146,13 +145,14 @@ export default function AnnouncementPaymentPage({ params }: PaymentPageProps) {
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>{t('error')}</AlertTitle>
-              <AlertDescription>
-                {t('announcementNotFoundError', { id })}
-              </AlertDescription>
+              <AlertDescription>{t('announcementNotFoundError', { id })}</AlertDescription>
             </Alert>
           </CardContent>
           <CardFooter>
-            <Button variant="outline" onClick={() => router.push(`/${params.locale}/client/announcements`)}>
+            <Button
+              variant="outline"
+              onClick={() => router.push(`/${params.locale}/client/announcements`)}
+            >
               {t('backToAnnouncements')}
             </Button>
           </CardFooter>
@@ -179,12 +179,16 @@ export default function AnnouncementPaymentPage({ params }: PaymentPageProps) {
             <div className="rounded-md bg-muted p-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">{t('announcementTitle')}</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    {t('announcementTitle')}
+                  </p>
                   <p className="text-lg font-semibold">{announcement.title}</p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">{t('amountPaid')}</p>
-                  <p className="text-lg font-semibold">{formatCurrency(announcement.price || 0, 'EUR')}</p>
+                  <p className="text-lg font-semibold">
+                    {formatCurrency(announcement.price || 0, 'EUR')}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">{t('transactionId')}</p>
@@ -198,18 +202,14 @@ export default function AnnouncementPaymentPage({ params }: PaymentPageProps) {
                 </div>
               </div>
             </div>
-            
+
             <Alert className="bg-blue-50 text-blue-700 border-blue-200">
               <AlertCircle className="h-4 w-4" />
-              <AlertDescription>
-                {t('paymentReceiptSent')}
-              </AlertDescription>
+              <AlertDescription>{t('paymentReceiptSent')}</AlertDescription>
             </Alert>
           </CardContent>
           <CardFooter className="flex justify-center">
-            <Button onClick={handleContinue}>
-              {t('backToAnnouncements')}
-            </Button>
+            <Button onClick={handleContinue}>{t('backToAnnouncements')}</Button>
           </CardFooter>
         </Card>
       </div>
@@ -225,7 +225,7 @@ export default function AnnouncementPaymentPage({ params }: PaymentPageProps) {
           {t('backToAnnouncement')}
         </Button>
       </div>
-      
+
       <Card>
         <CardHeader>
           <CardTitle>{t('paymentTitle')}</CardTitle>
@@ -252,13 +252,15 @@ export default function AnnouncementPaymentPage({ params }: PaymentPageProps) {
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">{t('announcementPrice')}</p>
-                <p className="text-xl font-bold">{formatCurrency(announcement.price || 0, 'EUR')}</p>
+                <p className="text-xl font-bold">
+                  {formatCurrency(announcement.price || 0, 'EUR')}
+                </p>
               </div>
             </div>
           </div>
-          
+
           <Separator />
-          
+
           {/* Méthodes de paiement */}
           <div>
             <h3 className="text-lg font-medium mb-4">{t('paymentMethod')}</h3>
@@ -270,8 +272,8 @@ export default function AnnouncementPaymentPage({ params }: PaymentPageProps) {
             ) : (
               <div className="space-y-3">
                 {paymentMethods && paymentMethods.length > 0 ? (
-                  paymentMethods.map((method) => (
-                    <div 
+                  paymentMethods.map(method => (
+                    <div
                       key={method.id}
                       className="flex items-center justify-between p-4 border rounded-md cursor-pointer hover:bg-muted/50"
                     >
@@ -297,11 +299,9 @@ export default function AnnouncementPaymentPage({ params }: PaymentPageProps) {
                     </Button>
                   </div>
                 )}
-                
+
                 {/* Ajouter une nouvelle méthode */}
-                <div 
-                  className="flex items-center justify-center p-4 border rounded-md border-dashed cursor-pointer hover:bg-muted/50"
-                >
+                <div className="flex items-center justify-center p-4 border rounded-md border-dashed cursor-pointer hover:bg-muted/50">
                   <div className="flex items-center gap-2">
                     <CreditCard className="h-5 w-5" />
                     <p>{t('addNewPaymentMethod')}</p>
@@ -310,9 +310,9 @@ export default function AnnouncementPaymentPage({ params }: PaymentPageProps) {
               </div>
             )}
           </div>
-          
+
           <Separator />
-          
+
           {/* Récapitulatif de paiement */}
           <div className="bg-muted/30 p-4 rounded-md">
             <h3 className="text-lg font-medium mb-2">{t('paymentSummary')}</h3>
@@ -337,8 +337,8 @@ export default function AnnouncementPaymentPage({ params }: PaymentPageProps) {
           <Button variant="outline" onClick={handleBack}>
             {t('cancel')}
           </Button>
-          <Button 
-            onClick={handlePayment} 
+          <Button
+            onClick={handlePayment}
             disabled={isProcessing || (paymentMethods && paymentMethods.length === 0)}
           >
             {isProcessing ? (
@@ -347,9 +347,7 @@ export default function AnnouncementPaymentPage({ params }: PaymentPageProps) {
                 {t('processing')}
               </>
             ) : (
-              <>
-                {t('payNow')}
-              </>
+              <>{t('payNow')}</>
             )}
           </Button>
         </CardFooter>

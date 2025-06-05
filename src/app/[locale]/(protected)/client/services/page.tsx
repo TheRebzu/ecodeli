@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { ServiceList } from '@/components/services/service-list';
+import { ServiceList } from '@/components/client/services/service-search';
 import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 

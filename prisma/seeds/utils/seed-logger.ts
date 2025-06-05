@@ -26,7 +26,7 @@ export class SeedLogger {
       level,
       category,
       message,
-      data
+      data,
     };
 
     this.logs.push(entry);
@@ -40,9 +40,9 @@ export class SeedLogger {
     const emoji = this.getEmoji(entry.level);
     const timestamp = entry.timestamp.toLocaleTimeString();
     const categoryFormatted = `[${entry.category}]`;
-    
+
     console.log(`${emoji} ${timestamp} ${categoryFormatted} ${entry.message}`);
-    
+
     if (entry.data && this.verbose) {
       console.log('  Data:', entry.data);
     }
@@ -50,12 +50,17 @@ export class SeedLogger {
 
   private getEmoji(level: LogLevel): string {
     switch (level) {
-      case 'SUCCESS': return '✅';
-      case 'ERROR': return '❌';
-      case 'WARNING': return '⚠️';
-      case 'PROGRESS': return '📊';
+      case 'SUCCESS':
+        return '✅';
+      case 'ERROR':
+        return '❌';
+      case 'WARNING':
+        return '⚠️';
+      case 'PROGRESS':
+        return '📊';
       case 'INFO':
-      default: return 'ℹ️';
+      default:
+        return 'ℹ️';
     }
   }
 
@@ -88,7 +93,7 @@ export class SeedLogger {
   endSeed(seedName: string, result: SeedResult, duration?: number): void {
     const durationText = duration ? ` en ${duration}ms` : '';
     const summary = `✨ ${seedName} terminé${durationText} - Créés: ${result.created}, Erreurs: ${result.errors}`;
-    
+
     if (result.errors > 0) {
       this.warning('SEED', summary, result);
     } else {
@@ -103,8 +108,11 @@ export class SeedLogger {
   endBatch(batchName: string, results: SeedResult[]): void {
     const totalCreated = results.reduce((sum, r) => sum + r.created, 0);
     const totalErrors = results.reduce((sum, r) => sum + r.errors, 0);
-    
-    this.success('BATCH', `📦 Batch ${batchName} terminé - Total créés: ${totalCreated}, Total erreurs: ${totalErrors}`);
+
+    this.success(
+      'BATCH',
+      `📦 Batch ${batchName} terminé - Total créés: ${totalCreated}, Total erreurs: ${totalErrors}`
+    );
   }
 
   database(action: string, table: string, count?: number): void {
@@ -116,7 +124,7 @@ export class SeedLogger {
     const level = status === 'PASSED' ? 'SUCCESS' : 'ERROR';
     const emoji = status === 'PASSED' ? '✓' : '✗';
     const message = `${emoji} Validation ${entity}: ${status}`;
-    
+
     this.log(level, 'VALIDATION', message, details);
   }
 
@@ -129,11 +137,14 @@ export class SeedLogger {
   } {
     const now = new Date();
     const duration = now.getTime() - this.startTime.getTime();
-    
-    const logsByLevel = this.logs.reduce((acc, log) => {
-      acc[log.level] = (acc[log.level] || 0) + 1;
-      return acc;
-    }, {} as Record<LogLevel, number>);
+
+    const logsByLevel = this.logs.reduce(
+      (acc, log) => {
+        acc[log.level] = (acc[log.level] || 0) + 1;
+        return acc;
+      },
+      {} as Record<LogLevel, number>
+    );
 
     const errors = this.logs.filter(log => log.level === 'ERROR');
     const warnings = this.logs.filter(log => log.level === 'WARNING');
@@ -143,14 +154,14 @@ export class SeedLogger {
       totalLogs: this.logs.length,
       logsByLevel,
       errors,
-      warnings
+      warnings,
     };
   }
 
   printSummary(): void {
     const report = this.getReport();
     const durationSeconds = Math.round(report.duration / 1000);
-    
+
     console.log('\n' + '='.repeat(60));
     console.log('📋 RAPPORT DE SEED');
     console.log('='.repeat(60));
@@ -159,7 +170,7 @@ export class SeedLogger {
     console.log(`✅ Succès: ${report.logsByLevel.SUCCESS || 0}`);
     console.log(`⚠️  Avertissements: ${report.logsByLevel.WARNING || 0}`);
     console.log(`❌ Erreurs: ${report.logsByLevel.ERROR || 0}`);
-    
+
     if (report.errors.length > 0) {
       console.log('\n❌ ERREURS DÉTAILLÉES:');
       report.errors.forEach((error, index) => {
@@ -169,14 +180,14 @@ export class SeedLogger {
         }
       });
     }
-    
+
     if (report.warnings.length > 0) {
       console.log('\n⚠️  AVERTISSEMENTS:');
       report.warnings.forEach((warning, index) => {
         console.log(`${index + 1}. [${warning.category}] ${warning.message}`);
       });
     }
-    
+
     console.log('='.repeat(60));
   }
 
@@ -188,19 +199,19 @@ export class SeedLogger {
         endTime: new Date(),
         duration: report.duration,
         totalLogs: report.totalLogs,
-        logsByLevel: report.logsByLevel
+        logsByLevel: report.logsByLevel,
       },
-      logs: this.logs
+      logs: this.logs,
     };
 
     const jsonData = JSON.stringify(logData, null, 2);
-    
+
     if (filePath) {
       const fs = require('fs');
       fs.writeFileSync(filePath, jsonData);
       this.info('EXPORT', `📄 Logs exportés vers: ${filePath}`);
     }
-    
+
     return jsonData;
   }
-} 
+}

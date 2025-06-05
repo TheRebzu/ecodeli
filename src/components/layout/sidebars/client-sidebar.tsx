@@ -1,38 +1,51 @@
 'use client';
 
+import { useState } from 'react';
 import {
-  Package,
-  CreditCard,
-  Bell,
-  MessageSquare,
   Home,
-  User,
-  ShoppingBag,
-  FileText,
   Megaphone,
-  Box,
+  Package,
+  Briefcase,
   Calendar,
-  Cog,
+  CreditCard,
+  MessageSquare,
+  Bell,
+  User,
+  Star,
+  Settings,
+  HelpCircle,
+  Receipt,
+  Bookmark,
+  Search,
+  FileText,
+  MapPin,
+  Clock,
+  TrendingUp,
+  Archive,
+  ShoppingBag,
+  Truck,
+  CheckCircle,
+  AlertCircle,
+  DollarSign,
+  Target,
+  Users,
+  Zap,
+  Globe,
+  Layers,
+  Crown,
 } from 'lucide-react';
-import { BaseSidebar, SidebarSection } from './base-sidebar';
+import { BaseSidebar, type SidebarSection } from './base-sidebar';
 import { useAuth } from '@/hooks/use-auth';
 import { useSession } from 'next-auth/react';
 
 interface ClientSidebarProps {
   locale: string;
-  notificationCount?: number;
-  messageCount?: number;
-  collapsed?: boolean;
 }
 
-export function ClientSidebar({
-  locale,
-  notificationCount = 2,
-  messageCount = 3,
-  collapsed = false,
-}: ClientSidebarProps) {
+export function ClientSidebar({ locale }: ClientSidebarProps) {
   const { user } = useAuth();
   const { data: session } = useSession();
+  const [notifications] = useState(8);
 
   // Récupérer les informations de l'utilisateur connecté
   const userInfo = {
@@ -42,62 +55,152 @@ export function ClientSidebar({
   };
 
   const sections: SidebarSection[] = [
+    // Section principale - Dashboard
     {
-      title: 'Principal',
+      title: 'Accueil',
       items: [
         {
           label: 'Tableau de bord',
           href: `/${locale}/client`,
           icon: Home,
-        },
-        {
-          label: 'Mon profil',
-          href: `/${locale}/client/profile`,
-          icon: User,
+          badge: 3,
         },
       ],
     },
+
+    // Section Annonces et Services
     {
       title: 'Services',
       items: [
         {
-          label: 'Services',
+          label: 'Mes annonces',
+          href: `/${locale}/client/announcements`,
+          icon: Megaphone,
+          badge: 2,
+        },
+        {
+          label: 'Créer annonce',
+          href: `/${locale}/client/announcements/create`,
+          icon: Megaphone,
+        },
+        {
+          label: 'Services disponibles',
           href: `/${locale}/client/services`,
-          icon: ShoppingBag,
+          icon: Briefcase,
         },
         {
-          label: 'Livraisons',
-          href: `/${locale}/client/deliveries`,
-          icon: Package,
-          badge: 1,
+          label: 'Réserver service',
+          href: `/${locale}/client/services/book`,
+          icon: Calendar,
         },
         {
-          label: 'Stockage',
-          href: `/${locale}/client/storage`,
-          icon: Box,
-        },
-        {
-          label: 'Rendez-vous',
-          href: `/${locale}/client/appointments`,
+          label: 'Mes réservations',
+          href: `/${locale}/client/services/bookings`,
           icon: Calendar,
         },
       ],
     },
+
+    // Section Livraisons
     {
-      title: 'Finance',
+      title: 'Livraisons',
       items: [
         {
-          label: 'Factures',
-          href: `/${locale}/client/invoices`,
-          icon: FileText,
-        },
-        {
-          label: 'Paiements',
-          href: `/${locale}/client/payments`,
-          icon: CreditCard,
+          label: 'Mes livraisons',
+          href: `/${locale}/client/deliveries`,
+          icon: Package,
+          badge: 1,
         },
       ],
     },
+
+    // Section Storage/Entreposage
+    {
+      title: 'Entreposage',
+      items: [
+        {
+          label: 'Mes boxes',
+          href: `/${locale}/client/storage`,
+          icon: Archive,
+        },
+        {
+          label: 'Rechercher box',
+          href: `/${locale}/client/storage/search`,
+          icon: Search,
+        },
+      ],
+    },
+
+    // Section Rendez-vous
+    {
+      title: 'Rendez-vous',
+      items: [
+        {
+          label: 'Mes rendez-vous',
+          href: `/${locale}/client/appointments`,
+          icon: Calendar,
+        },
+        {
+          label: 'Historique RDV',
+          href: `/${locale}/client/appointments/history`,
+          icon: Clock,
+        },
+      ],
+    },
+
+    // Section Contrats et Documents
+    {
+      title: 'Documents',
+      items: [
+        {
+          label: 'Mes contrats',
+          href: `/${locale}/client/contracts`,
+          icon: FileText,
+        },
+        {
+          label: 'Factures',
+          href: `/${locale}/client/invoices`,
+          icon: Receipt,
+        },
+      ],
+    },
+
+    // Section Paiements et Facturation
+    {
+      title: 'Paiements',
+      items: [
+        {
+          label: 'Mes paiements',
+          href: `/${locale}/client/payments`,
+          icon: CreditCard,
+        },
+        {
+          label: 'Abonnement',
+          href: `/${locale}/client/subscription`,
+          icon: Crown,
+        },
+      ],
+    },
+
+    // Section Évaluations
+    {
+      title: 'Évaluations',
+      items: [
+        {
+          label: 'Mes avis',
+          href: `/${locale}/client/reviews`,
+          icon: Star,
+        },
+        {
+          label: 'Avis en attente',
+          href: `/${locale}/client/reviews/pending`,
+          icon: Clock,
+          badge: 2,
+        },
+      ],
+    },
+
+    // Section Communication
     {
       title: 'Communication',
       items: [
@@ -105,51 +208,50 @@ export function ClientSidebar({
           label: 'Messages',
           href: `/${locale}/client/messages`,
           icon: MessageSquare,
-          badge: messageCount,
+          badge: 4,
         },
         {
           label: 'Notifications',
           href: `/${locale}/client/notifications`,
           icon: Bell,
-          badge: notificationCount,
-        },
-        {
-          label: 'Annonces',
-          href: `/${locale}/client/announcements`,
-          icon: Megaphone,
+          badge: notifications,
         },
       ],
     },
+
+    // Section Profil et Paramètres
     {
-      title: 'Paramètres',
+      title: 'Mon compte',
       items: [
         {
-          label: 'Préférences',
-          href: `/${locale}/client/settings`,
-          icon: Cog,
+          label: 'Mon profil',
+          href: `/${locale}/client/profile`,
+          icon: User,
         },
       ],
     },
   ];
 
+  const quickAction = {
+    label: 'Nouvelle annonce',
+    icon: Megaphone,
+    href: `/${locale}/client/announcements/create`,
+  };
+
+  const subscriptionInfo = {
+    plan: 'Premium',
+    href: `/${locale}/client/subscription`,
+  };
+
   return (
     <BaseSidebar
       locale={locale}
       sections={sections}
-      title="Espace Client"
+      title="EcoDeli Client"
       userInfo={userInfo}
-      notifications={notificationCount}
-      defaultCollapsed={collapsed}
-      collapsible={true}
-      subscriptionInfo={{
-        plan: 'Plan Essentiel',
-        href: `/${locale}/client/subscription`,
-      }}
-      quickAction={{
-        label: 'Nouvelle livraison',
-        icon: Package,
-        href: `/${locale}/client/deliveries/new`,
-      }}
+      quickAction={quickAction}
+      subscriptionInfo={subscriptionInfo}
+      notifications={notifications}
     />
   );
 }

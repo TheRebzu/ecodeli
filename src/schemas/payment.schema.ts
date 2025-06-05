@@ -25,7 +25,12 @@ export const paymentBaseSchema = z.object({
 export const createPaymentSchema = paymentBaseSchema.extend({
   userId: z.string().cuid('ID utilisateur invalide'),
   isEscrow: z.boolean().optional().default(false),
-  serviceType: z.enum([ServiceType.DELIVERY, ServiceType.SERVICE, ServiceType.STORAGE, ServiceType.CUSTOM]),
+  serviceType: z.enum([
+    ServiceType.DELIVERY,
+    ServiceType.SERVICE,
+    ServiceType.STORAGE,
+    ServiceType.CUSTOM,
+  ]),
   deliveryId: z.string().cuid('ID livraison invalide').optional(),
   serviceId: z.string().cuid('ID service invalide').optional(),
   subscriptionId: z.string().cuid('ID abonnement invalide').optional(),
@@ -33,7 +38,7 @@ export const createPaymentSchema = paymentBaseSchema.extend({
   metadata: z.record(z.any()).optional(),
   source: z.string().optional(),
   notes: z.string().optional(),
-  
+
   // Champs spécifiques au mode démonstration
   isDemo: z.boolean().default(true),
   demoSuccessScenario: z.boolean().default(true).optional(),
@@ -59,7 +64,7 @@ export const processPaymentSchema = z.object({
   action: z.enum(['capture', 'cancel', 'refund', 'dispute']),
   amount: z.number().positive('Le montant doit être positif').optional(),
   reason: z.string().optional(),
-  
+
   // Champs spécifiques au mode démonstration
   demoSuccessScenario: z.boolean().default(true).optional(),
 });
@@ -74,7 +79,9 @@ export const paymentFilterSchema = z.object({
   maxAmount: z.number().optional(),
   startDate: z.date().optional(),
   endDate: z.date().optional(),
-  serviceType: z.enum([ServiceType.DELIVERY, ServiceType.SERVICE, ServiceType.STORAGE, ServiceType.CUSTOM]).optional(),
+  serviceType: z
+    .enum([ServiceType.DELIVERY, ServiceType.SERVICE, ServiceType.STORAGE, ServiceType.CUSTOM])
+    .optional(),
   deliveryId: z.string().cuid('ID livraison invalide').optional(),
   serviceId: z.string().cuid('ID service invalide').optional(),
   subscriptionId: z.string().cuid('ID abonnement invalide').optional(),
@@ -89,7 +96,7 @@ export const refundPaymentSchema = z.object({
   paymentId: z.string().cuid('ID paiement invalide'),
   amount: z.number().positive('Le montant doit être positif').optional(),
   reason: z.string().min(3, 'La raison doit contenir au moins 3 caractères'),
-  
+
   // Champs spécifiques au mode démonstration
   demoSuccessScenario: z.boolean().default(true).optional(),
 });

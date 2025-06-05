@@ -3,7 +3,7 @@
 import { redirect, useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import SessionCheckRedirect from '@/components/auth/SessionCheckRedirect';
-import { AuthNavbar } from '@/components/layout/auth-navbar';
+import { AuthNavbar } from '@/components/layout/auth/navbar';
 import ThemeProvider from '@/components/providers/theme-provider';
 import { NextIntlClientProvider } from 'next-intl';
 

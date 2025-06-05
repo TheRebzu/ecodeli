@@ -33,8 +33,9 @@ export const userRouter = router({
         id: ctx.session.user.id,
         ...input,
         // Autres champs fictifs
-      };    }),
-    
+      };
+    }),
+
   /**
    * Permet d'activer/désactiver un compte utilisateur
    */
@@ -42,13 +43,14 @@ export const userRouter = router({
     .input(toggleUserActivationSchema)
     .mutation(async ({ input, ctx }) => {
       // Vérification que l'utilisateur est admin
-      if (ctx.session.user.role !== "ADMIN") {
+      if (ctx.session.user.role !== 'ADMIN') {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: "Accès non autorisé. Seuls les administrateurs peuvent modifier l'état des comptes."
+          message:
+            "Accès non autorisé. Seuls les administrateurs peuvent modifier l'état des comptes.",
         });
       }
-      
+
       const { userId, isActive } = input;
       return userService.toggleUserActivation(userId, isActive);
     }),
@@ -56,13 +58,11 @@ export const userRouter = router({
   /**
    * Bannir ou débannir un utilisateur (admin uniquement)
    */
-  banOrUnban: protectedProcedure
-    .input(userBanSchema)
-    .mutation(async ({ input, ctx }) => {
-      if (ctx.session.user.role !== "ADMIN") {
-        throw new Error("Permission refusée : admin requis");
-      }
-      const { userId, action, reason } = input;
-      return userService.banOrUnbanUser(userId, action as UserBanAction, reason, ctx.session.user.id);
-    }),
+  banOrUnban: protectedProcedure.input(userBanSchema).mutation(async ({ input, ctx }) => {
+    if (ctx.session.user.role !== 'ADMIN') {
+      throw new Error('Permission refusée : admin requis');
+    }
+    const { userId, action, reason } = input;
+    return userService.banOrUnbanUser(userId, action as UserBanAction, reason, ctx.session.user.id);
+  }),
 });

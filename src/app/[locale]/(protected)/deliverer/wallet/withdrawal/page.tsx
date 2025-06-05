@@ -4,13 +4,29 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useSession } from 'next-auth/react';
-import { ArrowLeft, BanknoteIcon, ArrowUpFromLine, Wallet, AlertCircle, Clock, CheckCircle, Loader2 } from 'lucide-react';
+import {
+  ArrowLeft,
+  BanknoteIcon,
+  ArrowUpFromLine,
+  Wallet,
+  AlertCircle,
+  Clock,
+  CheckCircle,
+  Loader2,
+} from 'lucide-react';
 
 import { api } from '@/trpc/react';
 import { useToast } from '@/components/ui/use-toast';
 import { formatCurrency } from '@/lib/utils';
 
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -30,7 +46,15 @@ import {
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form';
 
 export const metadata = {
   title: 'Demande de virement | EcoDeli',
@@ -42,11 +66,11 @@ const withdrawalFormSchema = z.object({
   amount: z.coerce
     .number()
     .min(10, { message: 'Le montant minimum de retrait est de 10€' })
-    .refine((val) => val > 0, { message: 'Le montant doit être supérieur à 0' }),
+    .refine(val => val > 0, { message: 'Le montant doit être supérieur à 0' }),
   method: z.enum(['BANK_TRANSFER', 'STRIPE_CONNECT']),
   expedited: z.boolean().default(false),
   notes: z.string().optional(),
-  acceptTerms: z.boolean().refine((val) => val === true, {
+  acceptTerms: z.boolean().refine(val => val === true, {
     message: 'Vous devez accepter les conditions',
   }),
 });
@@ -62,20 +86,24 @@ export default function WithdrawalPage() {
   const [withdrawalSuccess, setWithdrawalSuccess] = useState(false);
 
   // Récupérer les données du portefeuille
-  const { data: walletData, isLoading: isLoadingWallet } = api.wallet.getMyWallet.useQuery(undefined, {
-    refetchOnWindowFocus: false,
-  });
-
-  // Récupérer les demandes de retrait en attente
-  const { data: withdrawals, isLoading: isLoadingWithdrawals } = api.withdrawal.getMyWithdrawals.useQuery(
-    { 
-      limit: 3, 
-      status: 'PENDING'
-    },
+  const { data: walletData, isLoading: isLoadingWallet } = api.wallet.getMyWallet.useQuery(
+    undefined,
     {
       refetchOnWindowFocus: false,
     }
   );
+
+  // Récupérer les demandes de retrait en attente
+  const { data: withdrawals, isLoading: isLoadingWithdrawals } =
+    api.withdrawal.getMyWithdrawals.useQuery(
+      {
+        limit: 3,
+        status: 'PENDING',
+      },
+      {
+        refetchOnWindowFocus: false,
+      }
+    );
 
   // Mutation pour demander un retrait
   const withdrawalMutation = api.withdrawal.requestWithdrawal.useMutation({
@@ -86,9 +114,9 @@ export default function WithdrawalPage() {
         description: t('withdrawalRequestProcessing'),
       });
     },
-    onError: (error) => {
+    onError: error => {
       toast({
-        variant: "destructive",
+        variant: 'destructive',
         title: t('withdrawalRequestFailed'),
         description: error.message || t('genericError'),
       });
@@ -112,7 +140,7 @@ export default function WithdrawalPage() {
   const onSubmit = async (data: WithdrawalFormValues) => {
     if (!walletData || data.amount > walletData.wallet.balance) {
       toast({
-        variant: "destructive",
+        variant: 'destructive',
         title: t('insufficientFunds'),
         description: t('insufficientFundsDescription'),
       });
@@ -125,7 +153,7 @@ export default function WithdrawalPage() {
         amount: data.amount,
         method: data.method,
         expedited: data.expedited,
-        notes: data.notes
+        notes: data.notes,
       });
     } catch (error) {
       // L'erreur est déjà gérée dans onError
@@ -142,24 +170,24 @@ export default function WithdrawalPage() {
     // Frais : 1% pour régulier, 2.5% pour express (minimum 1€)
     const feePercentage = expedited ? 0.025 : 0.01;
     const fees = Math.max(amount * feePercentage, 1);
-    
+
     // Arrondir à 2 décimales
     const roundedFees = Math.round(fees * 100) / 100;
     const netAmount = Math.round((amount - roundedFees) * 100) / 100;
-    
+
     // Délai de traitement
     const processingTime = expedited ? '1-2 jours ouvrés' : '3-5 jours ouvrés';
-    
+
     return {
       fees: roundedFees,
       netAmount,
-      processingTime
+      processingTime,
     };
   };
 
   // Obtenir les détails du retrait en fonction des valeurs actuelles du formulaire
   const withdrawalDetails = calculateWithdrawalDetails(
-    form.watch('amount') || 0, 
+    form.watch('amount') || 0,
     form.watch('expedited') || false
   );
 
@@ -206,9 +234,7 @@ export default function WithdrawalPage() {
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>{t('missingBankDetails')}</AlertTitle>
-              <AlertDescription>
-                {t('missingBankDetailsDescription')}
-              </AlertDescription>
+              <AlertDescription>{t('missingBankDetailsDescription')}</AlertDescription>
             </Alert>
           </CardContent>
           <CardFooter>
@@ -245,7 +271,9 @@ export default function WithdrawalPage() {
             <div className="rounded-md bg-muted p-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">{t('withdrawalAmount')}</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    {t('withdrawalAmount')}
+                  </p>
                   <p className="text-lg font-semibold">
                     {formatCurrency(form.getValues('amount'), walletData?.wallet.currency || 'EUR')}
                   </p>
@@ -253,7 +281,10 @@ export default function WithdrawalPage() {
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">{t('netAmount')}</p>
                   <p className="text-lg font-semibold">
-                    {formatCurrency(withdrawalDetails.netAmount, walletData?.wallet.currency || 'EUR')}
+                    {formatCurrency(
+                      withdrawalDetails.netAmount,
+                      walletData?.wallet.currency || 'EUR'
+                    )}
                   </p>
                 </div>
                 <div>
@@ -261,25 +292,23 @@ export default function WithdrawalPage() {
                   <p className="text-lg font-semibold">{withdrawalDetails.processingTime}</p>
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-muted-foreground">{t('withdrawalStatus')}</p>
+                  <p className="text-sm font-medium text-muted-foreground">
+                    {t('withdrawalStatus')}
+                  </p>
                   <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
                     {t('statusProcessing')}
                   </Badge>
                 </div>
               </div>
             </div>
-            
+
             <Alert className="bg-blue-50 text-blue-700 border-blue-200">
               <Clock className="h-4 w-4" />
-              <AlertDescription>
-                {t('withdrawalConfirmationSent')}
-              </AlertDescription>
+              <AlertDescription>{t('withdrawalConfirmationSent')}</AlertDescription>
             </Alert>
           </CardContent>
           <CardFooter className="flex justify-center">
-            <Button onClick={handleBack}>
-              {t('backToWallet')}
-            </Button>
+            <Button onClick={handleBack}>{t('backToWallet')}</Button>
           </CardFooter>
         </Card>
       </div>
@@ -331,14 +360,17 @@ export default function WithdrawalPage() {
                         <FormDescription>
                           {t('availableBalance')}:{' '}
                           <span className="font-medium">
-                            {formatCurrency(walletData?.wallet.balance || 0, walletData?.wallet.currency || 'EUR')}
+                            {formatCurrency(
+                              walletData?.wallet.balance || 0,
+                              walletData?.wallet.currency || 'EUR'
+                            )}
                           </span>
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="method"
@@ -373,30 +405,25 @@ export default function WithdrawalPage() {
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="expedited"
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                         <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
+                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                         </FormControl>
                         <div className="space-y-1 leading-none">
                           <FormLabel className="font-medium cursor-pointer">
                             {t('expeditedProcessing')}
                           </FormLabel>
-                          <FormDescription>
-                            {t('expeditedProcessingDescription')}
-                          </FormDescription>
+                          <FormDescription>{t('expeditedProcessingDescription')}</FormDescription>
                         </div>
                       </FormItem>
                     )}
                   />
-                  
+
                   <FormField
                     control={form.control}
                     name="notes"
@@ -404,44 +431,49 @@ export default function WithdrawalPage() {
                       <FormItem>
                         <FormLabel>{t('notes')}</FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder={t('notesPlaceholder')}
-                            {...field}
-                          />
+                          <Input placeholder={t('notesPlaceholder')} {...field} />
                         </FormControl>
-                        <FormDescription>
-                          {t('notesDescription')}
-                        </FormDescription>
+                        <FormDescription>{t('notesDescription')}</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  
+
                   <Separator />
-                  
+
                   <div className="rounded-md bg-muted/40 p-4">
                     <h3 className="text-sm font-medium mb-2">{t('withdrawalSummary')}</h3>
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span>{t('withdrawalAmount')}</span>
                         <span className="font-medium">
-                          {formatCurrency(form.watch('amount') || 0, walletData?.wallet.currency || 'EUR')}
+                          {formatCurrency(
+                            form.watch('amount') || 0,
+                            walletData?.wallet.currency || 'EUR'
+                          )}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span>
-                          {t('processingFees')} 
+                          {t('processingFees')}
                           {form.watch('expedited') ? ` (${t('expedited')})` : ''}
                         </span>
                         <span className="font-medium text-red-600">
-                          - {formatCurrency(withdrawalDetails.fees, walletData?.wallet.currency || 'EUR')}
+                          -{' '}
+                          {formatCurrency(
+                            withdrawalDetails.fees,
+                            walletData?.wallet.currency || 'EUR'
+                          )}
                         </span>
                       </div>
                       <Separator className="my-2" />
                       <div className="flex justify-between font-bold">
                         <span>{t('netAmount')}</span>
                         <span>
-                          {formatCurrency(withdrawalDetails.netAmount, walletData?.wallet.currency || 'EUR')}
+                          {formatCurrency(
+                            withdrawalDetails.netAmount,
+                            walletData?.wallet.currency || 'EUR'
+                          )}
                         </span>
                       </div>
                       <div className="text-sm text-muted-foreground mt-1">
@@ -450,38 +482,37 @@ export default function WithdrawalPage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <FormField
                     control={form.control}
                     name="acceptTerms"
                     render={({ field }) => (
                       <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                         <FormControl>
-                          <Checkbox
-                            checked={field.value}
-                            onCheckedChange={field.onChange}
-                          />
+                          <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                         </FormControl>
                         <div className="space-y-1 leading-none">
                           <FormLabel className="font-medium cursor-pointer">
                             {t('acceptTerms')}
                           </FormLabel>
-                          <FormDescription>
-                            {t('acceptTermsDescription')}
-                          </FormDescription>
+                          <FormDescription>{t('acceptTermsDescription')}</FormDescription>
                         </div>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  
+
                   <div className="flex justify-end gap-2">
                     <Button variant="outline" type="button" onClick={handleBack}>
                       {t('cancel')}
                     </Button>
-                    <Button 
+                    <Button
                       type="submit"
-                      disabled={isSubmitting || form.watch('amount') <= 0 || form.watch('amount') > (walletData?.wallet.balance || 0)}
+                      disabled={
+                        isSubmitting ||
+                        form.watch('amount') <= 0 ||
+                        form.watch('amount') > (walletData?.wallet.balance || 0)
+                      }
                     >
                       {isSubmitting ? (
                         <>
@@ -511,20 +542,29 @@ export default function WithdrawalPage() {
               <div>
                 <p className="text-sm text-muted-foreground">{t('availableBalance')}</p>
                 <p className="text-2xl font-bold">
-                  {formatCurrency(walletData?.wallet.balance || 0, walletData?.wallet.currency || 'EUR')}
+                  {formatCurrency(
+                    walletData?.wallet.balance || 0,
+                    walletData?.wallet.currency || 'EUR'
+                  )}
                 </p>
               </div>
-              
+
               <Separator />
 
               <div>
                 <h3 className="text-sm font-medium mb-2">{t('pendingWithdrawals')}</h3>
                 {withdrawals && withdrawals.withdrawals.length > 0 ? (
                   <div className="space-y-3">
-                    {withdrawals.withdrawals.map((withdrawal) => (
-                      <div key={withdrawal.id} className="flex justify-between items-center text-sm p-2 border rounded-md">
+                    {withdrawals.withdrawals.map(withdrawal => (
+                      <div
+                        key={withdrawal.id}
+                        className="flex justify-between items-center text-sm p-2 border rounded-md"
+                      >
                         <div>
-                          <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                          <Badge
+                            variant="outline"
+                            className="bg-amber-50 text-amber-700 border-amber-200"
+                          >
                             <Clock className="h-3 w-3 mr-1" />
                             {t('pending')}
                           </Badge>
@@ -542,11 +582,9 @@ export default function WithdrawalPage() {
                   <p className="text-sm text-muted-foreground">{t('noWithdrawals')}</p>
                 )}
               </div>
-              
+
               <Alert className="mt-4 bg-blue-50 text-blue-700 border-blue-200">
-                <AlertDescription className="text-xs">
-                  {t('withdrawalTips')}
-                </AlertDescription>
+                <AlertDescription className="text-xs">{t('withdrawalTips')}</AlertDescription>
               </Alert>
             </CardContent>
           </Card>

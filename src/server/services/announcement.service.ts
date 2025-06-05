@@ -1183,13 +1183,16 @@ export const AnnouncementService = {
   /**
    * Trouve les livreurs compatibles pour une annonce avec système de matching avancé
    */
-  async findMatchingDeliverers(announcementId: string, filters: {
-    maxDistance?: number;
-    availableOnly?: boolean;
-    minRating?: number;
-    sortBy?: 'distance' | 'rating' | 'price' | 'experience';
-    maxResults?: number;
-  } = {}) {
+  async findMatchingDeliverers(
+    announcementId: string,
+    filters: {
+      maxDistance?: number;
+      availableOnly?: boolean;
+      minRating?: number;
+      sortBy?: 'distance' | 'rating' | 'price' | 'experience';
+      maxResults?: number;
+    } = {}
+  ) {
     try {
       const {
         maxDistance = 15, // Distance maximum en km
@@ -1286,9 +1289,10 @@ export const AnnouncementService = {
 
           // Calculer la note moyenne
           const ratings = deliverer.receivedRatings;
-          const averageRating = ratings.length > 0
-            ? ratings.reduce((sum: number, r: any) => sum + r.rating, 0) / ratings.length
-            : 0;
+          const averageRating =
+            ratings.length > 0
+              ? ratings.reduce((sum: number, r: any) => sum + r.rating, 0) / ratings.length
+              : 0;
 
           // Calculer l'expérience (nombre de livraisons complétées)
           const experienceCount = deliverer.assignedAnnouncements.length;
@@ -1345,16 +1349,21 @@ export const AnnouncementService = {
             // Indicateurs de compatibilité
             isWithinRange: distance === null || distance <= maxDistance,
             meetsMilRating: averageRating >= minRating,
-            canCarryWeight: !announcement.weight || !deliverer.maxCapacity || announcement.weight <= deliverer.maxCapacity,
+            canCarryWeight:
+              !announcement.weight ||
+              !deliverer.maxCapacity ||
+              announcement.weight <= deliverer.maxCapacity,
             hasAvailableCapacity: currentWorkload < 3, // Max 3 demandes en cours
           };
         })
         .filter((deliverer: any) => {
           // Filtrer selon les critères
-          return deliverer.isWithinRange &&
-                 deliverer.meetsMilRating &&
-                 deliverer.canCarryWeight &&
-                 deliverer.hasAvailableCapacity;
+          return (
+            deliverer.isWithinRange &&
+            deliverer.meetsMilRating &&
+            deliverer.canCarryWeight &&
+            deliverer.hasAvailableCapacity
+          );
         });
 
       // Trier selon le critère demandé
@@ -1391,9 +1400,15 @@ export const AnnouncementService = {
           sortBy,
         },
         matchingStats: {
-          averageDistance: finalResults.reduce((sum: number, d: any) => sum + (d.distance || 0), 0) / finalResults.length,
-          averageRating: finalResults.reduce((sum: number, d: any) => sum + d.averageRating, 0) / finalResults.length,
-          averageExperience: finalResults.reduce((sum: number, d: any) => sum + d.experienceCount, 0) / finalResults.length,
+          averageDistance:
+            finalResults.reduce((sum: number, d: any) => sum + (d.distance || 0), 0) /
+            finalResults.length,
+          averageRating:
+            finalResults.reduce((sum: number, d: any) => sum + d.averageRating, 0) /
+            finalResults.length,
+          averageExperience:
+            finalResults.reduce((sum: number, d: any) => sum + d.experienceCount, 0) /
+            finalResults.length,
         },
       };
     } catch (error) {
@@ -1405,17 +1420,16 @@ export const AnnouncementService = {
   /**
    * Notifie automatiquement les livreurs compatibles d'une nouvelle annonce
    */
-  async notifyMatchingDeliverers(announcementId: string, options: {
-    maxDeliverers?: number;
-    onlyTopMatches?: boolean;
-    minCompatibilityScore?: number;
-  } = {}) {
+  async notifyMatchingDeliverers(
+    announcementId: string,
+    options: {
+      maxDeliverers?: number;
+      onlyTopMatches?: boolean;
+      minCompatibilityScore?: number;
+    } = {}
+  ) {
     try {
-      const {
-        maxDeliverers = 10,
-        onlyTopMatches = true,
-        minCompatibilityScore = 60,
-      } = options;
+      const { maxDeliverers = 10, onlyTopMatches = true, minCompatibilityScore = 60 } = options;
 
       // Trouver les livreurs compatibles
       const matchingResult = await this.findMatchingDeliverers(announcementId, {
@@ -1432,9 +1446,9 @@ export const AnnouncementService = {
       }
 
       // Filtrer par score de compatibilité minimum
-      const eligibleDeliverers = matchingResult.matchingDeliverers.filter(
-        (deliverer: any) => deliverer.compatibilityScore >= minCompatibilityScore
-      ).slice(0, maxDeliverers);
+      const eligibleDeliverers = matchingResult.matchingDeliverers
+        .filter((deliverer: any) => deliverer.compatibilityScore >= minCompatibilityScore)
+        .slice(0, maxDeliverers);
 
       // Créer les notifications
       const notifications = eligibleDeliverers.map((deliverer: any) => ({
@@ -1549,11 +1563,19 @@ export const AnnouncementService = {
 
         const basePrice = basePrices[announcementData.type] || 10;
         const distancePrice = distance * 0.8; // 0.8€ par km
-        const weightMultiplier = announcementData.weight ? Math.min(1.5, 1 + (announcementData.weight / 20)) : 1;
-        const priorityMultiplier = announcementData.priority === 'URGENT' ? 1.5 : 
-                                  announcementData.priority === 'HIGH' ? 1.2 : 1;
+        const weightMultiplier = announcementData.weight
+          ? Math.min(1.5, 1 + announcementData.weight / 20)
+          : 1;
+        const priorityMultiplier =
+          announcementData.priority === 'URGENT'
+            ? 1.5
+            : announcementData.priority === 'HIGH'
+              ? 1.2
+              : 1;
 
-        const suggestedPrice = Math.round((basePrice + distancePrice) * weightMultiplier * priorityMultiplier);
+        const suggestedPrice = Math.round(
+          (basePrice + distancePrice) * weightMultiplier * priorityMultiplier
+        );
 
         return {
           suggestedPrice,
@@ -1580,11 +1602,12 @@ export const AnnouncementService = {
       // Ajustements selon la distance
       let distanceAdjustment = 1;
       if (distance > 0) {
-        const avgDistance = similarAnnouncements
-          .filter(a => a.estimatedDistance)
-          .reduce((sum, a) => sum + a.estimatedDistance!, 0) / 
+        const avgDistance =
+          similarAnnouncements
+            .filter(a => a.estimatedDistance)
+            .reduce((sum, a) => sum + a.estimatedDistance!, 0) /
           similarAnnouncements.filter(a => a.estimatedDistance).length;
-        
+
         if (avgDistance > 0) {
           distanceAdjustment = distance / avgDistance;
         }
@@ -1593,19 +1616,22 @@ export const AnnouncementService = {
       // Ajustements selon le poids
       let weightAdjustment = 1;
       if (announcementData.weight) {
-        const avgWeight = similarAnnouncements
-          .filter(a => a.weight)
-          .reduce((sum, a) => sum + a.weight!, 0) /
+        const avgWeight =
+          similarAnnouncements.filter(a => a.weight).reduce((sum, a) => sum + a.weight!, 0) /
           similarAnnouncements.filter(a => a.weight).length;
-        
+
         if (avgWeight > 0) {
           weightAdjustment = Math.min(1.5, announcementData.weight / avgWeight);
         }
       }
 
       // Ajustement selon la priorité
-      const priorityMultiplier = announcementData.priority === 'URGENT' ? 1.3 : 
-                                announcementData.priority === 'HIGH' ? 1.15 : 1;
+      const priorityMultiplier =
+        announcementData.priority === 'URGENT'
+          ? 1.3
+          : announcementData.priority === 'HIGH'
+            ? 1.15
+            : 1;
 
       // Calculer le prix suggéré
       const basePrice = medianPrice; // Utiliser la médiane comme base
@@ -1690,7 +1716,12 @@ export const AnnouncementService = {
       if (latitude && longitude) {
         announcements = announcements.filter(ann => {
           if (!ann.pickupLatitude || !ann.pickupLongitude) return false;
-          const distance = calculateDistance(latitude, longitude, ann.pickupLatitude, ann.pickupLongitude);
+          const distance = calculateDistance(
+            latitude,
+            longitude,
+            ann.pickupLatitude,
+            ann.pickupLongitude
+          );
           return distance <= radiusKm;
         });
       }
@@ -1702,12 +1733,16 @@ export const AnnouncementService = {
       // Calculer les métriques
       const totalDemand = announcements.length;
       const recentDemand = recentAnnouncements.length;
-      const completionRate = totalDemand > 0 ? (completedAnnouncements.length / totalDemand) * 100 : 0;
-      
-      const averageApplications = totalDemand > 0 ? 
-        announcements.reduce((sum, ann) => sum + ann.applicationsCount, 0) / totalDemand : 0;
+      const completionRate =
+        totalDemand > 0 ? (completedAnnouncements.length / totalDemand) * 100 : 0;
 
-      const demandTrend = recentDemand >= (totalDemand - recentDemand) / 3 ? 'INCREASING' : 'STABLE';
+      const averageApplications =
+        totalDemand > 0
+          ? announcements.reduce((sum, ann) => sum + ann.applicationsCount, 0) / totalDemand
+          : 0;
+
+      const demandTrend =
+        recentDemand >= (totalDemand - recentDemand) / 3 ? 'INCREASING' : 'STABLE';
 
       // Analyser la compétition (nombre d'applications moyen)
       let competitionLevel = 'LOW';
@@ -1724,7 +1759,7 @@ export const AnnouncementService = {
         const avgPrice = pricesData.reduce((sum, price) => sum + price, 0) / pricesData.length;
         const minPrice = Math.min(...pricesData);
         const maxPrice = Math.max(...pricesData);
-        
+
         priceAnalysis = {
           averagePrice: Math.round(avgPrice),
           minPrice,
@@ -1746,25 +1781,36 @@ export const AnnouncementService = {
           totalPeriodDays: 30,
           recentPeriodDays: 7,
         },
-        geographicScope: latitude && longitude ? {
-          centerLatitude: latitude,
-          centerLongitude: longitude,
-          radiusKm,
-        } : null,
+        geographicScope:
+          latitude && longitude
+            ? {
+                centerLatitude: latitude,
+                centerLongitude: longitude,
+                radiusKm,
+              }
+            : null,
         priceAnalysis,
         recommendations: {
-          optimal: completionRate > 80 && averageApplications > 3 ? 'GOOD_MARKET' : 
-                  completionRate < 50 ? 'OVERSUPPLIED' : 'MODERATE_MARKET',
+          optimal:
+            completionRate > 80 && averageApplications > 3
+              ? 'GOOD_MARKET'
+              : completionRate < 50
+                ? 'OVERSUPPLIED'
+                : 'MODERATE_MARKET',
           suggestions: [
             completionRate < 50 ? 'Considérez réduire le prix pour attirer plus de livreurs' : null,
-            averageApplications < 2 ? 'Le marché semble peu compétitif, vous pourriez obtenir un bon prix' : null,
-            demandTrend === 'INCREASING' ? 'La demande est en hausse, bon moment pour publier' : null,
+            averageApplications < 2
+              ? 'Le marché semble peu compétitif, vous pourriez obtenir un bon prix'
+              : null,
+            demandTrend === 'INCREASING'
+              ? 'La demande est en hausse, bon moment pour publier'
+              : null,
           ].filter(Boolean),
         },
       };
     } catch (error) {
-      console.error('Erreur lors de l\'analyse de la demande:', error);
-      throw new Error('Erreur lors de l\'analyse de la demande');
+      console.error("Erreur lors de l'analyse de la demande:", error);
+      throw new Error("Erreur lors de l'analyse de la demande");
     }
   },
 
@@ -1829,20 +1875,25 @@ export const AnnouncementService = {
       // Enrichir les propositions avec des métriques calculées
       const enrichedProposals = proposals.map((proposal: any) => {
         const deliverer = proposal.deliverer;
-        
+
         // Calculer la note moyenne
         const ratings = deliverer.receivedRatings;
-        const averageRating = ratings.length > 0
-          ? ratings.reduce((sum: number, r: any) => sum + r.rating, 0) / ratings.length
-          : 0;
+        const averageRating =
+          ratings.length > 0
+            ? ratings.reduce((sum: number, r: any) => sum + r.rating, 0) / ratings.length
+            : 0;
 
         // Calculer le nombre de livraisons complétées
         const completedDeliveries = deliverer.assignedAnnouncements.length;
 
         // Calculer la distance si les coordonnées sont disponibles
         let distance = null;
-        if (announcement.pickupLatitude && announcement.pickupLongitude && 
-            deliverer.currentLatitude && deliverer.currentLongitude) {
+        if (
+          announcement.pickupLatitude &&
+          announcement.pickupLongitude &&
+          deliverer.currentLatitude &&
+          deliverer.currentLongitude
+        ) {
           distance = calculateDistance(
             announcement.pickupLatitude,
             announcement.pickupLongitude,
@@ -1955,7 +2006,7 @@ export const AnnouncementService = {
       }
 
       // Transaction pour accepter la proposition et rejeter les autres
-      const result = await db.$transaction(async (tx) => {
+      const result = await db.$transaction(async tx => {
         // Accepter la proposition sélectionnée
         const acceptedProposal = await tx.delivererApplication.update({
           where: { id: proposalId },
@@ -2015,7 +2066,7 @@ export const AnnouncementService = {
 
       return result;
     } catch (error) {
-      console.error('Erreur lors de l\'acceptation de la proposition:', error);
+      console.error("Erreur lors de l'acceptation de la proposition:", error);
       throw error;
     }
   },
@@ -2023,7 +2074,12 @@ export const AnnouncementService = {
   /**
    * Rejette une proposition de livreur (action client)
    */
-  async rejectProposal(announcementId: string, proposalId: string, clientId: string, reason?: string) {
+  async rejectProposal(
+    announcementId: string,
+    proposalId: string,
+    clientId: string,
+    reason?: string
+  ) {
     try {
       // Vérifier que l'annonce appartient au client
       const announcement = await db.announcement.findFirst({
@@ -2098,9 +2154,12 @@ export const AnnouncementService = {
       });
 
       // Organiser les données par annonce
-      const summary: Record<string, { total: number; pending: number; accepted: number; rejected: number }> = {};
+      const summary: Record<
+        string,
+        { total: number; pending: number; accepted: number; rejected: number }
+      > = {};
 
-      proposalsSummary.forEach((item) => {
+      proposalsSummary.forEach(item => {
         if (!summary[item.announcementId]) {
           summary[item.announcementId] = {
             total: 0,
@@ -2111,7 +2170,7 @@ export const AnnouncementService = {
         }
 
         summary[item.announcementId].total += item._count.id;
-        
+
         switch (item.status) {
           case 'PENDING':
             summary[item.announcementId].pending = item._count.id;
@@ -2191,22 +2250,30 @@ export const AnnouncementService = {
 
       // Calculer les statistiques
       const totalAnnouncements = announcements.length;
-      const activeAnnouncements = announcements.filter(a => 
-        a.status === 'PUBLISHED' || a.status === 'IN_PROGRESS'
+      const activeAnnouncements = announcements.filter(
+        a => a.status === 'PUBLISHED' || a.status === 'IN_PROGRESS'
       ).length;
-      const completedAnnouncementsCount = announcements.filter(a => a.status === 'COMPLETED').length;
+      const completedAnnouncementsCount = announcements.filter(
+        a => a.status === 'COMPLETED'
+      ).length;
       const totalSpent = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
       const totalProposals = applications.length;
-      const averageProposalsPerAnnouncement = totalAnnouncements > 0 ? totalProposals / totalAnnouncements : 0;
+      const averageProposalsPerAnnouncement =
+        totalAnnouncements > 0 ? totalProposals / totalAnnouncements : 0;
 
       // Calculer le temps moyen de livraison
       const deliveryTimes = completedDeliveries
         .filter(d => d.completedAt && d.createdAt)
-        .map(d => (new Date(d.completedAt!).getTime() - new Date(d.createdAt).getTime()) / (1000 * 60 * 60)); // en heures
+        .map(
+          d =>
+            (new Date(d.completedAt!).getTime() - new Date(d.createdAt).getTime()) /
+            (1000 * 60 * 60)
+        ); // en heures
 
-      const averageDeliveryTime = deliveryTimes.length > 0 
-        ? deliveryTimes.reduce((sum, time) => sum + time, 0) / deliveryTimes.length 
-        : 0;
+      const averageDeliveryTime =
+        deliveryTimes.length > 0
+          ? deliveryTimes.reduce((sum, time) => sum + time, 0) / deliveryTimes.length
+          : 0;
 
       return {
         totalAnnouncements,

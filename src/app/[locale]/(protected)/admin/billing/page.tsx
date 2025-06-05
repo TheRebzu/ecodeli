@@ -8,7 +8,7 @@ import {
   RefreshCw,
   Settings,
   Save,
-  Calendar,
+  Calendar as CalendarIcon,
   CreditCard,
   Toggle,
   AlertCircle,
@@ -21,8 +21,7 @@ import {
   Wallet,
   FileUp,
   Sliders,
-  Calendar as CalendarIcon,
-  Info
+  Info,
 } from 'lucide-react';
 
 import { api } from '@/trpc/react';
@@ -53,23 +52,10 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar } from '@/components/ui/calendar';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
-import {
-  Alert,
-  AlertDescription,
-  AlertTitle,
-} from '@/components/ui/alert';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 // Import du composant de tableau de bord de facturation
 import BillingDashboard from '@/components/payments/admin/billing-dashboard';
@@ -82,7 +68,7 @@ export default function AdminBillingPage() {
   const t = useTranslations('admin.billing');
   const { data: session } = useSession();
   const { toast } = useToast();
-  
+
   // États pour les paramètres de facturation
   const [currentTab, setCurrentTab] = useState('dashboard');
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -105,24 +91,21 @@ export default function AdminBillingPage() {
     invoiceNumberFormat: 'ECO-{YEAR}{MONTH}-{NUMBER}',
     invoiceLogoUrl: '/images/logo.png',
   });
-  
+
   // Récupérer les paramètres de facturation
-  const { 
-    data: settings, 
+  const {
+    data: settings,
     isLoading: isLoadingSettings,
-    refetch: refetchSettings 
-  } = api.billing.getBillingSettings.useQuery(
-    undefined,
-    {
-      refetchOnWindowFocus: false,
-      onSuccess: (data) => {
-        if (data) {
-          setBillingSettings(data);
-        }
+    refetch: refetchSettings,
+  } = api.billing.getBillingSettings.useQuery(undefined, {
+    refetchOnWindowFocus: false,
+    onSuccess: data => {
+      if (data) {
+        setBillingSettings(data);
       }
-    }
-  );
-  
+    },
+  });
+
   // Mutation pour mettre à jour les paramètres de facturation
   const updateSettingsMutation = api.billing.updateBillingSettings.useMutation({
     onSuccess: () => {
@@ -133,15 +116,15 @@ export default function AdminBillingPage() {
       setIsEditingSettings(false);
       refetchSettings();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
-        variant: "destructive",
+        variant: 'destructive',
         title: t('updateFailed'),
         description: error.message || t('genericError'),
       });
-    }
+    },
   });
-  
+
   // Rafraîchir les données
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -153,7 +136,7 @@ export default function AdminBillingPage() {
       });
     } catch (error) {
       toast({
-        variant: "destructive",
+        variant: 'destructive',
         title: t('refreshError'),
         description: typeof error === 'string' ? error : t('genericError'),
       });
@@ -161,7 +144,7 @@ export default function AdminBillingPage() {
       setIsRefreshing(false);
     }
   };
-  
+
   // Sauvegarder les paramètres
   const handleSaveSettings = async () => {
     try {
@@ -170,7 +153,7 @@ export default function AdminBillingPage() {
       // Erreur déjà gérée par la mutation
     }
   };
-  
+
   // Annuler les modifications
   const handleCancelEdit = () => {
     // Restaurer les paramètres d'origine
@@ -179,34 +162,33 @@ export default function AdminBillingPage() {
     }
     setIsEditingSettings(false);
   };
-  
+
   return (
     <div className="space-y-6">
       <PageHeader
         title={t('title')}
         description={t('description')}
         action={
-          currentTab === 'settings' && (
-            isEditingSettings ? (
-              <div className="flex items-center gap-2">
-                <Button variant="outline" onClick={handleCancelEdit}>
-                  {t('cancel')}
-                </Button>
-                <Button onClick={handleSaveSettings}>
-                  <Save className="h-4 w-4 mr-2" />
-                  {t('saveSettings')}
-                </Button>
-              </div>
-            ) : (
-              <Button onClick={() => setIsEditingSettings(true)}>
-                <Settings className="h-4 w-4 mr-2" />
-                {t('editSettings')}
+          currentTab === 'settings' &&
+          (isEditingSettings ? (
+            <div className="flex items-center gap-2">
+              <Button variant="outline" onClick={handleCancelEdit}>
+                {t('cancel')}
               </Button>
-            )
-          )
+              <Button onClick={handleSaveSettings}>
+                <Save className="h-4 w-4 mr-2" />
+                {t('saveSettings')}
+              </Button>
+            </div>
+          ) : (
+            <Button onClick={() => setIsEditingSettings(true)}>
+              <Settings className="h-4 w-4 mr-2" />
+              {t('editSettings')}
+            </Button>
+          ))
         }
       />
-      
+
       <Tabs defaultValue="dashboard" value={currentTab} onValueChange={setCurrentTab}>
         <TabsList className="mb-4">
           <TabsTrigger value="dashboard">
@@ -218,12 +200,12 @@ export default function AdminBillingPage() {
             {t('settings')}
           </TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="dashboard" className="space-y-6">
           {/* Tableau de bord de facturation */}
           <BillingDashboard />
         </TabsContent>
-        
+
         <TabsContent value="settings" className="space-y-6">
           {/* Paramètres de facturation */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -247,20 +229,20 @@ export default function AdminBillingPage() {
                 ) : (
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="billingDay">
-                        {t('billingDay')}
-                      </Label>
+                      <Label htmlFor="billingDay">{t('billingDay')}</Label>
                       <div className="flex items-center gap-2">
-                        <Input 
-                          id="billingDay" 
-                          type="number" 
-                          min="1" 
-                          max="28" 
+                        <Input
+                          id="billingDay"
+                          type="number"
+                          min="1"
+                          max="28"
                           value={billingSettings.billingDay}
-                          onChange={(e) => setBillingSettings({
-                            ...billingSettings,
-                            billingDay: parseInt(e.target.value)
-                          })}
+                          onChange={e =>
+                            setBillingSettings({
+                              ...billingSettings,
+                              billingDay: parseInt(e.target.value),
+                            })
+                          }
                           disabled={!isEditingSettings}
                         />
                         <TooltipProvider>
@@ -277,20 +259,20 @@ export default function AdminBillingPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="paymentGracePeriod">
-                        {t('paymentGracePeriod')}
-                      </Label>
+                      <Label htmlFor="paymentGracePeriod">{t('paymentGracePeriod')}</Label>
                       <div className="flex items-center gap-2">
-                        <Input 
-                          id="paymentGracePeriod" 
-                          type="number" 
-                          min="1" 
-                          max="30" 
+                        <Input
+                          id="paymentGracePeriod"
+                          type="number"
+                          min="1"
+                          max="30"
                           value={billingSettings.paymentGracePeriod}
-                          onChange={(e) => setBillingSettings({
-                            ...billingSettings,
-                            paymentGracePeriod: parseInt(e.target.value)
-                          })}
+                          onChange={e =>
+                            setBillingSettings({
+                              ...billingSettings,
+                              paymentGracePeriod: parseInt(e.target.value),
+                            })
+                          }
                           disabled={!isEditingSettings}
                         />
                         <span>{t('days')}</span>
@@ -301,15 +283,15 @@ export default function AdminBillingPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="currencyCode">
-                        {t('currency')}
-                      </Label>
-                      <Select 
-                        value={billingSettings.currencyCode} 
-                        onValueChange={(value) => setBillingSettings({
-                          ...billingSettings,
-                          currencyCode: value
-                        })}
+                      <Label htmlFor="currencyCode">{t('currency')}</Label>
+                      <Select
+                        value={billingSettings.currencyCode}
+                        onValueChange={value =>
+                          setBillingSettings({
+                            ...billingSettings,
+                            currencyCode: value,
+                          })
+                        }
                         disabled={!isEditingSettings}
                       >
                         <SelectTrigger id="currencyCode">
@@ -325,26 +307,26 @@ export default function AdminBillingPage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="taxRate">
-                        {t('defaultTaxRate')}
-                      </Label>
+                      <Label htmlFor="taxRate">{t('defaultTaxRate')}</Label>
                       <div className="flex items-center gap-2">
-                        <Input 
-                          id="taxRate" 
-                          type="number" 
-                          min="0" 
-                          max="30" 
+                        <Input
+                          id="taxRate"
+                          type="number"
+                          min="0"
+                          max="30"
                           value={billingSettings.taxRate}
-                          onChange={(e) => setBillingSettings({
-                            ...billingSettings,
-                            taxRate: parseFloat(e.target.value)
-                          })}
+                          onChange={e =>
+                            setBillingSettings({
+                              ...billingSettings,
+                              taxRate: parseFloat(e.target.value),
+                            })
+                          }
                           disabled={!isEditingSettings}
                         />
                         <span>%</span>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <Label htmlFor="demoMode" className="cursor-pointer">
                         {t('demoMode')}
@@ -352,10 +334,12 @@ export default function AdminBillingPage() {
                       <Switch
                         id="demoMode"
                         checked={billingSettings.demoMode}
-                        onCheckedChange={(checked) => setBillingSettings({
-                          ...billingSettings,
-                          demoMode: checked
-                        })}
+                        onCheckedChange={checked =>
+                          setBillingSettings({
+                            ...billingSettings,
+                            demoMode: checked,
+                          })
+                        }
                         disabled={!isEditingSettings}
                       />
                     </div>
@@ -363,16 +347,14 @@ export default function AdminBillingPage() {
                       <Alert>
                         <AlertCircle className="h-4 w-4" />
                         <AlertTitle>{t('demoModeActive')}</AlertTitle>
-                        <AlertDescription>
-                          {t('demoModeDescription')}
-                        </AlertDescription>
+                        <AlertDescription>{t('demoModeDescription')}</AlertDescription>
                       </Alert>
                     )}
                   </div>
                 )}
               </CardContent>
             </Card>
-            
+
             {/* Automatisation */}
             <Card>
               <CardHeader>
@@ -394,35 +376,43 @@ export default function AdminBillingPage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium">{t('autoBilling')}</p>
-                        <p className="text-sm text-muted-foreground">{t('autoBillingDescription')}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {t('autoBillingDescription')}
+                        </p>
                       </div>
                       <Switch
                         checked={billingSettings.autoBillingEnabled}
-                        onCheckedChange={(checked) => setBillingSettings({
-                          ...billingSettings,
-                          autoBillingEnabled: checked
-                        })}
+                        onCheckedChange={checked =>
+                          setBillingSettings({
+                            ...billingSettings,
+                            autoBillingEnabled: checked,
+                          })
+                        }
                         disabled={!isEditingSettings}
                       />
                     </div>
-                    
+
                     <Separator />
-                    
+
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium">{t('automaticReminders')}</p>
-                        <p className="text-sm text-muted-foreground">{t('automaticRemindersDescription')}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {t('automaticRemindersDescription')}
+                        </p>
                       </div>
                       <Switch
                         checked={billingSettings.remindersEnabled}
-                        onCheckedChange={(checked) => setBillingSettings({
-                          ...billingSettings,
-                          remindersEnabled: checked
-                        })}
+                        onCheckedChange={checked =>
+                          setBillingSettings({
+                            ...billingSettings,
+                            remindersEnabled: checked,
+                          })
+                        }
                         disabled={!isEditingSettings}
                       />
                     </div>
-                    
+
                     {billingSettings.remindersEnabled && (
                       <div className="pl-4 border-l-2 border-muted space-y-2">
                         <p className="text-sm font-medium">{t('reminderDays')}</p>
@@ -440,59 +430,69 @@ export default function AdminBillingPage() {
                         </div>
                       </div>
                     )}
-                    
+
                     <Separator />
-                    
+
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium">{t('automaticPayouts')}</p>
-                        <p className="text-sm text-muted-foreground">{t('automaticPayoutsDescription')}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {t('automaticPayoutsDescription')}
+                        </p>
                       </div>
                       <Switch
                         checked={billingSettings.autoPayoutsEnabled}
-                        onCheckedChange={(checked) => setBillingSettings({
-                          ...billingSettings,
-                          autoPayoutsEnabled: checked
-                        })}
+                        onCheckedChange={checked =>
+                          setBillingSettings({
+                            ...billingSettings,
+                            autoPayoutsEnabled: checked,
+                          })
+                        }
                         disabled={!isEditingSettings}
                       />
                     </div>
-                    
+
                     {billingSettings.autoPayoutsEnabled && (
                       <div className="pl-4 border-l-2 border-muted space-y-2">
                         <Label htmlFor="minPayoutAmount" className="text-sm font-medium">
                           {t('minimumPayoutAmount')}
                         </Label>
                         <div className="flex items-center gap-2">
-                          <Input 
-                            id="minPayoutAmount" 
-                            type="number" 
-                            min="10" 
+                          <Input
+                            id="minPayoutAmount"
+                            type="number"
+                            min="10"
                             value={billingSettings.minPayoutAmount}
-                            onChange={(e) => setBillingSettings({
-                              ...billingSettings,
-                              minPayoutAmount: parseFloat(e.target.value)
-                            })}
+                            onChange={e =>
+                              setBillingSettings({
+                                ...billingSettings,
+                                minPayoutAmount: parseFloat(e.target.value),
+                              })
+                            }
                             disabled={!isEditingSettings}
                           />
                           <span>{billingSettings.currencyCode}</span>
                         </div>
                       </div>
                     )}
-                    
+
                     <Separator />
-                    
+
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium">{t('autoSendInvoices')}</p>
-                        <p className="text-sm text-muted-foreground">{t('autoSendInvoicesDescription')}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {t('autoSendInvoicesDescription')}
+                        </p>
                       </div>
                       <Switch
                         checked={billingSettings.autoSendInvoices}
-                        onCheckedChange={(checked) => setBillingSettings({
-                          ...billingSettings,
-                          autoSendInvoices: checked
-                        })}
+                        onCheckedChange={checked =>
+                          setBillingSettings({
+                            ...billingSettings,
+                            autoSendInvoices: checked,
+                          })
+                        }
                         disabled={!isEditingSettings}
                       />
                     </div>
@@ -503,7 +503,7 @@ export default function AdminBillingPage() {
                 {t('automationNote')}
               </CardFooter>
             </Card>
-            
+
             {/* Personnalisation des factures */}
             <Card>
               <CardHeader>
@@ -524,50 +524,50 @@ export default function AdminBillingPage() {
                 ) : (
                   <div className="space-y-4">
                     <div className="space-y-2">
-                      <Label htmlFor="invoicePrefix">
-                        {t('invoicePrefix')}
-                      </Label>
-                      <Input 
-                        id="invoicePrefix" 
+                      <Label htmlFor="invoicePrefix">{t('invoicePrefix')}</Label>
+                      <Input
+                        id="invoicePrefix"
                         value={billingSettings.invoicePrefix}
-                        onChange={(e) => setBillingSettings({
-                          ...billingSettings,
-                          invoicePrefix: e.target.value
-                        })}
+                        onChange={e =>
+                          setBillingSettings({
+                            ...billingSettings,
+                            invoicePrefix: e.target.value,
+                          })
+                        }
                         disabled={!isEditingSettings}
                       />
                     </div>
-                    
+
                     <div className="space-y-2">
-                      <Label htmlFor="invoiceNumberFormat">
-                        {t('invoiceNumberFormat')}
-                      </Label>
-                      <Input 
-                        id="invoiceNumberFormat" 
+                      <Label htmlFor="invoiceNumberFormat">{t('invoiceNumberFormat')}</Label>
+                      <Input
+                        id="invoiceNumberFormat"
                         value={billingSettings.invoiceNumberFormat}
-                        onChange={(e) => setBillingSettings({
-                          ...billingSettings,
-                          invoiceNumberFormat: e.target.value
-                        })}
+                        onChange={e =>
+                          setBillingSettings({
+                            ...billingSettings,
+                            invoiceNumberFormat: e.target.value,
+                          })
+                        }
                         disabled={!isEditingSettings}
                       />
                       <p className="text-xs text-muted-foreground">
                         {t('invoiceNumberFormatPlaceholders')}
                       </p>
                     </div>
-                    
+
                     <div className="space-y-2">
-                      <Label htmlFor="invoiceLogoUrl">
-                        {t('invoiceLogo')}
-                      </Label>
+                      <Label htmlFor="invoiceLogoUrl">{t('invoiceLogo')}</Label>
                       <div className="flex items-center gap-2">
-                        <Input 
-                          id="invoiceLogoUrl" 
+                        <Input
+                          id="invoiceLogoUrl"
                           value={billingSettings.invoiceLogoUrl}
-                          onChange={(e) => setBillingSettings({
-                            ...billingSettings,
-                            invoiceLogoUrl: e.target.value
-                          })}
+                          onChange={e =>
+                            setBillingSettings({
+                              ...billingSettings,
+                              invoiceLogoUrl: e.target.value,
+                            })
+                          }
                           disabled={!isEditingSettings}
                         />
                         {isEditingSettings && (
@@ -577,17 +577,20 @@ export default function AdminBillingPage() {
                         )}
                       </div>
                     </div>
-                    
+
                     <div className="space-y-2 pt-2">
                       <p className="font-medium">{t('previewInvoiceNumber')}</p>
                       <div className="text-sm p-2 bg-muted rounded-md font-mono">
                         {billingSettings.invoiceNumberFormat
                           .replace('{YEAR}', new Date().getFullYear().toString())
-                          .replace('{MONTH}', (new Date().getMonth() + 1).toString().padStart(2, '0'))
+                          .replace(
+                            '{MONTH}',
+                            (new Date().getMonth() + 1).toString().padStart(2, '0')
+                          )
                           .replace('{NUMBER}', '0001')}
                       </div>
                     </div>
-                    
+
                     {isEditingSettings && (
                       <div className="pt-4">
                         <Button variant="outline" className="w-full">
@@ -600,7 +603,7 @@ export default function AdminBillingPage() {
               </CardContent>
             </Card>
           </div>
-          
+
           {/* Planification des tâches */}
           <Card>
             <CardHeader>
@@ -626,27 +629,30 @@ export default function AdminBillingPage() {
                           <CreditCard className="h-4 w-4 text-blue-500" />
                           {t('monthlyBilling')}
                         </h3>
-                        <Badge variant={billingSettings.autoBillingEnabled ? 'success' : 'secondary'}>
+                        <Badge
+                          variant={billingSettings.autoBillingEnabled ? 'success' : 'secondary'}
+                        >
                           {billingSettings.autoBillingEnabled ? t('active') : t('inactive')}
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        {t('nextRunOn', { 
+                        {t('nextRunOn', {
                           date: format(
                             new Date(
-                              new Date().getFullYear(), 
-                              new Date().getMonth() + (new Date().getDate() >= billingSettings.billingDay ? 1 : 0), 
+                              new Date().getFullYear(),
+                              new Date().getMonth() +
+                                (new Date().getDate() >= billingSettings.billingDay ? 1 : 0),
                               billingSettings.billingDay
-                            ), 
+                            ),
                             'dd/MM/yyyy'
-                          ) 
+                          ),
                         })}
                       </p>
                       <div className="text-xs text-muted-foreground">
                         {t('recurrence')}: {t('monthly')}
                       </div>
                     </div>
-                    
+
                     <div className="bg-muted/50 rounded-lg p-4 space-y-2">
                       <div className="flex items-center justify-between">
                         <h3 className="font-medium flex items-center gap-2">
@@ -657,30 +663,27 @@ export default function AdminBillingPage() {
                           {billingSettings.remindersEnabled ? t('active') : t('inactive')}
                         </Badge>
                       </div>
-                      <p className="text-sm text-muted-foreground">
-                        {t('scheduledDaily')}
-                      </p>
+                      <p className="text-sm text-muted-foreground">{t('scheduledDaily')}</p>
                       <div className="text-xs text-muted-foreground">
                         {t('recurrence')}: {t('daily')}
                       </div>
                     </div>
-                    
+
                     <div className="bg-muted/50 rounded-lg p-4 space-y-2">
                       <div className="flex items-center justify-between">
                         <h3 className="font-medium flex items-center gap-2">
                           <Wallet className="h-4 w-4 text-green-500" />
                           {t('automaticPayouts')}
                         </h3>
-                        <Badge variant={billingSettings.autoPayoutsEnabled ? 'success' : 'secondary'}>
+                        <Badge
+                          variant={billingSettings.autoPayoutsEnabled ? 'success' : 'secondary'}
+                        >
                           {billingSettings.autoPayoutsEnabled ? t('active') : t('inactive')}
                         </Badge>
                       </div>
                       <p className="text-sm text-muted-foreground">
-                        {t('nextRunOn', { 
-                          date: format(
-                            addDays(new Date(), 1),
-                            'dd/MM/yyyy'
-                          ) 
+                        {t('nextRunOn', {
+                          date: format(addDays(new Date(), 1), 'dd/MM/yyyy'),
                         })}
                       </p>
                       <div className="text-xs text-muted-foreground">
@@ -688,7 +691,7 @@ export default function AdminBillingPage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mt-4">
                     <div className="flex items-start gap-2">
                       <Info className="h-5 w-5 text-blue-500 mt-0.5" />
@@ -705,14 +708,10 @@ export default function AdminBillingPage() {
             </CardContent>
             <CardFooter className="justify-between border-t">
               <div className="text-xs text-muted-foreground">
-                {t('lastTaskExecution')}: {new Date().toLocaleDateString()} {new Date().toLocaleTimeString()}
+                {t('lastTaskExecution')}: {new Date().toLocaleDateString()}{' '}
+                {new Date().toLocaleTimeString()}
               </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-              >
+              <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
                 <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
                 {t('refresh')}
               </Button>

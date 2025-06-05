@@ -1,6 +1,11 @@
 import { PrismaClient, BoxType, BoxStatus, UserRole } from '@prisma/client';
 import { SeedLogger } from '../utils/seed-logger';
-import { SeedResult, SeedOptions, getRandomElement, generateFrenchAddress } from '../utils/seed-helpers';
+import {
+  SeedResult,
+  SeedOptions,
+  getRandomElement,
+  generateFrenchAddress,
+} from '../utils/seed-helpers';
 import { faker } from '@faker-js/faker';
 
 /**
@@ -34,27 +39,30 @@ export async function seedBoxes(
   options: SeedOptions = {}
 ): Promise<SeedResult> {
   logger.startSeed('BOXES');
-  
+
   const result: SeedResult = {
     entity: 'boxes',
     created: 0,
     skipped: 0,
-    errors: 0
+    errors: 0,
   };
 
   // Vérifier les entrepôts existants
   const existingWarehouses = await prisma.warehouse.count();
-  
+
   if (existingWarehouses === 0) {
-    logger.warning('BOXES', 'Aucun entrepôt trouvé - créer d\'abord les seeds d\'entrepôts');
+    logger.warning('BOXES', "Aucun entrepôt trouvé - créer d'abord les seeds d'entrepôts");
     return result;
   }
 
   // Vérifier les boxes existantes
   const existingBoxes = await prisma.box.count();
-  
+
   if (existingBoxes > 50 && !options.force) {
-    logger.warning('BOXES', `${existingBoxes} boxes déjà présentes - utiliser force:true pour recréer`);
+    logger.warning(
+      'BOXES',
+      `${existingBoxes} boxes déjà présentes - utiliser force:true pour recréer`
+    );
     result.skipped = existingBoxes;
     return result;
   }
@@ -71,15 +79,15 @@ export async function seedBoxes(
   const warehouses = await prisma.warehouse.findMany();
   const clients = await prisma.user.findMany({
     where: { role: UserRole.CLIENT },
-    select: { id: true, name: true }
+    select: { id: true, name: true },
   });
 
   // Trouver le client principal (octavia.zemlak@orange.fr)
   const principalClient = await prisma.user.findUnique({
     where: { email: 'octavia.zemlak@orange.fr' },
-    select: { id: true, name: true }
+    select: { id: true, name: true },
   });
-  
+
   if (!principalClient) {
     logger.warning('BOXES', 'Client principal octavia.zemlak@orange.fr non trouvé');
   }
@@ -95,8 +103,8 @@ export async function seedBoxes(
       dimensions: [
         { width: 2.5, height: 2.5, depth: 2 },
         { width: 3, height: 2.5, depth: 2.2 },
-        { width: 2.8, height: 3, depth: 2 }
-      ]
+        { width: 2.8, height: 3, depth: 2 },
+      ],
     },
     [BoxType.CLIMATE_CONTROLLED]: {
       type: BoxType.CLIMATE_CONTROLLED,
@@ -107,8 +115,8 @@ export async function seedBoxes(
       dimensions: [
         { width: 2, height: 2.5, depth: 2 },
         { width: 2.5, height: 2.5, depth: 1.8 },
-        { width: 2, height: 3, depth: 2.2 }
-      ]
+        { width: 2, height: 3, depth: 2.2 },
+      ],
     },
     [BoxType.SECURE]: {
       type: BoxType.SECURE,
@@ -119,45 +127,64 @@ export async function seedBoxes(
       dimensions: [
         { width: 1.5, height: 2, depth: 1.5 },
         { width: 2, height: 2.5, depth: 1.2 },
-        { width: 1.8, height: 2.2, depth: 1.8 }
-      ]
+        { width: 1.8, height: 2.2, depth: 1.8 },
+      ],
     },
     [BoxType.EXTRA_LARGE]: {
       type: BoxType.EXTRA_LARGE,
       sizeRange: { min: 16, max: 30 },
       pricePerDayRange: { min: 26, max: 50 },
-      features: ['Accès 24h/24', 'Sécurisé', 'Climatisé', 'Éclairage LED', 'Prise électrique', 'Accès véhicule'],
+      features: [
+        'Accès 24h/24',
+        'Sécurisé',
+        'Climatisé',
+        'Éclairage LED',
+        'Prise électrique',
+        'Accès véhicule',
+      ],
       maxWeight: 500,
       dimensions: [
         { width: 4, height: 3, depth: 4 },
         { width: 5, height: 3, depth: 3.5 },
-        { width: 4.5, height: 3.5, depth: 4 }
-      ]
+        { width: 4.5, height: 3.5, depth: 4 },
+      ],
     },
     [BoxType.REFRIGERATED]: {
       type: BoxType.REFRIGERATED,
       sizeRange: { min: 3, max: 8 },
       pricePerDayRange: { min: 15, max: 30 },
-      features: ['Accès 24h/24', 'Sécurisé', 'Réfrigéré', 'Contrôle température', 'Alerte température'],
+      features: [
+        'Accès 24h/24',
+        'Sécurisé',
+        'Réfrigéré',
+        'Contrôle température',
+        'Alerte température',
+      ],
       maxWeight: 200,
       dimensions: [
         { width: 2, height: 2, depth: 1.5 },
         { width: 2.5, height: 2.2, depth: 1.8 },
-        { width: 2.2, height: 2.5, depth: 1.6 }
-      ]
+        { width: 2.2, height: 2.5, depth: 1.6 },
+      ],
     },
     [BoxType.FRAGILE]: {
       type: BoxType.FRAGILE,
       sizeRange: { min: 1, max: 5 },
       pricePerDayRange: { min: 8, max: 20 },
-      features: ['Accès 24h/24', 'Sécurisé', 'Protection anti-choc', 'Mousse protectrice', 'Climatisé'],
+      features: [
+        'Accès 24h/24',
+        'Sécurisé',
+        'Protection anti-choc',
+        'Mousse protectrice',
+        'Climatisé',
+      ],
       maxWeight: 50,
       dimensions: [
         { width: 1, height: 2, depth: 1 },
         { width: 1.5, height: 2.5, depth: 1.2 },
-        { width: 1.2, height: 2.2, depth: 1.8 }
-      ]
-    }
+        { width: 1.2, height: 2.2, depth: 1.8 },
+      ],
+    },
   };
 
   let totalBoxes = 0;
@@ -165,41 +192,45 @@ export async function seedBoxes(
   // Créer des boxes pour chaque entrepôt
   for (const warehouse of warehouses) {
     try {
-      logger.progress('BOXES', totalBoxes + 1, warehouses.length, 
-        `Création boxes entrepôt: ${warehouse.name}`);
+      logger.progress(
+        'BOXES',
+        totalBoxes + 1,
+        warehouses.length,
+        `Création boxes entrepôt: ${warehouse.name}`
+      );
 
       // Déterminer le nombre de boxes selon la taille de l'entrepôt
       const warehouseCapacity = faker.number.int({ min: 20, max: 100 });
-      
-             // Distribution des types de boxes (réaliste)
-       const boxDistribution = {
-         [BoxType.STANDARD]: Math.floor(warehouseCapacity * 0.4), // 40%
-         [BoxType.CLIMATE_CONTROLLED]: Math.floor(warehouseCapacity * 0.25), // 25%
-         [BoxType.SECURE]: Math.floor(warehouseCapacity * 0.15), // 15%
-         [BoxType.EXTRA_LARGE]: Math.floor(warehouseCapacity * 0.1), // 10%
-         [BoxType.REFRIGERATED]: Math.floor(warehouseCapacity * 0.05), // 5%
-         [BoxType.FRAGILE]: Math.floor(warehouseCapacity * 0.05) // 5%
-       };
+
+      // Distribution des types de boxes (réaliste)
+      const boxDistribution = {
+        [BoxType.STANDARD]: Math.floor(warehouseCapacity * 0.4), // 40%
+        [BoxType.CLIMATE_CONTROLLED]: Math.floor(warehouseCapacity * 0.25), // 25%
+        [BoxType.SECURE]: Math.floor(warehouseCapacity * 0.15), // 15%
+        [BoxType.EXTRA_LARGE]: Math.floor(warehouseCapacity * 0.1), // 10%
+        [BoxType.REFRIGERATED]: Math.floor(warehouseCapacity * 0.05), // 5%
+        [BoxType.FRAGILE]: Math.floor(warehouseCapacity * 0.05), // 5%
+      };
 
       let boxNumber = 1;
 
       // Créer les boxes pour chaque type
       for (const [boxType, count] of Object.entries(boxDistribution)) {
         const config = BOX_CONFIGURATIONS[boxType as BoxType];
-        
+
         for (let i = 0; i < count; i++) {
           try {
             // Générer les caractéristiques de la box
-            const size = faker.number.float({ 
-              min: config.sizeRange.min, 
-              max: config.sizeRange.max, 
-              fractionDigits: 1 
+            const size = faker.number.float({
+              min: config.sizeRange.min,
+              max: config.sizeRange.max,
+              fractionDigits: 1,
             });
-            
-            const pricePerDay = faker.number.float({ 
-              min: config.pricePerDayRange.min, 
-              max: config.pricePerDayRange.max, 
-              fractionDigits: 2 
+
+            const pricePerDay = faker.number.float({
+              min: config.pricePerDayRange.min,
+              max: config.pricePerDayRange.max,
+              fractionDigits: 2,
             });
 
             const dimensions = getRandomElement(config.dimensions);
@@ -246,24 +277,22 @@ export async function seedBoxes(
                 dimensions: dimensions,
                 features: config.features,
                 status: status,
-                lastInspectedAt: faker.date.past({ years: 1 })
-              }
+                lastInspectedAt: faker.date.past({ years: 1 }),
+              },
             });
 
             totalBoxes++;
             result.created++;
             boxNumber++;
 
-                         // Note: historique d'usage et souscriptions désactivés temporairement
-             // en raison d'incompatibilités avec le schéma actuel
-
+            // Note: historique d'usage et souscriptions désactivés temporairement
+            // en raison d'incompatibilités avec le schéma actuel
           } catch (error: any) {
             logger.error('BOXES', `❌ Erreur création box ${boxType}: ${error.message}`);
             result.errors++;
           }
         }
       }
-
     } catch (error: any) {
       logger.error('BOXES', `❌ Erreur traitement entrepôt ${warehouse.name}: ${error.message}`);
       result.errors++;
@@ -272,35 +301,42 @@ export async function seedBoxes(
 
   // Statistiques finales
   const finalBoxes = await prisma.box.findMany({
-    include: { 
+    include: {
       warehouse: true,
       client: true,
       usageHistory: true,
-      subscriptions: true
-    }
+      subscriptions: true,
+    },
   });
 
   // Distribution par type
-  const boxesByType = finalBoxes.reduce((acc: Record<BoxType, number>, box) => {
-    acc[box.boxType] = (acc[box.boxType] || 0) + 1;
-    return acc;
-  }, {} as Record<BoxType, number>);
+  const boxesByType = finalBoxes.reduce(
+    (acc: Record<BoxType, number>, box) => {
+      acc[box.boxType] = (acc[box.boxType] || 0) + 1;
+      return acc;
+    },
+    {} as Record<BoxType, number>
+  );
 
   // Distribution par statut
-  const boxesByStatus = finalBoxes.reduce((acc: Record<BoxStatus, number>, box) => {
-    acc[box.status] = (acc[box.status] || 0) + 1;
-    return acc;
-  }, {} as Record<BoxStatus, number>);
+  const boxesByStatus = finalBoxes.reduce(
+    (acc: Record<BoxStatus, number>, box) => {
+      acc[box.status] = (acc[box.status] || 0) + 1;
+      return acc;
+    },
+    {} as Record<BoxStatus, number>
+  );
 
   // Statistiques d'occupation
   const occupiedBoxes = finalBoxes.filter(box => box.isOccupied).length;
-  const occupancyRate = finalBoxes.length > 0 ? (occupiedBoxes / finalBoxes.length * 100).toFixed(1) : '0';
+  const occupancyRate =
+    finalBoxes.length > 0 ? ((occupiedBoxes / finalBoxes.length) * 100).toFixed(1) : '0';
 
   // Revenus potentiels
   const totalDailyRevenue = finalBoxes.reduce((sum, box) => {
     return sum + (box.isOccupied ? box.pricePerDay : 0);
   }, 0);
-  
+
   const maxDailyRevenue = finalBoxes.reduce((sum, box) => sum + box.pricePerDay, 0);
 
   // Distribution par entrepôt
@@ -317,8 +353,14 @@ export async function seedBoxes(
   logger.info('BOXES', `📦 Types: ${JSON.stringify(boxesByType)}`);
   logger.info('BOXES', `📊 Statuts: ${JSON.stringify(boxesByStatus)}`);
   logger.info('BOXES', `🏢 Par entrepôt: ${JSON.stringify(boxesByWarehouse)}`);
-  logger.info('BOXES', `💰 Revenus: ${totalDailyRevenue.toFixed(2)}€/jour (${occupancyRate}% occupation) sur ${maxDailyRevenue.toFixed(2)}€ max`);
-  logger.info('BOXES', `📈 Historique: ${boxesWithHistory} boxes avec historique, ${boxesWithSubscriptions} avec souscriptions`);
+  logger.info(
+    'BOXES',
+    `💰 Revenus: ${totalDailyRevenue.toFixed(2)}€/jour (${occupancyRate}% occupation) sur ${maxDailyRevenue.toFixed(2)}€ max`
+  );
+  logger.info(
+    'BOXES',
+    `📈 Historique: ${boxesWithHistory} boxes avec historique, ${boxesWithSubscriptions} avec souscriptions`
+  );
 
   // Validation
   if (finalBoxes.length >= totalBoxes - result.errors) {
@@ -335,12 +377,12 @@ export async function seedBoxes(
  * Crée l'historique d'usage pour une box
  */
 async function createBoxUsageHistory(
-  prisma: PrismaClient, 
-  boxId: string, 
+  prisma: PrismaClient,
+  boxId: string,
   clients: any[]
 ): Promise<void> {
   const historyEntries = faker.number.int({ min: 1, max: 5 });
-  
+
   for (let i = 0; i < historyEntries; i++) {
     try {
       const client = getRandomElement(clients);
@@ -348,7 +390,7 @@ async function createBoxUsageHistory(
 
       const startDate = faker.date.past({ years: 2 });
       const endDate = faker.date.between({ from: startDate, to: new Date() });
-      
+
       await prisma.boxUsageHistory.create({
         data: {
           boxId: boxId,
@@ -363,10 +405,10 @@ async function createBoxUsageHistory(
             'Affaires personnelles',
             'Stock marchandises',
             'Équipements sportifs',
-            'Stockage véhicule'
+            'Stockage véhicule',
           ]),
-          notes: faker.datatype.boolean(0.5) ? faker.lorem.sentence() : null
-        }
+          notes: faker.datatype.boolean(0.5) ? faker.lorem.sentence() : null,
+        },
       });
     } catch (error) {
       // Ignorer les erreurs d'historique pour ne pas bloquer la création de boxes
@@ -378,12 +420,12 @@ async function createBoxUsageHistory(
  * Crée des souscriptions d'alerte pour une box
  */
 async function createBoxSubscriptions(
-  prisma: PrismaClient, 
-  boxId: string, 
+  prisma: PrismaClient,
+  boxId: string,
   clients: any[]
 ): Promise<void> {
   const subscriptionCount = faker.number.int({ min: 1, max: 3 });
-  
+
   for (let i = 0; i < subscriptionCount; i++) {
     try {
       const client = getRandomElement(clients);
@@ -400,8 +442,8 @@ async function createBoxSubscriptions(
           priorityLevel: faker.helpers.arrayElement(['LOW', 'MEDIUM', 'HIGH']),
           maxPricePerDay: faker.number.float({ min: 5, max: 50, fractionDigits: 2 }),
           minDuration: faker.number.int({ min: 7, max: 90 }),
-          notes: faker.datatype.boolean(0.3) ? faker.lorem.sentence() : null
-        }
+          notes: faker.datatype.boolean(0.3) ? faker.lorem.sentence() : null,
+        },
       });
     } catch (error) {
       // Ignorer les erreurs de souscription pour ne pas bloquer la création de boxes
@@ -412,22 +454,19 @@ async function createBoxSubscriptions(
 /**
  * Valide l'intégrité des boxes de stockage
  */
-export async function validateBoxes(
-  prisma: PrismaClient,
-  logger: SeedLogger
-): Promise<boolean> {
+export async function validateBoxes(prisma: PrismaClient, logger: SeedLogger): Promise<boolean> {
   logger.info('VALIDATION', '🔍 Validation des boxes de stockage...');
-  
+
   let isValid = true;
 
   // Vérifier les boxes
   const boxes = await prisma.box.findMany({
-    include: { 
+    include: {
       warehouse: true,
       client: true,
       usageHistory: true,
-      subscriptions: true
-    }
+      subscriptions: true,
+    },
   });
 
   if (boxes.length === 0) {
@@ -438,14 +477,15 @@ export async function validateBoxes(
   }
 
   // Vérifier la cohérence des statuts
-  const occupiedBoxesWithoutClient = boxes.filter(box => 
-    box.isOccupied && !box.clientId
-  );
+  const occupiedBoxesWithoutClient = boxes.filter(box => box.isOccupied && !box.clientId);
 
   if (occupiedBoxesWithoutClient.length === 0) {
-    logger.success('VALIDATION', '✅ Cohérence des statuts d\'occupation');
+    logger.success('VALIDATION', "✅ Cohérence des statuts d'occupation");
   } else {
-    logger.warning('VALIDATION', `⚠️ ${occupiedBoxesWithoutClient.length} boxes occupées sans client`);
+    logger.warning(
+      'VALIDATION',
+      `⚠️ ${occupiedBoxesWithoutClient.length} boxes occupées sans client`
+    );
   }
 
   // Vérifier les dimensions vs taille
@@ -462,26 +502,35 @@ export async function validateBoxes(
   if (boxesWithInconsistentSize.length === 0) {
     logger.success('VALIDATION', '✅ Cohérence taille/dimensions');
   } else {
-    logger.warning('VALIDATION', `⚠️ ${boxesWithInconsistentSize.length} boxes avec taille/dimensions incohérentes`);
+    logger.warning(
+      'VALIDATION',
+      `⚠️ ${boxesWithInconsistentSize.length} boxes avec taille/dimensions incohérentes`
+    );
   }
 
   // Vérifier les relations entrepôt
   const boxesWithValidWarehouse = boxes.filter(box => box.warehouse !== null);
-  
+
   if (boxesWithValidWarehouse.length === boxes.length) {
     logger.success('VALIDATION', '✅ Toutes les boxes sont rattachées à un entrepôt');
   } else {
-    logger.warning('VALIDATION', `⚠️ ${boxes.length - boxesWithValidWarehouse.length} boxes sans entrepôt`);
+    logger.warning(
+      'VALIDATION',
+      `⚠️ ${boxes.length - boxesWithValidWarehouse.length} boxes sans entrepôt`
+    );
     isValid = false;
   }
 
   // Vérifier les prix
   const boxesWithValidPrice = boxes.filter(box => box.pricePerDay > 0);
-  
+
   if (boxesWithValidPrice.length === boxes.length) {
     logger.success('VALIDATION', '✅ Tous les prix sont valides');
   } else {
-    logger.warning('VALIDATION', `⚠️ ${boxes.length - boxesWithValidPrice.length} boxes avec prix invalide`);
+    logger.warning(
+      'VALIDATION',
+      `⚠️ ${boxes.length - boxesWithValidPrice.length} boxes avec prix invalide`
+    );
   }
 
   // Statistiques d'usage
@@ -493,4 +542,4 @@ export async function validateBoxes(
 
   logger.success('VALIDATION', '✅ Validation des boxes de stockage terminée');
   return isValid;
-} 
+}

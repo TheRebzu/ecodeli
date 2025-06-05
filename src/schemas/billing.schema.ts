@@ -80,19 +80,19 @@ export const billingReportSchema = z.object({
 // Schéma pour les paramètres de facturation
 export const billingSettingsSchema = z.object({
   companyName: z.string().min(1, 'Le nom de la société est requis'),
-  address: z.string().min(1, 'L\'adresse est requise'),
+  address: z.string().min(1, "L'adresse est requise"),
   city: z.string().min(1, 'La ville est requise'),
   postalCode: z.string().min(1, 'Le code postal est requis'),
   country: z.string().min(1, 'Le pays est requis'),
   phone: z.string().optional(),
   email: z.string().email('Email invalide'),
   website: z.string().url('URL invalide').optional(),
-  
+
   // Informations fiscales
   taxId: z.string().optional(),
   vatNumber: z.string().optional(),
   taxRegistrationNumber: z.string().optional(),
-  
+
   // Paramètres par défaut des factures
   defaultCurrency: z.string().default('EUR'),
   defaultPaymentTerms: z.string().default('À régler sous 30 jours'),
@@ -101,17 +101,23 @@ export const billingSettingsSchema = z.object({
   invoiceNumberFormat: z.string().default('YYYY-MM-[N]'),
   invoiceFooter: z.string().optional(),
   termsAndConditions: z.string().optional(),
-  
+
   // Options d'envoi automatique
   autoSendInvoices: z.boolean().default(false),
   sendReminderDays: z.array(z.number().int().positive()).default([7, 3, 1]),
   reminderEmailTemplate: z.string().optional(),
-  
+
   // Logo et branding
   logoUrl: z.string().url('URL invalide').optional(),
-  primaryColor: z.string().regex(/^#[0-9A-F]{6}$/i, 'Couleur hexadécimale invalide').optional(),
-  secondaryColor: z.string().regex(/^#[0-9A-F]{6}$/i, 'Couleur hexadécimale invalide').optional(),
-  
+  primaryColor: z
+    .string()
+    .regex(/^#[0-9A-F]{6}$/i, 'Couleur hexadécimale invalide')
+    .optional(),
+  secondaryColor: z
+    .string()
+    .regex(/^#[0-9A-F]{6}$/i, 'Couleur hexadécimale invalide')
+    .optional(),
+
   // Paramètres pour le mode démonstration
   isDemo: z.boolean().default(true),
 });
@@ -124,27 +130,29 @@ export const commissionRateSchema = z.object({
   flatFee: z.number().positive().optional(),
   minimumAmount: z.number().min(0).optional(),
   maximumAmount: z.number().optional(),
-  
+
   // Options pour les commissions par palier
-  tierThresholds: z.array(
-    z.object({
-      threshold: z.number().nonnegative(),
-      rate: z.number().min(0).max(100),
-    })
-  ).optional(),
-  
+  tierThresholds: z
+    .array(
+      z.object({
+        threshold: z.number().nonnegative(),
+        rate: z.number().min(0).max(100),
+      })
+    )
+    .optional(),
+
   // Paramètres de validité
   isActive: z.boolean().default(true),
   startDate: z.date().optional(),
   endDate: z.date().optional(),
-  
+
   // Options spécifiques
-  applicableRoles: z.array(
-    z.enum(['DELIVERER', 'PROVIDER', 'MERCHANT'])
-  ).min(1, 'Au moins un rôle applicable est requis'),
+  applicableRoles: z
+    .array(z.enum(['DELIVERER', 'PROVIDER', 'MERCHANT']))
+    .min(1, 'Au moins un rôle applicable est requis'),
   countryCode: z.string().length(2).optional(),
   description: z.string().optional(),
-  
+
   // Paramètres pour le mode démonstration
   isDemo: z.boolean().default(true),
 });
@@ -160,13 +168,13 @@ export const taxSettingsSchema = z.object({
   description: z.string().optional(),
   startDate: z.date().optional(),
   endDate: z.date().optional(),
-  
+
   // Catégories de produits/services exemptés
   exemptCategories: z.array(z.string()).optional(),
-  
+
   // Validation pour certains pays
   euVatValidation: z.boolean().default(false),
-  
+
   // Paramètres pour le mode démonstration
   isDemo: z.boolean().default(true),
 });
@@ -179,13 +187,13 @@ export const billingCycleSchema = z.object({
   periodEnd: z.date(),
   scheduledRunDate: z.date(),
   status: z.enum(['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED']).default('PENDING'),
-  
+
   // Champs additionnels pour le suivi
   lastRunAt: z.date().optional(),
   errorMessage: z.string().optional(),
   retryCount: z.number().int().nonnegative().default(0),
   serviceSummary: z.record(z.any()).optional(),
-  
+
   // Paramètres pour le mode démonstration
   isDemo: z.boolean().default(true),
 });
@@ -198,15 +206,15 @@ export const roleBillingConfigSchema = z.object({
   commissionType: z.enum(['FIXED', 'PERCENTAGE', 'TIERED']).default('PERCENTAGE'),
   defaultCommissionRate: z.number().min(0).max(100).default(15),
   minimumPayoutAmount: z.number().min(0).default(50),
-  
+
   // Options de retenue fiscale
   withholding: z.boolean().default(false),
   withholdingRate: z.number().min(0).max(100).optional(),
-  
+
   // Paramètres de traitement de paiement
   processingFeesPaidBy: z.enum(['PLATFORM', 'RECIPIENT']).default('PLATFORM'),
   processingFeeRate: z.number().min(0).max(10).default(1.5),
-  
+
   // Paramètres pour le mode démonstration
   isDemo: z.boolean().default(true),
 });
@@ -219,15 +227,15 @@ export const userFinancialProfileSchema = z.object({
   legalEntityType: z.enum(['INDIVIDUAL', 'COMPANY', 'SELF_EMPLOYED']).default('INDIVIDUAL'),
   isVatExempt: z.boolean().default(false),
   vatNumber: z.string().optional(),
-  
+
   // Informations bancaires (encodées)
   hasVerifiedBankAccount: z.boolean().default(false),
   preferredPaymentMethod: z.string().optional(),
-  
+
   // Information fiscale spécifique par pays
   w9Submitted: z.boolean().optional(),
   w8BenSubmitted: z.boolean().optional(),
-  
+
   // Paramètres pour le mode démonstration
   isDemo: z.boolean().default(true),
 });

@@ -1,6 +1,16 @@
 import { PrismaClient, UserRole, UserStatus } from '@prisma/client';
 import { SeedLogger } from '../utils/seed-logger';
-import { SeedResult, SeedOptions, generateFrenchPhone, generateFrenchAddress, generateFrenchEmail, hashPassword, getRandomElement, getRandomDate, generateRealisticStatus } from '../utils/seed-helpers';
+import {
+  SeedResult,
+  SeedOptions,
+  generateFrenchPhone,
+  generateFrenchAddress,
+  generateFrenchEmail,
+  hashPassword,
+  getRandomElement,
+  getRandomDate,
+  generateRealisticStatus,
+} from '../utils/seed-helpers';
 import { faker } from '@faker-js/faker';
 
 /**
@@ -28,35 +38,36 @@ export async function seedClientUsers(
   options: SeedOptions = {}
 ): Promise<SeedResult> {
   logger.startSeed('CLIENT_USERS');
-  
+
   const result: SeedResult = {
     entity: 'client_users',
     created: 0,
     skipped: 0,
-    errors: 0
+    errors: 0,
   };
 
   // Vérifier si les clients existent déjà
   const existingClients = await prisma.user.findMany({
-    where: { role: UserRole.CLIENT }
+    where: { role: UserRole.CLIENT },
   });
-  
+
   if (existingClients.length > 0 && !options.force) {
-    logger.warning('CLIENT_USERS', `${existingClients.length} clients déjà présents - utiliser force:true pour recréer`);
+    logger.warning(
+      'CLIENT_USERS',
+      `${existingClients.length} clients déjà présents - utiliser force:true pour recréer`
+    );
     result.skipped = existingClients.length;
     return result;
   }
 
-  // Nettoyer si force activé
-  if (options.force) {
-    await prisma.client.deleteMany({});
-    await prisma.user.deleteMany({ where: { role: UserRole.CLIENT } });
-    logger.database('NETTOYAGE', 'client users', 0);
+  // Note: Le nettoyage est géré au niveau de l'orchestrateur pour éviter les conflits de contraintes FK
+  if (options.force && existingClients.length > 0) {
+    logger.info('CLIENT_USERS', '♻️ Mode force activé - Les données existantes seront écrasées');
   }
 
   // Générer 100 clients avec des profils variés
   const clientUsers: ClientData[] = [];
-  
+
   // IMPORTANT: Client principal pour les tests - jean.dupont@orange.fr
   const principalClientAddress = {
     street: '110 rue de Flandre',
@@ -64,7 +75,7 @@ export async function seedClientUsers(
     zipCode: '75019',
     country: 'France',
     latitude: 48.8942,
-    longitude: 2.3728
+    longitude: 2.3728,
   };
   clientUsers.push({
     name: 'Jean Dupont',
@@ -83,49 +94,49 @@ export async function seedClientUsers(
         push: true,
         sms: true,
         orderUpdates: true,
-        promotions: true
+        promotions: true,
       },
       delivery: {
         preferredTimeSlot: 'flexible',
         leaveAtDoor: false,
         preferredDeliverer: 'same_person',
-        deliveryInstructions: 'Appeler avant de livrer. Interphone Dupont au rez-de-chaussée.'
+        deliveryInstructions: 'Appeler avant de livrer. Interphone Dupont au rez-de-chaussée.',
       },
       shopping: {
         ecoFriendly: true,
         localProducts: true,
         organicProducts: true,
         bulkOrders: true,
-        priceComparison: true
-      }
+        priceComparison: true,
+      },
     },
     communicationPreferences: {
       preferredMethod: 'email',
       marketingConsent: true,
       feedbackParticipation: true,
       newsletterSubscription: true,
-      personalizedOffers: true
+      personalizedOffers: true,
     },
     orderHistory: {
       totalOrders: 45,
-      averageOrderValue: 85.50,
+      averageOrderValue: 85.5,
       lastOrderDate: getRandomDate(1, 7),
       favoriteCategories: ['groceries', 'fresh', 'organic'],
-      deliveryRating: 4.8
-    }
+      deliveryRating: 4.8,
+    },
   });
-  
+
   // Générer les autres clients (99)
   for (let i = 0; i < 99; i++) {
     const firstName = faker.person.firstName();
     const lastName = faker.person.lastName();
     const address = generateFrenchAddress();
-    
+
     // Générer un statut basé sur les probabilités demandées
     const status = generateRealisticStatus([
       { status: UserStatus.ACTIVE, probability: 80 },
       { status: UserStatus.INACTIVE, probability: 15 },
-      { status: UserStatus.SUSPENDED, probability: 5 }
+      { status: UserStatus.SUSPENDED, probability: 5 },
     ]);
 
     // Définir les préférences selon le profil
@@ -138,14 +149,16 @@ export async function seedClientUsers(
       email: generateFrenchEmail(firstName, lastName),
       password: 'password123',
       phoneNumber: generateFrenchPhone(),
-             image: getRandomElement([
-         'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150',
-         'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
-         'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
-         'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
-         'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
-         undefined, undefined, undefined // 30% sans photo
-       ]),
+      image: getRandomElement([
+        'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150',
+        'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
+        'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
+        'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
+        'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
+        undefined,
+        undefined,
+        undefined, // 30% sans photo
+      ]),
       status,
       address,
       preferences: {
@@ -157,32 +170,38 @@ export async function seedClientUsers(
           push: Math.random() > 0.3, // 70% acceptent les push
           sms: Math.random() > 0.7, // 30% acceptent les SMS
           orderUpdates: true,
-          promotions: Math.random() > 0.5
+          promotions: Math.random() > 0.5,
         },
         delivery: {
           preferredTimeSlot: getRandomElement(['morning', 'afternoon', 'evening', 'flexible']),
           leaveAtDoor: Math.random() > 0.6,
-          preferredDeliverer: isDeliveryFrequent ? getRandomElement([null, 'same_person', 'any']) : null,
-          deliveryInstructions: isDeliveryFrequent ? faker.lorem.sentence() : null
+          preferredDeliverer: isDeliveryFrequent
+            ? getRandomElement([null, 'same_person', 'any'])
+            : null,
+          deliveryInstructions: isDeliveryFrequent ? faker.lorem.sentence() : null,
         },
         shopping: {
           ecoFriendly: isEcoConscious,
           localProducts: isEcoConscious && Math.random() > 0.3,
           organicProducts: isEcoConscious && Math.random() > 0.4,
           bulkOrders: isActiveBuyer && Math.random() > 0.7,
-          priceComparison: Math.random() > 0.3
-        }
+          priceComparison: Math.random() > 0.3,
+        },
       },
       communicationPreferences: {
         preferredMethod: getRandomElement(['email', 'sms', 'push', 'phone']),
         marketingConsent: Math.random() > 0.4, // 60% acceptent le marketing
         feedbackParticipation: Math.random() > 0.5,
         newsletterSubscription: Math.random() > 0.3,
-        personalizedOffers: Math.random() > 0.4
+        personalizedOffers: Math.random() > 0.4,
       },
       orderHistory: {
-        totalOrders: isActiveBuyer ? faker.number.int({ min: 5, max: 50 }) : faker.number.int({ min: 0, max: 5 }),
-        averageOrderValue: isActiveBuyer ? faker.number.float({ min: 25.0, max: 120.0 }) : faker.number.float({ min: 10.0, max: 40.0 }),
+        totalOrders: isActiveBuyer
+          ? faker.number.int({ min: 5, max: 50 })
+          : faker.number.int({ min: 0, max: 5 }),
+        averageOrderValue: isActiveBuyer
+          ? faker.number.float({ min: 25.0, max: 120.0 })
+          : faker.number.float({ min: 10.0, max: 40.0 }),
         lastOrderDate: status === UserStatus.ACTIVE ? getRandomDate(1, 30) : getRandomDate(30, 90),
         favoriteCategories: getRandomElement([
           ['groceries', 'fresh'],
@@ -190,10 +209,10 @@ export async function seedClientUsers(
           ['electronics', 'home'],
           ['books', 'entertainment'],
           ['food_delivery', 'restaurants'],
-          ['mixed']
+          ['mixed'],
         ]),
-        deliveryRating: isActiveBuyer ? faker.number.float({ min: 3.5, max: 5.0 }) : null
-      }
+        deliveryRating: isActiveBuyer ? faker.number.float({ min: 3.5, max: 5.0 }) : null,
+      },
     });
   }
 
@@ -201,10 +220,59 @@ export async function seedClientUsers(
   const batchSize = 10;
   for (let i = 0; i < clientUsers.length; i += batchSize) {
     const batch = clientUsers.slice(i, i + batchSize);
-    
+
     for (const clientData of batch) {
       try {
         logger.progress('CLIENT_USERS', i + 1, clientUsers.length, `Création: ${clientData.name}`);
+
+        // Vérifier si l'utilisateur existe déjà
+        const existingUser = await prisma.user.findUnique({
+          where: { email: clientData.email },
+          include: { client: true },
+        });
+
+        if (existingUser) {
+          // Si l'utilisateur existe mais n'a pas de profil client, créer le profil
+          if (!existingUser.client) {
+            logger.info(
+              'CLIENT_USERS',
+              `👤 Utilisateur ${clientData.name} existe sans profil - création du profil client`
+            );
+
+            await prisma.client.create({
+              data: {
+                userId: existingUser.id,
+                address: clientData.address.street,
+                city: clientData.address.city,
+                postalCode: clientData.address.zipCode,
+                country: clientData.address.country,
+                phone: clientData.phoneNumber,
+                preferences: {
+                  ...clientData.preferences,
+                  communicationPreferences: clientData.communicationPreferences,
+                  orderHistory: clientData.orderHistory,
+                  loyaltyPoints:
+                    clientData.orderHistory.totalOrders * faker.number.int({ min: 5, max: 15 }),
+                  isVip:
+                    clientData.orderHistory.totalOrders > 30 &&
+                    clientData.orderHistory.averageOrderValue > 80,
+                },
+                createdAt: getRandomDate(30, 180),
+                updatedAt: getRandomDate(1, 30),
+              },
+            });
+
+            logger.success('CLIENT_USERS', `✅ Profil client créé pour: ${existingUser.name}`);
+            result.created++;
+          } else {
+            logger.info(
+              'CLIENT_USERS',
+              `👤 Client ${clientData.name} existe déjà avec profil - ignoré`
+            );
+            result.skipped++;
+          }
+          continue;
+        }
 
         // Hasher le mot de passe
         const hashedPassword = await hashPassword(clientData.password);
@@ -226,81 +294,103 @@ export async function seedClientUsers(
             updatedAt: new Date(),
             // Créer le profil client associé
             client: {
-                             create: {
-                 address: clientData.address.street,
-                 city: clientData.address.city,
-                 postalCode: clientData.address.zipCode,
-                 country: clientData.address.country,
-                 phone: clientData.phoneNumber,
-                 preferences: {
-                   ...clientData.preferences,
-                   communicationPreferences: clientData.communicationPreferences,
-                   orderHistory: clientData.orderHistory,
-                   loyaltyPoints: clientData.orderHistory.totalOrders * faker.number.int({ min: 5, max: 15 }),
-                   isVip: clientData.orderHistory.totalOrders > 30 && clientData.orderHistory.averageOrderValue > 80
-                 },
-                 createdAt: getRandomDate(30, 180),
-                 updatedAt: getRandomDate(1, 30)
-               }
-            }
+              create: {
+                address: clientData.address.street,
+                city: clientData.address.city,
+                postalCode: clientData.address.zipCode,
+                country: clientData.address.country,
+                phone: clientData.phoneNumber,
+                preferences: {
+                  ...clientData.preferences,
+                  communicationPreferences: clientData.communicationPreferences,
+                  orderHistory: clientData.orderHistory,
+                  loyaltyPoints:
+                    clientData.orderHistory.totalOrders * faker.number.int({ min: 5, max: 15 }),
+                  isVip:
+                    clientData.orderHistory.totalOrders > 30 &&
+                    clientData.orderHistory.averageOrderValue > 80,
+                },
+                createdAt: getRandomDate(30, 180),
+                updatedAt: getRandomDate(1, 30),
+              },
+            },
           },
           include: {
-            client: true
-          }
+            client: true,
+          },
         });
 
         logger.success('CLIENT_USERS', `✅ Client créé: ${user.name} (${clientData.status})`);
         result.created++;
-
       } catch (error: any) {
-        logger.error('CLIENT_USERS', `❌ Erreur création client ${clientData.name}: ${error.message}`);
+        logger.error(
+          'CLIENT_USERS',
+          `❌ Erreur création client ${clientData.name}: ${error.message}`
+        );
         result.errors++;
       }
     }
-    
+
     // Progression par batch
     if (i + batchSize < clientUsers.length) {
-      logger.progress('CLIENT_USERS', Math.min(i + batchSize, clientUsers.length), clientUsers.length);
+      logger.progress(
+        'CLIENT_USERS',
+        Math.min(i + batchSize, clientUsers.length),
+        clientUsers.length
+      );
     }
   }
 
   // Validation des clients créés
   const finalClients = await prisma.user.findMany({
     where: { role: UserRole.CLIENT },
-    include: { client: true }
+    include: { client: true },
   });
-  
+
   if (finalClients.length >= clientUsers.length - result.errors) {
     logger.validation('CLIENT_USERS', 'PASSED', `${finalClients.length} clients créés avec succès`);
   } else {
-    logger.validation('CLIENT_USERS', 'FAILED', `Attendu: ${clientUsers.length}, Créé: ${finalClients.length}`);
+    logger.validation(
+      'CLIENT_USERS',
+      'FAILED',
+      `Attendu: ${clientUsers.length}, Créé: ${finalClients.length}`
+    );
   }
 
   // Statistiques par statut
-  const byStatus = finalClients.reduce((acc, client) => {
-    acc[client.status] = (acc[client.status] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  const byStatus = finalClients.reduce(
+    (acc, client) => {
+      acc[client.status] = (acc[client.status] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
 
   logger.info('CLIENT_USERS', `📊 Répartition par statut: ${JSON.stringify(byStatus)}`);
 
-     // Statistiques VIP
-   const vipClients = finalClients.filter(client => {
-     try {
-       const preferences = client.client?.preferences as any;
-       return preferences?.isVip === true;
-     } catch {
-       return false;
-     }
-   });
-   logger.info('CLIENT_USERS', `👑 Clients VIP: ${vipClients.length} (${Math.round(vipClients.length / finalClients.length * 100)}%)`);
+  // Statistiques VIP
+  const vipClients = finalClients.filter(client => {
+    try {
+      const preferences = client.client?.preferences as any;
+      return preferences?.isVip === true;
+    } catch {
+      return false;
+    }
+  });
+  logger.info(
+    'CLIENT_USERS',
+    `👑 Clients VIP: ${vipClients.length} (${Math.round((vipClients.length / finalClients.length) * 100)}%)`
+  );
 
-   // Statistiques de vérification
-   const verifiedClients = finalClients.filter(client => client.isVerified);
-   logger.info('CLIENT_USERS', `✅ Clients vérifiés: ${verifiedClients.length} (${Math.round(verifiedClients.length / finalClients.length * 100)}%)`);
+  // Statistiques de vérification
+  const verifiedClients = finalClients.filter(client => client.isVerified);
+  logger.info(
+    'CLIENT_USERS',
+    `✅ Clients vérifiés: ${verifiedClients.length} (${Math.round((verifiedClients.length / finalClients.length) * 100)}%)`
+  );
 
-   logger.endSeed('CLIENT_USERS', result);
-   return result;
+  logger.endSeed('CLIENT_USERS', result);
+  return result;
 }
 
 /**
@@ -311,10 +401,10 @@ export async function validateClientUsers(
   logger: SeedLogger
 ): Promise<boolean> {
   logger.info('VALIDATION', '🔍 Validation des clients...');
-  
+
   const clients = await prisma.user.findMany({
     where: { role: UserRole.CLIENT },
-    include: { client: true }
+    include: { client: true },
   });
 
   let isValid = true;
@@ -331,11 +421,17 @@ export async function validateClientUsers(
   // Vérifier la répartition des statuts
   const activeClients = clients.filter(client => client.status === UserStatus.ACTIVE);
   const activePercentage = (activeClients.length / clients.length) * 100;
-  
+
   if (activePercentage < 75 || activePercentage > 85) {
-    logger.warning('VALIDATION', `⚠️ Pourcentage de clients actifs inhabituel: ${activePercentage.toFixed(1)}%`);
+    logger.warning(
+      'VALIDATION',
+      `⚠️ Pourcentage de clients actifs inhabituel: ${activePercentage.toFixed(1)}%`
+    );
   } else {
-    logger.success('VALIDATION', `✅ Répartition des statuts correcte: ${activePercentage.toFixed(1)}% actifs`);
+    logger.success(
+      'VALIDATION',
+      `✅ Répartition des statuts correcte: ${activePercentage.toFixed(1)}% actifs`
+    );
   }
 
   // Vérifier l'intégrité des emails
@@ -345,10 +441,10 @@ export async function validateClientUsers(
     having: {
       id: {
         _count: {
-          gt: 1
-        }
-      }
-    }
+          gt: 1,
+        },
+      },
+    },
   });
 
   if (duplicateEmails.length > 0) {
@@ -358,16 +454,19 @@ export async function validateClientUsers(
     logger.success('VALIDATION', '✅ Tous les emails sont uniques');
   }
 
-     // Vérifier les adresses
-   const clientsWithoutAddress = clients.filter(client => 
-     !client.client?.address || !client.client?.city || !client.client?.postalCode
-   );
-   
-   if (clientsWithoutAddress.length > 0) {
-     logger.warning('VALIDATION', `⚠️ ${clientsWithoutAddress.length} clients avec adresses incomplètes`);
-   } else {
-     logger.success('VALIDATION', '✅ Toutes les adresses sont complètes');
-   }
+  // Vérifier les adresses
+  const clientsWithoutAddress = clients.filter(
+    client => !client.client?.address || !client.client?.city || !client.client?.postalCode
+  );
+
+  if (clientsWithoutAddress.length > 0) {
+    logger.warning(
+      'VALIDATION',
+      `⚠️ ${clientsWithoutAddress.length} clients avec adresses incomplètes`
+    );
+  } else {
+    logger.success('VALIDATION', '✅ Toutes les adresses sont complètes');
+  }
 
   return isValid;
-} 
+}

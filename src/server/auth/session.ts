@@ -13,7 +13,7 @@ const prisma = db;
  */
 export async function verifyToken(token: string) {
   try {
-    // Si le token est un token nextauth (utilisé pour les sockets), 
+    // Si le token est un token nextauth (utilisé pour les sockets),
     // vérifier la session directement
     if (token.startsWith('nextauth:')) {
       const sessionToken = token.replace('nextauth:', '');
@@ -23,24 +23,23 @@ export async function verifyToken(token: string) {
           user: true,
         },
       });
-      
+
       if (!session || new Date(session.expires) < new Date()) {
         return null;
       }
-      
+
       return {
         user: {
           id: session.user.id,
           role: session.user.role,
           email: session.user.email,
-        }
+        },
       };
     }
-    
+
     // Sinon, on pourrait appeler le service de token
     // Mais pour l'instant, on refuse les autres types de tokens
     return null;
-    
   } catch (error) {
     console.error('Erreur lors de la vérification du token socket:', error);
     return null;

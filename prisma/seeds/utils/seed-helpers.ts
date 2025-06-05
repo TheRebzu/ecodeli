@@ -20,20 +20,32 @@ export interface SeedOptions {
  */
 export function generateFrenchAddress() {
   const cities = [
-    'Paris', 'Marseille', 'Lyon', 'Toulouse', 'Nice', 
-    'Nantes', 'Montpellier', 'Strasbourg', 'Bordeaux', 'Lille',
-    'Rennes', 'Reims', 'Saint-Étienne', 'Toulon', 'Le Havre'
+    'Paris',
+    'Marseille',
+    'Lyon',
+    'Toulouse',
+    'Nice',
+    'Nantes',
+    'Montpellier',
+    'Strasbourg',
+    'Bordeaux',
+    'Lille',
+    'Rennes',
+    'Reims',
+    'Saint-Étienne',
+    'Toulon',
+    'Le Havre',
   ];
-  
+
   const city = faker.helpers.arrayElement(cities);
-  
+
   return {
     street: `${faker.number.int({ min: 1, max: 999 })} ${faker.location.streetAddress()}`,
     city,
     zipCode: faker.location.zipCode(),
     country: 'France',
     latitude: faker.location.latitude({ min: 43.0, max: 49.0 }),
-    longitude: faker.location.longitude({ min: -5.0, max: 8.0 })
+    longitude: faker.location.longitude({ min: -5.0, max: 8.0 }),
   };
 }
 
@@ -62,13 +74,19 @@ export function generateFrenchPhone(): string {
 export function generateFrenchEmail(firstName?: string, lastName?: string): string {
   const domains = ['gmail.com', 'orange.fr', 'wanadoo.fr', 'free.fr', 'hotmail.fr', 'yahoo.fr'];
   const domain = faker.helpers.arrayElement(domains);
-  
+
   if (firstName && lastName) {
-    const cleanFirst = firstName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    const cleanLast = lastName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const cleanFirst = firstName
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
+    const cleanLast = lastName
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '');
     return `${cleanFirst}.${cleanLast}@${domain}`;
   }
-  
+
   return faker.internet.email({ provider: domain });
 }
 
@@ -92,14 +110,14 @@ export function generatePriceInCents(min: number = 100, max: number = 50000): nu
 export function weightedSelect<T>(items: { item: T; weight: number }[]): T {
   const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
   let random = faker.number.int({ min: 0, max: totalWeight });
-  
+
   for (const item of items) {
     if (random <= item.weight) {
       return item.item;
     }
     random -= item.weight;
   }
-  
+
   return items[items.length - 1].item;
 }
 
@@ -116,8 +134,8 @@ export function generateRealisticStatus<T extends string>(
  * Nettoyeur de table avec vérification de contraintes
  */
 export async function cleanTable(
-  prisma: PrismaClient, 
-  tableName: string, 
+  prisma: PrismaClient,
+  tableName: string,
   options: { force?: boolean } = {}
 ): Promise<number> {
   try {
@@ -170,15 +188,15 @@ export async function createBatch<T>(
     entity: entityName,
     created: 0,
     skipped: 0,
-    errors: 0
+    errors: 0,
   };
 
   for (let i = 0; i < items.length; i += batchSize) {
     const batch = items.slice(i, i + batchSize);
     const promises = batch.map(item => createEntity(() => createFn(item), entityName, options));
-    
+
     const results = await Promise.all(promises);
-    
+
     results.forEach(res => {
       if (res.success) {
         result.created++;
@@ -186,9 +204,11 @@ export async function createBatch<T>(
         result.errors++;
       }
     });
-    
+
     if (options.verbose && i + batchSize < items.length) {
-      console.log(`📊 Progression ${entityName}: ${Math.min(i + batchSize, items.length)}/${items.length}`);
+      console.log(
+        `📊 Progression ${entityName}: ${Math.min(i + batchSize, items.length)}/${items.length}`
+      );
     }
   }
 
@@ -225,27 +245,27 @@ export function getRandomDate(minDaysAgo: number, maxDaysAgo: number): Date {
 export class TestDataGenerator {
   private usedEmails = new Set<string>();
   private usedSirets = new Set<string>();
-  
+
   generateUniqueEmail(firstName?: string, lastName?: string): string {
     let email: string;
     do {
       email = generateFrenchEmail(firstName, lastName);
     } while (this.usedEmails.has(email));
-    
+
     this.usedEmails.add(email);
     return email;
   }
-  
+
   generateUniqueSiret(): string {
     let siret: string;
     do {
       siret = generateSiret();
     } while (this.usedSirets.has(siret));
-    
+
     this.usedSirets.add(siret);
     return siret;
   }
-  
+
   reset(): void {
     this.usedEmails.clear();
     this.usedSirets.clear();
@@ -255,4 +275,4 @@ export class TestDataGenerator {
 /**
  * Instance globale du générateur pour cohérence entre seeds
  */
-export const testDataGenerator = new TestDataGenerator(); 
+export const testDataGenerator = new TestDataGenerator();

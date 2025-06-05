@@ -33,7 +33,8 @@ export function useProfile() {
 
   type RoleSpecificProfile = MerchantProfile | ProviderProfile;
 
-  const typedRoleSpecificProfile: RoleSpecificProfile | null = roleSpecificProfile as RoleSpecificProfile | null;
+  const typedRoleSpecificProfile: RoleSpecificProfile | null =
+    roleSpecificProfile as RoleSpecificProfile | null;
 
   // Procédure de mise à jour du profil
   const updateProfileMutation = api.profile.updateProfile.useMutation({

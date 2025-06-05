@@ -5,5 +5,5 @@ export const API_ENDPOINTS = {
   DELIVERIES: '/api/deliveries',
   SERVICES: '/api/services',
   PAYMENTS: '/api/payments',
-  INVOICES: '/api/invoices'
+  INVOICES: '/api/invoices',
 };

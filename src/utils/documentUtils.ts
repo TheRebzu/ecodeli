@@ -25,5 +25,5 @@ export function areAllDocumentsUploaded(
   requiredDocuments: string[],
   uploadedDocuments: string[]
 ): boolean {
-  return requiredDocuments.every((doc) => uploadedDocuments.includes(doc));
+  return requiredDocuments.every(doc => uploadedDocuments.includes(doc));
 }

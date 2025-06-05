@@ -1,6 +1,6 @@
 import React from 'react';
-import { ProtectedHeader } from '@/components/layout/protected-header';
-import { ProtectedFooter } from '@/components/layout/protected-footer';
+import { ProtectedHeader } from '@/components/layout/protected/header';
+import { ProtectedFooter } from '@/components/layout/protected/footer';
 import { ProviderSidebar } from '@/components/layout/sidebars/provider-sidebar';
 
 interface ProviderLayoutProps {

@@ -6,36 +6,36 @@ import { SeedResult, SeedOptions } from '../utils/seed-helpers';
  * Seed des catégories de services EcoDeli
  */
 export async function seedServiceCategories(
-  prisma: PrismaClient, 
+  prisma: PrismaClient,
   logger: SeedLogger,
   options: SeedOptions = {}
 ): Promise<SeedResult> {
   logger.startSeed('SERVICE_CATEGORIES');
-  
+
   const result: SeedResult = {
     entity: 'service_categories',
     created: 0,
     skipped: 0,
-    errors: 0
+    errors: 0,
   };
 
   // Définition des catégories de services EcoDeli
   const serviceCategories = [
     {
       name: 'Réparation électroménager',
-      description: 'Réparation et maintenance d\'appareils électroménagers',
+      description: "Réparation et maintenance d'appareils électroménagers",
       icon: 'wrench',
       color: '#3B82F6',
       isActive: true,
-      sortOrder: 1
+      sortOrder: 1,
     },
     {
       name: 'Jardinage et espaces verts',
-      description: 'Entretien d\'espaces verts, jardins et balcons',
+      description: "Entretien d'espaces verts, jardins et balcons",
       icon: 'flower',
       color: '#10B981',
       isActive: true,
-      sortOrder: 2
+      sortOrder: 2,
     },
     {
       name: 'Plomberie et sanitaire',
@@ -43,15 +43,15 @@ export async function seedServiceCategories(
       icon: 'droplet',
       color: '#06B6D4',
       isActive: true,
-      sortOrder: 3
+      sortOrder: 3,
     },
     {
       name: 'Électricité et éclairage',
-      description: 'Travaux électriques et installations d\'éclairage',
+      description: "Travaux électriques et installations d'éclairage",
       icon: 'zap',
       color: '#F59E0B',
       isActive: true,
-      sortOrder: 4
+      sortOrder: 4,
     },
     {
       name: 'Ménage et nettoyage',
@@ -59,7 +59,7 @@ export async function seedServiceCategories(
       icon: 'home',
       color: '#8B5CF6',
       isActive: true,
-      sortOrder: 5
+      sortOrder: 5,
     },
     {
       name: 'Peinture et décoration',
@@ -67,7 +67,7 @@ export async function seedServiceCategories(
       icon: 'paintbrush',
       color: '#EF4444',
       isActive: true,
-      sortOrder: 6
+      sortOrder: 6,
     },
     {
       name: 'Informatique et technologie',
@@ -75,7 +75,7 @@ export async function seedServiceCategories(
       icon: 'monitor',
       color: '#6366F1',
       isActive: true,
-      sortOrder: 7
+      sortOrder: 7,
     },
     {
       name: 'Cours et formation',
@@ -83,7 +83,7 @@ export async function seedServiceCategories(
       icon: 'graduation-cap',
       color: '#84CC16',
       isActive: true,
-      sortOrder: 8
+      sortOrder: 8,
     },
     {
       name: 'Bien-être et santé',
@@ -91,7 +91,7 @@ export async function seedServiceCategories(
       icon: 'heart',
       color: '#EC4899',
       isActive: true,
-      sortOrder: 9
+      sortOrder: 9,
     },
     {
       name: 'Transport et livraison',
@@ -99,15 +99,15 @@ export async function seedServiceCategories(
       icon: 'truck',
       color: '#F97316',
       isActive: true,
-      sortOrder: 10
+      sortOrder: 10,
     },
     {
-      name: 'Garde d\'animaux',
-      description: 'Garde et promenade d\'animaux de compagnie',
+      name: "Garde d'animaux",
+      description: "Garde et promenade d'animaux de compagnie",
       icon: 'dog',
       color: '#14B8A6',
       isActive: true,
-      sortOrder: 11
+      sortOrder: 11,
     },
     {
       name: 'Aide administrative',
@@ -115,8 +115,8 @@ export async function seedServiceCategories(
       icon: 'file-text',
       color: '#64748B',
       isActive: true,
-      sortOrder: 12
-    }
+      sortOrder: 12,
+    },
   ];
 
   // Créer les catégories de services
@@ -124,7 +124,7 @@ export async function seedServiceCategories(
     try {
       // Vérifier si la catégorie existe déjà
       const existing = await prisma.serviceCategory.findFirst({
-        where: { name: categoryData.name }
+        where: { name: categoryData.name },
       });
 
       if (existing && !options.force) {
@@ -136,7 +136,7 @@ export async function seedServiceCategories(
       // Supprimer l'existante si force activé
       if (existing && options.force) {
         await prisma.serviceCategory.delete({
-          where: { id: existing.id }
+          where: { id: existing.id },
         });
       }
 
@@ -146,14 +146,16 @@ export async function seedServiceCategories(
           description: categoryData.description,
           createdAt: new Date(),
           updatedAt: new Date(),
-        }
+        },
       });
 
       logger.success('SERVICE_CATEGORIES', `✅ Catégorie créée: ${categoryData.name}`);
       result.created++;
-      
     } catch (error: any) {
-      logger.error('SERVICE_CATEGORIES', `❌ Erreur création catégorie ${categoryData.name}: ${error.message}`);
+      logger.error(
+        'SERVICE_CATEGORIES',
+        `❌ Erreur création catégorie ${categoryData.name}: ${error.message}`
+      );
       result.errors++;
     }
   }
@@ -161,9 +163,17 @@ export async function seedServiceCategories(
   // Validation des catégories créées
   const finalCategories = await prisma.serviceCategory.findMany();
   if (finalCategories.length >= serviceCategories.length) {
-    logger.validation('SERVICE_CATEGORIES', 'PASSED', `${finalCategories.length} catégories créées`);
+    logger.validation(
+      'SERVICE_CATEGORIES',
+      'PASSED',
+      `${finalCategories.length} catégories créées`
+    );
   } else {
-    logger.validation('SERVICE_CATEGORIES', 'FAILED', `Attendu: ${serviceCategories.length}, Créé: ${finalCategories.length}`);
+    logger.validation(
+      'SERVICE_CATEGORIES',
+      'FAILED',
+      `Attendu: ${serviceCategories.length}, Créé: ${finalCategories.length}`
+    );
   }
 
   logger.endSeed('SERVICE_CATEGORIES', result);
@@ -178,17 +188,17 @@ export async function validateServiceCategories(
   logger: SeedLogger
 ): Promise<boolean> {
   logger.info('VALIDATION', '🔍 Validation des catégories de services...');
-  
+
   const categories = await prisma.serviceCategory.findMany();
   let isValid = true;
 
   // Vérifier les catégories essentielles
   const essentialCategories = [
     'Réparation électroménager',
-    'Jardinage et espaces verts', 
+    'Jardinage et espaces verts',
     'Plomberie et sanitaire',
     'Électricité et éclairage',
-    'Ménage et nettoyage'
+    'Ménage et nettoyage',
   ];
 
   for (const name of essentialCategories) {
@@ -204,4 +214,4 @@ export async function validateServiceCategories(
   logger.success('VALIDATION', `✅ Total: ${categories.length} catégories de services`);
 
   return isValid;
-} 
+}

@@ -17,6 +17,6 @@ export const dashboardConfig = {
     ],
     admin: [
       // Navigation sidebar admin
-    ]
-  }
+    ],
+  },
 };

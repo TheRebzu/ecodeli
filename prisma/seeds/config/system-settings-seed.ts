@@ -26,15 +26,15 @@ export async function seedSystemSettings(
   options: SeedOptions = {}
 ): Promise<SeedResult> {
   logger.startSeed('SYSTEM_SETTINGS');
-  
+
   const result: SeedResult = {
     entity: 'system_settings',
     created: 0,
     skipped: 0,
-    errors: 0
+    errors: 0,
   };
 
-  // Note: Cette implémentation est simplifiée car il n'y a pas de modèle 
+  // Note: Cette implémentation est simplifiée car il n'y a pas de modèle
   // SystemSetting dans le schéma Prisma actuel. Nous créerons des logs
   // simulés pour démontrer la fonctionnalité.
 
@@ -47,19 +47,19 @@ export async function seedSystemSettings(
       key: 'app.name',
       value: 'EcoDeli',
       category: 'general',
-      description: 'Nom de l\'application',
+      description: "Nom de l'application",
       isPublic: true,
       isEditable: false,
-      dataType: 'string'
+      dataType: 'string',
     },
     {
       key: 'app.version',
       value: '1.0.0',
       category: 'general',
-      description: 'Version de l\'application',
+      description: "Version de l'application",
       isPublic: true,
       isEditable: false,
-      dataType: 'string'
+      dataType: 'string',
     },
     {
       key: 'app.maintenance_mode',
@@ -68,16 +68,16 @@ export async function seedSystemSettings(
       description: 'Mode maintenance activé',
       isPublic: true,
       isEditable: true,
-      dataType: 'boolean'
+      dataType: 'boolean',
     },
     {
       key: 'app.default_language',
       value: 'fr',
       category: 'general',
-      description: 'Langue par défaut de l\'application',
+      description: "Langue par défaut de l'application",
       isPublic: true,
       isEditable: true,
-      dataType: 'string'
+      dataType: 'string',
     },
     {
       key: 'app.supported_languages',
@@ -86,7 +86,7 @@ export async function seedSystemSettings(
       description: 'Langues supportées',
       isPublic: true,
       isEditable: true,
-      dataType: 'json'
+      dataType: 'json',
     },
 
     // === LIMITES ET QUOTAS ===
@@ -97,7 +97,7 @@ export async function seedSystemSettings(
       description: 'Taille maximale des fichiers uploadés (Mo)',
       isPublic: false,
       isEditable: true,
-      dataType: 'number'
+      dataType: 'number',
     },
     {
       key: 'limits.max_deliveries_per_user_day',
@@ -106,7 +106,7 @@ export async function seedSystemSettings(
       description: 'Nombre maximum de livraisons par utilisateur par jour',
       isPublic: false,
       isEditable: true,
-      dataType: 'number'
+      dataType: 'number',
     },
     {
       key: 'limits.max_storage_boxes_per_client',
@@ -115,7 +115,7 @@ export async function seedSystemSettings(
       description: 'Nombre maximum de boxes par client',
       isPublic: false,
       isEditable: true,
-      dataType: 'number'
+      dataType: 'number',
     },
     {
       key: 'limits.session_timeout_minutes',
@@ -124,7 +124,7 @@ export async function seedSystemSettings(
       description: 'Durée de session utilisateur (minutes)',
       isPublic: false,
       isEditable: true,
-      dataType: 'number'
+      dataType: 'number',
     },
     {
       key: 'limits.password_min_length',
@@ -133,7 +133,7 @@ export async function seedSystemSettings(
       description: 'Longueur minimale du mot de passe',
       isPublic: true,
       isEditable: true,
-      dataType: 'number'
+      dataType: 'number',
     },
 
     // === RÈGLES MÉTIER ===
@@ -144,7 +144,7 @@ export async function seedSystemSettings(
       description: 'Taux de commission plateforme (%)',
       isPublic: false,
       isEditable: true,
-      dataType: 'number'
+      dataType: 'number',
     },
     {
       key: 'business.delivery_timeout_hours',
@@ -153,16 +153,16 @@ export async function seedSystemSettings(
       description: 'Délai maximum pour accepter une livraison (heures)',
       isPublic: false,
       isEditable: true,
-      dataType: 'number'
+      dataType: 'number',
     },
     {
       key: 'business.verification_expiry_days',
       value: 30,
       category: 'business',
-      description: 'Délai d\'expiration des vérifications (jours)',
+      description: "Délai d'expiration des vérifications (jours)",
       isPublic: false,
       isEditable: true,
-      dataType: 'number'
+      dataType: 'number',
     },
     {
       key: 'business.refund_window_days',
@@ -171,7 +171,7 @@ export async function seedSystemSettings(
       description: 'Délai pour demander un remboursement (jours)',
       isPublic: true,
       isEditable: true,
-      dataType: 'number'
+      dataType: 'number',
     },
     {
       key: 'business.rating_required',
@@ -180,7 +180,7 @@ export async function seedSystemSettings(
       description: 'Évaluation obligatoire après service',
       isPublic: true,
       isEditable: true,
-      dataType: 'boolean'
+      dataType: 'boolean',
     },
 
     // === INTÉGRATIONS API ===
@@ -191,7 +191,7 @@ export async function seedSystemSettings(
       description: 'Secret webhook Stripe',
       isPublic: false,
       isEditable: true,
-      dataType: 'string'
+      dataType: 'string',
     },
     {
       key: 'integrations.onesignal.app_id',
@@ -200,7 +200,7 @@ export async function seedSystemSettings(
       description: 'ID application OneSignal',
       isPublic: false,
       isEditable: true,
-      dataType: 'string'
+      dataType: 'string',
     },
     {
       key: 'integrations.maps.api_key',
@@ -209,7 +209,7 @@ export async function seedSystemSettings(
       description: 'Clé API Google Maps',
       isPublic: false,
       isEditable: true,
-      dataType: 'string'
+      dataType: 'string',
     },
     {
       key: 'integrations.sms.provider',
@@ -218,7 +218,7 @@ export async function seedSystemSettings(
       description: 'Fournisseur SMS',
       isPublic: false,
       isEditable: true,
-      dataType: 'string'
+      dataType: 'string',
     },
     {
       key: 'integrations.email.smtp_host',
@@ -227,7 +227,7 @@ export async function seedSystemSettings(
       description: 'Serveur SMTP pour les emails',
       isPublic: false,
       isEditable: true,
-      dataType: 'string'
+      dataType: 'string',
     },
 
     // === MAINTENANCE ET MONITORING ===
@@ -238,7 +238,7 @@ export async function seedSystemSettings(
       description: 'Fréquence des sauvegardes automatiques (heures)',
       isPublic: false,
       isEditable: true,
-      dataType: 'number'
+      dataType: 'number',
     },
     {
       key: 'maintenance.log_retention_days',
@@ -247,7 +247,7 @@ export async function seedSystemSettings(
       description: 'Durée de conservation des logs (jours)',
       isPublic: false,
       isEditable: true,
-      dataType: 'number'
+      dataType: 'number',
     },
     {
       key: 'maintenance.monitoring_enabled',
@@ -256,7 +256,7 @@ export async function seedSystemSettings(
       description: 'Monitoring des performances activé',
       isPublic: false,
       isEditable: true,
-      dataType: 'boolean'
+      dataType: 'boolean',
     },
     {
       key: 'maintenance.health_check_interval_minutes',
@@ -265,7 +265,7 @@ export async function seedSystemSettings(
       description: 'Intervalle des contrôles de santé (minutes)',
       isPublic: false,
       isEditable: true,
-      dataType: 'number'
+      dataType: 'number',
     },
 
     // === SÉCURITÉ ===
@@ -276,7 +276,7 @@ export async function seedSystemSettings(
       description: 'Limite de requêtes par minute par IP',
       isPublic: false,
       isEditable: true,
-      dataType: 'number'
+      dataType: 'number',
     },
     {
       key: 'security.failed_login_attempts_max',
@@ -285,7 +285,7 @@ export async function seedSystemSettings(
       description: 'Nombre maximum de tentatives de connexion échouées',
       isPublic: false,
       isEditable: true,
-      dataType: 'number'
+      dataType: 'number',
     },
     {
       key: 'security.account_lockout_duration_minutes',
@@ -294,7 +294,7 @@ export async function seedSystemSettings(
       description: 'Durée de verrouillage de compte (minutes)',
       isPublic: false,
       isEditable: true,
-      dataType: 'number'
+      dataType: 'number',
     },
     {
       key: 'security.two_factor_auth_required',
@@ -303,7 +303,7 @@ export async function seedSystemSettings(
       description: 'Authentification à deux facteurs obligatoire',
       isPublic: true,
       isEditable: true,
-      dataType: 'boolean'
+      dataType: 'boolean',
     },
 
     // === NOTIFICATIONS ===
@@ -314,7 +314,7 @@ export async function seedSystemSettings(
       description: 'Notifications par email activées',
       isPublic: true,
       isEditable: true,
-      dataType: 'boolean'
+      dataType: 'boolean',
     },
     {
       key: 'notifications.sms_enabled',
@@ -323,7 +323,7 @@ export async function seedSystemSettings(
       description: 'Notifications par SMS activées',
       isPublic: true,
       isEditable: true,
-      dataType: 'boolean'
+      dataType: 'boolean',
     },
     {
       key: 'notifications.push_enabled',
@@ -332,22 +332,22 @@ export async function seedSystemSettings(
       description: 'Notifications push activées',
       isPublic: true,
       isEditable: true,
-      dataType: 'boolean'
+      dataType: 'boolean',
     },
     {
       key: 'notifications.batch_size',
       value: 100,
       category: 'notifications',
-      description: 'Taille des lots d\'envoi de notifications',
+      description: "Taille des lots d'envoi de notifications",
       isPublic: false,
       isEditable: true,
-      dataType: 'number'
-    }
+      dataType: 'number',
+    },
   ];
 
   // Simuler la création des paramètres système
   logger.info('SYSTEM_SETTINGS', '📝 Configuration des paramètres...');
-  
+
   let configuredSettings = 0;
   const settingsByCategory: Record<string, number> = {};
 
@@ -355,19 +355,19 @@ export async function seedSystemSettings(
     try {
       // Simuler l'enregistrement du paramètre
       logger.database('SYSTEM_SETTING', setting.key, 1);
-      
+
       configuredSettings++;
       result.created++;
-      
+
       // Compter par catégorie
       settingsByCategory[setting.category] = (settingsByCategory[setting.category] || 0) + 1;
-      
+
       if (options.verbose) {
-        logger.success('SYSTEM_SETTINGS', 
+        logger.success(
+          'SYSTEM_SETTINGS',
           `✅ ${setting.key} = ${typeof setting.value === 'object' ? JSON.stringify(setting.value) : setting.value} (${setting.category})`
         );
       }
-
     } catch (error: any) {
       logger.error('SYSTEM_SETTINGS', `❌ Erreur paramètre ${setting.key}: ${error.message}`);
       result.errors++;
@@ -386,17 +386,28 @@ export async function seedSystemSettings(
   // Statistiques finales
   logger.info('SYSTEM_SETTINGS', `⚙️ Catégories: ${JSON.stringify(settingsByCategory)}`);
   logger.info('SYSTEM_SETTINGS', `🔢 Total: ${configuredSettings} paramètres configurés`);
-  
+
   const publicSettings = SYSTEM_SETTINGS.filter(s => s.isPublic).length;
   const editableSettings = SYSTEM_SETTINGS.filter(s => s.isEditable).length;
-  
-  logger.info('SYSTEM_SETTINGS', `🌐 Publics: ${publicSettings}, ✏️ Modifiables: ${editableSettings}`);
+
+  logger.info(
+    'SYSTEM_SETTINGS',
+    `🌐 Publics: ${publicSettings}, ✏️ Modifiables: ${editableSettings}`
+  );
 
   // Validation
   if (configuredSettings >= SYSTEM_SETTINGS.length - result.errors) {
-    logger.validation('SYSTEM_SETTINGS', 'PASSED', `${configuredSettings} paramètres configurés avec succès`);
+    logger.validation(
+      'SYSTEM_SETTINGS',
+      'PASSED',
+      `${configuredSettings} paramètres configurés avec succès`
+    );
   } else {
-    logger.validation('SYSTEM_SETTINGS', 'FAILED', `Attendu: ${SYSTEM_SETTINGS.length}, Configuré: ${configuredSettings}`);
+    logger.validation(
+      'SYSTEM_SETTINGS',
+      'FAILED',
+      `Attendu: ${SYSTEM_SETTINGS.length}, Configuré: ${configuredSettings}`
+    );
   }
 
   logger.endSeed('SYSTEM_SETTINGS', result);
@@ -412,35 +423,34 @@ async function generateConfigurationReport(
   categoriesCount: Record<string, number>
 ): Promise<void> {
   logger.info('CONFIG_REPORT', '📊 Génération du rapport de configuration...');
-  
+
   // Analyse par catégorie
   const categories = Object.keys(categoriesCount).sort();
-  
+
   for (const category of categories) {
     const categorySettings = settings.filter(s => s.category === category);
     const publicCount = categorySettings.filter(s => s.isPublic).length;
     const editableCount = categorySettings.filter(s => s.isEditable).length;
-    
-    logger.info('CONFIG_REPORT', 
+
+    logger.info(
+      'CONFIG_REPORT',
       `📁 ${category.toUpperCase()}: ${categoriesCount[category]} paramètres (${publicCount} publics, ${editableCount} modifiables)`
     );
   }
-  
+
   // Analyse des types de données
   const typeDistribution = settings.reduce((acc: Record<string, number>, setting) => {
     acc[setting.dataType] = (acc[setting.dataType] || 0) + 1;
     return acc;
   }, {});
-  
+
   logger.info('CONFIG_REPORT', `📈 Types: ${JSON.stringify(typeDistribution)}`);
-  
+
   // Paramètres critiques
-  const criticalSettings = settings.filter(s => 
-    s.key.includes('secret') || 
-    s.key.includes('api_key') || 
-    s.category === 'security'
+  const criticalSettings = settings.filter(
+    s => s.key.includes('secret') || s.key.includes('api_key') || s.category === 'security'
   );
-  
+
   logger.info('CONFIG_REPORT', `🔒 Paramètres critiques: ${criticalSettings.length}`);
 }
 
@@ -452,36 +462,36 @@ async function validateCriticalSettings(
   settings: SystemSetting[]
 ): Promise<void> {
   logger.info('VALIDATION', '🔍 Validation des paramètres critiques...');
-  
+
   // Vérifier que les paramètres obligatoires sont présents
   const requiredKeys = [
     'app.name',
-    'app.version', 
+    'app.version',
     'business.commission_rate_percent',
     'limits.max_file_size_mb',
-    'security.rate_limit_requests_per_minute'
+    'security.rate_limit_requests_per_minute',
   ];
-  
-  const missingRequired = requiredKeys.filter(key => 
-    !settings.find(s => s.key === key)
-  );
-  
+
+  const missingRequired = requiredKeys.filter(key => !settings.find(s => s.key === key));
+
   if (missingRequired.length === 0) {
     logger.success('VALIDATION', '✅ Tous les paramètres obligatoires sont présents');
   } else {
     logger.error('VALIDATION', `❌ Paramètres manquants: ${missingRequired.join(', ')}`);
   }
-  
+
   // Vérifier la cohérence des valeurs
-  const commissionRate = settings.find(s => s.key === 'business.commission_rate_percent')?.value as number;
+  const commissionRate = settings.find(s => s.key === 'business.commission_rate_percent')
+    ?.value as number;
   if (commissionRate && (commissionRate < 0 || commissionRate > 30)) {
     logger.warning('VALIDATION', `⚠️ Taux de commission suspect: ${commissionRate}%`);
   } else {
     logger.success('VALIDATION', `✅ Taux de commission cohérent: ${commissionRate}%`);
   }
-  
+
   // Vérifier les limites de sécurité
-  const maxAttempts = settings.find(s => s.key === 'security.failed_login_attempts_max')?.value as number;
+  const maxAttempts = settings.find(s => s.key === 'security.failed_login_attempts_max')
+    ?.value as number;
   if (maxAttempts && maxAttempts > 10) {
     logger.warning('VALIDATION', `⚠️ Limite de tentatives élevée: ${maxAttempts}`);
   } else {
@@ -494,20 +504,20 @@ async function validateCriticalSettings(
  */
 async function simulateConnectivityTests(logger: SeedLogger): Promise<void> {
   logger.info('CONNECTIVITY', '🔌 Tests de connectivité des intégrations...');
-  
+
   const integrations = [
     { name: 'Stripe', status: 'CONNECTED', latency: '45ms' },
     { name: 'OneSignal', status: 'CONNECTED', latency: '32ms' },
     { name: 'Google Maps', status: 'CONNECTED', latency: '28ms' },
     { name: 'SMTP Server', status: 'CONNECTED', latency: '156ms' },
-    { name: 'SMS Provider', status: 'CONNECTED', latency: '78ms' }
+    { name: 'SMS Provider', status: 'CONNECTED', latency: '78ms' },
   ];
-  
+
   for (const integration of integrations) {
     // Simuler une latence aléatoire
     const actualLatency = faker.number.int({ min: 20, max: 200 });
     const status = actualLatency > 150 ? 'SLOW' : 'CONNECTED';
-    
+
     if (status === 'CONNECTED') {
       logger.success('CONNECTIVITY', `✅ ${integration.name}: ${status} (${actualLatency}ms)`);
     } else {
@@ -524,12 +534,15 @@ export async function validateSystemSettings(
   logger: SeedLogger
 ): Promise<boolean> {
   logger.info('VALIDATION', '🔍 Validation de la configuration système...');
-  
+
   // Cette validation est simulée car il n'y a pas de modèle SystemSetting
   // Dans un vrai scénario, on vérifierait la base de données
-  
+
   logger.success('VALIDATION', '✅ Configuration système validée (simulation)');
-  logger.info('VALIDATION', '📝 Note: Les paramètres système sont simulés car aucun modèle correspondant n\'existe dans le schéma Prisma');
-  
+  logger.info(
+    'VALIDATION',
+    "📝 Note: Les paramètres système sont simulés car aucun modèle correspondant n'existe dans le schéma Prisma"
+  );
+
   return true;
-} 
+}

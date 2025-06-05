@@ -8,26 +8,29 @@ import { faker } from '@faker-js/faker';
  * Seed des entrepôts de stockage EcoDeli
  */
 export async function seedWarehouses(
-  prisma: PrismaClient, 
+  prisma: PrismaClient,
   logger: SeedLogger,
   options: SeedOptions = {}
 ): Promise<SeedResult> {
   logger.startSeed('WAREHOUSES');
-  
+
   const result: SeedResult = {
     entity: 'warehouses',
     created: 0,
     skipped: 0,
-    errors: 0
+    errors: 0,
   };
 
   const config = defaultSeedConfig.quantities;
 
   // Vérifier si des entrepôts existent déjà
   const existingWarehouses = await prisma.warehouse.findMany();
-  
+
   if (existingWarehouses.length > 0 && !options.force) {
-    logger.warning('WAREHOUSES', `${existingWarehouses.length} entrepôts déjà présents - utiliser force:true pour recréer`);
+    logger.warning(
+      'WAREHOUSES',
+      `${existingWarehouses.length} entrepôts déjà présents - utiliser force:true pour recréer`
+    );
     result.skipped = existingWarehouses.length;
     return result;
   }
@@ -57,8 +60,8 @@ export async function seedWarehouses(
         thursday: { open: '07:00', close: '20:00' },
         friday: { open: '07:00', close: '20:00' },
         saturday: { open: '08:00', close: '18:00' },
-        sunday: { open: '09:00', close: '17:00' }
-      }
+        sunday: { open: '09:00', close: '17:00' },
+      },
     },
     {
       name: 'EcoDeli Lyon Confluence',
@@ -66,7 +69,7 @@ export async function seedWarehouses(
       city: 'Lyon',
       zipCode: '69002',
       country: 'France',
-      latitude: 45.7640,
+      latitude: 45.764,
       longitude: 4.8357,
       capacity: 40,
       description: 'Entrepôt moderne dans le quartier Confluence',
@@ -77,8 +80,8 @@ export async function seedWarehouses(
         thursday: { open: '08:00', close: '19:00' },
         friday: { open: '08:00', close: '19:00' },
         saturday: { open: '09:00', close: '17:00' },
-        sunday: { open: '10:00', close: '16:00' }
-      }
+        sunday: { open: '10:00', close: '16:00' },
+      },
     },
     {
       name: 'EcoDeli Marseille Vieux-Port',
@@ -97,8 +100,8 @@ export async function seedWarehouses(
         thursday: { open: '08:00', close: '19:00' },
         friday: { open: '08:00', close: '19:00' },
         saturday: { open: '09:00', close: '17:00' },
-        sunday: { open: '10:00', close: '16:00' }
-      }
+        sunday: { open: '10:00', close: '16:00' },
+      },
     },
     {
       name: 'EcoDeli Toulouse Capitole',
@@ -117,8 +120,8 @@ export async function seedWarehouses(
         thursday: { open: '08:00', close: '19:00' },
         friday: { open: '08:00', close: '19:00' },
         saturday: { open: '09:00', close: '17:00' },
-        sunday: { open: '10:00', close: '16:00' }
-      }
+        sunday: { open: '10:00', close: '16:00' },
+      },
     },
     {
       name: 'EcoDeli Nice Promenade',
@@ -127,7 +130,7 @@ export async function seedWarehouses(
       zipCode: '06000',
       country: 'France',
       latitude: 43.7102,
-      longitude: 7.2620,
+      longitude: 7.262,
       capacity: 25,
       description: 'Entrepôt face à la Méditerranée',
       operatingHours: {
@@ -137,8 +140,8 @@ export async function seedWarehouses(
         thursday: { open: '08:00', close: '19:00' },
         friday: { open: '08:00', close: '19:00' },
         saturday: { open: '09:00', close: '17:00' },
-        sunday: { open: '10:00', close: '16:00' }
-      }
+        sunday: { open: '10:00', close: '16:00' },
+      },
     },
     {
       name: 'EcoDeli Nantes Loire',
@@ -157,8 +160,8 @@ export async function seedWarehouses(
         thursday: { open: '08:00', close: '19:00' },
         friday: { open: '08:00', close: '19:00' },
         saturday: { open: '09:00', close: '17:00' },
-        sunday: { open: '10:00', close: '16:00' }
-      }
+        sunday: { open: '10:00', close: '16:00' },
+      },
     },
     {
       name: 'EcoDeli Strasbourg Cathédrale',
@@ -169,7 +172,7 @@ export async function seedWarehouses(
       latitude: 48.5734,
       longitude: 7.7521,
       capacity: 25,
-      description: 'Entrepôt au cœur de l\'Alsace',
+      description: "Entrepôt au cœur de l'Alsace",
       operatingHours: {
         monday: { open: '08:00', close: '19:00' },
         tuesday: { open: '08:00', close: '19:00' },
@@ -177,8 +180,8 @@ export async function seedWarehouses(
         thursday: { open: '08:00', close: '19:00' },
         friday: { open: '08:00', close: '19:00' },
         saturday: { open: '09:00', close: '17:00' },
-        sunday: { open: '10:00', close: '16:00' }
-      }
+        sunday: { open: '10:00', close: '16:00' },
+      },
     },
     {
       name: 'EcoDeli Bordeaux Garonne',
@@ -197,9 +200,9 @@ export async function seedWarehouses(
         thursday: { open: '08:00', close: '19:00' },
         friday: { open: '08:00', close: '19:00' },
         saturday: { open: '09:00', close: '17:00' },
-        sunday: { open: '10:00', close: '16:00' }
-      }
-    }
+        sunday: { open: '10:00', close: '16:00' },
+      },
+    },
   ];
 
   // Créer les entrepôts
@@ -216,19 +219,24 @@ export async function seedWarehouses(
           latitude: warehouseData.latitude,
           longitude: warehouseData.longitude,
           openingHours: JSON.stringify(warehouseData.operatingHours),
-          createdAt: faker.date.between({ 
-            from: new Date('2023-01-01'), 
-            to: new Date('2023-06-01') 
+          createdAt: faker.date.between({
+            from: new Date('2023-01-01'),
+            to: new Date('2023-06-01'),
           }),
           updatedAt: new Date(),
-        }
+        },
       });
 
-      logger.success('WAREHOUSES', `✅ Entrepôt créé: ${warehouseData.name} (${warehouseData.capacity} boxes)`);
+      logger.success(
+        'WAREHOUSES',
+        `✅ Entrepôt créé: ${warehouseData.name} (${warehouseData.capacity} boxes)`
+      );
       result.created++;
-      
     } catch (error: any) {
-      logger.error('WAREHOUSES', `❌ Erreur création entrepôt ${warehouseData.name}: ${error.message}`);
+      logger.error(
+        'WAREHOUSES',
+        `❌ Erreur création entrepôt ${warehouseData.name}: ${error.message}`
+      );
       result.errors++;
     }
   }
@@ -236,11 +244,19 @@ export async function seedWarehouses(
   // Validation des entrepôts créés
   const finalWarehouses = await prisma.warehouse.findMany();
   const totalCapacity = finalWarehouses.reduce((sum, w) => sum + w.capacity, 0);
-  
+
   if (finalWarehouses.length >= warehousesData.length) {
-    logger.validation('WAREHOUSES', 'PASSED', `${finalWarehouses.length} entrepôts créés (${totalCapacity} boxes total)`);
+    logger.validation(
+      'WAREHOUSES',
+      'PASSED',
+      `${finalWarehouses.length} entrepôts créés (${totalCapacity} boxes total)`
+    );
   } else {
-    logger.validation('WAREHOUSES', 'FAILED', `Attendu: ${warehousesData.length}, Créé: ${finalWarehouses.length}`);
+    logger.validation(
+      'WAREHOUSES',
+      'FAILED',
+      `Attendu: ${warehousesData.length}, Créé: ${finalWarehouses.length}`
+    );
   }
 
   logger.endSeed('WAREHOUSES', result);
@@ -255,14 +271,23 @@ export async function validateWarehouses(
   logger: SeedLogger
 ): Promise<boolean> {
   logger.info('VALIDATION', '🔍 Validation des entrepôts...');
-  
+
   const warehouses = await prisma.warehouse.findMany();
   let isValid = true;
 
   // Vérifier la couverture géographique
   const locations = new Set(warehouses.map(w => w.location));
-  const expectedCities = ['Paris', 'Lyon', 'Marseille', 'Toulouse', 'Nice', 'Nantes', 'Strasbourg', 'Bordeaux'];
-  
+  const expectedCities = [
+    'Paris',
+    'Lyon',
+    'Marseille',
+    'Toulouse',
+    'Nice',
+    'Nantes',
+    'Strasbourg',
+    'Bordeaux',
+  ];
+
   for (const city of expectedCities) {
     const hasCity = Array.from(locations).some(location => location.includes(city));
     if (!hasCity) {
@@ -292,4 +317,4 @@ export async function validateWarehouses(
   logger.success('VALIDATION', `✅ Total: ${warehouses.length} entrepôts dans le système`);
 
   return isValid;
-} 
+}

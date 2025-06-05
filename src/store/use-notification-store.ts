@@ -69,18 +69,18 @@ interface NotificationState {
   notifications: Notification[];
   unreadCount: number;
   totalCount: number;
-  
+
   // Préférences
   preferences: NotificationPreferences;
-  
+
   // Statistiques
   stats: NotificationStats | null;
-  
+
   // État de l'interface
   isLoading: boolean;
   showOnlyUnread: boolean;
   selectedCategory: string | null;
-  
+
   // Actions pour les notifications
   addNotification: (notification: Notification) => void;
   addNotifications: (notifications: Notification[]) => void;
@@ -91,20 +91,20 @@ interface NotificationState {
   deleteNotification: (id: string) => void;
   clearAll: () => void;
   clearExpired: () => void;
-  
+
   // Actions pour les préférences
   updatePreferences: (prefs: Partial<NotificationPreferences>) => void;
   snoozeNotifications: (duration: number, reason?: string) => void;
   unsnoozeNotifications: () => void;
-  
+
   // Actions pour l'interface
   setLoading: (loading: boolean) => void;
   setShowOnlyUnread: (showOnly: boolean) => void;
   setSelectedCategory: (category: string | null) => void;
-  
+
   // Actions pour les statistiques
   setStats: (stats: NotificationStats) => void;
-  
+
   // Getters calculés
   getNotificationsByCategory: (category?: string) => Notification[];
   getNotificationsByPriority: (priority: string) => Notification[];
@@ -132,14 +132,14 @@ const defaultPreferences: NotificationPreferences = {
     enabled: false,
     startTime: '22:00',
     endTime: '08:00',
-    timezone: 'Europe/Paris'
+    timezone: 'Europe/Paris',
   },
   frequency: {
     immediate: true,
     hourly: false,
     daily: false,
-    weekly: false
-  }
+    weekly: false,
+  },
 };
 
 export const useNotificationStore = create<NotificationState>()(
@@ -156,8 +156,8 @@ export const useNotificationStore = create<NotificationState>()(
       selectedCategory: null,
 
       // Actions pour les notifications
-      addNotification: (notification) =>
-        set((state) => {
+      addNotification: notification =>
+        set(state => {
           const exists = state.notifications.find(n => n.id === notification.id);
           if (exists) return state;
 
@@ -168,15 +168,15 @@ export const useNotificationStore = create<NotificationState>()(
           return {
             notifications: newNotifications,
             unreadCount: state.unreadCount + (notification.read ? 0 : 1),
-            totalCount: newNotifications.length
+            totalCount: newNotifications.length,
           };
         }),
 
-      addNotifications: (notifications) =>
-        set((state) => {
+      addNotifications: notifications =>
+        set(state => {
           const existingIds = new Set(state.notifications.map(n => n.id));
           const newNotifications = notifications.filter(n => !existingIds.has(n.id));
-          
+
           const allNotifications = [...newNotifications, ...state.notifications]
             .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
             .slice(0, 100);
@@ -186,49 +186,45 @@ export const useNotificationStore = create<NotificationState>()(
           return {
             notifications: allNotifications,
             unreadCount,
-            totalCount: allNotifications.length
+            totalCount: allNotifications.length,
           };
         }),
 
-      markAsRead: (id) =>
-        set((state) => ({
-          notifications: state.notifications.map(n => 
-            n.id === id ? { ...n, read: true } : n
-          ),
-          unreadCount: Math.max(0, state.unreadCount - 1)
+      markAsRead: id =>
+        set(state => ({
+          notifications: state.notifications.map(n => (n.id === id ? { ...n, read: true } : n)),
+          unreadCount: Math.max(0, state.unreadCount - 1),
         })),
 
-      markAsUnread: (id) =>
-        set((state) => ({
-          notifications: state.notifications.map(n => 
-            n.id === id ? { ...n, read: false } : n
-          ),
-          unreadCount: state.unreadCount + 1
+      markAsUnread: id =>
+        set(state => ({
+          notifications: state.notifications.map(n => (n.id === id ? { ...n, read: false } : n)),
+          unreadCount: state.unreadCount + 1,
         })),
 
       markAllAsRead: () =>
-        set((state) => ({
+        set(state => ({
           notifications: state.notifications.map(n => ({ ...n, read: true })),
-          unreadCount: 0
+          unreadCount: 0,
         })),
 
-      confirmNotification: (id) =>
-        set((state) => ({
-          notifications: state.notifications.map(n => 
+      confirmNotification: id =>
+        set(state => ({
+          notifications: state.notifications.map(n =>
             n.id === id ? { ...n, confirmed: true, read: true } : n
           ),
-          unreadCount: Math.max(0, state.unreadCount - 1)
+          unreadCount: Math.max(0, state.unreadCount - 1),
         })),
 
-      deleteNotification: (id) =>
-        set((state) => {
+      deleteNotification: id =>
+        set(state => {
           const notification = state.notifications.find(n => n.id === id);
           const wasUnread = notification && !notification.read;
-          
+
           return {
             notifications: state.notifications.filter(n => n.id !== id),
             unreadCount: wasUnread ? Math.max(0, state.unreadCount - 1) : state.unreadCount,
-            totalCount: state.totalCount - 1
+            totalCount: state.totalCount - 1,
           };
         }),
 
@@ -236,14 +232,14 @@ export const useNotificationStore = create<NotificationState>()(
         set({
           notifications: [],
           unreadCount: 0,
-          totalCount: 0
+          totalCount: 0,
         }),
 
       clearExpired: () =>
-        set((state) => {
+        set(state => {
           const now = new Date();
-          const validNotifications = state.notifications.filter(n => 
-            !n.expiresAt || new Date(n.expiresAt) > now
+          const validNotifications = state.notifications.filter(
+            n => !n.expiresAt || new Date(n.expiresAt) > now
           );
 
           const unreadCount = validNotifications.filter(n => !n.read).length;
@@ -251,18 +247,18 @@ export const useNotificationStore = create<NotificationState>()(
           return {
             notifications: validNotifications,
             unreadCount,
-            totalCount: validNotifications.length
+            totalCount: validNotifications.length,
           };
         }),
 
       // Actions pour les préférences
-      updatePreferences: (prefs) =>
-        set((state) => ({
-          preferences: { ...state.preferences, ...prefs }
+      updatePreferences: prefs =>
+        set(state => ({
+          preferences: { ...state.preferences, ...prefs },
         })),
 
       snoozeNotifications: (duration, reason) =>
-        set((state) => {
+        set(state => {
           const until = new Date(Date.now() + duration * 60 * 1000);
           return {
             preferences: {
@@ -270,40 +266,40 @@ export const useNotificationStore = create<NotificationState>()(
               snoozed: {
                 enabled: true,
                 until: until.toISOString(),
-                reason: reason || 'Notifications en pause'
-              }
-            }
+                reason: reason || 'Notifications en pause',
+              },
+            },
           };
         }),
 
       unsnoozeNotifications: () =>
-        set((state) => ({
+        set(state => ({
           preferences: {
             ...state.preferences,
             snoozed: {
-              enabled: false
-            }
-          }
+              enabled: false,
+            },
+          },
         })),
 
       // Actions pour l'interface
-      setLoading: (loading) => set({ isLoading: loading }),
-      
-      setShowOnlyUnread: (showOnly) => set({ showOnlyUnread: showOnly }),
-      
-      setSelectedCategory: (category) => set({ selectedCategory: category }),
+      setLoading: loading => set({ isLoading: loading }),
+
+      setShowOnlyUnread: showOnly => set({ showOnlyUnread: showOnly }),
+
+      setSelectedCategory: category => set({ selectedCategory: category }),
 
       // Actions pour les statistiques
-      setStats: (stats) => set({ stats }),
+      setStats: stats => set({ stats }),
 
       // Getters calculés
-      getNotificationsByCategory: (category) => {
+      getNotificationsByCategory: category => {
         const state = get();
         if (!category) return state.notifications;
         return state.notifications.filter(n => n.category === category);
       },
 
-      getNotificationsByPriority: (priority) => {
+      getNotificationsByPriority: priority => {
         const state = get();
         return state.notifications.filter(n => n.priority === priority);
       },
@@ -321,7 +317,7 @@ export const useNotificationStore = create<NotificationState>()(
       isInQuietHours: () => {
         const state = get();
         const { quietHours } = state.preferences;
-        
+
         if (!quietHours.enabled) return false;
 
         const now = new Date();
@@ -374,15 +370,15 @@ export const useNotificationStore = create<NotificationState>()(
           default:
             return true;
         }
-      }
+      },
     }),
     {
       name: 'notification-store',
-      partialize: (state) => ({
+      partialize: state => ({
         preferences: state.preferences,
         showOnlyUnread: state.showOnlyUnread,
-        selectedCategory: state.selectedCategory
-      })
+        selectedCategory: state.selectedCategory,
+      }),
     }
   )
 );

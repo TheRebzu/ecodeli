@@ -43,7 +43,7 @@ export class SeedCleaner {
       tablesProcessed: 0,
       recordsDeleted: 0,
       timeElapsed: 0,
-      errors: []
+      errors: [],
     };
 
     try {
@@ -63,7 +63,7 @@ export class SeedCleaner {
           const errorMsg = `Erreur lors du nettoyage de ${cleanOp.table}: ${error.message}`;
           stats.errors.push(errorMsg);
           this.logger.error('CLEANER', errorMsg);
-          
+
           if (!options.force) {
             throw error;
           }
@@ -71,14 +71,14 @@ export class SeedCleaner {
       }
 
       stats.timeElapsed = Date.now() - startTime;
-      
-      this.logger.success('CLEANER', 
+
+      this.logger.success(
+        'CLEANER',
         `✅ Nettoyage terminé: ${stats.recordsDeleted} enregistrements supprimés ` +
-        `de ${stats.tablesProcessed} tables en ${stats.timeElapsed}ms`
+          `de ${stats.tablesProcessed} tables en ${stats.timeElapsed}ms`
       );
 
       return stats;
-
     } catch (error: any) {
       stats.timeElapsed = Date.now() - startTime;
       this.logger.error('CLEANER', `❌ Échec du nettoyage: ${error.message}`);
@@ -91,15 +91,15 @@ export class SeedCleaner {
    */
   async cleanAll(options: CleanOptions = {}): Promise<CleanStats> {
     this.logger.warning('CLEANER', '⚠️  NETTOYAGE COMPLET - Toutes les données seront supprimées!');
-    
+
     if (!options.force) {
-      throw new Error('Le nettoyage complet nécessite l\'option --force');
+      throw new Error("Le nettoyage complet nécessite l'option --force");
     }
 
     return this.clean({
       ...options,
       categories: ['all'],
-      preserveUsers: false
+      preserveUsers: false,
     });
   }
 
@@ -131,50 +131,200 @@ export class SeedCleaner {
    */
   private getAllTablesCleaningOrder(): CleaningOperation[] {
     return [
-      // Notifications et logs (pas de dépendances)
-      { table: 'NotificationLog', category: 'notifications', description: 'Logs de notifications' },
+      // Messages et conversations (dépendent des utilisateurs)
+      { table: 'Message', category: 'messages', description: 'Messages' },
+      { table: 'Conversation', category: 'messages', description: 'Conversations' },
+
+      // Notifications et logs (dépendent des utilisateurs)
+      {
+        table: 'DelivererNotification',
+        category: 'notifications',
+        description: 'Notifications de livreurs',
+      },
       { table: 'Notification', category: 'notifications', description: 'Notifications' },
-      
+
+      // Audit et activité (dépendent des utilisateurs)
+      {
+        table: 'UserActivityLog',
+        category: 'audit',
+        description: "Journaux d'activité utilisateur",
+      },
+      { table: 'AuditLog', category: 'audit', description: "Journaux d'audit" },
+
       // Financial (dépend des livraisons et services)
-      { table: 'CommissionPayment', category: 'financial', description: 'Paiements de commissions' },
-      { table: 'WalletTransaction', category: 'financial', description: 'Transactions de portefeuille' },
+      { table: 'BankTransfer', category: 'financial', description: 'Virements bancaires' },
+      { table: 'WithdrawalRequest', category: 'financial', description: 'Demandes de retrait' },
+      {
+        table: 'WalletTransaction',
+        category: 'financial',
+        description: 'Transactions de portefeuille',
+      },
       { table: 'Wallet', category: 'financial', description: 'Portefeuilles' },
+      { table: 'InvoiceItem', category: 'financial', description: 'Lignes de facture' },
       { table: 'Invoice', category: 'financial', description: 'Factures' },
-      
-      // Deliveries (dépend des contrats et annonces)
-      { table: 'DeliveryTracking', category: 'deliveries', description: 'Suivi des livraisons' },
-      { table: 'DeliveryRating', category: 'deliveries', description: 'Évaluations des livraisons' },
-      { table: 'Delivery', category: 'deliveries', description: 'Livraisons' },
-      
-      // Services et annonces (dépendent des utilisateurs)
+      { table: 'Payment', category: 'financial', description: 'Paiements' },
+      { table: 'FinancialTask', category: 'financial', description: 'Tâches financières' },
+      { table: 'FinancialReport', category: 'financial', description: 'Rapports financiers' },
+      { table: 'BillingCycle', category: 'financial', description: 'Cycles de facturation' },
+      { table: 'FinancialAccount', category: 'financial', description: 'Comptes financiers' },
+      { table: 'TaxRate', category: 'financial', description: 'Taux de taxe' },
+
+      // Subscriptions et abonnements (dépendent des utilisateurs)
+      { table: 'PaymentMethod', category: 'financial', description: 'Moyens de paiement' },
+      { table: 'Subscription', category: 'financial', description: 'Abonnements' },
+
+      // Storage (dépend des utilisateurs)
+      {
+        table: 'BoxUsageHistory',
+        category: 'storage',
+        description: "Historique d'utilisation des boxes",
+      },
+      {
+        table: 'BoxAvailabilitySubscription',
+        category: 'storage',
+        description: 'Abonnements de disponibilité',
+      },
+      { table: 'Reservation', category: 'storage', description: 'Réservations' },
+      { table: 'Box', category: 'storage', description: 'Boxes de stockage' },
+      { table: 'Warehouse', category: 'storage', description: 'Entrepôts' },
+
+      // Services et évaluations (dépendent des utilisateurs)
+      { table: 'ServiceReview', category: 'services', description: 'Évaluations de services' },
       { table: 'ServiceBooking', category: 'services', description: 'Réservations de services' },
       { table: 'Service', category: 'services', description: 'Services' },
-      { table: 'AnnouncementProposal', category: 'announcements', description: 'Propositions d\'annonces' },
+      {
+        table: 'ProviderSpecialSlot',
+        category: 'services',
+        description: 'Créneaux spéciaux prestataires',
+      },
+      { table: 'ProviderException', category: 'services', description: 'Exceptions prestataires' },
+      {
+        table: 'ProviderAvailability',
+        category: 'services',
+        description: 'Disponibilités prestataires',
+      },
+
+      // Deliveries et matchings (dépendent des utilisateurs)
+      {
+        table: 'DeliveryRating',
+        category: 'deliveries',
+        description: 'Évaluations des livraisons',
+      },
+      { table: 'DeliveryProof', category: 'deliveries', description: 'Preuves de livraison' },
+      {
+        table: 'DeliveryCoordinates',
+        category: 'deliveries',
+        description: 'Coordonnées de livraison',
+      },
+      { table: 'DeliveryLog', category: 'deliveries', description: 'Journaux de livraison' },
+      { table: 'Delivery', category: 'deliveries', description: 'Livraisons' },
+      { table: 'RouteStatistics', category: 'deliveries', description: 'Statistiques de routes' },
+      { table: 'DeliveryZone', category: 'deliveries', description: 'Zones de livraison' },
+      { table: 'DelivererRoute', category: 'deliveries', description: 'Routes de livreurs' },
+      { table: 'ScheduleException', category: 'deliveries', description: 'Exceptions de planning' },
+      { table: 'DelivererSchedule', category: 'deliveries', description: 'Planning livreurs' },
+      {
+        table: 'DelivererAvailability',
+        category: 'deliveries',
+        description: 'Disponibilités livreurs',
+      },
+      { table: 'DelivererStats', category: 'deliveries', description: 'Statistiques livreurs' },
+      {
+        table: 'DelivererPreferences',
+        category: 'deliveries',
+        description: 'Préférences livreurs',
+      },
+
+      // Candidatures et documents (dépendent des annonces et utilisateurs)
+      {
+        table: 'DocumentValidationAudit',
+        category: 'verifications',
+        description: 'Audit validation documents',
+      },
+      {
+        table: 'ApplicationDocument',
+        category: 'verifications',
+        description: 'Documents de candidature',
+      },
+      {
+        table: 'DeliveryApplication',
+        category: 'deliveries',
+        description: 'Candidatures de livraison',
+      },
+      {
+        table: 'MatchingConfiguration',
+        category: 'announcements',
+        description: 'Configuration de matching',
+      },
+      {
+        table: 'AnnouncementMatching',
+        category: 'announcements',
+        description: "Matching d'annonces",
+      },
+      { table: 'DelivererFavorite', category: 'announcements', description: 'Annonces favorites' },
       { table: 'Announcement', category: 'announcements', description: 'Annonces' },
-      
-      // Contracts (dépendent des utilisateurs)
+
+      // Contracts et amendements (dépendent des utilisateurs)
+      {
+        table: 'ContractPerformance',
+        category: 'contracts',
+        description: 'Performance des contrats',
+      },
+      {
+        table: 'ContractNegotiation',
+        category: 'contracts',
+        description: 'Négociations de contrats',
+      },
+      { table: 'ContractAmendment', category: 'contracts', description: 'Amendements de contrats' },
       { table: 'Contract', category: 'contracts', description: 'Contrats' },
-      
-      // Storage (peut dépendre des utilisateurs)
-      { table: 'WarehouseCapacity', category: 'storage', description: 'Capacités d\'entrepôts' },
-      { table: 'Warehouse', category: 'storage', description: 'Entrepôts' },
-      
-      // Verifications (dépendent des utilisateurs)
-      { table: 'UserVerification', category: 'verifications', description: 'Vérifications d\'utilisateurs' },
-      { table: 'DocumentVerification', category: 'verifications', description: 'Vérifications de documents' },
+      { table: 'ContractTemplate', category: 'contracts', description: 'Templates de contrats' },
+
+      // Verifications (dépendent des utilisateurs et documents)
+      {
+        table: 'ProviderVerification',
+        category: 'verifications',
+        description: 'Vérifications prestataires',
+      },
+      {
+        table: 'MerchantVerification',
+        category: 'verifications',
+        description: 'Vérifications commerçants',
+      },
+      {
+        table: 'VerificationHistory',
+        category: 'verifications',
+        description: 'Historique vérifications',
+      },
+      { table: 'Verification', category: 'verifications', description: 'Vérifications' },
       { table: 'Document', category: 'verifications', description: 'Documents' },
-      
-      // Users (dépendent des rôles)
+
+      // Skills et adresses (dépendent des profils utilisateurs)
+      { table: 'Skill', category: 'services', description: 'Compétences prestataires' },
+      { table: 'Address', category: 'users', description: 'Adresses' },
+
+      // **CORRECTION CRITIQUE**: Profils utilisateurs spécialisés (DOIVENT être supprimés AVANT User)
+      { table: 'Admin', category: 'users', description: 'Profils administrateurs' },
+      { table: 'Provider', category: 'users', description: 'Profils prestataires' },
+      { table: 'Merchant', category: 'users', description: 'Profils commerçants' },
+      { table: 'Deliverer', category: 'users', description: 'Profils livreurs' },
+      { table: 'Client', category: 'users', description: 'Profils clients' },
+
+      // Auth et sessions (dépendent des utilisateurs)
       { table: 'Account', category: 'users', description: 'Comptes utilisateurs' },
       { table: 'Session', category: 'users', description: 'Sessions' },
       { table: 'VerificationToken', category: 'users', description: 'Tokens de vérification' },
+
+      // Utilisateurs principaux (après tous les profils spécialisés)
       { table: 'User', category: 'users', description: 'Utilisateurs' },
-      
-      // Base (pas de dépendances en sortie)
-      { table: 'DocumentType', category: 'base', description: 'Types de documents' },
+
+      // Base et configuration (pas de dépendances en sortie)
+      { table: 'Commission', category: 'financial', description: 'Commissions' },
+      {
+        table: 'PromotionRecord',
+        category: 'financial',
+        description: 'Enregistrements promotions',
+      },
       { table: 'ServiceCategory', category: 'base', description: 'Catégories de services' },
-      { table: 'Permission', category: 'base', description: 'Permissions' },
-      { table: 'Role', category: 'base', description: 'Rôles' },
     ];
   }
 
@@ -191,13 +341,11 @@ export class SeedCleaner {
    */
   private getDefaultCleaningOrder(preserveUsers = false): CleaningOperation[] {
     const allOperations = this.getAllTablesCleaningOrder();
-    
+
     if (preserveUsers) {
-      return allOperations.filter(op => 
-        !['users', 'base'].includes(op.category)
-      );
+      return allOperations.filter(op => !['users', 'base'].includes(op.category));
     }
-    
+
     return allOperations;
   }
 
@@ -205,8 +353,8 @@ export class SeedCleaner {
    * Exécute une opération de nettoyage
    */
   private async executeCleaningOperation(
-    operation: CleaningOperation, 
-    options: CleanOptions, 
+    operation: CleaningOperation,
+    options: CleanOptions,
     stats: CleanStats
   ): Promise<void> {
     this.logger.info('CLEANER', `🗑️  Nettoyage de ${operation.table} (${operation.description})`);
@@ -220,7 +368,7 @@ export class SeedCleaner {
     try {
       // Compter les enregistrements avant suppression
       const countBefore = await this.getTableCount(operation.table);
-      
+
       if (countBefore === 0) {
         this.logger.info('CLEANER', `   Table ${operation.table} déjà vide`);
         return;
@@ -228,12 +376,14 @@ export class SeedCleaner {
 
       // Effectuer la suppression
       const deleted = await this.deleteFromTable(operation.table);
-      
+
       stats.recordsDeleted += deleted;
       stats.tablesProcessed++;
-      
-      this.logger.success('CLEANER', `   ✅ ${deleted} enregistrements supprimés de ${operation.table}`);
 
+      this.logger.success(
+        'CLEANER',
+        `   ✅ ${deleted} enregistrements supprimés de ${operation.table}`
+      );
     } catch (error: any) {
       const errorMsg = `Erreur lors du nettoyage de ${operation.table}: ${error.message}`;
       this.logger.error('CLEANER', errorMsg);
@@ -261,21 +411,102 @@ export class SeedCleaner {
    */
   private async deleteFromTable(tableName: string): Promise<number> {
     try {
-      // Utiliser deleteMany via le modèle Prisma approprié
-      const modelName = tableName.toLowerCase();
+      // Correspondance entre noms de tables et noms de modèles Prisma
+      const modelNameMap: { [key: string]: string } = {
+        Message: 'message',
+        Conversation: 'conversation',
+        DelivererNotification: 'delivererNotification',
+        Notification: 'notification',
+        UserActivityLog: 'userActivityLog',
+        AuditLog: 'auditLog',
+        BankTransfer: 'bankTransfer',
+        WithdrawalRequest: 'withdrawalRequest',
+        WalletTransaction: 'walletTransaction',
+        Wallet: 'wallet',
+        InvoiceItem: 'invoiceItem',
+        Invoice: 'invoice',
+        Payment: 'payment',
+        FinancialTask: 'financialTask',
+        FinancialReport: 'financialReport',
+        BillingCycle: 'billingCycle',
+        FinancialAccount: 'financialAccount',
+        TaxRate: 'taxRate',
+        PaymentMethod: 'paymentMethod',
+        Subscription: 'subscription',
+        BoxUsageHistory: 'boxUsageHistory',
+        BoxAvailabilitySubscription: 'boxAvailabilitySubscription',
+        Reservation: 'reservation',
+        Box: 'box',
+        Warehouse: 'warehouse',
+        ServiceReview: 'serviceReview',
+        ServiceBooking: 'serviceBooking',
+        Service: 'service',
+        ProviderSpecialSlot: 'providerSpecialSlot',
+        ProviderException: 'providerException',
+        ProviderAvailability: 'providerAvailability',
+        DeliveryRating: 'deliveryRating',
+        DeliveryProof: 'deliveryProof',
+        DeliveryCoordinates: 'deliveryCoordinates',
+        DeliveryLog: 'deliveryLog',
+        Delivery: 'delivery',
+        RouteStatistics: 'routeStatistics',
+        DeliveryZone: 'deliveryZone',
+        DelivererRoute: 'delivererRoute',
+        ScheduleException: 'scheduleException',
+        DelivererSchedule: 'delivererSchedule',
+        DelivererAvailability: 'delivererAvailability',
+        DelivererStats: 'delivererStats',
+        DelivererPreferences: 'delivererPreferences',
+        DocumentValidationAudit: 'documentValidationAudit',
+        ApplicationDocument: 'applicationDocument',
+        DeliveryApplication: 'deliveryApplication',
+        MatchingConfiguration: 'matchingConfiguration',
+        AnnouncementMatching: 'announcementMatching',
+        DelivererFavorite: 'delivererFavorite',
+        Announcement: 'announcement',
+        ContractPerformance: 'contractPerformance',
+        ContractNegotiation: 'contractNegotiation',
+        ContractAmendment: 'contractAmendment',
+        Contract: 'contract',
+        ContractTemplate: 'contractTemplate',
+        ProviderVerification: 'providerVerification',
+        MerchantVerification: 'merchantVerification',
+        VerificationHistory: 'verificationHistory',
+        Verification: 'verification',
+        Document: 'document',
+        Skill: 'skill',
+        Address: 'address',
+        Admin: 'admin',
+        Provider: 'provider',
+        Merchant: 'merchant',
+        Deliverer: 'deliverer',
+        Client: 'client',
+        Account: 'account',
+        Session: 'session',
+        VerificationToken: 'verificationToken',
+        User: 'user',
+        Commission: 'commission',
+        PromotionRecord: 'promotionRecord',
+        ServiceCategory: 'serviceCategory',
+      };
+
+      const modelName = modelNameMap[tableName];
+      if (!modelName) {
+        throw new Error(`Nom de modèle non trouvé pour la table ${tableName}`);
+      }
+
       const model = (this.prisma as any)[modelName];
-      
+
       if (!model || !model.deleteMany) {
-        throw new Error(`Modèle Prisma non trouvé pour la table ${tableName}`);
+        throw new Error(`Modèle Prisma non trouvé pour ${tableName} -> ${modelName}`);
       }
 
       const result = await model.deleteMany({});
       return result.count || 0;
-      
     } catch (error: any) {
       // Fallback: utiliser une requête SQL brute si le modèle Prisma échoue
       this.logger.warning('CLEANER', `Fallback SQL pour ${tableName}: ${error.message}`);
-      
+
       await this.prisma.$executeRaw`DELETE FROM ${tableName}`;
       return 0; // Impossible de connaître le nombre exact avec executeRaw
     }
@@ -296,4 +527,4 @@ interface CleaningOperation {
  */
 export function createSeedCleaner(prisma: PrismaClient, logger: SeedLogger): SeedCleaner {
   return new SeedCleaner(prisma, logger);
-} 
+}

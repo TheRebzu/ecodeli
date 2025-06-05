@@ -31,24 +31,26 @@ export const isServer = typeof window === 'undefined';
 export const isClient = typeof window !== 'undefined';
 
 // Socket client simplifié (stub pour éviter les erreurs)
-export const socket = isClient ? {
-  emit: (event: string, data?: any) => {
-    console.log(`[Socket Stub] Emit: ${event}`, data);
-  },
-  on: (event: string, callback: (data: any) => void) => {
-    console.log(`[Socket Stub] Listen: ${event}`);
-  },
-  off: (event: string, callback?: (data: any) => void) => {
-    console.log(`[Socket Stub] Off: ${event}`);
-  },
-  connect: () => {
-    console.log('[Socket Stub] Connect');
-  },
-  disconnect: () => {
-    console.log('[Socket Stub] Disconnect');
-  },
-  connected: false
-} : null;
+export const socket = isClient
+  ? {
+      emit: (event: string, data?: any) => {
+        console.log(`[Socket Stub] Emit: ${event}`, data);
+      },
+      on: (event: string, callback: (data: any) => void) => {
+        console.log(`[Socket Stub] Listen: ${event}`);
+      },
+      off: (event: string, callback?: (data: any) => void) => {
+        console.log(`[Socket Stub] Off: ${event}`);
+      },
+      connect: () => {
+        console.log('[Socket Stub] Connect');
+      },
+      disconnect: () => {
+        console.log('[Socket Stub] Disconnect');
+      },
+      connected: false,
+    }
+  : null;
 
 // Fonctions de connexion simplifiées
 export const connectSocket = (userId?: string) => {
@@ -80,5 +82,5 @@ export default {
   disconnectSocket,
   emitDeliveryTrackingEvent,
   isServer,
-  isClient
+  isClient,
 };

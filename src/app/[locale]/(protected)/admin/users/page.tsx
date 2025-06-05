@@ -22,12 +22,12 @@ export default function AdminUsersPage() {
 
   // Statistiques globales des utilisateurs
   const statsQuery = api.adminUser.getUserStats.useQuery();
-  
+
   // Récupération des utilisateurs avec filtres
-  const usersQuery = api.adminUser.getUsers.useQuery({ 
-    page: 1, 
-    limit: 10, 
-    ...filters 
+  const usersQuery = api.adminUser.getUsers.useQuery({
+    page: 1,
+    limit: 10,
+    ...filters,
   });
 
   // Gérer la sélection des utilisateurs
@@ -52,11 +52,11 @@ export default function AdminUsersPage() {
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="sm">
             <DownloadIcon className="mr-2 h-4 w-4" />
-            {t('actions.export') || "Exporter"}
+            {t('actions.export') || 'Exporter'}
           </Button>
           <Button size="sm">
             <PlusIcon className="mr-2 h-4 w-4" />
-            {t('actions.addUser') || "Ajouter un utilisateur"}
+            {t('actions.addUser') || 'Ajouter un utilisateur'}
           </Button>
           <UserBulkActions
             selectedUserIds={selectedUserIds}
@@ -126,7 +126,9 @@ export default function AdminUsersPage() {
                       <span className="text-2xl font-bold">{statsQuery.data?.newUsersToday}</span>
                     </div>
                     <div className="flex flex-col space-y-1">
-                      <span className="text-sm text-muted-foreground">{t('pendingVerification')}</span>
+                      <span className="text-sm text-muted-foreground">
+                        {t('pendingVerification')}
+                      </span>
                       <span className="text-2xl font-bold">
                         {statsQuery.data?.usersByVerification?.unverified || 0}
                       </span>

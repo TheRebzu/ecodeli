@@ -10,7 +10,7 @@ program
   .version('1.0.0')
   .option('-q, --quick', 'Mode rapide : validation et correction seulement')
   .option('-e, --extract', 'Extraire les clés du code source')
-  .option('-v, --validate', 'Valider les traductions existantes') 
+  .option('-v, --validate', 'Valider les traductions existantes')
   .option('-f, --fix', 'Corriger automatiquement les erreurs')
   .option('-a, --all', 'Exécuter tout le workflow (extraction + validation + correction)')
   .option('--verbose', 'Affichage détaillé')
@@ -25,15 +25,15 @@ const options = program.opts();
 function runCommand(command: string, description: string): boolean {
   try {
     console.log(chalk.blue(`🔄 ${description}...`));
-    const output = execSync(command, { 
-      encoding: 'utf-8', 
-      stdio: options.verbose ? 'inherit' : 'pipe' 
+    const output = execSync(command, {
+      encoding: 'utf-8',
+      stdio: options.verbose ? 'inherit' : 'pipe',
     });
-    
+
     if (!options.verbose && output) {
       console.log(output);
     }
-    
+
     console.log(chalk.green(`✅ ${description} terminé avec succès`));
     return true;
   } catch (error) {
@@ -50,7 +50,7 @@ function runCommand(command: string, description: string): boolean {
  */
 async function extractWorkflow(): Promise<boolean> {
   console.log(chalk.yellow('\n📝 === EXTRACTION DES CLÉS ==='));
-  
+
   const extractCommand = `npx tsx scripts/i18n/run-extraction.ts${options.verbose ? ' --verbose' : ''}`;
   return runCommand(extractCommand, 'Extraction des clés de traduction');
 }
@@ -60,14 +60,16 @@ async function extractWorkflow(): Promise<boolean> {
  */
 async function validateWorkflow(): Promise<boolean> {
   console.log(chalk.yellow('\n🔍 === VALIDATION DES TRADUCTIONS ==='));
-  
+
   const validateCommand = [
     'npx tsx scripts/i18n/validate-missing-keys.ts',
     options.verbose ? '--verbose' : '',
     options.locale ? `--locale ${options.locale}` : '',
-    options.fix ? '--fix' : ''
-  ].filter(Boolean).join(' ');
-  
+    options.fix ? '--fix' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return runCommand(validateCommand, 'Validation des traductions');
 }
 
@@ -76,14 +78,16 @@ async function validateWorkflow(): Promise<boolean> {
  */
 async function fixWorkflow(): Promise<boolean> {
   console.log(chalk.yellow('\n🔧 === CORRECTION AUTOMATIQUE ==='));
-  
+
   const fixCommand = [
     'npx tsx scripts/i18n/validate-missing-keys.ts',
     '--fix',
     options.verbose ? '--verbose' : '',
-    options.locale ? `--locale ${options.locale}` : ''
-  ].filter(Boolean).join(' ');
-  
+    options.locale ? `--locale ${options.locale}` : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return runCommand(fixCommand, 'Correction automatique des erreurs');
 }
 
@@ -92,13 +96,15 @@ async function fixWorkflow(): Promise<boolean> {
  */
 async function qualityCheckWorkflow(): Promise<boolean> {
   console.log(chalk.yellow('\n📊 === VÉRIFICATION QUALITÉ ==='));
-  
+
   const qualityCommand = [
     'npx tsx scripts/i18n/validate-missing-keys.ts',
     '--verbose',
-    options.locale ? `--locale ${options.locale}` : ''
-  ].filter(Boolean).join(' ');
-  
+    options.locale ? `--locale ${options.locale}` : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
   return runCommand(qualityCommand, 'Vérification de la qualité des traductions');
 }
 
@@ -107,7 +113,7 @@ async function qualityCheckWorkflow(): Promise<boolean> {
  */
 async function showStatus(): Promise<void> {
   console.log(chalk.blue('\n📈 === STATUT DU PROJET ==='));
-  
+
   try {
     // Compter les fichiers de traduction
     const locales = ['fr', 'en', 'es', 'de', 'it'];
@@ -138,7 +144,7 @@ async function interactiveMenu(): Promise<void> {
   console.log(chalk.cyan('5. 📊 Vérification qualité'));
   console.log(chalk.cyan('6. 📈 Afficher le statut'));
   console.log(chalk.cyan('0. ❌ Quitter'));
-  
+
   // Pour cette démo, nous exécutons le workflow complet automatiquement
   return await fullWorkflow();
 }
@@ -148,36 +154,42 @@ async function interactiveMenu(): Promise<void> {
  */
 async function fullWorkflow(): Promise<void> {
   console.log(chalk.blue('\n🚀 === DÉMARRAGE DU WORKFLOW COMPLET ==='));
-  
+
   let success = true;
-  
+
   // 1. Extraction des clés
   if (!options.quick) {
-    success = await extractWorkflow() && success;
+    success = (await extractWorkflow()) && success;
     if (!success) {
-      console.error(chalk.red('\n❌ Échec de l\'extraction. Arrêt du workflow.'));
+      console.error(chalk.red("\n❌ Échec de l'extraction. Arrêt du workflow."));
       process.exit(1);
     }
   }
-  
+
   // 2. Validation et correction
-  success = await validateWorkflow() && success;
-  
+  success = (await validateWorkflow()) && success;
+
   // 3. Vérification finale de la qualité
   if (success) {
     await qualityCheckWorkflow();
   }
-  
+
   // 4. Afficher le statut final
   await showStatus();
-  
+
   if (success) {
     console.log(chalk.green('\n🎉 === WORKFLOW TERMINÉ AVEC SUCCÈS ==='));
     console.log(chalk.white('Les traductions ont été mises à jour et validées.'));
-    console.log(chalk.blue('💡 N\'oubliez pas de réviser les traductions marquées [À TRADUIRE] et [TO_TRANSLATE]'));
+    console.log(
+      chalk.blue(
+        "💡 N'oubliez pas de réviser les traductions marquées [À TRADUIRE] et [TO_TRANSLATE]"
+      )
+    );
   } else {
     console.log(chalk.yellow('\n⚠️ === WORKFLOW TERMINÉ AVEC DES AVERTISSEMENTS ==='));
-    console.log(chalk.white('Certaines étapes ont rencontré des problèmes. Vérifiez les logs ci-dessus.'));
+    console.log(
+      chalk.white('Certaines étapes ont rencontré des problèmes. Vérifiez les logs ci-dessus.')
+    );
   }
 }
 
@@ -191,7 +203,7 @@ async function main(): Promise<void> {
       await interactiveMenu();
       return;
     }
-    
+
     // Exécuter les actions spécifiées
     if (options.all) {
       await fullWorkflow();
@@ -201,18 +213,17 @@ async function main(): Promise<void> {
       if (options.extract) {
         await extractWorkflow();
       }
-      
+
       if (options.validate) {
         await validateWorkflow();
       }
-      
+
       if (options.fix) {
         await fixWorkflow();
       }
     }
-    
   } catch (error) {
-    console.error(chalk.red('\n❌ Erreur lors de l\'exécution du workflow:'));
+    console.error(chalk.red("\n❌ Erreur lors de l'exécution du workflow:"));
     console.error(error);
     process.exit(1);
   }
@@ -220,7 +231,7 @@ async function main(): Promise<void> {
 
 // Gestion des signaux pour une sortie propre
 process.on('SIGINT', () => {
-  console.log(chalk.yellow('\n\n⚠️ Workflow interrompu par l\'utilisateur'));
+  console.log(chalk.yellow("\n\n⚠️ Workflow interrompu par l'utilisateur"));
   process.exit(0);
 });
 
@@ -233,4 +244,4 @@ process.on('SIGTERM', () => {
 main().catch(error => {
   console.error(chalk.red('\n❌ Erreur non gérée:'), error);
   process.exit(1);
-}); 
+});

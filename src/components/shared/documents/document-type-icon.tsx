@@ -1,11 +1,11 @@
 'use client';
 
 import { DocumentType } from '@prisma/client';
-import { 
-  FileIcon, 
-  FileTextIcon, 
-  IdCardIcon, 
-  CarIcon, 
+import {
+  FileIcon,
+  FileTextIcon,
+  IdCardIcon,
+  CarIcon,
   HomeIcon,
   BuildingIcon,
   CertificateIcon,
@@ -42,8 +42,6 @@ export function DocumentTypeIcon({ type, size = 5 }: DocumentTypeIconProps) {
   };
 
   return (
-    <div className={`w-${size} h-${size} flex items-center justify-center`}>
-      {getIconByType()}
-    </div>
+    <div className={`w-${size} h-${size} flex items-center justify-center`}>{getIconByType()}</div>
   );
 }

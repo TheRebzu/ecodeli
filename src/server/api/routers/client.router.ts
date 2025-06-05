@@ -314,29 +314,30 @@ export const clientRouter = router({
     if (!user || !user.client) {
       throw new TRPCError({
         code: 'NOT_FOUND',
-        message: "Profil client non trouvé",
+        message: 'Profil client non trouvé',
       });
     }
 
     const clientId = user.client.id;
 
     // Statistiques simplifiées directement dans le routeur
-    const [totalDeliveries, activeDeliveries, completedDeliveries, bookedServices, unpaidInvoices] = await Promise.all([
-      ctx.db.delivery.count({ where: { clientId } }),
-      ctx.db.delivery.count({
-        where: {
-          clientId,
-          status: { in: ['PENDING', 'ACCEPTED', 'IN_TRANSIT'] },
-        },
-      }),
-      ctx.db.delivery.count({
-        where: { clientId, status: 'DELIVERED' },
-      }),
-      ctx.db.serviceBooking.count({ where: { clientId } }),
-      ctx.db.invoice.count({
-        where: { userId, status: 'OVERDUE' },
-      }),
-    ]);
+    const [totalDeliveries, activeDeliveries, completedDeliveries, bookedServices, unpaidInvoices] =
+      await Promise.all([
+        ctx.db.delivery.count({ where: { clientId } }),
+        ctx.db.delivery.count({
+          where: {
+            clientId,
+            status: { in: ['PENDING', 'ACCEPTED', 'IN_TRANSIT'] },
+          },
+        }),
+        ctx.db.delivery.count({
+          where: { clientId, status: 'DELIVERED' },
+        }),
+        ctx.db.serviceBooking.count({ where: { clientId } }),
+        ctx.db.invoice.count({
+          where: { userId, status: 'OVERDUE' },
+        }),
+      ]);
 
     return {
       totalDeliveries,
@@ -360,7 +361,7 @@ export const clientRouter = router({
     if (!user || !user.client) {
       throw new TRPCError({
         code: 'NOT_FOUND',
-        message: "Profil client non trouvé",
+        message: 'Profil client non trouvé',
       });
     }
 
@@ -459,7 +460,7 @@ export const clientRouter = router({
     if (!user || !user.client) {
       throw new TRPCError({
         code: 'NOT_FOUND',
-        message: "Profil client non trouvé",
+        message: 'Profil client non trouvé',
       });
     }
 

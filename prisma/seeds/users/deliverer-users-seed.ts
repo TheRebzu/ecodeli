@@ -1,6 +1,16 @@
 import { PrismaClient, UserRole, UserStatus } from '@prisma/client';
 import { SeedLogger } from '../utils/seed-logger';
-import { SeedResult, SeedOptions, generateFrenchPhone, generateFrenchAddress, generateFrenchEmail, hashPassword, getRandomElement, getRandomDate, generateRealisticStatus } from '../utils/seed-helpers';
+import {
+  SeedResult,
+  SeedOptions,
+  generateFrenchPhone,
+  generateFrenchAddress,
+  generateFrenchEmail,
+  hashPassword,
+  getRandomElement,
+  getRandomDate,
+  generateRealisticStatus,
+} from '../utils/seed-helpers';
 import { faker } from '@faker-js/faker';
 
 /**
@@ -30,40 +40,63 @@ export async function seedDelivererUsers(
   options: SeedOptions = {}
 ): Promise<SeedResult> {
   logger.startSeed('DELIVERER_USERS');
-  
+
   const result: SeedResult = {
     entity: 'deliverer_users',
     created: 0,
     skipped: 0,
-    errors: 0
+    errors: 0,
   };
 
   // Vérifier si les livreurs existent déjà
   const existingDeliverers = await prisma.user.findMany({
-    where: { role: UserRole.DELIVERER }
+    where: { role: UserRole.DELIVERER },
   });
-  
+
   if (existingDeliverers.length > 0 && !options.force) {
-    logger.warning('DELIVERER_USERS', `${existingDeliverers.length} livreurs déjà présents - utiliser force:true pour recréer`);
+    logger.warning(
+      'DELIVERER_USERS',
+      `${existingDeliverers.length} livreurs déjà présents - utiliser force:true pour recréer`
+    );
     result.skipped = existingDeliverers.length;
     return result;
   }
 
-  // Nettoyer si force activé
-  if (options.force) {
-    await prisma.deliverer.deleteMany({});
-    await prisma.user.deleteMany({ where: { role: UserRole.DELIVERER } });
-    logger.database('NETTOYAGE', 'deliverer users', 0);
+  // Note: Le nettoyage est géré au niveau de l'orchestrateur pour éviter les conflits de contraintes FK
+  if (options.force && existingDeliverers.length > 0) {
+    logger.info('DELIVERER_USERS', '♻️ Mode force activé - Les données existantes seront écrasées');
   }
 
   // Zones de livraison disponibles en Île-de-France
   const serviceZones = [
-    'Paris 1er', 'Paris 2ème', 'Paris 3ème', 'Paris 4ème', 'Paris 5ème',
-    'Paris 6ème', 'Paris 7ème', 'Paris 8ème', 'Paris 9ème', 'Paris 10ème',
-    'Paris 11ème', 'Paris 12ème', 'Paris 13ème', 'Paris 14ème', 'Paris 15ème',
-    'Paris 16ème', 'Paris 17ème', 'Paris 18ème', 'Paris 19ème', 'Paris 20ème',
-    'Boulogne-Billancourt', 'Levallois-Perret', 'Issy-les-Moulineaux',
-    'Neuilly-sur-Seine', 'Vincennes', 'Saint-Denis', 'Montreuil', 'Créteil'
+    'Paris 1er',
+    'Paris 2ème',
+    'Paris 3ème',
+    'Paris 4ème',
+    'Paris 5ème',
+    'Paris 6ème',
+    'Paris 7ème',
+    'Paris 8ème',
+    'Paris 9ème',
+    'Paris 10ème',
+    'Paris 11ème',
+    'Paris 12ème',
+    'Paris 13ème',
+    'Paris 14ème',
+    'Paris 15ème',
+    'Paris 16ème',
+    'Paris 17ème',
+    'Paris 18ème',
+    'Paris 19ème',
+    'Paris 20ème',
+    'Boulogne-Billancourt',
+    'Levallois-Perret',
+    'Issy-les-Moulineaux',
+    'Neuilly-sur-Seine',
+    'Vincennes',
+    'Saint-Denis',
+    'Montreuil',
+    'Créteil',
   ];
 
   // Types de véhicules disponibles
@@ -74,21 +107,21 @@ export async function seedDelivererUsers(
     { type: 'e-scooter', name: 'Scooter électrique', capacity: 30, maxWeight: 40, speed: 45 },
     { type: 'motorcycle', name: 'Moto', capacity: 40, maxWeight: 60, speed: 80 },
     { type: 'car', name: 'Voiture', capacity: 80, maxWeight: 200, speed: 50 },
-    { type: 'van', name: 'Utilitaire', capacity: 150, maxWeight: 500, speed: 50 }
+    { type: 'van', name: 'Utilitaire', capacity: 150, maxWeight: 500, speed: 50 },
   ];
 
   // Générer 35 livreurs avec des profils variés
   const delivererUsers: DelivererData[] = [];
-  
+
   // IMPORTANT: Livreuse principale pour les tests - marie.laurent@orange.fr
   const marieVehicle = {
     type: 'car',
     name: 'Peugeot 208',
     capacity: 80,
     maxWeight: 200,
-    speed: 50
+    speed: 50,
   };
-  
+
   delivererUsers.push({
     name: 'Marie Laurent',
     email: 'marie.laurent@orange.fr',
@@ -102,7 +135,7 @@ export async function seedDelivererUsers(
       zipCode: '75019',
       country: 'France',
       latitude: 48.8845,
-      longitude: 2.3712
+      longitude: 2.3712,
     },
     vehicle: {
       type: marieVehicle.type,
@@ -113,7 +146,7 @@ export async function seedDelivererUsers(
       averageSpeed: marieVehicle.speed,
       isElectric: false,
       registrationDate: getRandomDate(365, 1095), // Entre 1 et 3 ans
-      insuranceExpiry: faker.date.future({ years: 1 })
+      insuranceExpiry: faker.date.future({ years: 1 }),
     },
     serviceZones: ['Paris', 'Marseille', 'Lyon', 'Paris 19ème', 'Paris 20ème', 'Paris 18ème'],
     availability: {
@@ -121,7 +154,7 @@ export async function seedDelivererUsers(
       workingDays: ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'],
       workingHours: { start: '08:00', end: '20:00' },
       maxOrdersPerDay: 20,
-      preferredOrderTypes: ['all']
+      preferredOrderTypes: ['all'],
     },
     verification: {
       isVerified: true,
@@ -130,7 +163,7 @@ export async function seedDelivererUsers(
       backgroundCheckStatus: 'PASSED',
       drivingLicenseVerified: true,
       identityVerified: true,
-      addressVerified: true
+      addressVerified: true,
     },
     performance: {
       rating: 4.9,
@@ -140,10 +173,10 @@ export async function seedDelivererUsers(
       onTimeRate: 0.95,
       customerRating: 4.8,
       lastDeliveryDate: getRandomDate(1, 3),
-      totalEarnings: 18500.0
-    }
+      totalEarnings: 18500.0,
+    },
   });
-  
+
   // 19 autres livreurs actifs et vérifiés
   for (let i = 0; i < 19; i++) {
     const firstName = faker.person.firstName();
@@ -164,7 +197,8 @@ export async function seedDelivererUsers(
         'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
         'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150',
         'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=150',
-        undefined, undefined // 30% sans photo
+        undefined,
+        undefined, // 30% sans photo
       ]),
       status: UserStatus.ACTIVE,
       address,
@@ -177,27 +211,35 @@ export async function seedDelivererUsers(
         averageSpeed: vehicle.speed,
         isElectric: vehicle.type.includes('e-'),
         registrationDate: getRandomDate(90, 1095), // Entre 3 mois et 3 ans
-        insuranceExpiry: faker.date.future({ years: 1 })
+        insuranceExpiry: faker.date.future({ years: 1 }),
       },
-      serviceZones: faker.helpers.arrayElements(serviceZones, { 
-        min: isFullTime ? 5 : 2, 
-        max: isFullTime ? 12 : 6 
+      serviceZones: faker.helpers.arrayElements(serviceZones, {
+        min: isFullTime ? 5 : 2,
+        max: isFullTime ? 12 : 6,
       }),
       availability: {
         isActive: true,
-        workingDays: isFullTime 
+        workingDays: isFullTime
           ? ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday']
-          : faker.helpers.arrayElements(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'], { min: 2, max: 4 }),
-        workingHours: isFullTime 
+          : faker.helpers.arrayElements(
+              ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'],
+              { min: 2, max: 4 }
+            ),
+        workingHours: isFullTime
           ? { start: '08:00', end: '20:00' }
-          : { start: getRandomElement(['09:00', '10:00', '14:00', '18:00']), end: getRandomElement(['17:00', '18:00', '22:00', '23:00']) },
-        maxOrdersPerDay: isFullTime ? faker.number.int({ min: 15, max: 25 }) : faker.number.int({ min: 5, max: 12 }),
+          : {
+              start: getRandomElement(['09:00', '10:00', '14:00', '18:00']),
+              end: getRandomElement(['17:00', '18:00', '22:00', '23:00']),
+            },
+        maxOrdersPerDay: isFullTime
+          ? faker.number.int({ min: 15, max: 25 })
+          : faker.number.int({ min: 5, max: 12 }),
         preferredOrderTypes: getRandomElement([
           ['food', 'groceries'],
           ['packages', 'documents'],
           ['pharmacy', 'urgent'],
-          ['all']
-        ])
+          ['all'],
+        ]),
       },
       verification: {
         isVerified: true,
@@ -206,18 +248,22 @@ export async function seedDelivererUsers(
         backgroundCheckStatus: 'PASSED',
         drivingLicenseVerified: ['scooter', 'motorcycle', 'car', 'van'].includes(vehicle.type),
         identityVerified: true,
-        addressVerified: true
+        addressVerified: true,
       },
       performance: {
         rating: faker.number.float({ min: 4.2, max: 5.0 }),
-        totalDeliveries: isExperienced ? faker.number.int({ min: 100, max: 1000 }) : faker.number.int({ min: 10, max: 100 }),
+        totalDeliveries: isExperienced
+          ? faker.number.int({ min: 100, max: 1000 })
+          : faker.number.int({ min: 10, max: 100 }),
         successRate: faker.number.float({ min: 0.92, max: 1.0 }),
         averageDeliveryTime: faker.number.int({ min: 15, max: 45 }), // en minutes
         onTimeRate: faker.number.float({ min: 0.85, max: 0.98 }),
         customerRating: faker.number.float({ min: 4.0, max: 5.0 }),
         lastDeliveryDate: getRandomDate(1, 7),
-        totalEarnings: isExperienced ? faker.number.float({ min: 5000, max: 25000 }) : faker.number.float({ min: 500, max: 5000 })
-      }
+        totalEarnings: isExperienced
+          ? faker.number.float({ min: 5000, max: 25000 })
+          : faker.number.float({ min: 500, max: 5000 }),
+      },
     });
   }
 
@@ -236,7 +282,9 @@ export async function seedDelivererUsers(
       image: getRandomElement([
         'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
         'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
-        undefined, undefined, undefined // 60% sans photo pour les nouveaux
+        undefined,
+        undefined,
+        undefined, // 60% sans photo pour les nouveaux
       ]),
       status: UserStatus.INACTIVE, // En attente
       address,
@@ -249,15 +297,18 @@ export async function seedDelivererUsers(
         averageSpeed: vehicle.speed,
         isElectric: vehicle.type.includes('e-'),
         registrationDate: getRandomDate(1, 30), // Récemment enregistré
-        insuranceExpiry: faker.date.future({ years: 1 })
+        insuranceExpiry: faker.date.future({ years: 1 }),
       },
       serviceZones: faker.helpers.arrayElements(serviceZones, { min: 1, max: 3 }),
       availability: {
         isActive: false,
-        workingDays: faker.helpers.arrayElements(['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'], { min: 2, max: 5 }),
+        workingDays: faker.helpers.arrayElements(
+          ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'],
+          { min: 2, max: 5 }
+        ),
         workingHours: { start: '09:00', end: '18:00' },
         maxOrdersPerDay: faker.number.int({ min: 5, max: 15 }),
-        preferredOrderTypes: ['all']
+        preferredOrderTypes: ['all'],
       },
       verification: {
         isVerified: false,
@@ -266,7 +317,7 @@ export async function seedDelivererUsers(
         backgroundCheckStatus: 'PENDING',
         drivingLicenseVerified: false,
         identityVerified: Math.random() > 0.3, // 70% ont fourni leur identité
-        addressVerified: Math.random() > 0.5 // 50% ont vérifié leur adresse
+        addressVerified: Math.random() > 0.5, // 50% ont vérifié leur adresse
       },
       performance: {
         rating: null,
@@ -276,8 +327,8 @@ export async function seedDelivererUsers(
         onTimeRate: null,
         customerRating: null,
         lastDeliveryDate: null,
-        totalEarnings: 0
-      }
+        totalEarnings: 0,
+      },
     });
   }
 
@@ -292,7 +343,7 @@ export async function seedDelivererUsers(
       'Comportement inapproprié',
       'Trop de plaintes clients',
       'Violation des conditions de service',
-      'Échec de la vérification d\'antécédents'
+      "Échec de la vérification d'antécédents",
     ]);
 
     delivererUsers.push({
@@ -312,7 +363,7 @@ export async function seedDelivererUsers(
         averageSpeed: vehicle.speed,
         isElectric: vehicle.type.includes('e-'),
         registrationDate: getRandomDate(30, 180),
-        insuranceExpiry: faker.date.future({ years: 1 })
+        insuranceExpiry: faker.date.future({ years: 1 }),
       },
       serviceZones: [],
       availability: {
@@ -320,7 +371,7 @@ export async function seedDelivererUsers(
         workingDays: [],
         workingHours: { start: '00:00', end: '00:00' },
         maxOrdersPerDay: 0,
-        preferredOrderTypes: []
+        preferredOrderTypes: [],
       },
       verification: {
         isVerified: false,
@@ -330,18 +381,18 @@ export async function seedDelivererUsers(
         drivingLicenseVerified: false,
         identityVerified: false,
         addressVerified: false,
-        suspensionReason
+        suspensionReason,
       },
       performance: {
         rating: faker.number.float({ min: 2.0, max: 3.5 }),
         totalDeliveries: faker.number.int({ min: 5, max: 50 }),
-        successRate: faker.number.float({ min: 0.60, max: 0.85 }),
+        successRate: faker.number.float({ min: 0.6, max: 0.85 }),
         averageDeliveryTime: faker.number.int({ min: 30, max: 90 }),
-        onTimeRate: faker.number.float({ min: 0.50, max: 0.80 }),
+        onTimeRate: faker.number.float({ min: 0.5, max: 0.8 }),
         customerRating: faker.number.float({ min: 2.0, max: 3.5 }),
         lastDeliveryDate: getRandomDate(30, 90),
-        totalEarnings: faker.number.float({ min: 100, max: 2000 })
-      }
+        totalEarnings: faker.number.float({ min: 100, max: 2000 }),
+      },
     });
   }
 
@@ -349,10 +400,15 @@ export async function seedDelivererUsers(
   const batchSize = 5;
   for (let i = 0; i < delivererUsers.length; i += batchSize) {
     const batch = delivererUsers.slice(i, i + batchSize);
-    
+
     for (const delivererData of batch) {
       try {
-        logger.progress('DELIVERER_USERS', i + 1, delivererUsers.length, `Création: ${delivererData.name}`);
+        logger.progress(
+          'DELIVERER_USERS',
+          i + 1,
+          delivererUsers.length,
+          `Création: ${delivererData.name}`
+        );
 
         // Créer l'utilisateur avec le rôle livreur
         const user = await prisma.user.create({
@@ -386,76 +442,109 @@ export async function seedDelivererUsers(
                 availableHours: delivererData.availability,
                 availableDays: delivererData.availability.workingDays,
                 bio: delivererData.status === UserStatus.ACTIVE ? faker.lorem.sentence() : null,
-                yearsOfExperience: delivererData.performance.totalDeliveries > 100 ? faker.number.int({ min: 1, max: 5 }) : 0,
+                yearsOfExperience:
+                  delivererData.performance.totalDeliveries > 100
+                    ? faker.number.int({ min: 1, max: 5 })
+                    : 0,
                 preferredVehicle: delivererData.vehicle.type,
-                                 bankInfo: delivererData.verification.isVerified ? {
-                   iban: 'FR14 2004 1010 0505 0001 3M02 606',
-                   bic: 'PSSTFRPPXXX',
-                   accountHolder: delivererData.name
-                 } : undefined,
-                taxIdentifier: delivererData.verification.isVerified ? faker.string.alphanumeric(13).toUpperCase() : null,
+                bankInfo: delivererData.verification.isVerified
+                  ? {
+                      iban: 'FR14 2004 1010 0505 0001 3M02 606',
+                      bic: 'PSSTFRPPXXX',
+                      accountHolder: delivererData.name,
+                    }
+                  : undefined,
+                taxIdentifier: delivererData.verification.isVerified
+                  ? faker.string.alphanumeric(13).toUpperCase()
+                  : null,
                 deliveryPreferences: {
                   vehicle: delivererData.vehicle,
                   verification: delivererData.verification,
-                  performance: delivererData.performance
+                  performance: delivererData.performance,
                 },
                 createdAt: getRandomDate(30, 180),
-                updatedAt: getRandomDate(1, 30)
-              }
-            }
+                updatedAt: getRandomDate(1, 30),
+              },
+            },
           },
           include: {
-            deliverer: true
-          }
+            deliverer: true,
+          },
         });
 
-        logger.success('DELIVERER_USERS', `✅ Livreur créé: ${user.name} (${delivererData.status})`);
+        logger.success(
+          'DELIVERER_USERS',
+          `✅ Livreur créé: ${user.name} (${delivererData.status})`
+        );
         result.created++;
-
       } catch (error: any) {
-        logger.error('DELIVERER_USERS', `❌ Erreur création livreur ${delivererData.name}: ${error.message}`);
+        logger.error(
+          'DELIVERER_USERS',
+          `❌ Erreur création livreur ${delivererData.name}: ${error.message}`
+        );
         result.errors++;
       }
     }
-    
+
     // Progression par batch
     if (i + batchSize < delivererUsers.length) {
-      logger.progress('DELIVERER_USERS', Math.min(i + batchSize, delivererUsers.length), delivererUsers.length);
+      logger.progress(
+        'DELIVERER_USERS',
+        Math.min(i + batchSize, delivererUsers.length),
+        delivererUsers.length
+      );
     }
   }
 
   // Validation des livreurs créés
   const finalDeliverers = await prisma.user.findMany({
     where: { role: UserRole.DELIVERER },
-    include: { deliverer: true }
+    include: { deliverer: true },
   });
-  
+
   if (finalDeliverers.length >= delivererUsers.length - result.errors) {
-    logger.validation('DELIVERER_USERS', 'PASSED', `${finalDeliverers.length} livreurs créés avec succès`);
+    logger.validation(
+      'DELIVERER_USERS',
+      'PASSED',
+      `${finalDeliverers.length} livreurs créés avec succès`
+    );
   } else {
-    logger.validation('DELIVERER_USERS', 'FAILED', `Attendu: ${delivererUsers.length}, Créé: ${finalDeliverers.length}`);
+    logger.validation(
+      'DELIVERER_USERS',
+      'FAILED',
+      `Attendu: ${delivererUsers.length}, Créé: ${finalDeliverers.length}`
+    );
   }
 
   // Statistiques par statut
-  const byStatus = finalDeliverers.reduce((acc, deliverer) => {
-    acc[deliverer.status] = (acc[deliverer.status] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  const byStatus = finalDeliverers.reduce(
+    (acc, deliverer) => {
+      acc[deliverer.status] = (acc[deliverer.status] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
 
   logger.info('DELIVERER_USERS', `📊 Répartition par statut: ${JSON.stringify(byStatus)}`);
 
   // Statistiques par véhicule
-  const byVehicle = finalDeliverers.reduce((acc, deliverer) => {
-    const vehicleType = deliverer.deliverer?.vehicleType || 'Non défini';
-    acc[vehicleType] = (acc[vehicleType] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  const byVehicle = finalDeliverers.reduce(
+    (acc, deliverer) => {
+      const vehicleType = deliverer.deliverer?.vehicleType || 'Non défini';
+      acc[vehicleType] = (acc[vehicleType] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
 
   logger.info('DELIVERER_USERS', `🚲 Répartition par véhicule: ${JSON.stringify(byVehicle)}`);
 
   // Statistiques de vérification
   const verifiedDeliverers = finalDeliverers.filter(deliverer => deliverer.deliverer?.isVerified);
-  logger.info('DELIVERER_USERS', `✅ Livreurs vérifiés: ${verifiedDeliverers.length} (${Math.round(verifiedDeliverers.length / finalDeliverers.length * 100)}%)`);
+  logger.info(
+    'DELIVERER_USERS',
+    `✅ Livreurs vérifiés: ${verifiedDeliverers.length} (${Math.round((verifiedDeliverers.length / finalDeliverers.length) * 100)}%)`
+  );
 
   logger.endSeed('DELIVERER_USERS', result);
   return result;
@@ -468,12 +557,12 @@ function generateLicensePlate(vehicleType: string): string {
   if (['bike', 'e-bike'].includes(vehicleType)) {
     return `VEL${faker.string.numeric(4)}`; // Vélos avec numéro d'identification
   }
-  
+
   // Format français pour véhicules motorisés
   const letters1 = faker.string.alpha({ length: 2, casing: 'upper' });
   const numbers = faker.string.numeric(3);
   const letters2 = faker.string.alpha({ length: 2, casing: 'upper' });
-  
+
   return `${letters1}-${numbers}-${letters2}`;
 }
 
@@ -485,10 +574,10 @@ export async function validateDelivererUsers(
   logger: SeedLogger
 ): Promise<boolean> {
   logger.info('VALIDATION', '🔍 Validation des livreurs...');
-  
+
   const deliverers = await prisma.user.findMany({
     where: { role: UserRole.DELIVERER },
-    include: { deliverer: true }
+    include: { deliverer: true },
   });
 
   let isValid = true;
@@ -503,24 +592,30 @@ export async function validateDelivererUsers(
   }
 
   // Vérifier la cohérence statut/vérification
-  const activeButNotVerified = deliverers.filter(deliverer => 
-    deliverer.status === UserStatus.ACTIVE && !deliverer.deliverer?.isVerified
+  const activeButNotVerified = deliverers.filter(
+    deliverer => deliverer.status === UserStatus.ACTIVE && !deliverer.deliverer?.isVerified
   );
-  
+
   if (activeButNotVerified.length > 0) {
-    logger.error('VALIDATION', `❌ ${activeButNotVerified.length} livreurs actifs mais non vérifiés`);
+    logger.error(
+      'VALIDATION',
+      `❌ ${activeButNotVerified.length} livreurs actifs mais non vérifiés`
+    );
     isValid = false;
   } else {
     logger.success('VALIDATION', '✅ Cohérence statut/vérification respectée');
   }
 
   // Vérifier les véhicules
-  const deliverersWithoutVehicle = deliverers.filter(deliverer => 
-    !deliverer.deliverer?.vehicleType || !deliverer.deliverer?.licensePlate
+  const deliverersWithoutVehicle = deliverers.filter(
+    deliverer => !deliverer.deliverer?.vehicleType || !deliverer.deliverer?.licensePlate
   );
-  
+
   if (deliverersWithoutVehicle.length > 0) {
-    logger.warning('VALIDATION', `⚠️ ${deliverersWithoutVehicle.length} livreurs sans véhicule complet`);
+    logger.warning(
+      'VALIDATION',
+      `⚠️ ${deliverersWithoutVehicle.length} livreurs sans véhicule complet`
+    );
   } else {
     logger.success('VALIDATION', '✅ Tous les livreurs ont un véhicule associé');
   }
@@ -535,12 +630,15 @@ export async function validateDelivererUsers(
       return true;
     }
   });
-  
+
   if (activeWithoutZones.length > 0) {
-    logger.warning('VALIDATION', `⚠️ ${activeWithoutZones.length} livreurs actifs sans zones de service`);
+    logger.warning(
+      'VALIDATION',
+      `⚠️ ${activeWithoutZones.length} livreurs actifs sans zones de service`
+    );
   } else {
     logger.success('VALIDATION', '✅ Tous les livreurs actifs ont des zones de service');
   }
 
   return isValid;
-} 
+}

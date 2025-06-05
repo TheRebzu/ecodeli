@@ -20,7 +20,7 @@ export function useSocket() {
     if (typeof window !== 'undefined' && session?.user) {
       const token = session.user.id;
       setIsConnecting(true);
-      
+
       // Import dynamique pour éviter les erreurs de bundling côté serveur
       import('@/socket/socket-client-browser')
         .then(({ initializeSocket }) => {
@@ -49,7 +49,7 @@ export function useSocket() {
             closeSocket();
             setSocket(null);
           })
-          .catch(err => console.error("Erreur lors de la fermeture du socket:", err));
+          .catch(err => console.error('Erreur lors de la fermeture du socket:', err));
       };
     }
   }, [session]);

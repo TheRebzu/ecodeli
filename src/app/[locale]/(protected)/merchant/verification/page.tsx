@@ -28,41 +28,41 @@ export default async function MerchantVerificationPage({
 }) {
   // Vérifier si l'utilisateur est connecté et est un merchant
   const session = await getServerSession(authOptions);
-  
+
   if (!session) {
     redirect(`/${locale}/login?callbackUrl=/${locale}/merchant/verification`);
   }
-  
+
   if (session.user.role !== 'MERCHANT') {
     redirect(`/${locale}/dashboard`);
   }
-  
+
   const userId = session.user.id;
-  
+
   // Récupérer le merchant pour cet utilisateur
   const merchant = await db.merchant.findUnique({
     where: {
       userId: userId,
-    }
+    },
   });
 
   if (!merchant) {
     redirect(`/${locale}/dashboard`);
   }
-  
+
   // Récupérer le statut de vérification actuel
   const merchantVerification = await db.verification.findFirst({
     where: {
       submitterId: userId,
-      type: 'MERCHANT'
+      type: 'MERCHANT',
     },
     orderBy: {
       createdAt: 'desc',
     },
   });
-  
+
   const verificationStatus = merchantVerification?.status || null;
-  
+
   // Traduire les textes
   const t = await getTranslations({ locale, namespace: 'verification' });
 
@@ -70,34 +70,32 @@ export default async function MerchantVerificationPage({
     <div className="container max-w-4xl py-8">
       {verificationStatus && (
         <div className="mb-8">
-          <VerificationStatusBanner 
+          <VerificationStatusBanner
             status={verificationStatus as VerificationStatus}
             title={
               verificationStatus === 'APPROVED'
                 ? t('statusBanner.approved.title')
                 : verificationStatus === 'REJECTED'
-                ? t('statusBanner.rejected.title')
-                : t('statusBanner.pending.title')
+                  ? t('statusBanner.rejected.title')
+                  : t('statusBanner.pending.title')
             }
             description={
               verificationStatus === 'APPROVED'
                 ? t('statusBanner.approved.description')
                 : verificationStatus === 'REJECTED'
-                ? t('statusBanner.rejected.description')
-                : t('statusBanner.pending.description')
+                  ? t('statusBanner.rejected.description')
+                  : t('statusBanner.pending.description')
             }
             rejectionReason={merchantVerification?.rejectionReason || undefined}
           />
         </div>
       )}
-      
+
       {!verificationStatus || verificationStatus === 'REJECTED' ? (
         <MerchantVerificationForm />
       ) : (
         <div className="border rounded-lg p-6 text-center">
-          <h2 className="text-xl font-semibold mb-2">
-            {t('alreadySubmitted.title')}
-          </h2>
+          <h2 className="text-xl font-semibold mb-2">{t('alreadySubmitted.title')}</h2>
           <p className="text-muted-foreground">
             {verificationStatus === 'PENDING'
               ? t('alreadySubmitted.pending')
@@ -107,4 +105,4 @@ export default async function MerchantVerificationPage({
       )}
     </div>
   );
-} 
+}

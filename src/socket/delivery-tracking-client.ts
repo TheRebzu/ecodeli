@@ -37,7 +37,7 @@ export interface DeliveryTrackingUpdate {
 export class DeliveryTracker {
   private socket: Socket;
   private trackingSubscriptions = new Map<string, boolean>();
-  
+
   constructor(socket: Socket) {
     this.socket = socket;
   }
@@ -54,14 +54,18 @@ export class DeliveryTracker {
         return;
       }
 
-      this.socket.emit('track_delivery', deliveryId, (response: { success: boolean; error?: string }) => {
-        if (response.success) {
-          this.trackingSubscriptions.set(deliveryId, true);
-          resolve(true);
-        } else {
-          reject(new Error(response.error || 'Échec du suivi de livraison'));
+      this.socket.emit(
+        'track_delivery',
+        deliveryId,
+        (response: { success: boolean; error?: string }) => {
+          if (response.success) {
+            this.trackingSubscriptions.set(deliveryId, true);
+            resolve(true);
+          } else {
+            reject(new Error(response.error || 'Échec du suivi de livraison'));
+          }
         }
-      });
+      );
     });
   }
 
@@ -70,7 +74,7 @@ export class DeliveryTracker {
    * @param deliveryId ID de la livraison à arrêter de suivre
    */
   untrackDelivery(deliveryId: string): Promise<boolean> {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       this.socket.emit('untrack_delivery', deliveryId, (response: { success: boolean }) => {
         if (response.success) {
           this.trackingSubscriptions.delete(deliveryId);
@@ -98,7 +102,11 @@ export class DeliveryTracker {
    */
   onStatusUpdate(
     deliveryId: string,
-    callback: (data: { status: DeliveryStatus; previousStatus?: DeliveryStatus; notes?: string }) => void
+    callback: (data: {
+      status: DeliveryStatus;
+      previousStatus?: DeliveryStatus;
+      notes?: string;
+    }) => void
   ): () => void {
     const eventName = `delivery:${deliveryId}:status`;
     this.socket.on(eventName, callback);
@@ -172,4 +180,4 @@ export class DeliveryTracker {
       );
     });
   }
-} 
+}

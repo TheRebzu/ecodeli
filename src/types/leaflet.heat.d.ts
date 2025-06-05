@@ -10,7 +10,7 @@ declare module 'leaflet.heat' {
       max?: number;
       radius?: number;
       blur?: number;
-      gradient?: {[key: number]: string};
+      gradient?: { [key: number]: string };
     }
   }
 
@@ -23,6 +23,9 @@ declare module 'leaflet.heat' {
   }
 
   namespace L {
-    function heatLayer(latlngs: L.LatLngExpression[], options?: HeatLayer.HeatLayerOptions): HeatLayer;
+    function heatLayer(
+      latlngs: L.LatLngExpression[],
+      options?: HeatLayer.HeatLayerOptions
+    ): HeatLayer;
   }
 }

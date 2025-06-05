@@ -40,8 +40,8 @@ export function toDbDocumentType(type: VerificationDocumentType): DocumentType {
 }
 
 /**
- * Convertit un DocumentType Prisma en VerificationDocumentType 
+ * Convertit un DocumentType Prisma en VerificationDocumentType
  */
 export function toVerificationDocumentType(type: DocumentType): VerificationDocumentType {
   return reverseDocumentTypeMapping[type] || VerificationDocumentType.ID_CARD;
-} 
+}

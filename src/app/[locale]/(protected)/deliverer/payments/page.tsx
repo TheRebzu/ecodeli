@@ -5,14 +5,14 @@ import { useTranslations } from 'next-intl';
 import { useSession } from 'next-auth/react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { 
-  ArrowDownIcon, 
-  ArrowUpIcon, 
+import {
+  ArrowDownIcon,
+  ArrowUpIcon,
   TruckIcon,
-  Download, 
-  Filter, 
-  Search, 
-  RefreshCw, 
+  Download,
+  Filter,
+  Search,
+  RefreshCw,
   Calendar,
   CircleDollarSign,
   Clock,
@@ -22,7 +22,7 @@ import {
   Wallet,
   ReceiptText,
   Package,
-  MapPin
+  MapPin,
 } from 'lucide-react';
 
 import { api } from '@/trpc/react';
@@ -58,25 +58,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { 
-  Pagination, 
-  PaginationContent, 
-  PaginationItem, 
-  PaginationLink, 
-  PaginationNext, 
-  PaginationPrevious 
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
 } from '@/components/ui/pagination';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Progress } from '@/components/ui/progress';
 import { useRouter } from 'next/navigation';
 
@@ -85,7 +76,7 @@ export default function DelivererPaymentsPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const { toast } = useToast();
-  
+
   // États pour la pagination, le filtrage et la recherche
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
@@ -96,7 +87,7 @@ export default function DelivererPaymentsPage() {
   const [endDate, setEndDate] = useState<Date | undefined>();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
-  
+
   // Requête pour récupérer les paiements
   const {
     data: payments,
@@ -116,7 +107,7 @@ export default function DelivererPaymentsPage() {
       keepPreviousData: true,
     }
   );
-  
+
   // Requête pour récupérer le résumé des revenus
   const {
     data: earningsSummary,
@@ -130,7 +121,7 @@ export default function DelivererPaymentsPage() {
       refetchOnWindowFocus: false,
     }
   );
-  
+
   // Télécharger le relevé de paiements
   const handleDownloadStatement = async () => {
     try {
@@ -138,7 +129,7 @@ export default function DelivererPaymentsPage() {
         title: t('downloadStarted'),
         description: t('paymentStatementDownloadStarted'),
       });
-      
+
       // Dans une implémentation réelle, on appellerait une API pour générer
       // et télécharger le relevé des paiements
       // Simuler un délai pour la démo
@@ -150,13 +141,13 @@ export default function DelivererPaymentsPage() {
       }, 2000);
     } catch (error) {
       toast({
-        variant: "destructive",
+        variant: 'destructive',
         title: t('downloadError'),
         description: typeof error === 'string' ? error : t('genericError'),
       });
     }
   };
-  
+
   // Rafraîchir les données
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -168,7 +159,7 @@ export default function DelivererPaymentsPage() {
       });
     } catch (error) {
       toast({
-        variant: "destructive",
+        variant: 'destructive',
         title: t('refreshError'),
         description: typeof error === 'string' ? error : t('genericError'),
       });
@@ -176,7 +167,7 @@ export default function DelivererPaymentsPage() {
       setIsRefreshing(false);
     }
   };
-  
+
   // Réinitialiser les filtres
   const resetFilters = () => {
     setSearchQuery('');
@@ -186,7 +177,7 @@ export default function DelivererPaymentsPage() {
     setEndDate(undefined);
     setCurrentPage(1);
   };
-  
+
   // Obtenir la couleur selon le type de paiement
   const getPaymentTypeColor = (type: string) => {
     switch (type) {
@@ -204,7 +195,7 @@ export default function DelivererPaymentsPage() {
         return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
-  
+
   // Obtenir l'icône selon le type de paiement
   const getPaymentTypeIcon = (type: string) => {
     switch (type) {
@@ -222,7 +213,7 @@ export default function DelivererPaymentsPage() {
         return <CircleDollarSign className="h-4 w-4" />;
     }
   };
-  
+
   // Obtenir la couleur selon le statut de paiement
   const getPaymentStatusColor = (status: string) => {
     switch (status) {
@@ -238,7 +229,7 @@ export default function DelivererPaymentsPage() {
         return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
-  
+
   // Obtenir l'icône selon le statut de paiement
   const getPaymentStatusIcon = (status: string) => {
     switch (status) {
@@ -254,7 +245,7 @@ export default function DelivererPaymentsPage() {
         return null;
     }
   };
-  
+
   // Accéder à la page du portefeuille
   const handleGoToWallet = () => {
     router.push('/deliverer/wallet');
@@ -262,7 +253,7 @@ export default function DelivererPaymentsPage() {
 
   // Calculer le nombre total de pages
   const totalPages = Math.ceil((payments?.pagination.total || 0) / pageSize);
-  
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -274,25 +265,17 @@ export default function DelivererPaymentsPage() {
           <p className="text-muted-foreground">{t('delivererPaymentsDescription')}</p>
         </div>
         <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleRefresh}
-            disabled={isRefreshing}
-          >
+          <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
             <RefreshCw className={`h-4 w-4 mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
             {t('refresh')}
           </Button>
-          <Button 
-            size="sm" 
-            onClick={handleGoToWallet}
-          >
+          <Button size="sm" onClick={handleGoToWallet}>
             <Wallet className="h-4 w-4 mr-2" />
             {t('viewWallet')}
           </Button>
         </div>
       </div>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Résumé des revenus */}
         <div className="md:col-span-1 space-y-4">
@@ -316,12 +299,12 @@ export default function DelivererPaymentsPage() {
                     <div className="text-3xl font-bold">
                       {formatCurrency(earningsSummary.totalEarnings, earningsSummary.currency)}
                     </div>
-                    
+
                     <p className="text-sm text-muted-foreground mt-1">
                       {t('totalEarningsThisMonth')}
                     </p>
                   </div>
-                  
+
                   <div className="grid grid-cols-2 gap-2">
                     <div className="bg-muted/40 p-2 rounded-md">
                       <div className="flex items-center gap-1 text-sm text-muted-foreground">
@@ -342,7 +325,7 @@ export default function DelivererPaymentsPage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   {earningsSummary.periodStats && (
                     <div className="pt-2">
                       <div className="text-sm text-muted-foreground mb-1">
@@ -374,9 +357,11 @@ export default function DelivererPaymentsPage() {
                       </div>
                     </div>
                   )}
-                  
+
                   <div className="pt-2">
-                    <div className="text-sm text-muted-foreground mb-1">{t('earningsBreakdown')}</div>
+                    <div className="text-sm text-muted-foreground mb-1">
+                      {t('earningsBreakdown')}
+                    </div>
                     <div className="space-y-2">
                       <div className="flex justify-between text-sm">
                         <span>{t('deliveryBasePayments')}</span>
@@ -425,7 +410,12 @@ export default function DelivererPaymentsPage() {
             </CardContent>
             <CardFooter className="border-t pt-4">
               <div className="w-full">
-                <Button variant="outline" size="sm" className="w-full" onClick={handleDownloadStatement}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={handleDownloadStatement}
+                >
                   <Download className="h-4 w-4 mr-2" />
                   {t('downloadEarningsStatement')}
                 </Button>
@@ -433,7 +423,7 @@ export default function DelivererPaymentsPage() {
             </CardFooter>
           </Card>
         </div>
-        
+
         {/* Historique des paiements */}
         <div className="md:col-span-2 space-y-4">
           <Card>
@@ -448,7 +438,7 @@ export default function DelivererPaymentsPage() {
                 </div>
               </div>
             </CardHeader>
-            
+
             <CardContent className="space-y-4">
               {/* Barre de recherche et filtres */}
               <div className="flex flex-col sm:flex-row gap-2">
@@ -459,10 +449,10 @@ export default function DelivererPaymentsPage() {
                     placeholder={t('searchPayments')}
                     className="pl-8"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={e => setSearchQuery(e.target.value)}
                   />
                 </div>
-                
+
                 <Collapsible
                   open={isFiltersOpen}
                   onOpenChange={setIsFiltersOpen}
@@ -472,10 +462,12 @@ export default function DelivererPaymentsPage() {
                     <Button variant="outline" className="w-full sm:w-auto">
                       <Filter className="h-4 w-4 mr-2" />
                       {t('filters')}
-                      <ChevronDown className={`h-4 w-4 ml-2 transition-transform ${isFiltersOpen ? 'rotate-180' : ''}`} />
+                      <ChevronDown
+                        className={`h-4 w-4 ml-2 transition-transform ${isFiltersOpen ? 'rotate-180' : ''}`}
+                      />
                     </Button>
                   </CollapsibleTrigger>
-                  
+
                   <CollapsibleContent className="mt-2 space-y-2 p-2 border rounded-md">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
                       <div className="space-y-1">
@@ -486,7 +478,9 @@ export default function DelivererPaymentsPage() {
                           </SelectTrigger>
                           <SelectContent>
                             <SelectItem value="">{t('allTypes')}</SelectItem>
-                            <SelectItem value="DELIVERY_PAYMENT">{t('typeDeliveryPayment')}</SelectItem>
+                            <SelectItem value="DELIVERY_PAYMENT">
+                              {t('typeDeliveryPayment')}
+                            </SelectItem>
                             <SelectItem value="BONUS">{t('typeBonus')}</SelectItem>
                             <SelectItem value="TIP">{t('typeTip')}</SelectItem>
                             <SelectItem value="ADJUSTMENT">{t('typeAdjustment')}</SelectItem>
@@ -494,7 +488,7 @@ export default function DelivererPaymentsPage() {
                           </SelectContent>
                         </Select>
                       </div>
-                      
+
                       <div className="space-y-1">
                         <label className="text-sm font-medium">{t('status')}</label>
                         <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -510,7 +504,7 @@ export default function DelivererPaymentsPage() {
                           </SelectContent>
                         </Select>
                       </div>
-                      
+
                       <div className="space-y-1">
                         <label className="text-sm font-medium">{t('startDate')}</label>
                         <DatePicker
@@ -519,20 +513,25 @@ export default function DelivererPaymentsPage() {
                           placeholder={t('selectStartDate')}
                         />
                       </div>
-                      
+
                       <div className="space-y-1">
                         <label className="text-sm font-medium">{t('endDate')}</label>
                         <DatePicker
                           selected={endDate}
                           onSelect={setEndDate}
                           placeholder={t('selectEndDate')}
-                          disabled={(date) => startDate ? date < startDate : false}
+                          disabled={date => (startDate ? date < startDate : false)}
                         />
                       </div>
                     </div>
-                    
+
                     <div className="flex justify-end">
-                      <Button variant="ghost" size="sm" onClick={resetFilters} className="flex items-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={resetFilters}
+                        className="flex items-center"
+                      >
                         <XCircle className="h-4 w-4 mr-2" />
                         {t('resetFilters')}
                       </Button>
@@ -544,11 +543,13 @@ export default function DelivererPaymentsPage() {
               {/* Tableau des paiements */}
               {isLoadingPayments ? (
                 <div className="space-y-2">
-                  {Array(5).fill(0).map((_, i) => (
-                    <Skeleton key={i} className="h-16 w-full" />
-                  ))}
+                  {Array(5)
+                    .fill(0)
+                    .map((_, i) => (
+                      <Skeleton key={i} className="h-16 w-full" />
+                    ))}
                 </div>
-              ) : (payments?.data && payments.data.length > 0) ? (
+              ) : payments?.data && payments.data.length > 0 ? (
                 <div className="rounded-md border overflow-hidden">
                   <Table>
                     <TableHeader>
@@ -561,7 +562,7 @@ export default function DelivererPaymentsPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {payments.data.map((payment) => (
+                      {payments.data.map(payment => (
                         <TableRow key={payment.id} className="cursor-pointer hover:bg-muted/50">
                           <TableCell>
                             {format(new Date(payment.date), 'dd/MM/yyyy')}
@@ -578,7 +579,10 @@ export default function DelivererPaymentsPage() {
                             )}
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline" className={cn(getPaymentTypeColor(payment.type))}>
+                            <Badge
+                              variant="outline"
+                              className={cn(getPaymentTypeColor(payment.type))}
+                            >
                               <div className="flex items-center gap-1">
                                 {getPaymentTypeIcon(payment.type)}
                                 <span>{t(`type${payment.type}`)}</span>
@@ -586,7 +590,10 @@ export default function DelivererPaymentsPage() {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline" className={cn(getPaymentStatusColor(payment.status))}>
+                            <Badge
+                              variant="outline"
+                              className={cn(getPaymentStatusColor(payment.status))}
+                            >
                               <div className="flex items-center gap-1">
                                 {getPaymentStatusIcon(payment.status)}
                                 <span>{t(`status${payment.status}`)}</span>
@@ -619,7 +626,7 @@ export default function DelivererPaymentsPage() {
                   )}
                 </div>
               )}
-              
+
               {/* Pagination */}
               {payments?.data && payments.data.length > 0 && totalPages > 1 && (
                 <Pagination className="mt-4">
@@ -627,22 +634,22 @@ export default function DelivererPaymentsPage() {
                     <PaginationItem>
                       <PaginationPrevious
                         href="#"
-                        onClick={(e) => {
+                        onClick={e => {
                           e.preventDefault();
                           if (currentPage > 1) setCurrentPage(currentPage - 1);
                         }}
                         className={currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
                       />
                     </PaginationItem>
-                    
+
                     {Array.from({ length: Math.min(totalPages, 5) }).map((_, i) => {
                       let pageNumber = i + 1;
-                      
+
                       return (
                         <PaginationItem key={pageNumber}>
                           <PaginationLink
                             href="#"
-                            onClick={(e) => {
+                            onClick={e => {
                               e.preventDefault();
                               setCurrentPage(pageNumber);
                             }}
@@ -653,15 +660,17 @@ export default function DelivererPaymentsPage() {
                         </PaginationItem>
                       );
                     })}
-                    
+
                     <PaginationItem>
                       <PaginationNext
                         href="#"
-                        onClick={(e) => {
+                        onClick={e => {
                           e.preventDefault();
                           if (currentPage < totalPages) setCurrentPage(currentPage + 1);
                         }}
-                        className={currentPage >= totalPages ? 'pointer-events-none opacity-50' : ''}
+                        className={
+                          currentPage >= totalPages ? 'pointer-events-none opacity-50' : ''
+                        }
                       />
                     </PaginationItem>
                   </PaginationContent>
@@ -671,10 +680,9 @@ export default function DelivererPaymentsPage() {
 
             <CardFooter className="flex justify-between border-t pt-4">
               <div className="text-sm text-muted-foreground">
-                {payments?.pagination.total 
+                {payments?.pagination.total
                   ? t('totalResults', { count: payments.pagination.total })
-                  : t('noResults')
-                }
+                  : t('noResults')}
               </div>
               <Button variant="outline" size="sm" onClick={handleDownloadStatement}>
                 <Download className="h-4 w-4 mr-2" />
