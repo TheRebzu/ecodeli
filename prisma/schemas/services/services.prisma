@@ -28,6 +28,7 @@ model Service {
   provider         User             @relation(fields: [providerId], references: [id])
   bookings         ServiceBooking[]
   payments         Payment[]
+  appointments     ClientAppointment[] @relation("ServiceAppointments")
 
   @@index([providerId])
   @@index([categoryId])

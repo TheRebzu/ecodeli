@@ -92,8 +92,7 @@ export const useAnnouncement = (options: UseAnnouncementOptions = {}) => {
         const mergedFilter = { ...filters, ...filter, page } as AnnouncementFilterInput;
         setFilters(mergedFilter);
 
-        // Mettre à jour également le store pour la cohérence
-        setStoreFilters(mergedFilter);
+        // Note : Store Zustand retiré
 
         // Utiliser la procédure tRPC getAll
         const response = await api.announcement.getAll.query(mergedFilter);
@@ -635,29 +634,61 @@ export const useClientAnnouncements = (options: UseAnnouncementOptions = {}) => 
    * Récupère les annonces en cours du client
    */
   const fetchActiveAnnouncements = useCallback(async () => {
-    const activeFilters = {
-      ...filters,
-      status: ['PUBLISHED', 'IN_APPLICATION', 'ASSIGNED', 'IN_PROGRESS'] as AnnouncementStatus[],
-      page: 1,
-    };
+    try {
+      setIsLoading(true);
+      setError(null);
 
-    setFilters(activeFilters);
-    return fetchMyAnnouncements(1);
-  }, [filters, fetchMyAnnouncements]);
+      const activeFilters = {
+        ...filters,
+        status: ['PUBLISHED', 'IN_APPLICATION', 'ASSIGNED', 'IN_PROGRESS'] as AnnouncementStatus[],
+        page: 1,
+      } as AnnouncementFilterInput;
+
+      const response = await api.announcement.getMyAnnouncements.query(activeFilters);
+      setMyAnnouncements(response.items);
+      setFilters(activeFilters);
+
+      return response;
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : 'Erreur lors du chargement des annonces actives';
+      setError(message);
+      toast.error(message);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [filters]);
 
   /**
    * Récupère l'historique des annonces du client
    */
   const fetchAnnouncementHistory = useCallback(async () => {
-    const historyFilters = {
-      ...filters,
-      status: ['COMPLETED', 'CANCELLED', 'PAID'] as AnnouncementStatus[],
-      page: 1,
-    };
+    try {
+      setIsLoading(true);
+      setError(null);
 
-    setFilters(historyFilters);
-    return fetchMyAnnouncements(1);
-  }, [filters, fetchMyAnnouncements]);
+      const historyFilters = {
+        ...filters,
+        status: ['COMPLETED', 'CANCELLED', 'PAID'] as AnnouncementStatus[],
+        page: 1,
+      } as AnnouncementFilterInput;
+
+      const response = await api.announcement.getMyAnnouncements.query(historyFilters);
+      setMyAnnouncements(response.items);
+      setFilters(historyFilters);
+
+      return response;
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "Erreur lors du chargement de l'historique";
+      setError(message);
+      toast.error(message);
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  }, [filters]);
 
   // On utilise useEffect avec une dépendance vide pour ne charger qu'une seule fois au montage
   // La fonction fetchMyAnnouncements contient des dépendances qui changent à chaque rendu
@@ -666,7 +697,7 @@ export const useClientAnnouncements = (options: UseAnnouncementOptions = {}) => 
     const initialLoad = async () => {
       await fetchMyAnnouncements(1);
     };
-    
+
     initialLoad();
     // Tableau de dépendances vide pour éviter les rechargements en boucle
   }, []); // eslint-disable-line react-hooks/exhaustive-deps

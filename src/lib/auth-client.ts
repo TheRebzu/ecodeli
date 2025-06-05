@@ -4,7 +4,7 @@
  */
 export async function registerUser(userData: any) {
   console.warn('registerUser est déprécié. Utilisez api.auth.register.useMutation() à la place');
-  
+
   try {
     // Cette fonction ne devrait plus être utilisée
     // Les composants doivent utiliser directement les hooks tRPC

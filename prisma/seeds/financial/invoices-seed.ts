@@ -26,51 +26,57 @@ export async function seedInvoices(
   options: SeedOptions = {}
 ): Promise<SeedResult> {
   logger.startSeed('INVOICES');
-  
+
   const result: SeedResult = {
     entity: 'invoices',
     created: 0,
     skipped: 0,
-    errors: 0
+    errors: 0,
   };
 
   // Récupérer tous les utilisateurs (sauf admin)
   const users = await prisma.user.findMany({
-    where: { 
+    where: {
       role: { in: [UserRole.CLIENT, UserRole.MERCHANT, UserRole.PROVIDER] },
-      status: 'ACTIVE'
+      status: 'ACTIVE',
     },
     include: {
       client: true,
       merchant: true,
-      provider: true
-    }
+      provider: true,
+    },
   });
 
   if (users.length === 0) {
-    logger.warning('INVOICES', 'Aucun utilisateur trouvé - exécuter d\'abord les seeds utilisateurs');
+    logger.warning(
+      'INVOICES',
+      "Aucun utilisateur trouvé - exécuter d'abord les seeds utilisateurs"
+    );
     return result;
   }
 
   // Trouver Marie Laurent et ses livraisons pour la facture mensuelle
   const marieLaurent = await prisma.user.findUnique({
     where: { email: 'marie.laurent@orange.fr' },
-    include: { deliverer: true }
+    include: { deliverer: true },
   });
 
   const marieDeliveries = await prisma.delivery.findMany({
-    where: { 
+    where: {
       delivererId: marieLaurent?.id,
-      status: 'DELIVERED'
+      status: 'DELIVERED',
     },
-    include: { announcement: true }
+    include: { announcement: true },
   });
 
   // Vérifier si des factures existent déjà
   const existingInvoices = await prisma.invoice.count();
-  
+
   if (existingInvoices > 0 && !options.force) {
-    logger.warning('INVOICES', `${existingInvoices} factures déjà présentes - utiliser force:true pour recréer`);
+    logger.warning(
+      'INVOICES',
+      `${existingInvoices} factures déjà présentes - utiliser force:true pour recréer`
+    );
     result.skipped = existingInvoices;
     return result;
   }
@@ -87,26 +93,26 @@ export async function seedInvoices(
     [UserRole.CLIENT]: {
       types: ['SERVICE', 'DELIVERY'],
       frequencies: ['ONE_TIME', 'MONTHLY'],
-      amounts: { min: 15, max: 500 }
+      amounts: { min: 15, max: 500 },
     },
     [UserRole.MERCHANT]: {
       types: ['COMMISSION', 'SUBSCRIPTION', 'ADVERTISING'],
       frequencies: ['MONTHLY', 'QUARTERLY'],
-      amounts: { min: 50, max: 800 }
+      amounts: { min: 50, max: 800 },
     },
     [UserRole.PROVIDER]: {
       types: ['COMMISSION', 'SUBSCRIPTION', 'CERTIFICATION'],
       frequencies: ['MONTHLY', 'QUARTERLY', 'YEARLY'],
-      amounts: { min: 25, max: 600 }
-    }
+      amounts: { min: 25, max: 600 },
+    },
   };
 
   // Distribution des statuts de factures
   const STATUS_DISTRIBUTION = {
-    [InvoiceStatus.PAID]: 0.75,      // 75% payées
-    [InvoiceStatus.ISSUED]: 0.15,    // 15% émises
-    [InvoiceStatus.OVERDUE]: 0.08,   // 8% en retard
-    [InvoiceStatus.CANCELLED]: 0.02  // 2% annulées
+    [InvoiceStatus.PAID]: 0.75, // 75% payées
+    [InvoiceStatus.ISSUED]: 0.15, // 15% émises
+    [InvoiceStatus.OVERDUE]: 0.08, // 8% en retard
+    [InvoiceStatus.CANCELLED]: 0.02, // 2% annulées
   };
 
   // Générer un historique de 6 mois de factures
@@ -118,16 +124,21 @@ export async function seedInvoices(
 
   for (const user of users) {
     try {
-      logger.progress('INVOICES', totalInvoices + 1, users.length * 4, 
-        `Création factures: ${user.name}`);
+      logger.progress(
+        'INVOICES',
+        totalInvoices + 1,
+        users.length * 4,
+        `Création factures: ${user.name}`
+      );
 
       const userRole = user.role as keyof typeof INVOICE_CONFIGS;
       const config = INVOICE_CONFIGS[userRole];
 
       // Nombre de factures selon le rôle et l'activité
-      const invoiceCount = user.role === UserRole.CLIENT ?
-        faker.number.int({ min: 2, max: 12 }) :  // Clients: 2-12 factures
-        faker.number.int({ min: 4, max: 8 });    // Professionnels: 4-8 factures
+      const invoiceCount =
+        user.role === UserRole.CLIENT
+          ? faker.number.int({ min: 2, max: 12 }) // Clients: 2-12 factures
+          : faker.number.int({ min: 4, max: 8 }); // Professionnels: 4-8 factures
 
       for (let i = 0; i < invoiceCount; i++) {
         try {
@@ -138,7 +149,7 @@ export async function seedInvoices(
           // Calculer les dates de facturation
           const issueDate = faker.date.between({
             from: startDate,
-            to: new Date()
+            to: new Date(),
           });
 
           const { billingStart, billingEnd } = calculateBillingPeriod(issueDate, frequency);
@@ -161,11 +172,11 @@ export async function seedInvoices(
           // Calculer le montant selon le type et rôle
           const baseAmount = faker.number.float({
             min: config.amounts.min,
-            max: config.amounts.max
+            max: config.amounts.max,
           });
 
           const amount = Math.round(baseAmount * 100) / 100;
-          const taxRate = 0.20; // TVA 20%
+          const taxRate = 0.2; // TVA 20%
           const taxAmount = Math.round(amount * taxRate * 100) / 100;
           const totalAmount = amount + taxAmount;
 
@@ -180,11 +191,13 @@ export async function seedInvoices(
               currency: 'EUR',
               status: status,
               dueDate: dueDate,
-              paidDate: status === InvoiceStatus.PAID ? 
-                faker.date.between({ 
-                  from: new Date(Math.min(issueDate.getTime(), dueDate.getTime())), 
-                  to: new Date(Math.max(issueDate.getTime(), dueDate.getTime())) 
-                }) : null,
+              paidDate:
+                status === InvoiceStatus.PAID
+                  ? faker.date.between({
+                      from: new Date(Math.min(issueDate.getTime(), dueDate.getTime())),
+                      to: new Date(Math.max(issueDate.getTime(), dueDate.getTime())),
+                    })
+                  : null,
               invoiceNumber: invoiceNumberFormatted,
               invoiceType: invoiceType,
               issueDate: issueDate,
@@ -197,22 +210,30 @@ export async function seedInvoices(
               locale: 'fr',
               paymentTerms: 'Paiement à 30 jours',
               termsAndConditions: 'Conditions générales de vente EcoDeli',
-              pdfUrl: status === InvoiceStatus.PAID ?
-                `/invoices/pdf/${invoiceNumberFormatted}.pdf` : null,
+              pdfUrl:
+                status === InvoiceStatus.PAID
+                  ? `/invoices/pdf/${invoiceNumberFormatted}.pdf`
+                  : null,
               billingName: user.name,
               billingAddress: faker.location.streetAddress(),
               billingCity: faker.location.city(),
               billingPostal: faker.location.zipCode(),
               billingCountry: 'France',
-              companyName: user.role === UserRole.CLIENT ? null : 
-                (user.role === UserRole.MERCHANT ? 'Commerce EcoDeli' : 'Services EcoDeli'),
+              companyName:
+                user.role === UserRole.CLIENT
+                  ? null
+                  : user.role === UserRole.MERCHANT
+                    ? 'Commerce EcoDeli'
+                    : 'Services EcoDeli',
               emailSentAt: issueDate,
-              reminderSentAt: status === InvoiceStatus.OVERDUE ? 
-                faker.date.between({ 
-                  from: new Date(Math.min(dueDate.getTime(), new Date().getTime())), 
-                  to: new Date(Math.max(dueDate.getTime(), new Date().getTime())) 
-                }) : null
-            }
+              reminderSentAt:
+                status === InvoiceStatus.OVERDUE
+                  ? faker.date.between({
+                      from: new Date(Math.min(dueDate.getTime(), new Date().getTime())),
+                      to: new Date(Math.max(dueDate.getTime(), new Date().getTime())),
+                    })
+                  : null,
+            },
           });
 
           // Créer les lignes de facture
@@ -220,13 +241,14 @@ export async function seedInvoices(
 
           totalInvoices++;
           result.created++;
-
         } catch (error: any) {
-          logger.error('INVOICES', `❌ Erreur création facture pour ${user.name}: ${error.message}`);
+          logger.error(
+            'INVOICES',
+            `❌ Erreur création facture pour ${user.name}: ${error.message}`
+          );
           result.errors++;
         }
       }
-
     } catch (error: any) {
       logger.error('INVOICES', `❌ Erreur traitement utilisateur ${user.name}: ${error.message}`);
       result.errors++;
@@ -247,7 +269,7 @@ export async function seedInvoices(
       const now = new Date();
       const billingStart = new Date(now.getFullYear(), now.getMonth(), 1);
       const billingEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-      
+
       const invoiceNumber = `ECO-${now.getFullYear()}-MARIE-${String(now.getMonth() + 1).padStart(2, '0')}`;
 
       const marieInvoice = await prisma.invoice.create({
@@ -256,11 +278,11 @@ export async function seedInvoices(
           amount: totalEarnings,
           currency: 'EUR',
           status: InvoiceStatus.PAID,
-          dueDate: new Date(now.getTime() + (30 * 24 * 60 * 60 * 1000)), // +30 jours
-          paidDate: new Date(now.getTime() - (2 * 24 * 60 * 60 * 1000)), // Payée il y a 2 jours
+          dueDate: new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000), // +30 jours
+          paidDate: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000), // Payée il y a 2 jours
           invoiceNumber: invoiceNumber,
           invoiceType: 'DELIVERY_EARNINGS',
-          issueDate: new Date(now.getTime() - (5 * 24 * 60 * 60 * 1000)), // Émise il y a 5 jours
+          issueDate: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000), // Émise il y a 5 jours
           billingPeriodStart: billingStart,
           billingPeriodEnd: billingEnd,
           description: `Gains de livraison - ${marieDeliveries.length} livraisons effectuées`,
@@ -277,15 +299,15 @@ export async function seedInvoices(
           billingPostal: '75019',
           billingCountry: 'France',
           companyName: null, // Livreur individuel
-          emailSentAt: new Date(now.getTime() - (5 * 24 * 60 * 60 * 1000)),
-          reminderSentAt: null // Pas de rappel car payée
-        }
+          emailSentAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
+          reminderSentAt: null, // Pas de rappel car payée
+        },
       });
 
       // Créer les lignes détaillées pour chaque livraison
       for (let i = 0; i < marieDeliveries.length; i++) {
         const delivery = marieDeliveries[i];
-        
+
         await prisma.invoiceItem.create({
           data: {
             invoiceId: marieInvoice.id,
@@ -299,15 +321,17 @@ export async function seedInvoices(
               trackingCode: delivery.trackingCode,
               deliveryDate: delivery.completionTime,
               route: `${delivery.announcement?.pickupCity} → ${delivery.announcement?.deliveryCity}`,
-              distance: 'Variable'
-            })
-          }
+              distance: 'Variable',
+            }),
+          },
         });
       }
 
       result.created++;
-      logger.success('INVOICES', `✅ Facture mensuelle Marie Laurent créée (${totalEarnings}€ pour ${marieDeliveries.length} livraisons)`);
-
+      logger.success(
+        'INVOICES',
+        `✅ Facture mensuelle Marie Laurent créée (${totalEarnings}€ pour ${marieDeliveries.length} livraisons)`
+      );
     } catch (error: any) {
       logger.error('INVOICES', `❌ Erreur création facture Marie Laurent: ${error.message}`);
       result.errors++;
@@ -316,16 +340,20 @@ export async function seedInvoices(
 
   // Validation des factures créées
   const finalInvoices = await prisma.invoice.findMany({
-    include: { 
+    include: {
       user: true,
-      items: true
-    }
+      items: true,
+    },
   });
-  
+
   if (finalInvoices.length >= totalInvoices - result.errors) {
     logger.validation('INVOICES', 'PASSED', `${finalInvoices.length} factures créées avec succès`);
   } else {
-    logger.validation('INVOICES', 'FAILED', `Attendu: ${totalInvoices}, Créé: ${finalInvoices.length}`);
+    logger.validation(
+      'INVOICES',
+      'FAILED',
+      `Attendu: ${totalInvoices}, Créé: ${finalInvoices.length}`
+    );
   }
 
   // Statistiques par statut
@@ -368,7 +396,10 @@ export async function seedInvoices(
   // Taux de paiement
   const paidInvoices = finalInvoices.filter(inv => inv.status === InvoiceStatus.PAID);
   const paymentRate = Math.round((paidInvoices.length / finalInvoices.length) * 100);
-  logger.info('INVOICES', `✅ Taux de paiement: ${paymentRate}% (${paidInvoices.length}/${finalInvoices.length})`);
+  logger.info(
+    'INVOICES',
+    `✅ Taux de paiement: ${paymentRate}% (${paidInvoices.length}/${finalInvoices.length})`
+  );
 
   // Facturation moyenne par mois
   const monthlyRevenue = totalRevenue / 6; // 6 mois d'historique
@@ -381,7 +412,10 @@ export async function seedInvoices(
 /**
  * Calcule la période de facturation selon la fréquence
  */
-function calculateBillingPeriod(issueDate: Date, frequency: string): {
+function calculateBillingPeriod(
+  issueDate: Date,
+  frequency: string
+): {
   billingStart: Date;
   billingEnd: Date;
 } {
@@ -421,22 +455,22 @@ function generateInvoiceDescription(invoiceType: string, userRole: UserRole): st
     },
     DELIVERY: {
       [UserRole.CLIENT]: 'Frais de livraison express',
-      [UserRole.DELIVERER]: 'Commission sur livraisons effectuées'
+      [UserRole.DELIVERER]: 'Commission sur livraisons effectuées',
     },
     COMMISSION: {
       [UserRole.MERCHANT]: 'Commission plateforme EcoDeli - ventes mensuelles',
-      [UserRole.PROVIDER]: 'Commission plateforme EcoDeli - services mensuels'
+      [UserRole.PROVIDER]: 'Commission plateforme EcoDeli - services mensuels',
     },
     SUBSCRIPTION: {
       [UserRole.MERCHANT]: 'Abonnement professionnel EcoDeli Pro',
-      [UserRole.PROVIDER]: 'Abonnement services certifiés EcoDeli'
+      [UserRole.PROVIDER]: 'Abonnement services certifiés EcoDeli',
     },
     ADVERTISING: {
       [UserRole.MERCHANT]: 'Campagne publicitaire ciblée - mise en avant',
     },
     CERTIFICATION: {
-      [UserRole.PROVIDER]: 'Frais de certification professionnelle annuelle'
-    }
+      [UserRole.PROVIDER]: 'Frais de certification professionnelle annuelle',
+    },
   };
 
   return descriptions[invoiceType]?.[userRole] || `Facture ${invoiceType.toLowerCase()}`;
@@ -462,7 +496,7 @@ async function createInvoiceItems(
         unitPrice: baseAmount,
         amount: baseAmount,
         taxRate: taxRate,
-        taxAmount: Math.round(baseAmount * taxRate * 100) / 100
+        taxAmount: Math.round(baseAmount * taxRate * 100) / 100,
       });
       break;
 
@@ -475,7 +509,7 @@ async function createInvoiceItems(
         unitPrice: Math.round(unitPrice * 100) / 100,
         amount: baseAmount,
         taxRate: taxRate,
-        taxAmount: Math.round(baseAmount * taxRate * 100) / 100
+        taxAmount: Math.round(baseAmount * taxRate * 100) / 100,
       });
       break;
 
@@ -486,7 +520,7 @@ async function createInvoiceItems(
         unitPrice: baseAmount,
         amount: baseAmount,
         taxRate: taxRate,
-        taxAmount: Math.round(baseAmount * taxRate * 100) / 100
+        taxAmount: Math.round(baseAmount * taxRate * 100) / 100,
       });
       break;
 
@@ -497,7 +531,7 @@ async function createInvoiceItems(
         unitPrice: baseAmount,
         amount: baseAmount,
         taxRate: taxRate,
-        taxAmount: Math.round(baseAmount * taxRate * 100) / 100
+        taxAmount: Math.round(baseAmount * taxRate * 100) / 100,
       });
       break;
 
@@ -508,7 +542,7 @@ async function createInvoiceItems(
         unitPrice: baseAmount,
         amount: baseAmount,
         taxRate: taxRate,
-        taxAmount: Math.round(baseAmount * taxRate * 100) / 100
+        taxAmount: Math.round(baseAmount * taxRate * 100) / 100,
       });
       break;
 
@@ -519,7 +553,7 @@ async function createInvoiceItems(
         unitPrice: baseAmount,
         amount: baseAmount,
         taxRate: taxRate,
-        taxAmount: Math.round(baseAmount * taxRate * 100) / 100
+        taxAmount: Math.round(baseAmount * taxRate * 100) / 100,
       });
       break;
 
@@ -530,7 +564,7 @@ async function createInvoiceItems(
         unitPrice: baseAmount,
         amount: baseAmount,
         taxRate: taxRate,
-        taxAmount: Math.round(baseAmount * taxRate * 100) / 100
+        taxAmount: Math.round(baseAmount * taxRate * 100) / 100,
       });
   }
 
@@ -544,8 +578,8 @@ async function createInvoiceItems(
         unitPrice: itemData.unitPrice,
         amount: itemData.amount,
         taxRate: itemData.taxRate,
-        taxAmount: itemData.taxAmount
-      }
+        taxAmount: itemData.taxAmount,
+      },
     });
   }
 }
@@ -553,20 +587,17 @@ async function createInvoiceItems(
 /**
  * Valide l'intégrité des factures
  */
-export async function validateInvoices(
-  prisma: PrismaClient,
-  logger: SeedLogger
-): Promise<boolean> {
+export async function validateInvoices(prisma: PrismaClient, logger: SeedLogger): Promise<boolean> {
   logger.info('VALIDATION', '🔍 Validation des factures...');
-  
+
   let isValid = true;
 
   // Vérifier les factures
   const invoices = await prisma.invoice.findMany({
-    include: { 
+    include: {
       user: true,
-      items: true
-    }
+      items: true,
+    },
   });
 
   if (invoices.length === 0) {
@@ -578,22 +609,28 @@ export async function validateInvoices(
 
   // Vérifier que toutes les factures ont des lignes
   const invoicesWithoutItems = invoices.filter(inv => inv.items.length === 0);
-  
+
   if (invoicesWithoutItems.length > 0) {
-    logger.warning('VALIDATION', `⚠️ ${invoicesWithoutItems.length} factures sans lignes de détail`);
+    logger.warning(
+      'VALIDATION',
+      `⚠️ ${invoicesWithoutItems.length} factures sans lignes de détail`
+    );
   }
 
   // Vérifier la cohérence des montants
   let amountErrors = 0;
   for (const invoice of invoices) {
-    const itemsTotal = invoice.items.reduce((sum, item) => 
-      sum + parseFloat(item.amount.toString()), 0);
-    
+    const itemsTotal = invoice.items.reduce(
+      (sum, item) => sum + parseFloat(item.amount.toString()),
+      0
+    );
+
     const expectedTotal = itemsTotal + parseFloat(invoice.taxAmount?.toString() || '0');
     const actualTotal = parseFloat(invoice.totalAmount.toString());
     const diff = Math.abs(expectedTotal - actualTotal);
-    
-    if (diff > 0.01) { // Tolérance de 1 centime
+
+    if (diff > 0.01) {
+      // Tolérance de 1 centime
       amountErrors++;
     }
   }
@@ -605,14 +642,17 @@ export async function validateInvoices(
   }
 
   // Vérifier que les factures payées ont une date de paiement
-  const paidWithoutDate = invoices.filter(inv => 
-    inv.status === InvoiceStatus.PAID && !inv.paidDate
+  const paidWithoutDate = invoices.filter(
+    inv => inv.status === InvoiceStatus.PAID && !inv.paidDate
   );
 
   if (paidWithoutDate.length > 0) {
-    logger.warning('VALIDATION', `⚠️ ${paidWithoutDate.length} factures payées sans date de paiement`);
+    logger.warning(
+      'VALIDATION',
+      `⚠️ ${paidWithoutDate.length} factures payées sans date de paiement`
+    );
   }
 
   logger.success('VALIDATION', '✅ Validation des factures terminée');
   return isValid;
-} 
+}

@@ -72,6 +72,7 @@ model Announcement {
   favorites         DelivererFavorite[]
   deliveries        Delivery[]
   matchingResults   AnnouncementMatching[]
+  delivererNotifications DelivererNotification[] @relation("AnnouncementNotifications")
   
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt

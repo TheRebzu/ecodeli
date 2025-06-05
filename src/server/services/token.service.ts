@@ -62,7 +62,7 @@ export class TokenService {
    */
   async verifyToken(token: string): Promise<string> {
     const hashedToken = this.hashToken(token);
-    
+
     console.log('DEBUG: Token à vérifier (clair):', token);
     console.log('DEBUG: Token haché pour recherche:', hashedToken);
 
@@ -71,20 +71,23 @@ export class TokenService {
     });
 
     console.log('DEBUG: Token trouvé dans la BD:', verificationToken ? 'OUI' : 'NON');
-    
+
     if (!verificationToken) {
       // En cas d'échec, essayer de trouver tous les tokens disponibles pour débogage
       const allTokens = await this.prisma.verificationToken.findMany({
         where: { used: false },
-        take: 5
+        take: 5,
       });
-      
-      console.log('DEBUG: Tokens disponibles dans la BD:', allTokens.map(t => ({
-        token: t.token.substring(0, 10) + '...',
-        expires: t.expires,
-        type: t.type
-      })));
-      
+
+      console.log(
+        'DEBUG: Tokens disponibles dans la BD:',
+        allTokens.map(t => ({
+          token: t.token.substring(0, 10) + '...',
+          expires: t.expires,
+          type: t.type,
+        }))
+      );
+
       throw new TRPCError({
         code: 'BAD_REQUEST',
         message: 'Token invalide',

@@ -55,25 +55,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { 
-  Pagination, 
-  PaginationContent, 
-  PaginationItem, 
-  PaginationLink, 
-  PaginationNext, 
-  PaginationPrevious 
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
 } from '@/components/ui/pagination';
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from '@/components/ui/collapsible';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Progress } from '@/components/ui/progress';
 
 // Type d'une transaction
@@ -119,7 +110,7 @@ interface WalletSummary {
 export default function PaymentsPage() {
   const t = useTranslations('payments');
   const { toast } = useToast();
-  
+
   // États pour la pagination, le filtrage et la recherche
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize] = useState(10);
@@ -130,7 +121,7 @@ export default function PaymentsPage() {
   const [endDate, setEndDate] = useState<Date | undefined>();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isFiltersOpen, setIsFiltersOpen] = useState(false);
-  
+
   // Requête pour récupérer les transactions
   const {
     data: transactions,
@@ -150,7 +141,7 @@ export default function PaymentsPage() {
       keepPreviousData: true,
     }
   );
-  
+
   // Requête pour récupérer le résumé du portefeuille
   const {
     data: walletSummary,
@@ -159,27 +150,27 @@ export default function PaymentsPage() {
   } = api.wallet.getClientWalletSummary.useQuery(undefined, {
     refetchOnWindowFocus: false,
   });
-  
+
   // Télécharger le relevé de transactions
   const handleDownloadStatement = async () => {
     try {
       toast({
-        variant: "default",
+        variant: 'default',
         title: t('downloadStarted'),
         description: t('statementDownloadStarted'),
       });
-      
+
       // Dans une implémentation réelle, on appellerait une API pour générer
       // et télécharger le relevé de transactions
     } catch (error) {
       toast({
-        variant: "destructive",
+        variant: 'destructive',
         title: t('downloadError'),
         description: typeof error === 'string' ? error : t('genericError'),
       });
     }
   };
-  
+
   // Rafraîchir les données
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -189,7 +180,7 @@ export default function PaymentsPage() {
       setIsRefreshing(false);
     }
   };
-  
+
   // Réinitialiser les filtres
   const resetFilters = () => {
     setSearchQuery('');
@@ -199,7 +190,7 @@ export default function PaymentsPage() {
     setEndDate(undefined);
     setCurrentPage(1);
   };
-  
+
   // Obtenir la couleur selon le type de transaction
   const getTransactionTypeColor = (type: string) => {
     switch (type) {
@@ -215,7 +206,7 @@ export default function PaymentsPage() {
         return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
-  
+
   // Obtenir l'icône selon le type de transaction
   const getTransactionTypeIcon = (type: string) => {
     switch (type) {
@@ -231,7 +222,7 @@ export default function PaymentsPage() {
         return <CircleDollarSign className="h-4 w-4" />;
     }
   };
-  
+
   // Obtenir la couleur selon le statut de transaction
   const getTransactionStatusColor = (status: string) => {
     switch (status) {
@@ -247,7 +238,7 @@ export default function PaymentsPage() {
         return 'bg-gray-50 text-gray-700 border-gray-200';
     }
   };
-  
+
   // Obtenir l'icône selon le statut de transaction
   const getTransactionStatusIcon = (status: string) => {
     switch (status) {
@@ -263,7 +254,7 @@ export default function PaymentsPage() {
         return null;
     }
   };
-  
+
   // Calculer le nombre total de pages
   const totalPages = Math.ceil((transactions?.pagination.total || 0) / pageSize);
 
@@ -271,21 +262,21 @@ export default function PaymentsPage() {
     <div className="space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">{t('historyTitle')}</h1>
       <p className="text-muted-foreground">{t('historyDescription')}</p>
-      
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* Résumé du portefeuille */}
         <div className="md:col-span-1 space-y-4">
-            <Card>
+          <Card>
             <CardHeader className="pb-2">
               <CardTitle className="flex items-center gap-2">
                 <Wallet className="h-5 w-5" />
                 {t('walletBalance')}
-                </CardTitle>
-              </CardHeader>
+              </CardTitle>
+            </CardHeader>
             <CardContent className="pt-0">
               {isLoadingWallet ? (
                 <div className="space-y-4">
-                    <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
                   <Skeleton className="h-4 w-3/4" />
                   <Skeleton className="h-4 w-1/2" />
                 </div>
@@ -295,17 +286,20 @@ export default function PaymentsPage() {
                     <div className="text-3xl font-bold">
                       {formatCurrency(walletSummary.balance, walletSummary.currency)}
                     </div>
-                    
+
                     {walletSummary.pendingBalance > 0 && (
                       <div className="text-sm text-muted-foreground mt-1 flex items-center">
                         <Clock className="h-3.5 w-3.5 mr-1" />
                         {t('pendingBalance', {
-                          amount: formatCurrency(walletSummary.pendingBalance, walletSummary.currency)
+                          amount: formatCurrency(
+                            walletSummary.pendingBalance,
+                            walletSummary.currency
+                          ),
                         })}
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="pt-2">
                     <div className="flex justify-between mb-1">
                       <span className="text-sm text-muted-foreground">{t('monthlyActivity')}</span>
@@ -331,10 +325,12 @@ export default function PaymentsPage() {
                       </div>
                     </div>
                   </div>
-                  
+
                   {walletSummary.recentActivity && walletSummary.recentActivity.length > 0 && (
                     <div className="pt-2">
-                      <div className="text-sm text-muted-foreground mb-1">{t('recentActivity')}</div>
+                      <div className="text-sm text-muted-foreground mb-1">
+                        {t('recentActivity')}
+                      </div>
                       <div className="space-y-2">
                         {walletSummary.recentActivity.map((activity, index) => (
                           <div key={index} className="flex justify-between items-center text-sm">
@@ -348,17 +344,19 @@ export default function PaymentsPage() {
                                 {format(new Date(activity.date), 'dd MMM', { locale: fr })}
                               </span>
                             </div>
-                            <span className={cn(
-                              "font-medium",
-                              activity.type === 'INCOMING' ? "text-green-600" : "text-red-600"
-                            )}>
+                            <span
+                              className={cn(
+                                'font-medium',
+                                activity.type === 'INCOMING' ? 'text-green-600' : 'text-red-600'
+                              )}
+                            >
                               {activity.type === 'INCOMING' ? '+' : '-'}
                               {formatCurrency(activity.amount, walletSummary.currency)}
                             </span>
                           </div>
                         ))}
-          </div>
-                </div>
+                      </div>
+                    </div>
                   )}
                 </div>
               ) : (
@@ -369,7 +367,12 @@ export default function PaymentsPage() {
             </CardContent>
             <CardFooter className="border-t pt-4">
               <div className="w-full">
-                <Button variant="outline" size="sm" className="w-full" onClick={handleDownloadStatement}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="w-full"
+                  onClick={handleDownloadStatement}
+                >
                   <Download className="h-4 w-4 mr-2" />
                   {t('downloadStatement')}
                 </Button>
@@ -383,7 +386,7 @@ export default function PaymentsPage() {
               <CardDescription>{t('paymentMethodsDescription')}</CardDescription>
             </CardHeader>
             <CardContent className="pt-0">
-                <div className="space-y-2">
+              <div className="space-y-2">
                 <div className="bg-muted/30 p-3 rounded-md flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <div className="bg-primary text-primary-foreground rounded-md p-1.5">
@@ -396,11 +399,11 @@ export default function PaymentsPage() {
                   </div>
                   <Badge variant="outline">Par défaut</Badge>
                 </div>
-                
+
                 <Button variant="outline" size="sm" className="w-full">
                   {t('managePaymentMethods')}
-                  </Button>
-                </div>
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -417,9 +420,9 @@ export default function PaymentsPage() {
                   </CardTitle>
                   <CardDescription>{t('transactionsDescription')}</CardDescription>
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   onClick={handleRefresh}
                   disabled={isLoadingTransactions || isRefreshing}
                 >
@@ -428,7 +431,7 @@ export default function PaymentsPage() {
                 </Button>
               </div>
             </CardHeader>
-            
+
             <CardContent className="space-y-4">
               {/* Barre de recherche et filtres */}
               <div className="flex flex-col sm:flex-row gap-2">
@@ -439,10 +442,10 @@ export default function PaymentsPage() {
                     placeholder={t('searchTransactions')}
                     className="pl-8"
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={e => setSearchQuery(e.target.value)}
                   />
                 </div>
-                
+
                 <Collapsible
                   open={isFiltersOpen}
                   onOpenChange={setIsFiltersOpen}
@@ -452,10 +455,12 @@ export default function PaymentsPage() {
                     <Button variant="outline" className="w-full sm:w-auto">
                       <Filter className="h-4 w-4 mr-2" />
                       {t('filters')}
-                      <ChevronDown className={`h-4 w-4 ml-2 transition-transform ${isFiltersOpen ? 'rotate-180' : ''}`} />
+                      <ChevronDown
+                        className={`h-4 w-4 ml-2 transition-transform ${isFiltersOpen ? 'rotate-180' : ''}`}
+                      />
                     </Button>
                   </CollapsibleTrigger>
-                  
+
                   <CollapsibleContent className="mt-2 space-y-2 p-2 border rounded-md">
                     <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2">
                       <div className="space-y-1">
@@ -473,7 +478,7 @@ export default function PaymentsPage() {
                           </SelectContent>
                         </Select>
                       </div>
-                      
+
                       <div className="space-y-1">
                         <label className="text-sm font-medium">{t('status')}</label>
                         <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -489,7 +494,7 @@ export default function PaymentsPage() {
                           </SelectContent>
                         </Select>
                       </div>
-                      
+
                       <div className="space-y-1">
                         <label className="text-sm font-medium">{t('startDate')}</label>
                         <DatePicker
@@ -498,20 +503,25 @@ export default function PaymentsPage() {
                           placeholder={t('selectStartDate')}
                         />
                       </div>
-                      
+
                       <div className="space-y-1">
                         <label className="text-sm font-medium">{t('endDate')}</label>
                         <DatePicker
                           selected={endDate}
                           onSelect={setEndDate}
                           placeholder={t('selectEndDate')}
-                          disabled={(date) => startDate ? date < startDate : false}
+                          disabled={date => (startDate ? date < startDate : false)}
                         />
                       </div>
                     </div>
-                    
+
                     <div className="flex justify-end">
-                      <Button variant="ghost" size="sm" onClick={resetFilters} className="flex items-center">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={resetFilters}
+                        className="flex items-center"
+                      >
                         <XCircle className="h-4 w-4 mr-2" />
                         {t('resetFilters')}
                       </Button>
@@ -523,11 +533,13 @@ export default function PaymentsPage() {
               {/* Tableau des transactions */}
               {isLoadingTransactions ? (
                 <div className="space-y-2">
-                  {Array(5).fill(0).map((_, i) => (
-                    <Skeleton key={i} className="h-16 w-full" />
-                  ))}
+                  {Array(5)
+                    .fill(0)
+                    .map((_, i) => (
+                      <Skeleton key={i} className="h-16 w-full" />
+                    ))}
                 </div>
-              ) : (transactions?.data && transactions.data.length > 0) ? (
+              ) : transactions?.data && transactions.data.length > 0 ? (
                 <div className="rounded-md border overflow-hidden">
                   <Table>
                     <TableHeader>
@@ -540,7 +552,7 @@ export default function PaymentsPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {transactions.data.map((transaction) => (
+                      {transactions.data.map(transaction => (
                         <TableRow key={transaction.id} className="cursor-pointer hover:bg-muted/50">
                           <TableCell>
                             {format(new Date(transaction.date), 'dd/MM/yyyy')}
@@ -557,28 +569,46 @@ export default function PaymentsPage() {
                             )}
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline" className={cn(getTransactionTypeColor(transaction.type))}>
+                            <Badge
+                              variant="outline"
+                              className={cn(getTransactionTypeColor(transaction.type))}
+                            >
                               <div className="flex items-center gap-1">
                                 {getTransactionTypeIcon(transaction.type)}
-                                <span>{t(`type${transaction.type.charAt(0) + transaction.type.slice(1).toLowerCase()}`)}</span>
+                                <span>
+                                  {t(
+                                    `type${transaction.type.charAt(0) + transaction.type.slice(1).toLowerCase()}`
+                                  )}
+                                </span>
                               </div>
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <Badge variant="outline" className={cn(getTransactionStatusColor(transaction.status))}>
+                            <Badge
+                              variant="outline"
+                              className={cn(getTransactionStatusColor(transaction.status))}
+                            >
                               <div className="flex items-center gap-1">
                                 {getTransactionStatusIcon(transaction.status)}
-                                <span>{t(`status${transaction.status.charAt(0) + transaction.status.slice(1).toLowerCase()}`)}</span>
+                                <span>
+                                  {t(
+                                    `status${transaction.status.charAt(0) + transaction.status.slice(1).toLowerCase()}`
+                                  )}
+                                </span>
                               </div>
                             </Badge>
                           </TableCell>
                           <TableCell className="text-right font-medium">
-                            <span className={cn(
-                              transaction.type === 'PAYMENT' || transaction.type === 'WITHDRAWAL' 
-                                ? "text-red-600" 
-                                : "text-green-600"
-                            )}>
-                              {transaction.type === 'PAYMENT' || transaction.type === 'WITHDRAWAL' ? '-' : '+'}
+                            <span
+                              className={cn(
+                                transaction.type === 'PAYMENT' || transaction.type === 'WITHDRAWAL'
+                                  ? 'text-red-600'
+                                  : 'text-green-600'
+                              )}
+                            >
+                              {transaction.type === 'PAYMENT' || transaction.type === 'WITHDRAWAL'
+                                ? '-'
+                                : '+'}
                               {formatCurrency(transaction.amount, transaction.currency)}
                             </span>
                           </TableCell>
@@ -603,7 +633,7 @@ export default function PaymentsPage() {
                   )}
                 </div>
               )}
-              
+
               {/* Pagination */}
               {transactions?.data && transactions.data.length > 0 && totalPages > 1 && (
                 <Pagination className="mt-4">
@@ -611,14 +641,14 @@ export default function PaymentsPage() {
                     <PaginationItem>
                       <PaginationPrevious
                         href="#"
-                        onClick={(e) => {
+                        onClick={e => {
                           e.preventDefault();
                           if (currentPage > 1) setCurrentPage(currentPage - 1);
                         }}
                         className={currentPage <= 1 ? 'pointer-events-none opacity-50' : ''}
                       />
                     </PaginationItem>
-                    
+
                     {Array.from({ length: Math.min(totalPages, 5) }).map((_, i) => {
                       // Afficher les 2 premières pages, la page courante, et les 2 dernières pages
                       let pageNumber = i + 1;
@@ -642,12 +672,12 @@ export default function PaymentsPage() {
                           );
                         }
                       }
-                      
+
                       return (
                         <PaginationItem key={pageNumber}>
                           <PaginationLink
                             href="#"
-                            onClick={(e) => {
+                            onClick={e => {
                               e.preventDefault();
                               setCurrentPage(pageNumber);
                             }}
@@ -658,15 +688,17 @@ export default function PaymentsPage() {
                         </PaginationItem>
                       );
                     })}
-                    
+
                     <PaginationItem>
                       <PaginationNext
                         href="#"
-                        onClick={(e) => {
+                        onClick={e => {
                           e.preventDefault();
                           if (currentPage < totalPages) setCurrentPage(currentPage + 1);
                         }}
-                        className={currentPage >= totalPages ? 'pointer-events-none opacity-50' : ''}
+                        className={
+                          currentPage >= totalPages ? 'pointer-events-none opacity-50' : ''
+                        }
                       />
                     </PaginationItem>
                   </PaginationContent>
@@ -676,10 +708,9 @@ export default function PaymentsPage() {
 
             <CardFooter className="flex justify-between border-t pt-4">
               <div className="text-sm text-muted-foreground">
-                {transactions?.pagination.total 
+                {transactions?.pagination.total
                   ? t('totalResults', { count: transactions.pagination.total })
-                  : t('noResults')
-                }
+                  : t('noResults')}
               </div>
               <Button variant="outline" size="sm" onClick={handleDownloadStatement}>
                 <Download className="h-4 w-4 mr-2" />

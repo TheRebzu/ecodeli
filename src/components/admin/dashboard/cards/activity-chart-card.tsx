@@ -36,7 +36,7 @@ export function ActivityChartCard({
   type = 'line',
   categories,
   colors = ['#3b82f6', '#22c55e'],
-  valueFormatter = (value) => value.toString(),
+  valueFormatter = value => value.toString(),
   showComparison = false,
   showTrend = true,
   totalValue,
@@ -44,13 +44,15 @@ export function ActivityChartCard({
   className = '',
 }: ActivityChartCardProps) {
   // Calcul automatique du pourcentage de changement si pas fourni
-  const calculatedPercentChange = percentChange ?? (() => {
-    if (!data || data.length < 2) return 0;
-    const currentValue = data[data.length - 1]?.value || 0;
-    const previousValue = data[data.length - 2]?.value || 0;
-    if (previousValue === 0) return 0;
-    return ((currentValue - previousValue) / previousValue) * 100;
-  })();
+  const calculatedPercentChange =
+    percentChange ??
+    (() => {
+      if (!data || data.length < 2) return 0;
+      const currentValue = data[data.length - 1]?.value || 0;
+      const previousValue = data[data.length - 2]?.value || 0;
+      if (previousValue === 0) return 0;
+      return ((currentValue - previousValue) / previousValue) * 100;
+    })();
 
   // Calcul automatique de la valeur totale si pas fournie
   const calculatedTotalValue = totalValue ?? data.reduce((sum, item) => sum + item.value, 0);
@@ -70,24 +72,15 @@ export function ActivityChartCard({
     switch (type) {
       case 'area':
         return (
-          <AreaChart
-            {...chartProps}
-            comparisonData={showComparison ? comparisonData : undefined}
-          />
+          <AreaChart {...chartProps} comparisonData={showComparison ? comparisonData : undefined} />
         );
       case 'bar':
         return (
-          <BarChart
-            {...chartProps}
-            comparisonData={showComparison ? comparisonData : undefined}
-          />
+          <BarChart {...chartProps} comparisonData={showComparison ? comparisonData : undefined} />
         );
       default:
         return (
-          <LineChart
-            {...chartProps}
-            comparisonData={showComparison ? comparisonData : undefined}
-          />
+          <LineChart {...chartProps} comparisonData={showComparison ? comparisonData : undefined} />
         );
     }
   };
@@ -119,9 +112,7 @@ export function ActivityChartCard({
           {/* Valeur totale */}
           {totalValue !== undefined && (
             <div>
-              <p className="text-2xl font-bold">
-                {valueFormatter(calculatedTotalValue)}
-              </p>
+              <p className="text-2xl font-bold">{valueFormatter(calculatedTotalValue)}</p>
               <p className="text-xs text-muted-foreground">
                 {showComparison ? 'Période actuelle vs précédente' : 'Total sur la période'}
               </p>
@@ -129,19 +120,13 @@ export function ActivityChartCard({
           )}
 
           {/* Graphique */}
-          <div className="h-[200px]">
-            {renderChart()}
-          </div>
+          <div className="h-[200px]">{renderChart()}</div>
 
           {/* Informations supplémentaires */}
           {data && data.length > 0 && (
             <div className="flex justify-between items-center text-sm text-muted-foreground border-t pt-2">
-              <span>
-                Début: {valueFormatter(data[0]?.value || 0)}
-              </span>
-              <span>
-                Fin: {valueFormatter(data[data.length - 1]?.value || 0)}
-              </span>
+              <span>Début: {valueFormatter(data[0]?.value || 0)}</span>
+              <span>Fin: {valueFormatter(data[data.length - 1]?.value || 0)}</span>
             </div>
           )}
 

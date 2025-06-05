@@ -1014,10 +1014,10 @@ export const serviceService = {
 
   // Créer une évaluation détaillée
   async createDetailedReview(
-    clientId: string, 
-    data: { 
-      bookingId: string; 
-      rating: number; 
+    clientId: string,
+    data: {
+      bookingId: string;
+      rating: number;
       comment?: string;
       pros?: string[];
       cons?: string[];
@@ -1028,7 +1028,18 @@ export const serviceService = {
       valueForMoney?: number;
     }
   ) {
-    const { bookingId, rating, comment, pros, cons, wouldRecommend, punctuality, quality, communication, valueForMoney } = data;
+    const {
+      bookingId,
+      rating,
+      comment,
+      pros,
+      cons,
+      wouldRecommend,
+      punctuality,
+      quality,
+      communication,
+      valueForMoney,
+    } = data;
 
     try {
       // Vérifier que la réservation existe et qu'elle appartient au client
@@ -1144,9 +1155,10 @@ export const serviceService = {
         },
       });
 
-      const recommendationRate = recommendationStats._count.wouldRecommend > 0 
-        ? (wouldRecommendCount / recommendationStats._count.wouldRecommend) * 100 
-        : 0;
+      const recommendationRate =
+        recommendationStats._count.wouldRecommend > 0
+          ? (wouldRecommendCount / recommendationStats._count.wouldRecommend) * 100
+          : 0;
 
       // Récupérer les commentaires récents
       const recentReviews = await db.serviceReview.findMany({
@@ -1191,9 +1203,10 @@ export const serviceService = {
         ratingDistribution: ratingDistribution.map(item => ({
           rating: item.rating,
           count: item._count.rating,
-          percentage: result._count.rating > 0 
-            ? Number(((item._count.rating / result._count.rating) * 100).toFixed(1))
-            : 0,
+          percentage:
+            result._count.rating > 0
+              ? Number(((item._count.rating / result._count.rating) * 100).toFixed(1))
+              : 0,
         })),
         recommendationRate: Number(recommendationRate.toFixed(1)),
         recentReviews: recentReviews.map(review => ({
@@ -1226,7 +1239,7 @@ export const serviceService = {
     try {
       const stats = await this.getProviderRatingStats(providerId);
       const providerStats = await this.getProviderStats(providerId);
-      
+
       const badges = [];
 
       // Badge Excellence (note moyenne >= 4.5)
@@ -1302,15 +1315,16 @@ export const serviceService = {
       }
 
       // Badge Fiabilité (taux d'annulation < 5%)
-      const cancellationRate = providerStats.bookings.total > 0 
-        ? (providerStats.bookings.cancelled / providerStats.bookings.total) * 100 
-        : 0;
-      
+      const cancellationRate =
+        providerStats.bookings.total > 0
+          ? (providerStats.bookings.cancelled / providerStats.bookings.total) * 100
+          : 0;
+
       if (cancellationRate < 5 && providerStats.bookings.total >= 20) {
         badges.push({
           id: 'reliable',
           name: 'Fiable',
-          description: 'Taux d\'annulation très faible',
+          description: "Taux d'annulation très faible",
           icon: '🛡️',
           color: 'teal',
           level: 'standard',
@@ -1342,7 +1356,7 @@ export const serviceService = {
   async updateProviderRatingStats(providerId: string) {
     try {
       const stats = await this.getProviderRatingStats(providerId);
-      
+
       // Mettre à jour le profil prestataire avec les nouvelles statistiques
       await db.user.update({
         where: { id: providerId },
@@ -1398,10 +1412,7 @@ export const serviceService = {
             },
           },
         },
-        orderBy: [
-          { provider: { rating: 'desc' } },
-          { provider: { totalReviews: 'desc' } },
-        ],
+        orderBy: [{ provider: { rating: 'desc' } }, { provider: { totalReviews: 'desc' } }],
         take: limit,
       });
 
@@ -1431,7 +1442,13 @@ export const serviceService = {
   async getProviderStats(providerId: string) {
     try {
       // Compter les réservations par statut
-      const [totalBookings, pendingBookings, confirmedBookings, completedBookings, cancelledBookings] = await Promise.all([
+      const [
+        totalBookings,
+        pendingBookings,
+        confirmedBookings,
+        completedBookings,
+        cancelledBookings,
+      ] = await Promise.all([
         db.serviceBooking.count({ where: { providerId } }),
         db.serviceBooking.count({ where: { providerId, status: 'PENDING' } }),
         db.serviceBooking.count({ where: { providerId, status: 'CONFIRMED' } }),
@@ -1441,9 +1458,9 @@ export const serviceService = {
 
       // Calculer les revenus
       const revenueResult = await db.serviceBooking.aggregate({
-        where: { 
-          providerId, 
-          status: { in: ['COMPLETED', 'CONFIRMED'] }
+        where: {
+          providerId,
+          status: { in: ['COMPLETED', 'CONFIRMED'] },
         },
         _sum: { totalPrice: true },
       });
@@ -1479,9 +1496,9 @@ export const serviceService = {
       // Services les plus demandés
       const popularServices = await db.serviceBooking.groupBy({
         by: ['serviceId'],
-        where: { 
+        where: {
           providerId,
-          status: { in: ['COMPLETED', 'CONFIRMED'] }
+          status: { in: ['COMPLETED', 'CONFIRMED'] },
         },
         _count: { serviceId: true },
         orderBy: { _count: { serviceId: 'desc' } },
@@ -1489,7 +1506,7 @@ export const serviceService = {
       });
 
       const popularServicesWithDetails = await Promise.all(
-        popularServices.map(async (service) => {
+        popularServices.map(async service => {
           const serviceDetails = await db.service.findUnique({
             where: { id: service.serviceId },
             select: { id: true, name: true, price: true },
@@ -1563,19 +1580,23 @@ export const serviceService = {
       if (query) {
         where.OR = [
           { name: { contains: query, mode: 'insensitive' } },
-          { provider: { 
-            providerBio: { contains: query, mode: 'insensitive' }
-          }},
-          { provider: {
-            services: {
-              some: {
-                OR: [
-                  { name: { contains: query, mode: 'insensitive' } },
-                  { description: { contains: query, mode: 'insensitive' } },
-                ],
+          {
+            provider: {
+              providerBio: { contains: query, mode: 'insensitive' },
+            },
+          },
+          {
+            provider: {
+              services: {
+                some: {
+                  OR: [
+                    { name: { contains: query, mode: 'insensitive' } },
+                    { description: { contains: query, mode: 'insensitive' } },
+                  ],
+                },
               },
             },
-          }},
+          },
         ];
       }
 
@@ -1671,7 +1692,7 @@ export const serviceService = {
   async getProviderPublicProfile(providerId: string) {
     try {
       const provider = await db.user.findFirst({
-        where: { 
+        where: {
           id: providerId,
           isProvider: true,
         },
@@ -1756,7 +1777,7 @@ export const serviceService = {
 
       // Ajouter les statistiques pour chaque service
       const servicesWithStats = await Promise.all(
-        services.map(async (service) => {
+        services.map(async service => {
           const [bookingCount, reviewStats] = await Promise.all([
             db.serviceBooking.count({
               where: { serviceId: service.id, status: 'COMPLETED' },

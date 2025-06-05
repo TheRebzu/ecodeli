@@ -1,5 +1,5 @@
-import { ProtectedHeader } from '@/components/layout/protected-header';
-import { ProtectedFooter } from '@/components/layout/protected-footer';
+import { ProtectedHeader } from '@/components/layout/protected/header';
+import { ProtectedFooter } from '@/components/layout/protected/footer';
 import { DelivererSidebar } from '@/components/layout/sidebars/deliverer-sidebar';
 import VerificationStatusProvider from '@/components/verification/verification-status-provider';
 

@@ -7,12 +7,12 @@ import { PrismaClient, UserRole, UserStatus } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
 import { DocumentService } from './document.service';
 import { VerificationService } from './verification.service';
-import { 
-  Document, 
-  DocumentStatus, 
+import {
+  Document,
+  DocumentStatus,
   DocumentType,
   UserDocumentStatus,
-  DocumentVerificationRelationship 
+  DocumentVerificationRelationship,
 } from '@/types/document-verification';
 
 export class DocumentVerificationService implements DocumentVerificationRelationship {
@@ -21,7 +21,7 @@ export class DocumentVerificationService implements DocumentVerificationRelation
   private verificationService: VerificationService;
 
   constructor(
-    documentService?: DocumentService, 
+    documentService?: DocumentService,
     verificationService?: VerificationService,
     prisma = db
   ) {
@@ -39,14 +39,22 @@ export class DocumentVerificationService implements DocumentVerificationRelation
     const roleDocumentMap: Record<UserRole, DocumentType[]> = {
       ADMIN: [DocumentType.ID_CARD],
       DELIVERER: [
-        DocumentType.ID_CARD, 
+        DocumentType.ID_CARD,
         DocumentType.DRIVER_LICENSE,
-        DocumentType.VEHICLE_REGISTRATION, 
-        DocumentType.INSURANCE
+        DocumentType.VEHICLE_REGISTRATION,
+        DocumentType.INSURANCE,
       ],
       CLIENT: [DocumentType.ID_CARD],
-      MERCHANT: [DocumentType.ID_CARD, DocumentType.BUSINESS_REGISTRATION, DocumentType.PROOF_OF_ADDRESS],
-      PROVIDER: [DocumentType.ID_CARD, DocumentType.PROFESSIONAL_CERTIFICATION, DocumentType.PROOF_OF_ADDRESS],
+      MERCHANT: [
+        DocumentType.ID_CARD,
+        DocumentType.BUSINESS_REGISTRATION,
+        DocumentType.PROOF_OF_ADDRESS,
+      ],
+      PROVIDER: [
+        DocumentType.ID_CARD,
+        DocumentType.PROFESSIONAL_CERTIFICATION,
+        DocumentType.PROOF_OF_ADDRESS,
+      ],
     };
 
     return roleDocumentMap[role] || [];
@@ -61,10 +69,8 @@ export class DocumentVerificationService implements DocumentVerificationRelation
   async areAllRequiredDocumentsUploaded(userId: string, userRole: UserRole): Promise<boolean> {
     const requiredTypes = this.getRequiredDocumentsByRole(userRole);
     const userDocuments = await this.documentService.getUserDocuments(userId);
-    
-    return requiredTypes.every(type => 
-      userDocuments.some(doc => doc.type === type)
-    );
+
+    return requiredTypes.every(type => userDocuments.some(doc => doc.type === type));
   }
 
   /**
@@ -76,8 +82,8 @@ export class DocumentVerificationService implements DocumentVerificationRelation
   async areAllRequiredDocumentsVerified(userId: string, userRole: UserRole): Promise<boolean> {
     const requiredTypes = this.getRequiredDocumentsByRole(userRole);
     const userDocuments = await this.documentService.getUserDocuments(userId);
-    
-    return requiredTypes.every(type => 
+
+    return requiredTypes.every(type =>
       userDocuments.some(doc => doc.type === type && doc.status === DocumentStatus.APPROVED)
     );
   }
@@ -92,7 +98,7 @@ export class DocumentVerificationService implements DocumentVerificationRelation
       // Get user information including role
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
-        select: { id: true, role: true }
+        select: { id: true, role: true },
       });
 
       if (!user) {
@@ -104,10 +110,10 @@ export class DocumentVerificationService implements DocumentVerificationRelation
 
       // Get required document types for the user's role
       const requiredDocumentTypes = this.getRequiredDocumentsByRole(user.role as UserRole);
-      
+
       // Get all user's documents
       const userDocuments = await this.documentService.getUserDocuments(userId);
-      
+
       // Calculate document status
       const pendingDocuments: string[] = [];
       const approvedDocuments: string[] = [];
@@ -119,7 +125,7 @@ export class DocumentVerificationService implements DocumentVerificationRelation
       // Categorize documents by status
       userDocuments.forEach(doc => {
         const typeName = this.getDocumentTypeName(doc.type as DocumentType);
-        
+
         if (doc.status === DocumentStatus.PENDING) {
           pendingDocuments.push(typeName);
         } else if (doc.status === DocumentStatus.APPROVED) {
@@ -128,7 +134,7 @@ export class DocumentVerificationService implements DocumentVerificationRelation
           rejectedDocuments.push(typeName);
         }
       });
-      
+
       // Add missing required documents to pending list
       requiredDocumentTypes.forEach(type => {
         if (!uploadedDocumentTypes.has(type)) {
@@ -137,7 +143,7 @@ export class DocumentVerificationService implements DocumentVerificationRelation
       });
 
       // Determine if all required documents are uploaded and approved
-      const hasAllRequiredDocuments = requiredDocumentTypes.every(type => 
+      const hasAllRequiredDocuments = requiredDocumentTypes.every(type =>
         userDocuments.some(doc => doc.type === type && doc.status === DocumentStatus.APPROVED)
       );
 
@@ -145,7 +151,7 @@ export class DocumentVerificationService implements DocumentVerificationRelation
         hasAllRequiredDocuments,
         pendingDocuments,
         approvedDocuments,
-        rejectedDocuments
+        rejectedDocuments,
       };
     } catch (error) {
       console.error('Error getting user document status:', error);
@@ -160,17 +166,14 @@ export class DocumentVerificationService implements DocumentVerificationRelation
    */
   async updateUserVerificationStatus(userId: string, userRole: string): Promise<void> {
     try {
-      const isVerified = await this.areAllRequiredDocumentsVerified(
-        userId, 
-        userRole as UserRole
-      );
-      
+      const isVerified = await this.areAllRequiredDocumentsVerified(userId, userRole as UserRole);
+
       // Update user status based on document verification
       if (isVerified) {
         // Set the user to active if all documents are verified
         await this.prisma.user.update({
           where: { id: userId },
-          data: { status: UserStatus.ACTIVE }
+          data: { status: UserStatus.ACTIVE },
         });
 
         // Update the verification status through verification service
@@ -191,7 +194,7 @@ export class DocumentVerificationService implements DocumentVerificationRelation
    * @returns The updated document
    */
   async processDocumentVerification(
-    documentId: string, 
+    documentId: string,
     status: DocumentStatus,
     verifierId: string,
     rejectionReason?: string
@@ -199,17 +202,17 @@ export class DocumentVerificationService implements DocumentVerificationRelation
     try {
       // Update the document status
       const document = await this.documentService.updateDocumentStatus(
-        documentId, 
-        status, 
-        verifierId, 
+        documentId,
+        status,
+        verifierId,
         rejectionReason
       );
-      
+
       // Update user verification status automatically
       if (document.userId && document.userRole) {
         await this.updateUserVerificationStatus(document.userId, document.userRole);
       }
-      
+
       return document;
     } catch (error) {
       console.error('Error processing document verification:', error);

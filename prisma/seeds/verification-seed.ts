@@ -57,7 +57,9 @@ async function main() {
     });
 
     if (adminUsers.length === 0) {
-      console.error('❌ Aucun administrateur trouvé. Veuillez d\'abord exécuter le seed des utilisateurs.');
+      console.error(
+        "❌ Aucun administrateur trouvé. Veuillez d'abord exécuter le seed des utilisateurs."
+      );
       process.exit(1);
     }
 
@@ -73,7 +75,7 @@ async function main() {
     });
 
     if (deliverers.length === 0) {
-      console.log('⚠️ Aucun livreur trouvé. Création d\'un livreur de test...');
+      console.log("⚠️ Aucun livreur trouvé. Création d'un livreur de test...");
       const deliverer = await createTestDeliverer();
       if (deliverer) {
         deliverers.push(deliverer);
@@ -91,7 +93,7 @@ async function main() {
     });
 
     if (providers.length === 0) {
-      console.log('⚠️ Aucun prestataire trouvé. Création d\'un prestataire de test...');
+      console.log("⚠️ Aucun prestataire trouvé. Création d'un prestataire de test...");
       const provider = await createTestProvider();
       if (provider) {
         providers.push(provider);
@@ -164,7 +166,7 @@ async function main() {
 async function createTestDeliverer() {
   try {
     const email = 'deliverer.test@ecodeli.me';
-    
+
     // Vérifier si le livreur existe déjà
     const existingUser = await prisma.user.findUnique({
       where: { email },
@@ -222,7 +224,7 @@ async function createTestDeliverer() {
 async function createTestProvider() {
   try {
     const email = 'provider.test@ecodeli.me';
-    
+
     // Vérifier si le prestataire existe déjà
     const existingUser = await prisma.user.findUnique({
       where: { email },
@@ -251,12 +253,24 @@ async function createTestProvider() {
         providerZipCode: faker.location.zipCode(),
         provider: {
           create: {
-            specialty: faker.helpers.arrayElement(['PLUMBING', 'ELECTRICITY', 'CLEANING', 'REPAIR', 'GARDEN']),
+            specialty: faker.helpers.arrayElement([
+              'PLUMBING',
+              'ELECTRICITY',
+              'CLEANING',
+              'REPAIR',
+              'GARDEN',
+            ]),
             experience: faker.number.int({ min: 1, max: 20 }),
-            availability: faker.helpers.arrayElements(['MORNING', 'AFTERNOON', 'EVENING', 'WEEKEND'], { min: 1, max: 4 }),
+            availability: faker.helpers.arrayElements(
+              ['MORNING', 'AFTERNOON', 'EVENING', 'WEEKEND'],
+              { min: 1, max: 4 }
+            ),
             pricing: faker.commerce.price({ min: 40, max: 120 }),
             serviceArea: faker.number.int({ min: 5, max: 30 }),
-            qualifications: faker.helpers.arrayElements(['CERTIFIED', 'LICENSED', 'INSURED', 'PROFESSIONAL'], { min: 1, max: 3 }),
+            qualifications: faker.helpers.arrayElements(
+              ['CERTIFIED', 'LICENSED', 'INSURED', 'PROFESSIONAL'],
+              { min: 1, max: 3 }
+            ),
           },
         },
       },
@@ -286,14 +300,16 @@ async function createDelivererDocuments(userId: string) {
     });
 
     if (existingDocuments.length > 0) {
-      console.log(`${existingDocuments.length} documents existent déjà pour l'utilisateur ${userId}`);
+      console.log(
+        `${existingDocuments.length} documents existent déjà pour l'utilisateur ${userId}`
+      );
       return existingDocuments;
     }
 
     // Types de documents requis pour un livreur
     const documentTypes: DocumentInfo[] = [
       { type: DocumentType.ID_CARD, name: "Carte d'identité" },
-      { type: DocumentType.DRIVING_LICENSE, name: "Permis de conduire" },
+      { type: DocumentType.DRIVING_LICENSE, name: 'Permis de conduire' },
       { type: DocumentType.INSURANCE, name: "Attestation d'assurance" },
     ];
 
@@ -309,9 +325,10 @@ async function createDelivererDocuments(userId: string) {
           fileUrl: `https://storage.ecodeli.fr/documents/${userId}/${doc.type.toLowerCase()}`,
           mimeType: 'application/pdf',
           fileSize: faker.number.int({ min: 100000, max: 5000000 }),
-          expiryDate: doc.type === DocumentType.ID_CARD 
-            ? new Date(new Date().setFullYear(new Date().getFullYear() + 10)) 
-            : new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
+          expiryDate:
+            doc.type === DocumentType.ID_CARD
+              ? new Date(new Date().setFullYear(new Date().getFullYear() + 10))
+              : new Date(new Date().setFullYear(new Date().getFullYear() + 1)),
           notes: `Document ${doc.name} pour vérification`,
           verificationStatus: VerificationStatus.PENDING,
         },
@@ -341,13 +358,15 @@ async function createProviderDocuments(userId: string) {
     });
 
     if (existingDocuments.length > 0) {
-      console.log(`${existingDocuments.length} documents existent déjà pour l'utilisateur ${userId}`);
+      console.log(
+        `${existingDocuments.length} documents existent déjà pour l'utilisateur ${userId}`
+      );
       return existingDocuments;
-    }    // Types de documents requis pour un prestataire
+    } // Types de documents requis pour un prestataire
     const documentTypes: DocumentInfo[] = [
       { type: DocumentType.ID_CARD, name: "Carte d'identité" },
-      { type: DocumentType.QUALIFICATION_CERTIFICATE, name: "Certificat de qualification" },
-      { type: DocumentType.INSURANCE, name: "Assurance responsabilité civile" },
+      { type: DocumentType.QUALIFICATION_CERTIFICATE, name: 'Certificat de qualification' },
+      { type: DocumentType.INSURANCE, name: 'Assurance responsabilité civile' },
       { type: DocumentType.PROOF_OF_ADDRESS, name: "Justificatif d'adresse" },
     ];
 
@@ -363,9 +382,10 @@ async function createProviderDocuments(userId: string) {
           fileUrl: `https://storage.ecodeli.fr/documents/${userId}/${doc.type.toLowerCase()}`,
           mimeType: 'application/pdf',
           fileSize: faker.number.int({ min: 100000, max: 5000000 }),
-          expiryDate: doc.type === DocumentType.ID_CARD 
-            ? new Date(new Date().setFullYear(new Date().getFullYear() + 10)) 
-            : new Date(new Date().setFullYear(new Date().getFullYear() + 2)),
+          expiryDate:
+            doc.type === DocumentType.ID_CARD
+              ? new Date(new Date().setFullYear(new Date().getFullYear() + 10))
+              : new Date(new Date().setFullYear(new Date().getFullYear() + 2)),
           notes: `Document ${doc.name} pour vérification`,
           verificationStatus: VerificationStatus.PENDING,
         },
@@ -385,7 +405,12 @@ async function createProviderDocuments(userId: string) {
 /**
  * Crée une vérification et son historique pour un utilisateur
  */
-async function createVerification(userId: string, adminId: string, userType: 'DELIVERER' | 'PROVIDER', documentIds: string[]) {
+async function createVerification(
+  userId: string,
+  adminId: string,
+  userType: 'DELIVERER' | 'PROVIDER',
+  documentIds: string[]
+) {
   try {
     // Vérifier si une vérification existe déjà pour l'utilisateur et les documents
     const existingVerifications = await prisma.verification.findMany({
@@ -402,17 +427,21 @@ async function createVerification(userId: string, adminId: string, userType: 'DE
     // Déterminer aléatoirement le statut de la vérification
     const isComplete = Math.random() < VERIFICATION_COMPLETE_ODDS;
     const isApproved = Math.random() < DOCUMENT_APPROVAL_ODDS;
-    const status = isComplete 
-      ? (isApproved ? VerificationStatus.APPROVED : VerificationStatus.REJECTED)
+    const status = isComplete
+      ? isApproved
+        ? VerificationStatus.APPROVED
+        : VerificationStatus.REJECTED
       : VerificationStatus.PENDING;
 
     // Dates pour l'historique des vérifications
     const requestedAt = randomDate();
-    const verifiedAt = isComplete ? new Date(requestedAt.getTime() + (1000 * 60 * 60 * 24 * faker.number.int({ min: 1, max: 5 }))) : null;
+    const verifiedAt = isComplete
+      ? new Date(requestedAt.getTime() + 1000 * 60 * 60 * 24 * faker.number.int({ min: 1, max: 5 }))
+      : null;
 
     // Créer les vérifications pour chaque document
     const verifications = [];
-    
+
     for (const documentId of documentIds) {
       // Créer la vérification
       const verification = await prisma.verification.create({
@@ -423,27 +452,28 @@ async function createVerification(userId: string, adminId: string, userType: 'DE
           documentId,
           submitterId: userId,
           verifierId: isComplete ? adminId : null,
-          notes: isComplete 
-            ? (isApproved 
-                ? 'Document conforme. Vérification approuvée.'
-                : faker.helpers.arrayElement([
-                    'Document invalide ou expiré.',
-                    'Le format du document n\'est pas conforme aux exigences.',
-                    'Information manquante sur le document fourni.',
-                    'La qualité du document est trop faible pour être lisible.',
-                  ]))
+          notes: isComplete
+            ? isApproved
+              ? 'Document conforme. Vérification approuvée.'
+              : faker.helpers.arrayElement([
+                  'Document invalide ou expiré.',
+                  "Le format du document n'est pas conforme aux exigences.",
+                  'Information manquante sur le document fourni.',
+                  'La qualité du document est trop faible pour être lisible.',
+                ])
             : null,
-          rejectionReason: (!isApproved && isComplete) 
-            ? faker.helpers.arrayElement([
-                'Document invalide',
-                'Information manquante',
-                'Document expiré',
-                'Format invalide',
-              ]) 
-            : null,
+          rejectionReason:
+            !isApproved && isComplete
+              ? faker.helpers.arrayElement([
+                  'Document invalide',
+                  'Information manquante',
+                  'Document expiré',
+                  'Format invalide',
+                ])
+              : null,
         },
       });
-      
+
       verifications.push(verification);
     }
 
@@ -486,17 +516,16 @@ async function createVerification(userId: string, adminId: string, userType: 'DE
           status,
           createdAt: verifiedAt || requestedAt,
           documentId,
-          comment: isApproved 
-            ? 'Document vérifié et approuvé' 
-            : 'Document vérifié et rejeté',
-          reason: (!isApproved && isComplete)
-            ? faker.helpers.arrayElement([
-                'Document invalide',
-                'Information manquante',
-                'Document expiré',
-                'Format invalide',
-              ])
-            : null,
+          comment: isApproved ? 'Document vérifié et approuvé' : 'Document vérifié et rejeté',
+          reason:
+            !isApproved && isComplete
+              ? faker.helpers.arrayElement([
+                  'Document invalide',
+                  'Information manquante',
+                  'Document expiré',
+                  'Format invalide',
+                ])
+              : null,
         },
       });
     }
@@ -504,7 +533,10 @@ async function createVerification(userId: string, adminId: string, userType: 'DE
     console.log(`✅ Vérifications créées pour l'utilisateur ${userId} avec statut ${status}`);
     return verifications.length > 0 ? verifications[0] : null;
   } catch (error) {
-    console.error(`Erreur lors de la création de la vérification pour l'utilisateur ${userId}:`, error);
+    console.error(
+      `Erreur lors de la création de la vérification pour l'utilisateur ${userId}:`,
+      error
+    );
     return null;
   }
 }
@@ -512,10 +544,10 @@ async function createVerification(userId: string, adminId: string, userType: 'DE
 // Exécution de la fonction principale
 main()
   .then(() => process.exit(0))
-  .catch((error) => {
+  .catch(error => {
     console.error(error);
     process.exit(1);
   });
 
 // Export pour permettre l'utilisation dans d'autres fichiers
-export { main }; 
+export { main };

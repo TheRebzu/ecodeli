@@ -2,14 +2,18 @@
 
 import { useState } from 'react';
 import { useSession } from 'next-auth/react';
-import { trpc } from '@/trpc/client';
+import { api } from '@/trpc/react';
 import { toast } from 'sonner';
-import { deliveryStatusEnumSchema } from '@/schemas/delivery-tracking.schema';
-
 type FilterStatus = 'all' | 'active' | 'completed' | 'upcoming';
 
-// Utiliser directement le type de statut de l'enum du schéma
-type DeliveryStatusType = typeof deliveryStatusEnumSchema._type;
+// Utiliser uniquement les statuts acceptés par l'API tRPC
+type DeliveryStatusType =
+  | 'PENDING'
+  | 'ACCEPTED'
+  | 'PICKED_UP'
+  | 'IN_TRANSIT'
+  | 'DELIVERED'
+  | 'CANCELLED';
 
 interface UseClientDeliveriesOptions {
   status?: FilterStatus;
@@ -36,27 +40,18 @@ export function useClientDeliveries({
   const getStatusFilter = (filterStatus: FilterStatus): DeliveryStatusType[] | undefined => {
     switch (filterStatus) {
       case 'active':
-        return [
-          'IN_TRANSIT',
-          'PICKED_UP',
-          'ASSIGNED',
-        ];
+        return ['IN_TRANSIT', 'PICKED_UP', 'ACCEPTED'];
       case 'completed':
         return ['DELIVERED'];
       case 'upcoming':
-        return ['PENDING_PICKUP', 'CREATED'];
+        return ['PENDING'];
       default:
         return undefined; // Pour 'all', on ne spécifie pas de filtre
     }
   };
 
   // Récupérer les livraisons
-  const {
-    data,
-    isLoading,
-    error,
-    refetch,
-  } = trpc.deliveryTracking.getDeliveries.useQuery(
+  const { data, isLoading, error, refetch } = api.deliveryTracking.getDeliveries.useQuery(
     {
       status: getStatusFilter(status),
       page,
@@ -69,9 +64,7 @@ export function useClientDeliveries({
       onSuccess: (data: any) => {
         // Vérifier s'il y a au moins une livraison active avec ETA
         const hasActive = data?.deliveries.some(
-          (delivery: any) =>
-            delivery.status === 'IN_TRANSIT' &&
-            delivery.estimatedArrival
+          (delivery: any) => delivery.status === 'IN_TRANSIT' && delivery.estimatedArrival
         );
         setHasActiveDeliveries(hasActive || false);
       },
@@ -86,12 +79,9 @@ export function useClientDeliveries({
   );
 
   // Requête pour obtenir les livraisons actives
-  const activeDeliveriesQuery = trpc.deliveryTracking.getActiveDeliveries.useQuery(
-    undefined,
-    {
-      enabled: !!session,
-    }
-  );
+  const activeDeliveriesQuery = api.deliveryTracking.getActiveDeliveries.useQuery(undefined, {
+    enabled: !!session,
+  });
 
   // Vérifier s'il y a des livraisons actives
   if (activeDeliveriesQuery.data && activeDeliveriesQuery.data.length > 0 && !hasActiveDeliveries) {
@@ -106,4 +96,4 @@ export function useClientDeliveries({
     refetch,
     hasActiveDeliveries,
   };
-} 
+}

@@ -1,0 +1,316 @@
+// ===== MODÈLES RENDEZ-VOUS CLIENTS =====
+// Ce fichier contient les modèles pour la gestion des rendez-vous entre clients et prestataires.
+
+/// Rendez-vous entre un client et un prestataire
+model ClientAppointment {
+  id                String            @id @default(cuid())
+  clientId          String
+  providerId        String
+  serviceId         String?           // Service associé (optionnel)
+  bookingId         String?           // Réservation associée (optionnel)
+  
+  // Informations de base du rendez-vous
+  title             String            // Titre/objet du rendez-vous
+  description       String?           // Description détaillée
+  startTime         DateTime          // Heure de début
+  endTime           DateTime          // Heure de fin
+  estimatedDuration Int               // Durée estimée en minutes
+  actualStartTime   DateTime?         // Heure de début réelle
+  actualEndTime     DateTime?         // Heure de fin réelle
+  
+  // Statut et état
+  status            AppointmentStatus @default(PENDING)
+  isRecurring       Boolean           @default(false)
+  recurringRule     String?           // Règle de récurrence (format iCal RRULE)
+  isVirtual         Boolean           @default(false)
+  meetingLink       String?           // Lien pour rendez-vous virtuel
+  
+  // Localisation
+  addressId         String?           // Adresse si rendez-vous physique
+  locationNotes     String?           // Notes sur le lieu
+  
+  // Prix et paiement
+  price             Decimal?          // Prix du rendez-vous
+  paymentId         String?           // Paiement associé
+  
+  // Notes et communications
+  clientNotes       String?           // Notes du client
+  providerNotes     String?           // Notes privées du prestataire
+  internalNotes     String?           // Notes internes système
+  
+  // Confirmation et rappels
+  confirmationCode  String?           @unique // Code de confirmation
+  requiresConfirmation Boolean        @default(true)
+  confirmedAt       DateTime?         // Date de confirmation
+  confirmedBy       String?           // Qui a confirmé (clientId ou providerId)
+  
+  // Notifications et rappels
+  remindersSent     String[]          @default([]) // Types de rappels envoyés
+  lastReminderSent  DateTime?         // Dernier rappel envoyé
+  notificationsSent String[]          @default([]) // Notifications envoyées
+  
+  // Reprogrammation
+  originalAppointmentId String?       // Rendez-vous original si reprogrammé
+  rescheduleCount   Int               @default(0) // Nombre de reprogrammations
+  rescheduleReason  RescheduleReason? // Raison de la reprogrammation
+  rescheduleNotes   String?           // Notes sur la reprogrammation
+  rescheduledBy     String?           // Qui a reprogrammé
+  rescheduledAt     DateTime?         // Date de reprogrammation
+  
+  // Annulation
+  cancelledAt       DateTime?         // Date d'annulation
+  cancelledBy       String?           // Qui a annulé
+  cancellationReason CancellationReason? // Raison d'annulation
+  cancellationNotes String?           // Notes d'annulation
+  refundAmount      Decimal?          // Montant remboursé
+  cancellationFee   Decimal?          // Frais d'annulation
+  
+  // Suivi et évaluation
+  completedAt       DateTime?         // Date de fin réelle
+  noShowAt          DateTime?         // Date du non-show
+  clientPresent     Boolean?          // Client présent
+  providerPresent   Boolean?          // Prestataire présent
+  hasReview         Boolean           @default(false) // A une évaluation
+  
+  // Métadonnées
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  version           Int               @default(1) // Version pour éviter conflits
+  
+  // Relations
+  client            User              @relation("ClientAppointments", fields: [clientId], references: [id])
+  provider          User              @relation("ProviderAppointments", fields: [providerId], references: [id])
+  service           Service?          @relation("ServiceAppointments", fields: [serviceId], references: [id])
+  booking           ServiceBooking?   @relation(fields: [bookingId], references: [id])
+  address           Address?          @relation(fields: [addressId], references: [id])
+  payment           Payment?          @relation("AppointmentPayments", fields: [paymentId], references: [id])
+  
+  // Relations de reprogrammation
+  originalAppointment ClientAppointment? @relation("AppointmentReschedule", fields: [originalAppointmentId], references: [id])
+  rescheduledAppointments ClientAppointment[] @relation("AppointmentReschedule")
+  
+  // Historique et notifications
+  history           AppointmentHistory[]
+  notifications     AppointmentNotification[]
+  slots             AppointmentSlot[]
+  
+  // Index pour les performances
+  @@index([clientId])
+  @@index([providerId])
+  @@index([serviceId])
+  @@index([status])
+  @@index([startTime])
+  @@index([endTime])
+  @@index([createdAt])
+  @@index([confirmationCode])
+  @@index([originalAppointmentId])
+}
+
+/// Historique des modifications d'un rendez-vous
+model AppointmentHistory {
+  id            String            @id @default(cuid())
+  appointmentId String
+  
+  // Détails de la modification
+  action        String            // Type d'action (CREATED, UPDATED, RESCHEDULED, etc.)
+  changes       Json              // Détails des changements (format JSON)
+  oldValues     Json?             // Anciennes valeurs
+  newValues     Json?             // Nouvelles valeurs
+  reason        String?           // Raison du changement
+  
+  // Qui a effectué le changement
+  changedBy     String?           // ID de l'utilisateur
+  changedByRole String?           // Rôle (CLIENT, PROVIDER, SYSTEM)
+  userAgent     String?           // User agent pour traçabilité
+  ipAddress     String?           // Adresse IP
+  
+  // Métadonnées
+  createdAt     DateTime          @default(now())
+  
+  // Relations
+  appointment   ClientAppointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  user          User?             @relation("AppointmentHistoryUser", fields: [changedBy], references: [id])
+  
+  // Index
+  @@index([appointmentId])
+  @@index([createdAt])
+  @@index([action])
+}
+
+/// Notifications liées aux rendez-vous
+model AppointmentNotification {
+  id            String                      @id @default(cuid())
+  appointmentId String
+  
+  // Type et contenu
+  type          AppointmentNotificationType
+  title         String
+  message       String
+  
+  // Destinataire
+  recipientId   String                      // Client ou prestataire
+  recipientType String                      // CLIENT ou PROVIDER
+  
+  // Statut d'envoi
+  sent          Boolean                     @default(false)
+  sentAt        DateTime?
+  deliveredAt   DateTime?
+  readAt        DateTime?
+  
+  // Canaux d'envoi
+  channels      String[]                    @default([]) // EMAIL, SMS, PUSH, IN_APP
+  
+  // Programmation
+  scheduledFor  DateTime?                   // Pour les rappels programmés
+  
+  // Erreurs
+  failed        Boolean                     @default(false)
+  failureReason String?
+  retryCount    Int                         @default(0)
+  lastRetryAt   DateTime?
+  
+  // Métadonnées
+  createdAt     DateTime                    @default(now())
+  updatedAt     DateTime                    @updatedAt
+  
+  // Relations
+  appointment   ClientAppointment           @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  recipient     User                        @relation("AppointmentNotificationUser", fields: [recipientId], references: [id])
+  
+  // Index
+  @@index([appointmentId])
+  @@index([recipientId])
+  @@index([type])
+  @@index([scheduledFor])
+  @@index([sent])
+  @@index([createdAt])
+}
+
+/// Disponibilités spécifiques pour les rendez-vous
+model AppointmentSlot {
+  id          String            @id @default(cuid())
+  providerId  String
+  
+  // Créneau
+  startTime   DateTime
+  endTime     DateTime
+  duration    Int               // Durée en minutes
+  
+  // Statut
+  isAvailable Boolean           @default(true)
+  isBlocked   Boolean           @default(false)
+  blockReason String?           // Raison du blocage
+  
+  // Réservation
+  isBooked    Boolean           @default(false)
+  bookedBy    String?           // ID du client qui a réservé
+  appointmentId String?         @unique // Rendez-vous associé
+  
+  // Récurrence
+  isRecurring Boolean           @default(false)
+  recurringRule String?         // Règle de récurrence
+  parentSlotId String?          // Slot parent si récurrence
+  
+  // Prix et conditions
+  price       Decimal?          // Prix spécifique pour ce créneau
+  minNotice   Int?              // Préavis minimum en heures
+  maxAdvance  Int?              // Réservation maximum à l'avance en jours
+  
+  // Métadonnées
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  
+  // Relations
+  provider    User              @relation("ProviderAppointmentSlots", fields: [providerId], references: [id])
+  client      User?             @relation("ClientReservedSlots", fields: [bookedBy], references: [id])
+  appointment ClientAppointment? @relation(fields: [appointmentId], references: [id])
+  parentSlot  AppointmentSlot?  @relation("SlotRecurrence", fields: [parentSlotId], references: [id])
+  childSlots  AppointmentSlot[] @relation("SlotRecurrence")
+  
+  // Index
+  @@index([providerId])
+  @@index([startTime])
+  @@index([endTime])
+  @@index([isAvailable])
+  @@index([isBooked])
+  @@index([bookedBy])
+}
+
+/// Règles de disponibilité des prestataires pour les rendez-vous
+model AppointmentAvailabilityRule {
+  id          String    @id @default(cuid())
+  providerId  String
+  
+  // Règle de disponibilité
+  name        String    // Nom de la règle
+  description String?   // Description
+  
+  // Jours de la semaine (0 = dimanche, 6 = samedi)
+  daysOfWeek  Int[]     // [1,2,3,4,5] pour lun-ven
+  
+  // Heures
+  startTime   String    // Format HH:mm
+  endTime     String    // Format HH:mm
+  timezone    String    @default("Europe/Paris")
+  
+  // Durée et espacement
+  slotDuration Int      // Durée en minutes
+  breakBetween Int      @default(0) // Pause entre créneaux en minutes
+  
+  // Limites
+  maxAppointmentsPerDay Int? // Limite d'appointments par jour
+  minNoticeHours Int    @default(24) // Préavis minimum
+  maxAdvanceDays Int    @default(30) // Réservation max à l'avance
+  
+  // Période d'application
+  validFrom   DateTime  // Date de début
+  validTo     DateTime? // Date de fin (optionnelle)
+  
+  // État
+  isActive    Boolean   @default(true)
+  priority    Int       @default(0) // Priorité en cas de conflit
+  
+  // Métadonnées
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  provider    User      @relation("ProviderAvailabilityRules", fields: [providerId], references: [id])
+  
+  // Index
+  @@index([providerId])
+  @@index([daysOfWeek])
+  @@index([validFrom])
+  @@index([isActive])
+}
+
+/// Exceptions aux règles de disponibilité
+model AppointmentAvailabilityException {
+  id          String        @id @default(cuid())
+  providerId  String
+  
+  // Exception
+  date        DateTime      // Date de l'exception
+  startTime   String?       // Heure de début (format HH:mm) - null = toute la journée
+  endTime     String?       // Heure de fin (format HH:mm)
+  
+  // Type d'exception
+  type        ExceptionType
+  reason      String        // Raison de l'exception
+  description String?       // Description détaillée
+  
+  // État
+  isBlocked   Boolean       @default(true) // Bloque ou libère
+  
+  // Métadonnées
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  // Relations
+  provider    User          @relation("ProviderAvailabilityExceptions", fields: [providerId], references: [id])
+  
+  // Index
+  @@index([providerId])
+  @@index([date])
+  @@index([type])
+} 

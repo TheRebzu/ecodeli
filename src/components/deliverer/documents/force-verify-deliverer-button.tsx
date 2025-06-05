@@ -51,17 +51,17 @@ export default function ForceVerifyDelivererButton() {
 
   // Mutation pour forcer la vérification
   const forceVerifyMutation = api.verification.manualCheckAndUpdateVerification.useMutation({
-    onSuccess: async (data) => {
+    onSuccess: async data => {
       if (data.success) {
         // Mettre à jour la session explicitement
         await update({ isVerified: true });
-        
+
         toast({
           variant: 'success',
           title: 'Vérification en cours',
           children: <p>Votre compte est en cours de vérification</p>,
         });
-        
+
         // Rediriger après un délai pour laisser le temps à la session de se mettre à jour
         setTimeout(() => {
           const locale = session?.user?.locale || 'fr';
@@ -74,7 +74,7 @@ export default function ForceVerifyDelivererButton() {
           variant: 'default',
           children: <p>Certains documents sont encore en attente de vérification</p>,
         });
-        
+
         if (data.missingDocuments && data.missingDocuments.length > 0) {
           setMissingDocuments(data.missingDocuments);
           setCanVerify(false);
@@ -82,7 +82,7 @@ export default function ForceVerifyDelivererButton() {
       }
       setIsChecking(false);
     },
-    onError: (error) => {
+    onError: error => {
       console.error('Erreur lors de la vérification:', error);
       toast({
         variant: 'destructive',
@@ -98,12 +98,14 @@ export default function ForceVerifyDelivererButton() {
       toast({
         variant: 'destructive',
         title: 'Documents incomplets',
-        children: <p>Tous vos documents doivent être approuvés avant de pouvoir vérifier votre compte</p>,
+        children: (
+          <p>Tous vos documents doivent être approuvés avant de pouvoir vérifier votre compte</p>
+        ),
       });
       setIsConfirmDialogOpen(false);
       return;
     }
-    
+
     setIsChecking(true);
     console.log('Lancement de la vérification manuelle...');
     forceVerifyMutation.mutate();
@@ -127,7 +129,9 @@ export default function ForceVerifyDelivererButton() {
         <div className="flex items-start">
           <AlertTriangle className="h-5 w-5 text-amber-500 mt-0.5 mr-3" />
           <div>
-            <h3 className="text-sm font-medium text-amber-800">Documents manquants ou non vérifiés</h3>
+            <h3 className="text-sm font-medium text-amber-800">
+              Documents manquants ou non vérifiés
+            </h3>
             <div className="mt-2 text-sm text-amber-700">
               <p>
                 Vous devez télécharger et faire vérifier tous les documents requis avant de pouvoir
@@ -144,8 +148,8 @@ export default function ForceVerifyDelivererButton() {
     <>
       <AlertDialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
         <AlertDialogTrigger asChild>
-          <Button 
-            variant="outline" 
+          <Button
+            variant="outline"
             className="flex items-center gap-2"
             disabled={!canVerify || isChecking || forceVerifyMutation.isPending}
           >
@@ -154,8 +158,8 @@ export default function ForceVerifyDelivererButton() {
             ) : (
               <RefreshCw className="h-4 w-4" />
             )}
-            {isChecking || forceVerifyMutation.isPending 
-              ? 'Vérification en cours...' 
+            {isChecking || forceVerifyMutation.isPending
+              ? 'Vérification en cours...'
               : 'Forcer la vérification de mon compte'}
           </Button>
         </AlertDialogTrigger>
@@ -170,8 +174,8 @@ export default function ForceVerifyDelivererButton() {
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Annuler</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={handleVerify} 
+            <AlertDialogAction
+              onClick={handleVerify}
               disabled={isChecking || forceVerifyMutation.isPending || !canVerify}
             >
               {isChecking || forceVerifyMutation.isPending

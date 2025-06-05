@@ -13,15 +13,17 @@ export const InvoiceStatus = {
 export const invoiceBaseSchema = z.object({
   amount: z.number().positive('Le montant doit être positif'),
   currency: z.string().default('EUR'),
-  dueDate: z.date().min(new Date(), 'La date d\'échéance doit être future'),
+  dueDate: z.date().min(new Date(), "La date d'échéance doit être future"),
   description: z.string().optional(),
 });
 
 // Schéma pour la création d'une facture
 export const createInvoiceSchema = invoiceBaseSchema.extend({
   userId: z.string().cuid('ID utilisateur invalide'),
-  invoiceType: z.enum(['SERVICE', 'DELIVERY', 'SUBSCRIPTION', 'COMMISSION', 'MERCHANT_FEE', 'OTHER']).default('SERVICE'),
-  
+  invoiceType: z
+    .enum(['SERVICE', 'DELIVERY', 'SUBSCRIPTION', 'COMMISSION', 'MERCHANT_FEE', 'OTHER'])
+    .default('SERVICE'),
+
   // Informations spécifiques à la facturation marchande
   merchantId: z.string().cuid('ID commerçant invalide').optional(),
   providerId: z.string().cuid('ID prestataire invalide').optional(),
@@ -30,38 +32,42 @@ export const createInvoiceSchema = invoiceBaseSchema.extend({
   serviceDescription: z.string().optional(),
   paymentTerms: z.string().optional(),
   notes: z.string().optional(),
-  
+
   // Informations sur l'entité facturée
   billingName: z.string(),
   billingAddress: z.string().optional(),
   billingCity: z.string().optional(),
   billingPostal: z.string().optional(),
   billingCountry: z.string().default('France'),
-  
+
   // Informations fiscales
   taxRate: z.number().min(0).max(100).default(20),
   taxId: z.string().optional(),
-  
+
   // Éléments de facturation
-  items: z.array(z.object({
-    description: z.string(),
-    quantity: z.number().positive(),
-    unitPrice: z.number().positive(),
-    taxRate: z.number().min(0).max(100).optional(),
-    discount: z.number().min(0).max(100).optional(),
-    serviceId: z.string().cuid('ID service invalide').optional(),
-    deliveryId: z.string().cuid('ID livraison invalide').optional(),
-    itemCode: z.string().optional(),
-    periodStart: z.date().optional(),
-    periodEnd: z.date().optional(),
-  })).min(1, 'Au moins un élément est requis'),
-  
+  items: z
+    .array(
+      z.object({
+        description: z.string(),
+        quantity: z.number().positive(),
+        unitPrice: z.number().positive(),
+        taxRate: z.number().min(0).max(100).optional(),
+        discount: z.number().min(0).max(100).optional(),
+        serviceId: z.string().cuid('ID service invalide').optional(),
+        deliveryId: z.string().cuid('ID livraison invalide').optional(),
+        itemCode: z.string().optional(),
+        periodStart: z.date().optional(),
+        periodEnd: z.date().optional(),
+      })
+    )
+    .min(1, 'Au moins un élément est requis'),
+
   // Référence optionnelle à un paiement
   paymentId: z.string().cuid('ID paiement invalide').optional(),
-  
+
   // Génération de numéro de facture
   customInvoiceNumber: z.string().optional(),
-  
+
   // Paramètres pour le mode démonstration
   isDemo: z.boolean().default(true),
 });
@@ -69,8 +75,18 @@ export const createInvoiceSchema = invoiceBaseSchema.extend({
 // Schéma pour filtrer les factures
 export const invoiceFilterSchema = z.object({
   userId: z.string().cuid('ID utilisateur invalide').optional(),
-  status: z.enum([InvoiceStatus.DRAFT, InvoiceStatus.ISSUED, InvoiceStatus.PAID, InvoiceStatus.OVERDUE, InvoiceStatus.CANCELLED]).optional(),
-  invoiceType: z.enum(['SERVICE', 'DELIVERY', 'SUBSCRIPTION', 'COMMISSION', 'MERCHANT_FEE', 'OTHER']).optional(),
+  status: z
+    .enum([
+      InvoiceStatus.DRAFT,
+      InvoiceStatus.ISSUED,
+      InvoiceStatus.PAID,
+      InvoiceStatus.OVERDUE,
+      InvoiceStatus.CANCELLED,
+    ])
+    .optional(),
+  invoiceType: z
+    .enum(['SERVICE', 'DELIVERY', 'SUBSCRIPTION', 'COMMISSION', 'MERCHANT_FEE', 'OTHER'])
+    .optional(),
   minAmount: z.number().optional(),
   maxAmount: z.number().optional(),
   issueDateFrom: z.date().optional(),
@@ -88,11 +104,17 @@ export const invoiceFilterSchema = z.object({
 // Schéma pour mettre à jour le statut d'une facture
 export const updateInvoiceStatusSchema = z.object({
   invoiceId: z.string().cuid('ID facture invalide'),
-  status: z.enum([InvoiceStatus.DRAFT, InvoiceStatus.ISSUED, InvoiceStatus.PAID, InvoiceStatus.OVERDUE, InvoiceStatus.CANCELLED]),
+  status: z.enum([
+    InvoiceStatus.DRAFT,
+    InvoiceStatus.ISSUED,
+    InvoiceStatus.PAID,
+    InvoiceStatus.OVERDUE,
+    InvoiceStatus.CANCELLED,
+  ]),
   notes: z.string().optional(),
   paidDate: z.date().optional(),
   reminderSent: z.boolean().optional(),
-  
+
   // Paramètres pour le mode démonstration
   isDemo: z.boolean().default(true),
 });
@@ -104,7 +126,7 @@ export const createCreditNoteSchema = z.object({
   reason: z.string(),
   refundPaymentId: z.string().cuid('ID paiement de remboursement invalide').optional(),
   notes: z.string().optional(),
-  
+
   // Paramètres pour le mode démonstration
   isDemo: z.boolean().default(true),
 });
@@ -115,7 +137,7 @@ export const sendInvoiceEmailSchema = z.object({
   recipientEmail: z.string().email('Email invalide').optional(),
   customMessage: z.string().optional(),
   includePDF: z.boolean().default(true),
-  
+
   // Paramètres pour le mode démonstration
   isDemo: z.boolean().default(true),
 });
@@ -143,7 +165,7 @@ export const monthlyMerchantBillingSchema = z.object({
   autoProcess: z.boolean().default(true),
   includeFixedFees: z.boolean().default(true),
   includeCommissions: z.boolean().default(true),
-  isDemo: z.boolean().default(true)
+  isDemo: z.boolean().default(true),
 });
 
 // Schéma pour la facturation automatique mensuelle des prestataires
@@ -154,7 +176,7 @@ export const monthlyProviderBillingSchema = z.object({
   forceGenerate: z.boolean().default(false),
   autoProcess: z.boolean().default(true),
   includeCommissions: z.boolean().default(true),
-  isDemo: z.boolean().default(true)
+  isDemo: z.boolean().default(true),
 });
 
 // Schéma pour les cycles de facturation
@@ -165,7 +187,7 @@ export const billingCycleSchema = z.object({
   periodEnd: z.date(),
   scheduledRunDate: z.date(),
   autoExecute: z.boolean().default(true),
-  isDemo: z.boolean().default(true)
+  isDemo: z.boolean().default(true),
 });
 
 // Schéma pour les statistiques de facturation
@@ -174,7 +196,7 @@ export const billingStatsSchema = z.object({
   startDate: z.date().optional(),
   endDate: z.date().optional(),
   entityType: z.enum(['ALL', 'MERCHANT', 'PROVIDER']).default('ALL'),
-  includeDetails: z.boolean().default(false)
+  includeDetails: z.boolean().default(false),
 });
 
 // Export des types pour TypeScript

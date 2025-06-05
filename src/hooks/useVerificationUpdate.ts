@@ -14,19 +14,21 @@ export function useVerificationUpdate() {
   useEffect(() => {
     // Check for the special cookie that indicates a verification status update
     const verificationUpdated = getCookie('verification_updated');
-    
+
     if (verificationUpdated === 'true') {
       console.log('Verification status updated, refreshing session...');
-      
+
       // Remove the cookie to prevent repeated refreshes
       deleteCookie('verification_updated');
-      
+
       // Call the NextAuth update method to refresh the session
-      update().then(() => {
-        console.log('Session refreshed successfully');
-      }).catch(error => {
-        console.error('Failed to refresh session after verification update:', error);
-      });
+      update()
+        .then(() => {
+          console.log('Session refreshed successfully');
+        })
+        .catch(error => {
+          console.error('Failed to refresh session after verification update:', error);
+        });
     }
   }, [update]);
 }

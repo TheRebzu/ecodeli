@@ -6,14 +6,20 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { useToast } from '@/components/ui/use-toast';
 import { api } from '@/trpc/react';
-import { 
-  Shield, 
-  FileCheck, 
-  AlertTriangle, 
-  Upload, 
+import {
+  Shield,
+  FileCheck,
+  AlertTriangle,
+  Upload,
   RefreshCcw,
   Eye,
   Download,
@@ -22,7 +28,7 @@ import {
   CheckCircle,
   XCircle,
   Camera,
-  Scan
+  Scan,
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -32,9 +38,9 @@ interface DocumentVerificationProps {
   onStatusChange?: (status: string) => void;
 }
 
-export default function DelivererDocumentVerification({ 
-  delivererId, 
-  onStatusChange 
+export default function DelivererDocumentVerification({
+  delivererId,
+  onStatusChange,
 }: DocumentVerificationProps) {
   const { toast } = useToast();
   const [selectedDocument, setSelectedDocument] = useState<any>(null);
@@ -53,23 +59,24 @@ export default function DelivererDocumentVerification({
 
   // Mutations
   const autoValidateMutation = api.deliverer.documents.autoValidate.useMutation({
-    onSuccess: (result) => {
+    onSuccess: result => {
       toast({
         title: 'Validation automatique lancée',
-        description: result.status === 'APPROVED' 
-          ? 'Document validé automatiquement !' 
-          : 'Le document nécessite une vérification manuelle',
-        variant: result.status === 'APPROVED' ? 'success' : 'default'
+        description:
+          result.status === 'APPROVED'
+            ? 'Document validé automatiquement !'
+            : 'Le document nécessite une vérification manuelle',
+        variant: result.status === 'APPROVED' ? 'success' : 'default',
       });
       refetch();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur de validation',
         description: error.message,
-        variant: 'destructive'
+        variant: 'destructive',
       });
-    }
+    },
   });
 
   const uploadMutation = api.deliverer.documents.upload.useMutation({
@@ -77,19 +84,19 @@ export default function DelivererDocumentVerification({
       toast({
         title: 'Document uploadé',
         description: 'Votre document a été envoyé pour vérification',
-        variant: 'success'
+        variant: 'success',
       });
       setUploadingDocType(null);
       refetch();
       onStatusChange?.('UPLOADED');
     },
-    onError: (error) => {
+    onError: error => {
       toast({
-        title: 'Erreur d\'upload',
+        title: "Erreur d'upload",
         description: error.message,
-        variant: 'destructive'
+        variant: 'destructive',
       });
-    }
+    },
   });
 
   const getStatusIcon = (status: string) => {
@@ -120,14 +127,14 @@ export default function DelivererDocumentVerification({
 
   const getDocumentTypeLabel = (type: string) => {
     const labels: Record<string, string> = {
-      'IDENTITY': 'Pièce d\'identité',
-      'DRIVING_LICENSE': 'Permis de conduire',
-      'INSURANCE': 'Attestation d\'assurance',
-      'VEHICLE_REGISTRATION': 'Carte grise',
-      'BACKGROUND_CHECK': 'Extrait de casier judiciaire',
-      'MEDICAL_CERTIFICATE': 'Certificat médical',
-      'BANK_DETAILS': 'RIB',
-      'ADDRESS_PROOF': 'Justificatif de domicile'
+      IDENTITY: "Pièce d'identité",
+      DRIVING_LICENSE: 'Permis de conduire',
+      INSURANCE: "Attestation d'assurance",
+      VEHICLE_REGISTRATION: 'Carte grise',
+      BACKGROUND_CHECK: 'Extrait de casier judiciaire',
+      MEDICAL_CERTIFICATE: 'Certificat médical',
+      BANK_DETAILS: 'RIB',
+      ADDRESS_PROOF: 'Justificatif de domicile',
     };
     return labels[type] || type;
   };
@@ -222,7 +229,8 @@ export default function DelivererDocumentVerification({
         <Alert variant="destructive">
           <XCircle className="h-4 w-4" />
           <AlertDescription>
-            {rejectedCount} document(s) ont été rejeté(s). Veuillez les corriger et les re-soumettre.
+            {rejectedCount} document(s) ont été rejeté(s). Veuillez les corriger et les
+            re-soumettre.
           </AlertDescription>
         </Alert>
       )}
@@ -245,7 +253,7 @@ export default function DelivererDocumentVerification({
           <TabsTrigger value="rejected">Rejetés ({rejectedCount})</TabsTrigger>
         </TabsList>
 
-        {['all', 'pending', 'approved', 'rejected'].map((tab) => (
+        {['all', 'pending', 'approved', 'rejected'].map(tab => (
           <TabsContent key={tab} value={tab} className="space-y-4">
             {documents
               .filter((doc: any) => {
@@ -253,40 +261,69 @@ export default function DelivererDocumentVerification({
                 return doc.status.toLowerCase() === tab;
               })
               .map((document: any) => (
-                <Card key={document.id} className={isDocumentExpired(document.expiryDate) ? 'border-red-200' : ''}>
+                <Card
+                  key={document.id}
+                  className={isDocumentExpired(document.expiryDate) ? 'border-red-200' : ''}
+                >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between">
                       <div className="flex items-start gap-3">
                         {getStatusIcon(document.status)}
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <h3 className="font-medium">{getDocumentTypeLabel(document.documentType)}</h3>
+                            <h3 className="font-medium">
+                              {getDocumentTypeLabel(document.documentType)}
+                            </h3>
                             {isDocumentExpired(document.expiryDate) && (
-                              <Badge variant="destructive" className="text-xs">Expiré</Badge>
+                              <Badge variant="destructive" className="text-xs">
+                                Expiré
+                              </Badge>
                             )}
-                            {isDocumentExpiring(document.expiryDate) && !isDocumentExpired(document.expiryDate) && (
-                              <Badge className="bg-orange-100 text-orange-800 text-xs">Expire bientôt</Badge>
-                            )}
+                            {isDocumentExpiring(document.expiryDate) &&
+                              !isDocumentExpired(document.expiryDate) && (
+                                <Badge className="bg-orange-100 text-orange-800 text-xs">
+                                  Expire bientôt
+                                </Badge>
+                              )}
                           </div>
-                          
+
                           <div className="mt-1 space-y-1">
                             <div className="flex items-center gap-4 text-sm text-muted-foreground">
                               <span>Version {document.version}</span>
                               {document.uploadedAt && (
-                                <span>Uploadé le {format(new Date(document.uploadedAt), 'dd/MM/yyyy', { locale: fr })}</span>
+                                <span>
+                                  Uploadé le{' '}
+                                  {format(new Date(document.uploadedAt), 'dd/MM/yyyy', {
+                                    locale: fr,
+                                  })}
+                                </span>
                               )}
                               {document.verifiedAt && document.status === 'APPROVED' && (
                                 <span className="text-green-600">
-                                  Approuvé le {format(new Date(document.verifiedAt), 'dd/MM/yyyy', { locale: fr })}
+                                  Approuvé le{' '}
+                                  {format(new Date(document.verifiedAt), 'dd/MM/yyyy', {
+                                    locale: fr,
+                                  })}
                                 </span>
                               )}
                             </div>
-                            
+
                             {document.expiryDate && (
                               <div className="flex items-center gap-1 text-sm">
                                 <Calendar className="h-3 w-3" />
-                                <span className={isDocumentExpired(document.expiryDate) ? 'text-red-600' : isDocumentExpiring(document.expiryDate) ? 'text-orange-600' : 'text-muted-foreground'}>
-                                  Expire le {format(new Date(document.expiryDate), 'dd/MM/yyyy', { locale: fr })}
+                                <span
+                                  className={
+                                    isDocumentExpired(document.expiryDate)
+                                      ? 'text-red-600'
+                                      : isDocumentExpiring(document.expiryDate)
+                                        ? 'text-orange-600'
+                                        : 'text-muted-foreground'
+                                  }
+                                >
+                                  Expire le{' '}
+                                  {format(new Date(document.expiryDate), 'dd/MM/yyyy', {
+                                    locale: fr,
+                                  })}
                                 </span>
                               </div>
                             )}
@@ -294,7 +331,10 @@ export default function DelivererDocumentVerification({
                             {document.autoValidated && (
                               <div className="flex items-center gap-1 text-sm text-blue-600">
                                 <Scan className="h-3 w-3" />
-                                <span>Validé automatiquement (Score: {Math.round(document.validationScore || 0)}%)</span>
+                                <span>
+                                  Validé automatiquement (Score:{' '}
+                                  {Math.round(document.validationScore || 0)}%)
+                                </span>
                               </div>
                             )}
 
@@ -309,14 +349,14 @@ export default function DelivererDocumentVerification({
 
                       <div className="flex items-center gap-2">
                         {getStatusBadge(document.status)}
-                        
+
                         {/* Actions */}
                         <div className="flex items-center gap-1">
                           {document.documentUrl && (
                             <Dialog>
                               <DialogTrigger asChild>
-                                <Button 
-                                  variant="outline" 
+                                <Button
+                                  variant="outline"
                                   size="sm"
                                   onClick={() => setSelectedDocument(document)}
                                 >
@@ -326,32 +366,36 @@ export default function DelivererDocumentVerification({
                               <DialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
                                 <DialogHeader>
                                   <DialogTitle>
-                                    {getDocumentTypeLabel(document.documentType)} - Version {document.version}
+                                    {getDocumentTypeLabel(document.documentType)} - Version{' '}
+                                    {document.version}
                                   </DialogTitle>
                                 </DialogHeader>
                                 <div className="space-y-4">
                                   {/* Document Preview */}
                                   {document.mimeType?.includes('image') ? (
-                                    <img 
-                                      src={document.documentUrl} 
+                                    <img
+                                      src={document.documentUrl}
                                       alt={`Document ${document.documentType}`}
                                       className="w-full h-auto rounded-lg border"
                                     />
                                   ) : (
-                                    <iframe 
-                                      src={document.documentUrl} 
+                                    <iframe
+                                      src={document.documentUrl}
                                       className="w-full h-96 rounded-lg border"
                                       title={`Document ${document.documentType}`}
                                     />
                                   )}
-                                  
+
                                   {/* Document Info */}
                                   <div className="grid grid-cols-2 gap-4 text-sm">
                                     <div>
                                       <strong>Type:</strong> {document.mimeType}
                                     </div>
                                     <div>
-                                      <strong>Taille:</strong> {document.fileSize ? `${(document.fileSize / 1024 / 1024).toFixed(2)} MB` : 'N/A'}
+                                      <strong>Taille:</strong>{' '}
+                                      {document.fileSize
+                                        ? `${(document.fileSize / 1024 / 1024).toFixed(2)} MB`
+                                        : 'N/A'}
                                     </div>
                                     <div>
                                       <strong>Checksum:</strong> {document.checksum || 'N/A'}
@@ -362,35 +406,50 @@ export default function DelivererDocumentVerification({
                                   </div>
 
                                   {/* Validation History */}
-                                  {verificationHistory?.auditLogs && verificationHistory.auditLogs.length > 0 && (
-                                    <div>
-                                      <h4 className="font-medium mb-2">Historique des validations</h4>
-                                      <div className="space-y-2">
-                                        {verificationHistory.auditLogs.map((log: any) => (
-                                          <div key={log.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded text-sm">
-                                            <div className="flex-1">
-                                              <div className="font-medium">{log.actionType}</div>
-                                              <div className="text-muted-foreground">{log.notes}</div>
-                                            </div>
-                                            <div className="text-right">
-                                              <div>{log.actor?.profile?.firstName} {log.actor?.profile?.lastName}</div>
-                                              <div className="text-muted-foreground">
-                                                {format(new Date(log.createdAt), 'dd/MM/yyyy HH:mm', { locale: fr })}
+                                  {verificationHistory?.auditLogs &&
+                                    verificationHistory.auditLogs.length > 0 && (
+                                      <div>
+                                        <h4 className="font-medium mb-2">
+                                          Historique des validations
+                                        </h4>
+                                        <div className="space-y-2">
+                                          {verificationHistory.auditLogs.map((log: any) => (
+                                            <div
+                                              key={log.id}
+                                              className="flex items-center gap-2 p-2 bg-gray-50 rounded text-sm"
+                                            >
+                                              <div className="flex-1">
+                                                <div className="font-medium">{log.actionType}</div>
+                                                <div className="text-muted-foreground">
+                                                  {log.notes}
+                                                </div>
+                                              </div>
+                                              <div className="text-right">
+                                                <div>
+                                                  {log.actor?.profile?.firstName}{' '}
+                                                  {log.actor?.profile?.lastName}
+                                                </div>
+                                                <div className="text-muted-foreground">
+                                                  {format(
+                                                    new Date(log.createdAt),
+                                                    'dd/MM/yyyy HH:mm',
+                                                    { locale: fr }
+                                                  )}
+                                                </div>
                                               </div>
                                             </div>
-                                          </div>
-                                        ))}
+                                          ))}
+                                        </div>
                                       </div>
-                                    </div>
-                                  )}
+                                    )}
                                 </div>
                               </DialogContent>
                             </Dialog>
                           )}
 
                           {document.documentUrl && (
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               size="sm"
                               onClick={() => window.open(document.documentUrl, '_blank')}
                             >
@@ -399,19 +458,22 @@ export default function DelivererDocumentVerification({
                           )}
 
                           {document.status === 'PENDING' && !document.autoValidated && (
-                            <Button 
-                              variant="outline" 
+                            <Button
+                              variant="outline"
                               size="sm"
-                              onClick={() => autoValidateMutation.mutate({ documentId: document.id })}
+                              onClick={() =>
+                                autoValidateMutation.mutate({ documentId: document.id })
+                              }
                               disabled={autoValidateMutation.isPending}
                             >
                               <Scan className="h-4 w-4" />
                             </Button>
                           )}
 
-                          {(document.status === 'REJECTED' || isDocumentExpired(document.expiryDate)) && (
-                            <Button 
-                              variant="default" 
+                          {(document.status === 'REJECTED' ||
+                            isDocumentExpired(document.expiryDate)) && (
+                            <Button
+                              variant="default"
                               size="sm"
                               onClick={() => setUploadingDocType(document.documentType)}
                             >
@@ -436,8 +498,8 @@ export default function DelivererDocumentVerification({
                     Aucun document {tab === 'all' ? '' : tab}
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    {tab === 'all' 
-                      ? 'Vous n\'avez pas encore uploadé de documents.' 
+                    {tab === 'all'
+                      ? "Vous n'avez pas encore uploadé de documents."
                       : `Aucun document ${tab} pour le moment.`}
                   </p>
                 </CardContent>
@@ -452,18 +514,17 @@ export default function DelivererDocumentVerification({
         <Dialog open={!!uploadingDocType} onOpenChange={() => setUploadingDocType(null)}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>
-                Uploader - {getDocumentTypeLabel(uploadingDocType)}
-              </DialogTitle>
+              <DialogTitle>Uploader - {getDocumentTypeLabel(uploadingDocType)}</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <Alert>
                 <Camera className="h-4 w-4" />
                 <AlertDescription>
-                  Assurez-vous que le document est lisible, bien éclairé et que toutes les informations sont visibles.
+                  Assurez-vous que le document est lisible, bien éclairé et que toutes les
+                  informations sont visibles.
                 </AlertDescription>
               </Alert>
-              
+
               {/* File upload component would go here */}
               <div className="text-center py-8 border-2 border-dashed border-gray-300 rounded-lg">
                 <Upload className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -473,17 +534,14 @@ export default function DelivererDocumentVerification({
               </div>
 
               <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => setUploadingDocType(null)}
                   className="flex-1"
                 >
                   Annuler
                 </Button>
-                <Button 
-                  className="flex-1"
-                  disabled={uploadMutation.isPending}
-                >
+                <Button className="flex-1" disabled={uploadMutation.isPending}>
                   {uploadMutation.isPending ? 'Upload...' : 'Uploader'}
                 </Button>
               </div>

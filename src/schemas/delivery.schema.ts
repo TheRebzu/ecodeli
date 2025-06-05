@@ -5,7 +5,7 @@ import { DeliveryStatus } from '@prisma/client';
 export const extendedDeliveryStatusSchema = z.enum([
   // Statuts Prisma
   'PENDING',
-  'ASSIGNED',
+  'ACCEPTED',
   'PICKED_UP',
   'IN_TRANSIT',
   'DELIVERED',
@@ -100,11 +100,13 @@ export const deliveryIssueReportSchema = z.object({
 // Schéma pour l'assignment automatique de livreur
 export const autoAssignDelivererSchema = z.object({
   announcementId: z.string().min(1),
-  preferences: z.object({
-    maxDistance: z.number().min(1).max(50).optional(), // km
-    minRating: z.number().min(1).max(5).optional(),
-    prioritizeSpeed: z.boolean().optional()
-  }).optional()
+  preferences: z
+    .object({
+      maxDistance: z.number().min(1).max(50).optional(), // km
+      minRating: z.number().min(1).max(5).optional(),
+      prioritizeSpeed: z.boolean().optional(),
+    })
+    .optional(),
 });
 
 // Schéma pour les critères de recherche de livreur
@@ -113,30 +115,36 @@ export const delivererSearchCriteriaSchema = z.object({
   longitude: z.number().min(-180).max(180),
   radius: z.number().min(1).max(50).default(10),
   minRating: z.number().min(1).max(5).optional(),
-  availableOnly: z.boolean().default(true)
+  availableOnly: z.boolean().default(true),
 });
 
 // Schéma pour la mise à jour de disponibilité du livreur
 export const delivererAvailabilitySchema = z.object({
   isAvailable: z.boolean(),
-  location: z.object({
-    latitude: z.number().min(-90).max(90),
-    longitude: z.number().min(-180).max(180)
-  }).optional(),
-  workingHours: z.object({
-    start: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/),
-    end: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/)
-  }).optional()
+  location: z
+    .object({
+      latitude: z.number().min(-90).max(90),
+      longitude: z.number().min(-180).max(180),
+    })
+    .optional(),
+  workingHours: z
+    .object({
+      start: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/),
+      end: z.string().regex(/^([01]?[0-9]|2[0-3]):[0-5][0-9]$/),
+    })
+    .optional(),
 });
 
 // Schéma pour l'optimisation de route
 export const routeOptimizationSchema = z.object({
   delivererId: z.string().min(1),
   deliveryIds: z.array(z.string().min(1)).min(2).max(10),
-  startLocation: z.object({
-    latitude: z.number().min(-90).max(90),
-    longitude: z.number().min(-180).max(180)
-  }).optional()
+  startLocation: z
+    .object({
+      latitude: z.number().min(-90).max(90),
+      longitude: z.number().min(-180).max(180),
+    })
+    .optional(),
 });
 
 // Schéma pour les preuves de livraison
@@ -144,7 +152,7 @@ export const deliveryProofSchema = z.object({
   deliveryId: z.string().min(1),
   type: z.enum(['PHOTO', 'SIGNATURE', 'DOCUMENT']),
   fileUrl: z.string().url(),
-  notes: z.string().max(200).optional()
+  notes: z.string().max(200).optional(),
 });
 
 // Schéma pour les notifications de livraison
@@ -152,7 +160,7 @@ export const deliveryNotificationSchema = z.object({
   deliveryId: z.string().min(1),
   type: z.enum(['STATUS_UPDATE', 'DELAY_ALERT', 'ARRIVAL_NOTICE', 'COMPLETION']),
   recipientRole: z.enum(['CLIENT', 'DELIVERER', 'BOTH']),
-  customMessage: z.string().max(150).optional()
+  customMessage: z.string().max(150).optional(),
 });
 
 // Schéma pour l'historique de livraison
@@ -160,12 +168,14 @@ export const deliveryHistoryFilterSchema = z.object({
   userId: z.string().min(1),
   role: z.enum(['CLIENT', 'DELIVERER']),
   status: extendedDeliveryStatusSchema.optional(),
-  dateRange: z.object({
-    from: z.coerce.date(),
-    to: z.coerce.date()
-  }).optional(),
+  dateRange: z
+    .object({
+      from: z.coerce.date(),
+      to: z.coerce.date(),
+    })
+    .optional(),
   limit: z.number().min(1).max(100).default(20),
-  offset: z.number().min(0).default(0)
+  offset: z.number().min(0).default(0),
 });
 
 // Type pour les entrées de création de livraison

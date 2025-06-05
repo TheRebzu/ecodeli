@@ -21,8 +21,7 @@ const initialTodos: TodoItem[] = [
   {
     id: '1',
     title: 'Analyser les dépenses mensuelles',
-    description:
-      'Examiner les dépenses du mois dernier pour identifier les économies potentielles',
+    description: 'Examiner les dépenses du mois dernier pour identifier les économies potentielles',
     dueDate: new Date(2024, 6, 15),
     completed: false,
     priority: 'high',
@@ -55,43 +54,41 @@ export const useTodoStore = create<TodoState>()(
       isFormVisible: false,
       activeFilter: 'all',
 
-      addTodo: (todo) => {
+      addTodo: todo => {
         const newTodo = {
           ...todo,
           id: uuidv4(),
         };
-        set((state) => ({
+        set(state => ({
           todos: [...state.todos, newTodo],
           isFormVisible: false,
         }));
       },
 
       toggleTodo: (id, completed) => {
-        set((state) => ({
-          todos: state.todos.map((todo) =>
-            todo.id === id ? { ...todo, completed } : todo
-          ),
+        set(state => ({
+          todos: state.todos.map(todo => (todo.id === id ? { ...todo, completed } : todo)),
         }));
       },
 
-      deleteTodo: (id) => {
-        set((state) => ({
-          todos: state.todos.filter((todo) => todo.id !== id),
+      deleteTodo: id => {
+        set(state => ({
+          todos: state.todos.filter(todo => todo.id !== id),
         }));
       },
 
       showForm: () => set({ isFormVisible: true }),
       hideForm: () => set({ isFormVisible: false }),
 
-      setFilter: (filter) => set({ activeFilter: filter }),
+      setFilter: filter => set({ activeFilter: filter }),
 
       getFilteredTodos: () => {
         const { todos, activeFilter } = get();
         switch (activeFilter) {
           case 'active':
-            return todos.filter((todo) => !todo.completed);
+            return todos.filter(todo => !todo.completed);
           case 'completed':
-            return todos.filter((todo) => todo.completed);
+            return todos.filter(todo => todo.completed);
           default:
             return todos;
         }
@@ -101,4 +98,4 @@ export const useTodoStore = create<TodoState>()(
       name: 'todo-storage',
     }
   )
-); 
+);

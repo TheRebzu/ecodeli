@@ -1,8 +1,8 @@
 import { NextIntlClientProvider } from 'next-intl';
 import { getMessages } from 'next-intl/server';
 import ThemeProvider from '@/components/providers/theme-provider';
-import { PublicHeader } from '@/components/layout/public-header';
-import { PublicFooter } from '@/components/layout/public-footer';
+import { PublicHeader } from '@/components/layout/public/header';
+import { MainFooter } from '@/components/layout/public/footer';
 
 interface PublicLayoutProps {
   children: React.ReactNode;
@@ -22,7 +22,7 @@ export default async function PublicLayout({ children, params }: PublicLayoutPro
         <div className="flex min-h-screen flex-col">
           <PublicHeader locale={locale} />
           <main className="flex-1">{children}</main>
-          <PublicFooter locale={locale} />
+          <MainFooter locale={locale} />
         </div>
       </NextIntlClientProvider>
     </ThemeProvider>

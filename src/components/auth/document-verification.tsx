@@ -84,7 +84,8 @@ export function DocumentVerification() {
           DocumentType.DRIVER_LICENSE,
           DocumentType.VEHICLE_REGISTRATION,
           DocumentType.INSURANCE,
-        ];      case 'PROVIDER':
+        ];
+      case 'PROVIDER':
         return [
           DocumentType.ID_CARD,
           DocumentType.QUALIFICATION_CERTIFICATE,

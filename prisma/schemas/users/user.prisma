@@ -39,7 +39,8 @@ model User {
   providerLocationLat      Float?
   providerLocationLng      Float?
   providerAddress          String?
-  providerZipCode          String?  providerCity             String?
+  providerZipCode          String?
+  providerCity             String?
   providerVerified         Boolean                       @default(false)
   isActive                 Boolean                       @default(true)
   
@@ -99,6 +100,40 @@ model User {
   
   // Relations avec la messagerie
   sentMessages             Message[]
+
+  // Relations avec les rendez-vous
+  clientAppointments       ClientAppointment[]           @relation("ClientAppointments")
+  providerAppointments     ClientAppointment[]           @relation("ProviderAppointments")
+  appointmentHistory       AppointmentHistory[]          @relation("AppointmentHistoryUser")
+  appointmentNotifications AppointmentNotification[]     @relation("AppointmentNotificationUser")
+  providerSlots            AppointmentSlot[]             @relation("ProviderAppointmentSlots")
+  reservedSlots            AppointmentSlot[]             @relation("ClientReservedSlots")
+  availabilityRules        AppointmentAvailabilityRule[] @relation("ProviderAvailabilityRules")
+  availabilityExceptions   AppointmentAvailabilityException[] @relation("ProviderAvailabilityExceptions")
+  bannedUsers              User[]                        @relation("BannedBy")
+
+  // Relations avec les livreurs
+  delivererSchedules       DelivererSchedule[]           @relation("DelivererSchedules")
+  delivererRoutes          DelivererRoute[]              @relation("DelivererRoutes")
+  delivererAvailabilities  DelivererAvailability[]       @relation("DelivererAvailabilities")
+  delivererStats           DelivererStats[]              @relation("DelivererStats")
+  verifiedApplications     DeliveryApplication[]         @relation("ApplicationVerifier")
+  verifiedDocuments        ApplicationDocument[]         @relation("DocumentVerifier")
+  delivererPreferences     DelivererPreferences[]        @relation("DelivererPreferences")
+  validationAudits         DocumentValidationAudit[]     @relation("ValidationActor")
+  matchings                AnnouncementMatching[]        @relation("DelivererMatchings")
+  delivererNotifications   DelivererNotification[]       @relation("DelivererNotifications")
+  
+  // Relations avec les prestataires et merchants
+  merchantVerifications    MerchantVerification[]        @relation("MerchantVerifier")
+  providerVerifications    ProviderVerification[]        @relation("ProviderVerifier")
+  signedContracts          Contract[]                    @relation("ContractSignedBy")
+  createdTemplates         ContractTemplate[]
+  signedAmendments         ContractAmendment[]
+  initiatedNegotiations    ContractNegotiation[]         @relation("NegotiationInitiator")
+  respondedNegotiations    ContractNegotiation[]         @relation("NegotiationResponder")
+  providerExceptions       ProviderException[]
+  providerSpecialSlots     ProviderSpecialSlot[]
 
   @@index([email])
   @@index([role])

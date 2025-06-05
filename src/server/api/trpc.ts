@@ -71,11 +71,11 @@ export const createTRPCContext = async (opts?: CreateNextContextOptionsWithAuth)
       headers: req.headers,
     });
   }
-  
+
   // Sinon, nous sommes dans un contexte App Router
   let headers = {};
   let session = null;
-  
+
   try {
     headers = getHeaders();
     // Récupérer la session sans req/res avec Next.js App Router
@@ -85,11 +85,11 @@ export const createTRPCContext = async (opts?: CreateNextContextOptionsWithAuth)
     if (error?.name === 'JWEInvalid' || error?.message?.includes('Invalid Compact JWE')) {
       console.warn("Session JWT invalide - l'utilisateur sera déconnecté:", error.message);
     } else {
-      console.error("Erreur lors de la création du contexte tRPC:", error);
+      console.error('Erreur lors de la création du contexte tRPC:', error);
     }
     // Continue avec session=null et headers={}
   }
-  
+
   return createInnerTRPCContext({
     session,
     headers,
@@ -114,8 +114,7 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
       ...shape,
       data: {
         ...shape.data,
-        zodError:
-          error.cause instanceof ZodError ? error.cause.flatten() : null,
+        zodError: error.cause instanceof ZodError ? error.cause.flatten() : null,
       },
     };
   },
@@ -147,7 +146,10 @@ export const publicProcedure = t.procedure;
 /** Reusable middleware that enforces users are logged in before running the procedure. */
 const enforceUserIsAuthed = t.middleware(({ ctx, next }) => {
   if (!ctx.session || !ctx.session.user) {
-    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Vous devez être connecté pour accéder à cette ressource' });
+    throw new TRPCError({
+      code: 'UNAUTHORIZED',
+      message: 'Vous devez être connecté pour accéder à cette ressource',
+    });
   }
   return next({
     ctx: {
@@ -174,16 +176,16 @@ const enforceUserIsVerifiedDeliverer = t.middleware(({ ctx, next }) => {
   }
 
   if (ctx.session.user.role !== UserRole.DELIVERER) {
-    throw new TRPCError({ 
+    throw new TRPCError({
       code: 'FORBIDDEN',
-      message: 'Accès réservé aux livreurs'
+      message: 'Accès réservé aux livreurs',
     });
   }
 
   if (!ctx.session.user.isVerified) {
-    throw new TRPCError({ 
+    throw new TRPCError({
       code: 'FORBIDDEN',
-      message: 'Votre compte doit être vérifié pour accéder à cette fonctionnalité'
+      message: 'Votre compte doit être vérifié pour accéder à cette fonctionnalité',
     });
   }
 
@@ -200,13 +202,16 @@ export const verifiedDelivererProcedure = t.procedure.use(enforceUserIsVerifiedD
 /** Middleware qui vérifie que l'utilisateur est un administrateur */
 const enforceUserIsAdmin = t.middleware(({ ctx, next }) => {
   if (!ctx.session || !ctx.session.user) {
-    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Vous devez être connecté pour accéder à cette ressource' });
+    throw new TRPCError({
+      code: 'UNAUTHORIZED',
+      message: 'Vous devez être connecté pour accéder à cette ressource',
+    });
   }
 
   if (ctx.session.user.role !== UserRole.ADMIN) {
-    throw new TRPCError({ 
+    throw new TRPCError({
       code: 'FORBIDDEN',
-      message: 'Accès réservé aux administrateurs'
+      message: 'Accès réservé aux administrateurs',
     });
   }
 
@@ -223,16 +228,16 @@ export const adminProcedure = t.procedure.use(enforceUserIsAdmin);
 /** Middleware qui vérifie que l'utilisateur est un client */
 const enforceUserIsClient = t.middleware(({ ctx, next }) => {
   if (!ctx.session || !ctx.session.user) {
-    throw new TRPCError({ 
+    throw new TRPCError({
       code: 'UNAUTHORIZED',
-      message: 'Vous devez être connecté'
+      message: 'Vous devez être connecté',
     });
   }
 
   if (ctx.session.user.role !== UserRole.CLIENT) {
-    throw new TRPCError({ 
+    throw new TRPCError({
       code: 'FORBIDDEN',
-      message: 'Accès réservé aux clients'
+      message: 'Accès réservé aux clients',
     });
   }
 
@@ -246,8 +251,6 @@ const enforceUserIsClient = t.middleware(({ ctx, next }) => {
 /** Procédure protégée pour les clients uniquement */
 export const clientProcedure = t.procedure.use(enforceUserIsClient);
 
-
-
 /** Middleware qui vérifie que l'utilisateur est un commerçant */
 const enforceUserIsMerchant = t.middleware(({ ctx, next }) => {
   if (!ctx.session || !ctx.session.user) {
@@ -255,9 +258,9 @@ const enforceUserIsMerchant = t.middleware(({ ctx, next }) => {
   }
 
   if (ctx.session.user.role !== UserRole.MERCHANT) {
-    throw new TRPCError({ 
+    throw new TRPCError({
       code: 'FORBIDDEN',
-      message: 'Accès réservé aux commerçants'
+      message: 'Accès réservé aux commerçants',
     });
   }
 
@@ -276,7 +279,10 @@ export const merchantProcedure = t.procedure.use(enforceUserIsMerchant);
  */
 const enforceFinancialAccess = t.middleware(async ({ ctx, next }) => {
   if (!ctx.session || !ctx.session.user) {
-    throw new TRPCError({ code: 'UNAUTHORIZED', message: 'Vous devez être connecté pour accéder à cette ressource' });
+    throw new TRPCError({
+      code: 'UNAUTHORIZED',
+      message: 'Vous devez être connecté pour accéder à cette ressource',
+    });
   }
 
   // Vérifier que l'utilisateur a un compte actif
@@ -285,9 +291,9 @@ const enforceFinancialAccess = t.middleware(async ({ ctx, next }) => {
   });
 
   if (!user || user.status !== 'ACTIVE') {
-    throw new TRPCError({ 
-      code: 'FORBIDDEN', 
-      message: 'Votre compte est inactif ou suspendu' 
+    throw new TRPCError({
+      code: 'FORBIDDEN',
+      message: 'Votre compte est inactif ou suspendu',
     });
   }
 

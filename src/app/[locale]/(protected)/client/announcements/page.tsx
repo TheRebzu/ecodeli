@@ -7,9 +7,9 @@ import { Button } from '@/components/ui/button';
 import { Plus, Filter, RefreshCw, AlertCircle } from 'lucide-react';
 import { Link } from '@/navigation';
 import { useClientAnnouncements } from '@/hooks/use-announcement';
-import AnnouncementList from '@/components/announcements/announcement-list';
-import { AnnouncementFilter } from '@/components/announcements/announcement-filter';
-import { ClientStatusDashboard } from '@/components/announcements/client-status-dashboard';
+import AnnouncementList from '@/components/client/announcements/announcement-list';
+import { AnnouncementFilter } from '@/components/shared/announcements/announcement-filters';
+import { ClientStatusDashboard } from '@/components/client/announcements/client-status-dashboard';
 import { DeliveryStatus, UserRole } from '@prisma/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDescription, AlertTitle, Alert } from '@/components/ui/alert';
@@ -48,7 +48,7 @@ export default function ClientAnnouncementsPage() {
         await fetchAnnouncementHistory();
       }
     };
-    
+
     loadAnnouncements();
     // Ne pas inclure fetchActiveAnnouncements et fetchAnnouncementHistory dans les dépendances
     // car ces fonctions peuvent changer à chaque rendu, créant une boucle infinie
@@ -91,7 +91,7 @@ export default function ClientAnnouncementsPage() {
       requiresSignature: announcement.requiresSignature || false,
       requiresId: announcement.requiresId || false,
       isFavorite: announcement.isFavorite || false,
-      applications: announcement.applications
+      applications: announcement.applications,
     } as Announcement;
   });
 
@@ -140,21 +140,15 @@ export default function ClientAnnouncementsPage() {
       {showFilters && (
         <div className="mb-6">
           <AnnouncementFilter
-            onFilterChange={() => {
-              // Appliquer le filtre (ajuster selon les props attendus)
+            onFiltersChange={newFilters => {
+              console.log('Filtres appliqués:', newFilters);
               if (activeTab === 'active') {
                 fetchActiveAnnouncements();
               } else {
                 fetchAnnouncementHistory();
               }
             }}
-            onReset={() => {
-              if (activeTab === 'active') {
-                fetchActiveAnnouncements();
-              } else {
-                fetchAnnouncementHistory();
-              }
-            }}
+            isLoading={isLoading}
           />
         </div>
       )}
@@ -187,7 +181,7 @@ export default function ClientAnnouncementsPage() {
             <AnnouncementList
               announcements={myAnnouncements}
               isLoading={isLoading}
-              userRole={"CLIENT" as UserRole}
+              userRole={'CLIENT' as UserRole}
               totalCount={myAnnouncements.length}
               currentPage={1}
               totalPages={1}
@@ -219,7 +213,7 @@ export default function ClientAnnouncementsPage() {
             <AnnouncementList
               announcements={myAnnouncements}
               isLoading={isLoading}
-              userRole={"CLIENT" as UserRole}
+              userRole={'CLIENT' as UserRole}
               totalCount={myAnnouncements.length}
               currentPage={1}
               totalPages={1}

@@ -54,8 +54,8 @@ export function MerchantContractList() {
       createdAt: new Date('2023-11-15'),
       expiresAt: new Date('2024-11-15'),
       signedAt: new Date('2023-11-15'),
-      monthlyFee: 49.90,
-      commissionRate: 0.12
+      monthlyFee: 49.9,
+      commissionRate: 0.12,
     },
     {
       id: '2',
@@ -64,17 +64,15 @@ export function MerchantContractList() {
       createdAt: new Date('2023-12-01'),
       expiresAt: null,
       signedAt: null,
-      monthlyFee: 99.90,
-      commissionRate: 0.08
-    }
+      monthlyFee: 99.9,
+      commissionRate: 0.08,
+    },
   ];
 
   // Filtrer les contrats selon l'onglet actif et le terme de recherche
   const filteredContracts = contracts
     .filter(contract => activeTab === 'ALL' || contract.status === activeTab)
-    .filter(contract =>
-      contract.title.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    .filter(contract => contract.title.toLowerCase().includes(searchTerm.toLowerCase()));
 
   // Formater la date (réutilisé du composant admin)
   const formatDate = (date: Date | null) => {
@@ -128,7 +126,7 @@ export function MerchantContractList() {
           <h1 className="text-2xl font-bold">{t('title')}</h1>
           <p className="text-muted-foreground">{t('description')}</p>
         </div>
-        
+
         <div className="flex items-center space-x-2">
           <Input
             placeholder={t('searchPlaceholder')}
@@ -143,7 +141,10 @@ export function MerchantContractList() {
       </div>
 
       {/* Onglets par statut (réutilisés du composant admin) */}
-      <Tabs value={activeTab} onValueChange={value => setActiveTab(value as ContractStatus | 'ALL')}>
+      <Tabs
+        value={activeTab}
+        onValueChange={value => setActiveTab(value as ContractStatus | 'ALL')}
+      >
         <TabsList>
           <TabsTrigger value="ALL">{t('tabs.all')}</TabsTrigger>
           <TabsTrigger value={ContractStatus.ACTIVE}>{t('tabs.active')}</TabsTrigger>
@@ -158,9 +159,7 @@ export function MerchantContractList() {
                 <FileText className="h-5 w-5" />
                 {t('contractsList')}
               </CardTitle>
-              <CardDescription>
-                {filteredContracts.length} contrat(s) trouvé(s)
-              </CardDescription>
+              <CardDescription>{filteredContracts.length} contrat(s) trouvé(s)</CardDescription>
             </CardHeader>
             <CardContent>
               {loading ? (
@@ -185,26 +184,20 @@ export function MerchantContractList() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredContracts.map((contract) => (
+                    {filteredContracts.map(contract => (
                       <TableRow key={contract.id}>
-                        <TableCell className="font-medium">
-                          {contract.title}
-                        </TableCell>
-                        <TableCell>
-                          {getStatusBadge(contract.status)}
-                        </TableCell>
+                        <TableCell className="font-medium">{contract.title}</TableCell>
+                        <TableCell>{getStatusBadge(contract.status)}</TableCell>
                         <TableCell>
                           {contract.monthlyFee ? `${contract.monthlyFee.toFixed(2)} €` : '-'}
                         </TableCell>
                         <TableCell>
-                          {contract.commissionRate ? `${(contract.commissionRate * 100).toFixed(1)}%` : '-'}
+                          {contract.commissionRate
+                            ? `${(contract.commissionRate * 100).toFixed(1)}%`
+                            : '-'}
                         </TableCell>
-                        <TableCell>
-                          {formatDate(contract.signedAt)}
-                        </TableCell>
-                        <TableCell>
-                          {formatDate(contract.expiresAt)}
-                        </TableCell>
+                        <TableCell>{formatDate(contract.signedAt)}</TableCell>
+                        <TableCell>{formatDate(contract.expiresAt)}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
                             <Button
@@ -215,7 +208,7 @@ export function MerchantContractList() {
                               <Eye className="h-4 w-4 mr-1" />
                               {t('actions.view')}
                             </Button>
-                            
+
                             {contract.status === ContractStatus.ACTIVE && (
                               <Button
                                 variant="outline"
@@ -226,12 +219,9 @@ export function MerchantContractList() {
                                 {t('actions.download')}
                               </Button>
                             )}
-                            
+
                             {contract.status === ContractStatus.PENDING_SIGNATURE && (
-                              <Button
-                                size="sm"
-                                onClick={() => handleSignContract(contract.id)}
-                              >
+                              <Button size="sm" onClick={() => handleSignContract(contract.id)}>
                                 {t('actions.sign')}
                               </Button>
                             )}
@@ -239,7 +229,7 @@ export function MerchantContractList() {
                         </TableCell>
                       </TableRow>
                     ))}
-                    
+
                     {filteredContracts.length === 0 && (
                       <TableRow>
                         <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
@@ -262,25 +252,31 @@ export function MerchantContractList() {
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-blue-50 p-4 rounded-lg">
-                  <h4 className="font-semibold text-blue-900">{t('contractInfo.benefits.title')}</h4>
+                  <h4 className="font-semibold text-blue-900">
+                    {t('contractInfo.benefits.title')}
+                  </h4>
                   <ul className="text-sm text-blue-700 mt-2 space-y-1">
                     <li>• {t('contractInfo.benefits.delivery')}</li>
                     <li>• {t('contractInfo.benefits.commission')}</li>
                     <li>• {t('contractInfo.benefits.support')}</li>
                   </ul>
                 </div>
-                
+
                 <div className="bg-green-50 p-4 rounded-lg">
-                  <h4 className="font-semibold text-green-900">{t('contractInfo.conditions.title')}</h4>
+                  <h4 className="font-semibold text-green-900">
+                    {t('contractInfo.conditions.title')}
+                  </h4>
                   <ul className="text-sm text-green-700 mt-2 space-y-1">
                     <li>• {t('contractInfo.conditions.duration')}</li>
                     <li>• {t('contractInfo.conditions.renewal')}</li>
                     <li>• {t('contractInfo.conditions.termination')}</li>
                   </ul>
                 </div>
-                
+
                 <div className="bg-orange-50 p-4 rounded-lg">
-                  <h4 className="font-semibold text-orange-900">{t('contractInfo.billing.title')}</h4>
+                  <h4 className="font-semibold text-orange-900">
+                    {t('contractInfo.billing.title')}
+                  </h4>
                   <ul className="text-sm text-orange-700 mt-2 space-y-1">
                     <li>• {t('contractInfo.billing.monthly')}</li>
                     <li>• {t('contractInfo.billing.commission')}</li>
@@ -294,4 +290,4 @@ export function MerchantContractList() {
       </Tabs>
     </div>
   );
-} 
+}

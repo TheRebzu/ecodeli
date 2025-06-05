@@ -1,17 +1,30 @@
 'use client';
 
 import { ReactNode } from 'react';
-import { NextAuthProvider } from './session-provider';
 import { TRPCProvider } from './trpc-provider';
+import ThemeProvider from './theme-provider';
+import { SessionProvider } from 'next-auth/react';
+import { Toaster } from '@/components/ui/toaster';
 
 interface ProvidersProps {
   children: ReactNode;
+  session?: any;
 }
 
-export function Providers({ children }: ProvidersProps) {
+export function Providers({ children, session }: ProvidersProps) {
   return (
-    <NextAuthProvider>
-      <TRPCProvider>{children}</TRPCProvider>
-    </NextAuthProvider>
+    <SessionProvider session={session}>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="system"
+        enableSystem
+        disableTransitionOnChange
+      >
+        <TRPCProvider>
+          {children}
+          <Toaster />
+        </TRPCProvider>
+      </ThemeProvider>
+    </SessionProvider>
   );
-}
+} 

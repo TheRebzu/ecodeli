@@ -14,19 +14,19 @@ interface LinkProps extends React.ComponentPropsWithoutRef<typeof NextLink> {
 /**
  * Composant Link qui préserve automatiquement la locale dans les liens
  */
-export function Link({ 
-  children, 
-  href, 
-  locale: localeProp, 
-  preserveLocale = true, 
-  ...rest 
+export function Link({
+  children,
+  href,
+  locale: localeProp,
+  preserveLocale = true,
+  ...rest
 }: LinkProps) {
   const pathname = usePathname();
   const defaultLocale = useLocale();
   const locale = localeProp || defaultLocale;
 
   let newHref = href;
-  
+
   // Gérer les chemins relatifs et absolus
   if (typeof href === 'string') {
     // Préserver la locale actuelle si demandé
@@ -36,12 +36,12 @@ export function Link({
       // Si c'est un lien relatif, construire le chemin complet
       const pathParts = pathname.split('/');
       pathParts.pop(); // Enlever la dernière partie
-      
+
       let basePath = pathParts.join('/');
       if (!basePath.startsWith(`/${locale}`)) {
         basePath = `/${locale}${basePath}`;
       }
-      
+
       newHref = `${basePath}/${href}`;
     } else if (preserveLocale && !href.includes(`/${locale}/`) && !href.startsWith('#')) {
       // Ajouter la locale au début du chemin si elle n'est pas déjà présente
@@ -74,4 +74,4 @@ export function useLocalizedLinks() {
     getLocalizedHref,
     t,
   };
-} 
+}

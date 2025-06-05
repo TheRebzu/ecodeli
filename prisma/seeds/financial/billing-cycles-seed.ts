@@ -26,29 +26,32 @@ export async function seedBillingCycles(
   options: SeedOptions = {}
 ): Promise<SeedResult> {
   logger.startSeed('BILLING_CYCLES');
-  
+
   const result: SeedResult = {
     entity: 'billing_cycles',
     created: 0,
     skipped: 0,
-    errors: 0
+    errors: 0,
   };
 
   // Récupérer tous les utilisateurs professionnels (qui ont des cycles de facturation)
   const professionalUsers = await prisma.user.findMany({
-    where: { 
+    where: {
       role: { in: [UserRole.DELIVERER, UserRole.PROVIDER, UserRole.MERCHANT] },
-      status: 'ACTIVE'
+      status: 'ACTIVE',
     },
     include: {
       deliverer: true,
       provider: true,
-      merchant: true
-    }
+      merchant: true,
+    },
   });
 
   if (professionalUsers.length === 0) {
-    logger.warning('BILLING_CYCLES', 'Aucun utilisateur professionnel trouvé - exécuter d\'abord les seeds utilisateurs');
+    logger.warning(
+      'BILLING_CYCLES',
+      "Aucun utilisateur professionnel trouvé - exécuter d'abord les seeds utilisateurs"
+    );
     return result;
   }
 
@@ -61,28 +64,32 @@ export async function seedBillingCycles(
       frequency: 'WEEKLY',
       description: 'Facturation hebdomadaire des commissions livreurs',
       billingDay: 1, // Lundi
-      cutoffDay: 0   // Dimanche
+      cutoffDay: 0, // Dimanche
     },
     [UserRole.PROVIDER]: {
       frequency: 'MONTHLY',
       description: 'Facturation mensuelle des commissions prestataires',
       billingDay: 1, // 1er du mois
-      cutoffDay: 30  // Fin de mois
+      cutoffDay: 30, // Fin de mois
     },
     [UserRole.MERCHANT]: {
       frequency: 'MONTHLY',
       description: 'Facturation mensuelle des commissions commerçants',
       billingDay: 15, // 15 du mois
-      cutoffDay: 14   // 14 du mois précédent
-    }
+      cutoffDay: 14, // 14 du mois précédent
+    },
   };
 
   let totalCycles = 0;
 
   for (const user of professionalUsers) {
     try {
-      logger.progress('BILLING_CYCLES', totalCycles + 1, professionalUsers.length, 
-        `Création cycle: ${user.name}`);
+      logger.progress(
+        'BILLING_CYCLES',
+        totalCycles + 1,
+        professionalUsers.length,
+        `Création cycle: ${user.name}`
+      );
 
       const userRole = user.role as keyof typeof CYCLE_CONFIGS;
       const config = CYCLE_CONFIGS[userRole];
@@ -97,23 +104,21 @@ export async function seedBillingCycles(
       }
 
       // Calculer les dates du cycle actuel
-      const { lastBilling, nextBilling } = calculateBillingDates(config.frequency, config.billingDay);
+      const { lastBilling, nextBilling } = calculateBillingDates(
+        config.frequency,
+        config.billingDay
+      );
 
       // Créer un cycle de facturation en générant des factures récurrentes
-      await createBillingCycle(
-        prisma,
-        user,
-        config,
-        lastBilling,
-        nextBilling,
-        logger
-      );
+      await createBillingCycle(prisma, user, config, lastBilling, nextBilling, logger);
 
       totalCycles++;
       result.created++;
-
     } catch (error: any) {
-      logger.error('BILLING_CYCLES', `❌ Erreur création cycle pour ${user.name}: ${error.message}`);
+      logger.error(
+        'BILLING_CYCLES',
+        `❌ Erreur création cycle pour ${user.name}: ${error.message}`
+      );
       result.errors++;
     }
   }
@@ -128,12 +133,12 @@ export async function seedBillingCycles(
   const recentInvoices = await prisma.invoice.findMany({
     where: {
       createdAt: {
-        gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // 30 derniers jours
-      }
+        gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 derniers jours
+      },
     },
-    include: { user: true }
+    include: { user: true },
   });
-  
+
   if (recentInvoices.length > 0) {
     logger.validation('BILLING_CYCLES', 'PASSED', `${totalCycles} cycles de facturation traités`);
   } else {
@@ -154,10 +159,10 @@ export async function seedBillingCycles(
     where: {
       dueDate: {
         gte: new Date(),
-        lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 prochains jours
+        lte: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 prochains jours
       },
-      status: { in: [InvoiceStatus.ISSUED, InvoiceStatus.DRAFT] }
-    }
+      status: { in: [InvoiceStatus.ISSUED, InvoiceStatus.DRAFT] },
+    },
   });
 
   logger.info('BILLING_CYCLES', `📅 Échéances cette semaine: ${upcomingInvoices.length} factures`);
@@ -166,19 +171,25 @@ export async function seedBillingCycles(
   const overdueInvoices = await prisma.invoice.findMany({
     where: {
       dueDate: { lt: new Date() },
-      status: 'OVERDUE'
-    }
+      status: 'OVERDUE',
+    },
   });
 
   if (overdueInvoices.length > 0) {
-    logger.warning('BILLING_CYCLES', `⚠️ ${overdueInvoices.length} factures en retard nécessitent un suivi`);
+    logger.warning(
+      'BILLING_CYCLES',
+      `⚠️ ${overdueInvoices.length} factures en retard nécessitent un suivi`
+    );
   } else {
     logger.success('BILLING_CYCLES', '✅ Aucune facture en retard');
   }
 
   // Revenus récurrents estimés
   const monthlyRecurring = await calculateMonthlyRecurringRevenue(prisma);
-  logger.info('BILLING_CYCLES', `💰 Revenus récurrents mensuels estimés: ${monthlyRecurring.toFixed(2)} EUR`);
+  logger.info(
+    'BILLING_CYCLES',
+    `💰 Revenus récurrents mensuels estimés: ${monthlyRecurring.toFixed(2)} EUR`
+  );
 
   logger.endSeed('BILLING_CYCLES', result);
   return result;
@@ -205,15 +216,15 @@ function getUserVerificationStatus(user: any): boolean {
  */
 async function checkUserActivity(prisma: PrismaClient, userId: string): Promise<boolean> {
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-  
+
   // Vérifier les paiements récents liés à cet utilisateur
   const recentPayments = await prisma.payment.findMany({
     where: {
       userId: userId,
       createdAt: { gte: thirtyDaysAgo },
-      status: 'COMPLETED'
+      status: 'COMPLETED',
     },
-    take: 1
+    take: 1,
   });
 
   return recentPayments.length > 0;
@@ -222,7 +233,10 @@ async function checkUserActivity(prisma: PrismaClient, userId: string): Promise<
 /**
  * Calcule les dates de facturation selon la fréquence
  */
-function calculateBillingDates(frequency: string, billingDay: number): {
+function calculateBillingDates(
+  frequency: string,
+  billingDay: number
+): {
   lastBilling: Date;
   nextBilling: Date;
 } {
@@ -274,8 +288,8 @@ async function createBillingCycle(
     where: {
       userId: user.id,
       billingPeriodStart: lastBilling,
-      billingPeriodEnd: nextBilling
-    }
+      billingPeriodEnd: nextBilling,
+    },
   });
 
   if (existingInvoice) {
@@ -290,9 +304,9 @@ async function createBillingCycle(
       totalAmount: amount,
       currency: 'EUR',
       status: faker.helpers.weightedArrayElement([
-        { weight: 0.80, value: 'PAID' },
+        { weight: 0.8, value: 'PAID' },
         { weight: 0.15, value: 'ISSUED' },
-        { weight: 0.05, value: 'OVERDUE' }
+        { weight: 0.05, value: 'OVERDUE' },
       ]),
       invoiceNumber: generateInvoiceNumber(user.role, config.frequency),
       invoiceType: invoiceType,
@@ -309,8 +323,9 @@ async function createBillingCycle(
       billingPostal: faker.location.zipCode(),
       billingCountry: 'France',
       emailSentAt: lastBilling,
-      paidDate: Math.random() > 0.2 ? faker.date.between({ from: lastBilling, to: nextBilling }) : null
-    }
+      paidDate:
+        Math.random() > 0.2 ? faker.date.between({ from: lastBilling, to: nextBilling }) : null,
+    },
   });
 
   // Créer les lignes de facture détaillées
@@ -326,7 +341,7 @@ function getInvoiceTypeForRole(role: UserRole): string {
     [UserRole.PROVIDER]: 'COMMISSION_SERVICE',
     [UserRole.MERCHANT]: 'COMMISSION_SALES',
     [UserRole.CLIENT]: 'COMMISSION',
-    [UserRole.ADMIN]: 'COMMISSION'
+    [UserRole.ADMIN]: 'COMMISSION',
   };
   return types[role] || 'COMMISSION';
 }
@@ -336,13 +351,14 @@ function getInvoiceTypeForRole(role: UserRole): string {
  */
 function calculateCycleAmount(role: UserRole, frequency: string): number {
   const baseAmounts: Record<UserRole, number> = {
-    [UserRole.DELIVERER]: frequency === 'WEEKLY' ? 
-      faker.number.float({ min: 25, max: 150 }) : // Hebdomadaire livreurs
-      faker.number.float({ min: 100, max: 600 }), // Mensuel livreurs
+    [UserRole.DELIVERER]:
+      frequency === 'WEEKLY'
+        ? faker.number.float({ min: 25, max: 150 }) // Hebdomadaire livreurs
+        : faker.number.float({ min: 100, max: 600 }), // Mensuel livreurs
     [UserRole.PROVIDER]: faker.number.float({ min: 80, max: 800 }), // Mensuel prestataires
     [UserRole.MERCHANT]: faker.number.float({ min: 50, max: 500 }), // Mensuel commerçants
     [UserRole.CLIENT]: 0, // Pas de cycle pour les clients
-    [UserRole.ADMIN]: 0   // Pas de cycle pour les admins
+    [UserRole.ADMIN]: 0, // Pas de cycle pour les admins
   };
 
   return Math.round(baseAmounts[role] * 100) / 100;
@@ -370,7 +386,7 @@ function generateInvoiceNumber(role: UserRole, frequency: string): string {
     [UserRole.PROVIDER]: 'PRO',
     [UserRole.MERCHANT]: 'COM',
     [UserRole.CLIENT]: 'CLI',
-    [UserRole.ADMIN]: 'ADM'
+    [UserRole.ADMIN]: 'ADM',
   };
 
   const prefix = prefixes[role];
@@ -385,10 +401,10 @@ function generateInvoiceNumber(role: UserRole, frequency: string): string {
  * Formate une période de facturation
  */
 function formatPeriod(start: Date, end: Date, frequency: string): string {
-  const formatter = new Intl.DateTimeFormat('fr-FR', { 
-    day: '2-digit', 
-    month: '2-digit', 
-    year: 'numeric' 
+  const formatter = new Intl.DateTimeFormat('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
   });
 
   if (frequency === 'WEEKLY') {
@@ -412,31 +428,35 @@ async function createCycleInvoiceItems(
 
   if (role === UserRole.DELIVERER) {
     // Détail des livraisons
-    const deliveryCount = frequency === 'WEEKLY' ? 
-      faker.number.int({ min: 5, max: 30 }) : 
-      faker.number.int({ min: 20, max: 120 });
-    
+    const deliveryCount =
+      frequency === 'WEEKLY'
+        ? faker.number.int({ min: 5, max: 30 })
+        : faker.number.int({ min: 20, max: 120 });
+
     const avgCommission = totalAmount / deliveryCount;
-    
+
     items.push({
       description: `Commissions sur ${deliveryCount} livraisons effectuées`,
       quantity: deliveryCount,
       unitPrice: Math.round(avgCommission * 100) / 100,
-      amount: totalAmount
+      amount: totalAmount,
     });
   } else if (role === UserRole.PROVIDER) {
     // Services par catégorie
     const serviceCategories = ['Plomberie', 'Électricité', 'Nettoyage', 'Jardinage'];
-    const selectedCategories = faker.helpers.arrayElements(serviceCategories, faker.number.int({ min: 1, max: 3 }));
-    
+    const selectedCategories = faker.helpers.arrayElements(
+      serviceCategories,
+      faker.number.int({ min: 1, max: 3 })
+    );
+
     const amountPerCategory = totalAmount / selectedCategories.length;
-    
+
     selectedCategories.forEach(category => {
       items.push({
         description: `Commissions services ${category.toLowerCase()}`,
         quantity: 1,
         unitPrice: Math.round(amountPerCategory * 100) / 100,
-        amount: Math.round(amountPerCategory * 100) / 100
+        amount: Math.round(amountPerCategory * 100) / 100,
       });
     });
   } else {
@@ -445,7 +465,7 @@ async function createCycleInvoiceItems(
       description: 'Commissions sur ventes mensuelles',
       quantity: 1,
       unitPrice: totalAmount,
-      amount: totalAmount
+      amount: totalAmount,
     });
   }
 
@@ -457,8 +477,8 @@ async function createCycleInvoiceItems(
         description: item.description,
         quantity: item.quantity,
         unitPrice: item.unitPrice,
-        amount: item.amount
-      }
+        amount: item.amount,
+      },
     });
   }
 }
@@ -474,9 +494,9 @@ async function createOverdueReminders(
   const overdueInvoices = await prisma.invoice.findMany({
     where: {
       status: 'OVERDUE',
-      reminderSentAt: null
+      reminderSentAt: null,
     },
-    take: 10 // Limiter pour l'exemple
+    take: 10, // Limiter pour l'exemple
   });
 
   for (const invoice of overdueInvoices) {
@@ -486,14 +506,16 @@ async function createOverdueReminders(
         where: { id: invoice.id },
         data: {
           reminderSentAt: new Date(),
-          notes: 'Rappel automatique envoyé pour facture en retard'
-        }
+          notes: 'Rappel automatique envoyé pour facture en retard',
+        },
       });
 
       result.created++;
-
     } catch (error: any) {
-      logger.error('BILLING_CYCLES', `❌ Erreur rappel facture ${invoice.invoiceNumber}: ${error.message}`);
+      logger.error(
+        'BILLING_CYCLES',
+        `❌ Erreur rappel facture ${invoice.invoiceNumber}: ${error.message}`
+      );
       result.errors++;
     }
   }
@@ -516,10 +538,10 @@ async function createAccountingExports(
     where: {
       status: 'PAID',
       paidDate: {
-        gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000) // 30 derniers jours
-      }
+        gte: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 derniers jours
+      },
     },
-    take: 20
+    take: 20,
   });
 
   let exportCount = 0;
@@ -532,13 +554,14 @@ async function createAccountingExports(
           notes: [
             invoice.notes || '',
             `Export comptable: ECO-EXPORT-${new Date().getFullYear()}-${String(exportCount + 1).padStart(4, '0')}`,
-            `Date export: ${new Date().toISOString().split('T')[0]}`
-          ].filter(Boolean).join(' | ')
-        }
+            `Date export: ${new Date().toISOString().split('T')[0]}`,
+          ]
+            .filter(Boolean)
+            .join(' | '),
+        },
       });
 
       exportCount++;
-
     } catch (error: any) {
       logger.error('BILLING_CYCLES', `❌ Erreur export comptable: ${error.message}`);
       result.errors++;
@@ -563,12 +586,14 @@ async function calculateMonthlyRecurringRevenue(prisma: PrismaClient): Promise<n
     where: {
       status: 'PAID',
       paidDate: { gte: lastMonth },
-      invoiceType: { in: ['COMMISSION_DELIVERY', 'COMMISSION_SERVICE', 'COMMISSION_SALES'] }
-    }
+      invoiceType: { in: ['COMMISSION_DELIVERY', 'COMMISSION_SERVICE', 'COMMISSION_SALES'] },
+    },
   });
 
-  const totalRevenue = monthlyInvoices.reduce((sum, invoice) => 
-    sum + parseFloat(invoice.totalAmount.toString()), 0);
+  const totalRevenue = monthlyInvoices.reduce(
+    (sum, invoice) => sum + parseFloat(invoice.totalAmount.toString()),
+    0
+  );
 
   // Projeter sur une base mensuelle
   return totalRevenue;
@@ -582,15 +607,15 @@ export async function validateBillingCycles(
   logger: SeedLogger
 ): Promise<boolean> {
   logger.info('VALIDATION', '🔍 Validation des cycles de facturation...');
-  
+
   let isValid = true;
 
   // Vérifier les factures récurrentes
   const recurringInvoices = await prisma.invoice.findMany({
     where: {
-      invoiceType: { in: ['COMMISSION_DELIVERY', 'COMMISSION_SERVICE', 'COMMISSION_SALES'] }
+      invoiceType: { in: ['COMMISSION_DELIVERY', 'COMMISSION_SERVICE', 'COMMISSION_SALES'] },
     },
-    include: { user: true, items: true }
+    include: { user: true, items: true },
   });
 
   if (recurringInvoices.length === 0) {
@@ -613,13 +638,16 @@ export async function validateBillingCycles(
 
   // Vérifier que les factures ont des lignes de détail
   const invoicesWithoutItems = recurringInvoices.filter(inv => inv.items.length === 0);
-  
+
   if (invoicesWithoutItems.length === 0) {
     logger.success('VALIDATION', '✅ Toutes les factures ont des lignes de détail');
   } else {
-    logger.warning('VALIDATION', `⚠️ ${invoicesWithoutItems.length} factures sans lignes de détail`);
+    logger.warning(
+      'VALIDATION',
+      `⚠️ ${invoicesWithoutItems.length} factures sans lignes de détail`
+    );
   }
 
   logger.success('VALIDATION', '✅ Validation des cycles de facturation terminée');
   return isValid;
-} 
+}

@@ -67,7 +67,7 @@ interface PaymentState {
     metadata: Record<string, any> | null;
     isEscrow: boolean;
   };
-  
+
   // Historique des paiements
   paymentHistory: {
     items: PaymentHistoryItem[];
@@ -79,13 +79,13 @@ interface PaymentState {
       type?: string;
     };
   };
-  
+
   // État du formulaire de paiement
   form: PaymentFormState;
-  
+
   // Méthodes de paiement enregistrées
   paymentMethods: PaymentMethod[];
-  
+
   // États de chargement et erreurs
   isLoading: boolean;
   isRefreshing: boolean;
@@ -94,17 +94,14 @@ interface PaymentState {
     form: Record<string, string> | null;
     api: string | null;
   };
-  
+
   // Indicateur de mode démo
   isDemoMode: boolean;
 
   // Actions
   setCurrentPayment: (payment: Partial<PaymentState['currentPayment']>) => void;
   resetCurrentPayment: () => void;
-  setPaymentHistory: (data: {
-    items: PaymentHistoryItem[];
-    pagination: PaginationInfo;
-  }) => void;
+  setPaymentHistory: (data: { items: PaymentHistoryItem[]; pagination: PaginationInfo }) => void;
   setPaymentHistoryFilter: (filter: Partial<PaymentState['paymentHistory']['filter']>) => void;
   setForm: (form: Partial<PaymentFormState>) => void;
   resetForm: () => void;
@@ -114,7 +111,7 @@ interface PaymentState {
   setProcessing: (isProcessing: boolean) => void;
   setErrors: (errors: Partial<PaymentState['errors']>) => void;
   clearErrors: () => void;
-  
+
   // Actions avec API
   createPaymentIntent: (data: PaymentFormState) => Promise<{
     clientSecret: string;
@@ -125,7 +122,7 @@ interface PaymentState {
   refundPayment: (paymentIntentId: string, amount?: number) => Promise<boolean>;
   getPaymentMethods: () => Promise<PaymentMethod[]>;
   getPaymentHistory: (page?: number, limit?: number) => Promise<void>;
-  
+
   // Actions mode démo
   simulatePaymentSuccess: (paymentId: string) => Promise<boolean>;
   simulatePaymentFailure: (paymentId: string, reason?: string) => Promise<boolean>;
@@ -188,76 +185,81 @@ export const usePaymentStore = create<PaymentState>()(
         ...initialState,
 
         // Actions de base pour mettre à jour l'état
-        setCurrentPayment: (payment) => set((state) => ({
-          currentPayment: {
-            ...state.currentPayment,
-            ...payment,
-          },
-        })),
-        
-        resetCurrentPayment: () => set({ currentPayment: initialState.currentPayment }),
-        
-        setPaymentHistory: (data) => set((state) => ({
-          paymentHistory: {
-            ...state.paymentHistory,
-            items: data.items,
-            pagination: data.pagination,
-          },
-        })),
-        
-        setPaymentHistoryFilter: (filter) => set((state) => ({
-          paymentHistory: {
-            ...state.paymentHistory,
-            filter: {
-              ...state.paymentHistory.filter,
-              ...filter,
+        setCurrentPayment: payment =>
+          set(state => ({
+            currentPayment: {
+              ...state.currentPayment,
+              ...payment,
             },
-          },
-        })),
-        
-        setForm: (form) => set((state) => ({
-          form: {
-            ...state.form,
-            ...form,
-          },
-        })),
-        
+          })),
+
+        resetCurrentPayment: () => set({ currentPayment: initialState.currentPayment }),
+
+        setPaymentHistory: data =>
+          set(state => ({
+            paymentHistory: {
+              ...state.paymentHistory,
+              items: data.items,
+              pagination: data.pagination,
+            },
+          })),
+
+        setPaymentHistoryFilter: filter =>
+          set(state => ({
+            paymentHistory: {
+              ...state.paymentHistory,
+              filter: {
+                ...state.paymentHistory.filter,
+                ...filter,
+              },
+            },
+          })),
+
+        setForm: form =>
+          set(state => ({
+            form: {
+              ...state.form,
+              ...form,
+            },
+          })),
+
         resetForm: () => set({ form: initialState.form }),
-        
-        setPaymentMethods: (methods) => set({ paymentMethods: methods }),
-        
-        setLoading: (isLoading) => set({ isLoading }),
-        
-        setRefreshing: (isRefreshing) => set({ isRefreshing }),
-        
-        setProcessing: (isProcessing) => set({ isProcessing }),
-        
-        setErrors: (errors) => set((state) => ({
-          errors: {
-            ...state.errors,
-            ...errors,
-          },
-        })),
-        
+
+        setPaymentMethods: methods => set({ paymentMethods: methods }),
+
+        setLoading: isLoading => set({ isLoading }),
+
+        setRefreshing: isRefreshing => set({ isRefreshing }),
+
+        setProcessing: isProcessing => set({ isProcessing }),
+
+        setErrors: errors =>
+          set(state => ({
+            errors: {
+              ...state.errors,
+              ...errors,
+            },
+          })),
+
         clearErrors: () => set({ errors: initialState.errors }),
 
         // Actions avec intégration API
-        createPaymentIntent: async (data) => {
+        createPaymentIntent: async data => {
           const state = get();
           set({ isProcessing: true, errors: initialState.errors });
-          
+
           try {
             // Mode démonstration
             if (state.isDemoMode) {
               // Création d'un identifiant simulé et d'un secret client
               const demoPaymentId = `demo_pi_${Date.now()}`;
               const demoClientSecret = `demo_secret_${Date.now()}`;
-              
+
               // Simuler un léger délai pour donner l'impression d'une requête réelle
               await new Promise(resolve => setTimeout(resolve, 800));
-              
+
               // Mettre à jour l'état du paiement
-              set((state) => ({
+              set(state => ({
                 currentPayment: {
                   ...state.currentPayment,
                   id: `payment_${Date.now()}`,
@@ -274,19 +276,19 @@ export const usePaymentStore = create<PaymentState>()(
                 },
                 isProcessing: false,
               }));
-              
+
               return {
                 clientSecret: demoClientSecret,
                 paymentIntentId: demoPaymentId,
               };
             }
-            
+
             // Mode réel: appel à l'API tRPC
             const client = trpc.payment.createPaymentIntent.useMutation();
             const result = await client.mutateAsync(data);
-            
+
             if (result && result.clientSecret && result.paymentIntentId) {
-              set((state) => ({
+              set(state => ({
                 currentPayment: {
                   ...state.currentPayment,
                   id: result.id,
@@ -299,47 +301,53 @@ export const usePaymentStore = create<PaymentState>()(
                 },
                 isProcessing: false,
               }));
-              
+
               return {
                 clientSecret: result.clientSecret,
                 paymentIntentId: result.paymentIntentId,
               };
             }
-            
+
             throw new Error('Réponse invalide du serveur');
           } catch (error) {
             console.error('Erreur lors de la création du payment intent:', error);
-            
+
             set({
               isProcessing: false,
               errors: {
                 ...get().errors,
-                api: error instanceof Error ? error.message : 'Une erreur est survenue lors de la création du paiement',
+                api:
+                  error instanceof Error
+                    ? error.message
+                    : 'Une erreur est survenue lors de la création du paiement',
               },
             });
-            
+
             toast({
               variant: 'destructive',
               title: 'Erreur de paiement',
-              description: error instanceof Error ? error.message : 'Une erreur est survenue lors de la création du paiement',
+              description:
+                error instanceof Error
+                  ? error.message
+                  : 'Une erreur est survenue lors de la création du paiement',
             });
-            
+
             return null;
           }
         },
-        
-        capturePayment: async (paymentIntentId) => {
+
+        capturePayment: async paymentIntentId => {
           const state = get();
           set({ isProcessing: true });
-          
+
           try {
             // Mode démonstration
             if (state.isDemoMode) {
               // Simuler un léger délai
               await new Promise(resolve => setTimeout(resolve, 800));
-              
+
               // Mettre à jour l'état du paiement
-              set((state) => ({
+              set(state => ({
                 currentPayment: {
                   ...state.currentPayment,
                   status: 'succeeded',
@@ -350,19 +358,19 @@ export const usePaymentStore = create<PaymentState>()(
                 },
                 isProcessing: false,
               }));
-              
+
               // Rafraîchir l'historique des paiements
               await get().getPaymentHistory();
-              
+
               return true;
             }
-            
+
             // Mode réel: appel à l'API tRPC
             const client = trpc.payment.capturePayment.useMutation();
             const result = await client.mutateAsync({ paymentIntentId });
-            
+
             if (result && result.success) {
-              set((state) => ({
+              set(state => ({
                 currentPayment: {
                   ...state.currentPayment,
                   status: 'succeeded',
@@ -373,47 +381,53 @@ export const usePaymentStore = create<PaymentState>()(
                 },
                 isProcessing: false,
               }));
-              
+
               // Rafraîchir l'historique des paiements
               await get().getPaymentHistory();
-              
+
               return true;
             }
-            
+
             throw new Error('Échec de la capture du paiement');
           } catch (error) {
             console.error('Erreur lors de la capture du paiement:', error);
-            
+
             set({
               isProcessing: false,
               errors: {
                 ...get().errors,
-                api: error instanceof Error ? error.message : 'Une erreur est survenue lors de la validation du paiement',
+                api:
+                  error instanceof Error
+                    ? error.message
+                    : 'Une erreur est survenue lors de la validation du paiement',
               },
             });
-            
+
             toast({
               variant: 'destructive',
               title: 'Erreur de paiement',
-              description: error instanceof Error ? error.message : 'Une erreur est survenue lors de la validation du paiement',
+              description:
+                error instanceof Error
+                  ? error.message
+                  : 'Une erreur est survenue lors de la validation du paiement',
             });
-            
+
             return false;
           }
         },
-        
-        cancelPayment: async (paymentIntentId) => {
+
+        cancelPayment: async paymentIntentId => {
           const state = get();
           set({ isProcessing: true });
-          
+
           try {
             // Mode démonstration
             if (state.isDemoMode) {
               // Simuler un léger délai
               await new Promise(resolve => setTimeout(resolve, 500));
-              
+
               // Mettre à jour l'état du paiement
-              set((state) => ({
+              set(state => ({
                 currentPayment: {
                   ...state.currentPayment,
                   status: 'canceled',
@@ -424,19 +438,19 @@ export const usePaymentStore = create<PaymentState>()(
                 },
                 isProcessing: false,
               }));
-              
+
               // Rafraîchir l'historique des paiements
               await get().getPaymentHistory();
-              
+
               return true;
             }
-            
+
             // Mode réel: appel à l'API tRPC
             const client = trpc.payment.cancelPayment.useMutation();
             const result = await client.mutateAsync({ paymentIntentId });
-            
+
             if (result && result.success) {
-              set((state) => ({
+              set(state => ({
                 currentPayment: {
                   ...state.currentPayment,
                   status: 'canceled',
@@ -447,50 +461,59 @@ export const usePaymentStore = create<PaymentState>()(
                 },
                 isProcessing: false,
               }));
-              
+
               // Rafraîchir l'historique des paiements
               await get().getPaymentHistory();
-              
+
               return true;
             }
-            
-            throw new Error('Échec de l\'annulation du paiement');
+
+            throw new Error("Échec de l'annulation du paiement");
           } catch (error) {
-            console.error('Erreur lors de l\'annulation du paiement:', error);
-            
+            console.error("Erreur lors de l'annulation du paiement:", error);
+
             set({
               isProcessing: false,
               errors: {
                 ...get().errors,
-                api: error instanceof Error ? error.message : 'Une erreur est survenue lors de l\'annulation du paiement',
+                api:
+                  error instanceof Error
+                    ? error.message
+                    : "Une erreur est survenue lors de l'annulation du paiement",
               },
             });
-            
+
             toast({
               variant: 'destructive',
-              title: 'Erreur d\'annulation',
-              description: error instanceof Error ? error.message : 'Une erreur est survenue lors de l\'annulation du paiement',
+              title: "Erreur d'annulation",
+              description:
+                error instanceof Error
+                  ? error.message
+                  : "Une erreur est survenue lors de l'annulation du paiement",
             });
-            
+
             return false;
           }
         },
-        
+
         refundPayment: async (paymentIntentId, amount) => {
           const state = get();
           set({ isProcessing: true });
-          
+
           try {
             // Mode démonstration
             if (state.isDemoMode) {
               // Simuler un léger délai
               await new Promise(resolve => setTimeout(resolve, 800));
-              
+
               // Mettre à jour l'état du paiement
-              set((state) => ({
+              set(state => ({
                 currentPayment: {
                   ...state.currentPayment,
-                  status: amount && amount < (state.currentPayment.amount || 0) ? 'partially_refunded' : 'refunded',
+                  status:
+                    amount && amount < (state.currentPayment.amount || 0)
+                      ? 'partially_refunded'
+                      : 'refunded',
                   metadata: {
                     ...state.currentPayment.metadata,
                     refundedAt: new Date().toISOString(),
@@ -500,19 +523,19 @@ export const usePaymentStore = create<PaymentState>()(
                 },
                 isProcessing: false,
               }));
-              
+
               // Rafraîchir l'historique des paiements
               await get().getPaymentHistory();
-              
+
               return true;
             }
-            
+
             // Mode réel: appel à l'API tRPC
             const client = trpc.payment.refundPayment.useMutation();
             const result = await client.mutateAsync({ paymentIntentId, amount });
-            
+
             if (result && result.success) {
-              set((state) => ({
+              set(state => ({
                 currentPayment: {
                   ...state.currentPayment,
                   status: result.isPartialRefund ? 'partially_refunded' : 'refunded',
@@ -525,45 +548,51 @@ export const usePaymentStore = create<PaymentState>()(
                 },
                 isProcessing: false,
               }));
-              
+
               // Rafraîchir l'historique des paiements
               await get().getPaymentHistory();
-              
+
               return true;
             }
-            
+
             throw new Error('Échec du remboursement');
           } catch (error) {
             console.error('Erreur lors du remboursement:', error);
-            
+
             set({
               isProcessing: false,
               errors: {
                 ...get().errors,
-                api: error instanceof Error ? error.message : 'Une erreur est survenue lors du remboursement',
+                api:
+                  error instanceof Error
+                    ? error.message
+                    : 'Une erreur est survenue lors du remboursement',
               },
             });
-            
+
             toast({
               variant: 'destructive',
               title: 'Erreur de remboursement',
-              description: error instanceof Error ? error.message : 'Une erreur est survenue lors du remboursement',
+              description:
+                error instanceof Error
+                  ? error.message
+                  : 'Une erreur est survenue lors du remboursement',
             });
-            
+
             return false;
           }
         },
-        
+
         getPaymentMethods: async () => {
           const state = get();
           set({ isLoading: true });
-          
+
           try {
             // Mode démonstration
             if (state.isDemoMode) {
               // Simuler un léger délai
               await new Promise(resolve => setTimeout(resolve, 600));
-              
+
               // Méthodes de paiement démo
               const demoMethods: PaymentMethod[] = [
                 {
@@ -585,64 +614,70 @@ export const usePaymentStore = create<PaymentState>()(
                   isDefault: false,
                 },
               ];
-              
+
               set({
                 paymentMethods: demoMethods,
                 isLoading: false,
               });
-              
+
               return demoMethods;
             }
-            
+
             // Mode réel: appel à l'API tRPC
             const paymentMethodsQuery = trpc.payment.getPaymentMethods.useQuery();
             const result = await paymentMethodsQuery.refetch();
-            
+
             if (result.data && result.data.paymentMethods) {
               set({
                 paymentMethods: result.data.paymentMethods,
                 isLoading: false,
               });
-              
+
               return result.data.paymentMethods;
             }
-            
+
             set({ isLoading: false });
             return [];
           } catch (error) {
             console.error('Erreur lors de la récupération des méthodes de paiement:', error);
-            
+
             set({
               isLoading: false,
               errors: {
                 ...get().errors,
-                api: error instanceof Error ? error.message : 'Une erreur est survenue lors de la récupération des méthodes de paiement',
+                api:
+                  error instanceof Error
+                    ? error.message
+                    : 'Une erreur est survenue lors de la récupération des méthodes de paiement',
               },
             });
-            
+
             toast({
               variant: 'destructive',
               title: 'Erreur',
-              description: error instanceof Error ? error.message : 'Une erreur est survenue lors de la récupération des méthodes de paiement',
+              description:
+                error instanceof Error
+                  ? error.message
+                  : 'Une erreur est survenue lors de la récupération des méthodes de paiement',
             });
-            
+
             return [];
           }
         },
-        
+
         getPaymentHistory: async (page = 1, limit = 10) => {
           const state = get();
           set({ isRefreshing: true });
-          
+
           try {
             // Préparation des filtres
             const { filter } = state.paymentHistory;
-            
+
             // Mode démonstration
             if (state.isDemoMode) {
               // Simuler un léger délai
               await new Promise(resolve => setTimeout(resolve, 700));
-              
+
               // Historique de paiements démo
               const demoItems: PaymentHistoryItem[] = [
                 {
@@ -679,7 +714,7 @@ export const usePaymentStore = create<PaymentState>()(
                 },
                 {
                   id: 'pay_demo_4',
-                  amount: 34.50,
+                  amount: 34.5,
                   currency: 'EUR',
                   status: 'refunded',
                   date: new Date(Date.now() - 259200000),
@@ -690,7 +725,7 @@ export const usePaymentStore = create<PaymentState>()(
                   },
                 },
               ];
-              
+
               // Pagination démo
               const demoPagination: PaginationInfo = {
                 total: demoItems.length,
@@ -698,7 +733,7 @@ export const usePaymentStore = create<PaymentState>()(
                 limit,
                 totalPages: Math.ceil(demoItems.length / limit),
               };
-              
+
               set({
                 paymentHistory: {
                   ...state.paymentHistory,
@@ -707,10 +742,10 @@ export const usePaymentStore = create<PaymentState>()(
                 },
                 isRefreshing: false,
               });
-              
+
               return;
             }
-            
+
             // Mode réel: appel à l'API tRPC
             const paymentHistoryQuery = trpc.payment.getPaymentHistory.useQuery();
             const result = await paymentHistoryQuery.refetch({
@@ -721,7 +756,7 @@ export const usePaymentStore = create<PaymentState>()(
               status: filter.status,
               type: filter.type,
             });
-            
+
             if (result.data) {
               set({
                 paymentHistory: {
@@ -747,31 +782,37 @@ export const usePaymentStore = create<PaymentState>()(
               });
             }
           } catch (error) {
-            console.error('Erreur lors de la récupération de l\'historique des paiements:', error);
-            
+            console.error("Erreur lors de la récupération de l'historique des paiements:", error);
+
             set({
               isRefreshing: false,
               errors: {
                 ...get().errors,
-                api: error instanceof Error ? error.message : 'Une erreur est survenue lors de la récupération de l\'historique',
+                api:
+                  error instanceof Error
+                    ? error.message
+                    : "Une erreur est survenue lors de la récupération de l'historique",
               },
             });
-            
+
             toast({
               variant: 'destructive',
               title: 'Erreur',
-              description: error instanceof Error ? error.message : 'Une erreur est survenue lors de la récupération de l\'historique',
+              description:
+                error instanceof Error
+                  ? error.message
+                  : "Une erreur est survenue lors de la récupération de l'historique",
             });
           }
         },
-        
+
         // Fonctions spécifiques au mode démo
-        simulatePaymentSuccess: async (paymentId) => {
+        simulatePaymentSuccess: async paymentId => {
           const state = get();
           if (!state.isDemoMode) return false;
-          
+
           set({ isProcessing: true });
-          
+
           try {
             // Simuler une requête au webhook démo
             await fetch('/api/webhooks/stripe/demo', {
@@ -790,9 +831,9 @@ export const usePaymentStore = create<PaymentState>()(
                 },
               }),
             });
-            
+
             // Mettre à jour l'état local
-            set((state) => ({
+            set(state => ({
               currentPayment: {
                 ...state.currentPayment,
                 status: 'succeeded',
@@ -803,43 +844,49 @@ export const usePaymentStore = create<PaymentState>()(
               },
               isProcessing: false,
             }));
-            
+
             // Rafraîchir l'historique
             await get().getPaymentHistory();
-            
+
             toast({
               title: 'Paiement réussi',
               description: 'Le paiement a été traité avec succès (mode démo)',
             });
-            
+
             return true;
           } catch (error) {
             console.error('Erreur lors de la simulation de paiement réussi:', error);
-            
+
             set({
               isProcessing: false,
               errors: {
                 ...get().errors,
-                api: error instanceof Error ? error.message : 'Une erreur est survenue lors de la simulation',
+                api:
+                  error instanceof Error
+                    ? error.message
+                    : 'Une erreur est survenue lors de la simulation',
               },
             });
-            
+
             toast({
               variant: 'destructive',
               title: 'Erreur de simulation',
-              description: error instanceof Error ? error.message : 'Une erreur est survenue lors de la simulation',
+              description:
+                error instanceof Error
+                  ? error.message
+                  : 'Une erreur est survenue lors de la simulation',
             });
-            
+
             return false;
           }
         },
-        
+
         simulatePaymentFailure: async (paymentId, reason) => {
           const state = get();
           if (!state.isDemoMode) return false;
-          
+
           set({ isProcessing: true });
-          
+
           try {
             // Simuler une requête au webhook démo
             await fetch('/api/webhooks/stripe/demo', {
@@ -859,9 +906,9 @@ export const usePaymentStore = create<PaymentState>()(
                 },
               }),
             });
-            
+
             // Mettre à jour l'état local
-            set((state) => ({
+            set(state => ({
               currentPayment: {
                 ...state.currentPayment,
                 status: 'failed',
@@ -874,44 +921,50 @@ export const usePaymentStore = create<PaymentState>()(
               },
               isProcessing: false,
             }));
-            
+
             // Rafraîchir l'historique
             await get().getPaymentHistory();
-            
+
             toast({
               variant: 'destructive',
               title: 'Paiement échoué',
               description: reason || 'Échec du paiement en mode démonstration',
             });
-            
+
             return true;
           } catch (error) {
-            console.error('Erreur lors de la simulation d\'échec de paiement:', error);
-            
+            console.error("Erreur lors de la simulation d'échec de paiement:", error);
+
             set({
               isProcessing: false,
               errors: {
                 ...get().errors,
-                api: error instanceof Error ? error.message : 'Une erreur est survenue lors de la simulation',
+                api:
+                  error instanceof Error
+                    ? error.message
+                    : 'Une erreur est survenue lors de la simulation',
               },
             });
-            
+
             toast({
               variant: 'destructive',
               title: 'Erreur de simulation',
-              description: error instanceof Error ? error.message : 'Une erreur est survenue lors de la simulation',
+              description:
+                error instanceof Error
+                  ? error.message
+                  : 'Une erreur est survenue lors de la simulation',
             });
-            
+
             return false;
           }
         },
-        
+
         simulatePaymentDispute: async (paymentId, reason) => {
           const state = get();
           if (!state.isDemoMode) return false;
-          
+
           set({ isProcessing: true });
-          
+
           try {
             // Simuler une requête au webhook démo
             await fetch('/api/webhooks/stripe/demo', {
@@ -931,9 +984,9 @@ export const usePaymentStore = create<PaymentState>()(
                 },
               }),
             });
-            
+
             // Mettre à jour l'état local
-            set((state) => ({
+            set(state => ({
               currentPayment: {
                 ...state.currentPayment,
                 status: 'disputed',
@@ -945,44 +998,50 @@ export const usePaymentStore = create<PaymentState>()(
               },
               isProcessing: false,
             }));
-            
+
             // Rafraîchir l'historique
             await get().getPaymentHistory();
-            
+
             toast({
               variant: 'warning',
               title: 'Paiement contesté',
-              description: 'Ce paiement fait maintenant l\'objet d\'une contestation (mode démo)',
+              description: "Ce paiement fait maintenant l'objet d'une contestation (mode démo)",
             });
-            
+
             return true;
           } catch (error) {
             console.error('Erreur lors de la simulation de contestation:', error);
-            
+
             set({
               isProcessing: false,
               errors: {
                 ...get().errors,
-                api: error instanceof Error ? error.message : 'Une erreur est survenue lors de la simulation',
+                api:
+                  error instanceof Error
+                    ? error.message
+                    : 'Une erreur est survenue lors de la simulation',
               },
             });
-            
+
             toast({
               variant: 'destructive',
               title: 'Erreur de simulation',
-              description: error instanceof Error ? error.message : 'Une erreur est survenue lors de la simulation',
+              description:
+                error instanceof Error
+                  ? error.message
+                  : 'Une erreur est survenue lors de la simulation',
             });
-            
+
             return false;
           }
         },
-        
+
         simulatePaymentRefund: async (paymentId, amount) => {
           const state = get();
           if (!state.isDemoMode) return false;
-          
+
           set({ isProcessing: true });
-          
+
           try {
             // Simuler une requête au webhook démo
             await fetch('/api/webhooks/stripe/demo', {
@@ -994,7 +1053,10 @@ export const usePaymentStore = create<PaymentState>()(
                 eventType: 'charge.refunded',
                 paymentId,
                 amount: amount || state.currentPayment.amount,
-                status: amount && amount < (state.currentPayment.amount || 0) ? 'partially_refunded' : 'refunded',
+                status:
+                  amount && amount < (state.currentPayment.amount || 0)
+                    ? 'partially_refunded'
+                    : 'refunded',
                 metadata: {
                   userId: 'current_user', // Normalement ceci viendrait de la session
                   isPartialRefund: amount && amount < (state.currentPayment.amount || 0),
@@ -1003,12 +1065,15 @@ export const usePaymentStore = create<PaymentState>()(
                 },
               }),
             });
-            
+
             // Mettre à jour l'état local
-            set((state) => ({
+            set(state => ({
               currentPayment: {
                 ...state.currentPayment,
-                status: amount && amount < (state.currentPayment.amount || 0) ? 'partially_refunded' : 'refunded',
+                status:
+                  amount && amount < (state.currentPayment.amount || 0)
+                    ? 'partially_refunded'
+                    : 'refunded',
                 metadata: {
                   ...state.currentPayment.metadata,
                   refundedAt: new Date().toISOString(),
@@ -1018,33 +1083,39 @@ export const usePaymentStore = create<PaymentState>()(
               },
               isProcessing: false,
             }));
-            
+
             // Rafraîchir l'historique
             await get().getPaymentHistory();
-            
+
             toast({
               title: 'Remboursement effectué',
               description: 'Le remboursement a été traité avec succès (mode démo)',
             });
-            
+
             return true;
           } catch (error) {
             console.error('Erreur lors de la simulation de remboursement:', error);
-            
+
             set({
               isProcessing: false,
               errors: {
                 ...get().errors,
-                api: error instanceof Error ? error.message : 'Une erreur est survenue lors de la simulation',
+                api:
+                  error instanceof Error
+                    ? error.message
+                    : 'Une erreur est survenue lors de la simulation',
               },
             });
-            
+
             toast({
               variant: 'destructive',
               title: 'Erreur de simulation',
-              description: error instanceof Error ? error.message : 'Une erreur est survenue lors de la simulation',
+              description:
+                error instanceof Error
+                  ? error.message
+                  : 'Une erreur est survenue lors de la simulation',
             });
-            
+
             return false;
           }
         },
@@ -1052,7 +1123,7 @@ export const usePaymentStore = create<PaymentState>()(
       {
         name: 'payment-store',
         // On ne sauvegarde pas les états de chargement et les erreurs
-        partialize: (state) => ({
+        partialize: state => ({
           paymentHistory: {
             filter: state.paymentHistory.filter,
           },
@@ -1063,4 +1134,4 @@ export const usePaymentStore = create<PaymentState>()(
       }
     )
   )
-); 
+);

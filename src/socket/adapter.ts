@@ -62,7 +62,7 @@ export async function closeClientSocket() {
     const { closeSocket } = await import('./socket-client-browser');
     closeSocket();
   } catch (error) {
-    console.error("Erreur lors de la fermeture du socket:", error);
+    console.error('Erreur lors de la fermeture du socket:', error);
   }
 }
 
@@ -79,18 +79,18 @@ export async function getSocketServer() {
   try {
     // Import dynamique côté serveur uniquement
     const serverModule = await import('./server');
-    
+
     // Utiliser la fonction getSocketServer si elle existe
     // Cette fonction a été ajoutée dans server.ts
     if ('getSocketServer' in serverModule) {
       return serverModule.getSocketServer();
     }
-    
+
     // Si la fonction n'est pas disponible
-    console.warn("Fonction getSocketServer non trouvée dans le module serveur");
+    console.warn('Fonction getSocketServer non trouvée dans le module serveur');
     return null;
   } catch (error) {
     console.error("Erreur lors de l'import du serveur socket:", error);
     return null;
   }
-} 
+}

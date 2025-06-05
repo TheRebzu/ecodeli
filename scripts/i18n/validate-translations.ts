@@ -12,7 +12,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const projectRoot = path.resolve(__dirname, '../..');
 
-// Langues supportées 
+// Langues supportées
 const SUPPORTED_LANGUAGES = ['fr', 'en', 'es', 'de', 'it'];
 const PRIMARY_LANGUAGE = 'fr';
 
@@ -42,7 +42,7 @@ interface ValidationReport {
 async function getTranslationFiles(): Promise<string[]> {
   const messagesDir = path.resolve(projectRoot, 'src/messages');
   const pattern = path.join(messagesDir, '*.json');
-  
+
   try {
     return await glob(pattern);
   } catch (error) {
@@ -71,13 +71,13 @@ function extractKeys(obj: any, prefix: string = ''): string[] {
   if (!obj || typeof obj !== 'object') {
     return [];
   }
-  
+
   const keys: string[] = [];
-  
+
   for (const key in obj) {
     const currentKey = prefix ? `${prefix}.${key}` : key;
     const value = obj[key];
-    
+
     if (typeof value === 'object' && value !== null) {
       // Récursion pour les objets imbriqués
       keys.push(...extractKeys(value, currentKey));
@@ -86,7 +86,7 @@ function extractKeys(obj: any, prefix: string = ''): string[] {
       keys.push(currentKey);
     }
   }
-  
+
   return keys;
 }
 
@@ -96,14 +96,14 @@ function extractKeys(obj: any, prefix: string = ''): string[] {
 function getNestedValue(obj: any, key: string): any {
   const parts = key.split('.');
   let current = obj;
-  
+
   for (const part of parts) {
     if (current === undefined || current === null || typeof current !== 'object') {
       return undefined;
     }
     current = current[part];
   }
-  
+
   return current;
 }
 
@@ -114,10 +114,12 @@ function isUntranslated(value: any): boolean {
   if (typeof value !== 'string') {
     return false;
   }
-  
-  return value.startsWith('[TO_TRANSLATE]') || 
-         value.startsWith('[TRANSLATION_ERROR]') || 
-         value.startsWith('[FAILED_TRANSLATION]');
+
+  return (
+    value.startsWith('[TO_TRANSLATE]') ||
+    value.startsWith('[TRANSLATION_ERROR]') ||
+    value.startsWith('[FAILED_TRANSLATION]')
+  );
 }
 
 /**
@@ -130,41 +132,38 @@ function isEmpty(value: any): boolean {
 /**
  * Valide un fichier de traduction par rapport au fichier de référence
  */
-function validateTranslationFile(
-  translations: any,
-  referenceTranslations: any
-): ValidationResult {
+function validateTranslationFile(translations: any, referenceTranslations: any): ValidationResult {
   // Extraire toutes les clés du fichier de référence
   const referenceKeys = extractKeys(referenceTranslations);
   // Extraire toutes les clés du fichier à valider
   const translationKeys = extractKeys(translations);
-  
+
   const missingKeys: string[] = [];
   const untranslatedKeys: string[] = [];
   const emptyKeys: string[] = [];
-  
+
   // Vérifier les clés manquantes
   for (const key of referenceKeys) {
     if (!translationKeys.includes(key)) {
       missingKeys.push(key);
       continue;
     }
-    
+
     // Vérifier les clés non traduites ou vides
     const value = getNestedValue(translations, key);
-    
+
     if (isUntranslated(value)) {
       untranslatedKeys.push(key);
     } else if (isEmpty(value)) {
       emptyKeys.push(key);
     }
   }
-  
+
   return {
     missingKeys,
     untranslatedKeys,
     emptyKeys,
-    totalKeys: referenceKeys.length
+    totalKeys: referenceKeys.length,
   };
 }
 
@@ -173,65 +172,77 @@ function validateTranslationFile(
  */
 async function validateAllTranslations(): Promise<ValidationReport> {
   console.log(chalk.blue('🔍 Validation des fichiers de traduction...'));
-  
+
   const report: ValidationReport = {};
-  
+
   try {
     // Récupérer tous les fichiers de traduction
     const files = await getTranslationFiles();
-    
+
     if (files.length === 0) {
       console.warn(chalk.yellow('⚠️ Aucun fichier de traduction trouvé.'));
       return report;
     }
-    
+
     // Identifier le fichier de référence
     const referenceFile = files.find(file => path.basename(file) === `${PRIMARY_LANGUAGE}.json`);
-    
+
     if (!referenceFile) {
       console.error(chalk.red(`❌ Fichier de référence ${PRIMARY_LANGUAGE}.json non trouvé.`));
       return report;
     }
-    
+
     console.log(chalk.blue(`📚 Chargement du fichier de référence: ${referenceFile}`));
     const referenceTranslations = await loadTranslation(referenceFile);
-    
+
     // Valider chaque fichier
     for (const file of files) {
       const language = path.basename(file, '.json');
-      
+
       // Ignorer le fichier de référence dans la validation
       if (language === PRIMARY_LANGUAGE) {
         continue;
       }
-      
+
       console.log(chalk.blue(`🔍 Validation de ${language}...`));
       const translations = await loadTranslation(file);
-      
+
       const result = validateTranslationFile(translations, referenceTranslations);
       report[language] = result;
-      
+
       // Afficher les résultats pour cette langue
       const { missingKeys, untranslatedKeys, emptyKeys, totalKeys } = result;
-      const completionRate = Math.round(((totalKeys - missingKeys.length - untranslatedKeys.length - emptyKeys.length) / totalKeys) * 100);
-      
+      const completionRate = Math.round(
+        ((totalKeys - missingKeys.length - untranslatedKeys.length - emptyKeys.length) /
+          totalKeys) *
+          100
+      );
+
       console.log(chalk.blue(`📊 Statistiques pour ${language}:`));
       console.log(`   Total des clés: ${totalKeys}`);
       console.log(`   Taux de complétion: ${completionRate}%`);
       console.log(`   Clés manquantes: ${missingKeys.length}`);
       console.log(`   Clés non traduites: ${untranslatedKeys.length}`);
       console.log(`   Clés vides: ${emptyKeys.length}`);
-      
+
       // Afficher quelques exemples de clés problématiques
       if (missingKeys.length > 0) {
-        console.log(chalk.yellow(`⚠️ Exemple de clés manquantes: ${missingKeys.slice(0, 5).join(', ')}${missingKeys.length > 5 ? '...' : ''}`));
+        console.log(
+          chalk.yellow(
+            `⚠️ Exemple de clés manquantes: ${missingKeys.slice(0, 5).join(', ')}${missingKeys.length > 5 ? '...' : ''}`
+          )
+        );
       }
-      
+
       if (untranslatedKeys.length > 0) {
-        console.log(chalk.yellow(`⚠️ Exemple de clés non traduites: ${untranslatedKeys.slice(0, 5).join(', ')}${untranslatedKeys.length > 5 ? '...' : ''}`));
+        console.log(
+          chalk.yellow(
+            `⚠️ Exemple de clés non traduites: ${untranslatedKeys.slice(0, 5).join(', ')}${untranslatedKeys.length > 5 ? '...' : ''}`
+          )
+        );
       }
     }
-    
+
     return report;
   } catch (error) {
     console.error(chalk.red(`❌ Erreur lors de la validation: ${error}`));
@@ -246,9 +257,9 @@ async function generateValidationReport(report: ValidationReport): Promise<void>
   try {
     const reportDir = path.resolve(projectRoot);
     const reportPath = path.join(reportDir, 'translation-report.json');
-    
+
     await fs.writeFile(reportPath, JSON.stringify(report, null, 2), 'utf-8');
-    
+
     console.log(chalk.green(`✅ Rapport de validation généré: ${reportPath}`));
   } catch (error) {
     console.error(chalk.red(`❌ Erreur lors de la génération du rapport: ${error}`));
@@ -272,7 +283,7 @@ interface TranslationError {
  */
 async function extractUsedKeys(): Promise<Set<string>> {
   const usedKeys = new Set<string>();
-  
+
   // Patterns de détection pour Next.js Intl
   const patterns = [
     // useTranslations('namespace') + t('key')
@@ -288,25 +299,25 @@ async function extractUsedKeys(): Promise<Set<string>> {
   ];
 
   // Récupérer tous les fichiers source
-  const files = await glob('src/**/*.{ts,tsx,js,jsx}', { 
+  const files = await glob('src/**/*.{ts,tsx,js,jsx}', {
     ignore: ['**/node_modules/**', '**/.next/**'],
-    cwd: projectRoot 
+    cwd: projectRoot,
   });
 
   for (const file of files) {
     const filePath = path.resolve(projectRoot, file);
-    
+
     try {
       const content = await fs.readFile(filePath, 'utf-8');
       const lines = content.split('\n');
-      
+
       // Détecter les namespaces utilisés
       const namespaces = new Set<string>();
       const namespaceMatches = content.matchAll(/useTranslations\(['"]([\w\.]+)['"]\)/g);
       for (const match of namespaceMatches) {
         namespaces.add(match[1]);
       }
-      
+
       // Si pas de namespace explicite, utiliser 'common'
       if (namespaces.size === 0) {
         namespaces.add('common');
@@ -315,12 +326,12 @@ async function extractUsedKeys(): Promise<Set<string>> {
       // Extraire les clés
       for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
-        
+
         // Chercher les appels t('key')
         const tMatches = line.matchAll(/\bt\(['"]([\w\.]+)['"]/g);
         for (const match of tMatches) {
           const key = match[1];
-          
+
           // Si la clé contient déjà un namespace, l'utiliser directement
           if (key.includes('.')) {
             usedKeys.add(key);
@@ -345,7 +356,7 @@ async function extractUsedKeys(): Promise<Set<string>> {
  */
 async function loadTranslationFile(locale: string): Promise<Record<string, any>> {
   const filePath = path.resolve(projectRoot, 'src/messages', `${locale}.json`);
-  
+
   try {
     const content = await fs.readFile(filePath, 'utf-8');
     return JSON.parse(content);
@@ -359,10 +370,10 @@ async function loadTranslationFile(locale: string): Promise<Record<string, any>>
  */
 function extractTranslationKeys(obj: Record<string, any>, prefix = ''): Set<string> {
   const keys = new Set<string>();
-  
+
   for (const [key, value] of Object.entries(obj)) {
     const fullKey = prefix ? `${prefix}.${key}` : key;
-    
+
     if (typeof value === 'object' && value !== null) {
       // Récursion pour les objets imbriqués
       const nestedKeys = extractTranslationKeys(value, fullKey);
@@ -374,7 +385,7 @@ function extractTranslationKeys(obj: Record<string, any>, prefix = ''): Set<stri
       keys.add(fullKey);
     }
   }
-  
+
   return keys;
 }
 
@@ -383,11 +394,11 @@ function extractTranslationKeys(obj: Record<string, any>, prefix = ''): Set<stri
  */
 async function validateLocale(locale: string, usedKeys: Set<string>): Promise<TranslationError[]> {
   const errors: TranslationError[] = [];
-  
+
   try {
     const translations = await loadTranslationFile(locale);
     const availableKeys = extractTranslationKeys(translations);
-    
+
     // Chercher les clés manquantes
     for (const usedKey of usedKeys) {
       if (!availableKeys.has(usedKey)) {
@@ -399,7 +410,7 @@ async function validateLocale(locale: string, usedKeys: Set<string>): Promise<Tr
         });
       }
     }
-    
+
     // Chercher les clés inutilisées (optionnel)
     if (options.verbose) {
       for (const availableKey of availableKeys) {
@@ -413,7 +424,7 @@ async function validateLocale(locale: string, usedKeys: Set<string>): Promise<Tr
         }
       }
     }
-    
+
     // Vérifier les valeurs vides ou invalides
     for (const [key, value] of Object.entries(translations)) {
       if (typeof value === 'string' && value.trim() === '') {
@@ -425,7 +436,6 @@ async function validateLocale(locale: string, usedKeys: Set<string>): Promise<Tr
         });
       }
     }
-    
   } catch (error) {
     errors.push({
       type: 'invalid',
@@ -434,7 +444,7 @@ async function validateLocale(locale: string, usedKeys: Set<string>): Promise<Tr
       message: `Erreur lors du chargement du fichier de traduction: ${error}`,
     });
   }
-  
+
   return errors;
 }
 
@@ -443,7 +453,7 @@ async function validateLocale(locale: string, usedKeys: Set<string>): Promise<Tr
  */
 async function fixTranslationErrors(errors: TranslationError[]): Promise<void> {
   const errorsByLocale = new Map<string, TranslationError[]>();
-  
+
   // Grouper les erreurs par langue
   for (const error of errors) {
     if (error.type === 'missing' && error.locale) {
@@ -453,19 +463,19 @@ async function fixTranslationErrors(errors: TranslationError[]): Promise<void> {
       errorsByLocale.get(error.locale)!.push(error);
     }
   }
-  
+
   // Corriger chaque fichier de langue
   for (const [locale, localeErrors] of errorsByLocale) {
     try {
       const translations = await loadTranslationFile(locale);
       let modified = false;
-      
+
       for (const error of localeErrors) {
         if (error.type === 'missing') {
           // Ajouter la clé manquante avec une valeur par défaut
           const keyParts = error.key.split('.');
           let current = translations;
-          
+
           // Naviguer/créer la structure imbriquée
           for (let i = 0; i < keyParts.length - 1; i++) {
             const part = keyParts[i];
@@ -474,7 +484,7 @@ async function fixTranslationErrors(errors: TranslationError[]): Promise<void> {
             }
             current = current[part];
           }
-          
+
           // Ajouter la clé finale
           const finalKey = keyParts[keyParts.length - 1];
           if (!current[finalKey]) {
@@ -484,14 +494,13 @@ async function fixTranslationErrors(errors: TranslationError[]): Promise<void> {
           }
         }
       }
-      
+
       // Sauvegarder le fichier modifié
       if (modified) {
         const filePath = path.resolve(projectRoot, 'src/messages', `${locale}.json`);
         await fs.writeFile(filePath, JSON.stringify(translations, null, 2) + '\n', 'utf-8');
         console.log(chalk.green(`✅ Fichier ${locale}.json mis à jour`));
       }
-      
     } catch (error) {
       console.error(chalk.red(`❌ Erreur lors de la correction pour ${locale}: ${error}`));
     }
@@ -503,78 +512,79 @@ async function fixTranslationErrors(errors: TranslationError[]): Promise<void> {
  */
 async function main() {
   console.log(chalk.blue('🔍 Validation des traductions...'));
-  
+
   try {
     // Extraire les clés utilisées dans le code
     console.log(chalk.blue('📝 Extraction des clés utilisées...'));
     const usedKeys = await extractUsedKeys();
     console.log(chalk.green(`✅ ${usedKeys.size} clés trouvées dans le code`));
-    
+
     if (options.verbose) {
       console.log(chalk.blue('📋 Exemples de clés utilisées:'));
       const examples = Array.from(usedKeys).slice(0, 10);
       examples.forEach(key => console.log(`   - ${key}`));
     }
-    
+
     // Déterminer les langues à valider
     const locales = options.locale ? [options.locale] : ['fr', 'en'];
-    
+
     // Valider chaque langue
     const allErrors: TranslationError[] = [];
-    
+
     for (const locale of locales) {
       console.log(chalk.blue(`🔍 Validation de la langue: ${locale}`));
       const errors = await validateLocale(locale, usedKeys);
       allErrors.push(...errors);
-      
+
       if (errors.length === 0) {
         console.log(chalk.green(`✅ Aucune erreur trouvée pour ${locale}`));
       } else {
         console.log(chalk.yellow(`⚠️ ${errors.length} erreur(s) trouvée(s) pour ${locale}`));
-        
+
         if (options.verbose) {
           errors.forEach(error => {
-            const icon = error.type === 'missing' ? '❌' : 
-                        error.type === 'unused' ? '⚠️' : '🔍';
+            const icon = error.type === 'missing' ? '❌' : error.type === 'unused' ? '⚠️' : '🔍';
             console.log(`   ${icon} ${error.message}`);
           });
         }
       }
     }
-    
+
     // Résumé des erreurs
     if (allErrors.length > 0) {
       console.log(chalk.yellow('\n📊 Résumé des erreurs:'));
-      
+
       const errorsByType = new Map<string, number>();
       for (const error of allErrors) {
         errorsByType.set(error.type, (errorsByType.get(error.type) || 0) + 1);
       }
-      
+
       for (const [type, count] of errorsByType) {
-        const typeLabel = {
-          missing: 'Clés manquantes',
-          unused: 'Clés inutilisées',
-          invalid: 'Valeurs invalides',
-          placeholder: 'Placeholders'
-        }[type] || type;
-        
+        const typeLabel =
+          {
+            missing: 'Clés manquantes',
+            unused: 'Clés inutilisées',
+            invalid: 'Valeurs invalides',
+            placeholder: 'Placeholders',
+          }[type] || type;
+
         console.log(`   ${typeLabel}: ${count}`);
       }
-      
+
       // Correction automatique si demandée
       if (options.fix) {
         console.log(chalk.blue('\n🔧 Correction automatique...'));
         await fixTranslationErrors(allErrors);
       } else {
-        console.log(chalk.blue('\n💡 Utilisez --fix pour corriger automatiquement les clés manquantes'));
+        console.log(
+          chalk.blue('\n💡 Utilisez --fix pour corriger automatiquement les clés manquantes')
+        );
       }
-      
+
       process.exit(1);
     } else {
       console.log(chalk.green('\n✅ Toutes les traductions sont valides !'));
     }
-    
   } catch (error) {
     console.error(chalk.red(`❌ Erreur lors de la validation: ${error}`));
     process.exit(1);
@@ -587,4 +597,4 @@ main().catch(error => {
   process.exit(1);
 });
 
-export { validateAllTranslations, generateValidationReport }; 
+export { validateAllTranslations, generateValidationReport };

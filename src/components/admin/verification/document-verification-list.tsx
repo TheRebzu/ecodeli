@@ -57,8 +57,11 @@ export default function DocumentVerificationList() {
   const [selectedDocument, setSelectedDocument] = useState<any | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [verificationOpen, setVerificationOpen] = useState(false);
-  const [rejectionReason, setRejectionReason] = useState('');  const [activeTab, setActiveTab] = useState<VerificationStatus>('PENDING');
-  const [activeRole, setActiveRole] = useState<'ALL' | 'DELIVERER' | 'PROVIDER' | 'MERCHANT'>('ALL');
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [activeTab, setActiveTab] = useState<VerificationStatus>('PENDING');
+  const [activeRole, setActiveRole] = useState<'ALL' | 'DELIVERER' | 'PROVIDER' | 'MERCHANT'>(
+    'ALL'
+  );
   const locale = 'fr'; // Set this based on your app's locale state
 
   // Query documents with filters for status and role
@@ -69,7 +72,7 @@ export default function DocumentVerificationList() {
     refetch,
   } = api.document.getPendingDocuments.useQuery({
     status: activeTab,
-    userRole: activeRole !== 'ALL' ? activeRole as any : undefined,
+    userRole: activeRole !== 'ALL' ? (activeRole as any) : undefined,
   });
 
   const documents = documentsData?.documents || [];
@@ -163,7 +166,7 @@ export default function DocumentVerificationList() {
               className="flex items-center gap-1"
             >
               <RefreshCcw className="h-4 w-4" />
-              {t('documents.refresh', { defaultValue: "Rafraîchir" })}
+              {t('documents.refresh', { defaultValue: 'Rafraîchir' })}
             </Button>
           </div>
         </CardHeader>
@@ -200,11 +203,13 @@ export default function DocumentVerificationList() {
               className="flex items-center gap-1"
             >
               <RefreshCcw className="h-4 w-4" />
-              {t('documents.refresh', { defaultValue: "Rafraîchir" })}
+              {t('documents.refresh', { defaultValue: 'Rafraîchir' })}
             </Button>
           </div>
         </CardHeader>
-        <CardContent>          <div className="flex flex-col space-y-4">
+        <CardContent>
+          {' '}
+          <div className="flex flex-col space-y-4">
             <Tabs
               defaultValue="PENDING"
               value={activeTab}
@@ -215,145 +220,147 @@ export default function DocumentVerificationList() {
                 <TabsTrigger value="PENDING">
                   {t('documents.status.pending')}{' '}
                   {activeTab === 'PENDING' && documents?.length > 0 && (
-                    <Badge className="ml-2">
-                      {documents?.length}
-                    </Badge>
+                    <Badge className="ml-2">{documents?.length}</Badge>
                   )}
                 </TabsTrigger>
                 <TabsTrigger value="APPROVED">{t('documents.status.approved')}</TabsTrigger>
                 <TabsTrigger value="REJECTED">{t('documents.status.rejected')}</TabsTrigger>
               </TabsList>
             </Tabs>
-            
+
             <Tabs
               defaultValue="ALL"
               value={activeRole}
-              onValueChange={value => setActiveRole(value as 'ALL' | 'DELIVERER' | 'PROVIDER' | 'MERCHANT')}
+              onValueChange={value =>
+                setActiveRole(value as 'ALL' | 'DELIVERER' | 'PROVIDER' | 'MERCHANT')
+              }
               className="w-full"
             >
               <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="ALL">
-                  {t('documents.tabs.all')}
-                </TabsTrigger>
+                <TabsTrigger value="ALL">{t('documents.tabs.all')}</TabsTrigger>
                 <TabsTrigger value="DELIVERER">{t('documents.tabs.deliverers')}</TabsTrigger>
                 <TabsTrigger value="PROVIDER">{t('documents.tabs.providers')}</TabsTrigger>
                 <TabsTrigger value="MERCHANT">{t('documents.tabs.merchants')}</TabsTrigger>
               </TabsList>
             </Tabs>
           </div>
-
-            <TabsContent value={activeTab} className="mt-6">
-              {documents && documents.length === 0 ? (
-                <div className="flex items-center justify-center p-8 text-center">
-                  <div>
-                    <FileText className="mx-auto h-10 w-10 text-muted-foreground" />
-                    <h3 className="mt-2 text-lg font-semibold">
-                      {t(`documents.empty.${activeTab.toLowerCase()}.title`)}
-                    </h3>
-                    <p className="text-sm text-muted-foreground">
-                      {t(`documents.empty.${activeTab.toLowerCase()}.description`)}
-                    </p>
-                  </div>
+          <TabsContent value={activeTab} className="mt-6">
+            {documents && documents.length === 0 ? (
+              <div className="flex items-center justify-center p-8 text-center">
+                <div>
+                  <FileText className="mx-auto h-10 w-10 text-muted-foreground" />
+                  <h3 className="mt-2 text-lg font-semibold">
+                    {t(`documents.empty.${activeTab.toLowerCase()}.title`)}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {t(`documents.empty.${activeTab.toLowerCase()}.description`)}
+                  </p>
                 </div>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t('documents.columns.user')}</TableHead>
-                      <TableHead>{t('documents.columns.type')}</TableHead>
-                      <TableHead>{t('documents.columns.submitted')}</TableHead>
-                      <TableHead>{t('documents.columns.expires')}</TableHead>
-                      <TableHead className="text-right">{t('documents.columns.actions')}</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>                    {documents?.map(doc => {
-                      const { variant, icon } = getStatusBadgeProps(doc.verificationStatus as VerificationStatus);
-                      return (
-                        <TableRow key={doc.id}>
-                          <TableCell className="font-medium">
-                            {doc.user?.name || '-'}
-                            <div className="text-xs text-muted-foreground">{doc.user?.email}</div>
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-col gap-1">
-                              <span>{tDocuments(`documentTypes.${doc.type}`)}</span>
-                              <Badge variant={variant} className="flex w-fit items-center">
-                                {icon}
-                                {tDocuments(`status.${doc.verificationStatus?.toLowerCase()}`)}
-                              </Badge>
-                            </div>
-                          </TableCell>
-                          <TableCell>{formatDate(doc.createdAt)}</TableCell>
-                          <TableCell>
-                            {doc.expiryDate ? (
-                              formatDate(doc.expiryDate)
-                            ) : (
-                              <span className="text-muted-foreground">-</span>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('documents.columns.user')}</TableHead>
+                    <TableHead>{t('documents.columns.type')}</TableHead>
+                    <TableHead>{t('documents.columns.submitted')}</TableHead>
+                    <TableHead>{t('documents.columns.expires')}</TableHead>
+                    <TableHead className="text-right">{t('documents.columns.actions')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {' '}
+                  {documents?.map(doc => {
+                    const { variant, icon } = getStatusBadgeProps(
+                      doc.verificationStatus as VerificationStatus
+                    );
+                    return (
+                      <TableRow key={doc.id}>
+                        <TableCell className="font-medium">
+                          {doc.user?.name || '-'}
+                          <div className="text-xs text-muted-foreground">{doc.user?.email}</div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-col gap-1">
+                            <span>{tDocuments(`documentTypes.${doc.type}`)}</span>
+                            <Badge variant={variant} className="flex w-fit items-center">
+                              {icon}
+                              {tDocuments(`status.${doc.verificationStatus?.toLowerCase()}`)}
+                            </Badge>
+                          </div>
+                        </TableCell>
+                        <TableCell>{formatDate(doc.createdAt)}</TableCell>
+                        <TableCell>
+                          {doc.expiryDate ? (
+                            formatDate(doc.expiryDate)
+                          ) : (
+                            <span className="text-muted-foreground">-</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={() => handleViewDocument(doc)}
+                                  >
+                                    <Eye className="h-4 w-4" />
+                                    <span className="sr-only">{t('documents.view')}</span>
+                                  </Button>
+                                </TooltipTrigger>
+                                <TooltipContent>{t('documents.view')}</TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+
+                            {doc.status === 'PENDING' && (
+                              <>
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="text-green-600"
+                                        onClick={() => handleOpenVerification(doc, 'approve')}
+                                      >
+                                        <ThumbsUp className="h-4 w-4" />
+                                        <span className="sr-only">{t('documents.approve')}</span>
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>{t('documents.approve')}</TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        className="text-destructive"
+                                        onClick={() => handleOpenVerification(doc, 'reject')}
+                                      >
+                                        <ThumbsDown className="h-4 w-4" />
+                                        <span className="sr-only">{t('documents.reject')}</span>
+                                      </Button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>{t('documents.reject')}</TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
+                              </>
                             )}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end gap-2">
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <Button
-                                      variant="ghost"
-                                      size="icon"
-                                      onClick={() => handleViewDocument(doc)}
-                                    >
-                                      <Eye className="h-4 w-4" />
-                                      <span className="sr-only">{t('documents.view')}</span>
-                                    </Button>
-                                  </TooltipTrigger>
-                                  <TooltipContent>{t('documents.view')}</TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-
-                              {doc.status === 'PENDING' && (
-                                <>
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="text-green-600"
-                                          onClick={() => handleOpenVerification(doc, 'approve')}
-                                        >
-                                          <ThumbsUp className="h-4 w-4" />
-                                          <span className="sr-only">{t('documents.approve')}</span>
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>{t('documents.approve')}</TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="text-destructive"
-                                          onClick={() => handleOpenVerification(doc, 'reject')}
-                                        >
-                                          <ThumbsDown className="h-4 w-4" />
-                                          <span className="sr-only">{t('documents.reject')}</span>
-                                        </Button>
-                                      </TooltipTrigger>
-                                      <TooltipContent>{t('documents.reject')}</TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                </>
-                              )}
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>              )}
-            </TabsContent>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            )}
+          </TabsContent>
         </CardContent>
         <CardFooter className="border-t bg-muted/50 px-6 py-3">
           <p className="text-xs text-muted-foreground">

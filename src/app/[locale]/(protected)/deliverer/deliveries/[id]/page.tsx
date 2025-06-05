@@ -3,7 +3,7 @@
 import React from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { trpc } from '@/trpc/client';
+import { api } from '@/trpc/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -122,9 +122,9 @@ export default function DeliveryDetailPage() {
   }
 
   // Déterminer les actions disponibles en fonction du statut
-  const canStartDelivery = delivery.status === 'ASSIGNED';
+  const canStartDelivery = delivery.status === 'ACCEPTED';
   const canCompleteDelivery = delivery.status === 'IN_TRANSIT';
-  const canReportIssue = ['ASSIGNED', 'IN_TRANSIT'].includes(delivery.status);
+  const canReportIssue = ['ACCEPTED', 'IN_TRANSIT'].includes(delivery.status);
   const isCompleted = ['DELIVERED', 'FAILED', 'CANCELLED'].includes(delivery.status);
 
   // Fonction pour démarrer la livraison

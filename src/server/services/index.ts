@@ -9,8 +9,8 @@ export {
   notifyDeliveryApproaching,
   notifyDeliveryDelayed,
   notifyCheckpointReached,
-  notifyDeliveryCompleted
+  notifyDeliveryCompleted,
 } from './notification.service';
 
 // Export du type NotificationType du service de notification
-export { NotificationType } from './notification.service'; 
+export { NotificationType } from './notification.service';

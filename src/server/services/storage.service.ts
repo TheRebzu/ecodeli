@@ -880,12 +880,15 @@ class StorageService {
   }
 
   // Récupération des recommandations de box pour un client basées sur son historique
-  async getBoxRecommendationsForClient(clientId: string, filters?: {
-    warehouseId?: string;
-    maxPrice?: number;
-    startDate?: Date;
-    endDate?: Date;
-  }) {
+  async getBoxRecommendationsForClient(
+    clientId: string,
+    filters?: {
+      warehouseId?: string;
+      maxPrice?: number;
+      startDate?: Date;
+      endDate?: Date;
+    }
+  ) {
     try {
       // Récupérer l'historique du client pour comprendre ses préférences
       const clientHistory = await db.reservation.findMany({
@@ -912,7 +915,7 @@ class StorageService {
         isOccupied: false,
         ...(filters?.warehouseId && { warehouseId: filters.warehouseId }),
         ...(filters?.maxPrice && { pricePerDay: { lte: filters.maxPrice } }),
-        
+
         // Recommandations basées sur l'historique
         ...(preferences.preferredBoxTypes.length > 0 && {
           boxType: { in: preferences.preferredBoxTypes as unknown as BoxType[] },
@@ -962,10 +965,7 @@ class StorageService {
             },
           },
         },
-        orderBy: [
-          { pricePerDay: 'asc' },
-          { size: 'asc' },
-        ],
+        orderBy: [{ pricePerDay: 'asc' }, { size: 'asc' }],
         take: 20,
       });
 
@@ -1035,24 +1035,31 @@ class StorageService {
       .slice(0, 3)
       .map(([type]) => type);
 
-    const preferredSizeRange = sizesUsed.length > 0 ? {
-      min: Math.min(...sizesUsed) * 0.8,
-      max: Math.max(...sizesUsed) * 1.2,
-    } : null;
+    const preferredSizeRange =
+      sizesUsed.length > 0
+        ? {
+            min: Math.min(...sizesUsed) * 0.8,
+            max: Math.max(...sizesUsed) * 1.2,
+          }
+        : null;
 
-    const preferredPriceRange = pricesUsed.length > 0 ? {
-      min: Math.min(...pricesUsed),
-      max: Math.max(...pricesUsed) * 1.1,
-    } : null;
+    const preferredPriceRange =
+      pricesUsed.length > 0
+        ? {
+            min: Math.min(...pricesUsed),
+            max: Math.max(...pricesUsed) * 1.1,
+          }
+        : null;
 
     const favoriteWarehouses = Object.entries(warehouseCounts)
       .sort(([, a], [, b]) => b - a)
       .slice(0, 3)
       .map(([warehouseId]) => warehouseId);
 
-    const averageReservationDuration = durations.length > 0 
-      ? Math.round(durations.reduce((sum, d) => sum + d, 0) / durations.length)
-      : 7;
+    const averageReservationDuration =
+      durations.length > 0
+        ? Math.round(durations.reduce((sum, d) => sum + d, 0) / durations.length)
+        : 7;
 
     return {
       preferredBoxTypes,
@@ -1069,17 +1076,17 @@ class StorageService {
       // Statistiques de base
       const [totalReservations, activeReservations, completedReservations] = await Promise.all([
         db.reservation.count({ where: { clientId } }),
-        db.reservation.count({ 
-          where: { 
-            clientId, 
-            status: { in: ['PENDING', 'ACTIVE', 'EXTENDED'] }
-          } 
+        db.reservation.count({
+          where: {
+            clientId,
+            status: { in: ['PENDING', 'ACTIVE', 'EXTENDED'] },
+          },
         }),
-        db.reservation.count({ 
-          where: { 
-            clientId, 
-            status: 'COMPLETED' 
-          } 
+        db.reservation.count({
+          where: {
+            clientId,
+            status: 'COMPLETED',
+          },
         }),
       ]);
 
@@ -1092,8 +1099,7 @@ class StorageService {
       const totalSpent = reservations.reduce((sum, r) => sum + r.totalPrice, 0);
       const totalDaysUsed = reservations.reduce((sum, r) => {
         const days = Math.ceil(
-          (new Date(r.endDate).getTime() - new Date(r.startDate).getTime()) / 
-          (1000 * 60 * 60 * 24)
+          (new Date(r.endDate).getTime() - new Date(r.startDate).getTime()) / (1000 * 60 * 60 * 24)
         );
         return sum + days;
       }, 0);
@@ -1108,7 +1114,7 @@ class StorageService {
       });
 
       const favoriteBoxes = await Promise.all(
-        boxUsage.map(async (usage) => {
+        boxUsage.map(async usage => {
           const box = await db.box.findUnique({
             where: { id: usage.boxId },
             include: { warehouse: true },
@@ -1135,7 +1141,7 @@ class StorageService {
         sustainability: {
           co2Saved: estimatedCO2Saved,
           wasteReduced: estimatedWastReduced,
-          sustainabilityScore: Math.min(100, Math.round(totalDaysUsed / 365 * 100)),
+          sustainabilityScore: Math.min(100, Math.round((totalDaysUsed / 365) * 100)),
         },
       };
     } catch (error) {
@@ -1199,10 +1205,7 @@ class StorageService {
         include: {
           warehouse: true,
         },
-        orderBy: [
-          { pricePerDay: 'asc' },
-          { size: 'asc' },
-        ],
+        orderBy: [{ pricePerDay: 'asc' }, { size: 'asc' }],
         take: 10,
       });
 
@@ -1245,9 +1248,7 @@ class StorageService {
           include: {
             warehouse: true,
           },
-          orderBy: [
-            { pricePerDay: 'asc' },
-          ],
+          orderBy: [{ pricePerDay: 'asc' }],
           take: 5,
         });
       }
@@ -1263,7 +1264,8 @@ class StorageService {
         compatibilityScore -= sizeDiff * 30;
 
         // Pénalité pour différence de prix
-        const priceDiff = Math.abs(box.pricePerDay - originalBox.pricePerDay) / originalBox.pricePerDay;
+        const priceDiff =
+          Math.abs(box.pricePerDay - originalBox.pricePerDay) / originalBox.pricePerDay;
         compatibilityScore -= priceDiff * 20;
 
         // Pénalité si différent entrepôt
@@ -1289,10 +1291,10 @@ class StorageService {
           .slice(0, 8),
       };
     } catch (error) {
-      console.error('Erreur lors de la recherche d\'alternatives:', error);
+      console.error("Erreur lors de la recherche d'alternatives:", error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la recherche d\'alternatives',
+        message: "Erreur lors de la recherche d'alternatives",
       });
     }
   }
@@ -1364,7 +1366,9 @@ class StorageService {
       }
 
       // Remise early bird (réservation à l'avance)
-      const daysInAdvance = Math.ceil((startDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+      const daysInAdvance = Math.ceil(
+        (startDate.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+      );
       if (daysInAdvance >= 14) {
         const earlyBirdDiscount = 0.05; // 5% pour réservation 14 jours à l'avance
         const discountAmount = basePrice * earlyBirdDiscount;

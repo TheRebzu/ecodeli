@@ -28,7 +28,7 @@ const nextConfig: NextConfig = {
       ...config.resolve.alias,
       '@': path.resolve(__dirname, './src'),
     };
-    
+
     // Gérer les modules Node.js côté client (uniquement pour le client)
     if (!isServer) {
       config.resolve.fallback = {
@@ -54,15 +54,15 @@ const nextConfig: NextConfig = {
         worker_threads: false,
         events: require.resolve('events/'),
       };
-      
+
       // Ajouter socket.io-client au client uniquement
       config.externals = [
         ...(config.externals || []),
         // Exclure socket.io du bundle client (on n'utilise que socket.io-client)
-        {'socket.io': 'commonjs socket.io'},
+        { 'socket.io': 'commonjs socket.io' },
       ];
     }
-    
+
     return config;
   },
 };

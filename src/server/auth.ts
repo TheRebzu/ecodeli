@@ -1,26 +1,22 @@
-import { type GetServerSidePropsContext } from "next";
-import {
-  getServerSession,
-  type NextAuthOptions,
-  type DefaultSession,
-} from "next-auth";
-import { PrismaAdapter } from "@auth/prisma-adapter";
-import { db } from "@/server/db";
-import CredentialsProvider from "next-auth/providers/credentials";
-import { UserRole } from "@prisma/client";
-import bcrypt from "bcryptjs";
+import { type GetServerSidePropsContext } from 'next';
+import { getServerSession, type NextAuthOptions, type DefaultSession } from 'next-auth';
+import { PrismaAdapter } from '@auth/prisma-adapter';
+import { db } from '@/server/db';
+import CredentialsProvider from 'next-auth/providers/credentials';
+import { UserRole } from '@prisma/client';
+import bcrypt from 'bcryptjs';
 
 /**
  * Module augmentation pour Next Auth
  * Note: Utilisation du type casting pour contourner les problèmes de compatibilité
  */
-declare module "next-auth" {
+declare module 'next-auth' {
   interface Session extends DefaultSession {
     user: {
       id: string;
       role: UserRole;
       isVerified?: boolean;
-    } & DefaultSession["user"];
+    } & DefaultSession['user'];
   }
 
   interface User {
@@ -62,15 +58,15 @@ export const authOptions: NextAuthOptions = {
   adapter: PrismaAdapter(db) as any,
   providers: [
     CredentialsProvider({
-      name: "credentials",
+      name: 'credentials',
       credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
+        email: { label: 'Email', type: 'email' },
+        password: { label: 'Password', type: 'password' },
       },
       // Utilisation de as any pour contourner les problèmes de typage
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) {
-          throw new Error("Identifiants invalides");
+          throw new Error('Identifiants invalides');
         }
 
         const user = await db.user.findUnique({
@@ -78,16 +74,13 @@ export const authOptions: NextAuthOptions = {
         });
 
         if (!user || !user.password) {
-          throw new Error("Identifiants invalides");
+          throw new Error('Identifiants invalides');
         }
 
-        const isValid = await bcrypt.compare(
-          credentials.password,
-          user.password
-        );
+        const isValid = await bcrypt.compare(credentials.password, user.password);
 
         if (!isValid) {
-          throw new Error("Identifiants invalides");
+          throw new Error('Identifiants invalides');
         }
 
         // Utilisation du type as any pour contourner les incompatibilités
@@ -103,12 +96,12 @@ export const authOptions: NextAuthOptions = {
     } as any),
   ],
   pages: {
-    signIn: "/fr/login",
-    newUser: "/fr/register",
-    error: "/fr/login",
+    signIn: '/fr/login',
+    newUser: '/fr/register',
+    error: '/fr/login',
   },
   session: {
-    strategy: "jwt",
+    strategy: 'jwt',
   },
   secret: process.env.NEXTAUTH_SECRET,
 };
@@ -118,8 +111,8 @@ export const authOptions: NextAuthOptions = {
  * Compatible avec les deux approches (Pages Router et App Router)
  */
 export const getServerAuthSession = (ctx?: {
-  req: GetServerSidePropsContext["req"];
-  res: GetServerSidePropsContext["res"];
+  req: GetServerSidePropsContext['req'];
+  res: GetServerSidePropsContext['res'];
 }) => {
   if (ctx?.req && ctx?.res) {
     // Pages Router: utilisation des objets req et res
@@ -127,4 +120,4 @@ export const getServerAuthSession = (ctx?: {
   }
   // App Router: utilisation sans contexte spécifique
   return getServerSession(authOptions);
-}; 
+};

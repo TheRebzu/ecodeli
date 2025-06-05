@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { trpc } from '@/trpc/client';
+import { api } from '@/trpc/react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -75,7 +75,7 @@ export default function DelivererDeliveriesPage() {
 
   const statusColorMap: Record<DeliveryStatus, string> = {
     PENDING: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-    ASSIGNED: 'bg-blue-100 text-blue-800 border-blue-300',
+    ACCEPTED: 'bg-blue-100 text-blue-800 border-blue-300',
     IN_TRANSIT: 'bg-purple-100 text-purple-800 border-purple-300',
     DELIVERED: 'bg-green-100 text-green-800 border-green-300',
     FAILED: 'bg-red-100 text-red-800 border-red-300',
@@ -119,7 +119,7 @@ export default function DelivererDeliveriesPage() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">{t('filters.allStatuses')}</SelectItem>
-                  <SelectItem value="ASSIGNED">{t('status.assigned')}</SelectItem>
+                  <SelectItem value="ACCEPTED">{t('status.assigned')}</SelectItem>
                   <SelectItem value="PENDING">{t('status.pending')}</SelectItem>
                   <SelectItem value="IN_TRANSIT">{t('status.inTransit')}</SelectItem>
                   <SelectItem value="DELIVERED">{t('status.delivered')}</SelectItem>
@@ -146,14 +146,14 @@ export default function DelivererDeliveriesPage() {
       </Card>
 
       {/* Tabs pour organiser les livraisons */}
-      <Tabs defaultValue="assigned" className="w-full">
+      <Tabs defaultValue="accepted" className="w-full">
         <TabsList className="w-full grid grid-cols-3">
-          <TabsTrigger value="assigned">{t('tabs.assigned')}</TabsTrigger>
+          <TabsTrigger value="accepted">{t('tabs.assigned')}</TabsTrigger>
           <TabsTrigger value="active">{t('tabs.active')}</TabsTrigger>
           <TabsTrigger value="completed">{t('tabs.completed')}</TabsTrigger>
         </TabsList>
 
-        {['assigned', 'active', 'completed'].map(tab => (
+        {['accepted', 'active', 'completed'].map(tab => (
           <TabsContent key={tab} value={tab} className="space-y-4 mt-4">
             {isLoading ? (
               // Skeleton loader
@@ -188,7 +188,7 @@ export default function DelivererDeliveriesPage() {
             ) : (
               filteredDeliveries
                 .filter(delivery => {
-                  if (tab === 'assigned') return delivery.status === 'ASSIGNED';
+                  if (tab === 'accepted') return delivery.status === 'ACCEPTED';
                   if (tab === 'active') return delivery.status === 'IN_TRANSIT';
                   if (tab === 'completed') return delivery.status === 'DELIVERED';
                   return true;
@@ -243,7 +243,7 @@ export default function DelivererDeliveriesPage() {
 
                         {/* Boutons d'action */}
                         <div className="flex justify-between items-center mt-3">
-                          {delivery.status === 'ASSIGNED' ? (
+                          {delivery.status === 'ACCEPTED' ? (
                             <Button
                               variant="outline"
                               size="sm"

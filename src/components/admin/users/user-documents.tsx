@@ -144,9 +144,7 @@ export function UserDocuments({
 
   const toggleDocumentSelection = (documentId: string) => {
     setSelectedDocuments(prev =>
-      prev.includes(documentId)
-        ? prev.filter(id => id !== documentId)
-        : [...prev, documentId]
+      prev.includes(documentId) ? prev.filter(id => id !== documentId) : [...prev, documentId]
     );
   };
 
@@ -243,10 +241,7 @@ export function UserDocuments({
       </CardContent>
 
       {selectedDocument && (
-        <DocumentPreview
-          document={selectedDocument}
-          onClose={() => setIsPreviewOpen(false)}
-        />
+        <DocumentPreview document={selectedDocument} onClose={() => setIsPreviewOpen(false)} />
       )}
 
       {isReviewOpen && (

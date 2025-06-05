@@ -165,7 +165,8 @@ model Address {
   clientId   String
   
   // Relations
-  client     Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  client       Client              @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  appointments ClientAppointment[] // Rendez-vous se déroulant à cette adresse
 
   @@map("addresses")
 } 

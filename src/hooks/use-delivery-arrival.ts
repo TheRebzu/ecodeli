@@ -58,8 +58,8 @@ export function useDeliveryArrival(deliveryId: string) {
 
         setIsArriving(
           timeUntilArrival <= arrivalThresholdMinutes ||
-            (etaData.eta.distanceRemaining !== null && 
-             etaData.eta.distanceRemaining <= arrivalThresholdDistance / 1000)
+            (etaData.eta.distanceRemaining !== null &&
+              etaData.eta.distanceRemaining <= arrivalThresholdDistance / 1000)
         );
       }
     }

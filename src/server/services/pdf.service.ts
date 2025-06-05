@@ -343,7 +343,7 @@ export const PdfService = {
 
         // En-tête du rapport
         this.generateReportHeader(doc, title, subtitle, dateRange);
-        
+
         // Résumé exécutif
         if (summary && summary.length > 0) {
           this.generateReportSummary(doc, summary);
@@ -378,7 +378,12 @@ export const PdfService = {
   /**
    * Génère l'en-tête du rapport
    */
-  generateReportHeader(doc: PDFKit.PDFDocument, title: string, subtitle?: string, dateRange?: { startDate: Date; endDate: Date }) {
+  generateReportHeader(
+    doc: PDFKit.PDFDocument,
+    title: string,
+    subtitle?: string,
+    dateRange?: { startDate: Date; endDate: Date }
+  ) {
     doc
       .fillColor('#444444')
       .fontSize(20)
@@ -388,16 +393,10 @@ export const PdfService = {
       .moveDown();
 
     // Titre du rapport
-    doc
-      .fillColor('#2563eb')
-      .fontSize(24)
-      .text(title, 50, 120);
+    doc.fillColor('#2563eb').fontSize(24).text(title, 50, 120);
 
     if (subtitle) {
-      doc
-        .fillColor('#6b7280')
-        .fontSize(14)
-        .text(subtitle, 50, 150);
+      doc.fillColor('#6b7280').fontSize(14).text(subtitle, 50, 150);
     }
 
     // Période du rapport
@@ -413,9 +412,7 @@ export const PdfService = {
     }
 
     // Date de génération
-    doc
-      .fontSize(10)
-      .text(`Généré le: ${this.formatDate(new Date())}`, 350, 70);
+    doc.fontSize(10).text(`Généré le: ${this.formatDate(new Date())}`, 350, 70);
 
     this.generateHr(doc, subtitle ? 190 : 170);
   },
@@ -423,12 +420,12 @@ export const PdfService = {
   /**
    * Génère le résumé exécutif
    */
-  generateReportSummary(doc: PDFKit.PDFDocument, summary: Array<{ label: string; value: string | number; change?: number }>) {
+  generateReportSummary(
+    doc: PDFKit.PDFDocument,
+    summary: Array<{ label: string; value: string | number; change?: number }>
+  ) {
     const startY = 210;
-    doc
-      .fillColor('#444444')
-      .fontSize(16)
-      .text('Résumé Exécutif', 50, startY);
+    doc.fillColor('#444444').fontSize(16).text('Résumé Exécutif', 50, startY);
 
     let currentY = startY + 30;
     const columnWidth = 150;
@@ -436,13 +433,10 @@ export const PdfService = {
     let currentColumn = 0;
 
     summary.forEach((item, index) => {
-      const x = 50 + (currentColumn * (columnWidth + 20));
-      
+      const x = 50 + currentColumn * (columnWidth + 20);
+
       // Label
-      doc
-        .fontSize(10)
-        .fillColor('#6b7280')
-        .text(item.label, x, currentY);
+      doc.fontSize(10).fillColor('#6b7280').text(item.label, x, currentY);
 
       // Valeur
       doc
@@ -454,7 +448,7 @@ export const PdfService = {
       if (item.change !== undefined) {
         const changeColor = item.change >= 0 ? '#059669' : '#dc2626';
         const changeText = `${item.change >= 0 ? '+' : ''}${item.change.toFixed(1)}%`;
-        
+
         doc
           .fontSize(10)
           .fillColor(changeColor)
@@ -475,15 +469,15 @@ export const PdfService = {
   /**
    * Génère un tableau de rapport
    */
-  generateReportTable(doc: PDFKit.PDFDocument, table: { title: string; headers: string[]; rows: Array<Array<string | number>> }) {
+  generateReportTable(
+    doc: PDFKit.PDFDocument,
+    table: { title: string; headers: string[]; rows: Array<Array<string | number>> }
+  ) {
     // Obtenir la position Y actuelle
     const currentY = doc.y + 20;
-    
+
     // Titre du tableau
-    doc
-      .fillColor('#444444')
-      .fontSize(14)
-      .text(table.title, 50, currentY);
+    doc.fillColor('#444444').fontSize(14).text(table.title, 50, currentY);
 
     let tableY = currentY + 30;
     const columnWidth = (500 - 50) / table.headers.length;
@@ -491,7 +485,7 @@ export const PdfService = {
     // En-têtes
     doc.font('Helvetica-Bold').fontSize(10);
     table.headers.forEach((header, index) => {
-      const x = 50 + (index * columnWidth);
+      const x = 50 + index * columnWidth;
       doc.text(header, x, tableY, { width: columnWidth - 10, align: 'left' });
     });
 
@@ -508,12 +502,12 @@ export const PdfService = {
       }
 
       row.forEach((cell, cellIndex) => {
-        const x = 50 + (cellIndex * columnWidth);
+        const x = 50 + cellIndex * columnWidth;
         doc.text(cell.toString(), x, tableY, { width: columnWidth - 10, align: 'left' });
       });
 
       tableY += 20;
-      
+
       // Ligne de séparation tous les 5 éléments
       if ((rowIndex + 1) % 5 === 0) {
         this.generateHr(doc, tableY);
@@ -571,20 +565,22 @@ export const PdfService = {
         {
           title: 'Revenus par période',
           headers: ['Période', 'Revenus', 'Transactions'],
-          rows: salesData.timeSeriesData?.map((item: any) => [
-            item.period,
-            this.formatCurrency(item.revenue, 'EUR'),
-            item.transactions,
-          ]) || [],
+          rows:
+            salesData.timeSeriesData?.map((item: any) => [
+              item.period,
+              this.formatCurrency(item.revenue, 'EUR'),
+              item.transactions,
+            ]) || [],
         },
         {
           title: 'Revenus par catégorie',
           headers: ['Catégorie', 'Revenus', 'Transactions'],
-          rows: salesData.categoryBreakdown?.map((item: any) => [
-            item.category,
-            this.formatCurrency(item.revenue, 'EUR'),
-            item.transactions,
-          ]) || [],
+          rows:
+            salesData.categoryBreakdown?.map((item: any) => [
+              item.category,
+              this.formatCurrency(item.revenue, 'EUR'),
+              item.transactions,
+            ]) || [],
         },
       ],
       notes: `Rapport généré avec les filtres suivants: 
@@ -626,23 +622,25 @@ ${filters.categoryFilter ? `Catégorie: ${filters.categoryFilter}` : ''}`,
         {
           title: 'Performance par période',
           headers: ['Période', 'Total', 'À temps', 'Taux (%)', 'Temps moyen (min)'],
-          rows: deliveryData.timeSeriesData?.map((item: any) => [
-            item.period,
-            item.totalDeliveries,
-            item.onTimeDeliveries,
-            ((item.onTimeDeliveries / item.totalDeliveries) * 100).toFixed(1),
-            Math.round(item.avgDeliveryTime || 0),
-          ]) || [],
+          rows:
+            deliveryData.timeSeriesData?.map((item: any) => [
+              item.period,
+              item.totalDeliveries,
+              item.onTimeDeliveries,
+              ((item.onTimeDeliveries / item.totalDeliveries) * 100).toFixed(1),
+              Math.round(item.avgDeliveryTime || 0),
+            ]) || [],
         },
         {
           title: 'Performance par zone',
           headers: ['Zone', 'Livraisons', 'Taux à temps (%)', 'Temps moyen (min)'],
-          rows: deliveryData.zonePerformance?.map((item: any) => [
-            item.zone,
-            item.deliveryCount,
-            ((item.onTimeCount / item.deliveryCount) * 100).toFixed(1),
-            Math.round(item.avgTime || 0),
-          ]) || [],
+          rows:
+            deliveryData.zonePerformance?.map((item: any) => [
+              item.zone,
+              item.deliveryCount,
+              ((item.onTimeCount / item.deliveryCount) * 100).toFixed(1),
+              Math.round(item.avgTime || 0),
+            ]) || [],
         },
       ],
     };
@@ -655,7 +653,7 @@ ${filters.categoryFilter ? `Catégorie: ${filters.categoryFilter}` : ''}`,
    */
   async generateUserActivityReportPdf(userData: any, filters: any): Promise<Buffer> {
     const reportData: ReportPdfData = {
-      title: 'Rapport d\'Activité Utilisateur',
+      title: "Rapport d'Activité Utilisateur",
       subtitle: 'Analyse des inscriptions et engagement',
       dateRange: {
         startDate: new Date(filters.startDate),
@@ -680,25 +678,26 @@ ${filters.categoryFilter ? `Catégorie: ${filters.categoryFilter}` : ''}`,
         {
           title: 'Inscriptions par période',
           headers: ['Période', 'Nouveaux utilisateurs', 'Clients', 'Livreurs', 'Marchands'],
-          rows: userData.signupsTimeSeriesData?.map((item: any) => [
-            item.period,
-            item.signups,
-            item.clients || 0,
-            item.deliverers || 0,
-            item.merchants || 0,
-          ]) || [],
+          rows:
+            userData.signupsTimeSeriesData?.map((item: any) => [
+              item.period,
+              item.signups,
+              item.clients || 0,
+              item.deliverers || 0,
+              item.merchants || 0,
+            ]) || [],
         },
         {
           title: 'Répartition par rôle',
-          headers: ['Rôle', 'Nombre d\'utilisateurs', 'Pourcentage'],
-          rows: userData.usersByRole?.map((item: any) => {
-            const total = userData.usersByRole.reduce((sum: number, role: any) => sum + role.count, 0);
-            return [
-              item.role,
-              item.count,
-              `${((item.count / total) * 100).toFixed(1)}%`,
-            ];
-          }) || [],
+          headers: ['Rôle', "Nombre d'utilisateurs", 'Pourcentage'],
+          rows:
+            userData.usersByRole?.map((item: any) => {
+              const total = userData.usersByRole.reduce(
+                (sum: number, role: any) => sum + role.count,
+                0
+              );
+              return [item.role, item.count, `${((item.count / total) * 100).toFixed(1)}%`];
+            }) || [],
         },
       ],
     };

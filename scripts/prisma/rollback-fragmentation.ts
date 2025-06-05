@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Script de rollback de la fragmentation du schéma Prisma
- * 
+ *
  * Ce script annule la migration vers le schéma fragmenté et
  * permet de revenir au schéma monolithique précédent.
  */
@@ -46,11 +46,14 @@ async function main() {
     await validateRestoredSchema();
 
     console.log(chalk.green('\n✅ Rollback effectué avec succès !'));
-    console.log(chalk.gray('Les fragments de schéma ont été conservés dans le répertoire des backups.'));
-
+    console.log(
+      chalk.gray('Les fragments de schéma ont été conservés dans le répertoire des backups.')
+    );
   } catch (error) {
     console.error(chalk.red('\n❌ Erreur durant le rollback:'), error);
-    console.log(chalk.red('⚠️ Le rollback a échoué. Une intervention manuelle peut être nécessaire.'));
+    console.log(
+      chalk.red('⚠️ Le rollback a échoué. Une intervention manuelle peut être nécessaire.')
+    );
     process.exit(1);
   }
 }
@@ -65,7 +68,7 @@ async function findLatestSchemaBackup(): Promise<string | null> {
   }
 
   const backupFiles = globSync(path.join(BACKUP_DIR, 'schema_backup_*.prisma'));
-  
+
   if (backupFiles.length === 0) {
     console.log(chalk.yellow('  ⚠️ Aucun fichier de backup trouvé.'));
     return null;
@@ -80,33 +83,42 @@ async function findLatestSchemaBackup(): Promise<string | null> {
 
   const latestBackup = backupFiles[0];
   console.log(chalk.green(`  ✅ Dernier backup trouvé: ${path.relative(ROOT_DIR, latestBackup)}`));
-  
+
   return latestBackup;
 }
 
 // Confirmer le rollback
 async function confirmRollback(backupFile: string): Promise<void> {
-  console.log(chalk.yellow("⚠️ Vous êtes sur le point d'annuler la fragmentation du schéma Prisma."));
-  console.log(chalk.yellow("   Cette opération va restaurer le schéma monolithique précédent."));
-  console.log(chalk.gray(`   Le schéma sera restauré depuis: ${path.relative(ROOT_DIR, backupFile)}`));
+  console.log(
+    chalk.yellow("⚠️ Vous êtes sur le point d'annuler la fragmentation du schéma Prisma.")
+  );
+  console.log(chalk.yellow('   Cette opération va restaurer le schéma monolithique précédent.'));
+  console.log(
+    chalk.gray(`   Le schéma sera restauré depuis: ${path.relative(ROOT_DIR, backupFile)}`)
+  );
 
   // Utiliser un import dynamique au lieu de require
-  const readline = await import('readline').then(module => module.default.createInterface({
-    input: process.stdin,
-    output: process.stdout
-  }));
+  const readline = await import('readline').then(module =>
+    module.default.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    })
+  );
 
   return new Promise<void>((resolve, reject) => {
-    readline.question(chalk.yellow('   Confirmez-vous cette opération ? (y/N) '), (answer: string) => {
-      readline.close();
-      
-      if (answer.toLowerCase() === 'y') {
-        console.log(chalk.gray('   Rollback confirmé.'));
-        resolve();
-      } else {
-        reject(new Error('Rollback annulé par l\'utilisateur.'));
+    readline.question(
+      chalk.yellow('   Confirmez-vous cette opération ? (y/N) '),
+      (answer: string) => {
+        readline.close();
+
+        if (answer.toLowerCase() === 'y') {
+          console.log(chalk.gray('   Rollback confirmé.'));
+          resolve();
+        } else {
+          reject(new Error("Rollback annulé par l'utilisateur."));
+        }
       }
-    });
+    );
   });
 }
 
@@ -116,7 +128,7 @@ async function restoreSchema(backupFile: string): Promise<void> {
 
   // Copier le fichier de backup vers le schéma principal
   fs.copyFileSync(backupFile, SCHEMA_PATH);
-  
+
   console.log(chalk.green(`  ✅ Schéma restauré depuis ${path.relative(ROOT_DIR, backupFile)}`));
 }
 
@@ -131,24 +143,24 @@ async function backupCurrentFragments(): Promise<void> {
 
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
   const fragmentsBackupDir = path.join(BACKUP_DIR, `fragments_backup_${timestamp}`);
-  
+
   // Créer le répertoire de backup pour les fragments
   fs.mkdirSync(fragmentsBackupDir, { recursive: true });
 
   // Copier les répertoires de fragments
   const domains = fs.readdirSync(SCHEMAS_DIR);
-  
+
   for (const domain of domains) {
     const domainPath = path.join(SCHEMAS_DIR, domain);
     const domainStat = fs.statSync(domainPath);
-    
+
     if (domainStat.isDirectory()) {
       const domainBackupPath = path.join(fragmentsBackupDir, domain);
       fs.mkdirSync(domainBackupPath, { recursive: true });
-      
+
       // Copier les fichiers de schéma
       const schemaFiles = globSync(path.join(domainPath, '*.prisma'));
-      
+
       for (const schemaFile of schemaFiles) {
         const fileName = path.basename(schemaFile);
         fs.copyFileSync(schemaFile, path.join(domainBackupPath, fileName));
@@ -156,7 +168,9 @@ async function backupCurrentFragments(): Promise<void> {
     }
   }
 
-  console.log(chalk.green(`  ✅ Fragments sauvegardés dans ${path.relative(ROOT_DIR, fragmentsBackupDir)}`));
+  console.log(
+    chalk.green(`  ✅ Fragments sauvegardés dans ${path.relative(ROOT_DIR, fragmentsBackupDir)}`)
+  );
 }
 
 // Régénérer le client Prisma
@@ -187,4 +201,4 @@ async function validateRestoredSchema(): Promise<void> {
 main().catch(err => {
   console.error(chalk.red('❌ Erreur fatale:'), err);
   process.exit(1);
-}); 
+});

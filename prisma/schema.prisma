@@ -14,6 +14,7 @@ datasource db {
 // Import schémas du domaine users
 // Import schémas du domaine deliveries
 // Import schémas du domaine services
+// Import schémas du domaine appointments
 // Import schémas du domaine storage
 // Import schémas du domaine payments
 // Import schémas du domaine billing
@@ -61,15 +62,19 @@ enum UserStatus {
 
 /// Type de document d'identification
 enum DocumentType {
-  ID_CARD                   // Carte d'identité
-  DRIVING_LICENSE           // Permis de conduire
-  VEHICLE_REGISTRATION      // Carte grise
-  INSURANCE                 // Assurance
-  QUALIFICATION_CERTIFICATE // Certificat de qualification
-  PROOF_OF_ADDRESS          // Justificatif de domicile
-  BUSINESS_REGISTRATION     // Extrait K-bis
-  OTHER                     // Autre type de document
-  SELFIE                    // Photo de vérification
+  ID_CARD            // Carte d'identité
+  PASSPORT           // Passeport
+  DRIVERS_LICENSE    // Permis de conduire
+  PROOF_OF_ADDRESS   // Justificatif de domicile
+  VEHICLE_INSURANCE  // Assurance véhicule
+  VEHICLE_REGISTRATION // Carte grise
+  BUSINESS_LICENSE   // Licence commerciale
+  INSURANCE_CERTIFICATE // Certificat d'assurance
+  PROFESSIONAL_QUALIFICATION // Qualification professionnelle
+  TAX_CERTIFICATE    // Certificat fiscal
+  BUSINESS_REGISTRATION // Enregistrement entreprise
+  VAT_REGISTRATION   // Enregistrement TVA
+  OTHER              // Autre type de document
 }
 
 /// Statut d'un document
@@ -82,9 +87,9 @@ enum DocumentStatus {
 
 /// Statut de vérification
 enum VerificationStatus {
-  PENDING   // En attente de vérification
-  APPROVED  // Vérification approuvée
-  REJECTED  // Vérification rejetée
+  PENDING    // En attente d'examen
+  APPROVED   // Vérifié et approuvé
+  REJECTED   // Rejeté pour non-conformité
 }
 
 /// Type de token d'authentification
@@ -305,8 +310,23 @@ enum ContractStatus {
   DRAFT             // Brouillon
   PENDING_SIGNATURE // En attente de signature
   ACTIVE            // Actif
+  SUSPENDED         // Suspendu
   TERMINATED        // Résilié
   EXPIRED           // Expiré
+  CANCELLED         // Annulé
+
+  @@map("ContractStatus")
+}
+
+/// Type de contrat
+enum ContractType {
+  STANDARD      // Contrat standard
+  PREMIUM       // Contrat premium avec avantages
+  PARTNER       // Contrat partenaire privilégié
+  TRIAL         // Contrat d'essai
+  CUSTOM        // Contrat personnalisé
+
+  @@map("ContractType")
 }
 
 /// Type de service
@@ -315,6 +335,17 @@ enum ServiceType {
   SERVICE  // Service
   STORAGE  // Stockage
   CUSTOM   // Personnalisé
+}
+
+/// Type d'exception de disponibilité
+enum ExceptionType {
+  VACATION      // Congés
+  SICK_LEAVE    // Arrêt maladie
+  UNAVAILABLE   // Indisponible
+  MAINTENANCE   // Maintenance
+  EMERGENCY     // Urgence
+  PERSONAL      // Personnel
+  CLOSED        // Fermé
 }
 
 // ===== DOMAINE FINANCIER =====
@@ -426,6 +457,151 @@ enum Interval {
   WEEK  // Semaine
   MONTH // Mois
   YEAR  // Année
+}
+
+/// Raisons de rejet pour les documents de vérification
+enum RejectionReason {
+  UNREADABLE         // Document illisible
+  EXPIRED            // Document expiré
+  INCOMPLETE         // Informations manquantes
+  FAKE               // Document potentiellement falsifié
+  WRONG_TYPE         // Mauvais type de document
+  LOW_QUALITY        // Qualité d'image insuffisante
+  INFORMATION_MISMATCH // Informations ne correspondent pas
+  OTHER              // Autre raison
+}
+
+// ===== DOMAINE RENDEZ-VOUS =====
+
+/// Statut d'un rendez-vous
+enum AppointmentStatus {
+  PENDING      // En attente de confirmation
+  CONFIRMED    // Confirmé par le prestataire
+  RESCHEDULED  // Reprogrammé
+  IN_PROGRESS  // En cours
+  COMPLETED    // Terminé
+  CANCELLED    // Annulé
+  NO_SHOW      // Client absent
+  PROVIDER_ABSENT // Prestataire absent
+}
+
+/// Raison de reprogrammation d'un rendez-vous
+enum RescheduleReason {
+  CLIENT_REQUEST    // Demande du client
+  PROVIDER_REQUEST  // Demande du prestataire
+  WEATHER_CONDITION // Conditions météorologiques
+  EMERGENCY         // Urgence
+  ILLNESS           // Maladie
+  TECHNICAL_ISSUE   // Problème technique
+  TRAFFIC_DELAY     // Retard de circulation
+  DOUBLE_BOOKING    // Double réservation
+  LOCATION_ISSUE    // Problème de lieu
+  OTHER            // Autre raison
+}
+
+/// Raison d'annulation d'un rendez-vous
+enum CancellationReason {
+  CLIENT_CANCELLED     // Annulation client
+  PROVIDER_CANCELLED   // Annulation prestataire
+  SYSTEM_CANCELLED     // Annulation système
+  NO_PAYMENT          // Défaut de paiement
+  SERVICE_UNAVAILABLE // Service indisponible
+  LOCATION_INACCESSIBLE // Lieu inaccessible
+  WEATHER_CONDITION   // Conditions météorologiques
+  EMERGENCY           // Urgence
+  ILLNESS             // Maladie
+  MUTUAL_AGREEMENT    // Accord mutuel
+  POLICY_VIOLATION    // Violation des conditions
+  OTHER              // Autre raison
+}
+
+/// Type de notification pour les rendez-vous
+enum AppointmentNotificationType {
+  REMINDER_24H     // Rappel 24h avant
+  REMINDER_2H      // Rappel 2h avant
+  REMINDER_30MIN   // Rappel 30min avant
+  CONFIRMATION     // Confirmation du rendez-vous
+  RESCHEDULE       // Notification de reprogrammation
+  CANCELLATION     // Notification d'annulation
+  PROVIDER_EN_ROUTE // Prestataire en route
+  ARRIVAL          // Arrivée du prestataire
+  COMPLETION       // Fin du rendez-vous
+}
+
+// ===== ENUMS MANQUANTS POUR DELIVERIES =====
+
+/// Statut de vérification de document
+enum DocumentVerificationStatus {
+  PENDING    // En attente de vérification
+  APPROVED   // Approuvé
+  REJECTED   // Rejeté
+  EXPIRED    // Expiré
+}
+
+/// Type de document requis
+enum RequiredDocumentType {
+  IDENTITY         // Pièce d'identité
+  DRIVING_LICENSE  // Permis de conduire
+  INSURANCE        // Assurance
+  VEHICLE_REGISTRATION // Carte grise
+  BANK_RIB         // RIB bancaire
+  BUSINESS_LICENSE // Licence commerciale
+  OTHER            // Autre
+}
+
+/// Type de véhicule
+enum VehicleType {
+  CAR        // Voiture
+  MOTORCYCLE // Moto
+  BICYCLE    // Vélo
+  SCOOTER    // Scooter
+  VAN        // Camionnette
+  TRUCK      // Camion
+  FOOT       // À pied
+  OTHER      // Autre
+}
+
+/// Niveau d'urgence
+enum UrgencyLevel {
+  LOW     // Faible
+  NORMAL  // Normal
+  HIGH    // Élevé
+  URGENT  // Urgent
+}
+
+/// Genre
+enum Gender {
+  MALE    // Homme
+  FEMALE  // Femme
+  OTHER   // Autre
+  NO_PREFERENCE // Aucune préférence
+}
+
+/// Statut de matching
+enum MatchingStatus {
+  SUGGESTED  // Suggéré
+  ACCEPTED   // Accepté
+  REJECTED   // Rejeté
+  EXPIRED    // Expiré
+}
+
+/// Type de notification
+enum NotificationType {
+  INFO     // Information
+  WARNING  // Avertissement
+  ERROR    // Erreur
+  SUCCESS  // Succès
+  REMINDER // Rappel
+  ALERT    // Alerte
+}
+
+/// Statut de notification
+enum NotificationStatus {
+  PENDING   // En attente
+  SENT      // Envoyée
+  DELIVERED // Délivrée
+  READ      // Lue
+  FAILED    // Échec
 } 
 
 // ----- DOMAINE: USERS -----
@@ -458,6 +634,12 @@ model User {
   isVerified               Boolean                       @default(false)
   lastPasswordChange       DateTime?
   lockedUntil              DateTime?
+  // Champs de bannissement
+  isBanned                 Boolean                       @default(false) // Indique si l'utilisateur est banni
+  bannedAt                 DateTime?                     // Date du bannissement
+  bannedById               String?                       // ID de l'admin ayant banni
+  banReason                String?                       // Raison du bannissement
+  bannedBy                 User?                         @relation("BannedBy", fields: [bannedById], references: [id])
   loginAttempts            Int                           @default(0)
   notes                    String?
   hasCompletedOnboarding   Boolean                       @default(false)
@@ -472,12 +654,8 @@ model User {
   providerCity             String?
   providerVerified         Boolean                       @default(false)
   isActive                 Boolean                       @default(true)
-  isBanned                 Boolean                       @default(false)
-  bannedAt                 DateTime?                     // Date du bannissement
-  bannedById               String?                       // ID de l'admin ayant banni
-  banReason                String?                       // Raison du bannissement
-  bannedBy                 User?                         @relation("BannedBy", fields: [bannedById], references: [id])
-  bannedUsers              User[]                        @relation("BannedBy")
+  
+  // Relation avec les livraisons
   clientDeliveries         Delivery[]                    @relation("ClientDeliveries")
   delivererDeliveries      Delivery[]                    @relation("DelivererDeliveries")
   
@@ -534,11 +712,45 @@ model User {
   // Relations avec la messagerie
   sentMessages             Message[]
 
+  // Relations avec les rendez-vous
+  clientAppointments       ClientAppointment[]           @relation("ClientAppointments")
+  providerAppointments     ClientAppointment[]           @relation("ProviderAppointments")
+  appointmentHistory       AppointmentHistory[]          @relation("AppointmentHistoryUser")
+  appointmentNotifications AppointmentNotification[]     @relation("AppointmentNotificationUser")
+  providerSlots            AppointmentSlot[]             @relation("ProviderAppointmentSlots")
+  reservedSlots            AppointmentSlot[]             @relation("ClientReservedSlots")
+  availabilityRules        AppointmentAvailabilityRule[] @relation("ProviderAvailabilityRules")
+  availabilityExceptions   AppointmentAvailabilityException[] @relation("ProviderAvailabilityExceptions")
+  bannedUsers              User[]                        @relation("BannedBy")
+
+  // Relations avec les livreurs
+  delivererSchedules       DelivererSchedule[]           @relation("DelivererSchedules")
+  delivererRoutes          DelivererRoute[]              @relation("DelivererRoutes")
+  delivererAvailabilities  DelivererAvailability[]       @relation("DelivererAvailabilities")
+  delivererStats           DelivererStats[]              @relation("DelivererStats")
+  verifiedApplications     DeliveryApplication[]         @relation("ApplicationVerifier")
+  verifiedDocuments        ApplicationDocument[]         @relation("DocumentVerifier")
+  delivererPreferences     DelivererPreferences[]        @relation("DelivererPreferences")
+  validationAudits         DocumentValidationAudit[]     @relation("ValidationActor")
+  matchings                AnnouncementMatching[]        @relation("DelivererMatchings")
+  delivererNotifications   DelivererNotification[]       @relation("DelivererNotifications")
+  
+  // Relations avec les prestataires et merchants
+  merchantVerifications    MerchantVerification[]        @relation("MerchantVerifier")
+  providerVerifications    ProviderVerification[]        @relation("ProviderVerifier")
+  signedContracts          Contract[]                    @relation("ContractSignedBy")
+  createdTemplates         ContractTemplate[]
+  signedAmendments         ContractAmendment[]
+  initiatedNegotiations    ContractNegotiation[]         @relation("NegotiationInitiator")
+  respondedNegotiations    ContractNegotiation[]         @relation("NegotiationResponder")
+  providerExceptions       ProviderException[]
+  providerSpecialSlots     ProviderSpecialSlot[]
+
   @@index([email])
   @@index([role])
   @@index([status])
   @@map("users")
-} 
+}
 // ===== MODÈLES DE PROFILS UTILISATEURS =====
 // Ces modèles définissent les profils spécifiques pour chaque type d'utilisateur,
 // avec leurs attributs et relations propres.
@@ -635,6 +847,7 @@ model Merchant {
   
   // Relations
   contracts        Contract[]
+  verification     MerchantVerification?
   user             User       @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("merchants")
@@ -670,6 +883,7 @@ model Provider {
   // Relations
   user               User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   skills             Skill[]
+  verification       ProviderVerification?
 
   @@map("providers")
 }
@@ -704,7 +918,8 @@ model Address {
   clientId   String
   
   // Relations
-  client     Client  @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  client       Client              @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  appointments ClientAppointment[] // Rendez-vous se déroulant à cette adresse
 
   @@map("addresses")
 } 
@@ -878,6 +1093,217 @@ model DeliveryRating {
   @@index([ratedById])
   @@index([targetId])
   @@map("delivery_ratings")
+}
+
+/// Planning et disponibilité des livreurs
+model DelivererSchedule {
+  id           String    @id @default(cuid())
+  delivererId  String
+  dayOfWeek    Int       // 0=Dimanche, 1=Lundi, etc.
+  startTime    String    // Format HH:MM
+  endTime      String    // Format HH:MM
+  isAvailable  Boolean   @default(true)
+  maxDeliveries Int      @default(3)
+  
+  // Extensions pour planning intelligent
+  isRecurring  Boolean   @default(true)   // Planning récurrent ou ponctuel
+  breakStart   String?   // Début de pause (HH:MM)
+  breakEnd     String?   // Fin de pause (HH:MM)
+  timeSlots    Int       @default(4)      // Nombre de créneaux par jour
+  preferredZones String[]               // Zones géographiques préférées
+  
+  // Gestion des exceptions
+  exceptions   ScheduleException[]
+  
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  
+  // Relation avec User
+  deliverer    User      @relation("DelivererSchedules", fields: [delivererId], references: [id], onDelete: Cascade)
+
+  @@unique([delivererId, dayOfWeek])
+  @@index([delivererId])
+  @@index([dayOfWeek])
+  @@index([isAvailable])
+  @@map("deliverer_schedules")
+}
+
+/// Exceptions au planning habituel
+model ScheduleException {
+  id          String    @id @default(cuid())
+  scheduleId  String
+  date        DateTime  // Date spécifique de l'exception
+  isAvailable Boolean   @default(false)
+  startTime   String?   // Nouvelle heure de début si disponible
+  endTime     String?   // Nouvelle heure de fin si disponible
+  reason      String?   // Raison de l'exception
+  createdAt   DateTime  @default(now())
+  
+  // Relation avec DelivererSchedule
+  schedule    DelivererSchedule @relation(fields: [scheduleId], references: [id], onDelete: Cascade)
+
+  @@unique([scheduleId, date])
+  @@index([scheduleId])
+  @@index([date])
+  @@map("schedule_exceptions")
+}
+
+/// Routes habituelles des livreurs
+model DelivererRoute {
+  id               String     @id @default(cuid())
+  delivererId      String
+  name             String     // Nom donné par le livreur (ex: "Secteur Centre-ville")
+  description      String?
+  isActive         Boolean    @default(true)
+  priority         Int        @default(1) // 1=haute, 2=moyenne, 3=basse
+  
+  // Extensions pour optimisation intelligente
+  estimatedDuration Int?      // Durée moyenne en minutes
+  averageEarnings  Float?     // Gains moyens par trajet
+  completedDeliveries Int     @default(0)
+  successRate      Float?     // Taux de réussite (0-100)
+  lastUsed         DateTime?  // Dernière utilisation de cette route
+  
+  // Paramètres d'optimisation
+  maxDeliveries    Int        @default(5)     // Nombre max de livraisons simultanées
+  vehicleType      String?    // Type de véhicule requis
+  trafficFactor    Float      @default(1.0)   // Facteur de trafic (1.0 = normal)
+  weatherSensitive Boolean    @default(false) // Sensible à la météo
+  
+  // Horaires préférés
+  preferredTimeSlots String[] // Créneaux horaires préférés (JSON)
+  dayPreferences   Int[]      // Jours de la semaine préférés (0-6)
+  
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+  
+  // Relation avec User et zones
+  deliverer        User       @relation("DelivererRoutes", fields: [delivererId], references: [id], onDelete: Cascade)
+  zones            DeliveryZone[]
+  statistics       RouteStatistics[]
+  
+  @@index([delivererId])
+  @@index([isActive])
+  @@index([priority])
+  @@index([successRate])
+  @@map("deliverer_routes")
+}
+
+/// Zones géographiques couvertes par les routes
+model DeliveryZone {
+  id               String         @id @default(cuid())
+  routeId          String
+  centerLatitude   Float          // Centre de la zone
+  centerLongitude  Float
+  radiusKm         Float          // Rayon en kilomètres
+  cityName         String?        // Nom de la ville/quartier
+  postalCodes      String[]       // Codes postaux couverts
+  isPreferred      Boolean        @default(false) // Zone préférée du livreur
+  
+  // Extensions pour analyse de performance
+  deliveryCount    Int            @default(0)     // Nombre de livraisons effectuées
+  averageTime      Float?         // Temps moyen de livraison (minutes)
+  trafficLevel     String         @default("NORMAL") // LOW, NORMAL, HIGH
+  parkingDifficulty String        @default("EASY")   // EASY, MEDIUM, HARD
+  accessNotes      String?        // Notes d'accès spécifiques
+  
+  // Restrictions et préférences
+  timeRestrictions String[]       // Restrictions horaires
+  vehicleRestrictions String[]    // Restrictions de véhicule
+  weatherSensitive Boolean        @default(false)
+  
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+  
+  // Relation avec DelivererRoute
+  route            DelivererRoute @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  
+  @@index([routeId])
+  @@index([centerLatitude, centerLongitude])
+  @@index([cityName])
+  @@index([trafficLevel])
+  @@map("delivery_zones")
+}
+
+/// Statistiques détaillées des routes
+model RouteStatistics {
+  id                String         @id @default(cuid())
+  routeId           String
+  date              DateTime       // Date de la statistique
+  
+  // Métriques de performance
+  totalDeliveries   Int            @default(0)
+  completedDeliveries Int          @default(0)
+  failedDeliveries  Int            @default(0)
+  averageTime       Float?         // Temps moyen en minutes
+  totalDistance     Float?         // Distance totale en km
+  totalEarnings     Float          @default(0)
+  
+  // Métriques d'efficacité
+  fuelConsumption   Float?         // Consommation estimée
+  customerSatisfaction Float?      // Note moyenne des clients
+  onTimeRate        Float?         // Taux de ponctualité (0-100)
+  
+  // Conditions contextuelles
+  weatherCondition  String?        // Conditions météo
+  trafficCondition  String?        // Conditions de trafic
+  dayOfWeek         Int            // Jour de la semaine (0-6)
+  
+  createdAt         DateTime       @default(now())
+  
+  // Relation avec DelivererRoute
+  route             DelivererRoute @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  
+  @@unique([routeId, date])
+  @@index([routeId])
+  @@index([date])
+  @@map("route_statistics")
+}
+
+/// Disponibilité temporaire des livreurs
+model DelivererAvailability {
+  id           String    @id @default(cuid())
+  delivererId  String
+  startDate    DateTime
+  endDate      DateTime
+  isAvailable  Boolean   @default(true)
+  reason       String?   // Raison de l'indisponibilité
+  currentLat   Float?    // Position actuelle
+  currentLng   Float?
+  lastUpdate   DateTime  @default(now())
+  
+  // Relation avec User
+  deliverer    User      @relation("DelivererAvailabilities", fields: [delivererId], references: [id], onDelete: Cascade)
+
+  @@index([delivererId])
+  @@index([startDate, endDate])
+  @@index([isAvailable])
+  @@map("deliverer_availabilities")
+}
+
+/// Statistiques de performance des livreurs
+model DelivererStats {
+  id                    String   @id @default(cuid())
+  delivererId           String   @unique
+  totalDeliveries       Int      @default(0)
+  completedDeliveries   Int      @default(0)
+  cancelledDeliveries   Int      @default(0)
+  averageRating         Float?
+  totalRatings          Int      @default(0)
+  totalDistance         Float    @default(0) // en km
+  totalEarnings         Float    @default(0)
+  bestCompletionTime    Int?     // en minutes
+  averageCompletionTime Float?   // en minutes
+  lastDeliveryDate      DateTime?
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+  
+  // Relation avec User
+  deliverer             User     @relation("DelivererStats", fields: [delivererId], references: [id], onDelete: Cascade)
+
+  @@index([delivererId])
+  @@index([averageRating])
+  @@map("deliverer_stats")
 } 
 // ===== MODÈLES D'APPLICATIONS DE LIVRAISON =====
 // Ces modèles gèrent les candidatures des livreurs aux annonces
@@ -893,23 +1319,183 @@ model DeliveryRating {
 
 /// Candidature d'un livreur pour une annonce
 model DeliveryApplication {
-  id             String             @id @default(cuid())
-  delivererId    String
-  announcementId String
-  message        String?
-  status         ApplicationStatus  @default(PENDING)
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
-  proposedPrice  Float?
+  id                    String                      @id @default(cuid())
+  delivererId           String
+  announcementId        String
+  message               String?
+  status                ApplicationStatus           @default(PENDING)
+  proposedPrice         Float?
+  estimatedDuration     Int?                        // Durée estimée en minutes
+  availableFrom         DateTime?                   // Disponible à partir de
+  availableTo           DateTime?                   // Disponible jusqu'à
+  
+  // Validation des documents
+  documentsVerified     Boolean                     @default(false)
+  verificationStatus    DocumentVerificationStatus  @default(PENDING)
+  verifiedAt            DateTime?
+  verifiedBy            String?                     // ID de l'admin qui a vérifié
+  
+  // Extensions pour validation avancée
+  autoVerificationAttempted Boolean                 @default(false)
+  autoVerificationScore Float?                      // Score de vérification automatique (0-100)
+  manualReviewRequired  Boolean                     @default(false)
+  verificationNotes     String?                     // Notes de l'admin vérificateur
+  documentsExpiryCheck  DateTime?                   // Dernière vérification d'expiration
+  
+  // Évaluation automatique
+  autoMatchScore        Float?                      // Score de matching automatique (0-100)
+  distanceFromPickup    Float?                      // Distance en km du point de collecte
+  distanceFromDelivery  Float?                      // Distance en km du point de livraison
+  isInPreferredZone     Boolean                     @default(false)
+  
+  // Métadonnées
+  createdAt             DateTime                    @default(now())
+  updatedAt             DateTime                    @updatedAt
+  rejectedAt            DateTime?
+  rejectionReason       String?
   
   // Relations avec User et Announcement
-  deliverer      User               @relation(fields: [delivererId], references: [id], onDelete: Cascade)
-  announcement   Announcement       @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  deliverer             User                        @relation(fields: [delivererId], references: [id], onDelete: Cascade)
+  announcement          Announcement                @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  verifier              User?                       @relation("ApplicationVerifier", fields: [verifiedBy], references: [id])
+  
+  // Relations avec les documents
+  requiredDocuments     ApplicationDocument[]
 
+  @@unique([delivererId, announcementId]) // Un livreur ne peut postuler qu'une fois par annonce
   @@index([delivererId])
   @@index([announcementId])
   @@index([status])
+  @@index([verificationStatus])
+  @@index([autoMatchScore])
   @@map("delivery_applications")
+}
+
+/// Documents requis pour une candidature
+model ApplicationDocument {
+  id            String                      @id @default(cuid())
+  applicationId String
+  documentType  RequiredDocumentType        // IDENTITY, DRIVING_LICENSE, INSURANCE, etc.
+  documentUrl   String?                     // URL du document uploadé
+  status        DocumentVerificationStatus  @default(PENDING)
+  uploadedAt    DateTime?
+  verifiedAt    DateTime?
+  verifiedBy    String?                     // ID de l'admin qui a vérifié
+  rejectionReason String?
+  expiryDate    DateTime?                   // Date d'expiration du document
+  
+  // Extensions pour validation avancée
+  fileSize      Int?                        // Taille du fichier en bytes
+  mimeType      String?                     // Type MIME du document
+  ocrText       String?                     // Texte extrait par OCR
+  ocrConfidence Float?                      // Niveau de confiance OCR (0-100)
+  
+  // Validation automatique
+  autoValidated Boolean                     @default(false)
+  validationScore Float?                    // Score de validation automatique (0-100)
+  validationFlags String[]                  // Drapeaux de validation (format JSON)
+  
+  // Historique des versions
+  version       Int                         @default(1)
+  previousVersionId String?                 // ID de la version précédente
+  replacedAt    DateTime?                   // Date de remplacement
+  
+  // Métadonnées de sécurité
+  checksum      String?                     // Checksum du fichier
+  encrypted     Boolean                     @default(false)
+  watermarked   Boolean                     @default(false)
+  
+  createdAt     DateTime                    @default(now())
+  updatedAt     DateTime                    @updatedAt
+  
+  // Relation avec DeliveryApplication
+  application   DeliveryApplication         @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  verifier      User?                       @relation("DocumentVerifier", fields: [verifiedBy], references: [id])
+  
+  // Auto-référence pour l'historique des versions
+  previousVersion ApplicationDocument?      @relation("DocumentVersion", fields: [previousVersionId], references: [id])
+  nextVersions    ApplicationDocument[]     @relation("DocumentVersion")
+  
+  // Audit trail
+  auditLogs       DocumentValidationAudit[] @relation("DocumentAudit")
+
+  @@unique([applicationId, documentType, version])
+  @@index([applicationId])
+  @@index([status])
+  @@index([documentType])
+  @@index([expiryDate])
+  @@index([autoValidated])
+  @@map("application_documents")
+}
+
+/// Préférences du livreur pour les types d'annonces
+model DelivererPreferences {
+  id                String                 @id @default(cuid())
+  delivererId       String                 @unique
+  
+  // Types d'annonces préférées
+  preferredTypes    AnnouncementType[]
+  
+  // Préférences de distance
+  maxDistanceKm     Float                  @default(25)
+  minPricePerKm     Float?
+  
+  // Préférences temporelles
+  preferWeekends    Boolean                @default(true)
+  preferEvenings    Boolean                @default(true)
+  acceptUrgent      Boolean                @default(true)
+  
+  // Préférences de charge
+  maxWeight         Float?                 // kg
+  hasVehicle        Boolean                @default(false)
+  vehicleType       VehicleType?
+  
+  // Notifications
+  notifyByEmail     Boolean                @default(true)
+  notifyByPush      Boolean                @default(true)
+  notifyBySms       Boolean                @default(false)
+  
+  // Métadonnées
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+  
+  // Relation avec User
+  deliverer         User                   @relation("DelivererPreferences", fields: [delivererId], references: [id], onDelete: Cascade)
+
+  @@index([delivererId])
+  @@map("deliverer_preferences")
+}
+
+/// Audit des validations de documents
+model DocumentValidationAudit {
+  id              String                      @id @default(cuid())
+  documentId      String
+  previousStatus  DocumentVerificationStatus
+  newStatus       DocumentVerificationStatus
+  actionBy        String                      // ID de l'utilisateur qui a effectué l'action
+  actionType      String                      // UPLOAD, VERIFY, REJECT, APPROVE, etc.
+  notes           String?                     // Notes de l'action
+  
+  // Métadonnées de l'action
+  ipAddress       String?                     // Adresse IP de l'action
+  userAgent       String?                     // User agent
+  automated       Boolean                     @default(false) // Action automatisée ou manuelle
+  
+  // Détails de validation automatique
+  validationData  Json?                       // Données de validation (JSON)
+  confidence      Float?                      // Niveau de confiance de la validation
+  
+  createdAt       DateTime                    @default(now())
+  
+  // Relations
+  document        ApplicationDocument         @relation("DocumentAudit", fields: [documentId], references: [id], onDelete: Cascade)
+  actor           User                        @relation("ValidationActor", fields: [actionBy], references: [id])
+
+  @@index([documentId])
+  @@index([actionBy])
+  @@index([actionType])
+  @@index([createdAt])
+  @@map("document_validation_audits")
 } 
 // ===== MODÈLES D'ANNONCES DE LIVRAISON =====
 // Ce fichier contient les modèles pour les annonces de livraison publiées sur la plateforme.
@@ -948,6 +1534,30 @@ model Announcement {
   priceType         String?             // "fixed", "negotiable", "hourly"
   currency          String              @default("EUR")
   
+  // Système de matching intelligent
+  autoAssign        Boolean             @default(false)  // Assignment automatique activé
+  matchingScore     Float?              // Score de matching calculé
+  estimatedDistance Float?              // Distance estimée en km
+  estimatedDuration Int?                // Durée estimée en minutes
+  urgencyLevel      UrgencyLevel        @default(NORMAL)
+  
+  // Extensions pour matching avancé
+  matchingRadius    Float               @default(15.0)   // Rayon de recherche en km
+  enableSmartMatching Boolean           @default(true)   // Matching intelligent activé
+  routeCompatibility Float?             // Score de compatibilité avec routes existantes
+  trafficFactor     Float               @default(1.0)    // Facteur de trafic au moment de la livraison
+  weatherSensitive  Boolean             @default(false)  // Sensible aux conditions météo
+  
+  // Documents et validation
+  requiresInsurance Boolean             @default(false)
+  requiresSignature Boolean             @default(false)
+  confirmationCode  String?             // Code de confirmation généré
+  
+  // Préférences de livreur
+  preferredGender   Gender?             // Préférence de genre du livreur
+  minRating         Float?              // Note minimale requise du livreur
+  maxApplications   Int                 @default(10)     // Nombre max de candidatures
+  
   // Relations
   clientId          String
   delivererId       String?
@@ -960,6 +1570,8 @@ model Announcement {
   applications      DeliveryApplication[]
   favorites         DelivererFavorite[]
   deliveries        Delivery[]
+  matchingResults   AnnouncementMatching[]
+  delivererNotifications DelivererNotification[] @relation("AnnouncementNotifications")
   
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
@@ -970,6 +1582,9 @@ model Announcement {
   @@index([type])
   @@index([pickupCity])
   @@index([deliveryCity])
+  @@index([autoAssign])
+  @@index([urgencyLevel])
+  @@index([matchingScore])
   @@map("announcements")
 }
 
@@ -988,6 +1603,158 @@ model DelivererFavorite {
   @@index([delivererId])
   @@index([announcementId])
   @@map("deliverer_favorites")
+}
+
+/// Résultats du matching automatique annonce-livreur
+model AnnouncementMatching {
+  id                String      @id @default(cuid())
+  announcementId    String
+  delivererId       String
+  matchingScore     Float       // Score de compatibilité (0-100)
+  distanceScore     Float       // Score basé sur la distance
+  ratingScore       Float       // Score basé sur les évaluations
+  availabilityScore Float       // Score basé sur la disponibilité
+  preferenceScore   Float       // Score basé sur les préférences
+  
+  // Nouveaux critères de scoring
+  routeScore        Float       @default(0)  // Score de compatibilité avec routes habituelles
+  experienceScore   Float       @default(0)  // Score basé sur l'expérience du livreur
+  performanceScore  Float       @default(0)  // Score basé sur les performances passées
+  loyaltyScore      Float       @default(0)  // Score de fidélité client-livreur
+  
+  // Détails du calcul
+  distance          Float       // Distance réelle en km
+  estimatedTime     Int         // Temps estimé en minutes
+  isInRoute         Boolean     @default(false) // Dans une route habituelle
+  isAvailable       Boolean     @default(true)  // Livreur disponible
+  
+  // Facteurs contextuels
+  trafficLevel      String      @default("NORMAL") // LOW, NORMAL, HIGH
+  weatherCondition  String?     // Conditions météo
+  timeOfDay         String?     // Matin, Midi, Soir, Nuit
+  dayOfWeek         Int?        // Jour de la semaine (0-6)
+  
+  // Prédictions ML
+  successProbability Float?     // Probabilité de succès prédite (0-100)
+  estimatedEarnings Float?      // Gains estimés pour le livreur
+  customerSatisfactionPrediction Float? // Satisfaction client prédite
+  
+  // Statut du matching
+  status            MatchingStatus @default(SUGGESTED)
+  notifiedAt        DateTime?   // Quand le livreur a été notifié
+  respondedAt       DateTime?   // Quand le livreur a répondu
+  acceptedAt        DateTime?   // Quand accepté
+  rejectedAt        DateTime?   // Quand rejeté
+  rejectionReason   String?     // Raison du rejet
+  
+  // Métadonnées
+  calculatedAt      DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+  version           Int         @default(1) // Version de l'algorithme utilisé
+  
+  // Relations
+  announcement      Announcement @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  deliverer         User         @relation("DelivererMatchings", fields: [delivererId], references: [id], onDelete: Cascade)
+
+  @@unique([announcementId, delivererId])
+  @@index([announcementId])
+  @@index([delivererId])
+  @@index([matchingScore])
+  @@index([status])
+  @@index([successProbability])
+  @@index([calculatedAt])
+  @@map("announcement_matchings")
+}
+
+/// Historique des notifications envoyées aux livreurs
+model DelivererNotification {
+  id             String             @id @default(cuid())
+  delivererId    String
+  announcementId String?            // Null si notification générale
+  type           NotificationType
+  title          String
+  message        String
+  
+  // Statut de la notification
+  status         NotificationStatus @default(PENDING)
+  sentAt         DateTime?
+  readAt         DateTime?
+  respondedAt    DateTime?
+  
+  // Canaux de notification
+  sentByEmail    Boolean           @default(false)
+  sentByPush     Boolean           @default(false)
+  sentBySms      Boolean           @default(false)
+  
+  // Métadonnées
+  data           Json?             // Données additionnelles
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+  
+  // Relations
+  deliverer      User              @relation("DelivererNotifications", fields: [delivererId], references: [id], onDelete: Cascade)
+  announcement   Announcement?     @relation("AnnouncementNotifications", fields: [announcementId], references: [id], onDelete: Cascade)
+
+  @@index([delivererId])
+  @@index([announcementId])
+  @@index([type])
+  @@index([status])
+  @@index([sentAt])
+  @@map("deliverer_notifications")
+}
+
+/// Configuration du système de matching
+model MatchingConfiguration {
+  id                    String   @id @default(cuid())
+  name                  String   @unique
+  description           String?
+  
+  // Poids des différents critères (total = 100)
+  distanceWeight        Float    @default(25)   // Importance de la distance
+  ratingWeight          Float    @default(20)   // Importance des évaluations
+  availabilityWeight    Float    @default(15)   // Importance de la disponibilité
+  preferenceWeight      Float    @default(10)   // Importance des préférences
+  speedWeight           Float    @default(10)   // Importance de la rapidité
+  
+  // Nouveaux poids pour critères avancés
+  routeWeight           Float    @default(10)   // Importance des routes habituelles
+  experienceWeight      Float    @default(5)    // Importance de l'expérience
+  performanceWeight     Float    @default(3)    // Importance des performances
+  loyaltyWeight         Float    @default(2)    // Importance de la fidélité
+  
+  // Seuils
+  minMatchingScore      Float    @default(60)   // Score minimum pour suggérer
+  maxDistance           Float    @default(25)   // Distance maximum en km
+  minDelivererRating    Float    @default(3.0)  // Note minimum du livreur
+  maxDeliveriesPerHour  Int      @default(3)    // Livraisons max par heure par livreur
+  
+  // Configuration temporelle
+  notificationTimeout   Int      @default(15)   // Timeout en minutes
+  maxSuggestions        Int      @default(5)    // Nombre max de suggestions
+  reminderInterval      Int      @default(5)    // Intervalle de rappel en minutes
+  
+  // Facteurs contextuels
+  enableWeatherFactor   Boolean  @default(true) // Prendre en compte la météo
+  enableTrafficFactor   Boolean  @default(true) // Prendre en compte le trafic
+  enableTimeOfDayFactor Boolean  @default(true) // Prendre en compte l'heure
+  
+  // Machine Learning
+  enableMLPredictions   Boolean  @default(false) // Utiliser les prédictions ML
+  mlModelVersion        String?  // Version du modèle ML utilisé
+  minPredictionConfidence Float  @default(0.7)  // Confiance minimum pour ML
+  
+  // A/B Testing
+  experimentGroup       String?  // Groupe d'expérimentation
+  experimentActive      Boolean  @default(false)
+  
+  // Statut
+  isActive              Boolean  @default(false)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([experimentGroup])
+  @@map("matching_configurations")
 } 
 // ===== MODÈLES D'ADRESSES =====
 // Ce modèle a été déplacé dans le domaine users
@@ -1019,80 +1786,131 @@ model Skill {
 
 /// Service proposé par un prestataire
 model Service {
-  id          String           @id @default(cuid())
-  name        String
-  description String
-  price       Decimal
-  duration    Int
-  categoryId  String
-  providerId  String
-  isActive    Boolean          @default(true)
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id               String           @id @default(cuid())
+  name             String
+  description      String
+  price            Decimal
+  duration         Int              // Durée en minutes
+  categoryId       String
+  providerId       String
+  isActive         Boolean          @default(true)
+  isOnline         Boolean          @default(false)
+  isAtHome         Boolean          @default(false)
+  isAtShop         Boolean          @default(true)
+  maxParticipants  Int?             // Nombre max de participants (pour cours/groupes)
+  preparationTime  Int?             // Temps de préparation en minutes
+  tags             String[]         // Tags pour recherche
+  images           String[]         // URLs des images du service
+  requirements     String?          // Prérequis ou matériel nécessaire
+  cancellationPolicy String?        // Politique d'annulation
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
   
   // Relations avec CategoryService, User et ServiceBooking
-  category    ServiceCategory  @relation(fields: [categoryId], references: [id])
-  provider    User             @relation(fields: [providerId], references: [id])
-  bookings    ServiceBooking[]
-  payments    Payment[]
+  category         ServiceCategory  @relation(fields: [categoryId], references: [id])
+  provider         User             @relation(fields: [providerId], references: [id])
+  bookings         ServiceBooking[]
+  payments         Payment[]
+  appointments     ClientAppointment[] @relation("ServiceAppointments")
 
   @@index([providerId])
   @@index([categoryId])
+  @@index([isActive])
 }
 
 /// Catégorie de service
 model ServiceCategory {
   id          String    @id @default(cuid())
-  name        String
+  name        String    @unique
   description String?
+  icon        String?   // Icône pour l'affichage
+  color       String?   // Couleur thématique
+  isActive    Boolean   @default(true)
+  sortOrder   Int       @default(0)
+  parentId    String?   // Pour créer une hiérarchie de catégories
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   
-  // Relation avec Service
+  // Relations
   services    Service[]
+  parent      ServiceCategory? @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    ServiceCategory[] @relation("CategoryHierarchy")
+
+  @@index([isActive, sortOrder])
+  @@index([parentId])
 } 
 // ===== MODÈLES DE RÉSERVATION DE SERVICES =====
 // Ce fichier contient les modèles pour les réservations de services et évaluations.
 
 /// Réservation d'un service
 model ServiceBooking {
-  id         String         @id @default(cuid())
-  clientId   String
-  providerId String
-  serviceId  String
-  startTime  DateTime
-  endTime    DateTime
-  status     BookingStatus  @default(PENDING)
-  totalPrice Decimal
-  paymentId  String?
-  notes      String?
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
+  id              String         @id @default(cuid())
+  clientId        String
+  providerId      String
+  serviceId       String
+  startTime       DateTime
+  endTime         DateTime
+  status          BookingStatus  @default(PENDING)
+  totalPrice      Decimal
+  paymentId       String?
+  notes           String?
+  clientNotes     String?        // Notes du client
+  providerNotes   String?        // Notes privées du prestataire
+  confirmationCode String?       // Code de confirmation
+  location        String?        // Lieu du service si différent
+  participantCount Int          @default(1)
+  reminderSent    Boolean       @default(false)
+  cancelledAt     DateTime?
+  cancelledBy     String?       // ID de qui a annulé
+  cancellationReason String?
+  rescheduledFrom String?       // ID de la réservation originale si reprogrammée
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
   
   // Relations avec User, Service et Payment
-  client     User           @relation("ClientBookings", fields: [clientId], references: [id])
-  provider   User           @relation("ProviderBookings", fields: [providerId], references: [id])
-  service    Service        @relation(fields: [serviceId], references: [id])
-  payment    Payment?       @relation(fields: [paymentId], references: [id])
-  review     ServiceReview?
+  client          User          @relation("ClientBookings", fields: [clientId], references: [id])
+  provider        User          @relation("ProviderBookings", fields: [providerId], references: [id])
+  service         Service       @relation(fields: [serviceId], references: [id])
+  payment         Payment?      @relation(fields: [paymentId], references: [id])
+  review          ServiceReview?
+  rescheduledTo   ServiceBooking[] @relation("BookingReschedule")
+  originalBooking ServiceBooking?  @relation("BookingReschedule", fields: [rescheduledFrom], references: [id])
+  appointments    ClientAppointment[] // Rendez-vous liés à cette réservation
 
   @@index([clientId])
   @@index([providerId])
   @@index([serviceId])
   @@index([paymentId])
+  @@index([status])
+  @@index([startTime])
 }
+
+
 
 /// Évaluation d'un service après réservation
 model ServiceReview {
-  id        String         @id @default(cuid())
-  bookingId String         @unique
-  rating    Int
-  comment   String?
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
+  id          String         @id @default(cuid())
+  bookingId   String         @unique
+  rating      Int            // Note de 1 à 5
+  comment     String?
+  pros        String[]       // Points positifs
+  cons        String[]       // Points négatifs
+  wouldRecommend Boolean?    // Recommanderait-il ce service
+  punctuality Int?          // Note pour la ponctualité (1-5)
+  quality     Int?          // Note pour la qualité (1-5)
+  communication Int?        // Note pour la communication (1-5)
+  valueForMoney Int?        // Note pour le rapport qualité-prix (1-5)
+  isVerified  Boolean       @default(false) // Évaluation vérifiée
+  helpfulVotes Int          @default(0)     // Votes "utile"
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
   
   // Relation avec la réservation
-  booking   ServiceBooking @relation(fields: [bookingId], references: [id])
+  booking     ServiceBooking @relation(fields: [bookingId], references: [id])
+
+  @@index([rating])
+  @@index([createdAt])
+  @@index([isVerified])
 } 
 // ===== MODÈLES DE DISPONIBILITÉ DES PRESTATAIRES =====
 // Ce fichier contient le modèle pour gérer les disponibilités des prestataires de services.
@@ -1101,16 +1919,375 @@ model ServiceReview {
 model ProviderAvailability {
   id         String   @id @default(cuid())
   providerId String
-  dayOfWeek  Int
+  dayOfWeek  Int      // 0 = Dimanche, 1 = Lundi, ..., 6 = Samedi
   startTime  DateTime
   endTime    DateTime
+  isActive   Boolean  @default(true)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   
   // Relation avec User
   provider   User     @relation(fields: [providerId], references: [id])
 
+  @@index([providerId, dayOfWeek])
+  @@index([isActive])
+}
+
+/// Exceptions de disponibilité (congés, fermetures exceptionnelles)
+model ProviderException {
+  id           String      @id @default(cuid())
+  providerId   String
+  date         DateTime    // Date de l'exception
+  type         ExceptionType
+  startTime    DateTime?   // Heure de début (si partielle)
+  endTime      DateTime?   // Heure de fin (si partielle)
+  reason       String?     // Raison de l'exception
+  isRecurring  Boolean     @default(false)
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+  
+  // Relation avec User
+  provider     User        @relation(fields: [providerId], references: [id])
+
+  @@index([providerId, date])
+}
+
+/// Créneaux spéciaux (disponibilités additionnelles)
+model ProviderSpecialSlot {
+  id         String   @id @default(cuid())
+  providerId String
+  date       DateTime
+  startTime  DateTime
+  endTime    DateTime
+  isBooked   Boolean  @default(false)
+  notes      String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  
+  // Relation avec User
+  provider   User     @relation(fields: [providerId], references: [id])
+
+  @@index([providerId, date])
+  @@index([isBooked])
+} 
+
+// ----- DOMAINE: APPOINTMENTS -----
+
+// ===== MODÈLES RENDEZ-VOUS CLIENTS =====
+// Ce fichier contient les modèles pour la gestion des rendez-vous entre clients et prestataires.
+
+/// Rendez-vous entre un client et un prestataire
+model ClientAppointment {
+  id                String            @id @default(cuid())
+  clientId          String
+  providerId        String
+  serviceId         String?           // Service associé (optionnel)
+  bookingId         String?           // Réservation associée (optionnel)
+  
+  // Informations de base du rendez-vous
+  title             String            // Titre/objet du rendez-vous
+  description       String?           // Description détaillée
+  startTime         DateTime          // Heure de début
+  endTime           DateTime          // Heure de fin
+  estimatedDuration Int               // Durée estimée en minutes
+  actualStartTime   DateTime?         // Heure de début réelle
+  actualEndTime     DateTime?         // Heure de fin réelle
+  
+  // Statut et état
+  status            AppointmentStatus @default(PENDING)
+  isRecurring       Boolean           @default(false)
+  recurringRule     String?           // Règle de récurrence (format iCal RRULE)
+  isVirtual         Boolean           @default(false)
+  meetingLink       String?           // Lien pour rendez-vous virtuel
+  
+  // Localisation
+  addressId         String?           // Adresse si rendez-vous physique
+  locationNotes     String?           // Notes sur le lieu
+  
+  // Prix et paiement
+  price             Decimal?          // Prix du rendez-vous
+  paymentId         String?           // Paiement associé
+  
+  // Notes et communications
+  clientNotes       String?           // Notes du client
+  providerNotes     String?           // Notes privées du prestataire
+  internalNotes     String?           // Notes internes système
+  
+  // Confirmation et rappels
+  confirmationCode  String?           @unique // Code de confirmation
+  requiresConfirmation Boolean        @default(true)
+  confirmedAt       DateTime?         // Date de confirmation
+  confirmedBy       String?           // Qui a confirmé (clientId ou providerId)
+  
+  // Notifications et rappels
+  remindersSent     String[]          @default([]) // Types de rappels envoyés
+  lastReminderSent  DateTime?         // Dernier rappel envoyé
+  notificationsSent String[]          @default([]) // Notifications envoyées
+  
+  // Reprogrammation
+  originalAppointmentId String?       // Rendez-vous original si reprogrammé
+  rescheduleCount   Int               @default(0) // Nombre de reprogrammations
+  rescheduleReason  RescheduleReason? // Raison de la reprogrammation
+  rescheduleNotes   String?           // Notes sur la reprogrammation
+  rescheduledBy     String?           // Qui a reprogrammé
+  rescheduledAt     DateTime?         // Date de reprogrammation
+  
+  // Annulation
+  cancelledAt       DateTime?         // Date d'annulation
+  cancelledBy       String?           // Qui a annulé
+  cancellationReason CancellationReason? // Raison d'annulation
+  cancellationNotes String?           // Notes d'annulation
+  refundAmount      Decimal?          // Montant remboursé
+  cancellationFee   Decimal?          // Frais d'annulation
+  
+  // Suivi et évaluation
+  completedAt       DateTime?         // Date de fin réelle
+  noShowAt          DateTime?         // Date du non-show
+  clientPresent     Boolean?          // Client présent
+  providerPresent   Boolean?          // Prestataire présent
+  hasReview         Boolean           @default(false) // A une évaluation
+  
+  // Métadonnées
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  version           Int               @default(1) // Version pour éviter conflits
+  
+  // Relations
+  client            User              @relation("ClientAppointments", fields: [clientId], references: [id])
+  provider          User              @relation("ProviderAppointments", fields: [providerId], references: [id])
+  service           Service?          @relation("ServiceAppointments", fields: [serviceId], references: [id])
+  booking           ServiceBooking?   @relation(fields: [bookingId], references: [id])
+  address           Address?          @relation(fields: [addressId], references: [id])
+  payment           Payment?          @relation("AppointmentPayments", fields: [paymentId], references: [id])
+  
+  // Relations de reprogrammation
+  originalAppointment ClientAppointment? @relation("AppointmentReschedule", fields: [originalAppointmentId], references: [id])
+  rescheduledAppointments ClientAppointment[] @relation("AppointmentReschedule")
+  
+  // Historique et notifications
+  history           AppointmentHistory[]
+  notifications     AppointmentNotification[]
+  slots             AppointmentSlot[]
+  
+  // Index pour les performances
+  @@index([clientId])
   @@index([providerId])
+  @@index([serviceId])
+  @@index([status])
+  @@index([startTime])
+  @@index([endTime])
+  @@index([createdAt])
+  @@index([confirmationCode])
+  @@index([originalAppointmentId])
+}
+
+/// Historique des modifications d'un rendez-vous
+model AppointmentHistory {
+  id            String            @id @default(cuid())
+  appointmentId String
+  
+  // Détails de la modification
+  action        String            // Type d'action (CREATED, UPDATED, RESCHEDULED, etc.)
+  changes       Json              // Détails des changements (format JSON)
+  oldValues     Json?             // Anciennes valeurs
+  newValues     Json?             // Nouvelles valeurs
+  reason        String?           // Raison du changement
+  
+  // Qui a effectué le changement
+  changedBy     String?           // ID de l'utilisateur
+  changedByRole String?           // Rôle (CLIENT, PROVIDER, SYSTEM)
+  userAgent     String?           // User agent pour traçabilité
+  ipAddress     String?           // Adresse IP
+  
+  // Métadonnées
+  createdAt     DateTime          @default(now())
+  
+  // Relations
+  appointment   ClientAppointment @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  user          User?             @relation("AppointmentHistoryUser", fields: [changedBy], references: [id])
+  
+  // Index
+  @@index([appointmentId])
+  @@index([createdAt])
+  @@index([action])
+}
+
+/// Notifications liées aux rendez-vous
+model AppointmentNotification {
+  id            String                      @id @default(cuid())
+  appointmentId String
+  
+  // Type et contenu
+  type          AppointmentNotificationType
+  title         String
+  message       String
+  
+  // Destinataire
+  recipientId   String                      // Client ou prestataire
+  recipientType String                      // CLIENT ou PROVIDER
+  
+  // Statut d'envoi
+  sent          Boolean                     @default(false)
+  sentAt        DateTime?
+  deliveredAt   DateTime?
+  readAt        DateTime?
+  
+  // Canaux d'envoi
+  channels      String[]                    @default([]) // EMAIL, SMS, PUSH, IN_APP
+  
+  // Programmation
+  scheduledFor  DateTime?                   // Pour les rappels programmés
+  
+  // Erreurs
+  failed        Boolean                     @default(false)
+  failureReason String?
+  retryCount    Int                         @default(0)
+  lastRetryAt   DateTime?
+  
+  // Métadonnées
+  createdAt     DateTime                    @default(now())
+  updatedAt     DateTime                    @updatedAt
+  
+  // Relations
+  appointment   ClientAppointment           @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  recipient     User                        @relation("AppointmentNotificationUser", fields: [recipientId], references: [id])
+  
+  // Index
+  @@index([appointmentId])
+  @@index([recipientId])
+  @@index([type])
+  @@index([scheduledFor])
+  @@index([sent])
+  @@index([createdAt])
+}
+
+/// Disponibilités spécifiques pour les rendez-vous
+model AppointmentSlot {
+  id          String            @id @default(cuid())
+  providerId  String
+  
+  // Créneau
+  startTime   DateTime
+  endTime     DateTime
+  duration    Int               // Durée en minutes
+  
+  // Statut
+  isAvailable Boolean           @default(true)
+  isBlocked   Boolean           @default(false)
+  blockReason String?           // Raison du blocage
+  
+  // Réservation
+  isBooked    Boolean           @default(false)
+  bookedBy    String?           // ID du client qui a réservé
+  appointmentId String?         @unique // Rendez-vous associé
+  
+  // Récurrence
+  isRecurring Boolean           @default(false)
+  recurringRule String?         // Règle de récurrence
+  parentSlotId String?          // Slot parent si récurrence
+  
+  // Prix et conditions
+  price       Decimal?          // Prix spécifique pour ce créneau
+  minNotice   Int?              // Préavis minimum en heures
+  maxAdvance  Int?              // Réservation maximum à l'avance en jours
+  
+  // Métadonnées
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  
+  // Relations
+  provider    User              @relation("ProviderAppointmentSlots", fields: [providerId], references: [id])
+  client      User?             @relation("ClientReservedSlots", fields: [bookedBy], references: [id])
+  appointment ClientAppointment? @relation(fields: [appointmentId], references: [id])
+  parentSlot  AppointmentSlot?  @relation("SlotRecurrence", fields: [parentSlotId], references: [id])
+  childSlots  AppointmentSlot[] @relation("SlotRecurrence")
+  
+  // Index
+  @@index([providerId])
+  @@index([startTime])
+  @@index([endTime])
+  @@index([isAvailable])
+  @@index([isBooked])
+  @@index([bookedBy])
+}
+
+/// Règles de disponibilité des prestataires pour les rendez-vous
+model AppointmentAvailabilityRule {
+  id          String    @id @default(cuid())
+  providerId  String
+  
+  // Règle de disponibilité
+  name        String    // Nom de la règle
+  description String?   // Description
+  
+  // Jours de la semaine (0 = dimanche, 6 = samedi)
+  daysOfWeek  Int[]     // [1,2,3,4,5] pour lun-ven
+  
+  // Heures
+  startTime   String    // Format HH:mm
+  endTime     String    // Format HH:mm
+  timezone    String    @default("Europe/Paris")
+  
+  // Durée et espacement
+  slotDuration Int      // Durée en minutes
+  breakBetween Int      @default(0) // Pause entre créneaux en minutes
+  
+  // Limites
+  maxAppointmentsPerDay Int? // Limite d'appointments par jour
+  minNoticeHours Int    @default(24) // Préavis minimum
+  maxAdvanceDays Int    @default(30) // Réservation max à l'avance
+  
+  // Période d'application
+  validFrom   DateTime  // Date de début
+  validTo     DateTime? // Date de fin (optionnelle)
+  
+  // État
+  isActive    Boolean   @default(true)
+  priority    Int       @default(0) // Priorité en cas de conflit
+  
+  // Métadonnées
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  provider    User      @relation("ProviderAvailabilityRules", fields: [providerId], references: [id])
+  
+  // Index
+  @@index([providerId])
+  @@index([daysOfWeek])
+  @@index([validFrom])
+  @@index([isActive])
+}
+
+/// Exceptions aux règles de disponibilité
+model AppointmentAvailabilityException {
+  id          String        @id @default(cuid())
+  providerId  String
+  
+  // Exception
+  date        DateTime      // Date de l'exception
+  startTime   String?       // Heure de début (format HH:mm) - null = toute la journée
+  endTime     String?       // Heure de fin (format HH:mm)
+  
+  // Type d'exception
+  type        ExceptionType
+  reason      String        // Raison de l'exception
+  description String?       // Description détaillée
+  
+  // État
+  isBlocked   Boolean       @default(true) // Bloque ou libère
+  
+  // Métadonnées
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  // Relations
+  provider    User          @relation("ProviderAvailabilityExceptions", fields: [providerId], references: [id])
+  
+  // Index
+  @@index([providerId])
+  @@index([date])
+  @@index([type])
 } 
 
 // ----- DOMAINE: STORAGE -----
@@ -1565,6 +2742,7 @@ model Payment {
   service            Service?         @relation(fields: [serviceId], references: [id])
   subscription       Subscription?    @relation(fields: [subscriptionId], references: [id])
   user               User             @relation(fields: [userId], references: [id])
+  appointments       ClientAppointment[] @relation("AppointmentPayments")
 
   @@index([userId])
   @@index([deliveryId])
@@ -1716,6 +2894,7 @@ model BillingCycle {
   id               String    @id @default(cuid())
   merchantId       String?
   providerId       String?
+  contractId       String?
   periodStart      DateTime
   periodEnd        DateTime
   status           String    @default("PENDING")
@@ -1732,8 +2911,12 @@ model BillingCycle {
   errorMessage     String?
   retryCount       Int       @default(0)
 
+  // Relations
+  contract         Contract? @relation(fields: [contractId], references: [id])
+
   @@index([periodStart, periodEnd])
   @@index([status])
+  @@index([contractId])
   @@map("billing_cycles")
 } 
 // ===== MODÈLES DE COMMISSIONS =====
@@ -1876,6 +3059,59 @@ model VerificationHistory {
   @@index([userId])
   @@index([verifiedById])
   @@map("verification_history")
+}
+
+/// Modèle spécifique pour la vérification des comptes commerçants
+model MerchantVerification {
+  id                 String             @id @default(cuid())
+  merchantId         String             @unique
+  status             VerificationStatus @default(PENDING)
+  requestedAt        DateTime           @default(now())
+  verifiedAt         DateTime?
+  verifierId         String?
+  notes              String?
+  rejectionReason    String?
+  businessDocuments  String[]           // IDs des documents d'entreprise soumis
+  identityDocuments  String[]           // IDs des documents d'identité soumis
+  addressDocuments   String[]           // IDs des documents de preuve d'adresse
+  businessRegistered Boolean            @default(false)    // Si l'entreprise est officiellement enregistrée
+  taxCompliant       Boolean            @default(false)    // Si l'entreprise est à jour fiscalement
+  
+  // Relations
+  merchant           Merchant           @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  verifier           User?              @relation("MerchantVerifier", fields: [verifierId], references: [id])
+
+  @@index([merchantId])
+  @@index([verifierId])
+  @@index([status])
+  @@map("merchant_verifications")
+}
+
+/// Modèle spécifique pour la vérification des comptes prestataires
+model ProviderVerification {
+  id                 String             @id @default(cuid())
+  providerId         String             @unique
+  status             VerificationStatus @default(PENDING)
+  requestedAt        DateTime           @default(now())
+  verifiedAt         DateTime?
+  verifierId         String?
+  notes              String?
+  rejectionReason    String?
+  identityDocuments  String[]           // IDs des documents d'identité soumis
+  qualificationDocs  String[]           // IDs des documents de qualification professionnelle
+  insuranceDocs      String[]           // IDs des documents d'assurance
+  addressDocuments   String[]           // IDs des documents de preuve d'adresse
+  qualificationsVerified Boolean        @default(false)    // Si les qualifications ont été vérifiées
+  insuranceValid     Boolean            @default(false)    // Si l'assurance est valide
+  
+  // Relations
+  provider           Provider           @relation(fields: [providerId], references: [id], onDelete: Cascade)
+  verifier           User?              @relation("ProviderVerifier", fields: [verifierId], references: [id])
+
+  @@index([providerId])
+  @@index([verifierId])
+  @@index([status])
+  @@map("provider_verifications")
 } 
 // ===== MODÈLES DE NOTIFICATIONS =====
 // Ce fichier contient le modèle pour les notifications envoyées aux utilisateurs.
@@ -1938,23 +3174,249 @@ model Document {
 
 /// Contrat conclu avec un commerçant
 model Contract {
-  id         String         @id @default(cuid())
-  merchantId String
-  title      String
-  content    String
-  status     ContractStatus @default(DRAFT)
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
-  signedAt   DateTime?
-  expiresAt  DateTime?
-  fileUrl    String?
+  id            String         @id @default(cuid())
+  contractNumber String         @unique // Numéro de contrat auto-généré
+  merchantId    String
+  templateId    String?        // Template de contrat utilisé
+  title         String
+  content       String         @db.Text // Contenu du contrat en format JSON ou HTML
+  status        ContractStatus @default(DRAFT)
+  type          ContractType   @default(STANDARD)
+  
+  // Données financières
+  monthlyFee    Decimal?       @db.Decimal(10,2) // Frais mensuels
+  commissionRate Decimal?      @db.Decimal(5,4)  // Taux de commission (ex: 0.15 = 15%)
+  minimumVolume Int?           // Volume minimum requis
+  
+  // ===== EXTENSIONS MERCHANT =====
+  // Spécificités pour les merchants
+  merchantCategory String?      // Catégorie du merchant (alimentaire, mode, etc.)
+  deliveryZone  String?        // Zone de livraison couverte
+  maxDeliveryRadius Float?     // Rayon de livraison en km
+  serviceLevelAgreement Json?  // SLA spécifique au merchant
+  
+  // Conditions commerciales spécifiques
+  volumeDiscounts Json?        // Remises par volume { "1000": 0.05, "5000": 0.10 }
+  paymentTerms   String?       // Conditions de paiement spécifiques
+  exclusivityClause Boolean?   @default(false) // Clause d'exclusivité
+  territoryRestrictions Json?  // Restrictions territoriales
+  
+  // Performance et qualité
+  qualityMetrics Json?         // Métriques de qualité attendues
+  performanceTargets Json?     // Objectifs de performance
+  penaltyClause Json?          // Clauses de pénalité
+  bonusStructure Json?         // Structure de bonus
+  
+  // Dates importantes
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  signedAt      DateTime?      // Date de signature par le merchant
+  validatedAt   DateTime?      // Date de validation admin
+  effectiveDate DateTime?      // Date d'entrée en vigueur
+  expiresAt     DateTime?      // Date d'expiration
+  
+  // Documents et signatures
+  fileUrl       String?        // PDF du contrat signé
+  merchantSignature String?    // Signature électronique merchant
+  adminSignature String?       // Signature électronique admin
+  signedById    String?        // ID de l'admin qui a signé
+  
+  // Métadonnées
+  metadata      Json?          // Données additionnelles du contrat
+  terms         Json?          // Termes spécifiques en JSON
+  notes         String?        // Notes internes
+  
+  // ===== NOUVEAUX CHAMPS MERCHANT =====
+  // Historique et suivi
+  negotiationHistory Json?     // Historique des négociations
+  lastRenegotiationDate DateTime? // Dernière renégociation
+  autoRenewal   Boolean?       @default(false) // Renouvellement automatique
+  renewalNotice Int?           // Préavis de renouvellement (jours)
+  
+  // Assurance et garanties
+  insuranceRequired Boolean?   @default(false) // Assurance requise
+  insuranceAmount Decimal?     @db.Decimal(10,2) // Montant d'assurance
+  securityDeposit Decimal?     @db.Decimal(10,2) // Dépôt de garantie
   
   // Relations avec le profil Merchant
-  merchant   Merchant       @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  merchant      Merchant       @relation(fields: [merchantId], references: [id], onDelete: Cascade)
+  signedBy      User?          @relation("ContractSignedBy", fields: [signedById], references: [id])
+  
+  // Relations avec template et amendements
+  template      ContractTemplate? @relation(fields: [templateId], references: [id])
+  amendments    ContractAmendment[]
+  negotiations  ContractNegotiation[]
+  performances  ContractPerformance[]
+  billingCycles BillingCycle[]
 
   @@index([merchantId])
   @@index([status])
+  @@index([type])
+  @@index([contractNumber])
+  @@index([effectiveDate])
+  @@index([merchantCategory]) // Nouvel index
   @@map("contracts")
+}
+
+/// Templates de contrats réutilisables
+model ContractTemplate {
+  id          String         @id @default(cuid())
+  name        String         // Nom du template (ex: "Contrat Standard")
+  description String?        // Description du template
+  version     String         @default("1.0") // Version du template
+  content     String         @db.Text // Contenu template en HTML/JSON
+  isActive    Boolean        @default(true)
+  
+  // Configuration par défaut
+  defaultType ContractType   @default(STANDARD)
+  defaultMonthlyFee Decimal? @db.Decimal(10,2)
+  defaultCommissionRate Decimal? @db.Decimal(5,4)
+  defaultDuration Int?       // Durée par défaut en mois
+  
+  // ===== EXTENSIONS MERCHANT TEMPLATE =====
+  // Spécificités par catégorie de merchant
+  targetMerchantCategory String? // Catégorie cible du template
+  requiredDocuments Json?     // Documents requis pour ce template
+  minimumBusinessAge Int?     // Âge minimum de l'entreprise (mois)
+  minimumTurnover Decimal?    @db.Decimal(12,2) // CA minimum requis
+  
+  // Conditions particulières
+  defaultExclusivityClause Boolean? @default(false)
+  defaultInsuranceRequired Boolean? @default(false)
+  defaultSecurityDeposit Decimal? @db.Decimal(10,2)
+  
+  // Métadonnées
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  createdById String
+  
+  // Relations
+  createdBy   User           @relation(fields: [createdById], references: [id])
+  contracts   Contract[]
+  
+  @@index([isActive])
+  @@index([defaultType])
+  @@index([targetMerchantCategory]) // Nouvel index
+  @@map("contract_templates")
+}
+
+/// Amendements aux contrats
+model ContractAmendment {
+  id          String         @id @default(cuid())
+  contractId  String
+  title       String         // Titre de l'amendement
+  description String         // Description du changement
+  content     String         @db.Text // Contenu de l'amendement
+  status      ContractStatus @default(DRAFT)
+  
+  // ===== EXTENSIONS MERCHANT AMENDMENT =====
+  // Type d'amendement spécifique
+  amendmentType String?       // TYPE: "COMMISSION", "TERRITORY", "TERMS", "OTHER"
+  previousValue Json?         // Valeur précédente
+  newValue     Json?          // Nouvelle valeur
+  businessJustification String? // Justification business
+  impactAssessment Json?      // Évaluation d'impact
+  
+  // Approbation
+  merchantApproved Boolean?   @default(false)
+  adminApproved Boolean?      @default(false)
+  merchantApprovedAt DateTime?
+  adminApprovedAt DateTime?
+  
+  // Dates
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  signedAt    DateTime?
+  effectiveDate DateTime?
+  
+  // Signature
+  fileUrl     String?        // PDF de l'amendement signé
+  signedById  String?
+  
+  // Relations
+  contract    Contract       @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  signedBy    User?          @relation(fields: [signedById], references: [id])
+  
+  @@index([contractId])
+  @@index([status])
+  @@index([amendmentType]) // Nouvel index
+  @@map("contract_amendments")
+}
+
+// ===== NOUVEAU MODÈLE: NÉGOCIATIONS =====
+/// Historique des négociations de contrats
+model ContractNegotiation {
+  id          String         @id @default(cuid())
+  contractId  String
+  initiatedBy String         // USER_ID who initiated
+  negotiationRound Int       // Numéro du tour de négociation
+  
+  // Détails de la négociation
+  proposedChanges Json       // Changements proposés
+  reason      String         // Raison de la négociation
+  notes       String?        // Notes additionnelles
+  
+  // Statut
+  status      String         // PENDING, ACCEPTED, REJECTED, COUNTER_PROPOSED
+  
+  // Réponse
+  response    String?        // Réponse à la négociation
+  respondedBy String?        // USER_ID who responded
+  respondedAt DateTime?
+  
+  // Dates
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  
+  // Relations
+  contract    Contract       @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  initiator   User           @relation("NegotiationInitiator", fields: [initiatedBy], references: [id])
+  responder   User?          @relation("NegotiationResponder", fields: [respondedBy], references: [id])
+  
+  @@index([contractId])
+  @@index([status])
+  @@map("contract_negotiations")
+}
+
+// ===== NOUVEAU MODÈLE: PERFORMANCE CONTRAT =====
+/// Suivi de performance des contrats merchants
+model ContractPerformance {
+  id          String         @id @default(cuid())
+  contractId  String
+  
+  // Période de mesure
+  periodStart DateTime
+  periodEnd   DateTime
+  
+  // Métriques de performance
+  deliveryCount Int          @default(0)
+  averageDeliveryTime Float? // En minutes
+  customerSatisfaction Float? // Note moyenne sur 5
+  
+  // Métriques financières
+  totalRevenue Decimal?      @db.Decimal(12,2)
+  commissionPaid Decimal?    @db.Decimal(12,2)
+  avgOrderValue Decimal?     @db.Decimal(10,2)
+  
+  // Conformité
+  slaCompliance Float?       // % de respect du SLA
+  qualityScore Float?        // Score qualité global
+  
+  // Objectifs
+  targetsMet   Json?         // Objectifs atteints
+  bonusEarned  Decimal?      @db.Decimal(10,2)
+  penaltiesApplied Decimal? @db.Decimal(10,2)
+  
+  // Métadonnées
+  calculatedAt DateTime      @default(now())
+  notes       String?
+  
+  // Relations
+  contract    Contract       @relation(fields: [contractId], references: [id], onDelete: Cascade)
+  
+  @@index([contractId])
+  @@index([periodStart, periodEnd])
+  @@map("contract_performance")
 } 
 // ===== MODÈLES D'AUDIT ET TRAÇABILITÉ =====
 // Ce fichier contient les modèles pour l'audit et le suivi de l'activité des utilisateurs.

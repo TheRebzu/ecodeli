@@ -60,28 +60,33 @@ export const subscriptionBaseSchema = z.object({
 /**
  * Schéma pour la création d'un abonnement
  */
-export const subscriptionCreateSchema = z.object({
-  userId: z.string().cuid('ID utilisateur invalide'),
-  planType: z.nativeEnum(PlanType),
-  startDate: z.date().default(() => new Date()),
-  autoRenew: z.boolean().default(true),
-  currency: z.string().default('EUR'),
-  couponCode: z.string().optional(),
-  paymentMethodId: z.string().optional(),
-  
-  // Si un plan Custom est choisi, ces champs sont obligatoires
-  customPlanFeatures: z.record(z.any()).optional(),
-  
-  // Champs spécifiques pour le mode démonstration
-  isDemo: z.boolean().default(true),
-  demoSuccessScenario: z.boolean().default(true).optional(),
-}).refine((data) => {
-  // Vérification que customPlanFeatures est défini si planType est CUSTOM
-  return data.customPlanFeatures !== undefined || data.planType !== PlanType.CUSTOM;
-}, {
-  message: 'Les caractéristiques du plan personnalisé sont requises pour un abonnement Custom',
-  path: ['customPlanFeatures']
-});
+export const subscriptionCreateSchema = z
+  .object({
+    userId: z.string().cuid('ID utilisateur invalide'),
+    planType: z.nativeEnum(PlanType),
+    startDate: z.date().default(() => new Date()),
+    autoRenew: z.boolean().default(true),
+    currency: z.string().default('EUR'),
+    couponCode: z.string().optional(),
+    paymentMethodId: z.string().optional(),
+
+    // Si un plan Custom est choisi, ces champs sont obligatoires
+    customPlanFeatures: z.record(z.any()).optional(),
+
+    // Champs spécifiques pour le mode démonstration
+    isDemo: z.boolean().default(true),
+    demoSuccessScenario: z.boolean().default(true).optional(),
+  })
+  .refine(
+    data => {
+      // Vérification que customPlanFeatures est défini si planType est CUSTOM
+      return data.customPlanFeatures !== undefined || data.planType !== PlanType.CUSTOM;
+    },
+    {
+      message: 'Les caractéristiques du plan personnalisé sont requises pour un abonnement Custom',
+      path: ['customPlanFeatures'],
+    }
+  );
 
 /**
  * Schéma pour la mise à jour d'un abonnement
@@ -104,7 +109,7 @@ export const subscriptionCancelSchema = z.object({
   reason: z.string().optional(),
   provideFeedback: z.boolean().default(false),
   feedbackContent: z.string().optional(),
-  
+
   // Champs spécifiques pour le mode démonstration
   isDemo: z.boolean().default(true),
 });
@@ -114,7 +119,7 @@ export const subscriptionCancelSchema = z.object({
  */
 export const subscriptionReactivateSchema = z.object({
   subscriptionId: z.string().cuid('ID abonnement invalide'),
-  
+
   // Champs spécifiques pour le mode démonstration
   isDemo: z.boolean().default(true),
   demoSuccessScenario: z.boolean().default(true).optional(),
@@ -123,26 +128,34 @@ export const subscriptionReactivateSchema = z.object({
 /**
  * Schéma pour le changement de plan
  */
-export const subscriptionChangeSchema = z.object({
-  subscriptionId: z.string().cuid('ID abonnement invalide'),
-  newPlanType: z.nativeEnum(PlanType),
-  effectiveDate: z.date().optional().default(() => new Date()),
-  prorated: z.boolean().default(true),
-  keepExistingFeatures: z.boolean().default(false),
-  
-  // Pour les plans Custom
-  customPlanFeatures: z.record(z.any()).optional(),
-  
-  // Champs spécifiques pour le mode démonstration
-  isDemo: z.boolean().default(true),
-  demoSuccessScenario: z.boolean().default(true).optional(),
-}).refine((data) => {
-  // Vérification que customPlanFeatures est défini si newPlanType est CUSTOM
-  return data.customPlanFeatures !== undefined || data.newPlanType !== PlanType.CUSTOM;
-}, {
-  message: 'Les caractéristiques du plan personnalisé sont requises pour un abonnement Custom',
-  path: ['customPlanFeatures']
-});
+export const subscriptionChangeSchema = z
+  .object({
+    subscriptionId: z.string().cuid('ID abonnement invalide'),
+    newPlanType: z.nativeEnum(PlanType),
+    effectiveDate: z
+      .date()
+      .optional()
+      .default(() => new Date()),
+    prorated: z.boolean().default(true),
+    keepExistingFeatures: z.boolean().default(false),
+
+    // Pour les plans Custom
+    customPlanFeatures: z.record(z.any()).optional(),
+
+    // Champs spécifiques pour le mode démonstration
+    isDemo: z.boolean().default(true),
+    demoSuccessScenario: z.boolean().default(true).optional(),
+  })
+  .refine(
+    data => {
+      // Vérification que customPlanFeatures est défini si newPlanType est CUSTOM
+      return data.customPlanFeatures !== undefined || data.newPlanType !== PlanType.CUSTOM;
+    },
+    {
+      message: 'Les caractéristiques du plan personnalisé sont requises pour un abonnement Custom',
+      path: ['customPlanFeatures'],
+    }
+  );
 
 /**
  * Schéma pour l'application d'un coupon
@@ -375,7 +388,7 @@ export const applyDiscountSchema = z.object({
   discountPercent: z.number().min(1).max(100),
   discountDurationMonths: z.number().int().min(1).max(12).optional(),
   reason: z.string().optional(),
-  
+
   // Champs spécifiques pour le mode démonstration
   isDemo: z.boolean().default(true),
   demoSuccessScenario: z.boolean().default(true).optional(),

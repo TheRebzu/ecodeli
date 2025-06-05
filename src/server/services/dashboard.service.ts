@@ -11,9 +11,15 @@ export const dashboardService = {
   async getDashboardData() {
     try {
       // Récupération des données avec gestion des erreurs
-      let userStats, documentStats, transactionStats, warehouseStats, deliveryStats, 
-          recentActivities, activityChartData, actionItems;
-      
+      let userStats,
+        documentStats,
+        transactionStats,
+        warehouseStats,
+        deliveryStats,
+        recentActivities,
+        activityChartData,
+        actionItems;
+
       try {
         userStats = await this.getUserStats();
       } catch (error) {
@@ -33,7 +39,7 @@ export const dashboardService = {
           usersByRole: {},
         };
       }
-      
+
       try {
         documentStats = await this.getDocumentStats();
       } catch (error) {
@@ -50,7 +56,7 @@ export const dashboardService = {
           documentsByType: {},
         };
       }
-      
+
       try {
         transactionStats = await this.getTransactionStats();
       } catch (error) {
@@ -68,7 +74,7 @@ export const dashboardService = {
           paymentsByStatus: {},
         };
       }
-      
+
       try {
         warehouseStats = await this.getWarehouseStats();
       } catch (error) {
@@ -86,7 +92,7 @@ export const dashboardService = {
           maintenanceBoxes: 0,
         };
       }
-      
+
       try {
         deliveryStats = await this.getDeliveryStats();
       } catch (error) {
@@ -101,14 +107,14 @@ export const dashboardService = {
           inProgressDeliveries: 0,
         };
       }
-      
+
       try {
         recentActivities = await this.getRecentActivities(10);
       } catch (error) {
         console.error('Erreur lors de la récupération des activités récentes:', error);
         recentActivities = [];
       }
-      
+
       try {
         activityChartData = await this.getActivityChartData();
       } catch (error) {
@@ -119,7 +125,7 @@ export const dashboardService = {
           registrations: [],
         };
       }
-      
+
       try {
         actionItems = await this.getActionItems();
       } catch (error) {
@@ -301,9 +307,9 @@ export const dashboardService = {
             id: 'mock-user-1',
             name: 'Utilisateur Test',
             email: 'test@example.com',
-            role: 'CLIENT' as UserRole
-          }
-        }
+            role: 'CLIENT' as UserRole,
+          },
+        },
       ];
 
       return {
@@ -318,7 +324,7 @@ export const dashboardService = {
           PROVIDER: Math.round(pendingReview * 0.05),
         },
         recentlySubmitted: mockRecentlySubmitted,
-        
+
         // Garder les propriétés originales pour la compatibilité
         totalDocuments,
         pendingReview,
@@ -427,11 +433,11 @@ export const dashboardService = {
       });
 
       // Calculer le taux d'occupation pour chaque entrepôt
-      const warehouseOccupancy = warehouses.map((warehouse) => {
+      const warehouseOccupancy = warehouses.map(warehouse => {
         const total = warehouse.boxes.length;
-        const occupied = warehouse.boxes.filter((box) => box.status === 'OCCUPIED').length;
+        const occupied = warehouse.boxes.filter(box => box.status === 'OCCUPIED').length;
         const occupancyRate = total > 0 ? (occupied / total) * 100 : 0;
-        
+
         return {
           id: warehouse.id,
           name: warehouse.name,
@@ -478,7 +484,7 @@ export const dashboardService = {
       // Date d'aujourd'hui (début de journée)
       const today = new Date();
       today.setHours(0, 0, 0, 0);
-      
+
       // Livraisons terminées aujourd'hui
       const completedToday = await db.delivery.count({
         where: {
@@ -493,7 +499,7 @@ export const dashboardService = {
       const startOfWeek = new Date();
       startOfWeek.setDate(today.getDate() - today.getDay());
       startOfWeek.setHours(0, 0, 0, 0);
-      
+
       // Livraisons terminées cette semaine
       const completedThisWeek = await db.delivery.count({
         where: {
@@ -508,7 +514,7 @@ export const dashboardService = {
       const startOfMonth = new Date();
       startOfMonth.setDate(1);
       startOfMonth.setHours(0, 0, 0, 0);
-      
+
       // Livraisons terminées ce mois
       const completedThisMonth = await db.delivery.count({
         where: {
@@ -565,17 +571,7 @@ export const dashboardService = {
           thisMonth: completedThisMonth,
         },
         avgDeliveryTime: avgDeliveryTime,
-        
-        // Propriétés attendues par la page admin/deliveries
-        inProgressDeliveries: activeDeliveries,
-        deliveriesToday,
-        onTimeDeliveryRate,
-        completedToday,
-        averageDeliveryTime: avgDeliveryTime,
-        previousAverageDeliveryTime,
-        pendingIssues,
-        todayIssues,
-        
+
         // Conserver les anciennes propriétés pour la rétrocompatibilité
         totalDeliveries: activeDeliveries + cancelledDeliveries + completedThisMonth,
         pendingDeliveries: await db.delivery.count({ where: { status: 'PENDING' } }),
@@ -733,23 +729,23 @@ export const dashboardService = {
       // Formatage des données selon le type ActivityChartData
       const registrations = dates.map((date, i) => ({
         date,
-        value: registrationValues[i]
+        value: registrationValues[i],
       }));
 
       const deliveries = dates.map((date, i) => ({
         date,
-        value: deliveryValues[i]
+        value: deliveryValues[i],
       }));
 
       const transactions = dates.map((date, i) => ({
         date,
-        value: transactionValues[i]
+        value: transactionValues[i],
       }));
 
       return {
         deliveries,
         transactions,
-        registrations
+        registrations,
       };
     } catch (error) {
       console.error("Erreur lors de la récupération des données du graphique d'activité:", error);

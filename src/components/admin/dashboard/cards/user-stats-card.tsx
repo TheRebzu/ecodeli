@@ -4,15 +4,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { AreaChart, BarChart } from '@/components/ui/charts';
-import { 
-  Users, 
-  UserPlus, 
-  UserCheck, 
+import {
+  Users,
+  UserPlus,
+  UserCheck,
   UserX,
   Activity,
   Shield,
   Clock,
-  TrendingUp
+  TrendingUp,
 } from 'lucide-react';
 import { generateChartColors } from '@/lib/utils';
 
@@ -65,21 +65,24 @@ export function UserStatsCard({
   className = '',
 }: UserStatsCardProps) {
   // Calculs automatiques
-  const calculatedTotalUsers = totalUsers ?? data[data.length - 1]?.signups || 0;
-  const calculatedActiveUsers = activeUsers ?? data[data.length - 1]?.active || 0;
-  const calculatedNewUsers = newUsersThisMonth ?? data.slice(-30).reduce((sum, item) => sum + item.signups, 0);
-  
-  const calculatedUserGrowth = userGrowth ?? (() => {
-    if (data.length < 2) return 0;
-    const current = data.slice(-7).reduce((sum, item) => sum + item.signups, 0);
-    const previous = data.slice(-14, -7).reduce((sum, item) => sum + item.signups, 0);
-    if (previous === 0) return 0;
-    return ((current - previous) / previous) * 100;
-  })();
+  const calculatedTotalUsers = totalUsers ?? (data[data.length - 1]?.signups || 0);
+  const calculatedActiveUsers = activeUsers ?? (data[data.length - 1]?.active || 0);
+  const calculatedNewUsers =
+    newUsersThisMonth ?? data.slice(-30).reduce((sum, item) => sum + item.signups, 0);
 
-  const calculatedRetentionRate = retentionRate ?? (
-    calculatedTotalUsers > 0 ? (calculatedActiveUsers / calculatedTotalUsers) * 100 : 0
-  );
+  const calculatedUserGrowth =
+    userGrowth ??
+    (() => {
+      if (data.length < 2) return 0;
+      const current = data.slice(-7).reduce((sum, item) => sum + item.signups, 0);
+      const previous = data.slice(-14, -7).reduce((sum, item) => sum + item.signups, 0);
+      if (previous === 0) return 0;
+      return ((current - previous) / previous) * 100;
+    })();
+
+  const calculatedRetentionRate =
+    retentionRate ??
+    (calculatedTotalUsers > 0 ? (calculatedActiveUsers / calculatedTotalUsers) * 100 : 0);
 
   // Données pour les graphiques
   const signupChartData = data.map(item => ({
@@ -117,9 +120,7 @@ export function UserStatsCard({
                 <p className="text-sm text-muted-foreground">Utilisateurs totaux</p>
               </div>
               <p className="text-2xl font-bold">{calculatedTotalUsers.toLocaleString()}</p>
-              <p className="text-xs text-muted-foreground">
-                +{calculatedNewUsers} ce mois
-              </p>
+              <p className="text-xs text-muted-foreground">+{calculatedNewUsers} ce mois</p>
             </div>
             <div>
               <div className="flex items-center gap-2 mb-1">
@@ -140,7 +141,7 @@ export function UserStatsCard({
               categories={['signups', 'active']}
               index="period"
               colors={['#3b82f6', '#22c55e']}
-              valueFormatter={(value) => value.toLocaleString()}
+              valueFormatter={value => value.toLocaleString()}
               showLegend={true}
               showGridLines={false}
               startEndOnly={true}
@@ -159,7 +160,7 @@ export function UserStatsCard({
                   <div key={role.role} className="space-y-1">
                     <div className="flex justify-between items-center text-sm">
                       <div className="flex items-center gap-2">
-                        <div 
+                        <div
                           className="w-3 h-3 rounded-full"
                           style={{ backgroundColor: roleColors[index] }}
                         />
@@ -167,11 +168,12 @@ export function UserStatsCard({
                       </div>
                       <div className="flex items-center gap-2">
                         <span>{role.count}</span>
-                        <Badge 
+                        <Badge
                           variant={role.growth >= 0 ? 'default' : 'destructive'}
                           className="text-xs"
                         >
-                          {role.growth >= 0 ? '+' : ''}{role.growth.toFixed(1)}%
+                          {role.growth >= 0 ? '+' : ''}
+                          {role.growth.toFixed(1)}%
                         </Badge>
                       </div>
                     </div>
@@ -212,23 +214,24 @@ export function UserStatsCard({
                   <p className="text-lg font-semibold">{verificationStats.rejected}</p>
                 </div>
               </div>
-              
+
               {/* Taux d'approbation */}
               <div className="space-y-2">
                 <div className="flex justify-between items-center text-sm">
                   <span>Taux d'approbation</span>
                   <span className="font-medium">
-                    {verificationStats.total > 0 
+                    {verificationStats.total > 0
                       ? ((verificationStats.approved / verificationStats.total) * 100).toFixed(1)
-                      : 0}%
+                      : 0}
+                    %
                   </span>
                 </div>
-                <Progress 
+                <Progress
                   value={
-                    verificationStats.total > 0 
+                    verificationStats.total > 0
                       ? (verificationStats.approved / verificationStats.total) * 100
                       : 0
-                  } 
+                  }
                   className="h-2"
                 />
               </div>
@@ -239,19 +242,26 @@ export function UserStatsCard({
           <div className="grid grid-cols-2 gap-4 pt-2 border-t">
             <div>
               <p className="text-sm text-muted-foreground">Croissance</p>
-              <p className={`text-lg font-semibold ${
-                calculatedUserGrowth >= 0 ? 'text-green-600' : 'text-red-600'
-              }`}>
+              <p
+                className={`text-lg font-semibold ${
+                  calculatedUserGrowth >= 0 ? 'text-green-600' : 'text-red-600'
+                }`}
+              >
                 {calculatedUserGrowth >= 0 ? '+' : ''}
                 {calculatedUserGrowth.toFixed(1)}%
               </p>
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Rétention</p>
-              <p className={`text-lg font-semibold ${
-                calculatedRetentionRate >= 70 ? 'text-green-600' : 
-                calculatedRetentionRate >= 50 ? 'text-yellow-600' : 'text-red-600'
-              }`}>
+              <p
+                className={`text-lg font-semibold ${
+                  calculatedRetentionRate >= 70
+                    ? 'text-green-600'
+                    : (calculatedRetentionRate >= 50)
+                      ? 'text-yellow-600'
+                      : 'text-red-600'
+                }`}
+              >
                 {calculatedRetentionRate.toFixed(1)}%
               </p>
             </div>

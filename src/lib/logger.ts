@@ -11,20 +11,20 @@ type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 const config = {
   // Niveau de log minimum à afficher
   minLevel: (process.env.LOG_LEVEL || 'info') as LogLevel,
-  
+
   // Activation/désactivation des logs selon l'environnement
   enabled: process.env.NODE_ENV !== 'test' || process.env.ENABLE_TEST_LOGS === 'true',
-  
+
   // Format de date pour les logs
   dateFormat: 'HH:mm:ss',
-  
+
   // Couleurs pour les différents niveaux (compatible avec la console du navigateur)
   colors: {
     debug: '#9BA0AA',
     info: '#1A7CD3',
     warn: '#F9B938',
-    error: '#D33E3E'
-  }
+    error: '#D33E3E',
+  },
 };
 
 /**
@@ -34,7 +34,7 @@ const levels: Record<LogLevel, number> = {
   debug: 0,
   info: 1,
   warn: 2,
-  error: 3
+  error: 3,
 };
 
 /**
@@ -66,7 +66,7 @@ export const logger = {
       );
     }
   },
-  
+
   info(message: string, data?: any) {
     if (shouldLog('info')) {
       console.info(
@@ -76,7 +76,7 @@ export const logger = {
       );
     }
   },
-  
+
   warn(message: string, data?: any) {
     if (shouldLog('warn')) {
       console.warn(
@@ -86,7 +86,7 @@ export const logger = {
       );
     }
   },
-  
+
   error(message: string, error?: any) {
     if (shouldLog('error')) {
       console.error(
@@ -96,7 +96,7 @@ export const logger = {
       );
     }
   },
-  
+
   /**
    * Logger spécifique à un contexte (préfixe les messages)
    */
@@ -105,7 +105,7 @@ export const logger = {
       debug: (message: string, data?: any) => logger.debug(`[${context}] ${message}`, data),
       info: (message: string, data?: any) => logger.info(`[${context}] ${message}`, data),
       warn: (message: string, data?: any) => logger.warn(`[${context}] ${message}`, data),
-      error: (message: string, error?: any) => logger.error(`[${context}] ${message}`, error)
+      error: (message: string, error?: any) => logger.error(`[${context}] ${message}`, error),
     };
-  }
-}; 
+  },
+};

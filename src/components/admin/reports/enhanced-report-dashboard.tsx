@@ -7,14 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  DownloadIcon, 
-  RefreshCw, 
-  FileText, 
-  BarChart3,
-  TrendingUp,
-  Calendar
-} from 'lucide-react';
+import { DownloadIcon, RefreshCw, FileText, BarChart3, TrendingUp, Calendar } from 'lucide-react';
 import { ReportFilters } from './report-filters';
 import { SalesReport } from './sales-report';
 import { DeliveryPerformanceReport } from './delivery-performance-report';
@@ -162,7 +155,7 @@ export function EnhancedReportDashboard({ className }: EnhancedReportDashboardPr
       }
     } catch (error) {
       console.error('Export PDF error:', error);
-      toast.error('Erreur lors de l\'export PDF');
+      toast.error("Erreur lors de l'export PDF");
     }
   };
 
@@ -219,7 +212,7 @@ export function EnhancedReportDashboard({ className }: EnhancedReportDashboardPr
       }
     } catch (error) {
       console.error('Export CSV error:', error);
-      toast.error('Erreur lors de l\'export CSV');
+      toast.error("Erreur lors de l'export CSV");
     }
   };
 
@@ -235,7 +228,7 @@ export function EnhancedReportDashboard({ className }: EnhancedReportDashboardPr
   };
 
   // Détermine si des données sont en cours de chargement
-  const isLoading = 
+  const isLoading =
     (activeTab === 'sales' && salesReportQuery.isLoading) ||
     (activeTab === 'delivery' && deliveryReportQuery.isLoading) ||
     (activeTab === 'users' && userActivityReportQuery.isLoading) ||
@@ -376,7 +369,8 @@ export function EnhancedReportDashboard({ className }: EnhancedReportDashboardPr
                         <div className="text-2xl font-bold">
                           {financialReportQuery.data?.revenueTimeSeriesData
                             ?.reduce((sum: number, item: any) => sum + item.revenue, 0)
-                            ?.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' }) || '0 €'}
+                            ?.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' }) ||
+                            '0 €'}
                         </div>
                       </CardContent>
                     </Card>
@@ -400,7 +394,8 @@ export function EnhancedReportDashboard({ className }: EnhancedReportDashboardPr
                         <div className="text-2xl font-bold">
                           {financialReportQuery.data?.commissionsTimeSeriesData
                             ?.reduce((sum: number, item: any) => sum + item.commissions, 0)
-                            ?.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' }) || '0 €'}
+                            ?.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' }) ||
+                            '0 €'}
                         </div>
                       </CardContent>
                     </Card>

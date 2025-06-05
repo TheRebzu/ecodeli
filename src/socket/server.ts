@@ -27,7 +27,7 @@ export async function initializeSocketServer(httpServer) {
 
   // Création du serveur Socket.IO
   const io = new Server(httpServer, ioConfig);
-  
+
   // Stocker l'instance dans la variable globale
   globalSocketServer = io;
 

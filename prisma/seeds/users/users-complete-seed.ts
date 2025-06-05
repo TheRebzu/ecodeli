@@ -1,6 +1,14 @@
 import { PrismaClient, UserRole, UserStatus } from '@prisma/client';
 import { SeedLogger } from '../utils/seed-logger';
-import { SeedResult, SeedOptions, hashPassword, generateFrenchAddress, generateFrenchPhone, generateSiret, TestDataGenerator } from '../utils/seed-helpers';
+import {
+  SeedResult,
+  SeedOptions,
+  hashPassword,
+  generateFrenchAddress,
+  generateFrenchPhone,
+  generateSiret,
+  TestDataGenerator,
+} from '../utils/seed-helpers';
 import { faker } from '@faker-js/faker';
 
 /**
@@ -40,53 +48,58 @@ export async function seedCompleteUsers(
   options: SeedOptions = {}
 ): Promise<SeedResult> {
   logger.startSeed('COMPLETE_USERS');
-  
+
   const result: SeedResult = {
     entity: 'complete_users',
     created: 0,
     skipped: 0,
-    errors: 0
+    errors: 0,
   };
 
   // Configuration des quotas selon la demande
   const QUOTAS: UserQuotas = {
     admins: {
-      super: 3,      // 3 super-admins
-      support: 5,    // 5 support
-      financial: 2   // 2 financiers
+      super: 3, // 3 super-admins
+      support: 5, // 5 support
+      financial: 2, // 2 financiers
     },
     clients: {
-      total: 100,    // 100 clients
+      total: 100, // 100 clients
       statusDistribution: [
         { status: UserStatus.ACTIVE, percentage: 85 },
         { status: UserStatus.PENDING_VERIFICATION, percentage: 10 },
         { status: UserStatus.SUSPENDED, percentage: 3 },
-        { status: UserStatus.INACTIVE, percentage: 2 }
-      ]
+        { status: UserStatus.INACTIVE, percentage: 2 },
+      ],
     },
     deliverers: {
-      total: 35,     // 35 livreurs total
+      total: 35, // 35 livreurs total
       statusDistribution: [
-        { status: UserStatus.ACTIVE, percentage: 57 },           // 20 actifs
+        { status: UserStatus.ACTIVE, percentage: 57 }, // 20 actifs
         { status: UserStatus.PENDING_VERIFICATION, percentage: 29 }, // 10 en attente
-        { status: UserStatus.SUSPENDED, percentage: 14 }         // 5 suspendus
-      ]
+        { status: UserStatus.SUSPENDED, percentage: 14 }, // 5 suspendus
+      ],
     },
     merchants: {
-      total: 20,     // 20 commerçants total
+      total: 20, // 20 commerçants total
       statusDistribution: [
-        { status: UserStatus.ACTIVE, percentage: 75 },           // 15 actifs
-        { status: UserStatus.PENDING_VERIFICATION, percentage: 25 } // 5 en validation
-      ]
+        { status: UserStatus.ACTIVE, percentage: 75 }, // 15 actifs
+        { status: UserStatus.PENDING_VERIFICATION, percentage: 25 }, // 5 en validation
+      ],
     },
     providers: {
-      total: 25,     // 25 prestataires
+      total: 25, // 25 prestataires
       specialties: [
-        'Plomberie', 'Électricité', 'Ménage et Nettoyage', 'Jardinage',
-        'Bricolage et Réparation', 'Support Informatique', 'Garde d\'enfants',
-        'Cours Particuliers'
-      ]
-    }
+        'Plomberie',
+        'Électricité',
+        'Ménage et Nettoyage',
+        'Jardinage',
+        'Bricolage et Réparation',
+        'Support Informatique',
+        "Garde d'enfants",
+        'Cours Particuliers',
+      ],
+    },
   };
 
   // Générateur de données uniques
@@ -94,9 +107,12 @@ export async function seedCompleteUsers(
 
   // Vérifier si des utilisateurs existent déjà
   const existingUsers = await prisma.user.count();
-  
+
   if (existingUsers > 50 && !options.force) {
-    logger.warning('COMPLETE_USERS', `${existingUsers} utilisateurs déjà présents - utiliser force:true pour recréer`);
+    logger.warning(
+      'COMPLETE_USERS',
+      `${existingUsers} utilisateurs déjà présents - utiliser force:true pour recréer`
+    );
     result.skipped = existingUsers;
     return result;
   }
@@ -133,32 +149,51 @@ export async function seedCompleteUsers(
   const finalUsers = await prisma.user.findMany({
     select: {
       role: true,
-      status: true
-    }
+      status: true,
+    },
   });
 
-  const usersByRole = finalUsers.reduce((acc: Record<UserRole, number>, user) => {
-    acc[user.role] = (acc[user.role] || 0) + 1;
-    return acc;
-  }, {} as Record<UserRole, number>);
+  const usersByRole = finalUsers.reduce(
+    (acc: Record<UserRole, number>, user) => {
+      acc[user.role] = (acc[user.role] || 0) + 1;
+      return acc;
+    },
+    {} as Record<UserRole, number>
+  );
 
-  const usersByStatus = finalUsers.reduce((acc: Record<UserStatus, number>, user) => {
-    acc[user.status] = (acc[user.status] || 0) + 1;
-    return acc;
-  }, {} as Record<UserStatus, number>);
+  const usersByStatus = finalUsers.reduce(
+    (acc: Record<UserStatus, number>, user) => {
+      acc[user.status] = (acc[user.status] || 0) + 1;
+      return acc;
+    },
+    {} as Record<UserStatus, number>
+  );
 
   logger.info('COMPLETE_USERS', `📊 Utilisateurs par rôle: ${JSON.stringify(usersByRole)}`);
   logger.info('COMPLETE_USERS', `📈 Utilisateurs par statut: ${JSON.stringify(usersByStatus)}`);
 
   // Validation des quotas
-  const expectedTotal = QUOTAS.admins.super + QUOTAS.admins.support + QUOTAS.admins.financial + 
-                       QUOTAS.clients.total + QUOTAS.deliverers.total + 
-                       QUOTAS.merchants.total + QUOTAS.providers.total;
+  const expectedTotal =
+    QUOTAS.admins.super +
+    QUOTAS.admins.support +
+    QUOTAS.admins.financial +
+    QUOTAS.clients.total +
+    QUOTAS.deliverers.total +
+    QUOTAS.merchants.total +
+    QUOTAS.providers.total;
 
   if (finalUsers.length >= expectedTotal - result.errors) {
-    logger.validation('COMPLETE_USERS', 'PASSED', `${finalUsers.length} utilisateurs créés sur ${expectedTotal} attendus`);
+    logger.validation(
+      'COMPLETE_USERS',
+      'PASSED',
+      `${finalUsers.length} utilisateurs créés sur ${expectedTotal} attendus`
+    );
   } else {
-    logger.validation('COMPLETE_USERS', 'FAILED', `${finalUsers.length} créés, ${expectedTotal} attendus`);
+    logger.validation(
+      'COMPLETE_USERS',
+      'FAILED',
+      `${finalUsers.length} créés, ${expectedTotal} attendus`
+    );
   }
 
   logger.endSeed('COMPLETE_USERS', result);
@@ -171,10 +206,22 @@ export async function seedCompleteUsers(
 async function cleanExistingUsers(prisma: PrismaClient, logger: SeedLogger): Promise<void> {
   // Ordre de suppression pour respecter les contraintes FK
   const tablesToClean = [
-    'serviceRating', 'serviceBooking', 'providerAvailability',
-    'deliveryRating', 'deliveryApplication', 'delivery',
-    'announcement', 'client', 'deliverer', 'merchant', 'provider', 'admin',
-    'address', 'account', 'session', 'user'
+    'serviceRating',
+    'serviceBooking',
+    'providerAvailability',
+    'deliveryRating',
+    'deliveryApplication',
+    'delivery',
+    'announcement',
+    'client',
+    'deliverer',
+    'merchant',
+    'provider',
+    'admin',
+    'address',
+    'account',
+    'session',
+    'user',
   ];
 
   for (const table of tablesToClean) {
@@ -206,7 +253,7 @@ async function createAdministrators(
   const adminTypes = [
     { type: 'SUPER_ADMIN', count: quotas.super, permissions: ['ALL'] },
     { type: 'SUPPORT_ADMIN', count: quotas.support, permissions: ['USER_MANAGEMENT', 'SUPPORT'] },
-    { type: 'FINANCIAL_ADMIN', count: quotas.financial, permissions: ['FINANCIAL', 'REPORTS'] }
+    { type: 'FINANCIAL_ADMIN', count: quotas.financial, permissions: ['FINANCIAL', 'REPORTS'] },
   ];
 
   for (const adminType of adminTypes) {
@@ -216,34 +263,40 @@ async function createAdministrators(
         const lastName = faker.person.lastName();
         const email = dataGenerator.generateUniqueEmail(firstName, lastName);
 
-                 const user = await prisma.user.create({
-           data: {
-             name: `${firstName} ${lastName}`,
-             email: email,
-             password: defaultPassword,
-             role: UserRole.ADMIN,
-             status: UserStatus.ACTIVE,
-             emailVerified: faker.date.past({ years: 1 }),
-             createdAt: faker.date.past({ years: 2 }),
-             notes: `Administrateur ${adminType.type.toLowerCase()}`,
-             admin: {
-               create: {
-                 permissions: adminType.permissions,
-                 department: adminType.type === 'FINANCIAL_ADMIN' ? 'Finance' : 
-                            adminType.type === 'SUPPORT_ADMIN' ? 'Support' : 'Direction'
-               }
-             }
-           }
-         });
+        const user = await prisma.user.create({
+          data: {
+            name: `${firstName} ${lastName}`,
+            email: email,
+            password: defaultPassword,
+            role: UserRole.ADMIN,
+            status: UserStatus.ACTIVE,
+            emailVerified: faker.date.past({ years: 1 }),
+            createdAt: faker.date.past({ years: 2 }),
+            notes: `Administrateur ${adminType.type.toLowerCase()}`,
+            admin: {
+              create: {
+                permissions: adminType.permissions,
+                department:
+                  adminType.type === 'FINANCIAL_ADMIN'
+                    ? 'Finance'
+                    : adminType.type === 'SUPPORT_ADMIN'
+                      ? 'Support'
+                      : 'Direction',
+              },
+            },
+          },
+        });
 
         result.created++;
-        
-                 if (options.verbose) {
-           logger.success('COMPLETE_USERS', `✅ Admin créé: ${user.name} (${adminType.type})`);
-         }
 
+        if (options.verbose) {
+          logger.success('COMPLETE_USERS', `✅ Admin créé: ${user.name} (${adminType.type})`);
+        }
       } catch (error: any) {
-        logger.error('COMPLETE_USERS', `❌ Erreur création admin ${adminType.type}: ${error.message}`);
+        logger.error(
+          'COMPLETE_USERS',
+          `❌ Erreur création admin ${adminType.type}: ${error.message}`
+        );
         result.errors++;
       }
     }
@@ -269,43 +322,47 @@ async function createClients(
 
       // Déterminer le statut selon la distribution
       const status = getStatusByDistribution(quotas.statusDistribution);
-      
-             // Générer des données de profil variées
-       const addressObj = generateFrenchAddress();
-       const addressStr = `${addressObj.street}, ${addressObj.city}, ${addressObj.zipCode}`;
-       const phone = generateFrenchPhone();
-       
-       const user = await prisma.user.create({
-         data: {
-           name: `${firstName} ${lastName}`,
-           email: email,
-           password: defaultPassword,
-           role: UserRole.CLIENT,
-           status: status,
-           phone: phone,
-           emailVerified: status === UserStatus.ACTIVE ? faker.date.past({ years: 1 }) : null,
-           createdAt: faker.date.past({ years: 2 }),
-           client: {
-             create: {
-               address: addressStr,
-               phone: phone,
-               preferredLanguage: faker.helpers.arrayElement(['fr', 'en']),
-               preferences: {
-                 notifications: faker.datatype.boolean(),
-                 newsletter: faker.datatype.boolean(),
-                 preferredContactMethod: faker.helpers.arrayElement(['email', 'phone', 'sms'])
-               }
-             }
-           }
-         }
-       });
+
+      // Générer des données de profil variées
+      const addressObj = generateFrenchAddress();
+      const addressStr = `${addressObj.street}, ${addressObj.city}, ${addressObj.zipCode}`;
+      const phone = generateFrenchPhone();
+
+      const user = await prisma.user.create({
+        data: {
+          name: `${firstName} ${lastName}`,
+          email: email,
+          password: defaultPassword,
+          role: UserRole.CLIENT,
+          status: status,
+          phone: phone,
+          emailVerified: status === UserStatus.ACTIVE ? faker.date.past({ years: 1 }) : null,
+          createdAt: faker.date.past({ years: 2 }),
+          client: {
+            create: {
+              address: addressStr,
+              phone: phone,
+              preferredLanguage: faker.helpers.arrayElement(['fr', 'en']),
+              preferences: {
+                notifications: faker.datatype.boolean(),
+                newsletter: faker.datatype.boolean(),
+                preferredContactMethod: faker.helpers.arrayElement(['email', 'phone', 'sms']),
+              },
+            },
+          },
+        },
+      });
 
       result.created++;
 
       if (options.verbose && i % 20 === 0) {
-        logger.progress('COMPLETE_USERS', i + 1, quotas.total, `Clients créés: ${i + 1}/${quotas.total}`);
+        logger.progress(
+          'COMPLETE_USERS',
+          i + 1,
+          quotas.total,
+          `Clients créés: ${i + 1}/${quotas.total}`
+        );
       }
-
     } catch (error: any) {
       logger.error('COMPLETE_USERS', `❌ Erreur création client ${i + 1}: ${error.message}`);
       result.errors++;
@@ -354,21 +411,24 @@ async function createDeliverers(
               licensePlate: faker.vehicle.vrm(),
               deliveryZone: deliveryZone,
               maxCapacity: faker.number.float({ min: 10, max: 100, fractionDigits: 1 }),
-              rating: status === UserStatus.ACTIVE ? faker.number.float({ min: 3.5, max: 5.0, fractionDigits: 1 }) : null,
-              totalDeliveries: status === UserStatus.ACTIVE ? faker.number.int({ min: 0, max: 500 }) : 0,
+              rating:
+                status === UserStatus.ACTIVE
+                  ? faker.number.float({ min: 3.5, max: 5.0, fractionDigits: 1 })
+                  : null,
+              totalDeliveries:
+                status === UserStatus.ACTIVE ? faker.number.int({ min: 0, max: 500 }) : 0,
               isAvailable: status === UserStatus.ACTIVE && faker.datatype.boolean(0.7),
               languages: ['fr'],
               emergencyContact: faker.person.fullName(),
               emergencyPhone: generateFrenchPhone(),
               bankAccount: faker.finance.iban({ formatted: true, countryCode: 'FR' }),
-              insuranceNumber: faker.string.alphanumeric(10).toUpperCase()
-            }
-          }
-        }
+              insuranceNumber: faker.string.alphanumeric(10).toUpperCase(),
+            },
+          },
+        },
       });
 
       result.created++;
-
     } catch (error: any) {
       logger.error('COMPLETE_USERS', `❌ Erreur création livreur ${i + 1}: ${error.message}`);
       result.errors++;
@@ -388,8 +448,16 @@ async function createMerchants(
   dataGenerator: TestDataGenerator
 ): Promise<void> {
   const businessTypes = [
-    'Alimentation', 'Électronique', 'Vêtements', 'Librairie', 'Pharmacie',
-    'Boulangerie', 'Fleuriste', 'Bijouterie', 'Sport', 'Maison et Jardin'
+    'Alimentation',
+    'Électronique',
+    'Vêtements',
+    'Librairie',
+    'Pharmacie',
+    'Boulangerie',
+    'Fleuriste',
+    'Bijouterie',
+    'Sport',
+    'Maison et Jardin',
   ];
 
   for (let i = 0; i < quotas.total; i++) {
@@ -427,22 +495,25 @@ async function createMerchants(
                 thursday: '09:00-18:00',
                 friday: '09:00-18:00',
                 saturday: '09:00-17:00',
-                sunday: 'closed'
+                sunday: 'closed',
               }),
               deliveryRadius: faker.number.int({ min: 5, max: 50 }),
               minimumOrder: faker.number.float({ min: 10, max: 50, fractionDigits: 2 }),
-              rating: status === UserStatus.ACTIVE ? faker.number.float({ min: 3.0, max: 5.0, fractionDigits: 1 }) : null,
-              totalOrders: status === UserStatus.ACTIVE ? faker.number.int({ min: 0, max: 1000 }) : 0,
+              rating:
+                status === UserStatus.ACTIVE
+                  ? faker.number.float({ min: 3.0, max: 5.0, fractionDigits: 1 })
+                  : null,
+              totalOrders:
+                status === UserStatus.ACTIVE ? faker.number.int({ min: 0, max: 1000 }) : 0,
               isActive: status === UserStatus.ACTIVE,
               bankAccount: faker.finance.iban({ formatted: true, countryCode: 'FR' }),
-              vatNumber: `FR${faker.string.numeric(11)}`
-            }
-          }
-        }
+              vatNumber: `FR${faker.string.numeric(11)}`,
+            },
+          },
+        },
       });
 
       result.created++;
-
     } catch (error: any) {
       logger.error('COMPLETE_USERS', `❌ Erreur création commerçant ${i + 1}: ${error.message}`);
       result.errors++;
@@ -497,14 +568,13 @@ async function createProviders(
               bankAccount: faker.finance.iban({ formatted: true, countryCode: 'FR' }),
               insuranceNumber: faker.string.alphanumeric(10).toUpperCase(),
               emergencyContact: faker.person.fullName(),
-              emergencyPhone: generateFrenchPhone()
-            }
-          }
-        }
+              emergencyPhone: generateFrenchPhone(),
+            },
+          },
+        },
       });
 
       result.created++;
-
     } catch (error: any) {
       logger.error('COMPLETE_USERS', `❌ Erreur création prestataire ${i + 1}: ${error.message}`);
       result.errors++;
@@ -515,7 +585,9 @@ async function createProviders(
 /**
  * Sélectionne un statut selon la distribution de probabilité
  */
-function getStatusByDistribution(distribution: { status: UserStatus; percentage: number }[]): UserStatus {
+function getStatusByDistribution(
+  distribution: { status: UserStatus; percentage: number }[]
+): UserStatus {
   const random = faker.number.int({ min: 1, max: 100 });
   let cumulative = 0;
 
@@ -537,7 +609,7 @@ export async function validateCompleteUsers(
   logger: SeedLogger
 ): Promise<boolean> {
   logger.info('VALIDATION', '🔍 Validation des utilisateurs complets...');
-  
+
   let isValid = true;
 
   // Vérifier les utilisateurs
@@ -547,8 +619,8 @@ export async function validateCompleteUsers(
       deliverer: true,
       merchant: true,
       provider: true,
-      admin: true
-    }
+      admin: true,
+    },
   });
 
   if (users.length === 0) {
@@ -559,11 +631,14 @@ export async function validateCompleteUsers(
   }
 
   // Vérifier l'intégrité des données spécifiques par rôle
-  const usersByRole = users.reduce((acc: Record<UserRole, any[]>, user) => {
-    acc[user.role] = acc[user.role] || [];
-    acc[user.role].push(user);
-    return acc;
-  }, {} as Record<UserRole, any[]>);
+  const usersByRole = users.reduce(
+    (acc: Record<UserRole, any[]>, user) => {
+      acc[user.role] = acc[user.role] || [];
+      acc[user.role].push(user);
+      return acc;
+    },
+    {} as Record<UserRole, any[]>
+  );
 
   // Validation des admins
   const admins = usersByRole[UserRole.ADMIN] || [];
@@ -571,7 +646,10 @@ export async function validateCompleteUsers(
   if (admins.length === adminsWithProfile.length) {
     logger.success('VALIDATION', `✅ Tous les admins ont un profil (${admins.length})`);
   } else {
-    logger.warning('VALIDATION', `⚠️ ${admins.length - adminsWithProfile.length} admins sans profil`);
+    logger.warning(
+      'VALIDATION',
+      `⚠️ ${admins.length - adminsWithProfile.length} admins sans profil`
+    );
   }
 
   // Validation des clients
@@ -580,7 +658,10 @@ export async function validateCompleteUsers(
   if (clients.length === clientsWithProfile.length) {
     logger.success('VALIDATION', `✅ Tous les clients ont un profil (${clients.length})`);
   } else {
-    logger.warning('VALIDATION', `⚠️ ${clients.length - clientsWithProfile.length} clients sans profil`);
+    logger.warning(
+      'VALIDATION',
+      `⚠️ ${clients.length - clientsWithProfile.length} clients sans profil`
+    );
   }
 
   // Validation des emails uniques
@@ -594,16 +675,19 @@ export async function validateCompleteUsers(
   }
 
   // Vérifier la distribution des statuts
-  const statusDistribution = users.reduce((acc: Record<UserStatus, number>, user) => {
-    acc[user.status] = (acc[user.status] || 0) + 1;
-    return acc;
-  }, {} as Record<UserStatus, number>);
+  const statusDistribution = users.reduce(
+    (acc: Record<UserStatus, number>, user) => {
+      acc[user.status] = (acc[user.status] || 0) + 1;
+      return acc;
+    },
+    {} as Record<UserStatus, number>
+  );
 
   logger.info('VALIDATION', `📊 Distribution des statuts: ${JSON.stringify(statusDistribution)}`);
 
   // Vérifier les mots de passe hashés
-  const usersWithPlainPassword = users.filter(user => 
-    user.password.length < 50 // Les mots de passe hashés avec bcrypt font ~60 caractères
+  const usersWithPlainPassword = users.filter(
+    user => user.password.length < 50 // Les mots de passe hashés avec bcrypt font ~60 caractères
   );
 
   if (usersWithPlainPassword.length === 0) {
@@ -614,4 +698,4 @@ export async function validateCompleteUsers(
 
   logger.success('VALIDATION', '✅ Validation des utilisateurs terminée');
   return isValid;
-} 
+}

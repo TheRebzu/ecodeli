@@ -61,7 +61,8 @@
     "loadFailed": "loadFailed",
     "tryAgain": "tryAgain",
     "coordinatesRefresh": "coordinatesRefresh",
-    "heatmapDataFetch": "heatmapDataFetch"
+    "heatmapDataFetch": "heatmapDataFetch",
+    "verificationCheckFailed": "[TO_TRANSLATE] verificationCheckFailed"
   },
   "a": "a",
   "notifications": {
@@ -666,7 +667,8 @@
         "invalidFormat": "Format de file no supporté.",
         "uploadFailed": "Échec du téléloading. Veuillez réessayer."
       }
-    }
+    },
+    "auto_check": "[TO_TRANSLATE] auto_check"
   },
   "status": {
     "pending": "pending",
@@ -705,7 +707,11 @@
     "online": "[TO_TRANSLATE] online",
     "offline": "[TO_TRANSLATE] offline",
     "busy": "[TO_TRANSLATE] busy",
-    "available": "[TO_TRANSLATE] available"
+    "available": "[TO_TRANSLATE] available",
+    "automaticallyVerified": "[TO_TRANSLATE] automaticallyVerified",
+    "documentsStillPending": "[TO_TRANSLATE] documentsStillPending",
+    "verified": "[TO_TRANSLATE] verified",
+    "documentCheck": "[TO_TRANSLATE] documentCheck"
   },
   "documents": {
     "upload_success": "upload_success",
@@ -1978,7 +1984,25 @@
     "JSON": "JSON",
     "analytics": "[À TRADUIRE] analytics",
     "liveTracking": "[À TRADUIRE] liveTracking",
-    "liveTrackingDescription": "[À TRADUIRE] liveTrackingDescription"
+    "liveTrackingDescription": "[À TRADUIRE] liveTrackingDescription",
+    "Settings": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "Help": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "Security": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "Language": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "HelpArticle": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "Notifications": {
+      "description": "[TO_TRANSLATE] description"
+    }
   },
   "formats": {
     "date": {
@@ -2060,7 +2084,24 @@
       "price": "price",
       "sortBy": "sortBy",
       "resetFilters": "resetFilters",
-      "apply": "apply"
+      "apply": "apply",
+      "title": "[TO_TRANSLATE] title",
+      "query": "[TO_TRANSLATE] query",
+      "queryPlaceholder": "[TO_TRANSLATE] queryPlaceholder",
+      "location": "[TO_TRANSLATE] location",
+      "locationPlaceholder": "[TO_TRANSLATE] locationPlaceholder",
+      "categoryPlaceholder": "[TO_TRANSLATE] categoryPlaceholder",
+      "allCategories": "[TO_TRANSLATE] allCategories",
+      "minPrice": "[TO_TRANSLATE] minPrice",
+      "maxPrice": "[TO_TRANSLATE] maxPrice",
+      "availability": "[TO_TRANSLATE] availability",
+      "availabilityPlaceholder": "[TO_TRANSLATE] availabilityPlaceholder",
+      "anyTime": "[TO_TRANSLATE] anyTime",
+      "minRating": "[TO_TRANSLATE] minRating",
+      "ratingPlaceholder": "[TO_TRANSLATE] ratingPlaceholder",
+      "anyRating": "[TO_TRANSLATE] anyRating",
+      "search": "[TO_TRANSLATE] search",
+      "reset": "[TO_TRANSLATE] reset"
     },
     "timeslot": {
       "start": "[TO_TRANSLATE] start",
@@ -2643,7 +2684,11 @@
     "vehicleRegistration": "vehicleRegistration",
     "insurance": "insurance",
     "qualificationCertificate": "qualificationCertificate",
-    "other": "other"
+    "other": "other",
+    "standard": "[TO_TRANSLATE] standard",
+    "express": "[TO_TRANSLATE] express",
+    "sameDay": "[TO_TRANSLATE] sameDay",
+    "scheduled": "[TO_TRANSLATE] scheduled"
   },
   "list": {
     "title": "documents téléchargés",
@@ -3345,7 +3390,159 @@
     "canPickupOnTime": "[TO_TRANSLATE] canPickupOnTime",
     "submittedAt": "[TO_TRANSLATE] submittedAt",
     "acceptProposal": "[TO_TRANSLATE] acceptProposal",
-    "rejectProposal": "[TO_TRANSLATE] rejectProposal"
+    "rejectProposal": "[TO_TRANSLATE] rejectProposal",
+    "terms": {
+      "deliveryInstructions": "[TO_TRANSLATE] deliveryInstructions",
+      "deliveryInstructionsDescription": "[TO_TRANSLATE] deliveryInstructionsDescription",
+      "deliveryNotes": "[TO_TRANSLATE] deliveryNotes",
+      "deliveryNotesPlaceholder": "[TO_TRANSLATE] deliveryNotesPlaceholder",
+      "deliveryNotesDescription": "[TO_TRANSLATE] deliveryNotesDescription",
+      "specialInstructions": "[TO_TRANSLATE] specialInstructions",
+      "specialInstructionsPlaceholder": "[TO_TRANSLATE] specialInstructionsPlaceholder",
+      "specialInstructionsDescription": "[TO_TRANSLATE] specialInstructionsDescription",
+      "policies": "[TO_TRANSLATE] policies",
+      "policiesDescription": "[TO_TRANSLATE] policiesDescription",
+      "cancellationPolicy": "[TO_TRANSLATE] cancellationPolicy",
+      "selectCancellationPolicy": "[TO_TRANSLATE] selectCancellationPolicy",
+      "cancellationPolicyDescription": "[TO_TRANSLATE] cancellationPolicyDescription",
+      "returnPolicy": "[TO_TRANSLATE] returnPolicy",
+      "selectReturnPolicy": "[TO_TRANSLATE] selectReturnPolicy",
+      "returnPolicyDescription": "[TO_TRANSLATE] returnPolicyDescription",
+      "contactPreference": "[TO_TRANSLATE] contactPreference",
+      "selectContactPreference": "[TO_TRANSLATE] selectContactPreference",
+      "contactPreferenceDescription": "[TO_TRANSLATE] contactPreferenceDescription",
+      "termsAndConditions": "[TO_TRANSLATE] termsAndConditions",
+      "termsAndConditionsDescription": "[TO_TRANSLATE] termsAndConditionsDescription",
+      "termsAndConditionsTitle": "[TO_TRANSLATE] termsAndConditionsTitle",
+      "termsAndConditionsInfo": "[TO_TRANSLATE] termsAndConditionsInfo",
+      "acceptTerms": "[TO_TRANSLATE] acceptTerms",
+      "acceptTermsDescription": "[TO_TRANSLATE] acceptTermsDescription",
+      "termsError": "[TO_TRANSLATE] termsError",
+      "saving": "[TO_TRANSLATE] saving",
+      "saveAndContinue": "[TO_TRANSLATE] saveAndContinue"
+    },
+    "tariff": {
+      "pricing": "[TO_TRANSLATE] pricing",
+      "pricingDescription": "[TO_TRANSLATE] pricingDescription",
+      "pricingMethod": "[TO_TRANSLATE] pricingMethod",
+      "selectPricingMethod": "[TO_TRANSLATE] selectPricingMethod",
+      "pricingMethodDescription": "[TO_TRANSLATE] pricingMethodDescription",
+      "price": "[TO_TRANSLATE] price",
+      "priceRange": "[TO_TRANSLATE] priceRange",
+      "priceRangeDescription": "[TO_TRANSLATE] priceRangeDescription",
+      "isPriceNegotiable": "[TO_TRANSLATE] isPriceNegotiable",
+      "isPriceNegotiableDescription": "[TO_TRANSLATE] isPriceNegotiableDescription",
+      "additionalFees": "[TO_TRANSLATE] additionalFees",
+      "additionalFeesDescription": "[TO_TRANSLATE] additionalFeesDescription",
+      "rushHourFee": "[TO_TRANSLATE] rushHourFee",
+      "rushHourFeeDescription": "[TO_TRANSLATE] rushHourFeeDescription",
+      "weekendFee": "[TO_TRANSLATE] weekendFee",
+      "weekendFeeDescription": "[TO_TRANSLATE] weekendFeeDescription",
+      "holidayFee": "[TO_TRANSLATE] holidayFee",
+      "holidayFeeDescription": "[TO_TRANSLATE] holidayFeeDescription",
+      "insuranceAmount": "[TO_TRANSLATE] insuranceAmount",
+      "insuranceAmountDescription": "[TO_TRANSLATE] insuranceAmountDescription",
+      "handlingFee": "[TO_TRANSLATE] handlingFee",
+      "handlingFeeDescription": "[TO_TRANSLATE] handlingFeeDescription",
+      "paymentOptions": "[TO_TRANSLATE] paymentOptions",
+      "paymentOptionsDescription": "[TO_TRANSLATE] paymentOptionsDescription",
+      "paymentMethod": "[TO_TRANSLATE] paymentMethod",
+      "selectPaymentMethod": "[TO_TRANSLATE] selectPaymentMethod",
+      "paymentMethodDescription": "[TO_TRANSLATE] paymentMethodDescription",
+      "acceptPartialPayment": "[TO_TRANSLATE] acceptPartialPayment",
+      "acceptPartialPaymentDescription": "[TO_TRANSLATE] acceptPartialPaymentDescription",
+      "saving": "[TO_TRANSLATE] saving",
+      "save": "[TO_TRANSLATE] save"
+    },
+    "requestAccepted": "[TO_TRANSLATE] requestAccepted",
+    "requestRejected": "[TO_TRANSLATE] requestRejected",
+    "noRequests": "[TO_TRANSLATE] noRequests",
+    "noRequestsDescription": "[TO_TRANSLATE] noRequestsDescription",
+    "unknownDeliverer": "[TO_TRANSLATE] unknownDeliverer",
+    "decline": "[TO_TRANSLATE] decline",
+    "delivererDetails": "[TO_TRANSLATE] delivererDetails",
+    "delivererDetailsDescription": "[TO_TRANSLATE] delivererDetailsDescription",
+    "experience": "[TO_TRANSLATE] experience",
+    "years": "[TO_TRANSLATE] years",
+    "totalDeliveries": "[TO_TRANSLATE] totalDeliveries",
+    "noMessage": "[TO_TRANSLATE] noMessage",
+    "noPriceProvided": "[TO_TRANSLATE] noPriceProvided",
+    "form": {
+      "basicInfo": "[TO_TRANSLATE] basicInfo",
+      "basicInfoDescription": "[TO_TRANSLATE] basicInfoDescription",
+      "title": "[TO_TRANSLATE] title",
+      "titlePlaceholder": "[TO_TRANSLATE] titlePlaceholder",
+      "titleDescription": "[TO_TRANSLATE] titleDescription",
+      "description": "[TO_TRANSLATE] description",
+      "descriptionPlaceholder": "[TO_TRANSLATE] descriptionPlaceholder",
+      "descriptionDetails": "[TO_TRANSLATE] descriptionDetails",
+      "type": "[TO_TRANSLATE] type",
+      "selectType": "[TO_TRANSLATE] selectType",
+      "category": "[TO_TRANSLATE] category",
+      "selectCategory": "[TO_TRANSLATE] selectCategory",
+      "packageDetails": "[TO_TRANSLATE] packageDetails",
+      "packageDetailsDescription": "[TO_TRANSLATE] packageDetailsDescription",
+      "weight": "[TO_TRANSLATE] weight",
+      "weightUnit": "[TO_TRANSLATE] weightUnit",
+      "volume": "[TO_TRANSLATE] volume",
+      "volumeUnit": "[TO_TRANSLATE] volumeUnit",
+      "quantity": "[TO_TRANSLATE] quantity",
+      "quantityDescription": "[TO_TRANSLATE] quantityDescription",
+      "fragile": "[TO_TRANSLATE] fragile",
+      "fragileDescription": "[TO_TRANSLATE] fragileDescription",
+      "requiresSignature": "[TO_TRANSLATE] requiresSignature",
+      "requiresSignatureDescription": "[TO_TRANSLATE] requiresSignatureDescription",
+      "requiresId": "[TO_TRANSLATE] requiresId",
+      "requiresIdDescription": "[TO_TRANSLATE] requiresIdDescription",
+      "pickupDetails": "[TO_TRANSLATE] pickupDetails",
+      "pickupDetailsDescription": "[TO_TRANSLATE] pickupDetailsDescription",
+      "pickupAddress": "[TO_TRANSLATE] pickupAddress",
+      "addressPlaceholder": "[TO_TRANSLATE] addressPlaceholder",
+      "city": "[TO_TRANSLATE] city",
+      "cityPlaceholder": "[TO_TRANSLATE] cityPlaceholder",
+      "postalCode": "[TO_TRANSLATE] postalCode",
+      "postalCodePlaceholder": "[TO_TRANSLATE] postalCodePlaceholder",
+      "pickupDateStart": "[TO_TRANSLATE] pickupDateStart",
+      "selectDate": "[TO_TRANSLATE] selectDate",
+      "pickupTimeStart": "[TO_TRANSLATE] pickupTimeStart",
+      "pickupDateEnd": "[TO_TRANSLATE] pickupDateEnd",
+      "pickupTimeEnd": "[TO_TRANSLATE] pickupTimeEnd",
+      "deliveryDetails": "[TO_TRANSLATE] deliveryDetails",
+      "deliveryDetailsDescription": "[TO_TRANSLATE] deliveryDetailsDescription",
+      "deliveryAddress": "[TO_TRANSLATE] deliveryAddress",
+      "deliveryDateStart": "[TO_TRANSLATE] deliveryDateStart",
+      "deliveryTimeStart": "[TO_TRANSLATE] deliveryTimeStart",
+      "deliveryDateEnd": "[TO_TRANSLATE] deliveryDateEnd",
+      "deliveryTimeEnd": "[TO_TRANSLATE] deliveryTimeEnd",
+      "pricingDetails": "[TO_TRANSLATE] pricingDetails",
+      "pricingDetailsDescription": "[TO_TRANSLATE] pricingDetailsDescription",
+      "suggestedPrice": "[TO_TRANSLATE] suggestedPrice",
+      "suggestedPriceDescription": "[TO_TRANSLATE] suggestedPriceDescription",
+      "reset": "[TO_TRANSLATE] reset",
+      "saving": "[TO_TRANSLATE] saving",
+      "save": "[TO_TRANSLATE] save"
+    },
+    "noAnnouncementFound": "[TO_TRANSLATE] noAnnouncementFound",
+    "flexible": "[TO_TRANSLATE] flexible",
+    "analytics": {
+      "noData": "[TO_TRANSLATE] noData",
+      "noDataDescription": "[TO_TRANSLATE] noDataDescription",
+      "views": "[TO_TRANSLATE] views",
+      "applications": "[TO_TRANSLATE] applications",
+      "performance": "[TO_TRANSLATE] performance",
+      "totalViews": "[TO_TRANSLATE] totalViews",
+      "viewsOverTime": "[TO_TRANSLATE] viewsOverTime",
+      "totalApplications": "[TO_TRANSLATE] totalApplications",
+      "applicationsOverTime": "[TO_TRANSLATE] applicationsOverTime",
+      "applicationStatus": "[TO_TRANSLATE] applicationStatus",
+      "onTimeRate": "[TO_TRANSLATE] onTimeRate",
+      "avgDeliveryTime": "[TO_TRANSLATE] avgDeliveryTime",
+      "completionRate": "[TO_TRANSLATE] completionRate",
+      "pricingAnalysis": "[TO_TRANSLATE] pricingAnalysis",
+      "avgBid": "[TO_TRANSLATE] avgBid",
+      "lowestBid": "[TO_TRANSLATE] lowestBid",
+      "highestBid": "[TO_TRANSLATE] highestBid"
+    }
   },
   "leaflet": "leaflet",
   "emptyState": {
@@ -3502,7 +3699,9 @@
     "viewMap": "[TO_TRANSLATE] viewMap",
     "viewWallet": "[TO_TRANSLATE] viewWallet",
     "notifications": "[TO_TRANSLATE] notifications",
-    "profileSettings": "[TO_TRANSLATE] profileSettings"
+    "profileSettings": "[TO_TRANSLATE] profileSettings",
+    "checking": "[TO_TRANSLATE] checking",
+    "checkVerificationStatus": "[TO_TRANSLATE] checkVerificationStatus"
   },
   "maps": {
     "pickupAddress": "pickupAddress",
@@ -3844,7 +4043,16 @@
     "hasAccount": "Already have an account?",
     "signIn": "Sign in",
     "passwordConfirm": "Confirm password",
-    "callbackUrl": "callbackUrl"
+    "callbackUrl": "callbackUrl",
+    "SessionExpired": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "TwoFactorVerify": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "TwoFactorSetup": {
+      "description": "[TO_TRANSLATE] description"
+    }
   },
   "roles": {
     "client": "[en] client",
@@ -3975,7 +4183,25 @@
     "pageDescription": "[en] pageDescription",
     "subtitle": "[TO_TRANSLATE] subtitle",
     "noDeliveriesMessage": "noDeliveriesMessage",
-    "instructions": "[en] instructions"
+    "instructions": "[en] instructions",
+    "Stats": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "Contract": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "Availability": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "Performance": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "Earnings": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "Terms": {
+      "description": "[TO_TRANSLATE] description"
+    }
   },
   "boxStatus": {
     "available": "[en] available",
@@ -4617,6 +4843,96 @@
     "dashboard": {
       "a": "[TO_TRANSLATE] a",
       "T": "[TO_TRANSLATE] T"
+    },
+    "Support": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "Prestations": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "Logs": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "Finance": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "Contracts": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "Config": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "TicketDetail": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "FAQManagement": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "ServicePricing": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "Treasury": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "ErrorLogs": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "SecurityLogs": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "ServiceCategories": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "Forecasts": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "PricingRules": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "PendingContracts": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "ContractTemplates": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "NotificationConfig": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "Accounting": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "CommissionRates": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "ClientDetail": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "CreateTemplate": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "EditTemplate": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "Pricing": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "PushNotifications": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "PricingSimulator": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "PricingHistory": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "NotificationTemplates": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "NotificationCampaigns": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "CreateCampaign": {
+      "description": "[TO_TRANSLATE] description"
     }
   },
   "stats": {
@@ -5170,7 +5486,8 @@
     "entityType": "[en] entityType",
     "performedBy": "[en] performedBy",
     "entityId": "[en] entityId",
-    "changes": "[en] changes"
+    "changes": "[en] changes",
+    "id": "[TO_TRANSLATE] id"
   },
   "confirmStatusUpdate": {
     "title": "title",
@@ -5239,7 +5556,51 @@
       "deliveryMap": "deliveryMap",
       "deliveryMapDescription": "deliveryMapDescription",
       "deliveries": "deliveries",
-      "deliveriesDescription": "deliveriesDescription"
+      "deliveriesDescription": "deliveriesDescription",
+      "noDeliveries": "[TO_TRANSLATE] noDeliveries",
+      "noDeliveriesDescription": "[TO_TRANSLATE] noDeliveriesDescription",
+      "id": "[TO_TRANSLATE] id",
+      "status": "[TO_TRANSLATE] status",
+      "deliverer": "[TO_TRANSLATE] deliverer",
+      "date": "[TO_TRANSLATE] date",
+      "price": "[TO_TRANSLATE] price",
+      "untitled": "[TO_TRANSLATE] untitled",
+      "notAssigned": "[TO_TRANSLATE] notAssigned",
+      "openMenu": "[TO_TRANSLATE] openMenu",
+      "view": "[TO_TRANSLATE] view",
+      "stats": {
+        "totalDeliveries": "[TO_TRANSLATE] totalDeliveries",
+        "totalDescription": "[TO_TRANSLATE] totalDescription",
+        "activeDeliveries": "[TO_TRANSLATE] activeDeliveries",
+        "ofTotal": "[TO_TRANSLATE] ofTotal",
+        "completionRate": "[TO_TRANSLATE] completionRate",
+        "deliveriesCompleted": "[TO_TRANSLATE] deliveriesCompleted",
+        "totalRevenue": "[TO_TRANSLATE] totalRevenue",
+        "revenueDescription": "[TO_TRANSLATE] revenueDescription",
+        "onTimeRate": "[TO_TRANSLATE] onTimeRate",
+        "onTimeDescription": "[TO_TRANSLATE] onTimeDescription",
+        "problemRate": "[TO_TRANSLATE] problemRate",
+        "problemDescription": "[TO_TRANSLATE] problemDescription",
+        "avgDeliveryTime": "[TO_TRANSLATE] avgDeliveryTime",
+        "minutes": "[TO_TRANSLATE] minutes",
+        "notAvailable": "[TO_TRANSLATE] notAvailable",
+        "avgTimeDescription": "[TO_TRANSLATE] avgTimeDescription",
+        "pendingDeliveries": "[TO_TRANSLATE] pendingDeliveries"
+      },
+      "map": {
+        "noDeliveries": "[TO_TRANSLATE] noDeliveries",
+        "noDeliveriesDescription": "[TO_TRANSLATE] noDeliveriesDescription",
+        "deliveryMap": "[TO_TRANSLATE] deliveryMap",
+        "untitled": "[TO_TRANSLATE] untitled",
+        "pickupPoint": "[TO_TRANSLATE] pickupPoint",
+        "deliveryPoint": "[TO_TRANSLATE] deliveryPoint"
+      },
+      "filters": {
+        "filterButton": "[TO_TRANSLATE] filterButton",
+        "clear": "[TO_TRANSLATE] clear",
+        "clearFilters": "[TO_TRANSLATE] clearFilters",
+        "applyFilters": "[TO_TRANSLATE] applyFilters"
+      }
     },
     "pageTitle": "[en] pageTitle",
     "pageDescription": "[en] pageDescription",
@@ -5256,6 +5617,33 @@
       "searchPlaceholder": "[TO_TRANSLATE] searchPlaceholder",
       "contractsList": "[TO_TRANSLATE] contractsList",
       "noContracts": "[TO_TRANSLATE] noContracts"
+    },
+    "Stats": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "Orders": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "Catalog": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "SalesStats": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "CustomerStats": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "OrderDetail": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "CreateProduct": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "OrderTracking": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "EditProduct": {
+      "description": "[TO_TRANSLATE] description"
     }
   },
   "noAnnouncements": {
@@ -5318,7 +5706,12 @@
     "certifications": "[TO_TRANSLATE] certifications",
     "companyEmail": "[TO_TRANSLATE] companyEmail",
     "companyPhone": "[TO_TRANSLATE] companyPhone",
-    "siret": "[TO_TRANSLATE] siret"
+    "siret": "[TO_TRANSLATE] siret",
+    "status": "[TO_TRANSLATE] status",
+    "allStatuses": "[TO_TRANSLATE] allStatuses",
+    "startDate": "[TO_TRANSLATE] startDate",
+    "pickDate": "[TO_TRANSLATE] pickDate",
+    "endDate": "[TO_TRANSLATE] endDate"
   },
   "vehicleTypes": {
     "bicycle": "bicycle",
@@ -5672,7 +6065,34 @@
       "submitButton": "submitButton"
     },
     "description": "[en] description",
-    "listTitle": "[en] listTitle"
+    "listTitle": "[en] listTitle",
+    "Reviews": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "Contracts": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "Appointments": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "PendingReviews": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "ContractDetail": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "AppointmentHistory": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "AppointmentDetail": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "RescheduleAppointment": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "CancelAppointment": {
+      "description": "[TO_TRANSLATE] description"
+    }
   },
   "metadata": {
     "title": "[en] title",
@@ -5700,7 +6120,34 @@
     "pageDescription": "pageDescription",
     "title": "title",
     "instructions": "[TO_TRANSLATE] instructions",
-    "description": "description"
+    "description": "description",
+    "Stats": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "Skills": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "Contract": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "Billing": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "MonthlyReport": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "Certifications": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "AddSkill": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "Negotiation": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "AutoInvoices": {
+      "description": "[TO_TRANSLATE] description"
+    }
   },
   "back": "[en] back",
   "comingSoon": "[en] comingSoon",
@@ -5711,7 +6158,8 @@
   "timeline": {
     "title": "[en] title",
     "completed": "[en] completed",
-    "pending": "[en] pending"
+    "pending": "[en] pending",
+    "noEvents": "[TO_TRANSLATE] noEvents"
   },
   "notes": {
     "title": "title"
@@ -6454,7 +6902,22 @@
   "from": "[en] from",
   "to": "[en] to",
   "noAssignedDeliverer": "[en] noAssignedDeliverer",
-  "details": "[en] details",
+  "details": {
+    "title": "[TO_TRANSLATE] title",
+    "itemType": "[TO_TRANSLATE] itemType",
+    "weight": "[TO_TRANSLATE] weight",
+    "pickupLocation": "[TO_TRANSLATE] pickupLocation",
+    "deliveryLocation": "[TO_TRANSLATE] deliveryLocation",
+    "pickupDate": "[TO_TRANSLATE] pickupDate",
+    "pickupWindow": "[TO_TRANSLATE] pickupWindow",
+    "deliveryDate": "[TO_TRANSLATE] deliveryDate",
+    "deliveryWindow": "[TO_TRANSLATE] deliveryWindow",
+    "price": "[TO_TRANSLATE] price",
+    "deliveryType": "[TO_TRANSLATE] deliveryType",
+    "description": "[TO_TRANSLATE] description",
+    "tags": "[TO_TRANSLATE] tags",
+    "createdAt": "[TO_TRANSLATE] createdAt"
+  },
   "listView": "[en] listView",
   "mapView": "[en] mapView",
   "deliveryNotFound": "[en] deliveryNotFound",
@@ -6557,5 +7020,100 @@
     "thisWeek": "[TO_TRANSLATE] thisWeek",
     "thisMonth": "[TO_TRANSLATE] thisMonth",
     "viewDetails": "[TO_TRANSLATE] viewDetails"
-  }
+  },
+  "statuses": {
+    "pending": "[TO_TRANSLATE] pending",
+    "assigned": "[TO_TRANSLATE] assigned",
+    "inProgress": "[TO_TRANSLATE] inProgress",
+    "delivered": "[TO_TRANSLATE] delivered",
+    "completed": "[TO_TRANSLATE] completed",
+    "cancelled": "[TO_TRANSLATE] cancelled",
+    "problem": "[TO_TRANSLATE] problem"
+  },
+  "ANY": "[TO_TRANSLATE] ANY",
+  "cancellationPolicies": {
+    "standard": "[TO_TRANSLATE] standard",
+    "flexible": "[TO_TRANSLATE] flexible",
+    "strict": "[TO_TRANSLATE] strict",
+    "nonRefundable": "[TO_TRANSLATE] nonRefundable"
+  },
+  "returnPolicies": {
+    "standard": "[TO_TRANSLATE] standard",
+    "noReturn": "[TO_TRANSLATE] noReturn",
+    "caseByCase": "[TO_TRANSLATE] caseByCase"
+  },
+  "contactPreferences": {
+    "any": "[TO_TRANSLATE] any",
+    "platformOnly": "[TO_TRANSLATE] platformOnly",
+    "phone": "[TO_TRANSLATE] phone",
+    "email": "[TO_TRANSLATE] email"
+  },
+  "FIXED": "[TO_TRANSLATE] FIXED",
+  "BOTH": "[TO_TRANSLATE] BOTH",
+  "pricingMethods": {
+    "fixed": "[TO_TRANSLATE] fixed",
+    "weightBased": "[TO_TRANSLATE] weightBased",
+    "distanceBased": "[TO_TRANSLATE] distanceBased",
+    "negotiable": "[TO_TRANSLATE] negotiable"
+  },
+  "paymentMethods": {
+    "card": "[TO_TRANSLATE] card",
+    "cash": "[TO_TRANSLATE] cash",
+    "both": "[TO_TRANSLATE] both"
+  },
+  "categories": {
+    "package": "[TO_TRANSLATE] package",
+    "food": "[TO_TRANSLATE] food",
+    "documents": "[TO_TRANSLATE] documents",
+    "furniture": "[TO_TRANSLATE] furniture",
+    "other": "[TO_TRANSLATE] other"
+  },
+  "public": {
+    "Legal": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "Partners": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "Blog": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "CGU": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "CGV": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "BecomeMerchant": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "BecomeProvider": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "BlogPost": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "Developers": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "APIKeys": {
+      "description": "[TO_TRANSLATE] description"
+    },
+    "APIDocs": {
+      "description": "[TO_TRANSLATE] description"
+    }
+  },
+  "timeslot": {
+    "start": "[TO_TRANSLATE] start",
+    "end": "[TO_TRANSLATE] end"
+  },
+  "location": "[TO_TRANSLATE] location",
+  "locationPlaceholder": "[TO_TRANSLATE] locationPlaceholder",
+  "categoryPlaceholder": "[TO_TRANSLATE] categoryPlaceholder",
+  "allCategories": "[TO_TRANSLATE] allCategories",
+  "availabilityPlaceholder": "[TO_TRANSLATE] availabilityPlaceholder",
+  "anyTime": "[TO_TRANSLATE] anyTime",
+  "minRating": "[TO_TRANSLATE] minRating",
+  "ratingPlaceholder": "[TO_TRANSLATE] ratingPlaceholder",
+  "anyRating": "[TO_TRANSLATE] anyRating"
 }

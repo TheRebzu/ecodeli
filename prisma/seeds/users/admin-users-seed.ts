@@ -1,6 +1,13 @@
 import { PrismaClient, UserRole, UserStatus } from '@prisma/client';
 import { SeedLogger } from '../utils/seed-logger';
-import { SeedResult, SeedOptions, generateFrenchPhone, hashPassword, getRandomElement, getRandomDate } from '../utils/seed-helpers';
+import {
+  SeedResult,
+  SeedOptions,
+  generateFrenchPhone,
+  hashPassword,
+  getRandomElement,
+  getRandomDate,
+} from '../utils/seed-helpers';
 
 /**
  * Interface pour définir un administrateur
@@ -30,30 +37,31 @@ export async function seedAdminUsers(
   options: SeedOptions = {}
 ): Promise<SeedResult> {
   logger.startSeed('ADMIN_USERS');
-  
+
   const result: SeedResult = {
     entity: 'admin_users',
     created: 0,
     skipped: 0,
-    errors: 0
+    errors: 0,
   };
 
   // Vérifier si les admins existent déjà
   const existingAdmins = await prisma.user.findMany({
-    where: { role: UserRole.ADMIN }
+    where: { role: UserRole.ADMIN },
   });
-  
+
   if (existingAdmins.length > 0 && !options.force) {
-    logger.warning('ADMIN_USERS', `${existingAdmins.length} administrateurs déjà présents - utiliser force:true pour recréer`);
+    logger.warning(
+      'ADMIN_USERS',
+      `${existingAdmins.length} admins déjà présents - utiliser force:true pour recréer`
+    );
     result.skipped = existingAdmins.length;
     return result;
   }
 
-  // Nettoyer si force activé
-  if (options.force) {
-    await prisma.admin.deleteMany({});
-    await prisma.user.deleteMany({ where: { role: UserRole.ADMIN } });
-    logger.database('NETTOYAGE', 'admin users', 0);
+  // Note: Le nettoyage est géré au niveau de l'orchestrateur pour éviter les conflits de contraintes FK
+  if (options.force && existingAdmins.length > 0) {
+    logger.info('ADMIN_USERS', '♻️ Mode force activé - Les données existantes seront écrasées');
   }
 
   // Définition des données d'administrateurs
@@ -68,9 +76,14 @@ export async function seedAdminUsers(
       phoneNumber: generateFrenchPhone(),
       department: 'Direction Générale',
       permissions: [
-        'SYSTEM_ADMIN', 'USER_MANAGEMENT', 'FINANCIAL_MANAGEMENT', 
-        'AUDIT_LOGS', 'PLATFORM_SETTINGS', 'EMERGENCY_ACCESS',
-        'DATA_EXPORT', 'SECURITY_MANAGEMENT'
+        'SYSTEM_ADMIN',
+        'USER_MANAGEMENT',
+        'FINANCIAL_MANAGEMENT',
+        'AUDIT_LOGS',
+        'PLATFORM_SETTINGS',
+        'EMERGENCY_ACCESS',
+        'DATA_EXPORT',
+        'SECURITY_MANAGEMENT',
       ],
       twoFactorEnabled: true,
       image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150',
@@ -82,13 +95,13 @@ export async function seedAdminUsers(
           email: true,
           push: true,
           sms: false,
-          criticalAlerts: true
+          criticalAlerts: true,
         },
         dashboard: {
           defaultView: 'analytics',
-          autoRefresh: true
-        }
-      }
+          autoRefresh: true,
+        },
+      },
     },
     {
       name: 'Marie-Claire Rousseau',
@@ -99,9 +112,14 @@ export async function seedAdminUsers(
       phoneNumber: generateFrenchPhone(),
       department: 'Direction Technique',
       permissions: [
-        'SYSTEM_ADMIN', 'USER_MANAGEMENT', 'TECHNICAL_MANAGEMENT',
-        'API_MANAGEMENT', 'INTEGRATION_SETTINGS', 'PERFORMANCE_MONITORING',
-        'BACKUP_MANAGEMENT', 'SECURITY_MANAGEMENT'
+        'SYSTEM_ADMIN',
+        'USER_MANAGEMENT',
+        'TECHNICAL_MANAGEMENT',
+        'API_MANAGEMENT',
+        'INTEGRATION_SETTINGS',
+        'PERFORMANCE_MONITORING',
+        'BACKUP_MANAGEMENT',
+        'SECURITY_MANAGEMENT',
       ],
       twoFactorEnabled: true,
       image: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?w=150',
@@ -113,13 +131,13 @@ export async function seedAdminUsers(
           email: true,
           push: true,
           sms: true,
-          criticalAlerts: true
+          criticalAlerts: true,
         },
         dashboard: {
           defaultView: 'technical',
-          autoRefresh: false
-        }
-      }
+          autoRefresh: false,
+        },
+      },
     },
     {
       name: 'Alexandre Martin',
@@ -130,9 +148,13 @@ export async function seedAdminUsers(
       phoneNumber: generateFrenchPhone(),
       department: 'Direction Opérationnelle',
       permissions: [
-        'SYSTEM_ADMIN', 'OPERATIONS_MANAGEMENT', 'DELIVERY_OVERSIGHT',
-        'PARTNER_MANAGEMENT', 'QUALITY_CONTROL', 'DISPUTE_RESOLUTION',
-        'REPORTING_ACCESS'
+        'SYSTEM_ADMIN',
+        'OPERATIONS_MANAGEMENT',
+        'DELIVERY_OVERSIGHT',
+        'PARTNER_MANAGEMENT',
+        'QUALITY_CONTROL',
+        'DISPUTE_RESOLUTION',
+        'REPORTING_ACCESS',
       ],
       twoFactorEnabled: true,
       image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
@@ -144,13 +166,13 @@ export async function seedAdminUsers(
           email: false, // En congés
           push: false,
           sms: false,
-          criticalAlerts: true
+          criticalAlerts: true,
         },
         dashboard: {
           defaultView: 'operations',
-          autoRefresh: true
-        }
-      }
+          autoRefresh: true,
+        },
+      },
     },
 
     // === ADMINISTRATEURS SUPPORT ===
@@ -163,9 +185,15 @@ export async function seedAdminUsers(
       phoneNumber: generateFrenchPhone(),
       department: 'Administration Générale',
       permissions: [
-        'SYSTEM_ADMIN', 'USER_MANAGEMENT', 'SUPPORT_TOOLS', 'TICKET_MANAGEMENT',
-        'USER_VERIFICATION', 'COMMUNICATION_TOOLS', 'REFUND_PROCESSING',
-        'PLATFORM_SETTINGS', 'AUDIT_LOGS'
+        'SYSTEM_ADMIN',
+        'USER_MANAGEMENT',
+        'SUPPORT_TOOLS',
+        'TICKET_MANAGEMENT',
+        'USER_VERIFICATION',
+        'COMMUNICATION_TOOLS',
+        'REFUND_PROCESSING',
+        'PLATFORM_SETTINGS',
+        'AUDIT_LOGS',
       ],
       twoFactorEnabled: true,
       image: 'https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150',
@@ -177,13 +205,13 @@ export async function seedAdminUsers(
           email: true,
           push: true,
           sms: true,
-          criticalAlerts: true
+          criticalAlerts: true,
         },
         dashboard: {
           defaultView: 'admin',
-          autoRefresh: true
-        }
-      }
+          autoRefresh: true,
+        },
+      },
     },
     {
       name: 'Thomas Moreau',
@@ -194,8 +222,11 @@ export async function seedAdminUsers(
       phoneNumber: generateFrenchPhone(),
       department: 'Vérifications',
       permissions: [
-        'USER_VERIFICATION', 'DOCUMENT_REVIEW', 'IDENTITY_CHECKS',
-        'BACKGROUND_VERIFICATION', 'COMPLIANCE_MONITORING'
+        'USER_VERIFICATION',
+        'DOCUMENT_REVIEW',
+        'IDENTITY_CHECKS',
+        'BACKGROUND_VERIFICATION',
+        'COMPLIANCE_MONITORING',
       ],
       twoFactorEnabled: true,
       image: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150',
@@ -207,13 +238,13 @@ export async function seedAdminUsers(
           email: true,
           push: false,
           sms: false,
-          criticalAlerts: true
+          criticalAlerts: true,
         },
         dashboard: {
           defaultView: 'verification',
-          autoRefresh: false
-        }
-      }
+          autoRefresh: false,
+        },
+      },
     },
     {
       name: 'Émilie Petit',
@@ -224,8 +255,11 @@ export async function seedAdminUsers(
       phoneNumber: generateFrenchPhone(),
       department: 'Relations Partenaires',
       permissions: [
-        'PARTNER_MANAGEMENT', 'MERCHANT_ONBOARDING', 'DELIVERER_RECRUITMENT',
-        'PROVIDER_CERTIFICATION', 'COMMUNICATION_TOOLS'
+        'PARTNER_MANAGEMENT',
+        'MERCHANT_ONBOARDING',
+        'DELIVERER_RECRUITMENT',
+        'PROVIDER_CERTIFICATION',
+        'COMMUNICATION_TOOLS',
       ],
       twoFactorEnabled: false,
       image: 'https://images.unsplash.com/photo-1487412720507-e7ab37603c6f?w=150',
@@ -237,13 +271,13 @@ export async function seedAdminUsers(
           email: true,
           push: true,
           sms: true,
-          criticalAlerts: false
+          criticalAlerts: false,
         },
         dashboard: {
           defaultView: 'partners',
-          autoRefresh: true
-        }
-      }
+          autoRefresh: true,
+        },
+      },
     },
     {
       name: 'Nicolas Garnier',
@@ -254,8 +288,11 @@ export async function seedAdminUsers(
       phoneNumber: generateFrenchPhone(),
       department: 'Support Technique',
       permissions: [
-        'TECHNICAL_SUPPORT', 'APP_MONITORING', 'ERROR_RESOLUTION',
-        'USER_ASSISTANCE', 'BUG_TRACKING'
+        'TECHNICAL_SUPPORT',
+        'APP_MONITORING',
+        'ERROR_RESOLUTION',
+        'USER_ASSISTANCE',
+        'BUG_TRACKING',
       ],
       twoFactorEnabled: false,
       image: 'https://images.unsplash.com/photo-1507591064344-4c6ce005b128?w=150',
@@ -267,13 +304,13 @@ export async function seedAdminUsers(
           email: false,
           push: false,
           sms: false,
-          criticalAlerts: false
+          criticalAlerts: false,
         },
         dashboard: {
           defaultView: 'technical',
-          autoRefresh: false
-        }
-      }
+          autoRefresh: false,
+        },
+      },
     },
     {
       name: 'Camille Roux',
@@ -284,8 +321,11 @@ export async function seedAdminUsers(
       phoneNumber: generateFrenchPhone(),
       department: 'Formation',
       permissions: [
-        'TRAINING_MANAGEMENT', 'CONTENT_CREATION', 'USER_EDUCATION',
-        'TUTORIAL_MANAGEMENT', 'CERTIFICATION_TRACKING'
+        'TRAINING_MANAGEMENT',
+        'CONTENT_CREATION',
+        'USER_EDUCATION',
+        'TUTORIAL_MANAGEMENT',
+        'CERTIFICATION_TRACKING',
       ],
       twoFactorEnabled: true,
       image: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150',
@@ -297,13 +337,13 @@ export async function seedAdminUsers(
           email: true,
           push: false,
           sms: false,
-          criticalAlerts: false
+          criticalAlerts: false,
         },
         dashboard: {
           defaultView: 'training',
-          autoRefresh: false
-        }
-      }
+          autoRefresh: false,
+        },
+      },
     },
 
     // === ADMINISTRATEURS FINANCIERS ===
@@ -316,9 +356,14 @@ export async function seedAdminUsers(
       phoneNumber: generateFrenchPhone(),
       department: 'Direction Financière',
       permissions: [
-        'FINANCIAL_MANAGEMENT', 'PAYMENT_PROCESSING', 'INVOICE_MANAGEMENT',
-        'COMMISSION_CALCULATION', 'TAX_REPORTING', 'AUDIT_FINANCIAL',
-        'BUDGET_MANAGEMENT', 'REVENUE_ANALYTICS'
+        'FINANCIAL_MANAGEMENT',
+        'PAYMENT_PROCESSING',
+        'INVOICE_MANAGEMENT',
+        'COMMISSION_CALCULATION',
+        'TAX_REPORTING',
+        'AUDIT_FINANCIAL',
+        'BUDGET_MANAGEMENT',
+        'REVENUE_ANALYTICS',
       ],
       twoFactorEnabled: true,
       image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150',
@@ -330,13 +375,13 @@ export async function seedAdminUsers(
           email: true,
           push: true,
           sms: true,
-          criticalAlerts: true
+          criticalAlerts: true,
         },
         dashboard: {
           defaultView: 'financial',
-          autoRefresh: true
-        }
-      }
+          autoRefresh: true,
+        },
+      },
     },
     {
       name: 'Isabelle Blanc',
@@ -347,8 +392,12 @@ export async function seedAdminUsers(
       phoneNumber: generateFrenchPhone(),
       department: 'Comptabilité',
       permissions: [
-        'ACCOUNTING_MANAGEMENT', 'INVOICE_VALIDATION', 'EXPENSE_TRACKING',
-        'FINANCIAL_REPORTING', 'COMPLIANCE_FINANCIAL', 'BANK_RECONCILIATION'
+        'ACCOUNTING_MANAGEMENT',
+        'INVOICE_VALIDATION',
+        'EXPENSE_TRACKING',
+        'FINANCIAL_REPORTING',
+        'COMPLIANCE_FINANCIAL',
+        'BANK_RECONCILIATION',
       ],
       twoFactorEnabled: true,
       image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150',
@@ -360,22 +409,55 @@ export async function seedAdminUsers(
           email: true,
           push: false,
           sms: false,
-          criticalAlerts: true
+          criticalAlerts: true,
         },
         dashboard: {
           defaultView: 'accounting',
-          autoRefresh: false
-        }
-      }
-    }
+          autoRefresh: false,
+        },
+      },
+    },
   ];
 
   // Créer les utilisateurs administrateurs
   for (let i = 0; i < adminUsers.length; i++) {
     const adminData = adminUsers[i];
-    
+
     try {
       logger.progress('ADMIN_USERS', i + 1, adminUsers.length, `Création: ${adminData.name}`);
+
+      // Vérifier si l'utilisateur existe déjà
+      const existingUser = await prisma.user.findUnique({
+        where: { email: adminData.email },
+        include: { admin: true },
+      });
+
+      if (existingUser) {
+        // Si l'utilisateur existe mais n'a pas de profil admin, créer le profil
+        if (!existingUser.admin) {
+          logger.info(
+            'ADMIN_USERS',
+            `👤 Utilisateur ${adminData.name} existe sans profil - création du profil admin`
+          );
+
+          await prisma.admin.create({
+            data: {
+              userId: existingUser.id,
+              department: adminData.department,
+              permissions: adminData.permissions,
+              createdAt: getRandomDate(90, 730),
+              updatedAt: getRandomDate(1, 30),
+            },
+          });
+
+          logger.success('ADMIN_USERS', `✅ Profil admin créé pour: ${existingUser.name}`);
+          result.created++;
+        } else {
+          logger.info('ADMIN_USERS', `👤 Admin ${adminData.name} existe déjà avec profil - ignoré`);
+          result.skipped++;
+        }
+        continue;
+      }
 
       // Hasher le mot de passe
       const hashedPassword = await hashPassword(adminData.password);
@@ -408,18 +490,17 @@ export async function seedAdminUsers(
               department: adminData.department,
               twoFactorEnabled: adminData.twoFactorEnabled,
               createdAt: getRandomDate(30, 180),
-              updatedAt: getRandomDate(1, 30)
-            }
-          }
+              updatedAt: getRandomDate(1, 30),
+            },
+          },
         },
         include: {
-          admin: true
-        }
+          admin: true,
+        },
       });
 
       logger.success('ADMIN_USERS', `✅ Admin créé: ${user.name} (${adminData.department})`);
       result.created++;
-
     } catch (error: any) {
       logger.error('ADMIN_USERS', `❌ Erreur création admin ${adminData.name}: ${error.message}`);
       result.errors++;
@@ -429,21 +510,32 @@ export async function seedAdminUsers(
   // Validation des administrateurs créés
   const finalAdmins = await prisma.user.findMany({
     where: { role: UserRole.ADMIN },
-    include: { admin: true }
+    include: { admin: true },
   });
-  
+
   if (finalAdmins.length >= adminUsers.length - result.errors) {
-    logger.validation('ADMIN_USERS', 'PASSED', `${finalAdmins.length} administrateurs créés avec succès`);
+    logger.validation(
+      'ADMIN_USERS',
+      'PASSED',
+      `${finalAdmins.length} administrateurs créés avec succès`
+    );
   } else {
-    logger.validation('ADMIN_USERS', 'FAILED', `Attendu: ${adminUsers.length}, Créé: ${finalAdmins.length}`);
+    logger.validation(
+      'ADMIN_USERS',
+      'FAILED',
+      `Attendu: ${adminUsers.length}, Créé: ${finalAdmins.length}`
+    );
   }
 
   // Statistiques par département
-  const byDepartment = finalAdmins.reduce((acc, admin) => {
-    const dept = admin.admin?.department || 'Non défini';
-    acc[dept] = (acc[dept] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  const byDepartment = finalAdmins.reduce(
+    (acc, admin) => {
+      const dept = admin.admin?.department || 'Non défini';
+      acc[dept] = (acc[dept] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
 
   logger.info('ADMIN_USERS', `📊 Répartition par département: ${JSON.stringify(byDepartment)}`);
 
@@ -459,18 +551,18 @@ export async function validateAdminUsers(
   logger: SeedLogger
 ): Promise<boolean> {
   logger.info('VALIDATION', '🔍 Validation des administrateurs...');
-  
+
   const admins = await prisma.user.findMany({
     where: { role: UserRole.ADMIN },
-    include: { admin: true }
+    include: { admin: true },
   });
 
   let isValid = true;
 
   // Vérifier qu'il y a au moins un super-admin actif
-  const activeSuperAdmins = admins.filter(admin => 
-    admin.status === UserStatus.ACTIVE && 
-    admin.admin?.permissions?.includes('SYSTEM_ADMIN')
+  const activeSuperAdmins = admins.filter(
+    admin =>
+      admin.status === UserStatus.ACTIVE && admin.admin?.permissions?.includes('SYSTEM_ADMIN')
   );
 
   if (activeSuperAdmins.length === 0) {
@@ -490,13 +582,16 @@ export async function validateAdminUsers(
   }
 
   // Vérifier l'activation 2FA pour les rôles critiques
-  const criticalAdminsWithout2FA = admins.filter(admin => 
-    admin.admin?.permissions?.includes('SYSTEM_ADMIN') && !admin.twoFactorEnabled
+  const criticalAdminsWithout2FA = admins.filter(
+    admin => admin.admin?.permissions?.includes('SYSTEM_ADMIN') && !admin.twoFactorEnabled
   );
-  
+
   if (criticalAdminsWithout2FA.length > 0) {
-    logger.warning('VALIDATION', `⚠️ ${criticalAdminsWithout2FA.length} administrateurs critiques sans 2FA`);
+    logger.warning(
+      'VALIDATION',
+      `⚠️ ${criticalAdminsWithout2FA.length} administrateurs critiques sans 2FA`
+    );
   }
 
   return isValid;
-} 
+}

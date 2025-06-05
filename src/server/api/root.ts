@@ -29,6 +29,7 @@ import { fileRouter } from './routers/file.router';
 import { providerRouter } from './routers/provider.router';
 import { contractRouter } from './routers/contract.router';
 import { uploadRouter } from './routers/upload.router';
+import { geocodingRouter } from './routers/geocoding.router';
 
 // Re-export createTRPCContext from trpc.ts
 export { createTRPCContext } from './trpc';
@@ -71,6 +72,7 @@ export const appRouter = router({
   file: fileRouter,
   contract: contractRouter,
   upload: uploadRouter,
+  geocoding: geocodingRouter,
 });
 
 // Type d'export pour le typage côté client

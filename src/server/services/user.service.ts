@@ -1,5 +1,5 @@
-import { db } from "../db";
-import { UserBanAction } from "@/types/user";
+import { db } from '../db';
+import { UserBanAction } from '@/types/user';
 
 /**
  * Service pour la gestion des utilisateurs, incluant le bannissement
@@ -14,8 +14,8 @@ export const userService = {
   async toggleUserActivation(userId: string, isActive: boolean) {
     return db.user.update({
       where: { id: userId },
-      data: { 
-        status: isActive ? 'ACTIVE' : 'INACTIVE'
+      data: {
+        status: isActive ? 'ACTIVE' : 'INACTIVE',
       },
       select: {
         id: true,
@@ -26,7 +26,7 @@ export const userService = {
       },
     });
   },
-  
+
   /**
    * Récupère un utilisateur par son ID
    * @param userId - ID de l'utilisateur à récupérer
@@ -37,7 +37,7 @@ export const userService = {
       select: {
         id: true,
         name: true,
-        email: true, 
+        email: true,
         role: true,
         status: true,
         isActive: true,
@@ -55,13 +55,20 @@ export const userService = {
    * @param reason - Raison du bannissement (obligatoire pour BAN)
    * @param adminId - ID de l'admin qui effectue l'action
    */
-  async banOrUnbanUser(userId: string, action: UserBanAction, reason: string | undefined, adminId: string) {
+  async banOrUnbanUser(
+    userId: string,
+    action: UserBanAction,
+    reason: string | undefined,
+    adminId: string
+  ) {
     if (action === UserBanAction.BAN) {
       return db.user.update({
         where: { id: userId },
         data: {
           status: 'SUSPENDED',
-          notes: reason ? `BANNI par ${adminId} le ${new Date().toISOString()}: ${reason}` : 'BANNI: Raison non spécifiée',
+          notes: reason
+            ? `BANNI par ${adminId} le ${new Date().toISOString()}: ${reason}`
+            : 'BANNI: Raison non spécifiée',
         },
       });
     } else {

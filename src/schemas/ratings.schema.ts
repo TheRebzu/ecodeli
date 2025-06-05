@@ -26,7 +26,7 @@ export const createDetailedReviewSchema = z.object({
 
 // Schéma pour mettre à jour une évaluation
 export const updateReviewSchema = createDetailedReviewSchema.partial().extend({
-  id: z.string().cuid({ message: 'ID d\'évaluation invalide' }),
+  id: z.string().cuid({ message: "ID d'évaluation invalide" }),
 });
 
 // Schéma pour filtrer les évaluations
@@ -66,28 +66,30 @@ export const ratingStatsSchema = z.object({
 
 // Schéma pour marquer une évaluation comme utile
 export const markReviewHelpfulSchema = z.object({
-  reviewId: z.string().cuid({ message: 'ID d\'évaluation invalide' }),
+  reviewId: z.string().cuid({ message: "ID d'évaluation invalide" }),
   helpful: z.boolean(),
 });
 
 // Schéma pour signaler une évaluation
 export const reportReviewSchema = z.object({
-  reviewId: z.string().cuid({ message: 'ID d\'évaluation invalide' }),
+  reviewId: z.string().cuid({ message: "ID d'évaluation invalide" }),
   reason: z.enum([
     'INAPPROPRIATE_CONTENT',
     'SPAM',
     'FAKE_REVIEW',
     'PERSONAL_INFORMATION',
     'OFFENSIVE_LANGUAGE',
-    'OTHER'
+    'OTHER',
   ]),
   description: z.string().max(500).optional(),
 });
 
 // Schéma pour répondre à une évaluation (prestataire)
 export const respondToReviewSchema = z.object({
-  reviewId: z.string().cuid({ message: 'ID d\'évaluation invalide' }),
-  response: z.string().min(10, 'La réponse doit contenir au moins 10 caractères')
+  reviewId: z.string().cuid({ message: "ID d'évaluation invalide" }),
+  response: z
+    .string()
+    .min(10, 'La réponse doit contenir au moins 10 caractères')
     .max(500, 'La réponse ne peut pas dépasser 500 caractères'),
 });
 

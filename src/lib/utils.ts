@@ -1,10 +1,8 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
-import { formatDistanceToNow } from "date-fns"
-import { fr } from "date-fns/locale"
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 /**
@@ -15,11 +13,11 @@ export function cn(...inputs: ClassValue[]) {
 export function generateRandomCode(length: number = 6): string {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let result = '';
-  
+
   for (let i = 0; i < length; i++) {
     result += characters.charAt(Math.floor(Math.random() * characters.length));
   }
-  
+
   return result;
 }
 
@@ -30,11 +28,11 @@ export function generateRandomCode(length: number = 6): string {
  */
 export function formatDate(date: string | Date): string {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
-  
+
   if (isNaN(dateObj.getTime())) {
     return 'Date invalide';
   }
-  
+
   return new Intl.DateTimeFormat('fr-FR', {
     year: 'numeric',
     month: 'long',
@@ -57,7 +55,7 @@ export function formatCurrency(amount: number, currency: string = 'EUR'): string
       currency: currency,
     }).format(0);
   }
-  
+
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
     currency: currency,
@@ -84,7 +82,7 @@ export function generateChartColors(count: number): string[] {
     '#14B8A6', // teal-500
     '#F43F5E', // rose-500
   ];
-  
+
   // Si on a besoin de plus de couleurs que dans notre palette, on génère des couleurs aléatoirement
   const result = [];
   for (let i = 0; i < count; i++) {
@@ -98,7 +96,7 @@ export function generateChartColors(count: number): string[] {
       result.push(`hsl(${hue}, ${saturation}%, ${lightness}%)`);
     }
   }
-  
+
   return result;
 }
 

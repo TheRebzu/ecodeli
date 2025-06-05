@@ -12,7 +12,15 @@ import {
 import { DeliveryStatus, UserRole } from '@prisma/client';
 import { Prisma } from '@prisma/client';
 import type { Coordinates, GeoPoint } from '@/types/delivery-tracking';
-import { DeliveryConfirmationData, DeliveryIssueData, DeliveryTrackingData, DeliveryTrackingPositionData, DeliveryStatusHistoryData, DeliveryCheckpointData, TrackingQueryFilters } from "@/types/delivery-tracking";
+import {
+  DeliveryConfirmationData,
+  DeliveryIssueData,
+  DeliveryTrackingData,
+  DeliveryTrackingPositionData,
+  DeliveryStatusHistoryData,
+  DeliveryCheckpointData,
+  TrackingQueryFilters,
+} from '@/types/delivery-tracking';
 
 // Fonctions utilitaires pour les calculs géographiques
 const calculateDistance = (start: Coordinates, end: Coordinates): number => {
@@ -992,8 +1000,8 @@ export const deliveryTrackingService = {
 
       if (!tracking) {
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Suivi de livraison introuvable",
+          code: 'NOT_FOUND',
+          message: 'Suivi de livraison introuvable',
         });
       }
 
@@ -1005,7 +1013,7 @@ export const deliveryTrackingService = {
 
         if (!user || user.role !== UserRole.ADMIN) {
           throw new TRPCError({
-            code: "FORBIDDEN",
+            code: 'FORBIDDEN',
             message: "Vous n'êtes pas autorisé à mettre à jour cette position",
           });
         }
@@ -1016,7 +1024,7 @@ export const deliveryTrackingService = {
         data: {
           deliveryId: data.deliveryId,
           location: {
-            type: "Point",
+            type: 'Point',
             coordinates: [data.longitude, data.latitude],
           },
           accuracy: data.accuracy,
@@ -1049,8 +1057,8 @@ export const deliveryTrackingService = {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la mise à jour des coordonnées",
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la mise à jour des coordonnées',
         cause: error,
       });
     }
@@ -1161,8 +1169,8 @@ export const deliveryTrackingService = {
 
       if (!delivery) {
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Livraison introuvable",
+          code: 'NOT_FOUND',
+          message: 'Livraison introuvable',
         });
       }
 
@@ -1173,7 +1181,7 @@ export const deliveryTrackingService = {
 
       if (!user || (user.role !== UserRole.ADMIN && user.role !== UserRole.DELIVERER)) {
         throw new TRPCError({
-          code: "FORBIDDEN",
+          code: 'FORBIDDEN',
           message: "Vous n'êtes pas autorisé à suivre cette livraison",
         });
       }
@@ -1207,8 +1215,8 @@ export const deliveryTrackingService = {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la création du suivi de livraison",
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la création du suivi de livraison',
         cause: error,
       });
     }
@@ -1217,10 +1225,7 @@ export const deliveryTrackingService = {
   /**
    * Confirme la livraison d'un colis
    */
-  async confirmDelivery(
-    data: DeliveryConfirmationData,
-    userId: string
-  ) {
+  async confirmDelivery(data: DeliveryConfirmationData, userId: string) {
     try {
       // Vérifier que la livraison existe
       const delivery = await db.delivery.findUnique({
@@ -1229,8 +1234,8 @@ export const deliveryTrackingService = {
 
       if (!delivery) {
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Livraison introuvable",
+          code: 'NOT_FOUND',
+          message: 'Livraison introuvable',
         });
       }
 
@@ -1241,8 +1246,8 @@ export const deliveryTrackingService = {
 
       if (!user) {
         throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "Utilisateur non authentifié",
+          code: 'UNAUTHORIZED',
+          message: 'Utilisateur non authentifié',
         });
       }
 
@@ -1252,7 +1257,7 @@ export const deliveryTrackingService = {
 
       if (!isClient && !isDeliverer && !isAdmin) {
         throw new TRPCError({
-          code: "FORBIDDEN",
+          code: 'FORBIDDEN',
           message: "Vous n'êtes pas autorisé à confirmer cette livraison",
         });
       }
@@ -1272,8 +1277,8 @@ export const deliveryTrackingService = {
 
         if (!validCode) {
           throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Code de confirmation invalide ou expiré",
+            code: 'BAD_REQUEST',
+            message: 'Code de confirmation invalide ou expiré',
           });
         }
 
@@ -1319,8 +1324,8 @@ export const deliveryTrackingService = {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la confirmation de livraison",
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la confirmation de livraison',
         cause: error,
       });
     }
@@ -1441,7 +1446,7 @@ export const deliveryTrackingService = {
           package: true,
           statusHistory: {
             orderBy: {
-              timestamp: "desc",
+              timestamp: 'desc',
             },
             take: 5,
           },
@@ -1450,8 +1455,8 @@ export const deliveryTrackingService = {
 
       if (!delivery) {
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Livraison introuvable",
+          code: 'NOT_FOUND',
+          message: 'Livraison introuvable',
         });
       }
 
@@ -1462,8 +1467,8 @@ export const deliveryTrackingService = {
 
       if (!user) {
         throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "Utilisateur non authentifié",
+          code: 'UNAUTHORIZED',
+          message: 'Utilisateur non authentifié',
         });
       }
 
@@ -1473,7 +1478,7 @@ export const deliveryTrackingService = {
 
       if (!isClient && !isDeliverer && !isAdmin) {
         throw new TRPCError({
-          code: "FORBIDDEN",
+          code: 'FORBIDDEN',
           message: "Vous n'êtes pas autorisé à consulter cette livraison",
         });
       }
@@ -1481,13 +1486,13 @@ export const deliveryTrackingService = {
       // Récupérer la dernière position
       const lastPosition = await db.deliveryPosition.findFirst({
         where: { deliveryId },
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
       });
 
       // Récupérer l'ETA
       const eta = await db.deliveryETA.findFirst({
         where: { deliveryId },
-        orderBy: { calculatedAt: "desc" },
+        orderBy: { calculatedAt: 'desc' },
       });
 
       // Récupérer les problèmes actifs
@@ -1495,19 +1500,21 @@ export const deliveryTrackingService = {
         where: {
           deliveryId,
           status: {
-            in: ["OPEN", "IN_PROGRESS"],
+            in: ['OPEN', 'IN_PROGRESS'],
           },
         },
-        orderBy: { createdAt: "desc" },
+        orderBy: { createdAt: 'desc' },
       });
 
       // Préparer les informations simplifiées du livreur
-      const deliverer = delivery.deliverer ? {
-        id: delivery.deliverer.userId,
-        name: delivery.deliverer.user.name,
-        phone: delivery.deliverer.user.phone,
-        image: delivery.deliverer.user.image,
-      } : null;
+      const deliverer = delivery.deliverer
+        ? {
+            id: delivery.deliverer.userId,
+            name: delivery.deliverer.user.name,
+            phone: delivery.deliverer.user.phone,
+            image: delivery.deliverer.user.image,
+          }
+        : null;
 
       return {
         ...delivery,
@@ -1519,8 +1526,8 @@ export const deliveryTrackingService = {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la récupération des détails de livraison",
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la récupération des détails de livraison',
         cause: error,
       });
     }
@@ -1529,10 +1536,7 @@ export const deliveryTrackingService = {
   /**
    * Récupère l'historique des coordonnées d'une livraison
    */
-  async getDeliveryCoordinatesHistory(
-    deliveryId: string,
-    userId: string
-  ) {
+  async getDeliveryCoordinatesHistory(deliveryId: string, userId: string) {
     try {
       // Vérifier les autorisations
       const delivery = await db.delivery.findUnique({
@@ -1541,8 +1545,8 @@ export const deliveryTrackingService = {
 
       if (!delivery) {
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Livraison introuvable",
+          code: 'NOT_FOUND',
+          message: 'Livraison introuvable',
         });
       }
 
@@ -1556,7 +1560,7 @@ export const deliveryTrackingService = {
 
       if (!isClient && !isDeliverer && !isAdmin) {
         throw new TRPCError({
-          code: "FORBIDDEN",
+          code: 'FORBIDDEN',
           message: "Vous n'êtes pas autorisé à consulter cette livraison",
         });
       }
@@ -1564,7 +1568,7 @@ export const deliveryTrackingService = {
       // Récupérer les positions
       const positions = await db.deliveryPosition.findMany({
         where: { deliveryId },
-        orderBy: { createdAt: "asc" },
+        orderBy: { createdAt: 'asc' },
       });
 
       return {
@@ -1575,7 +1579,7 @@ export const deliveryTrackingService = {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
+        code: 'INTERNAL_SERVER_ERROR',
         message: "Erreur lors de la récupération de l'historique des coordonnées",
         cause: error,
       });
@@ -1585,7 +1589,7 @@ export const deliveryTrackingService = {
   /**
    * Calcule les limites géographiques à partir des positions
    */
-  private calculateBounds(positions: any[]) {
+  calculateBounds(positions: any[]) {
     if (positions.length === 0) return null;
 
     let minLat = Infinity;
@@ -1593,7 +1597,7 @@ export const deliveryTrackingService = {
     let minLng = Infinity;
     let maxLng = -Infinity;
 
-    positions.forEach((pos) => {
+    positions.forEach(pos => {
       const lng = pos.location.coordinates[0];
       const lat = pos.location.coordinates[1];
 
@@ -1639,8 +1643,8 @@ export const deliveryTrackingService = {
 
       if (!user) {
         throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "Utilisateur non trouvé",
+          code: 'UNAUTHORIZED',
+          message: 'Utilisateur non trouvé',
         });
       }
 
@@ -1690,11 +1694,11 @@ export const deliveryTrackingService = {
       }
 
       // Recherche textuelle si présente
-      if (filters.search && filters.search.trim() !== "") {
+      if (filters.search && filters.search.trim() !== '') {
         where.OR = [
-          { id: { contains: filters.search, mode: "insensitive" } },
-          { pickupAddress: { contains: filters.search, mode: "insensitive" } },
-          { deliveryAddress: { contains: filters.search, mode: "insensitive" } },
+          { id: { contains: filters.search, mode: 'insensitive' } },
+          { pickupAddress: { contains: filters.search, mode: 'insensitive' } },
+          { deliveryAddress: { contains: filters.search, mode: 'insensitive' } },
         ];
       }
 
@@ -1707,7 +1711,7 @@ export const deliveryTrackingService = {
         orderBy[filters.sortBy] = filters.sortOrder;
       } else {
         // Tri par défaut
-        orderBy.createdAt = "desc";
+        orderBy.createdAt = 'desc';
       }
 
       // Exécuter la requête principale avec pagination
@@ -1757,8 +1761,8 @@ export const deliveryTrackingService = {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la récupération des livraisons",
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la récupération des livraisons',
         cause: error,
       });
     }
@@ -1776,8 +1780,8 @@ export const deliveryTrackingService = {
 
       if (!user) {
         throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "Utilisateur non trouvé",
+          code: 'UNAUTHORIZED',
+          message: 'Utilisateur non trouvé',
         });
       }
 
@@ -1808,7 +1812,7 @@ export const deliveryTrackingService = {
       // Récupérer les livraisons actives
       const deliveries = await db.delivery.findMany({
         where,
-        orderBy: { updatedAt: "desc" },
+        orderBy: { updatedAt: 'desc' },
         include: {
           client: {
             select: {
@@ -1830,8 +1834,8 @@ export const deliveryTrackingService = {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la récupération des livraisons actives",
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la récupération des livraisons actives',
         cause: error,
       });
     }
@@ -1848,8 +1852,8 @@ export const deliveryTrackingService = {
 
       if (!delivery) {
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Livraison introuvable",
+          code: 'NOT_FOUND',
+          message: 'Livraison introuvable',
         });
       }
 
@@ -1861,7 +1865,7 @@ export const deliveryTrackingService = {
 
         if (!user || user.role !== UserRole.ADMIN) {
           throw new TRPCError({
-            code: "FORBIDDEN",
+            code: 'FORBIDDEN',
             message: "Vous n'êtes pas autorisé à générer un code de confirmation",
           });
         }
@@ -1883,8 +1887,8 @@ export const deliveryTrackingService = {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la génération du code de confirmation",
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la génération du code de confirmation',
         cause: error,
       });
     }
@@ -1899,8 +1903,8 @@ export const deliveryTrackingService = {
 
       if (!delivery) {
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Livraison introuvable",
+          code: 'NOT_FOUND',
+          message: 'Livraison introuvable',
         });
       }
 
@@ -1911,8 +1915,8 @@ export const deliveryTrackingService = {
 
       if (!user) {
         throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "Utilisateur non authentifié",
+          code: 'UNAUTHORIZED',
+          message: 'Utilisateur non authentifié',
         });
       }
 
@@ -1922,7 +1926,7 @@ export const deliveryTrackingService = {
 
       if (!isClient && !isDeliverer && !isAdmin) {
         throw new TRPCError({
-          code: "FORBIDDEN",
+          code: 'FORBIDDEN',
           message: "Vous n'êtes pas autorisé à consulter cette position",
         });
       }
@@ -1948,8 +1952,8 @@ export const deliveryTrackingService = {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
-        message: "Erreur lors de la récupération de la position",
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la récupération de la position',
         cause: error,
       });
     }
@@ -1964,8 +1968,8 @@ export const deliveryTrackingService = {
 
       if (!delivery) {
         throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "Livraison introuvable",
+          code: 'NOT_FOUND',
+          message: 'Livraison introuvable',
         });
       }
 
@@ -1976,8 +1980,8 @@ export const deliveryTrackingService = {
 
       if (!user) {
         throw new TRPCError({
-          code: "UNAUTHORIZED",
-          message: "Utilisateur non authentifié",
+          code: 'UNAUTHORIZED',
+          message: 'Utilisateur non authentifié',
         });
       }
 
@@ -1987,7 +1991,7 @@ export const deliveryTrackingService = {
 
       if (!isClient && !isDeliverer && !isAdmin) {
         throw new TRPCError({
-          code: "FORBIDDEN",
+          code: 'FORBIDDEN',
           message: "Vous n'êtes pas autorisé à consulter cet historique",
         });
       }
@@ -2013,16 +2017,21 @@ export const deliveryTrackingService = {
     } catch (error) {
       if (error instanceof TRPCError) throw error;
       throw new TRPCError({
-        code: "INTERNAL_SERVER_ERROR",
+        code: 'INTERNAL_SERVER_ERROR',
         message: "Erreur lors de la récupération de l'historique des statuts",
         cause: error,
       });
     }
   },
 
-  async updateLocation({ userId, deliveryId, location, accuracy }: { 
-    userId: string; 
-    deliveryId: string; 
+  async updateLocation({
+    userId,
+    deliveryId,
+    location,
+    accuracy,
+  }: {
+    userId: string;
+    deliveryId: string;
     location: GeoPoint;
     accuracy?: number;
   }) {

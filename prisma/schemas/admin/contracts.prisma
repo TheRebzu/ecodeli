@@ -74,6 +74,8 @@ model Contract {
   // Relations avec template et amendements
   template      ContractTemplate? @relation(fields: [templateId], references: [id])
   amendments    ContractAmendment[]
+  negotiations  ContractNegotiation[]
+  performances  ContractPerformance[]
   billingCycles BillingCycle[]
 
   @@index([merchantId])

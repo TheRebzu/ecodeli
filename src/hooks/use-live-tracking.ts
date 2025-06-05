@@ -10,7 +10,7 @@ import { useSocket } from './use-socket';
  */
 export function useLiveTracking(deliveryId: string) {
   const [isConnected, setIsConnected] = useState(false);
-  const [currentLocation, setCurrentLocation] = useState<{lat: number, lng: number} | null>(null);
+  const [currentLocation, setCurrentLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
   const [isError, setIsError] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -24,43 +24,42 @@ export function useLiveTracking(deliveryId: string) {
     }
 
     const trackingChannel = `delivery-tracking:${deliveryId}`;
-    
+
     // Connect to tracking
     socket.emit('join-tracking', {
       deliveryId,
-      userId: session.user.id
+      userId: session.user.id,
     });
-    
+
     // Handle connection status
     socket.on('tracking-connected', () => {
       setIsConnected(true);
       setIsError(false);
     });
-    
+
     // Handle location updates
-    socket.on(`${trackingChannel}:location-update`, (data: {
-      latitude: number,
-      longitude: number,
-      timestamp: string
-    }) => {
-      setCurrentLocation({
-        lat: data.latitude,
-        lng: data.longitude
-      });
-      setLastUpdate(new Date(data.timestamp));
-    });
-    
+    socket.on(
+      `${trackingChannel}:location-update`,
+      (data: { latitude: number; longitude: number; timestamp: string }) => {
+        setCurrentLocation({
+          lat: data.latitude,
+          lng: data.longitude,
+        });
+        setLastUpdate(new Date(data.timestamp));
+      }
+    );
+
     // Handle errors
-    socket.on(`${trackingChannel}:error`, (error: {message: string}) => {
+    socket.on(`${trackingChannel}:error`, (error: { message: string }) => {
       setIsError(true);
       setErrorMessage(error.message);
     });
-    
+
     // Handle disconnection
     socket.on('disconnect', () => {
       setIsConnected(false);
     });
-    
+
     // Cleanup
     return () => {
       socket.off(`${trackingChannel}:location-update`);
@@ -82,7 +81,7 @@ export function useLiveTracking(deliveryId: string) {
     lastUpdate,
     isError,
     errorMessage,
-    requestLocationUpdate
+    requestLocationUpdate,
   };
 }
 

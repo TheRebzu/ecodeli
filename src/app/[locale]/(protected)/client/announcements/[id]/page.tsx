@@ -162,34 +162,35 @@ export default function AnnouncementDetailsPage() {
   // Vérifier si l'annonce a des applications/propositions
   const hasProposals =
     currentAnnouncement.applications && currentAnnouncement.applications.length > 0;
-    
+
   // Adapter les données des applications pour le composant DelivererProposalsList
-  const formattedProposals = currentAnnouncement.applications?.map(app => {
-    // Cas par défaut si l'application n'a pas toutes les données attendues
-    const application: DelivererApplication = {
-      id: app.id,
-      announcementId: params.id as string,
-      delivererId: app.delivererId,
-      deliverer: {
-        id: app.delivererId,
-        name: (app as any)?.deliverer?.name || 'Livreur inconnu',
-        image: (app as any)?.deliverer?.image || null,
-        rating: (app as any)?.deliverer?.rating || 0,
-        completedDeliveries: (app as any)?.deliverer?.completedDeliveries || 0,
-        averageResponseTime: (app as any)?.deliverer?.averageResponseTime,
-        verificationStatus: (app as any)?.deliverer?.verificationStatus || 'PENDING'
-      },
-      status: (app.status as 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED') || 'PENDING',
-      proposedPrice: app.proposedPrice,
-      estimatedDeliveryTime: (app as any)?.estimatedDeliveryTime,
-      message: (app as any)?.message || '',
-      hasRequiredEquipment: (app as any)?.hasRequiredEquipment || false,
-      canPickupAtScheduledTime: (app as any)?.canPickupAtScheduledTime || false,
-      createdAt: app.createdAt
-    };
-    
-    return application;
-  }) || [];
+  const formattedProposals =
+    currentAnnouncement.applications?.map(app => {
+      // Cas par défaut si l'application n'a pas toutes les données attendues
+      const application: DelivererApplication = {
+        id: app.id,
+        announcementId: params.id as string,
+        delivererId: app.delivererId,
+        deliverer: {
+          id: app.delivererId,
+          name: (app as any)?.deliverer?.name || 'Livreur inconnu',
+          image: (app as any)?.deliverer?.image || null,
+          rating: (app as any)?.deliverer?.rating || 0,
+          completedDeliveries: (app as any)?.deliverer?.completedDeliveries || 0,
+          averageResponseTime: (app as any)?.deliverer?.averageResponseTime,
+          verificationStatus: (app as any)?.deliverer?.verificationStatus || 'PENDING',
+        },
+        status: (app.status as 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED') || 'PENDING',
+        proposedPrice: app.proposedPrice,
+        estimatedDeliveryTime: (app as any)?.estimatedDeliveryTime,
+        message: (app as any)?.message || '',
+        hasRequiredEquipment: (app as any)?.hasRequiredEquipment || false,
+        canPickupAtScheduledTime: (app as any)?.canPickupAtScheduledTime || false,
+        createdAt: app.createdAt,
+      };
+
+      return application;
+    }) || [];
 
   return (
     <div className="container py-6 space-y-6">
@@ -243,10 +244,10 @@ export default function AnnouncementDetailsPage() {
             <TabsContent value="details" className="space-y-6">
               <Card>
                 <CardContent className="pt-6">
-                  <AnnouncementDetail 
-                    announcement={currentAnnouncement} 
+                  <AnnouncementDetail
+                    announcement={currentAnnouncement}
                     userRole="CLIENT"
-                    className="space-y-4" 
+                    className="space-y-4"
                   />
                 </CardContent>
               </Card>
@@ -259,18 +260,18 @@ export default function AnnouncementDetailsPage() {
                   proposals={formattedProposals}
                   announcementTitle={currentAnnouncement.title}
                   suggestedPrice={currentAnnouncement.suggestedPrice || 0}
-                  onAccept={(proposalId) => {
+                  onAccept={proposalId => {
                     // Implémenter ultérieurement
                     return Promise.resolve();
                   }}
-                  onReject={(proposalId) => {
+                  onReject={proposalId => {
                     // Implémenter ultérieurement
                     return Promise.resolve();
                   }}
-                  onSendMessage={(delivererId) => {
+                  onSendMessage={delivererId => {
                     // Implémenter ultérieurement
                   }}
-                  onViewDelivererProfile={(delivererId) => {
+                  onViewDelivererProfile={delivererId => {
                     // Implémenter ultérieurement
                   }}
                   onProposalAccepted={() => fetchAnnouncementById(params.id as string)}
@@ -348,14 +349,16 @@ export default function AnnouncementDetailsPage() {
                   <div>
                     <p className="font-medium">{t('dates')}</p>
                     <p className="text-sm text-muted-foreground">
-                      {t('pickupDate')}: {currentAnnouncement.pickupDate ? 
-                        new Date(currentAnnouncement.pickupDate).toLocaleDateString() : 
-                        t('notSpecified')}
+                      {t('pickupDate')}:{' '}
+                      {currentAnnouncement.pickupDate
+                        ? new Date(currentAnnouncement.pickupDate).toLocaleDateString()
+                        : t('notSpecified')}
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      {t('deliveryDate')}: {currentAnnouncement.deliveryDate ?
-                        new Date(currentAnnouncement.deliveryDate).toLocaleDateString() : 
-                        t('notSpecified')}
+                      {t('deliveryDate')}:{' '}
+                      {currentAnnouncement.deliveryDate
+                        ? new Date(currentAnnouncement.deliveryDate).toLocaleDateString()
+                        : t('notSpecified')}
                     </p>
                   </div>
                 </div>

@@ -1,6 +1,15 @@
 import { PrismaClient, UserRole, UserStatus } from '@prisma/client';
 import { SeedLogger } from '../utils/seed-logger';
-import { SeedResult, SeedOptions, generateFrenchPhone, generateFrenchAddress, generateFrenchEmail, hashPassword, getRandomElement, getRandomDate } from '../utils/seed-helpers';
+import {
+  SeedResult,
+  SeedOptions,
+  generateFrenchPhone,
+  generateFrenchAddress,
+  generateFrenchEmail,
+  hashPassword,
+  getRandomElement,
+  getRandomDate,
+} from '../utils/seed-helpers';
 import { faker } from '@faker-js/faker';
 
 /**
@@ -24,70 +33,90 @@ interface ProviderData {
  * Seed des utilisateurs prestataires EcoDeli
  */
 export async function seedProviderUsers(
-  prisma: PrismaClient, 
+  prisma: PrismaClient,
   logger: SeedLogger,
   options: SeedOptions = {}
 ): Promise<SeedResult> {
   logger.startSeed('PROVIDER_USERS');
-  
+
   const result: SeedResult = {
     entity: 'provider_users',
     created: 0,
     skipped: 0,
-    errors: 0
+    errors: 0,
   };
 
   // Vérifier si les prestataires existent déjà
   const existingProviders = await prisma.user.findMany({
-    where: { role: UserRole.PROVIDER }
+    where: { role: UserRole.PROVIDER },
   });
-  
+
   if (existingProviders.length > 0 && !options.force) {
-    logger.warning('PROVIDER_USERS', `${existingProviders.length} prestataires déjà présents - utiliser force:true pour recréer`);
+    logger.warning(
+      'PROVIDER_USERS',
+      `${existingProviders.length} prestataires déjà présents - utiliser force:true pour recréer`
+    );
     result.skipped = existingProviders.length;
     return result;
   }
 
-  // Nettoyer si force activé
-  if (options.force) {
-    await prisma.provider.deleteMany({});
-    await prisma.user.deleteMany({ where: { role: UserRole.PROVIDER } });
-    logger.database('NETTOYAGE', 'provider users', 0);
+  // Note: Le nettoyage est géré au niveau de l'orchestrateur pour éviter les conflits de contraintes FK
+  if (options.force && existingProviders.length > 0) {
+    logger.info('PROVIDER_USERS', '♻️ Mode force activé - Les données existantes seront écrasées');
   }
 
   // Types de services disponibles
   const serviceCategories = [
     {
       category: 'Plomberie',
-      services: ['Réparation fuite', 'Installation sanitaire', 'Débouchage canalisation', 'Remplacement robinetterie'],
+      services: [
+        'Réparation fuite',
+        'Installation sanitaire',
+        'Débouchage canalisation',
+        'Remplacement robinetterie',
+      ],
       hourlyRate: { min: 45, max: 80 },
       certifications: ['Qualification RGE', 'Certification Qualibat', 'Formation gaz'],
       equipment: ['Outils spécialisés', 'Équipement soudure', 'Caméra canalisation'],
-      experience: { min: 2, max: 15 }
+      experience: { min: 2, max: 15 },
     },
     {
       category: 'Électricité',
-      services: ['Installation électrique', 'Dépannage urgence', 'Mise aux normes', 'Installation domotique'],
+      services: [
+        'Installation électrique',
+        'Dépannage urgence',
+        'Mise aux normes',
+        'Installation domotique',
+      ],
       hourlyRate: { min: 50, max: 90 },
       certifications: ['Habilitation électrique', 'Qualification IRVE', 'Certification Qualifelec'],
       equipment: ['Multimètre professionnel', 'Outillage isolé', 'Échafaudage'],
-      experience: { min: 3, max: 20 }
+      experience: { min: 3, max: 20 },
     },
     {
       category: 'Ménage',
-      services: ['Ménage domicile', 'Nettoyage bureaux', 'Nettoyage fin chantier', 'Entretien régulier'],
+      services: [
+        'Ménage domicile',
+        'Nettoyage bureaux',
+        'Nettoyage fin chantier',
+        'Entretien régulier',
+      ],
       hourlyRate: { min: 20, max: 35 },
       certifications: ['Formation HACCP', 'Certificat propreté', 'Formation produits écologiques'],
       equipment: ['Aspirateur professionnel', 'Produits écologiques', 'Matériel spécialisé'],
-      experience: { min: 1, max: 10 }
+      experience: { min: 1, max: 10 },
     },
     {
       category: 'Jardinage',
       services: ['Entretien jardin', 'Taille haies', 'Tonte pelouse', 'Plantation'],
       hourlyRate: { min: 25, max: 45 },
-      certifications: ['Certificat phytosanitaire', 'Formation élagage', 'Permis utilisation produits'],
+      certifications: [
+        'Certificat phytosanitaire',
+        'Formation élagage',
+        'Permis utilisation produits',
+      ],
       equipment: ['Tondeuse professionnelle', 'Taille-haie', 'Débroussailleuse'],
-      experience: { min: 1, max: 12 }
+      experience: { min: 1, max: 12 },
     },
     {
       category: 'Peinture',
@@ -95,27 +124,38 @@ export async function seedProviderUsers(
       hourlyRate: { min: 35, max: 60 },
       certifications: ['Qualification RGE', 'Formation éco-matériaux', 'Certificat échafaudage'],
       equipment: ['Échafaudage mobile', 'Pistolet peinture', 'Bâches protection'],
-      experience: { min: 2, max: 18 }
+      experience: { min: 2, max: 18 },
     },
     {
       category: 'Menuiserie',
-      services: ['Pose fenêtres', 'Aménagement intérieur', 'Réparation volets', 'Fabrication sur mesure'],
+      services: [
+        'Pose fenêtres',
+        'Aménagement intérieur',
+        'Réparation volets',
+        'Fabrication sur mesure',
+      ],
       hourlyRate: { min: 40, max: 75 },
       certifications: ['Qualification RGE', 'Formation bois', 'Certification Qualibois'],
       equipment: ['Outillage portatif', 'Scie circulaire', 'Perceuse professionnelle'],
-      experience: { min: 3, max: 25 }
-    }
+      experience: { min: 3, max: 25 },
+    },
   ];
 
   // Zones d'intervention en Île-de-France
   const interventionZones = [
-    'Paris', 'Hauts-de-Seine', 'Seine-Saint-Denis', 'Val-de-Marne',
-    'Seine-et-Marne', 'Yvelines', 'Essonne', 'Val-d\'Oise'
+    'Paris',
+    'Hauts-de-Seine',
+    'Seine-Saint-Denis',
+    'Val-de-Marne',
+    'Seine-et-Marne',
+    'Yvelines',
+    'Essonne',
+    "Val-d'Oise",
   ];
 
   // Générer 25 prestataires avec des profils variés
   const providerUsers: ProviderData[] = [];
-  
+
   // IMPORTANT: Prestataire principal pour les tests - pierre.martin@orange.fr
   providerUsers.push({
     name: 'Pierre Martin',
@@ -130,7 +170,7 @@ export async function seedProviderUsers(
       zipCode: '75019',
       country: 'France',
       latitude: 48.8835,
-      longitude: 2.3758
+      longitude: 2.3758,
     },
     business: {
       companyName: 'Pierre Martin Services',
@@ -138,22 +178,27 @@ export async function seedProviderUsers(
       isIndividual: false,
       yearsFounded: 2020,
       employeeCount: 2,
-      insuranceNumber: faker.string.alphanumeric(12).toUpperCase()
+      insuranceNumber: faker.string.alphanumeric(12).toUpperCase(),
     },
     services: {
       category: 'Transport et courses',
-      serviceList: ['Transport de personnes', 'Courses et livraisons', 'Déménagement léger', 'Accompagnement'],
+      serviceList: [
+        'Transport de personnes',
+        'Courses et livraisons',
+        'Déménagement léger',
+        'Accompagnement',
+      ],
       hourlyRate: 35,
       minIntervention: 1,
       emergencyAvailable: true,
-      emergencyRate: 25
+      emergencyRate: 25,
     },
     qualifications: {
       yearsExperience: 4,
       certifications: ['Permis B', 'Formation premiers secours', 'Assurance professionnelle'],
       equipment: ['Véhicule utilitaire', 'Sangles et sangles', 'Diable de transport'],
       specializations: ['Transport médicalisé', 'Courses urgentes', 'Livraisons express'],
-      languages: ['français', 'anglais']
+      languages: ['français', 'anglais'],
     },
     operationalData: {
       interventionZones: ['Paris', 'Hauts-de-Seine', 'Seine-Saint-Denis'],
@@ -164,7 +209,7 @@ export async function seedProviderUsers(
         thursday: { start: '08:00', end: '19:00', available: true },
         friday: { start: '08:00', end: '19:00', available: true },
         saturday: { start: '09:00', end: '17:00', available: true },
-        sunday: { start: '10:00', end: '16:00', available: false }
+        sunday: { start: '10:00', end: '16:00', available: false },
       },
       responseTime: 30,
       rating: 4.6,
@@ -175,14 +220,17 @@ export async function seedProviderUsers(
       lastJobDate: getRandomDate(1, 5),
       customerFeedback: 'Service rapide et professionnel. Très ponctuel.',
       emergencyAvailable: true,
-      cancellationPolicy: 'Annulation gratuite jusqu\'à 2h avant l\'intervention',
-      description: 'Pierre Martin Services - Votre partenaire de confiance pour tous vos besoins de transport et de courses dans Paris et la petite couronne. Service personnalisé et réactif.',
-      professionalBio: 'Professionnel du transport depuis 4 ans, spécialisé dans les courses urgentes et le transport de personnes. Véhicule équipé et assuré.',
-      availabilityText: 'Disponible du lundi au samedi de 8h à 19h. Service d\'urgence possible le dimanche.',
-      portfolioUrls: []
-    }
+      cancellationPolicy: "Annulation gratuite jusqu'à 2h avant l'intervention",
+      description:
+        'Pierre Martin Services - Votre partenaire de confiance pour tous vos besoins de transport et de courses dans Paris et la petite couronne. Service personnalisé et réactif.',
+      professionalBio:
+        'Professionnel du transport depuis 4 ans, spécialisé dans les courses urgentes et le transport de personnes. Véhicule équipé et assuré.',
+      availabilityText:
+        "Disponible du lundi au samedi de 8h à 19h. Service d'urgence possible le dimanche.",
+      portfolioUrls: [],
+    },
   });
-  
+
   // 24 autres prestataires
   for (let i = 0; i < 24; i++) {
     const firstName = faker.person.firstName();
@@ -191,7 +239,7 @@ export async function seedProviderUsers(
     const address = generateFrenchAddress();
     const isExperienced = Math.random() > 0.4; // 60% sont expérimentés
     const isCompany = Math.random() > 0.7; // 30% ont une entreprise
-    const yearsExperience = isExperienced 
+    const yearsExperience = isExperienced
       ? faker.number.int({ min: 5, max: serviceCategory.experience.max })
       : faker.number.int({ min: serviceCategory.experience.min, max: 4 });
 
@@ -215,7 +263,8 @@ export async function seedProviderUsers(
         'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150',
         'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150',
         'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150',
-        undefined, undefined // 30% sans photo
+        undefined,
+        undefined, // 30% sans photo
       ]),
       status,
       address,
@@ -223,35 +272,38 @@ export async function seedProviderUsers(
         companyName: isCompany ? generateCompanyName(serviceCategory.category, lastName) : null,
         siret: isCompany ? faker.string.numeric(14) : null,
         isIndividual: !isCompany,
-        yearsFounded: isCompany && isExperienced ? 
-          new Date().getFullYear() - faker.number.int({ min: 2, max: yearsExperience }) : null,
+        yearsFounded:
+          isCompany && isExperienced
+            ? new Date().getFullYear() - faker.number.int({ min: 2, max: yearsExperience })
+            : null,
         employeeCount: isCompany ? faker.number.int({ min: 1, max: 8 }) : 1,
-        insuranceNumber: status === UserStatus.ACTIVE ? faker.string.alphanumeric(12).toUpperCase() : null
+        insuranceNumber:
+          status === UserStatus.ACTIVE ? faker.string.alphanumeric(12).toUpperCase() : null,
       },
       services: {
         category: serviceCategory.category,
-        serviceList: faker.helpers.arrayElements(serviceCategory.services, { 
-          min: isExperienced ? 3 : 1, 
-          max: serviceCategory.services.length 
+        serviceList: faker.helpers.arrayElements(serviceCategory.services, {
+          min: isExperienced ? 3 : 1,
+          max: serviceCategory.services.length,
         }),
         hourlyRate: faker.number.int({
           min: serviceCategory.hourlyRate.min + (isExperienced ? 10 : 0),
-          max: serviceCategory.hourlyRate.max + (isExperienced ? 15 : 0)
+          max: serviceCategory.hourlyRate.max + (isExperienced ? 15 : 0),
         }),
         minIntervention: faker.number.int({ min: 1, max: 3 }), // heures minimum
         emergencyAvailable: isExperienced && Math.random() > 0.6,
-        emergencyRate: isExperienced && Math.random() > 0.6 ? 
-          faker.number.int({ min: 20, max: 50 }) : 0 // supplément urgence
+        emergencyRate:
+          isExperienced && Math.random() > 0.6 ? faker.number.int({ min: 20, max: 50 }) : 0, // supplément urgence
       },
       qualifications: {
         yearsExperience,
-        certifications: faker.helpers.arrayElements(serviceCategory.certifications, { 
-          min: isExperienced ? 2 : 0, 
-          max: serviceCategory.certifications.length 
+        certifications: faker.helpers.arrayElements(serviceCategory.certifications, {
+          min: isExperienced ? 2 : 0,
+          max: serviceCategory.certifications.length,
         }),
-        equipment: faker.helpers.arrayElements(serviceCategory.equipment, { 
-          min: isExperienced ? 2 : 1, 
-          max: serviceCategory.equipment.length 
+        equipment: faker.helpers.arrayElements(serviceCategory.equipment, {
+          min: isExperienced ? 2 : 1,
+          max: serviceCategory.equipment.length,
         }),
         specializations: generateSpecializations(serviceCategory.category, isExperienced),
         languages: getRandomElement([
@@ -259,26 +311,33 @@ export async function seedProviderUsers(
           ['français', 'anglais'],
           ['français', 'espagnol'],
           ['français', 'arabe'],
-          ['français', 'anglais', 'espagnol']
-        ])
+          ['français', 'anglais', 'espagnol'],
+        ]),
       },
       operationalData: {
-        interventionZones: faker.helpers.arrayElements(interventionZones, { 
-          min: 1, 
-          max: isExperienced ? 4 : 2 
+        interventionZones: faker.helpers.arrayElements(interventionZones, {
+          min: 1,
+          max: isExperienced ? 4 : 2,
         }),
         maxDistance: faker.number.int({ min: 15, max: 50 }), // km
         workSchedule: generateWorkSchedule(serviceCategory.category),
-        availability: status === UserStatus.ACTIVE ? 
-          getRandomElement(['high', 'medium', 'low']) : 'unavailable',
-        rating: status === UserStatus.ACTIVE && isExperienced ? 
-          faker.number.float({ min: 4.0, max: 5.0 }) : null,
-        completedJobs: status === UserStatus.ACTIVE ? 
-          faker.number.int({ min: isExperienced ? 20 : 2, max: isExperienced ? 200 : 25 }) : 0,
-        averageResponseTime: isExperienced ? 
-          faker.number.int({ min: 15, max: 60 }) : faker.number.int({ min: 30, max: 120 }), // minutes
-        cancellationPolicy: generateCancellationPolicy()
-      }
+        availability:
+          status === UserStatus.ACTIVE
+            ? getRandomElement(['high', 'medium', 'low'])
+            : 'unavailable',
+        rating:
+          status === UserStatus.ACTIVE && isExperienced
+            ? faker.number.float({ min: 4.0, max: 5.0 })
+            : null,
+        completedJobs:
+          status === UserStatus.ACTIVE
+            ? faker.number.int({ min: isExperienced ? 20 : 2, max: isExperienced ? 200 : 25 })
+            : 0,
+        averageResponseTime: isExperienced
+          ? faker.number.int({ min: 15, max: 60 })
+          : faker.number.int({ min: 30, max: 120 }), // minutes
+        cancellationPolicy: generateCancellationPolicy(),
+      },
     });
   }
 
@@ -286,10 +345,15 @@ export async function seedProviderUsers(
   const batchSize = 5;
   for (let i = 0; i < providerUsers.length; i += batchSize) {
     const batch = providerUsers.slice(i, i + batchSize);
-    
+
     for (const providerData of batch) {
       try {
-        logger.progress('PROVIDER_USERS', i + 1, providerUsers.length, `Création: ${providerData.name}`);
+        logger.progress(
+          'PROVIDER_USERS',
+          i + 1,
+          providerUsers.length,
+          `Création: ${providerData.name}`
+        );
 
         // Créer l'utilisateur avec le rôle prestataire
         const user = await prisma.user.create({
@@ -305,63 +369,92 @@ export async function seedProviderUsers(
             isActive: true, // Tous les prestataires sont actifs
             locale: 'fr-FR',
             createdAt: getRandomDate(30, 365), // Créé entre 1 mois et 1 an
-            updatedAt: new Date()
-          }
+            updatedAt: new Date(),
+          },
         });
 
-        logger.success('PROVIDER_USERS', `✅ Prestataire créé: ${user.name} - ${providerData.services.category}`);
+        logger.success(
+          'PROVIDER_USERS',
+          `✅ Prestataire créé: ${user.name} - ${providerData.services.category}`
+        );
         result.created++;
-        
       } catch (error: any) {
-        logger.error('PROVIDER_USERS', `❌ Erreur création prestataire ${providerData.name}: ${error.message}`);
+        logger.error(
+          'PROVIDER_USERS',
+          `❌ Erreur création prestataire ${providerData.name}: ${error.message}`
+        );
         result.errors++;
       }
     }
-    
+
     // Progression par batch
     if (i + batchSize < providerUsers.length) {
-      logger.progress('PROVIDER_USERS', Math.min(i + batchSize, providerUsers.length), providerUsers.length);
+      logger.progress(
+        'PROVIDER_USERS',
+        Math.min(i + batchSize, providerUsers.length),
+        providerUsers.length
+      );
     }
   }
 
   // Validation des prestataires créés
   const finalProviders = await prisma.user.findMany({
     where: { role: UserRole.PROVIDER },
-    include: { provider: true }
+    include: { provider: true },
   });
-  
+
   if (finalProviders.length >= providerUsers.length - result.errors) {
-    logger.validation('PROVIDER_USERS', 'PASSED', `${finalProviders.length} prestataires créés avec succès`);
+    logger.validation(
+      'PROVIDER_USERS',
+      'PASSED',
+      `${finalProviders.length} prestataires créés avec succès`
+    );
   } else {
-    logger.validation('PROVIDER_USERS', 'FAILED', `Attendu: ${providerUsers.length}, Créé: ${finalProviders.length}`);
+    logger.validation(
+      'PROVIDER_USERS',
+      'FAILED',
+      `Attendu: ${providerUsers.length}, Créé: ${finalProviders.length}`
+    );
   }
 
   // Statistiques par statut
-  const byStatus = finalProviders.reduce((acc, provider) => {
-    acc[provider.status] = (acc[provider.status] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  const byStatus = finalProviders.reduce(
+    (acc, provider) => {
+      acc[provider.status] = (acc[provider.status] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
 
   logger.info('PROVIDER_USERS', `📊 Répartition par statut: ${JSON.stringify(byStatus)}`);
 
   // Statistiques par catégorie de service
-  const byServiceType = finalProviders.reduce((acc, provider) => {
-    const serviceType = provider.provider?.serviceType || 'Non défini';
-    acc[serviceType] = (acc[serviceType] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  const byServiceType = finalProviders.reduce(
+    (acc, provider) => {
+      const serviceType = provider.provider?.serviceType || 'Non défini';
+      acc[serviceType] = (acc[serviceType] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
 
   logger.info('PROVIDER_USERS', `🔧 Répartition par service: ${JSON.stringify(byServiceType)}`);
 
   // Statistiques de vérification
   const verifiedProviders = finalProviders.filter(provider => provider.provider?.isVerified);
-  logger.info('PROVIDER_USERS', `✅ Prestataires vérifiés: ${verifiedProviders.length} (${Math.round(verifiedProviders.length / finalProviders.length * 100)}%)`);
+  logger.info(
+    'PROVIDER_USERS',
+    `✅ Prestataires vérifiés: ${verifiedProviders.length} (${Math.round((verifiedProviders.length / finalProviders.length) * 100)}%)`
+  );
 
   // Statistiques d'expérience
-  const experiencedProviders = finalProviders.filter(provider => 
-    provider.provider?.yearsInBusiness && provider.provider.yearsInBusiness >= 5
+  const experiencedProviders = finalProviders.filter(
+    provider => provider.provider?.yearsInBusiness && provider.provider.yearsInBusiness >= 5
   );
-  logger.info('PROVIDER_USERS', `🎓 Prestataires expérimentés (5+ ans): ${experiencedProviders.length} (${Math.round(experiencedProviders.length / finalProviders.length * 100)}%)`);
+  logger.info(
+    'PROVIDER_USERS',
+    `🎓 Prestataires expérimentés (5+ ans): ${experiencedProviders.length} (${Math.round((experiencedProviders.length / finalProviders.length) * 100)}%)`
+  );
 
   logger.endSeed('PROVIDER_USERS', result);
   return result;
@@ -372,17 +465,17 @@ export async function seedProviderUsers(
  */
 function generateCompanyName(category: string, lastName: string): string {
   const prefixes = {
-    'Plomberie': ['Plomberie', 'Sanitaire', 'Chauffage'],
-    'Électricité': ['Électricité', 'Électro', 'Installation'],
-    'Ménage': ['Nettoyage', 'Propreté', 'Service'],
-    'Jardinage': ['Jardinage', 'Espaces Verts', 'Paysage'],
-    'Peinture': ['Peinture', 'Décoration', 'Revêtement'],
-    'Menuiserie': ['Menuiserie', 'Bois', 'Aménagement']
+    Plomberie: ['Plomberie', 'Sanitaire', 'Chauffage'],
+    Électricité: ['Électricité', 'Électro', 'Installation'],
+    Ménage: ['Nettoyage', 'Propreté', 'Service'],
+    Jardinage: ['Jardinage', 'Espaces Verts', 'Paysage'],
+    Peinture: ['Peinture', 'Décoration', 'Revêtement'],
+    Menuiserie: ['Menuiserie', 'Bois', 'Aménagement'],
   };
 
   const categoryPrefixes = prefixes[category as keyof typeof prefixes] || ['Service'];
   const prefix = getRandomElement(categoryPrefixes);
-  
+
   return `${prefix} ${lastName}`;
 }
 
@@ -391,18 +484,33 @@ function generateCompanyName(category: string, lastName: string): string {
  */
 function generateSpecializations(category: string, isExperienced: boolean): string[] {
   const specializations = {
-    'Plomberie': ['Rénovation salle de bain', 'Installation chauffage', 'Plomberie industrielle', 'Éco-plomberie'],
-    'Électricité': ['Domotique', 'Tableau électrique', 'Éclairage LED', 'Borne recharge véhicule'],
-    'Ménage': ['Nettoyage écologique', 'Nettoyage post-travaux', 'Entretien bureaux', 'Vitres professionnelles'],
-    'Jardinage': ['Élagage', 'Création jardins', 'Jardins japonais', 'Permaculture'],
-    'Peinture': ['Peinture décorative', 'Enduits à la chaux', 'Peinture écologique', 'Trompe-l\'œil'],
-    'Menuiserie': ['Agencement cuisine', 'Escaliers sur mesure', 'Restauration meuble', 'Isolation bois']
+    Plomberie: [
+      'Rénovation salle de bain',
+      'Installation chauffage',
+      'Plomberie industrielle',
+      'Éco-plomberie',
+    ],
+    Électricité: ['Domotique', 'Tableau électrique', 'Éclairage LED', 'Borne recharge véhicule'],
+    Ménage: [
+      'Nettoyage écologique',
+      'Nettoyage post-travaux',
+      'Entretien bureaux',
+      'Vitres professionnelles',
+    ],
+    Jardinage: ['Élagage', 'Création jardins', 'Jardins japonais', 'Permaculture'],
+    Peinture: ['Peinture décorative', 'Enduits à la chaux', 'Peinture écologique', "Trompe-l'œil"],
+    Menuiserie: [
+      'Agencement cuisine',
+      'Escaliers sur mesure',
+      'Restauration meuble',
+      'Isolation bois',
+    ],
   };
 
   const categorySpecs = specializations[category as keyof typeof specializations] || ['Polyvalent'];
-  return faker.helpers.arrayElements(categorySpecs, { 
-    min: isExperienced ? 2 : 1, 
-    max: isExperienced ? 4 : 2 
+  return faker.helpers.arrayElements(categorySpecs, {
+    min: isExperienced ? 2 : 1,
+    max: isExperienced ? 4 : 2,
   });
 }
 
@@ -410,22 +518,23 @@ function generateSpecializations(category: string, isExperienced: boolean): stri
  * Génère un planning de travail réaliste
  */
 function generateWorkSchedule(category: string): any {
-  const isWeekendWorker = ['Plomberie', 'Électricité', 'Ménage'].includes(category) && Math.random() > 0.7;
-  
+  const isWeekendWorker =
+    ['Plomberie', 'Électricité', 'Ménage'].includes(category) && Math.random() > 0.7;
+
   return {
     monday: { available: true, hours: '08:00-18:00' },
     tuesday: { available: true, hours: '08:00-18:00' },
     wednesday: { available: true, hours: '08:00-18:00' },
     thursday: { available: true, hours: '08:00-18:00' },
     friday: { available: true, hours: '08:00-18:00' },
-    saturday: { 
-      available: isWeekendWorker || Math.random() > 0.6, 
-      hours: isWeekendWorker ? '08:00-17:00' : '09:00-16:00' 
+    saturday: {
+      available: isWeekendWorker || Math.random() > 0.6,
+      hours: isWeekendWorker ? '08:00-17:00' : '09:00-16:00',
     },
-    sunday: { 
-      available: isWeekendWorker && Math.random() > 0.7, 
-      hours: '10:00-16:00' 
-    }
+    sunday: {
+      available: isWeekendWorker && Math.random() > 0.7,
+      hours: '10:00-16:00',
+    },
   };
 }
 
@@ -434,12 +543,12 @@ function generateWorkSchedule(category: string): any {
  */
 function generateCancellationPolicy(): string {
   const policies = [
-    'Annulation gratuite jusqu\'à 24h avant l\'intervention',
-    'Annulation gratuite jusqu\'à 48h avant, 50% du tarif si annulation tardive',
-    'Annulation possible jusqu\'à 12h avant, frais de déplacement facturés si annulation le jour même',
-    'Annulation gratuite jusqu\'à 2h avant pour les interventions d\'urgence'
+    "Annulation gratuite jusqu'à 24h avant l'intervention",
+    "Annulation gratuite jusqu'à 48h avant, 50% du tarif si annulation tardive",
+    "Annulation possible jusqu'à 12h avant, frais de déplacement facturés si annulation le jour même",
+    "Annulation gratuite jusqu'à 2h avant pour les interventions d'urgence",
   ];
-  
+
   return getRandomElement(policies);
 }
 
@@ -448,16 +557,25 @@ function generateCancellationPolicy(): string {
  */
 function generateProviderDescription(category: string, qualifications: any): string {
   const templates = {
-    'Plomberie': 'Spécialisé en {category} avec {years} ans d\'expérience. Intervention rapide et devis gratuit.',
-    'Électricité': 'Électricien professionnel certifié, {years} ans d\'expérience en installation et dépannage électrique.',
-    'Ménage': 'Service de nettoyage professionnel avec {years} ans d\'expérience, produits écologiques privilégiés.',
-    'Jardinage': 'Jardinier paysagiste avec {years} ans d\'expérience, création et entretien d\'espaces verts.',
-    'Peinture': 'Artisan peintre qualifié, {years} ans d\'expérience en peinture intérieure et extérieure.',
-    'Menuiserie': 'Menuisier ébéniste avec {years} ans d\'expérience, fabrication et pose sur mesure.'
+    Plomberie:
+      "Spécialisé en {category} avec {years} ans d'expérience. Intervention rapide et devis gratuit.",
+    Électricité:
+      "Électricien professionnel certifié, {years} ans d'expérience en installation et dépannage électrique.",
+    Ménage:
+      "Service de nettoyage professionnel avec {years} ans d'expérience, produits écologiques privilégiés.",
+    Jardinage:
+      "Jardinier paysagiste avec {years} ans d'expérience, création et entretien d'espaces verts.",
+    Peinture:
+      "Artisan peintre qualifié, {years} ans d'expérience en peinture intérieure et extérieure.",
+    Menuiserie: "Menuisier ébéniste avec {years} ans d'expérience, fabrication et pose sur mesure.",
   };
 
-  const template = templates[category as keyof typeof templates] || 'Prestataire professionnel avec {years} ans d\'expérience.';
-  return template.replace('{category}', category.toLowerCase()).replace('{years}', qualifications.yearsExperience.toString());
+  const template =
+    templates[category as keyof typeof templates] ||
+    "Prestataire professionnel avec {years} ans d'expérience.";
+  return template
+    .replace('{category}', category.toLowerCase())
+    .replace('{years}', qualifications.yearsExperience.toString());
 }
 
 /**
@@ -465,10 +583,12 @@ function generateProviderDescription(category: string, qualifications: any): str
  */
 function generateProfessionalBio(qualifications: any): string {
   const intro = `Professionnel avec ${qualifications.yearsExperience} années d'expérience`;
-  const certs = qualifications.certifications.length > 0 ? 
-    `, certifié ${qualifications.certifications.slice(0, 2).join(' et ')}` : '';
+  const certs =
+    qualifications.certifications.length > 0
+      ? `, certifié ${qualifications.certifications.slice(0, 2).join(' et ')}`
+      : '';
   const outro = '. Travail soigné et respect des délais garantis.';
-  
+
   return intro + certs + outro;
 }
 
@@ -479,7 +599,7 @@ function generateAvailabilityText(workSchedule: any): string {
   const availableDays = Object.entries(workSchedule)
     .filter(([_, schedule]: [string, any]) => schedule.available)
     .map(([day, _]) => day);
-  
+
   if (availableDays.length === 7) {
     return 'Disponible 7j/7 y compris week-ends';
   } else if (availableDays.length >= 5) {
@@ -496,7 +616,7 @@ function generatePortfolioUrls(): string[] {
   return [
     'https://exemple-portfolio.fr/galerie1',
     'https://exemple-portfolio.fr/galerie2',
-    'https://exemple-portfolio.fr/references'
+    'https://exemple-portfolio.fr/references',
   ].slice(0, faker.number.int({ min: 1, max: 3 }));
 }
 
@@ -508,10 +628,10 @@ export async function validateProviderUsers(
   logger: SeedLogger
 ): Promise<boolean> {
   logger.info('VALIDATION', '🔍 Validation des prestataires...');
-  
+
   const providers = await prisma.user.findMany({
     where: { role: UserRole.PROVIDER },
-    include: { provider: true }
+    include: { provider: true },
   });
 
   let isValid = true;
@@ -526,24 +646,31 @@ export async function validateProviderUsers(
   }
 
   // Vérifier la cohérence statut/vérification
-  const activeButNotVerified = providers.filter(provider => 
-    provider.status === UserStatus.ACTIVE && !provider.provider?.isVerified
+  const activeButNotVerified = providers.filter(
+    provider => provider.status === UserStatus.ACTIVE && !provider.provider?.isVerified
   );
-  
+
   if (activeButNotVerified.length > 0) {
-    logger.error('VALIDATION', `❌ ${activeButNotVerified.length} prestataires actifs mais non vérifiés`);
+    logger.error(
+      'VALIDATION',
+      `❌ ${activeButNotVerified.length} prestataires actifs mais non vérifiés`
+    );
     isValid = false;
   } else {
     logger.success('VALIDATION', '✅ Cohérence statut/vérification respectée');
   }
 
   // Vérifier les services obligatoires
-  const providersWithoutServices = providers.filter(provider => 
-    !provider.provider?.services || (provider.provider.services as string[]).length === 0
+  const providersWithoutServices = providers.filter(
+    provider =>
+      !provider.provider?.services || (provider.provider.services as string[]).length === 0
   );
-  
+
   if (providersWithoutServices.length > 0) {
-    logger.warning('VALIDATION', `⚠️ ${providersWithoutServices.length} prestataires sans services définis`);
+    logger.warning(
+      'VALIDATION',
+      `⚠️ ${providersWithoutServices.length} prestataires sans services définis`
+    );
   } else {
     logger.success('VALIDATION', '✅ Tous les prestataires ont des services définis');
   }
@@ -553,7 +680,10 @@ export async function validateProviderUsers(
   if (serviceTypes.size < 4) {
     logger.warning('VALIDATION', `⚠️ Faible diversité de services: ${serviceTypes.size} types`);
   } else {
-    logger.success('VALIDATION', `✅ Bonne diversité de services: ${serviceTypes.size} types différents`);
+    logger.success(
+      'VALIDATION',
+      `✅ Bonne diversité de services: ${serviceTypes.size} types différents`
+    );
   }
 
   // Vérifier les tarifs pour les prestataires actifs
@@ -568,10 +698,13 @@ export async function validateProviderUsers(
   });
 
   if (providersWithoutRates.length > 0) {
-    logger.warning('VALIDATION', `⚠️ ${providersWithoutRates.length} prestataires actifs sans tarifs définis`);
+    logger.warning(
+      'VALIDATION',
+      `⚠️ ${providersWithoutRates.length} prestataires actifs sans tarifs définis`
+    );
   } else {
     logger.success('VALIDATION', '✅ Tous les prestataires actifs ont des tarifs définis');
   }
 
   return isValid;
-} 
+}

@@ -1,19 +1,19 @@
 'use client';
 
-import { ReactNode } from 'react';
+import { type ReactNode } from 'react';
 import { OnboardingProvider } from '@/context/onboarding-context';
-import { OnboardingController } from '@/components/onboarding/onboarding-controller';
+import { useTranslations } from 'next-intl';
 
 interface OnboardingWrapperProps {
   children: ReactNode;
-  autoStart?: boolean;
 }
 
-export function OnboardingWrapper({ children, autoStart = true }: OnboardingWrapperProps) {
+export function OnboardingWrapper({ children }: OnboardingWrapperProps) {
+  const t = useTranslations();
+
   return (
-    <OnboardingProvider>
+    <OnboardingProvider t={t}>
       {children}
-      <OnboardingController autoStart={autoStart} />
     </OnboardingProvider>
   );
-}
+} 

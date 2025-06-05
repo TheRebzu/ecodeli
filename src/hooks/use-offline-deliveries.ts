@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLocalStorage } from './use-local-storage';
-import { trpc } from '@/trpc/client';
+import { api } from '@/trpc/react';
 import { toast } from 'sonner';
 import { DeliveryStatus } from '@prisma/client';
 

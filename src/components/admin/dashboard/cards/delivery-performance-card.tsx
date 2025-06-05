@@ -4,15 +4,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { AreaChart, BarChart, PieChart } from '@/components/ui/charts';
-import { 
-  Truck, 
-  Clock, 
-  CheckCircle, 
+import {
+  Truck,
+  Clock,
+  CheckCircle,
   AlertTriangle,
   MapPin,
   TrendingUp,
   Activity,
-  Timer
+  Timer,
 } from 'lucide-react';
 import { generateChartColors } from '@/lib/utils';
 
@@ -66,28 +66,37 @@ export function DeliveryPerformanceCard({
   className = '',
 }: DeliveryPerformanceCardProps) {
   // Calculs automatiques
-  const calculatedTotalDeliveries = totalDeliveries ?? data.reduce((sum, item) => sum + item.total, 0);
+  const calculatedTotalDeliveries =
+    totalDeliveries ?? data.reduce((sum, item) => sum + item.total, 0);
   const calculatedOnTimeDeliveries = data.reduce((sum, item) => sum + item.onTime, 0);
-  const calculatedOnTimePercentage = onTimePercentage ?? (
-    calculatedTotalDeliveries > 0 ? (calculatedOnTimeDeliveries / calculatedTotalDeliveries) * 100 : 0
-  );
-  
-  const calculatedAverageTime = averageDeliveryTime ?? (
-    data.length > 0 ? data.reduce((sum, item) => sum + item.averageTime, 0) / data.length : 0
-  );
+  const calculatedOnTimePercentage =
+    onTimePercentage ??
+    (calculatedTotalDeliveries > 0
+      ? (calculatedOnTimeDeliveries / calculatedTotalDeliveries) * 100
+      : 0);
 
-  const calculatedPerformanceGrowth = performanceGrowth ?? (() => {
-    if (data.length < 2) return 0;
-    const currentWeek = data.slice(-7);
-    const previousWeek = data.slice(-14, -7);
-    
-    const currentOnTimeRate = currentWeek.reduce((sum, item) => sum + item.onTime, 0) / 
-                              currentWeek.reduce((sum, item) => sum + item.total, 0) * 100;
-    const previousOnTimeRate = previousWeek.reduce((sum, item) => sum + item.onTime, 0) / 
-                               previousWeek.reduce((sum, item) => sum + item.total, 0) * 100;
-    
-    return currentOnTimeRate - previousOnTimeRate;
-  })();
+  const calculatedAverageTime =
+    averageDeliveryTime ??
+    (data.length > 0 ? data.reduce((sum, item) => sum + item.averageTime, 0) / data.length : 0);
+
+  const calculatedPerformanceGrowth =
+    performanceGrowth ??
+    (() => {
+      if (data.length < 2) return 0;
+      const currentWeek = data.slice(-7);
+      const previousWeek = data.slice(-14, -7);
+
+      const currentOnTimeRate =
+        (currentWeek.reduce((sum, item) => sum + item.onTime, 0) /
+          currentWeek.reduce((sum, item) => sum + item.total, 0)) *
+        100;
+      const previousOnTimeRate =
+        (previousWeek.reduce((sum, item) => sum + item.onTime, 0) /
+          previousWeek.reduce((sum, item) => sum + item.total, 0)) *
+        100;
+
+      return currentOnTimeRate - previousOnTimeRate;
+    })();
 
   // Données pour les graphiques
   const performanceChartData = data.map(item => ({
@@ -97,11 +106,22 @@ export function DeliveryPerformanceCard({
     total: item.total,
   }));
 
-  const statusData = data.length > 0 ? [
-    { status: 'À temps', count: calculatedOnTimeDeliveries, color: '#22c55e' },
-    { status: 'En retard', count: data.reduce((sum, item) => sum + item.delayed, 0), color: '#f59e0b' },
-    { status: 'Échec', count: data.reduce((sum, item) => sum + item.failed, 0), color: '#ef4444' },
-  ] : [];
+  const statusData =
+    data.length > 0
+      ? [
+          { status: 'À temps', count: calculatedOnTimeDeliveries, color: '#22c55e' },
+          {
+            status: 'En retard',
+            count: data.reduce((sum, item) => sum + item.delayed, 0),
+            color: '#f59e0b',
+          },
+          {
+            status: 'Échec',
+            count: data.reduce((sum, item) => sum + item.failed, 0),
+            color: '#ef4444',
+          },
+        ]
+      : [];
 
   const getPerformanceLevel = (percentage: number) => {
     if (percentage >= 95) return { label: 'Excellent', color: 'text-green-600' };
@@ -138,9 +158,7 @@ export function DeliveryPerformanceCard({
                 <p className="text-sm text-muted-foreground">Taux de ponctualité</p>
               </div>
               <p className="text-2xl font-bold">{calculatedOnTimePercentage.toFixed(1)}%</p>
-              <p className={`text-xs ${performanceLevel.color}`}>
-                {performanceLevel.label}
-              </p>
+              <p className={`text-xs ${performanceLevel.color}`}>{performanceLevel.label}</p>
             </div>
             <div>
               <div className="flex items-center gap-2 mb-1">
@@ -161,7 +179,7 @@ export function DeliveryPerformanceCard({
               categories={['onTimeRate']}
               index="period"
               colors={['#22c55e']}
-              valueFormatter={(value) => `${value.toFixed(1)}%`}
+              valueFormatter={value => `${value.toFixed(1)}%`}
               showLegend={false}
               showGridLines={false}
               startEndOnly={true}
@@ -179,7 +197,7 @@ export function DeliveryPerformanceCard({
                 {statusData.map((status, index) => (
                   <div key={status.status} className="text-center">
                     <div className="flex items-center justify-center gap-1 mb-1">
-                      <div 
+                      <div
                         className="w-3 h-3 rounded-full"
                         style={{ backgroundColor: status.color }}
                       />
@@ -187,9 +205,10 @@ export function DeliveryPerformanceCard({
                     </div>
                     <p className="text-lg font-semibold">{status.count}</p>
                     <p className="text-xs text-muted-foreground">
-                      {calculatedTotalDeliveries > 0 
+                      {calculatedTotalDeliveries > 0
                         ? ((status.count / calculatedTotalDeliveries) * 100).toFixed(1)
-                        : 0}%
+                        : 0}
+                      %
                     </p>
                   </div>
                 ))}
@@ -213,8 +232,14 @@ export function DeliveryPerformanceCard({
                         <span className="text-xs text-muted-foreground">
                           {Math.round(zone.averageTime)} min
                         </span>
-                        <Badge 
-                          variant={zone.onTimeRate >= 90 ? 'default' : zone.onTimeRate >= 70 ? 'secondary' : 'destructive'}
+                        <Badge
+                          variant={
+                            zone.onTimeRate >= 90
+                              ? 'default'
+                              : zone.onTimeRate >= 70
+                                ? 'secondary'
+                                : 'destructive'
+                          }
                           className="text-xs"
                         >
                           {zone.onTimeRate.toFixed(1)}%
@@ -239,9 +264,12 @@ export function DeliveryPerformanceCard({
                 {issueBreakdown.slice(0, 3).map((issue, index) => (
                   <div key={issue.issueType} className="flex justify-between items-center text-sm">
                     <div className="flex items-center gap-2">
-                      <div 
+                      <div
                         className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: issue.color || generateChartColors(issueBreakdown.length)[index] }}
+                        style={{
+                          backgroundColor:
+                            issue.color || generateChartColors(issueBreakdown.length)[index],
+                        }}
                       />
                       <span>{issue.issueType}</span>
                     </div>
@@ -263,7 +291,9 @@ export function DeliveryPerformanceCard({
             <div className="flex items-center gap-2">
               <div className="flex items-end gap-px h-6">
                 {performanceChartData.slice(-7).map((item, index) => {
-                  const maxRate = Math.max(...performanceChartData.slice(-7).map(d => d.onTimeRate));
+                  const maxRate = Math.max(
+                    ...performanceChartData.slice(-7).map(d => d.onTimeRate)
+                  );
                   const height = maxRate > 0 ? (item.onTimeRate / maxRate) * 100 : 0;
                   return (
                     <div
@@ -276,9 +306,11 @@ export function DeliveryPerformanceCard({
                   );
                 })}
               </div>
-              <span className={`text-sm font-medium ${
-                calculatedPerformanceGrowth >= 0 ? 'text-green-600' : 'text-red-600'
-              }`}>
+              <span
+                className={`text-sm font-medium ${
+                  calculatedPerformanceGrowth >= 0 ? 'text-green-600' : 'text-red-600'
+                }`}
+              >
                 {calculatedPerformanceGrowth >= 0 ? '+' : ''}
                 {calculatedPerformanceGrowth.toFixed(1)}%
               </span>

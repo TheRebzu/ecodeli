@@ -48,15 +48,15 @@ export async function seedPricingRules(
   options: SeedOptions = {}
 ): Promise<SeedResult> {
   logger.startSeed('PRICING_RULES');
-  
+
   const result: SeedResult = {
     entity: 'pricing_rules',
     created: 0,
     skipped: 0,
-    errors: 0
+    errors: 0,
   };
 
-  // Note: Cette implémentation est simulée car il n'y a pas de modèles 
+  // Note: Cette implémentation est simulée car il n'y a pas de modèles
   // PricingRule ou Promotion dans le schéma Prisma actuel
 
   logger.info('PRICING_RULES', '💰 Initialisation des règles de tarification...');
@@ -66,87 +66,87 @@ export async function seedPricingRules(
     {
       name: 'Livraison Standard Paris',
       type: 'DELIVERY',
-      basePrice: 8.50,
+      basePrice: 8.5,
       category: 'STANDARD',
       zone: 'PARIS_INTRA',
       conditions: {
         maxDistance: 5,
         maxWeight: 10,
-        timeSlot: 'STANDARD'
+        timeSlot: 'STANDARD',
       },
       multipliers: {
         urgentDelivery: 1.5,
         eveningDelivery: 1.3,
         weekendDelivery: 1.2,
-        heavyPackage: 1.4
+        heavyPackage: 1.4,
       },
       isActive: true,
       validFrom: new Date('2024-01-01'),
-      validUntil: null
+      validUntil: null,
     },
     {
       name: 'Livraison Express Paris',
       type: 'DELIVERY',
-      basePrice: 15.00,
+      basePrice: 15.0,
       category: 'EXPRESS',
       zone: 'PARIS_INTRA',
       conditions: {
         maxDistance: 5,
         maxWeight: 5,
         timeSlot: 'EXPRESS',
-        deliveryTime: '< 2h'
+        deliveryTime: '< 2h',
       },
       multipliers: {
         urgentDelivery: 1.8,
         eveningDelivery: 1.5,
-        weekendDelivery: 1.4
+        weekendDelivery: 1.4,
       },
       isActive: true,
       validFrom: new Date('2024-01-01'),
-      validUntil: null
+      validUntil: null,
     },
     {
       name: 'Livraison Banlieue',
       type: 'DELIVERY',
-      basePrice: 12.00,
+      basePrice: 12.0,
       category: 'STANDARD',
       zone: 'PARIS_PETITE_COURONNE',
       conditions: {
         maxDistance: 15,
         maxWeight: 15,
-        timeSlot: 'STANDARD'
+        timeSlot: 'STANDARD',
       },
       multipliers: {
         urgentDelivery: 1.6,
         eveningDelivery: 1.4,
         weekendDelivery: 1.3,
-        heavyPackage: 1.5
+        heavyPackage: 1.5,
       },
       isActive: true,
       validFrom: new Date('2024-01-01'),
-      validUntil: null
+      validUntil: null,
     },
     {
       name: 'Livraison Grande Couronne',
       type: 'DELIVERY',
-      basePrice: 18.00,
+      basePrice: 18.0,
       category: 'STANDARD',
       zone: 'PARIS_GRANDE_COURONNE',
       conditions: {
         maxDistance: 30,
         maxWeight: 20,
-        timeSlot: 'STANDARD'
+        timeSlot: 'STANDARD',
       },
       multipliers: {
         urgentDelivery: 1.4,
         eveningDelivery: 1.2,
         weekendDelivery: 1.1,
-        heavyPackage: 1.3
+        heavyPackage: 1.3,
       },
       isActive: true,
       validFrom: new Date('2024-01-01'),
-      validUntil: null
-    }
+      validUntil: null,
+    },
   ];
 
   // === RÈGLES DE TARIFICATION SERVICES ===
@@ -154,85 +154,85 @@ export async function seedPricingRules(
     {
       name: 'Plomberie Intervention',
       type: 'SERVICE',
-      basePrice: 45.00,
+      basePrice: 45.0,
       category: 'PLUMBING',
       zone: 'ALL',
       conditions: {
         minDuration: 1,
-        timeSlot: 'BUSINESS_HOURS'
+        timeSlot: 'BUSINESS_HOURS',
       },
       multipliers: {
         emergency: 2.0,
         eveningHours: 1.5,
         weekendHours: 1.3,
-        holidayHours: 1.8
+        holidayHours: 1.8,
       },
       isActive: true,
       validFrom: new Date('2024-01-01'),
-      validUntil: null
+      validUntil: null,
     },
     {
       name: 'Ménage Standard',
       type: 'SERVICE',
-      basePrice: 25.00,
+      basePrice: 25.0,
       category: 'CLEANING',
       zone: 'ALL',
       conditions: {
         minDuration: 2,
-        timeSlot: 'FLEXIBLE'
+        timeSlot: 'FLEXIBLE',
       },
       multipliers: {
         deepCleaning: 1.5,
         movingCleaning: 1.8,
         windowCleaning: 1.3,
-        weekendHours: 1.2
+        weekendHours: 1.2,
       },
       isActive: true,
       validFrom: new Date('2024-01-01'),
-      validUntil: null
+      validUntil: null,
     },
     {
       name: 'Jardinage',
       type: 'SERVICE',
-      basePrice: 30.00,
+      basePrice: 30.0,
       category: 'GARDENING',
       zone: 'ALL',
       conditions: {
         minDuration: 2,
         seasonality: 'SPRING_SUMMER',
-        timeSlot: 'DAYLIGHT'
+        timeSlot: 'DAYLIGHT',
       },
       multipliers: {
         treePruning: 1.6,
         landscaping: 2.0,
         maintenance: 1.0,
-        weekendHours: 1.1
+        weekendHours: 1.1,
       },
       isActive: true,
       validFrom: new Date('2024-03-01'),
-      validUntil: new Date('2024-10-31')
+      validUntil: new Date('2024-10-31'),
     },
     {
       name: 'Électricité',
       type: 'SERVICE',
-      basePrice: 55.00,
+      basePrice: 55.0,
       category: 'ELECTRICAL',
       zone: 'ALL',
       conditions: {
         minDuration: 1,
         certification: 'REQUIRED',
-        timeSlot: 'BUSINESS_HOURS'
+        timeSlot: 'BUSINESS_HOURS',
       },
       multipliers: {
         emergency: 2.5,
         eveningHours: 1.8,
         complexInstallation: 1.4,
-        safetyRisk: 1.5
+        safetyRisk: 1.5,
       },
       isActive: true,
       validFrom: new Date('2024-01-01'),
-      validUntil: null
-    }
+      validUntil: null,
+    },
   ];
 
   // === RÈGLES DE STOCKAGE ===
@@ -240,43 +240,43 @@ export async function seedPricingRules(
     {
       name: 'Box Standard Mensuel',
       type: 'STORAGE',
-      basePrice: 8.00,
+      basePrice: 8.0,
       category: 'STANDARD',
       zone: 'ALL',
       conditions: {
         minRental: 30,
-        boxType: 'STANDARD'
+        boxType: 'STANDARD',
       },
       multipliers: {
         longTermDiscount6Months: 0.9,
         longTermDiscount12Months: 0.8,
         climateControl: 1.3,
-        securityUpgrade: 1.2
+        securityUpgrade: 1.2,
       },
       isActive: true,
       validFrom: new Date('2024-01-01'),
-      validUntil: null
+      validUntil: null,
     },
     {
       name: 'Box Premium Mensuel',
       type: 'STORAGE',
-      basePrice: 15.00,
+      basePrice: 15.0,
       category: 'PREMIUM',
       zone: 'ALL',
       conditions: {
         minRental: 30,
-        boxType: 'CLIMATE_CONTROLLED'
+        boxType: 'CLIMATE_CONTROLLED',
       },
       multipliers: {
         longTermDiscount6Months: 0.85,
         longTermDiscount12Months: 0.75,
         refrigeration: 1.8,
-        fragileHandling: 1.4
+        fragileHandling: 1.4,
       },
       isActive: true,
       validFrom: new Date('2024-01-01'),
-      validUntil: null
-    }
+      validUntil: null,
+    },
   ];
 
   // === RÈGLES DE COMMISSION ===
@@ -289,16 +289,16 @@ export async function seedPricingRules(
       zone: 'ALL',
       conditions: {
         minMonthlyDeliveries: 0,
-        partnerLevel: 'STANDARD'
+        partnerLevel: 'STANDARD',
       },
       multipliers: {
         premiumPartner: 0.8,
         highVolumeDiscount: 0.9,
-        newPartnerBonus: 0.7
+        newPartnerBonus: 0.7,
       },
       isActive: true,
       validFrom: new Date('2024-01-01'),
-      validUntil: null
+      validUntil: null,
     },
     {
       name: 'Commission Service',
@@ -308,17 +308,17 @@ export async function seedPricingRules(
       zone: 'ALL',
       conditions: {
         minMonthlyServices: 0,
-        partnerLevel: 'STANDARD'
+        partnerLevel: 'STANDARD',
       },
       multipliers: {
         certifiedProvider: 0.85,
         premiumPartner: 0.8,
-        newPartnerBonus: 0.75
+        newPartnerBonus: 0.75,
       },
       isActive: true,
       validFrom: new Date('2024-01-01'),
-      validUntil: null
-    }
+      validUntil: null,
+    },
   ];
 
   // === PROMOTIONS ACTIVES ===
@@ -336,12 +336,12 @@ export async function seedPricingRules(
       validFrom: new Date('2024-01-01'),
       validUntil: new Date('2024-12-31'),
       targetRoles: [UserRole.CLIENT],
-      isActive: true
+      isActive: true,
     },
     {
       code: 'DELIVERY5',
       name: 'Livraison Gratuite',
-      description: 'Livraison gratuite dès 25€ d\'achat',
+      description: "Livraison gratuite dès 25€ d'achat",
       type: 'FREE_DELIVERY',
       value: 0,
       minOrderAmount: 25,
@@ -351,7 +351,7 @@ export async function seedPricingRules(
       validFrom: new Date('2024-01-01'),
       validUntil: new Date('2024-06-30'),
       targetRoles: [UserRole.CLIENT],
-      isActive: true
+      isActive: true,
     },
     {
       code: 'STUDENT15',
@@ -366,7 +366,7 @@ export async function seedPricingRules(
       validFrom: new Date('2024-01-01'),
       validUntil: new Date('2024-08-31'),
       targetRoles: [UserRole.CLIENT],
-      isActive: true
+      isActive: true,
     },
     {
       code: 'BULK30',
@@ -381,7 +381,7 @@ export async function seedPricingRules(
       validFrom: new Date('2024-02-01'),
       validUntil: new Date('2024-04-30'),
       targetRoles: [UserRole.CLIENT],
-      isActive: true
+      isActive: true,
     },
     {
       code: 'STORAGE50',
@@ -396,7 +396,7 @@ export async function seedPricingRules(
       validFrom: new Date('2024-01-01'),
       validUntil: new Date('2024-12-31'),
       targetRoles: [UserRole.CLIENT],
-      isActive: true
+      isActive: true,
     },
     {
       code: 'REFERRAL10',
@@ -411,13 +411,13 @@ export async function seedPricingRules(
       validFrom: new Date('2024-01-01'),
       validUntil: new Date('2024-12-31'),
       targetRoles: [UserRole.CLIENT],
-      isActive: true
-    }
+      isActive: true,
+    },
   ];
 
   // Simuler la création des règles de tarification
   logger.info('PRICING_RULES', '📋 Configuration des règles de tarification...');
-  
+
   let totalRules = 0;
   const rulesByCategory: Record<string, number> = {};
 
@@ -426,26 +426,23 @@ export async function seedPricingRules(
     ...DELIVERY_PRICING_RULES,
     ...SERVICE_PRICING_RULES,
     ...STORAGE_PRICING_RULES,
-    ...COMMISSION_RULES
+    ...COMMISSION_RULES,
   ];
 
   for (const rule of allRules) {
     try {
       // Simuler l'enregistrement de la règle
       logger.database('PRICING_RULE', rule.name, 1);
-      
+
       totalRules++;
       result.created++;
-      
+
       // Compter par catégorie
       rulesByCategory[rule.type] = (rulesByCategory[rule.type] || 0) + 1;
-      
-      if (options.verbose) {
-        logger.success('PRICING_RULES', 
-          `✅ ${rule.name}: ${rule.basePrice}€ base (${rule.zone})`
-        );
-      }
 
+      if (options.verbose) {
+        logger.success('PRICING_RULES', `✅ ${rule.name}: ${rule.basePrice}€ base (${rule.zone})`);
+      }
     } catch (error: any) {
       logger.error('PRICING_RULES', `❌ Erreur règle ${rule.name}: ${error.message}`);
       result.errors++;
@@ -454,7 +451,7 @@ export async function seedPricingRules(
 
   // Simuler la création des promotions
   logger.info('PRICING_RULES', '🎯 Configuration des promotions...');
-  
+
   let totalPromotions = 0;
   const promotionsByType: Record<string, number> = {};
 
@@ -462,20 +459,20 @@ export async function seedPricingRules(
     try {
       // Simuler l'enregistrement de la promotion
       logger.database('PROMOTION', promotion.code, 1);
-      
+
       totalPromotions++;
       result.created++;
-      
+
       // Compter par type
       promotionsByType[promotion.type] = (promotionsByType[promotion.type] || 0) + 1;
-      
+
       if (options.verbose) {
         const usage = `${promotion.currentUsage}/${promotion.usageLimit}`;
-        logger.success('PRICING_RULES', 
+        logger.success(
+          'PRICING_RULES',
           `✅ ${promotion.code}: ${promotion.value}${promotion.type === 'PERCENTAGE' ? '%' : '€'} (${usage})`
         );
       }
-
     } catch (error: any) {
       logger.error('PRICING_RULES', `❌ Erreur promotion ${promotion.code}: ${error.message}`);
       result.errors++;
@@ -499,9 +496,17 @@ export async function seedPricingRules(
   // Validation
   const expectedTotal = allRules.length + ACTIVE_PROMOTIONS.length;
   if (totalRules + totalPromotions >= expectedTotal - result.errors) {
-    logger.validation('PRICING_RULES', 'PASSED', `${totalRules + totalPromotions} éléments tarifaires créés`);
+    logger.validation(
+      'PRICING_RULES',
+      'PASSED',
+      `${totalRules + totalPromotions} éléments tarifaires créés`
+    );
   } else {
-    logger.validation('PRICING_RULES', 'FAILED', `Attendu: ${expectedTotal}, Créé: ${totalRules + totalPromotions}`);
+    logger.validation(
+      'PRICING_RULES',
+      'FAILED',
+      `Attendu: ${expectedTotal}, Créé: ${totalRules + totalPromotions}`
+    );
   }
 
   logger.endSeed('PRICING_RULES', result);
@@ -517,47 +522,53 @@ async function generatePricingAnalysis(
   promotions: Promotion[]
 ): Promise<void> {
   logger.info('PRICING_ANALYSIS', '📊 Analyse des tarifs...');
-  
+
   // Analyse des prix de base
   const deliveryRules = rules.filter(r => r.type === 'DELIVERY');
   const serviceRules = rules.filter(r => r.type === 'SERVICE');
   const storageRules = rules.filter(r => r.type === 'STORAGE');
-  
+
   if (deliveryRules.length > 0) {
-    const avgDeliveryPrice = deliveryRules.reduce((sum, r) => sum + r.basePrice, 0) / deliveryRules.length;
+    const avgDeliveryPrice =
+      deliveryRules.reduce((sum, r) => sum + r.basePrice, 0) / deliveryRules.length;
     const minDeliveryPrice = Math.min(...deliveryRules.map(r => r.basePrice));
     const maxDeliveryPrice = Math.max(...deliveryRules.map(r => r.basePrice));
-    
-    logger.info('PRICING_ANALYSIS', 
+
+    logger.info(
+      'PRICING_ANALYSIS',
       `🚚 Livraisons: ${minDeliveryPrice}€ - ${maxDeliveryPrice}€ (moy: ${avgDeliveryPrice.toFixed(2)}€)`
     );
   }
-  
+
   if (serviceRules.length > 0) {
-    const avgServicePrice = serviceRules.reduce((sum, r) => sum + r.basePrice, 0) / serviceRules.length;
+    const avgServicePrice =
+      serviceRules.reduce((sum, r) => sum + r.basePrice, 0) / serviceRules.length;
     const minServicePrice = Math.min(...serviceRules.map(r => r.basePrice));
     const maxServicePrice = Math.max(...serviceRules.map(r => r.basePrice));
-    
-    logger.info('PRICING_ANALYSIS', 
+
+    logger.info(
+      'PRICING_ANALYSIS',
       `🔧 Services: ${minServicePrice}€ - ${maxServicePrice}€ (moy: ${avgServicePrice.toFixed(2)}€/h)`
     );
   }
-  
+
   if (storageRules.length > 0) {
-    const avgStoragePrice = storageRules.reduce((sum, r) => sum + r.basePrice, 0) / storageRules.length;
-    
-    logger.info('PRICING_ANALYSIS', 
-      `📦 Stockage: ${avgStoragePrice.toFixed(2)}€/jour en moyenne`
-    );
+    const avgStoragePrice =
+      storageRules.reduce((sum, r) => sum + r.basePrice, 0) / storageRules.length;
+
+    logger.info('PRICING_ANALYSIS', `📦 Stockage: ${avgStoragePrice.toFixed(2)}€/jour en moyenne`);
   }
-  
+
   // Analyse des promotions
-  const activePromotions = promotions.filter(p => p.isActive && new Date() >= p.validFrom && new Date() <= p.validUntil);
+  const activePromotions = promotions.filter(
+    p => p.isActive && new Date() >= p.validFrom && new Date() <= p.validUntil
+  );
   const totalPromotionUsage = promotions.reduce((sum, p) => sum + p.currentUsage, 0);
   const totalPromotionLimit = promotions.reduce((sum, p) => sum + p.usageLimit, 0);
   const usageRate = ((totalPromotionUsage / totalPromotionLimit) * 100).toFixed(1);
-  
-  logger.info('PRICING_ANALYSIS', 
+
+  logger.info(
+    'PRICING_ANALYSIS',
     `🎁 Promotions actives: ${activePromotions.length}/${promotions.length} (taux utilisation: ${usageRate}%)`
   );
 }
@@ -570,30 +581,34 @@ async function simulatePricingCalculations(
   rules: PricingRule[]
 ): Promise<void> {
   logger.info('PRICING_SIMULATION', '🧮 Simulation de calculs tarifaires...');
-  
+
   // Simulation livraison urgente Paris
   const parisExpressRule = rules.find(r => r.name === 'Livraison Express Paris');
   if (parisExpressRule) {
     const urgentPrice = parisExpressRule.basePrice * parisExpressRule.multipliers.urgentDelivery;
-    logger.info('PRICING_SIMULATION', 
+    logger.info(
+      'PRICING_SIMULATION',
       `📦 Livraison urgente Paris: ${parisExpressRule.basePrice}€ × ${parisExpressRule.multipliers.urgentDelivery} = ${urgentPrice}€`
     );
   }
-  
+
   // Simulation service plomberie urgence
   const plumbingRule = rules.find(r => r.name === 'Plomberie Intervention');
   if (plumbingRule) {
     const emergencyPrice = plumbingRule.basePrice * plumbingRule.multipliers.emergency;
-    logger.info('PRICING_SIMULATION', 
+    logger.info(
+      'PRICING_SIMULATION',
       `🔧 Plomberie urgence: ${plumbingRule.basePrice}€ × ${plumbingRule.multipliers.emergency} = ${emergencyPrice}€/h`
     );
   }
-  
+
   // Simulation stockage long terme
   const storageRule = rules.find(r => r.name === 'Box Standard Mensuel');
   if (storageRule) {
-    const longTermPrice = storageRule.basePrice * storageRule.multipliers.longTermDiscount12Months * 30; // mensuel
-    logger.info('PRICING_SIMULATION', 
+    const longTermPrice =
+      storageRule.basePrice * storageRule.multipliers.longTermDiscount12Months * 30; // mensuel
+    logger.info(
+      'PRICING_SIMULATION',
       `📦 Stockage 12 mois: ${storageRule.basePrice}€ × ${storageRule.multipliers.longTermDiscount12Months} × 30j = ${longTermPrice.toFixed(2)}€/mois`
     );
   }
@@ -602,39 +617,45 @@ async function simulatePricingCalculations(
 /**
  * Analyse les performances des promotions
  */
-async function analyzePromotions(
-  logger: SeedLogger,
-  promotions: Promotion[]
-): Promise<void> {
+async function analyzePromotions(logger: SeedLogger, promotions: Promotion[]): Promise<void> {
   logger.info('PROMOTION_ANALYSIS', '🎯 Analyse des promotions...');
-  
+
   // Promotions les plus utilisées
   const sortedByUsage = [...promotions].sort((a, b) => b.currentUsage - a.currentUsage);
   const topPromotions = sortedByUsage.slice(0, 3);
-  
+
   logger.info('PROMOTION_ANALYSIS', '🏆 Top 3 des promotions utilisées:');
   topPromotions.forEach((promo, index) => {
     const usageRate = ((promo.currentUsage / promo.usageLimit) * 100).toFixed(1);
-    logger.info('PROMOTION_ANALYSIS', 
+    logger.info(
+      'PROMOTION_ANALYSIS',
       `   ${index + 1}. ${promo.code}: ${promo.currentUsage} utilisations (${usageRate}%)`
     );
   });
-  
+
   // Promotions sur le point d'expirer
   const soonToExpire = promotions.filter(p => {
-    const daysUntilExpiry = Math.ceil((p.validUntil.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+    const daysUntilExpiry = Math.ceil(
+      (p.validUntil.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+    );
     return daysUntilExpiry <= 30 && daysUntilExpiry > 0;
   });
-  
+
   if (soonToExpire.length > 0) {
-    logger.warning('PROMOTION_ANALYSIS', `⏰ ${soonToExpire.length} promotions expirent dans les 30 jours`);
+    logger.warning(
+      'PROMOTION_ANALYSIS',
+      `⏰ ${soonToExpire.length} promotions expirent dans les 30 jours`
+    );
   }
-  
+
   // Promotions sous-utilisées
-  const underUsed = promotions.filter(p => (p.currentUsage / p.usageLimit) < 0.1); // Moins de 10% d'utilisation
-  
+  const underUsed = promotions.filter(p => p.currentUsage / p.usageLimit < 0.1); // Moins de 10% d'utilisation
+
   if (underUsed.length > 0) {
-    logger.warning('PROMOTION_ANALYSIS', `📉 ${underUsed.length} promotions sous-utilisées (< 10%)`);
+    logger.warning(
+      'PROMOTION_ANALYSIS',
+      `📉 ${underUsed.length} promotions sous-utilisées (< 10%)`
+    );
   }
 }
 
@@ -646,10 +667,13 @@ export async function validatePricingRules(
   logger: SeedLogger
 ): Promise<boolean> {
   logger.info('VALIDATION', '🔍 Validation des règles de tarification...');
-  
+
   // Cette validation est simulée car il n'y a pas de modèles correspondants
   logger.success('VALIDATION', '✅ Règles de tarification validées (simulation)');
-  logger.info('VALIDATION', '📝 Note: Les règles tarifaires sont simulées car aucun modèle correspondant n\'existe dans le schéma Prisma');
-  
+  logger.info(
+    'VALIDATION',
+    "📝 Note: Les règles tarifaires sont simulées car aucun modèle correspondant n'existe dans le schéma Prisma"
+  );
+
   return true;
-} 
+}

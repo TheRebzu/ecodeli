@@ -154,7 +154,8 @@ export class DocumentService {
    */
   async uploadDocument(params: UploadDocumentParams) {
     try {
-      const { userId, type, filename, fileUrl, mimeType, fileSize, notes, expiryDate, userRole } = params;
+      const { userId, type, filename, fileUrl, mimeType, fileSize, notes, expiryDate, userRole } =
+        params;
 
       // Vérifier si l'utilisateur existe
       const user = await this.prisma.user.findUnique({
@@ -327,7 +328,7 @@ export class DocumentService {
   async getUserDocuments(userId: string) {
     try {
       console.log(`Récupération des documents pour l'utilisateur ${userId}`);
-      
+
       const documents = await this.prisma.document.findMany({
         where: { userId },
         orderBy: { uploadedAt: 'desc' },
@@ -355,13 +356,17 @@ export class DocumentService {
       });
 
       console.log(`${documents.length} documents trouvés pour l'utilisateur ${userId}`);
-      
+
       // Assurer la compatibilité avec l'interface attendue par le frontend
       return documents.map(doc => ({
         ...doc,
         verificationStatus: doc.verifications[0]?.status || doc.verificationStatus || 'PENDING',
-        status: doc.status || doc.verificationStatus || (doc.verifications[0]?.status as any) || 'PENDING',
-        createdAt: doc.uploadedAt
+        status:
+          doc.status ||
+          doc.verificationStatus ||
+          (doc.verifications[0]?.status as any) ||
+          'PENDING',
+        createdAt: doc.uploadedAt,
       }));
     } catch (error) {
       console.error(`Erreur lors de la récupération des documents: ${error}`);
@@ -376,11 +381,11 @@ export class DocumentService {
   async getUserDocumentsWithStatus(userId: string, userRole?: UserRole) {
     try {
       console.log(`Récupération des documents avec statut pour l'utilisateur ${userId}`);
-      
+
       const documents = await this.prisma.document.findMany({
-        where: { 
+        where: {
           userId,
-          ...(userRole ? { userRole } : {})
+          ...(userRole ? { userRole } : {}),
         },
         orderBy: { uploadedAt: 'desc' },
         include: {
@@ -406,25 +411,24 @@ export class DocumentService {
           },
         },
       });
-      
+
       // Amélioration: Ajoute des informations dérivées pour chaque document
       return documents.map(doc => {
         // Détermine le statut effectif en fonction du statut et de la date d'expiration
         const isExpired = doc.expiryDate ? new Date(doc.expiryDate) < new Date() : false;
-        const lastVerification = doc.verifications && doc.verifications.length > 0 
-          ? doc.verifications[0] 
-          : null;
-        
+        const lastVerification =
+          doc.verifications && doc.verifications.length > 0 ? doc.verifications[0] : null;
+
         let effectiveStatus = doc.verificationStatus;
-        
+
         // Si le document est expiré, remplacer le statut par EXPIRED
         if (isExpired && effectiveStatus === 'APPROVED') {
           effectiveStatus = 'EXPIRED';
         }
-        
+
         // Détermine le badge à afficher en fonction du statut
         const statusInfo = this.getStatusBadgeProps(effectiveStatus);
-        
+
         return {
           ...doc,
           effectiveStatus,
@@ -439,7 +443,7 @@ export class DocumentService {
       throw error;
     }
   }
-  
+
   /**
    * Obtient les propriétés d'affichage pour un statut de document (badge)
    */
@@ -468,7 +472,7 @@ export class DocumentService {
 
     if (userRole) {
       where.user = {
-        role: userRole
+        role: userRole,
       };
     }
 
@@ -604,7 +608,8 @@ export class DocumentService {
         verificationStatus,
         verifiedBy: adminId,
         verifiedAt: new Date(),
-        rejectionReason: verificationStatus === VerificationStatus.REJECTED ? rejectionReason : null,
+        rejectionReason:
+          verificationStatus === VerificationStatus.REJECTED ? rejectionReason : null,
         isVerified: verificationStatus === VerificationStatus.APPROVED,
       },
       include: { user: true },
@@ -675,7 +680,7 @@ export class DocumentService {
 
   /**
    * Récupère tous les documents d'un utilisateur
-   */  static async getUserDocuments(userId: string): Promise<Document[]> {
+   */ static async getUserDocuments(userId: string): Promise<Document[]> {
     try {
       const documents = await db.document.findMany({
         where: { userId },
@@ -707,8 +712,12 @@ export class DocumentService {
       return documents.map(doc => ({
         ...doc,
         verificationStatus: doc.verifications?.[0]?.status || doc.verificationStatus || 'PENDING',
-        status: doc.status || doc.verificationStatus || (doc.verifications?.[0]?.status as any) || 'PENDING',
-        createdAt: doc.uploadedAt
+        status:
+          doc.status ||
+          doc.verificationStatus ||
+          (doc.verifications?.[0]?.status as any) ||
+          'PENDING',
+        createdAt: doc.uploadedAt,
       }));
     } catch (error) {
       console.error('Erreur lors de la récupération des documents:', error);
@@ -777,12 +786,12 @@ export class DocumentService {
           code: 'BAD_REQUEST',
           message: 'Ce document a déjà été traité',
         });
-      }      // Mise à jour du document avec status et verificationStatus pour être cohérent avec le frontend
+      } // Mise à jour du document avec status et verificationStatus pour être cohérent avec le frontend
       const updatedDocument = await db.document.update({
         where: { id: documentId },
         data: {
           status,
-          verificationStatus: status as unknown as VerificationStatus, // Ajouter verificationStatus 
+          verificationStatus: status as unknown as VerificationStatus, // Ajouter verificationStatus
           rejectionReason: status === 'REJECTED' ? rejectionReason : null,
           reviewedBy: adminId,
           reviewedAt: new Date(),
@@ -792,7 +801,8 @@ export class DocumentService {
 
       // Envoyer une notification à l'utilisateur
       const emailService = new EmailService();
-      const userEmail = existingDocument.user.email;      if (userEmail) {
+      const userEmail = existingDocument.user.email;
+      if (userEmail) {
         if (status === 'APPROVED') {
           await emailService.sendDocumentApprovedEmail(
             userEmail,
@@ -829,7 +839,8 @@ export class DocumentService {
    * Crée un nouveau document
    */
   static async createDocument(input: DocumentCreateInput): Promise<Document> {
-    try {      const document = await db.document.create({
+    try {
+      const document = await db.document.create({
         data: {
           type: input.type,
           filePath: input.filePath,
@@ -935,7 +946,8 @@ export class DocumentService {
             data: { status: 'ACTIVE' },
           });
         }
-      } else if (userRole === 'PROVIDER') {        // Documents requis pour les prestataires
+      } else if (userRole === 'PROVIDER') {
+        // Documents requis pour les prestataires
         const requiredDocumentTypes = [
           'ID_CARD',
           'QUALIFICATION_CERTIFICATE',
@@ -974,19 +986,19 @@ export class DocumentService {
   private static getDocumentTypeName(type: DocumentType): string {
     // Import dynamiquement depuis le module partagé pour éviter les dépendances circulaires
     const { documentTypeNames } = require('@/lib/document-utils');
-    
+
     // Vérifier si le type existe dans le mapping
     if (documentTypeNames[type]) {
       return documentTypeNames[type];
     }
-    
+
     // Fallback pour les types qui ne sont plus dans l'enum actuel
     const legacyTypes: Record<string, string> = {
-      'DRIVER_LICENSE': 'Permis de conduire',
-      'CRIMINAL_RECORD': 'Casier judiciaire',
-      'PROFESSIONAL_CERTIFICATION': 'Certification professionnelle',
+      DRIVER_LICENSE: 'Permis de conduire',
+      CRIMINAL_RECORD: 'Casier judiciaire',
+      PROFESSIONAL_CERTIFICATION: 'Certification professionnelle',
     };
-    
+
     return legacyTypes[type as string] || 'Document';
   }
 
@@ -1206,7 +1218,7 @@ export class DocumentService {
 
     if (userRole) {
       where.user = {
-        role: userRole
+        role: userRole,
       };
     }
 
@@ -1240,7 +1252,7 @@ export class DocumentService {
     return documents.map(doc => ({
       ...doc,
       status: doc.verificationStatus,
-      createdAt: doc.uploadedAt
+      createdAt: doc.uploadedAt,
     }));
   }
 }

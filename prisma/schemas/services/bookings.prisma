@@ -34,6 +34,7 @@ model ServiceBooking {
   review          ServiceReview?
   rescheduledTo   ServiceBooking[] @relation("BookingReschedule")
   originalBooking ServiceBooking?  @relation("BookingReschedule", fields: [rescheduledFrom], references: [id])
+  appointments    ClientAppointment[] // Rendez-vous liés à cette réservation
 
   @@index([clientId])
   @@index([providerId])
@@ -42,6 +43,8 @@ model ServiceBooking {
   @@index([status])
   @@index([startTime])
 }
+
+
 
 /// Évaluation d'un service après réservation
 model ServiceReview {

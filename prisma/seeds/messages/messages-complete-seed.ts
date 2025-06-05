@@ -6,7 +6,10 @@ import { SeedResult, SeedOptions } from '../utils/seed-helpers';
 import { seedConversations, validateConversations } from './conversations-seed';
 import { seedMessages, validateMessages } from './messages-seed';
 import { seedMessageTemplates, validateMessageTemplates } from './message-templates-seed';
-import { seedCommunicationPreferences, validateCommunicationPreferences } from './communication-preferences-seed';
+import {
+  seedCommunicationPreferences,
+  validateCommunicationPreferences,
+} from './communication-preferences-seed';
 import { seedNotificationHistory, validateNotificationHistory } from './notification-history-seed';
 
 /**
@@ -49,10 +52,13 @@ export async function seedMessagingSystemComplete(
   options: MessagingOptions = {}
 ): Promise<MessagingSystemResult> {
   const startTime = Date.now();
-  
-  logger.info('MESSAGING_SYSTEM', '🚀 Démarrage de l\'orchestrateur du système de messagerie EcoDeli');
+
+  logger.info(
+    'MESSAGING_SYSTEM',
+    "🚀 Démarrage de l'orchestrateur du système de messagerie EcoDeli"
+  );
   logger.info('MESSAGING_SYSTEM', `⚙️ Mode: ${options.mode || 'standard'}`);
-  
+
   const result: MessagingSystemResult = {
     phase: 'INITIALISATION',
     success: false,
@@ -60,22 +66,27 @@ export async function seedMessagingSystemComplete(
       conversations: { entity: 'conversations', created: 0, skipped: 0, errors: 0 },
       messages: { entity: 'messages', created: 0, skipped: 0, errors: 0 },
       messageTemplates: { entity: 'message_templates', created: 0, skipped: 0, errors: 0 },
-      communicationPreferences: { entity: 'communication_preferences', created: 0, skipped: 0, errors: 0 },
-      notificationHistory: { entity: 'notification_history', created: 0, skipped: 0, errors: 0 }
+      communicationPreferences: {
+        entity: 'communication_preferences',
+        created: 0,
+        skipped: 0,
+        errors: 0,
+      },
+      notificationHistory: { entity: 'notification_history', created: 0, skipped: 0, errors: 0 },
     },
     summary: {
       totalCreated: 0,
       totalErrors: 0,
       executionTime: 0,
-      validationPassed: false
-    }
+      validationPassed: false,
+    },
   };
 
   try {
     // Phase 1: Vérification des prérequis
     result.phase = 'VERIFICATION_PREREQUISITES';
     logger.info('MESSAGING_SYSTEM', '🔍 Phase 1: Vérification des prérequis...');
-    
+
     const prerequisitesCheck = await checkPrerequisites(prisma, logger);
     if (!prerequisitesCheck.success) {
       throw new Error(`Prérequis non satisfaits: ${prerequisitesCheck.message}`);
@@ -84,25 +95,32 @@ export async function seedMessagingSystemComplete(
     // Phase 2: Templates de messages (en premier car utilisés par les autres)
     result.phase = 'MESSAGE_TEMPLATES';
     logger.info('MESSAGING_SYSTEM', '📝 Phase 2: Création des templates de messages...');
-    
+
     result.results.messageTemplates = await seedMessageTemplates(prisma, logger, options);
 
     // Phase 3: Préférences de communication
     result.phase = 'COMMUNICATION_PREFERENCES';
-    logger.info('MESSAGING_SYSTEM', '📱 Phase 3: Configuration des préférences de communication...');
-    
-    result.results.communicationPreferences = await seedCommunicationPreferences(prisma, logger, options);
+    logger.info(
+      'MESSAGING_SYSTEM',
+      '📱 Phase 3: Configuration des préférences de communication...'
+    );
+
+    result.results.communicationPreferences = await seedCommunicationPreferences(
+      prisma,
+      logger,
+      options
+    );
 
     // Phase 4: Conversations
     result.phase = 'CONVERSATIONS';
     logger.info('MESSAGING_SYSTEM', '💬 Phase 4: Création des conversations...');
-    
+
     result.results.conversations = await seedConversations(prisma, logger, options);
 
     // Phase 5: Messages (dépendent des conversations)
     result.phase = 'MESSAGES';
     logger.info('MESSAGING_SYSTEM', '✉️ Phase 5: Génération des messages...');
-    
+
     if (result.results.conversations.created > 0) {
       result.results.messages = await seedMessages(prisma, logger, options);
     } else {
@@ -112,15 +130,15 @@ export async function seedMessagingSystemComplete(
 
     // Phase 6: Historique des notifications
     result.phase = 'NOTIFICATION_HISTORY';
-    logger.info('MESSAGING_SYSTEM', '📊 Phase 6: Génération de l\'historique des notifications...');
-    
+    logger.info('MESSAGING_SYSTEM', "📊 Phase 6: Génération de l'historique des notifications...");
+
     result.results.notificationHistory = await seedNotificationHistory(prisma, logger, options);
 
     // Phase 7: Création de données d'exemple (optionnel)
     if (options.createSampleData) {
       result.phase = 'SAMPLE_DATA';
-      logger.info('MESSAGING_SYSTEM', '🎯 Phase 7: Création de données d\'exemple...');
-      
+      logger.info('MESSAGING_SYSTEM', "🎯 Phase 7: Création de données d'exemple...");
+
       await createSampleMessagingScenarios(prisma, logger, options);
     }
 
@@ -128,10 +146,10 @@ export async function seedMessagingSystemComplete(
     if (!options.skipValidation) {
       result.phase = 'VALIDATION';
       logger.info('MESSAGING_SYSTEM', '🔍 Phase 8: Validation globale du système...');
-      
+
       const validationResult = await performGlobalValidation(prisma, logger);
       result.summary.validationPassed = validationResult;
-      
+
       if (!validationResult) {
         logger.warning('MESSAGING_SYSTEM', '⚠️ Certaines validations ont échoué');
       } else {
@@ -143,16 +161,21 @@ export async function seedMessagingSystemComplete(
     }
 
     // Calcul des statistiques finales
-    result.summary.totalCreated = Object.values(result.results).reduce((sum, res) => sum + res.created, 0);
-    result.summary.totalErrors = Object.values(result.results).reduce((sum, res) => sum + res.errors, 0);
+    result.summary.totalCreated = Object.values(result.results).reduce(
+      (sum, res) => sum + res.created,
+      0
+    );
+    result.summary.totalErrors = Object.values(result.results).reduce(
+      (sum, res) => sum + res.errors,
+      0
+    );
     result.summary.executionTime = Date.now() - startTime;
-    
+
     result.success = result.summary.totalErrors === 0;
     result.phase = 'COMPLETED';
 
     // Rapport final
     await generateFinalReport(result, logger);
-
   } catch (error: any) {
     logger.error('MESSAGING_SYSTEM', `❌ Erreur dans la phase ${result.phase}: ${error.message}`);
     result.success = false;
@@ -160,7 +183,10 @@ export async function seedMessagingSystemComplete(
     result.summary.executionTime = Date.now() - startTime;
   }
 
-  logger.info('MESSAGING_SYSTEM', `🏁 Orchestrateur terminé - Succès: ${result.success ? '✅' : '❌'}`);
+  logger.info(
+    'MESSAGING_SYSTEM',
+    `🏁 Orchestrateur terminé - Succès: ${result.success ? '✅' : '❌'}`
+  );
   return result;
 }
 
@@ -168,7 +194,7 @@ export async function seedMessagingSystemComplete(
  * Vérifie les prérequis pour le système de messagerie
  */
 async function checkPrerequisites(
-  prisma: PrismaClient, 
+  prisma: PrismaClient,
   logger: SeedLogger
 ): Promise<{ success: boolean; message: string }> {
   try {
@@ -177,7 +203,7 @@ async function checkPrerequisites(
     if (userCount === 0) {
       return {
         success: false,
-        message: 'Aucun utilisateur trouvé. Exécuter d\'abord les seeds d\'utilisateurs.'
+        message: "Aucun utilisateur trouvé. Exécuter d'abord les seeds d'utilisateurs.",
       };
     }
 
@@ -190,17 +216,19 @@ async function checkPrerequisites(
     // Vérifier les rôles utilisateurs
     const roleDistribution = await prisma.user.groupBy({
       by: ['role'],
-      _count: { role: true }
+      _count: { role: true },
     });
 
-    logger.success('MESSAGING_SYSTEM', `✅ Distribution des rôles: ${JSON.stringify(roleDistribution)}`);
+    logger.success(
+      'MESSAGING_SYSTEM',
+      `✅ Distribution des rôles: ${JSON.stringify(roleDistribution)}`
+    );
 
     return { success: true, message: 'Tous les prérequis sont satisfaits' };
-
   } catch (error: any) {
     return {
       success: false,
-      message: `Erreur de vérification: ${error.message}`
+      message: `Erreur de vérification: ${error.message}`,
     };
   }
 }
@@ -213,45 +241,45 @@ async function createSampleMessagingScenarios(
   logger: SeedLogger,
   options: SeedOptions
 ): Promise<void> {
-  logger.info('MESSAGING_SYSTEM', '🎨 Création de scénarios d\'exemple...');
+  logger.info('MESSAGING_SYSTEM', "🎨 Création de scénarios d'exemple...");
 
   const scenarios = [
     {
       name: 'Conversation Support Urgente',
       description: 'Problème de livraison nécessitant intervention rapide',
       participants: 3,
-      messages: 8
+      messages: 8,
     },
     {
       name: 'Négociation Tarif Service',
       description: 'Discussion tarifaire entre client et prestataire',
       participants: 2,
-      messages: 12
+      messages: 12,
     },
     {
       name: 'Coordination Livraison Groupée',
-      description: 'Organisation d\'une livraison multiple avec plusieurs livreurs',
+      description: "Organisation d'une livraison multiple avec plusieurs livreurs",
       participants: 5,
-      messages: 15
+      messages: 15,
     },
     {
       name: 'Formation Nouveaux Utilisateurs',
-      description: 'Session d\'aide pour l\'onboarding',
+      description: "Session d'aide pour l'onboarding",
       participants: 4,
-      messages: 10
-    }
+      messages: 10,
+    },
   ];
 
   for (const scenario of scenarios) {
     try {
       logger.database('SAMPLE_SCENARIO', scenario.name.replace(/\s+/g, '_'), scenario.messages);
-      
+
       if (options.verbose) {
-        logger.success('MESSAGING_SYSTEM', 
+        logger.success(
+          'MESSAGING_SYSTEM',
           `✅ Scénario: ${scenario.name} (${scenario.participants} participants, ${scenario.messages} messages)`
         );
       }
-
     } catch (error: any) {
       logger.error('MESSAGING_SYSTEM', `❌ Erreur scénario ${scenario.name}: ${error.message}`);
     }
@@ -261,33 +289,30 @@ async function createSampleMessagingScenarios(
 /**
  * Effectue la validation globale du système
  */
-async function performGlobalValidation(
-  prisma: PrismaClient,
-  logger: SeedLogger
-): Promise<boolean> {
+async function performGlobalValidation(prisma: PrismaClient, logger: SeedLogger): Promise<boolean> {
   logger.info('MESSAGING_SYSTEM', '🔍 Validation globale du système de messagerie...');
 
   const validations = [
     {
       name: 'Conversations',
-      validator: () => validateConversations(prisma, logger)
+      validator: () => validateConversations(prisma, logger),
     },
     {
       name: 'Messages',
-      validator: () => validateMessages(prisma, logger)
+      validator: () => validateMessages(prisma, logger),
     },
     {
       name: 'Templates Messages',
-      validator: () => validateMessageTemplates(prisma, logger)
+      validator: () => validateMessageTemplates(prisma, logger),
     },
     {
       name: 'Préférences Communication',
-      validator: () => validateCommunicationPreferences(prisma, logger)
+      validator: () => validateCommunicationPreferences(prisma, logger),
     },
     {
       name: 'Historique Notifications',
-      validator: () => validateNotificationHistory(prisma, logger)
-    }
+      validator: () => validateNotificationHistory(prisma, logger),
+    },
   ];
 
   let allValid = true;
@@ -295,14 +320,13 @@ async function performGlobalValidation(
   for (const validation of validations) {
     try {
       const isValid = await validation.validator();
-      
+
       if (isValid) {
         logger.success('VALIDATION', `✅ ${validation.name}: Validé`);
       } else {
         logger.warning('VALIDATION', `⚠️ ${validation.name}: Échec de validation`);
         allValid = false;
       }
-
     } catch (error: any) {
       logger.error('VALIDATION', `❌ ${validation.name}: Erreur de validation - ${error.message}`);
       allValid = false;
@@ -318,11 +342,8 @@ async function performGlobalValidation(
 /**
  * Valide l'intégrité globale du système
  */
-async function validateSystemIntegrity(
-  prisma: PrismaClient,
-  logger: SeedLogger
-): Promise<void> {
-  logger.info('VALIDATION', '🔗 Validation de l\'intégrité du système...');
+async function validateSystemIntegrity(prisma: PrismaClient, logger: SeedLogger): Promise<void> {
+  logger.info('VALIDATION', "🔗 Validation de l'intégrité du système...");
 
   // Note: Validations simulées car les modèles n'existent pas dans le schéma
   logger.success('VALIDATION', '✅ Intégrité des relations validée (simulation)');
@@ -337,30 +358,37 @@ async function generateFinalReport(
   result: MessagingSystemResult,
   logger: SeedLogger
 ): Promise<void> {
-  logger.info('MESSAGING_SYSTEM', '📋 RAPPORT FINAL DE L\'ORCHESTRATEUR MESSAGERIE');
+  logger.info('MESSAGING_SYSTEM', "📋 RAPPORT FINAL DE L'ORCHESTRATEUR MESSAGERIE");
   logger.info('MESSAGING_SYSTEM', '════════════════════════════════════════════════');
-  
+
   // Résumé global
   logger.info('MESSAGING_SYSTEM', `🎯 Statut global: ${result.success ? '✅ SUCCÈS' : '❌ ÉCHEC'}`);
-  logger.info('MESSAGING_SYSTEM', `⏱️ Temps d'exécution: ${(result.summary.executionTime / 1000).toFixed(2)}s`);
+  logger.info(
+    'MESSAGING_SYSTEM',
+    `⏱️ Temps d'exécution: ${(result.summary.executionTime / 1000).toFixed(2)}s`
+  );
   logger.info('MESSAGING_SYSTEM', `📊 Total créé: ${result.summary.totalCreated} entités`);
   logger.info('MESSAGING_SYSTEM', `❌ Total erreurs: ${result.summary.totalErrors}`);
-  logger.info('MESSAGING_SYSTEM', `✅ Validation: ${result.summary.validationPassed ? 'PASSÉE' : 'ÉCHOUÉE'}`);
-  
+  logger.info(
+    'MESSAGING_SYSTEM',
+    `✅ Validation: ${result.summary.validationPassed ? 'PASSÉE' : 'ÉCHOUÉE'}`
+  );
+
   logger.info('MESSAGING_SYSTEM', '');
   logger.info('MESSAGING_SYSTEM', '📈 DÉTAIL PAR COMPOSANT:');
-  
+
   // Détail par composant
   Object.entries(result.results).forEach(([key, componentResult]) => {
     const status = componentResult.errors === 0 ? '✅' : '❌';
-    logger.info('MESSAGING_SYSTEM', 
+    logger.info(
+      'MESSAGING_SYSTEM',
       `  ${status} ${key}: ${componentResult.created} créés, ${componentResult.errors} erreurs`
     );
   });
 
   logger.info('MESSAGING_SYSTEM', '');
   logger.info('MESSAGING_SYSTEM', '🔧 INSTRUCTIONS POST-EXÉCUTION:');
-  
+
   if (result.success) {
     logger.info('MESSAGING_SYSTEM', '  ✅ Système de messagerie opérationnel');
     logger.info('MESSAGING_SYSTEM', '  📱 Conversations et messages disponibles');
@@ -368,7 +396,7 @@ async function generateFinalReport(
     logger.info('MESSAGING_SYSTEM', '  📊 Historique de notifications généré');
   } else {
     logger.info('MESSAGING_SYSTEM', '  ❌ Certains composants ont échoué');
-    logger.info('MESSAGING_SYSTEM', '  🔧 Vérifier les logs d\'erreur ci-dessus');
+    logger.info('MESSAGING_SYSTEM', "  🔧 Vérifier les logs d'erreur ci-dessus");
     logger.info('MESSAGING_SYSTEM', '  🔄 Réexécuter avec force:true si nécessaire');
   }
 
@@ -384,11 +412,11 @@ export async function quickMessagingSetup(
   logger: SeedLogger
 ): Promise<boolean> {
   logger.info('MESSAGING_SYSTEM', '⚡ Configuration rapide du système de messagerie...');
-  
+
   const result = await seedMessagingSystemComplete(prisma, logger, {
     mode: 'minimal',
     verbose: false,
-    skipValidation: true
+    skipValidation: true,
   });
 
   return result.success;
@@ -402,14 +430,14 @@ export async function extendedMessagingSetup(
   logger: SeedLogger
 ): Promise<MessagingSystemResult> {
   logger.info('MESSAGING_SYSTEM', '🚀 Configuration étendue du système de messagerie...');
-  
+
   return await seedMessagingSystemComplete(prisma, logger, {
     mode: 'extended',
     verbose: true,
     createSampleData: true,
-    skipValidation: false
+    skipValidation: false,
   });
 }
 
 // Export par défaut
-export default seedMessagingSystemComplete; 
+export default seedMessagingSystemComplete;

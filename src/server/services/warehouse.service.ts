@@ -44,11 +44,11 @@ class WarehouseService {
     try {
       const whereClause: Prisma.WarehouseWhereInput = {
         isActive: true,
-        ...(input.city && { 
+        ...(input.city && {
           OR: [
             { city: { contains: input.city, mode: 'insensitive' } },
-            { address: { contains: input.city, mode: 'insensitive' } }
-          ]
+            { address: { contains: input.city, mode: 'insensitive' } },
+          ],
         }),
       };
 
@@ -73,13 +73,15 @@ class WarehouseService {
       } else {
         warehouses = await db.warehouse.findMany({
           where: whereClause,
-          include: input.includeBoxes ? {
-            boxes: {
-              where: { isOccupied: false },
-              orderBy: { name: 'asc' }
-            }
-          } : undefined,
-          orderBy: { name: 'asc' }
+          include: input.includeBoxes
+            ? {
+                boxes: {
+                  where: { isOccupied: false },
+                  orderBy: { name: 'asc' },
+                },
+              }
+            : undefined,
+          orderBy: { name: 'asc' },
         });
       }
 
@@ -100,9 +102,9 @@ class WarehouseService {
         where: { id: warehouseId },
         include: {
           boxes: {
-            orderBy: [{ floorLevel: 'asc' }, { name: 'asc' }]
-          }
-        }
+            orderBy: [{ floorLevel: 'asc' }, { name: 'asc' }],
+          },
+        },
       });
 
       if (!warehouse) {
@@ -115,7 +117,7 @@ class WarehouseService {
       return warehouse;
     } catch (error) {
       if (error instanceof TRPCError) throw error;
-      console.error('Erreur lors de la récupération des détails de l\'entrepôt:', error);
+      console.error("Erreur lors de la récupération des détails de l'entrepôt:", error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Erreur lors de la récupération des détails',
@@ -168,14 +170,10 @@ class WarehouseService {
               id: true,
               name: true,
               address: true,
-            }
-          }
+            },
+          },
         },
-        orderBy: [
-          { floorLevel: 'asc' },
-          { pricePerDay: 'asc' },
-          { name: 'asc' }
-        ]
+        orderBy: [{ floorLevel: 'asc' }, { pricePerDay: 'asc' }, { name: 'asc' }],
       });
 
       return boxes;
@@ -214,7 +212,7 @@ class WarehouseService {
 
       return nearbyWarehouses;
     } catch (error) {
-      console.error('Erreur lors de la recherche d\'entrepôts proximité:', error);
+      console.error("Erreur lors de la recherche d'entrepôts proximité:", error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Erreur lors de la recherche par proximité',
@@ -228,8 +226,8 @@ class WarehouseService {
       const warehouse = await db.warehouse.findUnique({
         where: { id: warehouseId },
         include: {
-          boxes: true
-        }
+          boxes: true,
+        },
       });
 
       if (!warehouse) {
@@ -249,9 +247,11 @@ class WarehouseService {
         availableBoxes,
         occupiedBoxes,
         occupancyRate: Math.round(occupancyRate * 100) / 100,
-        averagePrice: warehouse.boxes.length > 0 
-          ? warehouse.boxes.reduce((sum, box) => sum + box.pricePerDay, 0) / warehouse.boxes.length
-          : 0,
+        averagePrice:
+          warehouse.boxes.length > 0
+            ? warehouse.boxes.reduce((sum, box) => sum + box.pricePerDay, 0) /
+              warehouse.boxes.length
+            : 0,
       };
 
       // Statistiques avancées pour les admins seulement
@@ -276,9 +276,10 @@ class WarehouseService {
 
         return {
           ...basicStats,
-          monthlyRevenue: Array.isArray(monthlyRevenue) && monthlyRevenue.length > 0 
-            ? Number(monthlyRevenue[0].revenue) 
-            : 0,
+          monthlyRevenue:
+            Array.isArray(monthlyRevenue) && monthlyRevenue.length > 0
+              ? Number(monthlyRevenue[0].revenue)
+              : 0,
           popularBoxTypes,
         };
       }
@@ -329,10 +330,7 @@ class WarehouseService {
 
       const availableBoxes = await db.box.findMany({
         where: whereClause,
-        orderBy: [
-          { pricePerDay: 'asc' },
-          { size: 'asc' }
-        ]
+        orderBy: [{ pricePerDay: 'asc' }, { size: 'asc' }],
       });
 
       return {
@@ -356,18 +354,18 @@ class WarehouseService {
       await db.reservation.updateMany({
         where: {
           boxId,
-          status: { in: ['PENDING', 'ACTIVE', 'EXTENDED'] }
+          status: { in: ['PENDING', 'ACTIVE', 'EXTENDED'] },
         },
         data: {
           status: 'CANCELLED',
           notes: reason ? `Annulée par admin: ${reason}` : 'Annulée par admin',
-        }
+        },
       });
 
       // Libérer la box
       await db.box.update({
         where: { id: boxId },
-        data: { isOccupied: false }
+        data: { isOccupied: false },
       });
 
       // Log de l'action admin
@@ -398,7 +396,7 @@ class WarehouseService {
 
       // Vérifier que l'entrepôt existe
       const warehouse = await db.warehouse.findUnique({
-        where: { id: warehouseId }
+        where: { id: warehouseId },
       });
 
       if (!warehouse) {
@@ -440,7 +438,7 @@ class WarehouseService {
           openingHours: true,
           contactPhone: true,
           accessInstructions: true,
-        }
+        },
       });
 
       if (!warehouse) {
@@ -467,7 +465,7 @@ class WarehouseService {
       const { warehouseId, startDate, endDate } = input;
 
       const totalBoxes = await db.box.count({
-        where: { warehouseId }
+        where: { warehouseId },
       });
 
       const reservedBoxes = await db.reservation.count({
@@ -480,7 +478,7 @@ class WarehouseService {
               endDate: { gte: startDate },
             },
           ],
-        }
+        },
       });
 
       const availableBoxes = totalBoxes - reservedBoxes;

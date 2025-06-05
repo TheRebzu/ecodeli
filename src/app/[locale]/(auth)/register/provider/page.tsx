@@ -53,7 +53,7 @@ export default async function ProviderRegisterPage({ params }: { params: { local
           <h1 className="text-2xl font-semibold tracking-tight">{t('provider.title')}</h1>
           <p className="text-sm text-muted-foreground">{t('provider.description')}</p>
         </div>
-        
+
         <ProviderRegisterForm locale={locale} />
       </div>
     </div>

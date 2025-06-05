@@ -93,11 +93,11 @@ export function PendingUserVerifications({ userRole = 'DELIVERER' }: { userRole?
         case 'QUALIFICATION_CERTIFICATE':
           return 'Certificat de qualification';
         case 'INSURANCE':
-          return "Attestation d'assurance"; 
+          return "Attestation d'assurance";
         case 'PROOF_OF_ADDRESS':
           return 'Justificatif de domicile';
         case 'BUSINESS_REGISTRATION':
-          return "Registre du commerce";
+          return 'Registre du commerce';
         default:
           return doc.type;
       }

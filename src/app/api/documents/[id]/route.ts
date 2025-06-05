@@ -32,33 +32,33 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       req: request as any,
       res: {} as any,
       info: {} as any,
-      auth: { session }
+      auth: { session },
     });
     const caller = appRouter.createCaller(ctx);
-    
+
     try {
       // Appeler la procédure tRPC
       const document = await caller.document.getDocumentById({ documentId });
-      
+
       if (!document) {
         return new NextResponse('Document non trouvé', { status: 404 });
       }
-      
+
       // Lire le fichier du document
       const filePath = document.fileUrl;
       const fullPath = path.join(process.cwd(), 'public', filePath);
-      
+
       try {
         const fileBuffer = await readFile(fullPath);
-        
+
         // Déterminer le type MIME du fichier
         const contentType = document.mimeType || 'application/octet-stream';
-        
+
         // Configurer les en-têtes pour le téléchargement
         const headers = new Headers();
         headers.set('Content-Type', contentType);
         headers.set('Content-Disposition', `inline; filename="${document.filename}"`);
-        
+
         return new NextResponse(fileBuffer, {
           status: 200,
           headers,
@@ -102,10 +102,10 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
       req: request as any,
       res: {} as any,
       info: {} as any,
-      auth: { session }
+      auth: { session },
     });
     const caller = appRouter.createCaller(ctx);
-    
+
     try {
       // Appeler la procédure tRPC
       await caller.document.deleteDocument({ documentId });
@@ -117,7 +117,7 @@ export async function DELETE(request: NextRequest, { params }: { params: { id: s
         } else if (error.code === 'FORBIDDEN') {
           return NextResponse.json({ error: 'Accès non autorisé' }, { status: 403 });
         }
-        
+
         return NextResponse.json(
           { error: error.message },
           { status: getHttpStatusFromTRPCError(error) }

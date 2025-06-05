@@ -27,29 +27,35 @@ export async function seedVerificationStates(
   options: SeedOptions = {}
 ): Promise<SeedResult> {
   logger.startSeed('VERIFICATION_STATES');
-  
+
   const result: SeedResult = {
     entity: 'verification_states',
     created: 0,
     skipped: 0,
-    errors: 0
+    errors: 0,
   };
 
   // Récupérer tous les documents existants
   const documents = await prisma.document.findMany({
-    include: { user: true }
+    include: { user: true },
   });
 
   if (documents.length === 0) {
-    logger.warning('VERIFICATION_STATES', 'Aucun document trouvé - exécuter d\'abord les seeds de documents');
+    logger.warning(
+      'VERIFICATION_STATES',
+      "Aucun document trouvé - exécuter d'abord les seeds de documents"
+    );
     return result;
   }
 
   // Vérifier si des vérifications existent déjà
   const existingVerifications = await prisma.verification.count();
-  
+
   if (existingVerifications > 0 && !options.force) {
-    logger.warning('VERIFICATION_STATES', `${existingVerifications} vérifications déjà présentes - utiliser force:true pour recréer`);
+    logger.warning(
+      'VERIFICATION_STATES',
+      `${existingVerifications} vérifications déjà présentes - utiliser force:true pour recréer`
+    );
     result.skipped = existingVerifications;
     return result;
   }
@@ -62,10 +68,10 @@ export async function seedVerificationStates(
 
   // Récupérer les admins qui peuvent faire les vérifications
   const admins = await prisma.user.findMany({
-    where: { 
+    where: {
       role: UserRole.ADMIN,
-      status: 'ACTIVE'
-    }
+      status: 'ACTIVE',
+    },
   });
 
   if (admins.length === 0) {
@@ -76,12 +82,16 @@ export async function seedVerificationStates(
 
   for (const document of documents) {
     try {
-      logger.progress('VERIFICATION_STATES', totalVerifications + 1, documents.length, 
-        `Traitement vérification: ${document.filename}`);
+      logger.progress(
+        'VERIFICATION_STATES',
+        totalVerifications + 1,
+        documents.length,
+        `Traitement vérification: ${document.filename}`
+      );
 
       // Utiliser le statut existant du document comme base
       const baseStatus = document.verificationStatus;
-      
+
       // Dates cohérentes
       const requestedAt = document.uploadedAt;
       let verifiedAt: Date | null = null;
@@ -90,13 +100,16 @@ export async function seedVerificationStates(
       let rejectionReason: string | null = null;
 
       // Si le document est traité (approuvé ou rejeté), ajouter les détails
-      if (baseStatus === VerificationStatus.APPROVED || baseStatus === VerificationStatus.REJECTED) {
+      if (
+        baseStatus === VerificationStatus.APPROVED ||
+        baseStatus === VerificationStatus.REJECTED
+      ) {
         // Vérification effectuée 1-30 jours après la soumission
         verifiedAt = faker.date.between({
           from: requestedAt,
-          to: new Date(requestedAt.getTime() + (30 * 24 * 60 * 60 * 1000))
+          to: new Date(requestedAt.getTime() + 30 * 24 * 60 * 60 * 1000),
         });
-        
+
         // Assigner un admin vérificateur
         if (admins.length > 0) {
           verifierId = getRandomElement(admins).id;
@@ -106,7 +119,8 @@ export async function seedVerificationStates(
         if (baseStatus === VerificationStatus.APPROVED) {
           notes = generateApprovalNotes(document.type, document.userRole);
         } else {
-          rejectionReason = document.rejectionReason || generateRejectionReason(document.type, document.userRole);
+          rejectionReason =
+            document.rejectionReason || generateRejectionReason(document.type, document.userRole);
           notes = `Document rejeté: ${rejectionReason}`;
         }
       } else {
@@ -124,32 +138,42 @@ export async function seedVerificationStates(
           submitterId: document.userId,
           verifierId,
           notes,
-          rejectionReason
-        }
+          rejectionReason,
+        },
       });
 
       totalVerifications++;
       result.created++;
-
     } catch (error: any) {
-      logger.error('VERIFICATION_STATES', `❌ Erreur création vérification pour ${document.filename}: ${error.message}`);
+      logger.error(
+        'VERIFICATION_STATES',
+        `❌ Erreur création vérification pour ${document.filename}: ${error.message}`
+      );
       result.errors++;
     }
   }
 
   // Validation des vérifications créées
   const finalVerifications = await prisma.verification.findMany({
-    include: { 
+    include: {
       document: true,
       submitter: true,
-      verifier: true
-    }
+      verifier: true,
+    },
   });
-  
+
   if (finalVerifications.length >= totalVerifications - result.errors) {
-    logger.validation('VERIFICATION_STATES', 'PASSED', `${finalVerifications.length} vérifications créées avec succès`);
+    logger.validation(
+      'VERIFICATION_STATES',
+      'PASSED',
+      `${finalVerifications.length} vérifications créées avec succès`
+    );
   } else {
-    logger.validation('VERIFICATION_STATES', 'FAILED', `Attendu: ${totalVerifications}, Créé: ${finalVerifications.length}`);
+    logger.validation(
+      'VERIFICATION_STATES',
+      'FAILED',
+      `Attendu: ${totalVerifications}, Créé: ${finalVerifications.length}`
+    );
   }
 
   // Statistiques par statut
@@ -181,9 +205,14 @@ export async function seedVerificationStates(
   }
 
   // Taux d'approbation
-  const approvedVerifications = finalVerifications.filter(v => v.status === VerificationStatus.APPROVED);
+  const approvedVerifications = finalVerifications.filter(
+    v => v.status === VerificationStatus.APPROVED
+  );
   const approvalRate = Math.round((approvedVerifications.length / finalVerifications.length) * 100);
-  logger.info('VERIFICATION_STATES', `✅ Taux d'approbation: ${approvalRate}% (${approvedVerifications.length}/${finalVerifications.length})`);
+  logger.info(
+    'VERIFICATION_STATES',
+    `✅ Taux d'approbation: ${approvalRate}% (${approvedVerifications.length}/${finalVerifications.length})`
+  );
 
   logger.endSeed('VERIFICATION_STATES', result);
   return result;
@@ -195,51 +224,51 @@ export async function seedVerificationStates(
 function generateApprovalNotes(docType: string, userRole: UserRole): string {
   const approvalNotes: { [role: string]: { [type: string]: string[] } } = {
     [UserRole.DELIVERER]: {
-      'ID_CARD': [
+      ID_CARD: [
         "Carte d'identité conforme et lisible",
-        "Document valide, identité vérifiée",
-        "CNI française en cours de validité"
+        'Document valide, identité vérifiée',
+        'CNI française en cours de validité',
       ],
-      'VEHICLE_REGISTRATION': [
-        "Carte grise conforme, véhicule identifié",
+      VEHICLE_REGISTRATION: [
+        'Carte grise conforme, véhicule identifié',
         "Document d'immatriculation valide",
-        "Véhicule autorisé pour livraisons"
+        'Véhicule autorisé pour livraisons',
       ],
-      'default': [
-        "Document conforme aux exigences",
-        "Vérification réussie, document validé",
-        "Toutes les informations sont correctes"
-      ]
+      default: [
+        'Document conforme aux exigences',
+        'Vérification réussie, document validé',
+        'Toutes les informations sont correctes',
+      ],
     },
     [UserRole.PROVIDER]: {
-      'QUALIFICATION_CERTIFICATE': [
-        "Certification professionnelle validée",
+      QUALIFICATION_CERTIFICATE: [
+        'Certification professionnelle validée',
         "Qualification reconnue par l'organisme",
-        "Compétences confirmées pour le service"
+        'Compétences confirmées pour le service',
       ],
-      'BUSINESS_REGISTRATION': [
-        "Kbis valide, entreprise en règle",
-        "Statut juridique conforme",
-        "Activité déclarée correspondante"
+      BUSINESS_REGISTRATION: [
+        'Kbis valide, entreprise en règle',
+        'Statut juridique conforme',
+        'Activité déclarée correspondante',
       ],
-      'default': [
-        "Document professionnel conforme",
-        "Vérification réussie",
-        "Informations d'entreprise validées"
-      ]
+      default: [
+        'Document professionnel conforme',
+        'Vérification réussie',
+        "Informations d'entreprise validées",
+      ],
     },
     [UserRole.MERCHANT]: {
-      'BUSINESS_REGISTRATION': [
-        "Kbis entreprise valide et récent",
-        "Société en règle avec activité commerciale",
-        "Statut juridique approprié pour commerce"
+      BUSINESS_REGISTRATION: [
+        'Kbis entreprise valide et récent',
+        'Société en règle avec activité commerciale',
+        'Statut juridique approprié pour commerce',
       ],
-      'default': [
-        "Document commercial conforme",
+      default: [
+        'Document commercial conforme',
         "Vérification d'entreprise réussie",
-        "Informations commerciales validées"
-      ]
-    }
+        'Informations commerciales validées',
+      ],
+    },
   };
 
   const roleNotes = approvalNotes[userRole] || approvalNotes[UserRole.CLIENT];
@@ -252,11 +281,11 @@ function generateApprovalNotes(docType: string, userRole: UserRole): string {
  */
 function generatePendingNotes(docType: string, userRole: UserRole): string {
   const pendingNotes = [
-    "Document soumis, en attente de vérification",
+    'Document soumis, en attente de vérification',
     "En cours d'examen par l'équipe de vérification",
-    "Document reçu, traitement dans les 48h",
-    "Vérification programmée, merci de patienter",
-    "Document dans la file d'attente de validation"
+    'Document reçu, traitement dans les 48h',
+    'Vérification programmée, merci de patienter',
+    "Document dans la file d'attente de validation",
   ];
 
   return getRandomElement(pendingNotes);
@@ -267,13 +296,13 @@ function generatePendingNotes(docType: string, userRole: UserRole): string {
  */
 function generateRejectionReason(docType: string, userRole: UserRole): string {
   const genericReasons = [
-    "Document illisible ou de mauvaise qualité",
-    "Informations incomplètes",
-    "Document expiré",
-    "Format non supporté",
-    "Document non conforme aux exigences",
-    "Informations non vérifiables",
-    "Qualité d'image insuffisante"
+    'Document illisible ou de mauvaise qualité',
+    'Informations incomplètes',
+    'Document expiré',
+    'Format non supporté',
+    'Document non conforme aux exigences',
+    'Informations non vérifiables',
+    "Qualité d'image insuffisante",
   ];
 
   return getRandomElement(genericReasons);
@@ -287,16 +316,16 @@ export async function validateVerificationStates(
   logger: SeedLogger
 ): Promise<boolean> {
   logger.info('VALIDATION', '🔍 Validation des états de vérification...');
-  
+
   let isValid = true;
 
   // Vérifier que toutes les vérifications ont des documents associés
   const verifications = await prisma.verification.findMany({
-    include: { 
+    include: {
       document: true,
       submitter: true,
-      verifier: true
-    }
+      verifier: true,
+    },
   });
 
   const documentsCount = await prisma.document.count();
@@ -305,23 +334,28 @@ export async function validateVerificationStates(
     logger.error('VALIDATION', '❌ Aucune vérification trouvée');
     isValid = false;
   } else {
-    logger.success('VALIDATION', `✅ ${verifications.length} vérifications trouvées pour ${documentsCount} documents`);
+    logger.success(
+      'VALIDATION',
+      `✅ ${verifications.length} vérifications trouvées pour ${documentsCount} documents`
+    );
   }
 
   // Vérifier que les vérifications approuvées/rejetées ont un vérificateur
-  const treatedWithoutVerifier = verifications.filter(v => 
-    (v.status === VerificationStatus.APPROVED || v.status === VerificationStatus.REJECTED) && 
-    !v.verifierId
+  const treatedWithoutVerifier = verifications.filter(
+    v =>
+      (v.status === VerificationStatus.APPROVED || v.status === VerificationStatus.REJECTED) &&
+      !v.verifierId
   );
 
   if (treatedWithoutVerifier.length > 0) {
-    logger.warning('VALIDATION', `⚠️ ${treatedWithoutVerifier.length} vérifications traitées sans vérificateur assigné`);
+    logger.warning(
+      'VALIDATION',
+      `⚠️ ${treatedWithoutVerifier.length} vérifications traitées sans vérificateur assigné`
+    );
   }
 
   // Vérifier la cohérence des dates
-  const invalidDates = verifications.filter(v => 
-    v.verifiedAt && v.verifiedAt < v.requestedAt
-  );
+  const invalidDates = verifications.filter(v => v.verifiedAt && v.verifiedAt < v.requestedAt);
 
   if (invalidDates.length > 0) {
     logger.error('VALIDATION', `❌ ${invalidDates.length} vérifications avec dates incohérentes`);
@@ -329,8 +363,8 @@ export async function validateVerificationStates(
   }
 
   // Vérifier que les documents rejetés ont une raison
-  const rejectedWithoutReason = verifications.filter(v => 
-    v.status === VerificationStatus.REJECTED && !v.rejectionReason
+  const rejectedWithoutReason = verifications.filter(
+    v => v.status === VerificationStatus.REJECTED && !v.rejectionReason
   );
 
   if (rejectedWithoutReason.length > 0) {
@@ -350,25 +384,28 @@ export async function createRecentVerificationRequests(
   options: { daysBack?: number } = {}
 ): Promise<SeedResult> {
   const daysBack = options.daysBack || 7;
-  const cutoffDate = new Date(Date.now() - (daysBack * 24 * 60 * 60 * 1000));
+  const cutoffDate = new Date(Date.now() - daysBack * 24 * 60 * 60 * 1000);
 
   const result: SeedResult = {
     entity: 'recent_verification_requests',
     created: 0,
     skipped: 0,
-    errors: 0
+    errors: 0,
   };
 
   // Récupérer les documents récents sans demande de vérification
   const recentDocuments = await prisma.document.findMany({
     where: {
       uploadedAt: { gte: cutoffDate },
-      verifications: { none: {} }
+      verifications: { none: {} },
     },
-    include: { user: true }
+    include: { user: true },
   });
 
-  logger.info('RECENT_VERIFICATIONS', `Création de demandes pour ${recentDocuments.length} documents récents`);
+  logger.info(
+    'RECENT_VERIFICATIONS',
+    `Création de demandes pour ${recentDocuments.length} documents récents`
+  );
 
   for (const document of recentDocuments) {
     try {
@@ -378,16 +415,19 @@ export async function createRecentVerificationRequests(
           submitterId: document.userId,
           status: VerificationStatus.PENDING,
           requestedAt: document.uploadedAt,
-          notes: 'Demande de vérification automatique pour document récent'
-        }
+          notes: 'Demande de vérification automatique pour document récent',
+        },
       });
 
       result.created++;
     } catch (error: any) {
-      logger.error('RECENT_VERIFICATIONS', `❌ Erreur création vérification récente: ${error.message}`);
+      logger.error(
+        'RECENT_VERIFICATIONS',
+        `❌ Erreur création vérification récente: ${error.message}`
+      );
       result.errors++;
     }
   }
 
   return result;
-} 
+}

@@ -1,5 +1,5 @@
-import { ProtectedHeader } from '@/components/layout/protected-header';
-import { ProtectedFooter } from '@/components/layout/protected-footer';
+import { ProtectedHeader } from '@/components/layout/protected/header';
+import { ProtectedFooter } from '@/components/layout/protected/footer';
 import { MerchantSidebar } from '@/components/layout/sidebars/merchant-sidebar';
 
 interface MerchantLayoutProps {

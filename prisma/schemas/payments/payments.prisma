@@ -53,6 +53,7 @@ model Payment {
   service            Service?         @relation(fields: [serviceId], references: [id])
   subscription       Subscription?    @relation(fields: [subscriptionId], references: [id])
   user               User             @relation(fields: [userId], references: [id])
+  appointments       ClientAppointment[] @relation("AppointmentPayments")
 
   @@index([userId])
   @@index([deliveryId])

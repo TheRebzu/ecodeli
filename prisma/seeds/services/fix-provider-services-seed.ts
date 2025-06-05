@@ -22,41 +22,50 @@ export async function seedFixProviderServices(
     logger.info('FIX_PROVIDER_SERVICES', `📊 Total prestataires: ${providerCount}`);
 
     if (providerCount === 0) {
-      logger.error('FIX_PROVIDER_SERVICES', '❌ Aucun prestataire trouvé - exécuter d\'abord fix-users.ts');
+      logger.error(
+        'FIX_PROVIDER_SERVICES',
+        "❌ Aucun prestataire trouvé - exécuter d'abord fix-users.ts"
+      );
       return { entity: 'fix_provider_services', created: 0, skipped: 0, errors: 1 };
     }
 
     // 2. Marquer 70% des prestataires comme vérifiés
     const verifiedUpdateCount = Math.ceil(providerCount * 0.7);
-    
+
     const providersToVerify = await prisma.provider.findMany({
       take: verifiedUpdateCount,
-      orderBy: { createdAt: 'asc' }
+      orderBy: { createdAt: 'asc' },
     });
 
     for (const provider of providersToVerify) {
       try {
         await prisma.provider.update({
           where: { id: provider.id },
-          data: { isVerified: true }
+          data: { isVerified: true },
         });
         logger.info('FIX_PROVIDER_SERVICES', `✅ Prestataire vérifié: ${provider.id}`);
       } catch (error: any) {
         totalErrors++;
-        logger.error('FIX_PROVIDER_SERVICES', `❌ Erreur vérification ${provider.id}: ${error.message}`);
+        logger.error(
+          'FIX_PROVIDER_SERVICES',
+          `❌ Erreur vérification ${provider.id}: ${error.message}`
+        );
       }
     }
 
     // 3. Vérifier le nombre de prestataires vérifiés
     const verifiedProviders = await prisma.provider.findMany({
       where: { isVerified: true },
-      include: { user: true }
+      include: { user: true },
     });
 
     logger.info('FIX_PROVIDER_SERVICES', `📊 Prestataires vérifiés: ${verifiedProviders.length}`);
 
     if (verifiedProviders.length === 0) {
-      logger.error('FIX_PROVIDER_SERVICES', '❌ Aucun prestataire vérifié trouvé après mise à jour');
+      logger.error(
+        'FIX_PROVIDER_SERVICES',
+        '❌ Aucun prestataire vérifié trouvé après mise à jour'
+      );
       return { entity: 'fix_provider_services', created: 0, skipped: 0, errors: 1 };
     }
 
@@ -71,9 +80,18 @@ export async function seedFixProviderServices(
 
     // 5. Créer des services pour chaque prestataire vérifié
     const serviceNames = [
-      'Réparation plomberie', 'Installation électrique', 'Ménage complet', 'Jardinage et entretien',
-      'Bricolage et réparation', 'Support informatique', 'Nettoyage bureaux', 'Jardinage particuliers',
-      'Dépannage plomberie', 'Électricité domestique', 'Nettoyage après travaux', 'Entretien jardin'
+      'Réparation plomberie',
+      'Installation électrique',
+      'Ménage complet',
+      'Jardinage et entretien',
+      'Bricolage et réparation',
+      'Support informatique',
+      'Nettoyage bureaux',
+      'Jardinage particuliers',
+      'Dépannage plomberie',
+      'Électricité domestique',
+      'Nettoyage après travaux',
+      'Entretien jardin',
     ];
 
     for (const provider of verifiedProviders) {
@@ -82,9 +100,10 @@ export async function seedFixProviderServices(
 
       for (let i = 0; i < servicesCount; i++) {
         try {
-          const randomCategory = serviceCategories[Math.floor(Math.random() * serviceCategories.length)];
+          const randomCategory =
+            serviceCategories[Math.floor(Math.random() * serviceCategories.length)];
           const randomServiceName = serviceNames[Math.floor(Math.random() * serviceNames.length)];
-          
+
           const service = await prisma.service.create({
             data: {
               providerId: provider.userId, // Utiliser userId du provider
@@ -99,19 +118,26 @@ export async function seedFixProviderServices(
               isAtShop: Math.random() > 0.5, // 50% en atelier
               maxParticipants: Math.random() > 0.7 ? Math.floor(Math.random() * 8) + 1 : null, // Parfois groupe
               preparationTime: Math.floor(Math.random() * 60) + 15, // 15-75 minutes
-              tags: [randomServiceName.toLowerCase().split(' ')[0], 'professionnel', 'qualité', 'rapide'],
+              tags: [
+                randomServiceName.toLowerCase().split(' ')[0],
+                'professionnel',
+                'qualité',
+                'rapide',
+              ],
               images: [], // Images vides pour l'instant
               requirements: `Matériel fourni pour ${randomServiceName.toLowerCase()}. Espace de travail requis.`,
-              cancellationPolicy: 'Annulation gratuite jusqu\'à 24h avant le rendez-vous.'
-            }
+              cancellationPolicy: "Annulation gratuite jusqu'à 24h avant le rendez-vous.",
+            },
           });
 
           totalCreated++;
           logger.info('FIX_PROVIDER_SERVICES', `✅ Service créé: ${service.name}`);
-
         } catch (error: any) {
           totalErrors++;
-          logger.error('FIX_PROVIDER_SERVICES', `❌ Erreur service ${provider.id}: ${error.message}`);
+          logger.error(
+            'FIX_PROVIDER_SERVICES',
+            `❌ Erreur service ${provider.id}: ${error.message}`
+          );
         }
       }
     }
@@ -120,18 +146,26 @@ export async function seedFixProviderServices(
     const finalServiceCount = await prisma.service.count();
     const activeServiceCount = await prisma.service.count({ where: { isActive: true } });
 
-    logger.info('FIX_PROVIDER_SERVICES', `📊 Services créés: ${finalServiceCount} (${activeServiceCount} actifs)`);
-    logger.success('FIX_PROVIDER_SERVICES', `✅ Total créé: ${totalCreated}, Erreurs: ${totalErrors}`);
+    logger.info(
+      'FIX_PROVIDER_SERVICES',
+      `📊 Services créés: ${finalServiceCount} (${activeServiceCount} actifs)`
+    );
+    logger.success(
+      'FIX_PROVIDER_SERVICES',
+      `✅ Total créé: ${totalCreated}, Erreurs: ${totalErrors}`
+    );
 
     return {
       entity: 'fix_provider_services',
       created: totalCreated,
       skipped: 0,
-      errors: totalErrors
+      errors: totalErrors,
     };
-
   } catch (error: any) {
-    logger.error('FIX_PROVIDER_SERVICES', `❌ Erreur dans seedFixProviderServices: ${error.message}`);
+    logger.error(
+      'FIX_PROVIDER_SERVICES',
+      `❌ Erreur dans seedFixProviderServices: ${error.message}`
+    );
     throw error;
   }
-} 
+}

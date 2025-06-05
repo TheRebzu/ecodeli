@@ -2,10 +2,10 @@
 
 /**
  * 🎯 MISSION 1 - SEED COMPLET ECODELI
- * 
+ *
  * Script orchestrateur principal qui exécute tous les seeds
  * dans l'ordre correct et génère un rapport de mission complet.
- * 
+ *
  * Ordre d'exécution :
  * 1. Vérification environnement
  * 2. Seeds de base (permissions, catégories)
@@ -79,9 +79,9 @@ async function executeMission1(config: MissionConfig): Promise<MissionResult> {
   const startTime = performance.now();
   const logger = new SeedLogger(config.verbose);
   const prisma = new PrismaClient();
-  
+
   logger.info('MISSION1', '🚀 DÉMARRAGE MISSION 1 - SEED COMPLET ECODELI');
-  logger.info('MISSION1', '=' .repeat(80));
+  logger.info('MISSION1', '='.repeat(80));
 
   const result: MissionResult = {
     success: false,
@@ -92,15 +92,15 @@ async function executeMission1(config: MissionConfig): Promise<MissionResult> {
     executionTime: 0,
     seedResults: {},
     environment: {},
-    summary: []
+    summary: [],
   };
 
   try {
     // === PHASE 1: VÉRIFICATION ENVIRONNEMENT ===
-    logger.info('MISSION1', '🔍 PHASE 1: Vérification de l\'environnement...');
-    
+    logger.info('MISSION1', "🔍 PHASE 1: Vérification de l'environnement...");
+
     result.environment = await checkEnvironment(prisma, logger);
-    
+
     if (!result.environment.isValid && !config.force) {
       throw new Error('Environnement non valide - utiliser --force pour continuer');
     }
@@ -108,18 +108,18 @@ async function executeMission1(config: MissionConfig): Promise<MissionResult> {
     // === PHASE 2: NETTOYAGE (OPTIONNEL) ===
     if (config.clean) {
       logger.info('MISSION1', '🧹 PHASE 2: Nettoyage de la base de données...');
-      
+
       const cleaner = new SeedCleaner();
       await cleaner.cleanAll(prisma, logger, { dryRun: config.dryRun });
     }
 
     // === PHASE 3: SEEDS DE BASE ===
     logger.info('MISSION1', '🏗️ PHASE 3: Exécution des seeds de base...');
-    
+
     const baseOptions: SeedOptions = {
       verbose: config.verbose,
       force: config.force,
-      dryRun: config.dryRun
+      dryRun: config.dryRun,
     };
 
     // Seeds de base
@@ -128,41 +128,49 @@ async function executeMission1(config: MissionConfig): Promise<MissionResult> {
 
     // === PHASE 4: SEEDS DE SERVICES ===
     logger.info('MISSION1', '⚙️ PHASE 4: Exécution des seeds de services...');
-    
+
     result.seedResults.serviceTypes = await seedServiceTypes(prisma, logger, baseOptions);
-    result.seedResults.providerAvailability = await seedProviderAvailability(prisma, logger, baseOptions);
+    result.seedResults.providerAvailability = await seedProviderAvailability(
+      prisma,
+      logger,
+      baseOptions
+    );
     result.seedResults.serviceRatings = await seedServiceRatings(prisma, logger, baseOptions);
 
     // === PHASE 5: SEEDS D'INFRASTRUCTURE ===
-    logger.info('MISSION1', '📡 PHASE 5: Exécution des seeds d\'infrastructure...');
-    
-    result.seedResults.notificationTemplates = await seedNotificationTemplates(prisma, logger, baseOptions);
+    logger.info('MISSION1', "📡 PHASE 5: Exécution des seeds d'infrastructure...");
+
+    result.seedResults.notificationTemplates = await seedNotificationTemplates(
+      prisma,
+      logger,
+      baseOptions
+    );
     result.seedResults.auditLogs = await seedAuditLogs(prisma, logger, baseOptions);
 
     // === PHASE 6: SEEDS DE CONFIGURATION ===
     logger.info('MISSION1', '⚙️ PHASE 6: Exécution des seeds de configuration...');
-    
+
     result.seedResults.systemSettings = await seedSystemSettings(prisma, logger, baseOptions);
     result.seedResults.pricingRules = await seedPricingRules(prisma, logger, baseOptions);
 
     // === PHASE 7: VALIDATION GLOBALE ===
     if (config.validate && !config.skipValidation) {
       logger.info('MISSION1', '✅ PHASE 7: Validation globale...');
-      
+
       const validator = new SeedValidator();
       const validationResults = await validator.validateAll(prisma, logger);
-      
+
       // Validations spécialisées
       await validateAuditLogs(prisma, logger);
       await validateSystemSettings(prisma, logger);
       await validatePricingRules(prisma, logger);
-      
+
       result.environment.validationResults = validationResults;
     }
 
     // === CALCUL DES STATISTIQUES ===
     result.totalSeeds = Object.keys(result.seedResults).length;
-    
+
     for (const seedResult of Object.values(result.seedResults)) {
       result.totalCreated += seedResult.created;
       result.totalSkipped += seedResult.skipped;
@@ -175,7 +183,6 @@ async function executeMission1(config: MissionConfig): Promise<MissionResult> {
     // === PHASE 8: RAPPORT FINAL ===
     logger.info('MISSION1', '📊 PHASE 8: Génération du rapport final...');
     await generateFinalReport(result, logger, config);
-
   } catch (error: any) {
     logger.error('MISSION1', `❌ Erreur critique: ${error.message}`);
     result.success = false;
@@ -192,13 +199,13 @@ async function executeMission1(config: MissionConfig): Promise<MissionResult> {
  * Vérifie l'environnement de déploiement
  */
 async function checkEnvironment(prisma: PrismaClient, logger: SeedLogger): Promise<any> {
-  logger.info('ENV_CHECK', '🔍 Vérification de l\'environnement...');
-  
+  logger.info('ENV_CHECK', "🔍 Vérification de l'environnement...");
+
   const environment = {
     isValid: true,
     checks: {},
     warnings: [],
-    errors: []
+    errors: [],
   };
 
   try {
@@ -216,20 +223,20 @@ async function checkEnvironment(prisma: PrismaClient, logger: SeedLogger): Promi
   // Vérifier les variables d'environnement critiques
   const requiredEnvVars = ['DATABASE_URL', 'NODE_ENV'];
   const missingEnvVars: string[] = [];
-  
+
   for (const envVar of requiredEnvVars) {
     if (!process.env[envVar]) {
       missingEnvVars.push(envVar);
     }
   }
-  
+
   if (missingEnvVars.length > 0) {
     environment.checks.envVars = `⚠️ Variables manquantes: ${missingEnvVars.join(', ')}`;
     environment.warnings.push(`Variables d'environnement manquantes: ${missingEnvVars.join(', ')}`);
     logger.warning('ENV_CHECK', `Variables manquantes: ${missingEnvVars.join(', ')}`);
   } else {
-    environment.checks.envVars = '✅ Variables d\'environnement OK';
-    logger.success('ENV_CHECK', 'Variables d\'environnement configurées');
+    environment.checks.envVars = "✅ Variables d'environnement OK";
+    logger.success('ENV_CHECK', "Variables d'environnement configurées");
   }
 
   // Vérifier l'espace disque (simulation)
@@ -253,7 +260,7 @@ async function checkEnvironment(prisma: PrismaClient, logger: SeedLogger): Promi
 
   // Résumé de l'environnement
   if (environment.isValid) {
-    logger.success('ENV_CHECK', '✅ Environnement validé pour l\'exécution');
+    logger.success('ENV_CHECK', "✅ Environnement validé pour l'exécution");
   } else {
     logger.error('ENV_CHECK', `❌ Environnement non valide: ${environment.errors.join(', ')}`);
   }
@@ -274,12 +281,12 @@ async function generateFinalReport(
   config: MissionConfig
 ): Promise<void> {
   logger.info('REPORT', '📊 Génération du rapport de mission...');
-  logger.info('REPORT', '=' .repeat(80));
+  logger.info('REPORT', '='.repeat(80));
 
   // En-tête du rapport
   const successIcon = result.success ? '✅' : '❌';
   const statusText = result.success ? 'SUCCÈS' : 'ÉCHEC';
-  
+
   logger.info('REPORT', `${successIcon} MISSION 1 TERMINÉE - STATUT: ${statusText}`);
   logger.info('REPORT', '');
 
@@ -296,11 +303,13 @@ async function generateFinalReport(
   logger.info('REPORT', '📋 DÉTAIL PAR SEED:');
   for (const [seedName, seedResult] of Object.entries(result.seedResults)) {
     const icon = seedResult.errors > 0 ? '❌' : '✅';
-    const successRate = seedResult.created + seedResult.skipped > 0 
-      ? ((seedResult.created / (seedResult.created + seedResult.skipped)) * 100).toFixed(1)
-      : '0';
-    
-    logger.info('REPORT', 
+    const successRate =
+      seedResult.created + seedResult.skipped > 0
+        ? ((seedResult.created / (seedResult.created + seedResult.skipped)) * 100).toFixed(1)
+        : '0';
+
+    logger.info(
+      'REPORT',
       `   ${icon} ${seedName}: ${seedResult.created} créés, ${seedResult.skipped} ignorés, ${seedResult.errors} erreurs (${successRate}%)`
     );
   }
@@ -320,7 +329,7 @@ async function generateFinalReport(
   for (const [check, status] of Object.entries(result.environment.checks)) {
     logger.info('REPORT', `   • ${check}: ${status}`);
   }
-  
+
   if (result.environment.warnings.length > 0) {
     logger.info('REPORT', '');
     logger.info('REPORT', '⚠️ AVERTISSEMENTS:');
@@ -340,15 +349,15 @@ async function generateFinalReport(
   // Recommandations
   logger.info('REPORT', '');
   logger.info('REPORT', '💡 RECOMMANDATIONS:');
-  
+
   if (result.success) {
     logger.info('REPORT', '   ✅ Mission accomplie avec succès !');
-    logger.info('REPORT', '   📝 Vous pouvez maintenant utiliser l\'application EcoDeli');
+    logger.info('REPORT', "   📝 Vous pouvez maintenant utiliser l'application EcoDeli");
     logger.info('REPORT', '   🚀 Prochaine étape: Démarrer le serveur de développement');
   } else {
     logger.info('REPORT', '   ❌ Mission échouée - résolution requise');
     logger.info('REPORT', '   🔧 Corriger les erreurs et relancer avec --force');
-    logger.info('REPORT', '   📞 Contacter l\'équipe technique si les problèmes persistent');
+    logger.info('REPORT', "   📞 Contacter l'équipe technique si les problèmes persistent");
   }
 
   // Informations sur les commandes utiles
@@ -360,9 +369,9 @@ async function generateFinalReport(
   logger.info('REPORT', '   • Relancer mission: pnpm seed:mission1 --force');
 
   logger.info('REPORT', '');
-  logger.info('REPORT', '=' .repeat(80));
+  logger.info('REPORT', '='.repeat(80));
   logger.info('REPORT', `🎯 MISSION 1 TERMINÉE - ${statusText}`);
-  logger.info('REPORT', '=' .repeat(80));
+  logger.info('REPORT', '='.repeat(80));
 }
 
 /**
@@ -370,14 +379,14 @@ async function generateFinalReport(
  */
 function parseArguments(): MissionConfig {
   const args = process.argv.slice(2);
-  
+
   return {
     clean: args.includes('--clean'),
     verbose: args.includes('--verbose') || args.includes('-v'),
     validate: !args.includes('--no-validate'),
     dryRun: args.includes('--dry-run'),
     force: args.includes('--force'),
-    skipValidation: args.includes('--skip-validation')
+    skipValidation: args.includes('--skip-validation'),
   };
 }
 
@@ -427,7 +436,7 @@ SUPPORT:
  */
 async function main(): Promise<void> {
   const args = process.argv.slice(2);
-  
+
   // Afficher l'aide si demandée
   if (args.includes('--help') || args.includes('-h')) {
     showHelp();
@@ -435,13 +444,12 @@ async function main(): Promise<void> {
   }
 
   const config = parseArguments();
-  
+
   try {
     const result = await executeMission1(config);
-    
+
     // Code de sortie selon le résultat
     process.exit(result.success ? 0 : 1);
-    
   } catch (error: any) {
     console.error(`❌ Erreur fatale: ${error.message}`);
     console.error(error.stack);
@@ -451,10 +459,10 @@ async function main(): Promise<void> {
 
 // Exécuter le script si appelé directement
 if (require.main === module) {
-  main().catch((error) => {
+  main().catch(error => {
     console.error('❌ Erreur non gérée:', error);
     process.exit(1);
   });
 }
 
-export { executeMission1, MissionConfig, MissionResult }; 
+export { executeMission1, MissionConfig, MissionResult };

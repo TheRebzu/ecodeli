@@ -12,7 +12,7 @@ export function DocumentStatusBadge({ status, variant = 'default' }: DocumentSta
   if (!status) return null;
 
   const normalizedStatus = status.toUpperCase();
-  
+
   // Map status to display properties
   const getStatusDisplay = () => {
     switch (normalizedStatus) {

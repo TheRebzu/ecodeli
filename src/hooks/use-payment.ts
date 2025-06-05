@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { trpc } from '@/trpc/client';
+import { api } from '@/trpc/react';
 import { Elements } from '@stripe/react-stripe-js';
 import { loadStripe } from '@stripe/stripe-js';
 import { toast } from '@/components/ui/use-toast';

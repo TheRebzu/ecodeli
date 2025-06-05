@@ -6,5 +6,5 @@ export const ROUTES = {
   DELIVERER: '/deliverer',
   MERCHANT: '/merchant',
   PROVIDER: '/provider',
-  ADMIN: '/admin'
+  ADMIN: '/admin',
 };

@@ -9,13 +9,7 @@ import { Package, CreditCard, FileText, HelpCircle, Zap } from 'lucide-react';
 import { api } from '@/trpc/react';
 import { useToast } from '@/components/ui/use-toast';
 
-import { 
-  Card, 
-  CardContent, 
-  CardDescription, 
-  CardHeader, 
-  CardTitle 
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
@@ -30,48 +24,46 @@ export default function SubscriptionPage() {
   const router = useRouter();
   const { data: session } = useSession();
   const { toast } = useToast();
-  
+
   // Requête pour récupérer les données de l'abonnement
-  const { data: subscription, isLoading: isLoadingSubscription } = api.subscription.getMySubscription.useQuery(
-    undefined,
-    {
+  const { data: subscription, isLoading: isLoadingSubscription } =
+    api.subscription.getMySubscription.useQuery(undefined, {
       refetchOnWindowFocus: false,
-    }
-  );
-  
+    });
+
   // Fonction pour sélectionner un plan
   const handleSelectPlan = (planId: string) => {
     // Dans une implémentation réelle, rediriger vers le processus de paiement
     // ou mettre à jour l'abonnement
     if (subscription) {
       toast({
-        variant: "default",
+        variant: 'default',
         title: t('changePlanTitle'),
         description: t('changePlanDescription'),
       });
-      
+
       router.push(`/client/payments?plan=${planId}`);
     } else {
       toast({
-        variant: "default",
+        variant: 'default',
         title: t('selectPlanTitle'),
         description: t('selectPlanDescription'),
       });
-      
+
       router.push(`/client/payments?plan=${planId}`);
     }
   };
-  
+
   // Fonction pour voir les factures
   const handleViewInvoices = () => {
     router.push('/client/invoices');
   };
-  
+
   // Fonction pour voir l'historique des paiements
   const handleViewPayments = () => {
     router.push('/client/payments');
   };
-  
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
@@ -93,23 +85,20 @@ export default function SubscriptionPage() {
           </Button>
         </div>
       </div>
-      
+
       <Tabs defaultValue="current">
         <TabsList>
           <TabsTrigger value="current">{t('currentSubscription')}</TabsTrigger>
           <TabsTrigger value="plans">{t('availablePlans')}</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="current" className="mt-6">
           {isLoadingSubscription ? (
             <Skeleton className="h-96 w-full" />
           ) : (
             <>
               {subscription ? (
-                <SubscriptionManager
-                  userId={session?.user?.id}
-                  isDemo={false}
-                />
+                <SubscriptionManager userId={session?.user?.id} isDemo={false} />
               ) : (
                 <Card>
                   <CardHeader>
@@ -122,22 +111,25 @@ export default function SubscriptionPage() {
                       <AlertTitle>{t('subscriptionRequired')}</AlertTitle>
                       <AlertDescription>{t('subscriptionRequiredDescription')}</AlertDescription>
                     </Alert>
-                    
+
                     <Button onClick={() => document.querySelector('[data-value="plans"]')?.click()}>
                       {t('browsePlans')}
                     </Button>
                   </CardContent>
                 </Card>
               )}
-              
+
               <Separator className="my-6" />
-              
+
               <div className="space-y-4">
                 <h2 className="text-xl font-semibold">{t('subscriptionBenefits')}</h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
                   <Card>
                     <CardHeader>
-                      <Badge variant="outline" className="w-fit mb-2 bg-blue-50 text-blue-700 border-blue-200">
+                      <Badge
+                        variant="outline"
+                        className="w-fit mb-2 bg-blue-50 text-blue-700 border-blue-200"
+                      >
                         {t('featureDeliveries')}
                       </Badge>
                       <CardTitle className="text-lg">{t('unlimitedDeliveries')}</CardTitle>
@@ -146,7 +138,10 @@ export default function SubscriptionPage() {
                   </Card>
                   <Card>
                     <CardHeader>
-                      <Badge variant="outline" className="w-fit mb-2 bg-green-50 text-green-700 border-green-200">
+                      <Badge
+                        variant="outline"
+                        className="w-fit mb-2 bg-green-50 text-green-700 border-green-200"
+                      >
                         {t('featureSupport')}
                       </Badge>
                       <CardTitle className="text-lg">{t('prioritySupport')}</CardTitle>
@@ -155,7 +150,10 @@ export default function SubscriptionPage() {
                   </Card>
                   <Card>
                     <CardHeader>
-                      <Badge variant="outline" className="w-fit mb-2 bg-purple-50 text-purple-700 border-purple-200">
+                      <Badge
+                        variant="outline"
+                        className="w-fit mb-2 bg-purple-50 text-purple-700 border-purple-200"
+                      >
                         {t('featureAnalytics')}
                       </Badge>
                       <CardTitle className="text-lg">{t('advancedAnalytics')}</CardTitle>
@@ -167,7 +165,7 @@ export default function SubscriptionPage() {
             </>
           )}
         </TabsContent>
-        
+
         <TabsContent value="plans" className="mt-6">
           <SubscriptionPlans
             isDemo={false}
@@ -176,7 +174,7 @@ export default function SubscriptionPage() {
           />
         </TabsContent>
       </Tabs>
-      
+
       {/* Mode démo */}
       <Separator className="my-6" />
       <div className="pt-2">

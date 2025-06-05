@@ -30,21 +30,23 @@ async function ensureUploadDir() {
 async function readFormData(req: NextRequest) {
   return new Promise<{ fields: formidable.Fields; files: formidable.Files }>((resolve, reject) => {
     // Assurer l'existence du répertoire avant de créer le formulaire
-    ensureUploadDir().then(() => {
-      const form = formidable({
-        uploadDir: UPLOAD_DIR,
-        keepExtensions: true,
-        maxFileSize: 10 * 1024 * 1024, // 10MB
-      });
+    ensureUploadDir()
+      .then(() => {
+        const form = formidable({
+          uploadDir: UPLOAD_DIR,
+          keepExtensions: true,
+          maxFileSize: 10 * 1024 * 1024, // 10MB
+        });
 
-      form.parse(req as any, (err, fields, files) => {
-        if (err) {
-          reject(err);
-        } else {
-          resolve({ fields, files });
-        }
-      });
-    }).catch(reject);
+        form.parse(req as any, (err, fields, files) => {
+          if (err) {
+            reject(err);
+          } else {
+            resolve({ fields, files });
+          }
+        });
+      })
+      .catch(reject);
   });
 }
 
@@ -72,11 +74,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Créer le contexte tRPC pour l'appel au routeur
-    const ctx = await createTRPCContext({ 
+    const ctx = await createTRPCContext({
       req: req as any,
       res: {} as any,
       info: {} as any,
-      auth: { session } 
+      auth: { session },
     });
 
     const caller = appRouter.createCaller(ctx);

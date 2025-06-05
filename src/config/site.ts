@@ -5,8 +5,8 @@ export const siteConfig = {
   ogImage: 'https://ecodeli.me/og.jpg',
   links: {
     twitter: 'https://twitter.com/ecodeli',
-    github: 'https://github.com/ecodeli'
-  }
+    github: 'https://github.com/ecodeli',
+  },
 };
 
 // Configuration OneSignal (optionnelle)

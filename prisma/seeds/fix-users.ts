@@ -10,11 +10,13 @@ async function main() {
 
   try {
     logger.info('MAIN', '🚀 Démarrage de la correction des utilisateurs spécialisés');
-    
+
     const result = await seedFixSpecializedUsers(prisma, logger, { force: true, verbose: true });
-    
-    logger.success('MAIN', `✅ Correction terminée: ${result.created} utilisateurs créés, ${result.errors} erreurs`);
-    
+
+    logger.success(
+      'MAIN',
+      `✅ Correction terminée: ${result.created} utilisateurs créés, ${result.errors} erreurs`
+    );
   } catch (error: any) {
     logger.error('MAIN', `❌ Erreur lors de la correction: ${error.message}`);
     process.exit(1);
@@ -23,4 +25,4 @@ async function main() {
   }
 }
 
-main(); 
+main();

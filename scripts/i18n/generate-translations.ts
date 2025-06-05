@@ -3,7 +3,11 @@ import fs from 'fs/promises';
 import path from 'path';
 import chalk from 'chalk';
 import { fileURLToPath } from 'url';
-import { generateEnglishTranslation, translateToAllLanguages, checkTranslationAPIAvailability } from './translation-api';
+import {
+  generateEnglishTranslation,
+  translateToAllLanguages,
+  checkTranslationAPIAvailability,
+} from './translation-api';
 import { glob } from 'glob';
 import config from './extraction.config';
 
@@ -146,9 +150,13 @@ async function generateAllTranslations(): Promise<void> {
     }
 
     // Identifier le fichier de langue principale
-    const primaryFile = translationFiles.find(file => path.basename(file) === `${PRIMARY_LANGUAGE}.json`);
+    const primaryFile = translationFiles.find(
+      file => path.basename(file) === `${PRIMARY_LANGUAGE}.json`
+    );
     if (!primaryFile) {
-      console.error(chalk.red(`❌ Fichier de langue principale ${PRIMARY_LANGUAGE}.json non trouvé`));
+      console.error(
+        chalk.red(`❌ Fichier de langue principale ${PRIMARY_LANGUAGE}.json non trouvé`)
+      );
       return;
     }
 
@@ -176,7 +184,9 @@ async function generateAllTranslations(): Promise<void> {
       try {
         existingTranslations = await loadTranslationFile(targetFile);
       } catch (error) {
-        console.log(chalk.yellow(`⚠️ Aucun fichier existant pour ${language}, création d'un nouveau fichier`));
+        console.log(
+          chalk.yellow(`⚠️ Aucun fichier existant pour ${language}, création d'un nouveau fichier`)
+        );
       }
 
       // Traduire les entrées non-objets
@@ -191,35 +201,45 @@ async function generateAllTranslations(): Promise<void> {
       for (let i = 0; i < entriesToTranslate.length; i += batchSize) {
         const batch = entriesToTranslate.slice(i, i + batchSize);
         const progressPercent = Math.round((i / totalEntries) * 100);
-        console.log(chalk.blue(`🔄 Traduction du lot ${i}-${i + batch.length} (${progressPercent}%)...`));
+        console.log(
+          chalk.blue(`🔄 Traduction du lot ${i}-${i + batch.length} (${progressPercent}%)...`)
+        );
 
         // Traiter chaque entrée du lot
         for (const entry of batch) {
           const fullKey = buildTranslationKey(entry.path, entry.key);
-          
+
           // Vérifier si la traduction existe déjà et si elle doit être mise à jour
           let existingValue = getNestedValue(existingTranslations, entry.path, entry.key);
-          
+
           // Si la traduction n'existe pas ou doit être mise à jour (commence par [TO_TRANSLATE])
-          if (existingValue === undefined || 
-              existingValue === null || 
-              (typeof existingValue === 'string' && existingValue.startsWith('[TO_TRANSLATE]'))) {
-            
+          if (
+            existingValue === undefined ||
+            existingValue === null ||
+            (typeof existingValue === 'string' && existingValue.startsWith('[TO_TRANSLATE]'))
+          ) {
             try {
               // Traduire depuis la langue principale
               const translatedValue = await generateEnglishTranslation(entry.value);
-              
+
               // Mettre à jour la traduction
               setNestedValue(existingTranslations, entry.path, entry.key, translatedValue);
               updated++;
-              
+
               // Afficher un état d'avancement périodique
               if (updated % 10 === 0) {
-                console.log(chalk.green(`✅ ${updated}/${totalEntries} entrées traduites pour ${language}`));
+                console.log(
+                  chalk.green(`✅ ${updated}/${totalEntries} entrées traduites pour ${language}`)
+                );
               }
             } catch (error) {
               console.error(chalk.red(`❌ Erreur lors de la traduction de "${fullKey}": ${error}`));
-              setNestedValue(existingTranslations, entry.path, entry.key, `[TRANSLATION_ERROR] ${entry.value}`);
+              setNestedValue(
+                existingTranslations,
+                entry.path,
+                entry.key,
+                `[TRANSLATION_ERROR] ${entry.value}`
+              );
             }
           }
         }
@@ -259,7 +279,7 @@ function getNestedValue(obj: any, path: string[], key: string): any {
  */
 async function main() {
   console.log(chalk.blue('🌐 Démarrage de la génération des traductions...'));
-  
+
   try {
     await generateAllTranslations();
   } catch (error) {
@@ -276,4 +296,4 @@ if (process.argv[1] === fileURLToPath(import.meta.url)) {
   });
 }
 
-export { generateAllTranslations }; 
+export { generateAllTranslations };

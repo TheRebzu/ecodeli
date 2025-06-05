@@ -26,14 +26,17 @@ export type DocumentWithFullStatus = Document & {
  * à travers l'application
  * @returns {Promise<DocumentWithFullStatus[]>} Documents avec statut enrichi
  */
-export async function getUserDocumentsWithFullStatus(userId: string, userRole?: UserRole): Promise<DocumentWithFullStatus[]> {
+export async function getUserDocumentsWithFullStatus(
+  userId: string,
+  userRole?: UserRole
+): Promise<DocumentWithFullStatus[]> {
   try {
     console.log(`Récupération des documents avec statut pour l'utilisateur ${userId}`);
-    
+
     const documents = await db.document.findMany({
-      where: { 
+      where: {
         userId,
-        ...(userRole ? { userRole } : {})
+        ...(userRole ? { userRole } : {}),
       },
       orderBy: { uploadedAt: 'desc' },
       include: {
@@ -59,25 +62,24 @@ export async function getUserDocumentsWithFullStatus(userId: string, userRole?: 
         },
       },
     });
-    
+
     // Ajoute des informations dérivées pour chaque document
     return documents.map(doc => {
       // Détermine le statut effectif en fonction du statut et de la date d'expiration
       const isExpired = doc.expiryDate ? new Date(doc.expiryDate) < new Date() : false;
-      const lastVerification = doc.verifications && doc.verifications.length > 0 
-        ? doc.verifications[0] 
-        : null;
-      
+      const lastVerification =
+        doc.verifications && doc.verifications.length > 0 ? doc.verifications[0] : null;
+
       let effectiveStatus = doc.verificationStatus;
-      
+
       // Si le document est expiré, remplacer le statut par EXPIRED
       if (isExpired && effectiveStatus === 'APPROVED') {
         effectiveStatus = 'EXPIRED' as VerificationStatus;
       }
-      
+
       // Détermine le badge à afficher en fonction du statut
       const statusInfo = getStatusBadgeProps(effectiveStatus);
-      
+
       return {
         ...doc,
         effectiveStatus,

@@ -59,7 +59,7 @@ import {
   Trash2,
   Download,
   Lock,
-  Mail
+  Mail,
 } from 'lucide-react';
 
 interface UserBulkActionsProps {
@@ -682,9 +682,7 @@ export default function UserBulkActions({
       ),
       BAN: (
         <div className="space-y-4">
-          <p className="text-red-600 dark:text-red-400 font-medium">
-            {t('actions.BAN.warning')}
-          </p>
+          <p className="text-red-600 dark:text-red-400 font-medium">{t('actions.BAN.warning')}</p>
           <div className="space-y-2">
             <Label htmlFor="reason">{t('common.reason')}</Label>
             <Textarea
@@ -730,44 +728,53 @@ export default function UserBulkActions({
   // Titre de confirmation dynamique en fonction de l'action
   const getConfirmationTitle = () => {
     if (!currentAction) return '';
-    
+
     switch (currentAction) {
-      case 'ACTIVATE': return 'Activer les utilisateurs sélectionnés';
-      case 'DEACTIVATE': return 'Désactiver les utilisateurs sélectionnés';
-      case 'SUSPEND': return 'Suspendre les utilisateurs sélectionnés';
-      case 'DELETE': return 'Supprimer les utilisateurs sélectionnés';
-      case 'FORCE_PASSWORD_RESET': return 'Forcer la réinitialisation des mots de passe';
-      case 'SEND_VERIFICATION_EMAIL': return 'Envoyer des emails de vérification';
-      case 'BAN': return 'Bannir les utilisateurs sélectionnés';
-      case 'UNBAN': return 'Débannir les utilisateurs sélectionnés';
-      default: return 'Confirmer l\'action';
+      case 'ACTIVATE':
+        return 'Activer les utilisateurs sélectionnés';
+      case 'DEACTIVATE':
+        return 'Désactiver les utilisateurs sélectionnés';
+      case 'SUSPEND':
+        return 'Suspendre les utilisateurs sélectionnés';
+      case 'DELETE':
+        return 'Supprimer les utilisateurs sélectionnés';
+      case 'FORCE_PASSWORD_RESET':
+        return 'Forcer la réinitialisation des mots de passe';
+      case 'SEND_VERIFICATION_EMAIL':
+        return 'Envoyer des emails de vérification';
+      case 'BAN':
+        return 'Bannir les utilisateurs sélectionnés';
+      case 'UNBAN':
+        return 'Débannir les utilisateurs sélectionnés';
+      default:
+        return "Confirmer l'action";
     }
   };
 
   // Description de confirmation dynamique en fonction de l'action
   const getConfirmationDescription = () => {
     if (!currentAction) return '';
-    
+
     const userCount = selectedUserIds.length;
-    
+
     switch (currentAction) {
-      case 'ACTIVATE': 
+      case 'ACTIVATE':
         return `Êtes-vous sûr de vouloir activer les ${userCount} utilisateurs sélectionnés ? Ils pourront se connecter à la plateforme.`;
-      case 'DEACTIVATE': 
+      case 'DEACTIVATE':
         return `Êtes-vous sûr de vouloir désactiver les ${userCount} utilisateurs sélectionnés ? Ils ne pourront plus se connecter à la plateforme.`;
-      case 'SUSPEND': 
+      case 'SUSPEND':
         return `Êtes-vous sûr de vouloir suspendre les ${userCount} utilisateurs sélectionnés ? Cela restreindra immédiatement leur accès à la plateforme.`;
-      case 'DELETE': 
+      case 'DELETE':
         return `Êtes-vous sûr de vouloir supprimer les ${userCount} utilisateurs sélectionnés ? Cette action est irréversible.`;
-      case 'FORCE_PASSWORD_RESET': 
+      case 'FORCE_PASSWORD_RESET':
         return `Êtes-vous sûr de vouloir forcer la réinitialisation des mots de passe pour les ${userCount} utilisateurs sélectionnés ? Ils recevront un email avec un lien de réinitialisation.`;
-      case 'SEND_VERIFICATION_EMAIL': 
+      case 'SEND_VERIFICATION_EMAIL':
         return `Êtes-vous sûr de vouloir envoyer des emails de vérification aux ${userCount} utilisateurs sélectionnés ?`;
-      case 'BAN': 
+      case 'BAN':
         return `Êtes-vous sûr de vouloir bannir les ${userCount} utilisateurs sélectionnés ? Ils ne pourront plus accéder à la plateforme.`;
-      case 'UNBAN': 
+      case 'UNBAN':
         return `Êtes-vous sûr de vouloir débannir les ${userCount} utilisateurs sélectionnés ? Ils pourront à nouveau accéder à la plateforme.`;
-      default: 
+      default:
         return `Êtes-vous sûr de vouloir effectuer cette action sur les ${userCount} utilisateurs sélectionnés ?`;
     }
   };
@@ -781,11 +788,11 @@ export default function UserBulkActions({
             disabled={noUsersSelected || disabled}
             className="min-w-[140px]"
           >
-            {t('button') || "Actions en masse"} ({selectedUserIds.length})
+            {t('button') || 'Actions en masse'} ({selectedUserIds.length})
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
-          <DropdownMenuLabel>{t('title') || "Actions en masse"}</DropdownMenuLabel>
+          <DropdownMenuLabel>{t('title') || 'Actions en masse'}</DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => handleOpenDialog('ACTIVATE')}>
             {t('actions.ACTIVATE.label')}
@@ -859,14 +866,17 @@ export default function UserBulkActions({
                 })}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {t('confirmationText', { count: selectedUserIds.length }) || `Vous avez sélectionné ${selectedUserIds.length} utilisateurs`}
+              {t('confirmationText', { count: selectedUserIds.length }) ||
+                `Vous avez sélectionné ${selectedUserIds.length} utilisateurs`}
             </AlertDialogDescription>
           </AlertDialogHeader>
 
           {getActionConfig()}
 
           <AlertDialogFooter>
-            <AlertDialogCancel onClick={handleCloseDialog}>{t('cancel') || "Annuler"}</AlertDialogCancel>
+            <AlertDialogCancel onClick={handleCloseDialog}>
+              {t('cancel') || 'Annuler'}
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={handleSubmit}
               disabled={isLoading}
@@ -879,10 +889,10 @@ export default function UserBulkActions({
               {isLoading ? (
                 <>
                   <Loader2Icon className="mr-2 h-4 w-4 animate-spin" />
-                  {t('processing') || "Traitement en cours..."}
+                  {t('processing') || 'Traitement en cours...'}
                 </>
               ) : (
-                t('confirm') || "Confirmer"
+                t('confirm') || 'Confirmer'
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
@@ -899,7 +909,7 @@ export default function UserBulkActions({
             <Button variant="outline" onClick={() => setIsConfirmDialogOpen(false)}>
               Annuler
             </Button>
-            <Button 
+            <Button
               variant={currentAction === 'DELETE' ? 'destructive' : 'default'}
               onClick={executeAction}
               disabled={bulkActionMutation.isLoading}

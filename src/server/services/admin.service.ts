@@ -890,10 +890,12 @@ export class AdminService {
           unverified: totalUsers - verifiedUsers,
         },
         topCountries: countriesStats,
-        registrationsOverTime: registrationsOverTime ? registrationsOverTime.map((row: any) => ({
-          date: row.month.toISOString().split('T')[0],
-          count: Number(row.count),
-        })) : [],
+        registrationsOverTime: registrationsOverTime
+          ? registrationsOverTime.map((row: any) => ({
+              date: row.month.toISOString().split('T')[0],
+              count: Number(row.count),
+            }))
+          : [],
       };
     } catch (error) {
       console.error('Error retrieving user statistics:', error);
@@ -1469,7 +1471,11 @@ export class AdminService {
         ORDER BY period
       `;
 
-      const performanceData = await this.prisma.$queryRawUnsafe(performanceQuery, startDate, endDate);
+      const performanceData = await this.prisma.$queryRawUnsafe(
+        performanceQuery,
+        startDate,
+        endDate
+      );
 
       // Performance par zone
       const zoneQuery = `
@@ -1564,7 +1570,11 @@ export class AdminService {
         ORDER BY period
       `;
 
-      const activeUsersData = await this.prisma.$queryRawUnsafe(activeUsersQuery, startDate, endDate);
+      const activeUsersData = await this.prisma.$queryRawUnsafe(
+        activeUsersQuery,
+        startDate,
+        endDate
+      );
 
       // Répartition par rôles
       const rolesQuery = `
@@ -1666,7 +1676,11 @@ export class AdminService {
         ORDER BY revenue DESC
       `;
 
-      const paymentMethodsData = await this.prisma.$queryRawUnsafe(paymentMethodsQuery, startDate, endDate);
+      const paymentMethodsData = await this.prisma.$queryRawUnsafe(
+        paymentMethodsQuery,
+        startDate,
+        endDate
+      );
 
       return {
         revenueTimeSeriesData: revenueData,

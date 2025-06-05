@@ -692,7 +692,13 @@ export interface DeliveryStatusHistory {
 export type DeliveryEvent =
   | { type: 'LOCATION_UPDATE'; deliveryId: string; location: GeoPoint; timestamp: Date }
   | { type: 'STATUS_UPDATE'; deliveryId: string; status: DeliveryStatus; timestamp: Date }
-  | { type: 'ETA_UPDATE'; deliveryId: string; eta: Date | string; distance: number; timestamp: Date }
+  | {
+      type: 'ETA_UPDATE';
+      deliveryId: string;
+      eta: Date | string;
+      distance: number;
+      timestamp: Date;
+    }
   | { type: 'CHECKPOINT_REACHED'; deliveryId: string; checkpointId: string; timestamp: Date }
   | { type: 'ISSUE_REPORTED'; deliveryId: string; issueId: string; timestamp: Date }
   | { type: 'DELIVERY_CONFIRMED'; deliveryId: string; timestamp: Date }

@@ -421,7 +421,8 @@
     "allDocumentsVerified": "allDocumentsVerified",
     "documentsInVerification": "documentsInVerification",
     "processingVerification": "processingVerification",
-    "viewDocuments": "viewDocuments"
+    "viewDocuments": "viewDocuments",
+    "auto_check": "auto_check"
   },
   "common": {
     "loading": "Loading",
@@ -1424,7 +1425,39 @@
     "liveTracking": "[À TRADUIRE] liveTracking",
     "liveTrackingDescription": "[À TRADUIRE] liveTrackingDescription",
     "DAY": "DAY",
-    "PENDING": "PENDING"
+    "PENDING": "PENDING",
+    "Help": {
+      "description": "description"
+    },
+    "Settings": {
+      "description": "description"
+    },
+    "HelpArticle": {
+      "description": "description"
+    },
+    "Security": {
+      "description": "description"
+    },
+    "Notifications": {
+      "description": "description"
+    },
+    "Language": {
+      "description": "description"
+    },
+    "location": "location",
+    "locationPlaceholder": "locationPlaceholder",
+    "category": "category",
+    "categoryPlaceholder": "categoryPlaceholder",
+    "allCategories": "allCategories",
+    "minPrice": "minPrice",
+    "maxPrice": "maxPrice",
+    "availability": "availability",
+    "availabilityPlaceholder": "availabilityPlaceholder",
+    "anyTime": "anyTime",
+    "minRating": "minRating",
+    "ratingPlaceholder": "ratingPlaceholder",
+    "anyRating": "anyRating",
+    "search": "search"
   },
   "auth": {
     "login": {
@@ -1699,7 +1732,16 @@
       "verify": "verify",
       "helpText": "helpText"
     },
-    "callbackUrl": "callbackUrl"
+    "callbackUrl": "callbackUrl",
+    "SessionExpired": {
+      "description": "description"
+    },
+    "TwoFactorVerify": {
+      "description": "description"
+    },
+    "TwoFactorSetup": {
+      "description": "description"
+    }
   },
   "navigation": {
     "home": "Accueil",
@@ -1999,7 +2041,8 @@
   "timeline": {
     "title": "[en] title",
     "completed": "[en] completed",
-    "pending": "[en] pending"
+    "pending": "[en] pending",
+    "noEvents": "noEvents"
   },
   "acceptDelivery": "[en] acceptDelivery",
   "startPickup": "[en] startPickup",
@@ -2479,7 +2522,12 @@
     "certifications": "certifications",
     "companyEmail": "companyEmail",
     "companyPhone": "companyPhone",
-    "siret": "siret"
+    "siret": "siret",
+    "status": "status",
+    "allStatuses": "allStatuses",
+    "startDate": "startDate",
+    "pickDate": "pickDate",
+    "endDate": "endDate"
   },
   "placeholders": {
     "name": "[en] name",
@@ -2690,6 +2738,33 @@
       "pageDescription": "pageDescription",
       "instructionsTitle": "instructionsTitle",
       "instructionsDescription": "instructionsDescription"
+    },
+    "Reviews": {
+      "description": "description"
+    },
+    "Contracts": {
+      "description": "description"
+    },
+    "Appointments": {
+      "description": "description"
+    },
+    "PendingReviews": {
+      "description": "description"
+    },
+    "ContractDetail": {
+      "description": "description"
+    },
+    "AppointmentDetail": {
+      "description": "description"
+    },
+    "AppointmentHistory": {
+      "description": "description"
+    },
+    "RescheduleAppointment": {
+      "description": "description"
+    },
+    "CancelAppointment": {
+      "description": "description"
     }
   },
   "until": "[en] until",
@@ -2987,7 +3062,51 @@
       "deliveryMap": "deliveryMap",
       "deliveryMapDescription": "deliveryMapDescription",
       "deliveries": "deliveries",
-      "deliveriesDescription": "deliveriesDescription"
+      "deliveriesDescription": "deliveriesDescription",
+      "noDeliveries": "noDeliveries",
+      "noDeliveriesDescription": "noDeliveriesDescription",
+      "id": "id",
+      "status": "status",
+      "deliverer": "deliverer",
+      "date": "date",
+      "price": "price",
+      "untitled": "untitled",
+      "notAssigned": "notAssigned",
+      "openMenu": "openMenu",
+      "view": "view",
+      "stats": {
+        "totalDeliveries": "totalDeliveries",
+        "totalDescription": "totalDescription",
+        "activeDeliveries": "activeDeliveries",
+        "ofTotal": "ofTotal",
+        "completionRate": "completionRate",
+        "deliveriesCompleted": "deliveriesCompleted",
+        "totalRevenue": "totalRevenue",
+        "revenueDescription": "revenueDescription",
+        "onTimeRate": "onTimeRate",
+        "onTimeDescription": "onTimeDescription",
+        "problemRate": "problemRate",
+        "problemDescription": "problemDescription",
+        "avgDeliveryTime": "avgDeliveryTime",
+        "minutes": "minutes",
+        "notAvailable": "notAvailable",
+        "avgTimeDescription": "avgTimeDescription",
+        "pendingDeliveries": "pendingDeliveries"
+      },
+      "map": {
+        "noDeliveries": "noDeliveries",
+        "noDeliveriesDescription": "noDeliveriesDescription",
+        "deliveryMap": "deliveryMap",
+        "untitled": "untitled",
+        "pickupPoint": "pickupPoint",
+        "deliveryPoint": "deliveryPoint"
+      },
+      "filters": {
+        "filterButton": "filterButton",
+        "clear": "clear",
+        "clearFilters": "clearFilters",
+        "applyFilters": "applyFilters"
+      }
     },
     "announcements": {
       "bulkImportComingSoon": "bulkImportComingSoon",
@@ -3058,6 +3177,33 @@
       "searchPlaceholder": "searchPlaceholder",
       "contractsList": "contractsList",
       "noContracts": "noContracts"
+    },
+    "Stats": {
+      "description": "description"
+    },
+    "Orders": {
+      "description": "description"
+    },
+    "Catalog": {
+      "description": "description"
+    },
+    "SalesStats": {
+      "description": "description"
+    },
+    "CustomerStats": {
+      "description": "description"
+    },
+    "OrderDetail": {
+      "description": "description"
+    },
+    "CreateProduct": {
+      "description": "description"
+    },
+    "OrderTracking": {
+      "description": "description"
+    },
+    "EditProduct": {
+      "description": "description"
     }
   },
   "expiresAt": "[en] expiresAt",
@@ -3080,7 +3226,8 @@
     "deliverer": "deliverer",
     "title": "title",
     "type": "type",
-    "price": "price"
+    "price": "price",
+    "id": "id"
   },
   "noLogs": "[en] noLogs",
   "detailsTitle": "[en] detailsTitle",
@@ -3101,7 +3248,25 @@
     "title": "[en] title",
     "instructions": "[en] instructions",
     "description": "description",
-    "noDeliveriesMessage": "noDeliveriesMessage"
+    "noDeliveriesMessage": "noDeliveriesMessage",
+    "Stats": {
+      "description": "description"
+    },
+    "Availability": {
+      "description": "description"
+    },
+    "Contract": {
+      "description": "description"
+    },
+    "Performance": {
+      "description": "description"
+    },
+    "Earnings": {
+      "description": "description"
+    },
+    "Terms": {
+      "description": "description"
+    }
   },
   "resetSuccess": {
     "title": "[en] title"
@@ -3159,7 +3324,22 @@
   "from": "[en] from",
   "to": "[en] to",
   "noAssignedDeliverer": "[en] noAssignedDeliverer",
-  "details": "[en] details",
+  "details": {
+    "title": "title",
+    "itemType": "itemType",
+    "weight": "weight",
+    "pickupLocation": "pickupLocation",
+    "deliveryLocation": "deliveryLocation",
+    "pickupDate": "pickupDate",
+    "pickupWindow": "pickupWindow",
+    "deliveryDate": "deliveryDate",
+    "deliveryWindow": "deliveryWindow",
+    "price": "price",
+    "deliveryType": "deliveryType",
+    "description": "description",
+    "tags": "tags",
+    "createdAt": "createdAt"
+  },
   "listView": "[en] listView",
   "mapView": "[en] mapView",
   "metadata": {
@@ -3252,7 +3432,34 @@
     "title": "title",
     "description": "description",
     "pageTitle": "pageTitle",
-    "pageDescription": "pageDescription"
+    "pageDescription": "pageDescription",
+    "Stats": {
+      "description": "description"
+    },
+    "Skills": {
+      "description": "description"
+    },
+    "Contract": {
+      "description": "description"
+    },
+    "Billing": {
+      "description": "description"
+    },
+    "MonthlyReport": {
+      "description": "description"
+    },
+    "AddSkill": {
+      "description": "description"
+    },
+    "Certifications": {
+      "description": "description"
+    },
+    "Negotiation": {
+      "description": "description"
+    },
+    "AutoInvoices": {
+      "description": "description"
+    }
   },
   "statusBanner": {
     "approved": {
@@ -3964,7 +4171,163 @@
     "submittedAt": "submittedAt",
     "acceptProposal": "acceptProposal",
     "rejectProposal": "rejectProposal",
-    "uploadSuccess": "uploadSuccess"
+    "uploadSuccess": "uploadSuccess",
+    "terms": {
+      "STANDARD": "STANDARD",
+      "ANY": "ANY",
+      "deliveryInstructions": "deliveryInstructions",
+      "deliveryInstructionsDescription": "deliveryInstructionsDescription",
+      "deliveryNotes": "deliveryNotes",
+      "deliveryNotesPlaceholder": "deliveryNotesPlaceholder",
+      "deliveryNotesDescription": "deliveryNotesDescription",
+      "specialInstructions": "specialInstructions",
+      "specialInstructionsPlaceholder": "specialInstructionsPlaceholder",
+      "specialInstructionsDescription": "specialInstructionsDescription",
+      "policies": "policies",
+      "policiesDescription": "policiesDescription",
+      "cancellationPolicy": "cancellationPolicy",
+      "selectCancellationPolicy": "selectCancellationPolicy",
+      "cancellationPolicyDescription": "cancellationPolicyDescription",
+      "returnPolicy": "returnPolicy",
+      "selectReturnPolicy": "selectReturnPolicy",
+      "returnPolicyDescription": "returnPolicyDescription",
+      "contactPreference": "contactPreference",
+      "selectContactPreference": "selectContactPreference",
+      "contactPreferenceDescription": "contactPreferenceDescription",
+      "termsAndConditions": "termsAndConditions",
+      "termsAndConditionsDescription": "termsAndConditionsDescription",
+      "termsAndConditionsTitle": "termsAndConditionsTitle",
+      "termsAndConditionsInfo": "termsAndConditionsInfo",
+      "acceptTerms": "acceptTerms",
+      "acceptTermsDescription": "acceptTermsDescription",
+      "termsError": "termsError",
+      "saving": "saving",
+      "saveAndContinue": "saveAndContinue"
+    },
+    "tariff": {
+      "FIXED": "FIXED",
+      "BOTH": "BOTH",
+      "pricing": "pricing",
+      "pricingDescription": "pricingDescription",
+      "pricingMethod": "pricingMethod",
+      "selectPricingMethod": "selectPricingMethod",
+      "pricingMethodDescription": "pricingMethodDescription",
+      "price": "price",
+      "priceRange": "priceRange",
+      "priceRangeDescription": "priceRangeDescription",
+      "isPriceNegotiable": "isPriceNegotiable",
+      "isPriceNegotiableDescription": "isPriceNegotiableDescription",
+      "additionalFees": "additionalFees",
+      "additionalFeesDescription": "additionalFeesDescription",
+      "rushHourFee": "rushHourFee",
+      "rushHourFeeDescription": "rushHourFeeDescription",
+      "weekendFee": "weekendFee",
+      "weekendFeeDescription": "weekendFeeDescription",
+      "holidayFee": "holidayFee",
+      "holidayFeeDescription": "holidayFeeDescription",
+      "insuranceAmount": "insuranceAmount",
+      "insuranceAmountDescription": "insuranceAmountDescription",
+      "handlingFee": "handlingFee",
+      "handlingFeeDescription": "handlingFeeDescription",
+      "paymentOptions": "paymentOptions",
+      "paymentOptionsDescription": "paymentOptionsDescription",
+      "paymentMethod": "paymentMethod",
+      "selectPaymentMethod": "selectPaymentMethod",
+      "paymentMethodDescription": "paymentMethodDescription",
+      "acceptPartialPayment": "acceptPartialPayment",
+      "acceptPartialPaymentDescription": "acceptPartialPaymentDescription",
+      "saving": "saving",
+      "save": "save"
+    },
+    "requestAccepted": "requestAccepted",
+    "requestRejected": "requestRejected",
+    "noRequests": "noRequests",
+    "noRequestsDescription": "noRequestsDescription",
+    "unknownDeliverer": "unknownDeliverer",
+    "decline": "decline",
+    "delivererDetails": "delivererDetails",
+    "delivererDetailsDescription": "delivererDetailsDescription",
+    "experience": "experience",
+    "years": "years",
+    "totalDeliveries": "totalDeliveries",
+    "noMessage": "noMessage",
+    "noPriceProvided": "noPriceProvided",
+    "form": {
+      "basicInfo": "basicInfo",
+      "basicInfoDescription": "basicInfoDescription",
+      "title": "title",
+      "titlePlaceholder": "titlePlaceholder",
+      "titleDescription": "titleDescription",
+      "description": "description",
+      "descriptionPlaceholder": "descriptionPlaceholder",
+      "descriptionDetails": "descriptionDetails",
+      "type": "type",
+      "selectType": "selectType",
+      "category": "category",
+      "selectCategory": "selectCategory",
+      "packageDetails": "packageDetails",
+      "packageDetailsDescription": "packageDetailsDescription",
+      "weight": "weight",
+      "weightUnit": "weightUnit",
+      "volume": "volume",
+      "volumeUnit": "volumeUnit",
+      "quantity": "quantity",
+      "quantityDescription": "quantityDescription",
+      "fragile": "fragile",
+      "fragileDescription": "fragileDescription",
+      "requiresSignature": "requiresSignature",
+      "requiresSignatureDescription": "requiresSignatureDescription",
+      "requiresId": "requiresId",
+      "requiresIdDescription": "requiresIdDescription",
+      "pickupDetails": "pickupDetails",
+      "pickupDetailsDescription": "pickupDetailsDescription",
+      "pickupAddress": "pickupAddress",
+      "addressPlaceholder": "addressPlaceholder",
+      "city": "city",
+      "cityPlaceholder": "cityPlaceholder",
+      "postalCode": "postalCode",
+      "postalCodePlaceholder": "postalCodePlaceholder",
+      "pickupDateStart": "pickupDateStart",
+      "selectDate": "selectDate",
+      "pickupTimeStart": "pickupTimeStart",
+      "pickupDateEnd": "pickupDateEnd",
+      "pickupTimeEnd": "pickupTimeEnd",
+      "deliveryDetails": "deliveryDetails",
+      "deliveryDetailsDescription": "deliveryDetailsDescription",
+      "deliveryAddress": "deliveryAddress",
+      "deliveryDateStart": "deliveryDateStart",
+      "deliveryTimeStart": "deliveryTimeStart",
+      "deliveryDateEnd": "deliveryDateEnd",
+      "deliveryTimeEnd": "deliveryTimeEnd",
+      "pricingDetails": "pricingDetails",
+      "pricingDetailsDescription": "pricingDetailsDescription",
+      "suggestedPrice": "suggestedPrice",
+      "suggestedPriceDescription": "suggestedPriceDescription",
+      "reset": "reset",
+      "saving": "saving",
+      "save": "save"
+    },
+    "noAnnouncementFound": "noAnnouncementFound",
+    "flexible": "flexible",
+    "analytics": {
+      "noData": "noData",
+      "noDataDescription": "noDataDescription",
+      "views": "views",
+      "applications": "applications",
+      "performance": "performance",
+      "totalViews": "totalViews",
+      "viewsOverTime": "viewsOverTime",
+      "totalApplications": "totalApplications",
+      "applicationsOverTime": "applicationsOverTime",
+      "applicationStatus": "applicationStatus",
+      "onTimeRate": "onTimeRate",
+      "avgDeliveryTime": "avgDeliveryTime",
+      "completionRate": "completionRate",
+      "pricingAnalysis": "pricingAnalysis",
+      "avgBid": "avgBid",
+      "lowestBid": "lowestBid",
+      "highestBid": "highestBid"
+    }
   },
   "wallet": {
     "refreshSuccess": "refreshSuccess",
@@ -4451,7 +4814,11 @@
     "online": "online",
     "offline": "offline",
     "busy": "busy",
-    "available": "available"
+    "available": "available",
+    "automaticallyVerified": "automaticallyVerified",
+    "documentsStillPending": "documentsStillPending",
+    "verified": "verified",
+    "documentCheck": "documentCheck"
   },
   "actions": {
     "findDeliveries": "findDeliveries",
@@ -4571,7 +4938,9 @@
     "viewMap": "viewMap",
     "viewWallet": "viewWallet",
     "notifications": "notifications",
-    "profileSettings": "profileSettings"
+    "profileSettings": "profileSettings",
+    "checking": "checking",
+    "checkVerificationStatus": "checkVerificationStatus"
   },
   "admin": {
     "verification": {
@@ -5147,6 +5516,96 @@
     "dashboard": {
       "a": "a",
       "T": "T"
+    },
+    "Support": {
+      "description": "description"
+    },
+    "Prestations": {
+      "description": "description"
+    },
+    "Logs": {
+      "description": "description"
+    },
+    "Finance": {
+      "description": "description"
+    },
+    "Config": {
+      "description": "description"
+    },
+    "Contracts": {
+      "description": "description"
+    },
+    "TicketDetail": {
+      "description": "description"
+    },
+    "FAQManagement": {
+      "description": "description"
+    },
+    "ServicePricing": {
+      "description": "description"
+    },
+    "ServiceCategories": {
+      "description": "description"
+    },
+    "SecurityLogs": {
+      "description": "description"
+    },
+    "ErrorLogs": {
+      "description": "description"
+    },
+    "Treasury": {
+      "description": "description"
+    },
+    "Accounting": {
+      "description": "description"
+    },
+    "Forecasts": {
+      "description": "description"
+    },
+    "PricingRules": {
+      "description": "description"
+    },
+    "CommissionRates": {
+      "description": "description"
+    },
+    "PendingContracts": {
+      "description": "description"
+    },
+    "NotificationConfig": {
+      "description": "description"
+    },
+    "ClientDetail": {
+      "description": "description"
+    },
+    "ContractTemplates": {
+      "description": "description"
+    },
+    "CreateTemplate": {
+      "description": "description"
+    },
+    "EditTemplate": {
+      "description": "description"
+    },
+    "Pricing": {
+      "description": "description"
+    },
+    "PushNotifications": {
+      "description": "description"
+    },
+    "PricingSimulator": {
+      "description": "description"
+    },
+    "PricingHistory": {
+      "description": "description"
+    },
+    "NotificationCampaigns": {
+      "description": "description"
+    },
+    "NotificationTemplates": {
+      "description": "description"
+    },
+    "CreateCampaign": {
+      "description": "description"
     }
   },
   "error": {
@@ -5455,7 +5914,8 @@
     "coordinatesRefresh": "coordinatesRefresh",
     "heatmapDataFetch": "heatmapDataFetch",
     "searchFailed": "searchFailed",
-    "default": "default"
+    "default": "default",
+    "verificationCheckFailed": "verificationCheckFailed"
   },
   "access": {
     "codeCopied": "codeCopied",
@@ -5553,7 +6013,24 @@
       "price": "price",
       "sortBy": "sortBy",
       "resetFilters": "resetFilters",
-      "apply": "apply"
+      "apply": "apply",
+      "title": "title",
+      "query": "query",
+      "queryPlaceholder": "queryPlaceholder",
+      "location": "location",
+      "locationPlaceholder": "locationPlaceholder",
+      "categoryPlaceholder": "categoryPlaceholder",
+      "allCategories": "allCategories",
+      "minPrice": "minPrice",
+      "maxPrice": "maxPrice",
+      "availability": "availability",
+      "availabilityPlaceholder": "availabilityPlaceholder",
+      "anyTime": "anyTime",
+      "minRating": "minRating",
+      "ratingPlaceholder": "ratingPlaceholder",
+      "anyRating": "anyRating",
+      "search": "search",
+      "reset": "reset"
     },
     "timeslot": {
       "start": "start",
@@ -5899,7 +6376,11 @@
     "vehicleRegistration": "vehicleRegistration",
     "insurance": "insurance",
     "qualificationCertificate": "qualificationCertificate",
-    "other": "other"
+    "other": "other",
+    "standard": "standard",
+    "express": "express",
+    "sameDay": "sameDay",
+    "scheduled": "scheduled"
   },
   "upload": {
     "success": {
@@ -6555,5 +7036,100 @@
     "thisMonth": "thisMonth",
     "viewDetails": "viewDetails"
   },
-  "delivery_tracking": "delivery_tracking"
+  "delivery_tracking": "delivery_tracking",
+  "public": {
+    "Partners": {
+      "description": "description"
+    },
+    "Legal": {
+      "description": "description"
+    },
+    "Blog": {
+      "description": "description"
+    },
+    "BecomeProvider": {
+      "description": "description"
+    },
+    "BecomeMerchant": {
+      "description": "description"
+    },
+    "CGU": {
+      "description": "description"
+    },
+    "CGV": {
+      "description": "description"
+    },
+    "BlogPost": {
+      "description": "description"
+    },
+    "Developers": {
+      "description": "description"
+    },
+    "APIDocs": {
+      "description": "description"
+    },
+    "APIKeys": {
+      "description": "description"
+    }
+  },
+  "statuses": {
+    "pending": "pending",
+    "assigned": "assigned",
+    "inProgress": "inProgress",
+    "delivered": "delivered",
+    "completed": "completed",
+    "cancelled": "cancelled",
+    "problem": "problem"
+  },
+  "cancellationPolicies": {
+    "standard": "standard",
+    "flexible": "flexible",
+    "strict": "strict",
+    "nonRefundable": "nonRefundable"
+  },
+  "returnPolicies": {
+    "standard": "standard",
+    "noReturn": "noReturn",
+    "caseByCase": "caseByCase"
+  },
+  "contactPreferences": {
+    "any": "any",
+    "platformOnly": "platformOnly",
+    "phone": "phone",
+    "email": "email"
+  },
+  "pricingMethods": {
+    "fixed": "fixed",
+    "weightBased": "weightBased",
+    "distanceBased": "distanceBased",
+    "negotiable": "negotiable"
+  },
+  "paymentMethods": {
+    "card": "card",
+    "cash": "cash",
+    "both": "both"
+  },
+  "categories": {
+    "package": "package",
+    "food": "food",
+    "documents": "documents",
+    "furniture": "furniture",
+    "other": "other"
+  },
+  "ANY": "ANY",
+  "FIXED": "FIXED",
+  "BOTH": "BOTH",
+  "timeslot": {
+    "start": "start",
+    "end": "end"
+  },
+  "location": "location",
+  "locationPlaceholder": "locationPlaceholder",
+  "categoryPlaceholder": "categoryPlaceholder",
+  "allCategories": "allCategories",
+  "availabilityPlaceholder": "availabilityPlaceholder",
+  "anyTime": "anyTime",
+  "minRating": "minRating",
+  "ratingPlaceholder": "ratingPlaceholder",
+  "anyRating": "anyRating"
 }

@@ -2,7 +2,7 @@
 
 /**
  * Script d'exécution pour la génération des traductions
- * 
+ *
  * Utilisation:
  * - Génération complète: pnpm generate:translations
  * - Génération pour une langue spécifique: pnpm generate:lang [code]
@@ -48,7 +48,7 @@ ${chalk.cyan('Exemples:')}
 
     // Exécuter la génération
     await generateAllTranslations();
-    
+
     console.log(chalk.green.bold('✅ Génération des traductions terminée avec succès!'));
   } catch (error) {
     console.error(chalk.red(`❌ Erreur lors de la génération des traductions: ${error}`));
@@ -63,4 +63,4 @@ ${chalk.cyan('Exemples:')}
 main().catch(error => {
   console.error(chalk.red(`Erreur fatale: ${error}`));
   // Nous n'utilisons pas process.exit ici pour être compatible avec les modules ES
-}); 
+});
