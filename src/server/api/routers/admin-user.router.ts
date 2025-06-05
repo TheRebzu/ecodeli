@@ -44,16 +44,10 @@ export const adminUserRouter = router({
    */
   getUserDetail: adminProcedure.input(getUserDetailSchema).query(async ({ ctx, input }) => {
     const adminService = new AdminService(ctx.db);
-    return adminService.getUserDetail(userId, {
+    return adminService.getUserDetail(input.userId, {
       includeDocuments: input.includeDocuments,
       includeVerificationHistory: input.includeVerificationHistory,
       includeActivityLogs: input.includeActivityLogs,
-      includeLoginHistory: input.includeLoginHistory,
-      includeNotes: input.includeNotes,
-      includePermissions: input.includePermissions,
-      includeSubscriptions: input.includeSubscriptions,
-      includePaymentMethods: input.includePaymentMethods,
-      includeNotificationSettings: input.includeNotificationSettings,
     });
   }),
 

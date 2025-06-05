@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertTriangle, Download, FileBarChart, MapPin, RefreshCw, Truck } from 'lucide-react';
-import { api } from '@/trpc/server';
+import { dashboardService } from '@/server/services/dashboard.service';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('admin.deliveries');
@@ -20,8 +20,8 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function AdminDeliveriesPage() {
   const t = await getTranslations('admin.deliveries');
 
-  // Récupérer les statistiques des livraisons depuis l'API
-  const deliveryStats = await api.adminDashboard.getDeliveryStats.query();
+  // Récupérer les statistiques des livraisons directement depuis le service
+  const deliveryStats = await dashboardService.getDeliveryStats();
 
   return (
     <div className="space-y-6">

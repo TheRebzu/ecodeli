@@ -1,5 +1,7 @@
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { formatDistanceToNow } from "date-fns"
+import { fr } from "date-fns/locale"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -98,4 +100,26 @@ export function generateChartColors(count: number): string[] {
   }
   
   return result;
+}
+
+/**
+ * Formate une date relative (ex: "il y a 2 heures", "dans 3 jours")
+ * @param date - Date à formater (string ou Date)
+ * @returns Date formatée en format relatif
+ */
+export function formatRelativeDate(date: string | Date | null | undefined): string {
+  if (!date) {
+    return 'Jamais';
+  }
+  
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  
+  if (isNaN(dateObj.getTime())) {
+    return 'Date invalide';
+  }
+  
+  return formatDistanceToNow(dateObj, {
+    addSuffix: true,
+    locale: fr,
+  });
 }

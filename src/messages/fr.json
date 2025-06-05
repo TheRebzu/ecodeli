@@ -4667,8 +4667,12 @@
       "export": "export"
     },
     "deliveries": {
-      "liveTracking": "liveTracking",
-      "liveTrackingDescription": "liveTrackingDescription",
+      "metadata": {
+        "title": "Gestion des Livraisons - EcoDeli Admin",
+        "description": "Suivez et gérez toutes les livraisons sur la plateforme EcoDeli en temps réel"
+      },
+      "liveTracking": "Suivi en temps réel",
+      "liveTrackingDescription": "Visualisez toutes les livraisons actives sur la carte en temps réel",
       "statusUpdateSuccess": "statusUpdateSuccess",
       "statusUpdateError": "statusUpdateError",
       "trackingNumber": "trackingNumber",

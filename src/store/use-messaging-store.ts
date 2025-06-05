@@ -1,1 +1,30 @@
-import { create } from 'zustand';\n\ninterface MessagingState {\n  conversations: any[];\n  messagesByConversation: Record<string, any[]>;\n  setConversations: (conversations: any[]) => void;\n  setMessages: (conversationId: string, messages: any[]) => void;\n  addMessage: (conversationId: string, message: any) => void;\n}\n\nexport const useMessagingStore = create<MessagingState>((set) => ({\n  conversations: [],\n  messagesByConversation: {},\n  setConversations: (conversations) => set({ conversations }),\n  setMessages: (conversationId, messages) => set((state) => ({\n    messagesByConversation: {\n      ...state.messagesByConversation,\n      [conversationId]: messages,\n    },\n  })),\n  addMessage: (conversationId, message) => set((state) => {\n    const currentMessages = state.messagesByConversation[conversationId] || [];\n    return {\n      messagesByConversation: {\n        ...state.messagesByConversation,\n        [conversationId]: [...currentMessages, message],\n      },\n    };\n  }),\n}));
+import { create } from 'zustand';
+
+interface MessagingState {
+  conversations: any[];
+  messagesByConversation: Record<string, any[]>;
+  setConversations: (conversations: any[]) => void;
+  setMessages: (conversationId: string, messages: any[]) => void;
+  addMessage: (conversationId: string, message: any) => void;
+}
+
+export const useMessagingStore = create<MessagingState>((set) => ({
+  conversations: [],
+  messagesByConversation: {},
+  setConversations: (conversations) => set({ conversations }),
+  setMessages: (conversationId, messages) => set((state) => ({
+    messagesByConversation: {
+      ...state.messagesByConversation,
+      [conversationId]: messages,
+    },
+  })),
+  addMessage: (conversationId, message) => set((state) => {
+    const currentMessages = state.messagesByConversation[conversationId] || [];
+    return {
+      messagesByConversation: {
+        ...state.messagesByConversation,
+        [conversationId]: [...currentMessages, message],
+      },
+    };
+  }),
+}));

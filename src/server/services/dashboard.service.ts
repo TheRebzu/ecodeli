@@ -523,6 +523,38 @@ export const dashboardService = {
       // Par exemple: temps moyen entre le statut PICKED_UP et DELIVERED en minutes
       const avgDeliveryTime = 45; // 45 minutes par défaut
 
+      // Nouvelles livraisons aujourd'hui
+      const deliveriesToday = await db.delivery.count({
+        where: {
+          createdAt: {
+            gte: today,
+          },
+        },
+      });
+
+      // Incidents aujourd'hui
+      const todayIssues = await db.delivery.count({
+        where: {
+          status: 'DISPUTED',
+          updatedAt: {
+            gte: today,
+          },
+        },
+      });
+
+      // Incidents en attente
+      const pendingIssues = await db.delivery.count({
+        where: {
+          status: 'DISPUTED',
+        },
+      });
+
+      // Calcul du taux de livraison à temps (simulé)
+      const onTimeDeliveryRate = 0.85; // 85% par défaut
+
+      // Temps moyen de livraison du mois précédent (simulé)
+      const previousAverageDeliveryTime = 50; // 50 minutes par défaut
+
       return {
         // Données au format attendu par DeliveryStatsCard
         active: activeDeliveries,
@@ -534,19 +566,20 @@ export const dashboardService = {
         },
         avgDeliveryTime: avgDeliveryTime,
         
+        // Propriétés attendues par la page admin/deliveries
+        inProgressDeliveries: activeDeliveries,
+        deliveriesToday,
+        onTimeDeliveryRate,
+        completedToday,
+        averageDeliveryTime: avgDeliveryTime,
+        previousAverageDeliveryTime,
+        pendingIssues,
+        todayIssues,
+        
         // Conserver les anciennes propriétés pour la rétrocompatibilité
         totalDeliveries: activeDeliveries + cancelledDeliveries + completedThisMonth,
         pendingDeliveries: await db.delivery.count({ where: { status: 'PENDING' } }),
-        inProgressDeliveries: activeDeliveries,
         completedDeliveries: completedThisMonth,
-        deliveriesToday: await db.delivery.count({
-          where: {
-            createdAt: {
-              gte: today,
-            },
-          },
-        }),
-        completedToday,
       };
     } catch (error) {
       console.error('Erreur lors de la récupération des statistiques de livraisons:', error);

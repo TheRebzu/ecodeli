@@ -1,1 +1,21 @@
-import { create } from 'zustand';\n\ninterface DocumentState {\n  documents: any[];\n  setDocuments: (documents: any[]) => void;\n  addDocument: (document: any) => void;\n  updateDocumentStatus: (id: string, status: string) => void;\n}\n\nexport const useDocumentStore = create<DocumentState>((set) => ({\n  documents: [],\n  setDocuments: (documents) => set({ documents }),\n  addDocument: (document) => set((state) => ({\n    documents: [...state.documents, document]\n  })),\n  updateDocumentStatus: (id, status) => set((state) => ({\n    documents: state.documents.map(doc => \n      doc.id === id ? { ...doc, status } : doc\n    )\n  })),\n}));
+import { create } from 'zustand';
+
+interface DocumentState {
+  documents: any[];
+  setDocuments: (documents: any[]) => void;
+  addDocument: (document: any) => void;
+  updateDocumentStatus: (id: string, status: string) => void;
+}
+
+export const useDocumentStore = create<DocumentState>((set) => ({
+  documents: [],
+  setDocuments: (documents) => set({ documents }),
+  addDocument: (document) => set((state) => ({
+    documents: [...state.documents, document]
+  })),
+  updateDocumentStatus: (id, status) => set((state) => ({
+    documents: state.documents.map(doc => 
+      doc.id === id ? { ...doc, status } : doc
+    )
+  })),
+}));
