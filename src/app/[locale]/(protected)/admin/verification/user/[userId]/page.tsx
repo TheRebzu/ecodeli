@@ -7,8 +7,9 @@ import { UserDocumentVerification } from '@/components/admin/verification/user-d
 export async function generateMetadata({
   params,
 }: {
-  params: { userId: string };
+  params: Promise<{ userId: string }>;
 }): Promise<Metadata> {
+  const { userId } = await params;
   const t = await getTranslations('admin.verification');
 
   return {
@@ -17,8 +18,12 @@ export async function generateMetadata({
   };
 }
 
-export default async function UserVerificationPage({ params }: { params: { userId: string } }) {
-  const { userId } = params;
+export default async function UserVerificationPage({ 
+  params 
+}: { 
+  params: Promise<{ userId: string }> 
+}) {
+  const { userId } = await params;
   const t = await getTranslations('admin.verification');
 
   // Vérifier si l'utilisateur existe

@@ -223,6 +223,10 @@
       },
       "title": "Vérification de documents",
       "description": "Vérifiez et approuvez les documents soumis par les utilisateurs",
+      "userVerification": {
+        "title": "Vérification utilisateur",
+        "description": "Gérez la vérification des documents de cet utilisateur"
+      },
       "userDocumentsTitle": "Documents utilisateur",
       "backToUsers": "Retour à la liste des utilisateurs",
       "loading": "Chargement...",
@@ -1822,7 +1826,30 @@
       "title": "Problème de vérification?",
       "description": "Si tous vos documents ont été approuvés mais que votre compte n'est toujours pas vérifié, vous pouvez essayer de forcer la vérification."
     },
-    "upload": "Télécharger",
+    "upload": {
+      "title": "Télécharger un document",
+      "description": "Sélectionnez le type de document et téléchargez votre fichier",
+      "verification": {
+        "notice": "Tous vos documents doivent être vérifiés avant d'accéder à toutes les fonctionnalités"
+      },
+      "form": {
+        "type": {
+          "label": "Type de document",
+          "placeholder": "Sélectionnez un type de document",
+          "description": "Choisissez le type de document que vous souhaitez télécharger"
+        },
+        "file": {
+          "label": "Fichier",
+          "instruction": "Glissez-déposez un fichier ici, ou cliquez pour sélectionner",
+          "supportedFormats": "Formats acceptés: JPG, PNG, PDF (max 10MB)"
+        },
+        "expiryDate": {
+          "label": "Date d'expiration (optionnel)",
+          "placeholder": "Sélectionnez une date d'expiration",
+          "description": "Date d'expiration du document (si applicable)"
+        }
+      }
+    },
     "form": {
       "documentType": "Type de document",
       "description": "Description (optionnel)",
