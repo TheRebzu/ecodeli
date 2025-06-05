@@ -507,12 +507,12 @@ export class VerificationService {
     });
   }
   /**
-   * Récupère le statut de vérification complet d'un utilisateur
+   * Obtient le statut de vérification des documents pour un utilisateur
    */
   async getUserVerificationStatus(userId: string, userRole: UserRole): Promise<VerificationResult> {
-    const requiredDocuments = VerificationService.REQUIRED_DOCUMENTS[userRole];
+    const requiredDocumentTypes = VerificationService.REQUIRED_DOCUMENTS[userRole] || [];
     
-    if (requiredDocuments.length === 0) {
+    if (requiredDocumentTypes.length === 0) {
       return {
         isComplete: true,
         missingDocuments: [],
@@ -520,31 +520,34 @@ export class VerificationService {
       };
     }
 
-    // Récupérer tous les documents de l'utilisateur
+    // Récupérer les documents de l'utilisateur avec le bon filtrage par userRole
     const userDocuments = await this.prisma.document.findMany({
       where: {
         userId,
-        userRole,
-        type: { in: requiredDocuments },
+        userRole, // Maintenant que les documents sont corrigés, on peut filtrer par userRole
       },
     });
 
-    // Analyser le statut de chaque document avec la même logique que document-list.tsx
+    // Analyser le statut de chaque document
     const documentStatuses = userDocuments.map(doc => this.getEffectiveDocumentStatus(doc));
     
-    // Identifier les documents manquants ou non vérifiés
-    const verifiedDocTypes = userDocuments
-      .filter(doc => {
-        const effectiveStatus = this.getEffectiveDocumentStatus(doc);
-        return effectiveStatus === 'APPROVED';
-      })
-      .map(doc => doc.type);
+    // Identifier les documents approuvés avec correspondance flexible
+    const approvedRequiredTypes = requiredDocumentTypes.filter((requiredType: any) =>
+      userDocuments.some(doc => 
+        doc.type === requiredType && 
+        this.getEffectiveDocumentStatus(doc) === 'APPROVED'
+      )
+    );
     
-    const missingDocuments = requiredDocuments.filter(
-      type => !verifiedDocTypes.includes(type)
+    const missingDocuments = requiredDocumentTypes.filter(
+      (type: any) => !approvedRequiredTypes.includes(type)
     );
 
-    // Déterminer le statut global selon la même logique que document-list.tsx
+    // Analyser les statuts
+    const hasExpiredDocuments = documentStatuses.includes('EXPIRED');
+    const hasRejectedDocuments = documentStatuses.includes('REJECTED');
+    const hasPendingDocuments = documentStatuses.includes('PENDING');
+
     let verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | 'EXPIRED' | 'NOT_SUBMITTED' = 'NOT_SUBMITTED';
     
     if (userDocuments.length === 0) {
@@ -568,7 +571,9 @@ export class VerificationService {
       } else {
         verificationStatus = 'PENDING'; // Par défaut
       }
-    }    return {
+    }
+
+    return {
       isComplete: missingDocuments.length === 0,
       missingDocuments,
       verificationStatus

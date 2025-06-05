@@ -6,13 +6,12 @@ import { PublicFooter } from '@/components/layout/public-footer';
 
 interface PublicLayoutProps {
   children: React.ReactNode;
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }
 
 export default async function PublicLayout({ children, params }: PublicLayoutProps) {
-  // Safely extract locale using Promise.all
-  const [safeParams] = await Promise.all([params]);
-  const locale = safeParams.locale;
+  // Safely extract locale using await
+  const { locale } = await params;
 
   // Load messages for client components
   const messages = await getMessages({ locale });

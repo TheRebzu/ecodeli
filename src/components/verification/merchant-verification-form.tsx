@@ -15,7 +15,7 @@ export function MerchantVerificationForm() {
       description: t('documents.idCard.description'),
     },
     {
-      type: VerificationDocumentType.BUSINESS_LICENSE,
+      type: VerificationDocumentType.BUSINESS_REGISTRATION,
       label: t('documents.businessLicense.label'),
       description: t('documents.businessLicense.description'),
     },

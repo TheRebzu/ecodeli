@@ -9,10 +9,11 @@ import { VerificationStatusBanner } from '@/components/verification/verification
 import { db } from '@/server/db';
 
 export async function generateMetadata({
-  params: { locale },
+  params,
 }: {
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
+  const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'verification' });
 
   return {
@@ -22,10 +23,12 @@ export async function generateMetadata({
 }
 
 export default async function MerchantVerificationPage({
-  params: { locale },
+  params,
 }: {
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }) {
+  const { locale } = await params;
+  
   // Vérifier si l'utilisateur est connecté et est un merchant
   const session = await getServerSession(authOptions);
   
@@ -39,29 +42,32 @@ export default async function MerchantVerificationPage({
   
   const userId = session.user.id;
   
-  // Récupérer le merchant pour cet utilisateur
-  const merchant = await db.merchant.findUnique({
+  // Récupérer les documents de l'utilisateur pour déterminer le statut
+  const userDocuments = await db.document.findMany({
     where: {
       userId: userId,
-    }
-  });
-
-  if (!merchant) {
-    redirect(`/${locale}/dashboard`);
-  }
-  
-  // Récupérer le statut de vérification actuel
-  const merchantVerification = await db.verification.findFirst({
-    where: {
-      submitterId: userId,
-      type: 'MERCHANT'
+      userRole: 'MERCHANT'
     },
     orderBy: {
-      createdAt: 'desc',
+      uploadedAt: 'desc',
     },
   });
   
-  const verificationStatus = merchantVerification?.status || null;
+  // Déterminer le statut global de vérification basé sur les documents
+  let verificationStatus = null;
+  if (userDocuments.length > 0) {
+    const hasRejected = userDocuments.some(doc => doc.verificationStatus === 'REJECTED');
+    const hasApproved = userDocuments.some(doc => doc.verificationStatus === 'APPROVED');
+    const hasPending = userDocuments.some(doc => doc.verificationStatus === 'PENDING');
+    
+    if (hasRejected) {
+      verificationStatus = 'REJECTED';
+    } else if (hasPending) {
+      verificationStatus = 'PENDING';
+    } else if (hasApproved) {
+      verificationStatus = 'APPROVED';
+    }
+  }
   
   // Traduire les textes
   const t = await getTranslations({ locale, namespace: 'verification' });
@@ -86,7 +92,7 @@ export default async function MerchantVerificationPage({
                 ? t('statusBanner.rejected.description')
                 : t('statusBanner.pending.description')
             }
-            rejectionReason={merchantVerification?.rejectionReason || undefined}
+            rejectionReason={userDocuments.find(doc => doc.rejectionReason)?.rejectionReason || undefined}
           />
         </div>
       )}

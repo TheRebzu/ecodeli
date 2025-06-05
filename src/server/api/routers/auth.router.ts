@@ -343,6 +343,7 @@ export const authRouter = router({
         // Création du document avec les données minimales requises
         const documentData = {
           userId: user.id,
+          userRole: user.role,
           type,
           filename: uniqueFilename,
           fileUrl,

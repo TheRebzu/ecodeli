@@ -4,13 +4,13 @@ import { MerchantSidebar } from '@/components/layout/sidebars/merchant-sidebar';
 
 interface MerchantLayoutProps {
   children: React.ReactNode;
-  params: {
+  params: Promise<{
     locale: string;
-  };
+  }>;
 }
 
-export default function MerchantLayout({ children, params }: MerchantLayoutProps) {
-  const { locale } = params;
+export default async function MerchantLayout({ children, params }: MerchantLayoutProps) {
+  const { locale } = await params;
 
   return (
     <div className="min-h-screen flex flex-col">

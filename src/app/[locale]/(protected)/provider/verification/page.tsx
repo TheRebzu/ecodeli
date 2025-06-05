@@ -9,10 +9,11 @@ import { VerificationStatusBanner } from '@/components/verification/verification
 import { db } from '@/server/db';
 
 export async function generateMetadata({
-  params: { locale },
+  params,
 }: {
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
+  const { locale } = await params;
   const t = await getTranslations({ locale, namespace: 'verification' });
 
   return {
@@ -22,10 +23,12 @@ export async function generateMetadata({
 }
 
 export default async function ProviderVerificationPage({
-  params: { locale },
+  params,
 }: {
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }) {
+  const { locale } = await params;
+  
   // Vérifier si l'utilisateur est connecté et est un provider
   const session = await getServerSession(authOptions);
   
@@ -39,19 +42,32 @@ export default async function ProviderVerificationPage({
   
   const userId = session.user.id;
   
-  // Récupérer le statut de vérification actuel
-  const providerVerification = await db.providerVerification.findFirst({
+  // Récupérer les documents de l'utilisateur pour déterminer le statut
+  const userDocuments = await db.document.findMany({
     where: {
-      provider: {
-        userId,
-      },
+      userId: userId,
+      userRole: 'PROVIDER'
     },
     orderBy: {
-      createdAt: 'desc',
+      uploadedAt: 'desc',
     },
   });
   
-  const verificationStatus = providerVerification?.status || null;
+  // Déterminer le statut global de vérification basé sur les documents
+  let verificationStatus = null;
+  if (userDocuments.length > 0) {
+    const hasRejected = userDocuments.some(doc => doc.verificationStatus === 'REJECTED');
+    const hasApproved = userDocuments.some(doc => doc.verificationStatus === 'APPROVED');
+    const hasPending = userDocuments.some(doc => doc.verificationStatus === 'PENDING');
+    
+    if (hasRejected) {
+      verificationStatus = 'REJECTED';
+    } else if (hasPending) {
+      verificationStatus = 'PENDING';
+    } else if (hasApproved) {
+      verificationStatus = 'APPROVED';
+    }
+  }
   
   // Traduire les textes
   const t = await getTranslations({ locale, namespace: 'verification' });
@@ -76,7 +92,7 @@ export default async function ProviderVerificationPage({
                 ? t('statusBanner.rejected.description')
                 : t('statusBanner.pending.description')
             }
-            rejectionReason={providerVerification?.rejectionReason || undefined}
+            rejectionReason={userDocuments.find(doc => doc.rejectionReason)?.rejectionReason || undefined}
           />
         </div>
       )}
