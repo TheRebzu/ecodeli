@@ -6,7 +6,7 @@ import { ZodError } from 'zod';
 import { getServerAuthSession } from '@/server/auth/next-auth';
 import { db } from '@/server/db';
 import { UserRole } from '@prisma/client';
-import { headers as getHeaders } from 'next/headers';
+// Import conditionnel pour éviter les erreurs côté client
 
 /**
  * 1. CONTEXT
@@ -73,14 +73,17 @@ export const createTRPCContext = async (opts?: CreateNextContextOptionsWithAuth)
   }
 
   // Sinon, nous sommes dans un contexte App Router
-  let headers = {};
+  let requestHeaders = {};
   let session = null;
 
   try {
-    // Sécuriser l'accès aux headers avec une vérification
-    const headersList = await getHeaders();
-    if (headersList) {
-      headers = Object.fromEntries(headersList.entries());
+    // Import dynamique pour éviter les erreurs côté client
+    if (typeof window === 'undefined') {
+      const { headers } = await import('next/headers');
+      const headersList = await headers();
+      if (headersList) {
+        requestHeaders = Object.fromEntries(headersList.entries());
+      }
     }
     // Récupérer la session sans req/res avec Next.js App Router
     session = await getServerAuthSession();
@@ -91,12 +94,12 @@ export const createTRPCContext = async (opts?: CreateNextContextOptionsWithAuth)
     } else {
       console.error('Erreur lors de la création du contexte tRPC:', error);
     }
-    // Continue avec session=null et headers={}
+    // Continue avec session=null et requestHeaders={}
   }
 
   return createInnerTRPCContext({
     session,
-    headers,
+    headers: requestHeaders,
   });
 };
 

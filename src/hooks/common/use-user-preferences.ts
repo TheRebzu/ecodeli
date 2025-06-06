@@ -3,7 +3,7 @@
 import { useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useLocale } from 'next-intl';
-import { api } from '@/server/api/trpc';
+import { api } from '@/trpc/react';
 import { UpdateUserPreferences } from '@/schemas/user/user-preferences.schema';
 import { useSession } from 'next-auth/react';
 

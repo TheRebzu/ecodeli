@@ -38,9 +38,9 @@ import {
   Trash2,
 } from 'lucide-react';
 import { Link } from '@/navigation';
-import { useUserBan } from '@/hooks/common/use-user-preferences';
+import { useUserBan } from '@/hooks/use-user-ban';
 import { UserBanAction } from '@/types/users/verification';
-import { useUserActivation } from '@/schemas/user/user-activation.schema';
+import { useUserActivation } from '@/hooks/use-user-activation';
 import { api } from '@/trpc/react';
 import {
   Dialog,

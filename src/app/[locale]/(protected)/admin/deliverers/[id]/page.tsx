@@ -10,6 +10,16 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import {
   CheckCircle,
   XCircle,
   Clock,
@@ -36,10 +46,34 @@ export default function DelivererDetailPage() {
   const params = useParams();
   const delivererId = params.id as string;
   const { toast } = useToast();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [dialogAction, setDialogAction] = useState<{
+    title: string;
+    description: string;
+    action: () => void;
+  } | null>(null);
 
   // Récupérer les données du livreur depuis la base de données
-  const { data: delivererData, isLoading, error } = api.admin.deliverers.getById.useQuery({
+  const { data: delivererData, isLoading, error, refetch } = api.admin.deliverers.getById.useQuery({
     id: delivererId
+  });
+
+  // Mutations pour les actions
+  const updateDelivererStatusMutation = api.admin.deliverers.updateStatus.useMutation({
+    onSuccess: () => {
+      toast({
+        title: 'Statut mis à jour',
+        description: 'Le statut du livreur a été mis à jour avec succès.',
+      });
+      refetch();
+    },
+    onError: (error) => {
+      toast({
+        title: 'Erreur',
+        description: 'Erreur lors de la mise à jour du statut: ' + error.message,
+        variant: 'destructive',
+      });
+    },
   });
 
   // Gestion des états de chargement et d'erreur
@@ -129,6 +163,37 @@ export default function DelivererDetailPage() {
     return Math.round((deliverer.completedDeliveries / deliverer.totalDeliveries) * 100);
   };
 
+  // Fonctions pour gérer les actions
+  const handleActivateDeliverer = () => {
+    setDialogAction({
+      title: 'Activer le livreur',
+      description: 'Êtes-vous sûr de vouloir activer ce livreur ?',
+      action: () => {
+        updateDelivererStatusMutation.mutate({
+          userId: delivererId,
+          status: 'ACTIVE',
+        });
+        setIsDialogOpen(false);
+      },
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleSuspendDeliverer = () => {
+    setDialogAction({
+      title: 'Suspendre le livreur',
+      description: 'Êtes-vous sûr de vouloir suspendre ce livreur ? Il perdra l\'accès à la plateforme.',
+      action: () => {
+        updateDelivererStatusMutation.mutate({
+          userId: delivererId,
+          status: 'SUSPENDED',
+        });
+        setIsDialogOpen(false);
+      },
+    });
+    setIsDialogOpen(true);
+  };
+
   return (
     <div className="container mx-auto py-6 space-y-6">
       {/* En-tête */}
@@ -152,17 +217,27 @@ export default function DelivererDetailPage() {
         </div>
         
         <div className="flex items-center gap-2">
-          <Button variant="outline" disabled>
-            <Edit className="mr-2 h-4 w-4" />
-            Modifier
+          <Button variant="outline" asChild>
+            <Link href={`/admin/deliverers/${deliverer.id}/edit`}>
+              <Edit className="mr-2 h-4 w-4" />
+              Modifier
+            </Link>
           </Button>
           {deliverer.status === 'ACTIVE' ? (
-            <Button variant="destructive" disabled>
+            <Button 
+              variant="destructive" 
+              onClick={handleSuspendDeliverer}
+              disabled={updateDelivererStatusMutation.isPending}
+            >
               <Ban className="mr-2 h-4 w-4" />
               Suspendre
             </Button>
           ) : (
-            <Button variant="default" disabled>
+            <Button 
+              variant="default" 
+              onClick={handleActivateDeliverer}
+              disabled={updateDelivererStatusMutation.isPending}
+            >
               <UserCheck className="mr-2 h-4 w-4" />
               Réactiver
             </Button>
@@ -304,7 +379,7 @@ export default function DelivererDetailPage() {
                 <div>
                   <p className="text-sm font-medium mb-2">Zones préférées</p>
                   <div className="flex flex-wrap gap-1">
-                    {deliverer.preferredZones.map((zone, index) => (
+                    {deliverer.preferredZones.map((zone: string, index: number) => (
                       <Badge key={index} variant="outline" className="text-xs">
                         {zone}
                       </Badge>
@@ -351,18 +426,40 @@ export default function DelivererDetailPage() {
                 Voir les documents
               </Link>
             </Button>
-            <Button variant="outline" disabled>
-              Historique des livraisons
+            <Button variant="outline" asChild>
+              <Link href={`/admin/deliverers/${deliverer.id}/deliveries`}>
+                Historique des livraisons
+              </Link>
             </Button>
-            <Button variant="outline" disabled>
-              Contacter le livreur
+            <Button variant="outline" asChild>
+              <Link href={`/admin/messaging/deliverer/${deliverer.id}`}>
+                Contacter le livreur
+              </Link>
             </Button>
-            <Button variant="outline" disabled>
-              Générer un rapport
+            <Button variant="outline" asChild>
+              <Link href={`/admin/reports/deliverer/${deliverer.id}`}>
+                Générer un rapport
+              </Link>
             </Button>
           </div>
         </CardContent>
       </Card>
+
+      {/* Modal de confirmation */}
+      <AlertDialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+        {dialogAction && (
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>{dialogAction.title}</AlertDialogTitle>
+              <AlertDialogDescription>{dialogAction.description}</AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Annuler</AlertDialogCancel>
+              <AlertDialogAction onClick={dialogAction.action}>Confirmer</AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        )}
+      </AlertDialog>
     </div>
   );
 } 
