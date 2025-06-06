@@ -1,0 +1,377 @@
+// ===== MODÈLES ÉTENDUS POUR LIVREURS =====
+// Extensions du système livreur EcoDeli avec fonctionnalités avancées
+
+/// Profil étendu du livreur avec informations détaillées
+model DelivererProfile {
+  id                    String    @id @default(cuid())
+  delivererId           String    @unique
+  
+  // Véhicule détaillé
+  vehicleBrand          String?
+  vehicleModel          String?
+  vehicleYear           Int?
+  vehicleColor          String?
+  vehicleCapacityKg     Float?
+  vehicleCapacityM3     Float?
+  
+  // Zone de service
+  serviceRadius         Int       @default(10)  // km
+  preferredCities       String[]
+  blacklistedCities     String[]
+  
+  // Préférences métier
+  acceptsAnimals        Boolean   @default(false)
+  acceptsFragile        Boolean   @default(true)
+  acceptsFood           Boolean   @default(true)
+  acceptsLargePackages  Boolean   @default(true)
+  acceptsNightDelivery  Boolean   @default(false)
+  
+  // Horaires de travail
+  workingDays           String[]  // ["monday", "tuesday", ...]
+  workingHoursStart     String?   // "08:00"
+  workingHoursEnd       String?   // "18:00"
+  
+  // Statut et performance
+  totalDeliveries       Int       @default(0)
+  successRate           Float     @default(100.0)
+  averageRating         Float?
+  totalDistance         Float     @default(0)
+  totalEarnings         Decimal   @default(0)
+  
+  // Métadonnées
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+  
+  // Relations
+  deliverer             Deliverer @relation(fields: [delivererId], references: [id], onDelete: Cascade)
+  
+  @@map("deliverer_profiles")
+}
+
+/// Trajet planifié par un livreur
+model PlannedRoute {
+  id              String    @id @default(cuid())
+  delivererId     String
+  name            String
+  description     String?
+  
+  // Itinéraire
+  startAddress    String
+  startLatitude   Float
+  startLongitude  Float
+  endAddress      String
+  endLatitude     Float
+  endLongitude    Float
+  waypoints       Json      @default("[]") // [{lat, lng, name}, ...]
+  
+  // Planning
+  departureTime   DateTime
+  arrivalTime     DateTime
+  isRecurring     Boolean   @default(false)
+  recurringDays   String[]  @default([]) // ["monday", "friday"]
+  
+  // Capacité disponible
+  availableWeight Float
+  availableVolume Float
+  maxStops        Int       @default(5)
+  
+  // Statut
+  isActive        Boolean   @default(true)
+  totalMatches    Int       @default(0)
+  acceptedMatches Int       @default(0)
+  
+  // Métadonnées
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  lastMatchedAt   DateTime?
+  
+  // Relations
+  deliverer              User                     @relation("DelivererRoutes", fields: [delivererId], references: [id], onDelete: Cascade)
+  matchedAnnouncements   RouteAnnouncementMatch[]
+  
+  @@index([delivererId])
+  @@index([isActive])
+  @@index([departureTime])
+  @@map("planned_routes")
+}
+
+/// Correspondance entre un trajet et une annonce
+model RouteAnnouncementMatch {
+  id              String        @id @default(cuid())
+  routeId         String
+  announcementId  String
+  
+  // Scoring et analyse
+  isAccepted      Boolean       @default(false)
+  isRejected      Boolean       @default(false)
+  matchScore      Float         // 0-100
+  estimatedProfit Float
+  distanceDetour  Float         // km de détour
+  timeImpact      Int           // minutes ajoutées
+  
+  // Calculs détaillés
+  pickupDistance  Float?        // Distance du pickup au trajet
+  deliveryDistance Float?       // Distance de delivery au trajet
+  fuelCost        Float?        // Coût carburant estimé
+  platformFee     Float?        // Commission EcoDeli
+  
+  // Statut et timing
+  notifiedAt      DateTime?     // Quand le livreur a été notifié
+  respondedAt     DateTime?     // Quand le livreur a répondu
+  expiresAt       DateTime?     // Expiration de l'offre
+  
+  // Métadonnées
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  // Relations
+  route           PlannedRoute  @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  announcement    Announcement  @relation(fields: [announcementId], references: [id], onDelete: Cascade)
+  
+  @@unique([routeId, announcementId])
+  @@index([routeId])
+  @@index([announcementId])
+  @@index([matchScore])
+  @@map("route_announcement_matches")
+}
+
+/// Disponibilités du livreur
+model DelivererAvailability {
+  id          String    @id @default(cuid())
+  delivererId String
+  
+  // Planning
+  date        DateTime  // Date spécifique
+  startTime   String    // "09:00"
+  endTime     String    // "17:00"
+  isAvailable Boolean   @default(true)
+  
+  // Capacité
+  maxDeliveries Int     @default(10)
+  maxDistance   Float   @default(50) // km
+  
+  // Notes et contraintes
+  notes       String?
+  restrictions Json?   // Contraintes spéciales
+  
+  // Métadonnées
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  // Relations
+  deliverer   User      @relation("DelivererAvailability", fields: [delivererId], references: [id], onDelete: Cascade)
+  
+  @@unique([delivererId, date])
+  @@index([delivererId])
+  @@index([date])
+  @@index([isAvailable])
+  @@map("deliverer_availability")
+}
+
+/// Carte NFC du livreur
+model NFCCard {
+  id          String    @id @default(cuid())
+  delivererId String    @unique
+  
+  // Informations carte
+  cardNumber  String    @unique
+  cardType    String    @default("STANDARD") // STANDARD, PREMIUM
+  
+  // Statut
+  isActive    Boolean   @default(false)
+  activatedAt DateTime?
+  lastUsedAt  DateTime?
+  usageCount  Int       @default(0)
+  
+  // Sécurité
+  qrBackup    String?   // QR code de secours
+  secretKey   String?   // Clé secrète pour validation
+  
+  // Gestion
+  isBlocked   Boolean   @default(false)
+  blockedAt   DateTime?
+  blockReason String?
+  
+  // Métadonnées
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  expiresAt   DateTime? // Date d'expiration
+  
+  // Relations
+  deliverer   User      @relation("DelivererNFCCard", fields: [delivererId], references: [id], onDelete: Cascade)
+  
+  @@index([cardNumber])
+  @@index([isActive])
+  @@map("nfc_cards")
+}
+
+/// Codes de validation pour livraisons
+model DeliveryValidationCode {
+  id         String    @id @default(cuid())
+  deliveryId String
+  
+  // Code
+  code       String    // Code à 6 chiffres
+  codeType   String    @default("NUMERIC") // NUMERIC, ALPHANUMERIC
+  
+  // Statut
+  isUsed     Boolean   @default(false)
+  usedAt     DateTime?
+  attemptsCount Int    @default(0)
+  maxAttempts   Int    @default(3)
+  
+  // Expiration
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+  
+  // Sécurité
+  ipAddress  String?
+  userAgent  String?
+  
+  // Relations
+  delivery   Delivery  @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  
+  @@index([deliveryId])
+  @@index([code])
+  @@index([expiresAt])
+  @@map("delivery_validation_codes")
+}
+
+/// Problèmes signalés pendant les livraisons
+model DeliveryIssue {
+  id          String       @id @default(cuid())
+  deliveryId  String
+  reportedBy  String       // ID du livreur
+  
+  // Type et gravité
+  type        String       // 'ACCESS_PROBLEM', 'CUSTOMER_ABSENT', etc.
+  severity    IssueSeverity
+  category    String?      // TECHNICAL, CUSTOMER, WEATHER, etc.
+  
+  // Description
+  title       String
+  description String
+  location    String?
+  
+  // Preuves
+  photos      String[]     @default([])
+  attachments String[]     @default([])
+  
+  // Statut
+  status      IssueStatus  @default(OPEN)
+  priority    String       @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  
+  // Résolution
+  resolvedAt  DateTime?
+  resolvedBy  String?      // ID de l'admin qui a résolu
+  resolution  String?      // Description de la résolution
+  
+  // Impact
+  delayMinutes Int?        // Retard causé en minutes
+  extraCost    Float?      // Coût supplémentaire
+  
+  // Métadonnées
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  
+  // Relations
+  delivery    Delivery     @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
+  reporter    User         @relation("ReportedIssues", fields: [reportedBy], references: [id])
+  
+  @@index([deliveryId])
+  @@index([status])
+  @@index([severity])
+  @@index([reportedBy])
+  @@map("delivery_issues")
+}
+
+/// Propositions détaillées pour candidatures
+model DeliveryProposal {
+  id               String            @id @default(cuid())
+  applicationId    String            @unique
+  
+  // Proposition commerciale
+  proposedPrice    Float
+  originalPrice    Float?           // Prix suggéré original
+  priceJustification String?        // Justification du prix
+  
+  // Timing et flexibilité
+  estimatedDuration Int              // minutes
+  canPickupEarly   Boolean          @default(false)
+  canDeliverLate   Boolean          @default(false)
+  earliestPickup   DateTime?
+  latestDelivery   DateTime?
+  
+  // Équipements et services
+  equipment        String[]         @default([]) // ["refrigerated", "fragile_handling"]
+  additionalServices String[]       @default([]) // ["express", "insurance"]
+  
+  // Communication
+  message          String?          // Message personnalisé au client
+  languages        String[]         @default([]) // Langues parlées
+  
+  // Négociation
+  counterOfferPrice Float?
+  isNegotiating    Boolean          @default(false)
+  finalPrice       Float?
+  negotiationHistory Json?          // Historique des échanges
+  
+  // Statut
+  status           String           @default("PENDING") // PENDING, ACCEPTED, REJECTED, EXPIRED
+  expiresAt        DateTime?
+  
+  // Métadonnées
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  
+  // Relations
+  application      DeliveryApplication @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  
+  @@index([applicationId])
+  @@index([status])
+  @@map("delivery_proposals")
+}
+
+/// Extensions des relations User
+model User {
+  // Relations livreur étendues
+  plannedRoutes        PlannedRoute[]           @relation("DelivererRoutes")
+  availability         DelivererAvailability[]  @relation("DelivererAvailability")
+  nfcCard             NFCCard?                 @relation("DelivererNFCCard")
+  reportedIssues      DeliveryIssue[]          @relation("ReportedIssues")
+  
+  // ... autres relations existantes
+}
+
+/// Extensions des relations Deliverer
+model Deliverer {
+  // Nouveau profil étendu
+  profile             DelivererProfile?
+  
+  // ... autres champs existants
+}
+
+/// Extensions des relations Announcement
+model Announcement {
+  // Correspondances avec trajets
+  routeMatches        RouteAnnouncementMatch[]
+  
+  // ... autres relations existantes
+}
+
+/// Extensions des relations Delivery
+model Delivery {
+  // Codes de validation
+  validationCodes     DeliveryValidationCode[]
+  issues              DeliveryIssue[]
+  
+  // ... autres relations existantes
+}
+
+/// Extensions des relations DeliveryApplication
+model DeliveryApplication {
+  // Proposition détaillée
+  proposal            DeliveryProposal?
+  
+  // ... autres champs existants
+}
