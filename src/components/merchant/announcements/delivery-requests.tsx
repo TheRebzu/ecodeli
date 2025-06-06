@@ -16,7 +16,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import { api } from '@/trpc/react';
-import { formatDate, formatCurrency } from '@/lib/utils';
+import { formatDate, formatCurrency } from '@/utils/document-utils';
 import { Info, Star, Check, X, User, MapPin, Calendar, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -135,7 +135,7 @@ export function DeliveryRequests({
                   <div className="flex items-center gap-3">
                     <Avatar>
                       <AvatarImage
-                        src={request.deliverer?.image || ''}
+                        src={request.deliverer?.image || undefined}
                         alt={request.deliverer?.name || ''}
                       />
                       <AvatarFallback>

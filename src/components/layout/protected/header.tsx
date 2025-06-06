@@ -29,7 +29,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { LanguageSwitcher } from '../common/language-switcher';
 import { ThemeToggle } from '../common/theme-toggle';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/hooks/auth/use-auth';
 
 interface ProtectedHeaderProps {
   locale: string;
@@ -150,7 +150,7 @@ export function ProtectedHeader({ locale }: ProtectedHeaderProps) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                 <Avatar className="h-10 w-10">
-                  <AvatarImage src={user?.image || ''} alt={user?.name || ''} />
+                  <AvatarImage src={user?.image || undefined} alt={user?.name || ''} />
                   <AvatarFallback>
                     {getUserInitials(user?.name)}
                   </AvatarFallback>

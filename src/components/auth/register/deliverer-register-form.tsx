@@ -6,8 +6,8 @@ import { useTranslations } from 'next-intl';
 import {
   delivererRegisterSchema,
   DelivererRegisterSchemaType,
-} from '@/schemas/deliverer-register.schema';
-import { UserRole } from '@/schemas/register.schema';
+} from '@/schemas/deliverer/deliverer-register.schema';
+import { UserRole } from '@/schemas/auth/register.schema';
 import { Button } from '@/components/ui/button';
 import {
   Form,

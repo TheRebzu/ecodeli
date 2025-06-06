@@ -41,11 +41,11 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { Link } from '@/navigation';
-import { useRoleProtection } from '@/hooks/use-role-protection';
+import { useRoleProtection } from '@/hooks/auth/use-role-protection';
 import { api } from '@/trpc/react';
 import { toast } from 'sonner';
-import { formatDistanceValue, formatDate, formatTime } from '@/lib/utils';
-import { DeliveryStatus } from '@/types/delivery';
+import { formatDistanceValue, formatDate, formatTime } from '@/utils/document-utils';
+import { DeliveryStatus } from '@/types/delivery/delivery';
 
 // Type pour les livraisons actives
 type ActiveDelivery = {

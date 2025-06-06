@@ -20,7 +20,7 @@ import {
   YAxis,
   Cell,
 } from 'recharts';
-import { formatDate, formatCurrency } from '@/lib/utils';
+import { formatDate, formatCurrency } from '@/utils/document-utils';
 import { ChevronDown, ChevronUp, Eye, Calendar, Clock, Users } from 'lucide-react';
 
 interface AnalyticsData {

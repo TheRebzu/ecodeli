@@ -2,13 +2,13 @@
 
 import React, { useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
-import { TutorialOverlay } from './tutorial-overlay';
-import { ClientTutorial } from './tutorials/client-tutorial';
-import { DelivererTutorial } from './tutorials/deliverer-tutorial';
-import { MerchantTutorial } from './tutorials/merchant-tutorial';
-import { ProviderTutorial } from './tutorials/provider-tutorial';
-import { AdminTutorial } from './tutorials/admin-tutorial';
-import { useMission1Onboarding, useMission1AccessControl } from '@/hooks/use-onboarding';
+import { TutorialOverlay } from '../../client/tutorial/tutorial-overlay';
+import { ClientTutorial } from '../../client/tutorial/client-tutorial';
+import { DelivererTutorial } from './tutorials/tutorials/deliverer-tutorial';
+import { MerchantTutorial } from './tutorials/tutorials/merchant-tutorial';
+import { ProviderTutorial } from './tutorials/tutorials/provider-tutorial';
+import { AdminTutorial } from './tutorials/tutorials/admin-tutorial';
+import { useMission1Onboarding, useMission1AccessControl } from '@/hooks/auth/use-onboarding';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';

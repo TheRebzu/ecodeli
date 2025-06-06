@@ -16,8 +16,8 @@ import { Label } from '@/components/ui/label';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { toast } from '@/components/ui/use-toast';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { AdminPermission } from '@/types/admin/admin';
-import { useAdminUsers } from '@/hooks/use-admin-users';
+import { AdminPermission } from '@/types/actors/admin';
+import { useAdminUsers } from '@/hooks/admin/use-admin-users';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface PermissionGroup {

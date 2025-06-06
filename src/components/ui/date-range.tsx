@@ -6,7 +6,7 @@ import { fr } from 'date-fns/locale';
 import { Calendar as CalendarIcon } from 'lucide-react';
 import { DateRange as DateRangeType } from 'react-day-picker';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';

@@ -59,7 +59,7 @@ interface UserWithDocuments {
 }
 
 // Import des utilities pour les documents
-import { getDocumentTypeName, getRequiredDocumentTypesByRole } from '@/lib/document-utils';
+import { getDocumentTypeName, getRequiredDocumentTypesByRole } from '@/utils/document-utils';
 import { DocumentType } from '@prisma/client';
 
 export function UserDocumentVerification({

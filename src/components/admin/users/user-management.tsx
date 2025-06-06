@@ -22,7 +22,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { formatRelativeDate } from '@/lib/utils';
+import { formatRelativeDate } from '@/utils/document-utils';
 import { UserRole, UserStatus } from '@prisma/client';
 import {
   MoreHorizontal,
@@ -39,7 +39,7 @@ import {
 } from 'lucide-react';
 import { Link } from '@/navigation';
 import { useUserBan } from '@/hooks/use-user-ban';
-import { UserBanAction } from '@/types/user';
+import { UserBanAction } from '@/types/users/verification';
 import { useUserActivation } from '@/hooks/use-user-activation';
 import { api } from '@/trpc/react';
 import {

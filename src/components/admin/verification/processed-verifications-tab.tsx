@@ -17,7 +17,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { User, CheckCircle, XCircle, Clock, ClipboardList } from 'lucide-react';
 import { Pagination } from '@/components/ui/pagination';
-import { VerificationFilters } from '@/types/verification';
+import { VerificationFilters } from '@/types/documents/verification';
 
 interface ProcessedVerificationsTabProps {
   filters: VerificationFilters;

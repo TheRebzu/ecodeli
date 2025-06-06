@@ -3,8 +3,8 @@ import { Metadata } from 'next';
 import { Container } from '@/components/ui/container';
 import { PageHeading } from '@/components/ui/page-heading';
 import { Search } from 'lucide-react';
-import { DynamicBoxSearchPanel } from '@/components/storage/client-wrapper';
-import { PageProps, MetadataProps } from '@/types/next';
+import { DynamicBoxSearchPanel } from '@/components/client/storage/client-wrapper';
+import { PageProps, MetadataProps } from '@/server/auth/next-auth';
 
 export async function generateMetadata({
   params: { locale },

@@ -12,7 +12,7 @@ import {
   ArrowDownRight,
   Info,
 } from 'lucide-react';
-import { formatCurrency, generateChartColors } from '@/lib/utils';
+import { formatCurrency, generateChartColors } from '@/utils/document-utils';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface TransactionData {

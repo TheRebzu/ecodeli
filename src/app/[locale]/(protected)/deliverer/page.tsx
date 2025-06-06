@@ -3,9 +3,9 @@ import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/server/auth/next-auth';
 import { getTranslations } from 'next-intl/server';
-import DelivererDashboard from '@/components/dashboard/deliverer/deliverer-dashboard';
+import DelivererDashboard from '@/components/deliverer/dashboard/deliverer-dashboard';
 import { UserStatus } from '@/server/db/enums';
-import { PageProps, MetadataProps } from '@/types/next';
+import { PageProps, MetadataProps } from '@/server/auth/next-auth';
 
 // Interface pour les propriétés de la page
 interface Props {

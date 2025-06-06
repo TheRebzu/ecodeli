@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { boxAvailabilitySubscriptionSchema } from '@/schemas/storage.schema';
-import { BoxType } from '@/server/services/storage.service';
-import { useStorage } from '@/hooks/use-storage';
+import { boxAvailabilitySubscriptionSchema } from '@/schemas/storage/storage.schema';
+import { BoxType } from '@/server/services/shared/storage.service';
+import { useStorage } from '@/hooks/common/use-storage';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import {
@@ -29,7 +29,7 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { Button } from '@/components/ui/button';
 import { Loader2, Calendar as CalendarIcon, BellRing, Mail, MessageSquare } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 import { toast } from 'sonner';
 
 type FormValues = {

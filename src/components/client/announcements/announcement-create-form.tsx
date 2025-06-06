@@ -50,7 +50,7 @@ import { Separator } from '@/components/ui/separator';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 
 import { AnnouncementPhotoUpload } from '@/components/shared/announcements/announcement-photo-upload';
 import { AddressMapPicker } from '@/components/shared/announcements/address-map-picker';
@@ -59,7 +59,7 @@ import {
   AnnouncementTypeEnum,
   AnnouncementPriorityEnum,
   type AnnouncementType,
-} from '@/schemas/announcement.schema';
+} from '@/schemas/delivery/announcement.schema';
 
 // Schéma pour le formulaire (simplifié pour correspondre au schéma du backend)
 const formSchema = z.object({

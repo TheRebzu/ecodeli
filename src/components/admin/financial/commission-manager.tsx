@@ -37,7 +37,7 @@ import {
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DatePicker } from '@/components/ui/date-picker';
-import { formatCurrency, formatPercent } from '@/lib/format';
+import { formatCurrency, formatPercent } from '@/lib/i18n/formatters';
 import {
   Select,
   SelectContent,

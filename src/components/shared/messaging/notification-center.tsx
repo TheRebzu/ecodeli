@@ -22,7 +22,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Pagination } from '@/components/ui/pagination';
 import { useToast } from '@/components/ui/use-toast';
 import { api } from '@/trpc/react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 
 interface NotificationCenterProps {
   locale: string;

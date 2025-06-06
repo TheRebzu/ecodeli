@@ -16,7 +16,7 @@ import {
 } from 'lucide-react';
 import { DateRangePicker } from '@/components/ui/date-range-picker';
 import { api } from '@/trpc/server';
-import { formatDate, getCurrentDateRange } from '@/lib/utils';
+import { formatDate, getCurrentDateRange } from '@/utils/document-utils';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('admin.reports');

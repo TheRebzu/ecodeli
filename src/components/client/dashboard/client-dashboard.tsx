@@ -1,7 +1,7 @@
 'use client';
 
 import { Suspense } from 'react';
-import { useClientDashboard } from '@/hooks/use-client-dashboard';
+import { useClientDashboard } from '@/hooks/client/use-client-dashboard';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, RefreshCw } from 'lucide-react';

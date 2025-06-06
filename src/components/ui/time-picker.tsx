@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { Clock } from 'lucide-react';
 import { format } from 'date-fns';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 import { Button } from '@/components/ui/button';
 import {
   Popover,

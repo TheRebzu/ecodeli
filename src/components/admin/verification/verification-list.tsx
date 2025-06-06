@@ -19,7 +19,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PendingVerificationsTab } from './pending-verifications-tab';
 import { ProcessedVerificationsTab } from './processed-verifications-tab';
-import { VerificationFilters } from '@/types/verification';
+import { VerificationFilters } from '@/types/documents/verification';
 import { VerificationFilterForm } from './verification-filter-form';
 
 export default function VerificationList() {

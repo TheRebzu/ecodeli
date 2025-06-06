@@ -1,10 +1,10 @@
 import { router } from '@/server/api/trpc';
-import { authRouter } from './auth.router';
-import { announcementRouter } from './announcement.router';
-import { deliveryRouter } from './delivery.router';
-import { userRouter } from './user.router';
+import { authRouter } from './auth/auth.router';
+import { announcementRouter } from './shared/announcement.router';
+import { deliveryRouter } from '../../../hooks/delivery';
+import { userRouter } from './common/user.router';
 import { adminRouter } from './admin';
-import { serviceRouter } from './service.router';
+import { serviceRouter } from '../../../schemas/service';
 // Importez vos autres routeurs ici
 
 /**

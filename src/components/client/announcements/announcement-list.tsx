@@ -14,9 +14,9 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import { useMediaQuery } from '@/hooks/use-media-query';
+import { useMediaQuery } from '@/hooks/common/use-media-query';
 import { AnnouncementStatus, UserRole, type Announcement } from '@prisma/client';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 import { Input } from '@/components/ui/input';
 
 // Type étendu pour inclure des champs de recherche

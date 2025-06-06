@@ -17,8 +17,8 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { toast } from '@/components/ui/use-toast';
-import { UserFilters } from '@/types/admin/admin';
-import { useAdminUsers } from '@/hooks/use-admin-users';
+import { UserFilters } from '@/types/actors/admin';
+import { useAdminUsers } from '@/hooks/admin/use-admin-users';
 
 interface UserExportProps {
   currentFilters: UserFilters;

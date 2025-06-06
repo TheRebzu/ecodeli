@@ -2,7 +2,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 import { ArrowRight, Award, Heart, Leaf, LucideIcon, Recycle, Shield, Users } from 'lucide-react';
 import Image from 'next/image';
 import Link from 'next/link';

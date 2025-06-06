@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
-import { UserActionType } from '@/types/admin';
+import { UserActionType } from '@/types/actors/admin';
 import { api } from '@/trpc/react';
 import { useToast } from '@/components/ui/use-toast';
 import {

@@ -46,7 +46,7 @@ import {
   BarChart3,
   Target,
 } from 'lucide-react';
-import { formatTime, formatDate } from '@/lib/format';
+import { formatTime, formatDate } from '@/lib/i18n/formatters';
 import { api } from '@/trpc/react';
 import { toast } from 'sonner';
 import { format, addDays, startOfWeek, endOfWeek } from 'date-fns';

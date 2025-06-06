@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { v4 as uuidv4 } from 'uuid';
-import { TodoItem } from '@/components/todo';
+import { TodoItem } from '@/store/use-todo-store';
 
 interface TodoState {
   todos: TodoItem[];

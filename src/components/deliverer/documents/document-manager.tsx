@@ -10,7 +10,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { api } from '@/trpc/react';
 import { Upload, FileText, CheckCircle, XCircle, Clock, AlertTriangle, Eye } from 'lucide-react';
 import DocumentUploadForm from '@/components/documents/document-upload-form';
-import DocumentPreview from '@/components/documents/document-preview';
+import DocumentPreview from '@/components/shared/documents/document-preview';
 
 const REQUIRED_DOCUMENTS = [
   { type: 'IDENTITY', label: "Pièce d'identité", required: true },

@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/server/auth/next-auth';
-import MerchantDashboard from '@/components/dashboard/merchant/merchant-dashboard';
+import MerchantDashboard from '@/components/merchant/dashboard/merchant-dashboard';
 
 type Props = {
   params: { locale: string };

@@ -1,14 +1,14 @@
 'use client';
 
 import { useState } from 'react';
-import { BoxSearchForm } from './box-search-form';
-import { BoxSearchInput } from '@/schemas/storage.schema';
-import { useBoxSearch } from '@/hooks/use-storage';
+import { BoxSearchForm } from './box-search';
+import { BoxSearchInput } from '@/schemas/storage/storage.schema';
+import { useBoxSearch } from '@/hooks/common/use-storage';
 import { BoxDetailCard } from './box-detail-card';
 import { BoxReservationForm } from './box-reservation-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTranslations } from 'next-intl';
-import { BoxWithWarehouse } from '@/types/storage';
+import { BoxWithWarehouse } from '@/types/warehouses/storage-box';
 import { ArrowLeft, Search, AlertTriangle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ScrollArea } from '@/components/ui/scroll-area';

@@ -17,10 +17,10 @@ import { Separator } from '@/components/ui/separator';
 import DeliveryStatusIndicator from './delivery-status';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { useDeliveryLiveTracking } from '@/hooks/use-delivery-tracking';
+import { useDeliveryLiveTracking } from '@/hooks/features/use-delivery-tracking';
 import { DeliveryStatus } from '@prisma/client';
 import Link from 'next/link';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 
 interface DeliveryDetailCardProps {
   deliveryId: string;

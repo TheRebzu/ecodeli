@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { useSearchServices } from '@/hooks/use-search-services';
+import { useSearchServices } from '@/hooks/services/use-search-services';
 import { ServiceCard } from '@/components/shared/services/service-card';
 import { ServiceSearchForm } from './search/service-search-form';
 import { Button } from '@/components/ui/button';

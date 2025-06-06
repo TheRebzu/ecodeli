@@ -9,7 +9,7 @@ import {
   UpdateAnnouncementInput,
   AnnouncementFilterInput,
   CreateAnnouncementApplicationInput,
-} from '@/schemas/announcement.schema';
+} from '@/schemas/delivery/announcement.schema';
 
 // Types pour le store
 export type AnnouncementWithDetails = Announcement & {

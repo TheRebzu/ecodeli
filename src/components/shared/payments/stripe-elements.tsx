@@ -16,10 +16,10 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { api } from '@/trpc/react';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency } from '@/utils/document-utils';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { usePaymentConfirmation } from '@/hooks/use-payment';
+import { usePaymentConfirmation } from '@/hooks/payment/use-payment';
 
 // Initialiser Stripe avec la clé publique
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');

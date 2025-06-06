@@ -6,16 +6,16 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Plus, Filter, RefreshCw, AlertCircle } from 'lucide-react';
 import { Link } from '@/navigation';
-import { useClientAnnouncements } from '@/hooks/use-announcement';
+import { useClientAnnouncements } from '@/hooks/delivery/use-announcement';
 import AnnouncementList from '@/components/client/announcements/announcement-list';
 import { AnnouncementFilter } from '@/components/shared/announcements/announcement-filters';
 import { ClientStatusDashboard } from '@/components/client/announcements/client-status-dashboard';
 import { DeliveryStatus, UserRole } from '@prisma/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertDescription, AlertTitle, Alert } from '@/components/ui/alert';
-import { useRoleProtection } from '@/hooks/use-role-protection';
+import { useRoleProtection } from '@/hooks/auth/use-role-protection';
 import { Separator } from '@/components/ui/separator';
-import { type Announcement } from '@/types/announcement';
+import { type Announcement } from '@/types/announcements/announcement';
 
 export default function ClientAnnouncementsPage() {
   useRoleProtection(['CLIENT']);

@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { BoxUsageHistoryRecord, BoxActionType } from '@/types/storage';
+import { BoxUsageHistoryRecord, BoxActionType } from '@/types/warehouses/storage-box';
 import { DoorOpen, DoorClosed, Clock, User } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';

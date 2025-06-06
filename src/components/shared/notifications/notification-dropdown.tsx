@@ -22,7 +22,7 @@ import { Notification } from '@prisma/client';
 import { Badge } from '@/components/ui/badge';
 import { api } from '@/trpc/react';
 import { useToast } from '@/components/ui/use-toast';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 import { DropdownMenuTriggerProps } from '@radix-ui/react-dropdown-menu';
 
 interface NotificationDropdownProps extends DropdownMenuTriggerProps {

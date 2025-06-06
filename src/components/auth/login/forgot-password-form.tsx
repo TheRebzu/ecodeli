@@ -3,8 +3,8 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { forgotPasswordSchema, ForgotPasswordSchemaType } from '@/schemas/login.schema';
-import { useAuth } from '@/hooks/use-auth';
+import { forgotPasswordSchema, ForgotPasswordSchemaType } from '@/schemas/auth/login.schema';
+import { useAuth } from '@/hooks/auth/use-auth';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useBoxReservations } from '@/hooks/use-storage';
+import { useBoxReservations } from '@/hooks/common/use-storage';
 import { useTranslations } from 'next-intl';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -31,9 +31,9 @@ import {
 } from 'lucide-react';
 import { useState } from 'react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { ReservationWithBoxAndWarehouse } from '@/types/storage';
+import { ReservationWithBoxAndWarehouse } from '@/types/warehouses/storage-box';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 import { useRouter } from 'next/navigation';
 
 // Importation dynamique des composants de dialogue

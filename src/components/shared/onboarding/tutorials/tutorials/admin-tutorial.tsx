@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect } from 'react';
-import { useOnboarding } from '@/context/onboarding-context';
-import { TutorialStep } from '../tutorial-step';
-import { TutorialProgress } from '../tutorial-progress';
-import { TutorialNavigation } from '../tutorial-navigation';
+import { useOnboarding } from '@/components/shared/onboarding/onboarding-context';
+import { TutorialStep } from '../../tutorial-step';
+import { TutorialProgress } from '../../tutorial-progress';
+import { TutorialNavigation } from '../../tutorial-navigation';
 
 // Labels pour les boutons de navigation du tutoriel
 const navigationLabels = {

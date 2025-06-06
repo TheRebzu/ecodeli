@@ -40,7 +40,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useToast } from '@/components/ui/use-toast';
 import { api } from '@/trpc/react';
-import { DocumentList, DocumentPreview } from '@/components/shared/documents';
+import { DocumentList, DocumentPreview } from '@/types/documents/verification';
 import { Checkbox } from '@/components/ui/checkbox';
 
 // Fix toast notifications

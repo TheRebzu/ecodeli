@@ -11,10 +11,10 @@ import { ArrowLeft, Save, Settings, FileText } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
-import { TariffSettingsForm } from '@/components/announcements/merchant/tariff-settings-form';
-import { TermsAndConditionsForm } from '@/components/announcements/merchant/terms-conditions-form';
+import { TariffSettingsForm } from '@/components/merchant/announcements/tariff-settings-form';
+import { TermsAndConditionsForm } from '@/components/merchant/announcements/terms-conditions-form';
 import { Separator } from '@/components/ui/separator';
-import { type AnnouncementFormData } from '@/schemas/announcement.schema';
+import { type AnnouncementFormData } from '@/schemas/delivery/announcement.schema';
 
 export default function CreateAnnouncementPage() {
   const t = useTranslations('merchant.announcements.create');

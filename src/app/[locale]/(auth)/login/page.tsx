@@ -4,7 +4,7 @@ import { getServerSession } from 'next-auth';
 import { redirect, notFound } from 'next/navigation';
 import { authOptions } from '@/server/auth/next-auth';
 import { getTranslations } from 'next-intl/server';
-import { PageProps, MetadataProps } from '@/types/next';
+import { PageProps, MetadataProps } from '@/server/auth/next-auth';
 
 // Utiliser le type correct pour les paramètres
 export async function generateMetadata({ params, searchParams }: MetadataProps): Promise<Metadata> {

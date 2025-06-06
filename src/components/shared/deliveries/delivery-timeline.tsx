@@ -2,9 +2,9 @@
 
 import React, { useMemo } from 'react';
 import { DeliveryStatus as DeliveryStatusEnum } from '@prisma/client';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 import { STATUS_CONFIG } from './delivery-status';
-import { useDeliveryStatusHistory } from '@/hooks/use-delivery-status';
+import { useDeliveryStatusHistory } from '@/hooks/delivery/use-delivery-status';
 import { Loader2, CircleAlert } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';

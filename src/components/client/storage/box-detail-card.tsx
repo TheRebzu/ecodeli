@@ -11,7 +11,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
 import { useTranslations } from 'next-intl';
-import { BoxWithWarehouse } from '@/types/storage';
+import { BoxWithWarehouse } from '@/types/warehouses/storage-box';
 import {
   Calendar,
   ClipboardCheck,

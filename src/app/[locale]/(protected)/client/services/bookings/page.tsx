@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { Suspense } from 'react';
 import { Loader2, Calendar, MapPin, Clock, RefreshCw, X, CheckCircle } from 'lucide-react';
 import Link from 'next/link';
-import { formatDate, formatTime } from '@/lib/format';
+import { formatDate, formatTime } from '@/lib/i18n/formatters';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/server/auth/next-auth';
 import { api } from '@/trpc/server';

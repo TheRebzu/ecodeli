@@ -3,7 +3,7 @@
 import React from 'react';
 import { DeliveryStatus as DeliveryStatusEnum } from '@prisma/client';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 import { STATUS_CONFIG } from './delivery-status';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 

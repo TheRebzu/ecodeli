@@ -26,11 +26,11 @@ import {
   XCircle,
   Info,
 } from 'lucide-react';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatCurrency, formatDate } from '@/utils/document-utils';
 import { useTranslations } from 'next-intl';
 import { PaymentStatus } from '@prisma/client';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { usePaymentConfirmation } from '@/hooks/use-payment';
+import { usePaymentConfirmation } from '@/hooks/payment/use-payment';
 
 // Type de variante pour Badge
 type BadgeVariant = 'default' | 'destructive' | 'outline' | 'secondary';

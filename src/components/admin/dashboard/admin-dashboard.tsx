@@ -22,7 +22,7 @@ import {
   BarChart3,
 } from 'lucide-react';
 import { AreaChart, BarChart, LineChart, PieChart } from '@/components/ui/charts';
-import { formatCurrency, generateChartColors } from '@/lib/utils';
+import { formatCurrency, generateChartColors } from '@/utils/document-utils';
 import { AnnouncementStats } from '../announcements/announcement-stats';
 import { DeliveryStats } from '../deliveries/delivery-stats';
 import { toast } from 'sonner';

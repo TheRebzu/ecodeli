@@ -17,7 +17,7 @@ import {
 } from '@/components/ui/select';
 import { Calendar, Clock, MapPin, Package2, Truck } from 'lucide-react';
 import { DeliveryStatus } from '@prisma/client';
-import { formatDate, formatTime } from '@/lib/utils';
+import { formatDate, formatTime } from '@/utils/document-utils';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 import { Skeleton } from '@/components/ui/skeleton';
 

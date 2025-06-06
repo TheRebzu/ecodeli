@@ -18,12 +18,12 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle, ArrowLeft, Phone, ThumbsUp, CheckCircle, Box } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import DeliveryTrackingPanel from '@/components/deliveries/delivery-tracking-panel';
-import DeliveryContact from '@/components/deliveries/delivery-contact';
-import DeliveryArrivalNotice from '@/components/deliveries/delivery-arrival-notice';
-import DeliveryConfirmationForm from '@/components/deliveries/delivery-confirmation-form';
+import DeliveryTrackingPanel from '@/components/deliverer/deliveries/delivery-tracking-panel';
+import DeliveryContact from '@/components/deliverer/deliveries/delivery-contact';
+import DeliveryArrivalNotice from '@/components/deliverer/deliveries/delivery-arrival-notice';
+import DeliveryConfirmationForm from '@/components/deliverer/deliveries/delivery-confirmation-form';
 import { useDeliveryDetails } from '@/hooks/use-delivery-details';
-import { DeliveryStatus } from '@/types/delivery';
+import { DeliveryStatus } from '@/types/delivery/delivery';
 
 export default function ClientDeliveryDetailsPage() {
   const t = useTranslations('client.deliveryDetails');

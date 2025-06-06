@@ -7,7 +7,7 @@ import { Upload, X, Image as ImageIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import Image from 'next/image';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 import { useUpload } from '@/hooks/use-upload';
 
 interface AnnouncementPhotoUploadProps {

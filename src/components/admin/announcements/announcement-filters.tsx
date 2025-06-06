@@ -23,7 +23,7 @@ import { Search, Calendar as CalendarIcon, X, Filter, RotateCcw } from 'lucide-r
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { AnnouncementStatus, AnnouncementType } from '@prisma/client';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 
 interface FiltersState {
   status: string;

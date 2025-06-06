@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { api } from '@/trpc/react';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatCurrency, formatDate } from '@/utils/document-utils';
 import {
   Table,
   TableBody,
@@ -40,7 +40,7 @@ import {
   Info,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 import { useToast } from '@/components/ui/use-toast';
 import {
   AlertDialog,
@@ -67,13 +67,13 @@ import {
   TransactionType,
   WithdrawalStatus,
   type WalletBalanceInfo,
-} from '@/types/payment';
+} from '@/types/financial/payment';
 import {
   WalletTransaction as Transaction,
   WithdrawalRequest as Withdrawal,
 } from '@/types/prisma-client';
-import { WalletBalance } from '../wallet-balance';
-import { useWallet } from '@/hooks/use-wallet';
+import { WalletBalance } from '../../shared/payments/wallet-balance';
+import { useWallet } from '@/hooks/payment/use-wallet';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { addDays, format, subDays } from 'date-fns';

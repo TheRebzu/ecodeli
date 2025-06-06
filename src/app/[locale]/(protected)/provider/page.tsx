@@ -1,7 +1,7 @@
 import { getServerSession } from 'next-auth';
 import { redirect } from 'next/navigation';
 import { authOptions } from '@/server/auth/next-auth';
-import ProviderDashboard from '@/components/dashboard/provider/provider-dashboard';
+import ProviderDashboard from '@/components/providers/provider-dashboard';
 
 type Props = {
   params: { locale: string };

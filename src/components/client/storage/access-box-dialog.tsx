@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { ReservationWithBoxAndWarehouse } from '@/types/storage';
+import { ReservationWithBoxAndWarehouse } from '@/types/warehouses/storage-box';
 import {
   Dialog,
   DialogContent,

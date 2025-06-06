@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Check, CreditCard, Gem, Info, Rocket, Sparkles, Star, X, Zap } from 'lucide-react';
 
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 import { useSubscriptionStore } from '@/store/use-subscription-store';
 
 import {

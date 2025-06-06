@@ -1,13 +1,13 @@
 import { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Package, Search, Bell } from 'lucide-react';
-import { Container, PageHeading, Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui';
-import { PageProps, MetadataProps } from '@/types/next';
+import { Container, PageHeading, Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/use-toast';
+import { PageProps, MetadataProps } from '@/server/auth/next-auth';
 import {
   DynamicBoxReservations,
   DynamicBoxSearchPanel,
   DynamicBoxNotificationsPanel,
-} from '@/components/storage/client-wrapper';
+} from '@/components/client/storage/client-wrapper';
 import { Button } from '@/components/ui/button';
 import { redirect, notFound } from 'next/navigation';
 import { getServerSession } from 'next-auth';

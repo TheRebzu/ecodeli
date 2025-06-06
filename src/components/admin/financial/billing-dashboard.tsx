@@ -17,8 +17,8 @@ import { Badge } from '@/components/ui/badge';
 import { Loader2, CalendarIcon, AlertCircle, CheckCircle, XCircle, RefreshCw } from 'lucide-react';
 import { format, isToday, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import useBilling from '@/hooks/use-billing';
-import { cn } from '@/lib/utils';
+import useBilling from '@/hooks/payment/use-billing';
+import { cn } from '@/lib/utils/common';
 
 /**
  * Tableau de bord de facturation pour les administrateurs

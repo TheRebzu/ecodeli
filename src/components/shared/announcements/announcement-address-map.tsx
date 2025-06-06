@@ -6,7 +6,7 @@ import { MapPin, Search, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 
 // Type pour les coordonnées géographiques
 interface GeoCoordinates {

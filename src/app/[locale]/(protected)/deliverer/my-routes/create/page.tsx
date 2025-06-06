@@ -35,7 +35,7 @@ import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, Calendar, CheckCircle, MapPin, AlertCircle, Loader2 } from 'lucide-react';
 import { Link } from '@/navigation';
 import { toast } from 'sonner';
-import { useRoleProtection } from '@/hooks/use-role-protection';
+import { useRoleProtection } from '@/hooks/auth/use-role-protection';
 import { api } from '@/trpc/react';
 
 // Définition du schéma de validation pour le formulaire

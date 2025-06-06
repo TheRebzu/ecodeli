@@ -18,7 +18,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useRouter } from 'next/navigation';
-import { VerificationFilters } from '@/types/verification';
+import { VerificationFilters } from '@/types/documents/verification';
 import { Pagination } from '@/components/ui/pagination';
 
 interface PendingVerificationsTabProps {

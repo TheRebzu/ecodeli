@@ -57,12 +57,12 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from '@/components/ui/pagination';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatCurrency, formatDate } from '@/utils/document-utils';
 import { api } from '@/trpc/react';
 import { Payment, PaymentStatus } from '@prisma/client';
 import { DateRange } from 'react-day-picker';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { usePaymentHistory } from '@/hooks/use-payment';
+import { usePaymentHistory } from '@/hooks/payment/use-payment';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 

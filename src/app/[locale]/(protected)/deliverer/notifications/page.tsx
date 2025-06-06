@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { NotificationCenter } from '@/components/notifications/notification-center';
+import { NotificationCenter } from '@/components/shared/messaging/notification-center';
 
 export const metadata: Metadata = {
   title: 'Notifications | EcoDeli Livreur',

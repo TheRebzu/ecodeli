@@ -17,7 +17,7 @@ import { Search, Calendar as CalendarIcon, X, Filter, RotateCcw } from 'lucide-r
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { DeliveryStatus } from '@prisma/client';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 
 interface FiltersState {
   status: string;

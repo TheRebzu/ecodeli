@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useWarehouse } from '@/hooks/use-warehouse';
+import { useWarehouse } from '@/hooks/common/use-warehouse';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {

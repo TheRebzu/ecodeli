@@ -2,7 +2,7 @@
 
 import React, { useMemo } from 'react';
 import { DeliveryStatus as DeliveryStatusEnum } from '@prisma/client';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 import {
   Truck,
   Clock,
@@ -15,8 +15,8 @@ import {
   ShieldAlert,
 } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { useDeliveryLiveTracking } from '@/hooks/use-delivery-tracking';
-import { useDeliveryStatusHistory } from '@/hooks/use-delivery-status';
+import { useDeliveryLiveTracking } from '@/hooks/features/use-delivery-tracking';
+import { useDeliveryStatusHistory } from '@/hooks/delivery/use-delivery-status';
 
 export interface DeliveryStatusProps {
   deliveryId?: string;

@@ -125,7 +125,7 @@ export function ActiveDeliveries({ deliveries = [], isLoading = false }: ActiveD
                 <div className="flex items-center space-x-4">
                   <Avatar>
                     <AvatarImage
-                      src={delivery.deliverer?.user?.image || ''}
+                      src={delivery.deliverer?.user?.image || undefined}
                       alt={delivery.deliverer?.user?.name || t('unknownDeliverer')}
                     />
                     <AvatarFallback>

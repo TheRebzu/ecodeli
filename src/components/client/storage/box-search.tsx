@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { boxSearchSchema, BoxSearchInput } from '@/schemas/storage.schema';
+import { boxSearchSchema, BoxSearchInput } from '@/schemas/storage/storage.schema';
 import { Button } from '@/components/ui/button';
 import {
   Form,
@@ -17,7 +17,7 @@ import {
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Calendar as CalendarIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import {
@@ -30,7 +30,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { useTranslations } from 'next-intl';
 import { Slider } from '@/components/ui/slider';
-import { useWarehouses } from '@/hooks/use-storage';
+import { useWarehouses } from '@/hooks/common/use-storage';
 
 export interface BoxSearchFormProps {
   onSearch: (data: BoxSearchInput) => void;

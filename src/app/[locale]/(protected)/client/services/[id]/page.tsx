@@ -1,11 +1,11 @@
 import { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
-import { ServiceDetail } from '@/components/services/service-detail';
+import { ServiceDetail } from '@/components/shared/services/service-detail';
 import { Suspense } from 'react';
 import { Loader2 } from 'lucide-react';
 import { api } from '@/trpc/server';
-import { PageProps, MetadataProps } from '@/types/next';
+import { PageProps, MetadataProps } from '@/server/auth/next-auth';
 
 interface ServicePageProps {
   params: {

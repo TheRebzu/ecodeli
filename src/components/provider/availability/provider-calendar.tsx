@@ -43,7 +43,7 @@ import {
   List,
   Calendar as CalendarGridIcon,
 } from 'lucide-react';
-import { formatDate, formatTime, formatDateTime } from '@/lib/format';
+import { formatDate, formatTime, formatDateTime } from '@/lib/i18n/formatters';
 import { useRouter } from 'next/navigation';
 import { api } from '@/trpc/react';
 import { toast } from 'sonner';

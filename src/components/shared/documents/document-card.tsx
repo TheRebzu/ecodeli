@@ -1,9 +1,9 @@
 'use client';
 
-import { formatDate, formatFileSize } from '@/lib/utils';
+import { formatDate, formatFileSize } from '@/utils/document-utils';
 import { Button } from '@/components/ui/button';
 import { TrashIcon, EyeIcon, DownloadIcon } from 'lucide-react';
-import { getDocumentTypeName } from '@/lib/document-utils';
+import { getDocumentTypeName } from '@/utils/document-utils';
 import { DocumentStatusBadge } from './document-status-badge';
 import { DocumentTypeIcon } from './document-type-icon';
 import { DocumentCardProps } from './document-types';

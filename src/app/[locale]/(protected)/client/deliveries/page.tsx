@@ -34,13 +34,13 @@ import {
 } from '@/components/ui/pagination';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
-import DeliveryStatusBadge from '@/components/deliveries/delivery-status-badge';
-import DeliveryArrivalNotice from '@/components/deliveries/delivery-arrival-notice';
-import { useClientDeliveries } from '@/hooks/use-client-deliveries';
+import DeliveryStatusBadge from '@/components/shared/deliveries/delivery-status-badge';
+import DeliveryArrivalNotice from '@/components/deliverer/deliveries/delivery-arrival-notice';
+import { useClientDeliveries } from '@/hooks/client/use-client-deliveries';
 import { DeliveryStatus } from '@prisma/client';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 
 type FilterStatus = 'all' | 'active' | 'completed' | 'upcoming';
 

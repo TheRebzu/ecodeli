@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { api } from '@/trpc/react';
 import { useRouter } from 'next/navigation';
-import { formatCurrency, formatDate } from '@/lib/utils';
+import { formatCurrency, formatDate } from '@/utils/document-utils';
 import {
   CreditCard,
   FileDown,
@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
-import InvoiceList, { Invoice } from '../invoice-list';
+import InvoiceList, { Invoice } from './invoice-list';
 
 // Données factices de statistiques de facturation pour la démo
 interface BillingStats {

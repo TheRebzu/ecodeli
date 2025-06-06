@@ -11,10 +11,10 @@ import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
-import { useRoleProtection } from '@/hooks/use-role-protection';
+import { useRoleProtection } from '@/hooks/auth/use-role-protection';
 import { toast } from 'sonner';
-import { useDelivererAnnouncements } from '@/hooks/use-announcement';
-import AnnouncementList from '@/components/announcements/announcement-list';
+import { useDelivererAnnouncements } from '@/hooks/delivery/use-announcement';
+import AnnouncementList from '@/components/client/announcements/announcement-list';
 
 export default function DelivererAnnouncementsPage() {
   useRoleProtection(['DELIVERER']);

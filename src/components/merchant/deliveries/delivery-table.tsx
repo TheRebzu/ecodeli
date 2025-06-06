@@ -24,7 +24,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
-import { cn, formatCurrency } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
+import { formatCurrency  } from '@/utils/document-utils';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Pagination,

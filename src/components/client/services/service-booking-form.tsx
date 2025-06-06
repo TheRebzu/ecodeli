@@ -4,7 +4,7 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createBookingSchema } from '@/schemas/service.schema';
+import { createBookingSchema } from '@/schemas/service/service.schema';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -27,8 +27,8 @@ import {
 } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { ClockIcon, CreditCardIcon, CheckCircleIcon, Calendar, User, MapPin } from 'lucide-react';
-import { formatPrice, formatDate } from '@/lib/format';
-import { useServiceBooking } from '@/hooks/use-service-booking';
+import { formatPrice, formatDate } from '@/lib/i18n/formatters';
+import { useServiceBooking } from '@/hooks/features/use-service-booking';
 import { TimeslotPicker } from '@/components/schedule/timeslot-picker';
 import { CalendarView } from '@/components/schedule/calendar-view';
 

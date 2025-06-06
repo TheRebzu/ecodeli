@@ -5,7 +5,7 @@ import { X, AlertTriangle, Clock, Shield, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 
 interface TutorialOverlayProps {
   children: React.ReactNode;

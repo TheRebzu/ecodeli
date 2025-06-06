@@ -26,10 +26,10 @@ import {
 } from '@/components/ui/dialog';
 import { Plus, AlertCircle, Calendar, MapPin, Trash2, ArrowRight, Loader2 } from 'lucide-react';
 import { Link } from '@/navigation';
-import { useRoleProtection } from '@/hooks/use-role-protection';
+import { useRoleProtection } from '@/hooks/auth/use-role-protection';
 import { api } from '@/trpc/react';
 import { toast } from 'sonner';
-import { formatDate } from '@/lib/utils';
+import { formatDate } from '@/utils/document-utils';
 
 // Définir le type pour un itinéraire
 type Route = {
