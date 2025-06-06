@@ -461,43 +461,35 @@ export default function UserDetailPage() {
                   <CardContent className="space-y-4">
                     <div>
                       <span className="font-semibold">Company Name:</span>
-                      <span className="ml-2">{user.provider.companyName || 'Not specified'}</span>
+                      <span className="ml-2">{'Not specified'}</span>
                     </div>
                     <div>
                       <span className="font-semibold">Service Type:</span>
-                      <span className="ml-2">{user.provider.serviceType || 'Not specified'}</span>
+                      <span className="ml-2">{'Not specified'}</span>
                     </div>
                     <div>
                       <span className="font-semibold">Offered Services:</span>
                       <div className="mt-1 flex flex-wrap gap-1">
-                        {user.provider.services.length > 0
-                          ? user.provider.services.map((service, index) => (
-                              <Badge key={index} variant="secondary">
-                                {service}
-                              </Badge>
-                            ))
-                          : 'No services listed'}
+                        {'No services listed'}
                       </div>
                     </div>
                     <div>
                       <span className="font-semibold">Verification Status:</span>
                       <Badge
-                        className={`ml-2 ${user.provider.isVerified ? 'bg-green-500' : 'bg-yellow-500'}`}
+                        className={`ml-2 ${displayUser.provider.isVerified ? 'bg-green-500' : 'bg-yellow-500'}`}
                       >
-                        {user.provider.isVerified ? 'Verified' : 'Pending Verification'}
+                        {displayUser.provider.isVerified ? 'Verified' : 'Pending Verification'}
                       </Badge>
                     </div>
                     <div>
                       <span className="font-semibold">Rating:</span>
-                      <span className="ml-2">
-                        {user.provider.rating ? `${user.provider.rating} / 5` : 'No ratings yet'}
-                      </span>
+                      <span className="ml-2">{'No ratings yet'}</span>
                     </div>
                   </CardContent>
                 </Card>
               )}
 
-              {user.role === UserRole.ADMIN && user.admin && (
+              {displayUser.role === UserRole.ADMIN && displayUser.admin && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-lg">Administrator Information</CardTitle>
@@ -505,26 +497,20 @@ export default function UserDetailPage() {
                   <CardContent className="space-y-4">
                     <div>
                       <span className="font-semibold">Department:</span>
-                      <span className="ml-2">{user.admin.department || 'Not specified'}</span>
+                      <span className="ml-2">{'Not specified'}</span>
                     </div>
                     <div>
                       <span className="font-semibold">2FA Status:</span>
                       <Badge
-                        className={`ml-2 ${user.admin.twoFactorEnabled ? 'bg-green-500' : 'bg-red-500'}`}
+                        className={`ml-2 ${displayUser.twoFactorEnabled ? 'bg-green-500' : 'bg-red-500'}`}
                       >
-                        {user.admin.twoFactorEnabled ? 'Enabled' : 'Disabled'}
+                        {displayUser.twoFactorEnabled ? 'Enabled' : 'Disabled'}
                       </Badge>
                     </div>
                     <div>
                       <span className="font-semibold">Permissions:</span>
                       <div className="mt-1 flex flex-wrap gap-1">
-                        {user.admin.permissions.length > 0
-                          ? user.admin.permissions.map((permission, index) => (
-                              <Badge key={index} variant="secondary">
-                                {permission}
-                              </Badge>
-                            ))
-                          : 'No specific permissions'}
+                        {'No specific permissions'}
                       </div>
                     </div>
                   </CardContent>
@@ -553,8 +539,8 @@ export default function UserDetailPage() {
                         </div>
                       </div>
                       <span className="text-sm text-muted-foreground">
-                        {user.lastLoginAt
-                          ? format(new Date(user.lastLoginAt), 'PPP p')
+                        {displayUser.lastLoginAt
+                          ? format(new Date(displayUser.lastLoginAt), 'PPP p')
                           : format(new Date(), 'PPP p')}
                       </span>
                     </div>
@@ -568,7 +554,7 @@ export default function UserDetailPage() {
               </Card>
             </TabsContent>
 
-            {user.role === UserRole.ADMIN && (
+            {displayUser.role === UserRole.ADMIN && (
               <TabsContent value="permissions" className="mt-6">
                 <Card>
                   <CardHeader>
@@ -605,10 +591,10 @@ export default function UserDetailPage() {
         )}
       </AlertDialog>
 
-      {user.role === UserRole.DELIVERER && (
+      {displayUser.role === UserRole.DELIVERER && (
         <div className="mt-4">
           <h3 className="text-lg font-semibold mb-2">Actions spéciales</h3>
-          <ForceActivateDelivererButton userId={user.id} />
+          <ForceActivateDelivererButton userId={displayUser.id} />
         </div>
       )}
     </div>
