@@ -5,6 +5,35 @@ import { TRPCError } from '@trpc/server';
 
 export const adminDashboardRouter = router({
   /**
+   * Récupère les statistiques générales du dashboard
+   */
+  getOverviewStats: adminProcedure
+    .input(z.object({
+      startDate: z.coerce.date(),
+      endDate: z.coerce.date(),
+    }))
+    .query(async ({ input }) => {
+      try {
+        // Utilise getDashboardData comme source pour les statistiques overview
+        const dashboardData = await dashboardService.getDashboardData();
+        return {
+          userStats: dashboardData.userStats,
+          deliveryStats: dashboardData.deliveryStats,
+          transactionStats: dashboardData.transactionStats,
+          warehouseStats: dashboardData.warehouseStats,
+          documentStats: dashboardData.documentStats,
+          timeRange: {
+            startDate: input.startDate,
+            endDate: input.endDate,
+          },
+        };
+      } catch (error) {
+        console.error('Erreur dans getOverviewStats:', error);
+        throw error;
+      }
+    }),
+
+  /**
    * Récupère toutes les données du tableau de bord
    */
   getDashboardData: adminProcedure.input(z.object({}).optional()).query(async () => {

@@ -11,7 +11,7 @@ import { CommissionStatus, ServiceType, UserRole } from '@prisma/client';
 // Vérifier si le wallet service est correctement initialisé
 const isWalletServiceAvailable = () => {
   try {
-    return walletService && typeof walletService.getUserWallet === 'function';
+    return walletService && typeof walletService.getWallet === 'function';
   } catch (error) {
     console.warn("WalletService n'est pas disponible:", error);
     return false;
@@ -44,7 +44,7 @@ export const commissionService = {
   /**
    * Calcule et enregistre la commission pour un paiement
    */
-  async calculateCommission(paymentId: string) {
+  async calculateAndCreateCommission(paymentId: string) {
     // Récupérer le paiement complet
     const payment = await db.payment.findUnique({
       where: { id: paymentId },
@@ -64,8 +64,14 @@ export const commissionService = {
     }
 
     // Vérifier si une commission existe déjà
-    const existingCommission = await db.commission.findUnique({
-      where: { paymentId },
+    const existingCommission = await db.commission.findFirst({
+      where: { 
+        payments: {
+          some: {
+            id: paymentId
+          }
+        }
+      },
     });
 
     if (existingCommission) {
@@ -73,17 +79,17 @@ export const commissionService = {
     }
 
     // Déterminer le type de paiement et le taux de commission applicable
-    let type = 'UNKNOWN';
+    let serviceType = 'DELIVERY';
     let rate = 0;
 
     if (payment.deliveryId) {
-      type = 'DELIVERY';
-      rate = payment.commissionRate ? Number(payment.commissionRate) : this.DEFAULT_RATES.DELIVERY;
+      serviceType = 'DELIVERY';
+      rate = this.DEFAULT_RATES.DELIVERY;
     } else if (payment.serviceId) {
-      type = 'SERVICE';
-      rate = payment.commissionRate ? Number(payment.commissionRate) : this.DEFAULT_RATES.SERVICE;
+      serviceType = 'SERVICE';
+      rate = this.DEFAULT_RATES.SERVICE;
     } else if (payment.subscriptionId) {
-      type = 'SUBSCRIPTION';
+      serviceType = 'SUBSCRIPTION';
       rate = this.DEFAULT_RATES.SUBSCRIPTION;
     }
 
@@ -91,7 +97,7 @@ export const commissionService = {
     const promotion = await db.promotionRecord.findFirst({
       where: {
         isActive: true,
-        serviceType: type,
+        serviceType: serviceType,
         startDate: { lte: new Date() },
         endDate: { gte: new Date() },
       },
@@ -115,15 +121,22 @@ export const commissionService = {
     // Créer l'enregistrement de la commission
     const commission = await db.commission.create({
       data: {
-        paymentId,
-        amount: commissionAmount,
         rate: new Decimal(rate),
-        type,
-        status: 'PENDING',
-        calculatedAt: new Date(),
+        serviceType,
+        description: `Commission sur ${serviceType.toLowerCase()} - Paiement #${paymentId}`,
+        isActive: true,
+        calculationType: 'PERCENTAGE',
+        currency: payment.currency,
         promotionId: promotion?.id,
-        originalRate: promotion ? new Decimal(originalRate) : undefined,
-        discountAmount: promotion ? discountAmount : undefined,
+      },
+    });
+
+    // Mettre à jour le paiement avec les informations de commission
+    await db.payment.update({
+      where: { id: paymentId },
+      data: {
+        commissionAmount,
+        commissionId: commission.id,
       },
     });
 
@@ -133,11 +146,12 @@ export const commissionService = {
   /**
    * Traite le paiement de la commission (déduction du portefeuille du prestataire/livreur)
    */
-  async processCommission(commissionId: string) {
+  async processCommission(commissionId: string, paymentId: string) {
     const commission = await db.commission.findUnique({
       where: { id: commissionId },
       include: {
-        payment: {
+        payments: {
+          where: { id: paymentId },
           include: {
             delivery: {
               include: {
@@ -158,19 +172,18 @@ export const commissionService = {
       throw new Error('Commission non trouvée');
     }
 
-    if (commission.status !== 'PENDING') {
-      throw new Error(`Cette commission est déjà ${commission.status.toLowerCase()}`);
+    const payment = commission.payments[0];
+    if (!payment) {
+      throw new Error('Paiement associé non trouvé');
     }
-
-    const payment = commission.payment;
 
     // Déterminer l'utilisateur et le portefeuille
     let userId: string | undefined;
 
-    if (payment.delivery?.deliverer) {
-      userId = payment.delivery.delivererId as string;
-    } else if (payment.service?.provider) {
-      userId = payment.service.providerId as string;
+    if (payment.delivery?.delivererId) {
+      userId = payment.delivery.delivererId;
+    } else if (payment.service?.providerId) {
+      userId = payment.service.providerId;
     }
 
     if (!userId) {
@@ -178,52 +191,39 @@ export const commissionService = {
     }
 
     // Récupérer le portefeuille de l'utilisateur
-    const wallet = await db.wallet.findUnique({
-      where: { userId },
-    });
+    const wallet = await walletService.getOrCreateWallet(userId);
 
     if (!wallet) {
       throw new Error('Portefeuille non trouvé pour cet utilisateur');
     }
 
-    // Déduire la commission du portefeuille
-    try {
-      await walletService.deductFunds(
-        wallet.id,
-        Number(commission.amount),
-        `commission-${commission.id}`,
-        'PLATFORM_FEE',
-        `Commission EcoDeli pour ${
-          payment.deliveryId ? 'livraison' : 'service'
-        } (${commission.rate.times(100)}%)`
-      );
+    // Calculer le montant de commission basé sur le paiement
+    const commissionAmount = Number(payment.commissionAmount || 0);
 
-      // Mettre à jour le statut de la commission
-      await db.commission.update({
-        where: { id: commissionId },
-        data: {
-          status: 'PROCESSED',
-          paidAt: new Date(),
-          updatedAt: new Date(),
+    // Créer une transaction de déduction dans le portefeuille
+    try {
+      await walletService.createWalletTransaction(wallet.id, {
+        amount: -commissionAmount, // Montant négatif pour déduction
+        type: 'PLATFORM_FEE',
+        description: `Commission EcoDeli pour ${
+          payment.deliveryId ? 'livraison' : 'service'
+        } (${Number(commission.rate) * 100}%)`,
+        reference: `commission-${commission.id}`,
+        paymentId: payment.id,
+        metadata: {
+          commissionId: commission.id,
+          commissionRate: Number(commission.rate),
+          originalAmount: Number(payment.amount),
         },
       });
 
       return {
         success: true,
-        commission: await db.commission.findUnique({ where: { id: commissionId } }),
+        commission,
+        commissionAmount,
       };
     } catch (error) {
       console.error('Erreur lors du traitement de la commission:', error);
-
-      // Mettre à jour le statut en cas d'échec
-      await db.commission.update({
-        where: { id: commissionId },
-        data: {
-          status: 'FAILED',
-          updatedAt: new Date(),
-        },
-      });
-
       throw error;
     }
   },
@@ -234,29 +234,29 @@ export const commissionService = {
   async getCommissions(filters: {
     startDate?: Date;
     endDate?: Date;
-    type?: string;
-    status?: string;
+    serviceType?: string;
+    isActive?: boolean;
     page?: number;
     limit?: number;
   }) {
-    const { startDate, endDate, type, status, page = 1, limit = 20 } = filters;
+    const { startDate, endDate, serviceType, isActive, page = 1, limit = 20 } = filters;
 
     // Construire les filtres
     const where: any = {};
 
     if (startDate && endDate) {
-      where.calculatedAt = {
+      where.createdAt = {
         gte: startDate,
         lte: endDate,
       };
     }
 
-    if (type) {
-      where.type = type;
+    if (serviceType) {
+      where.serviceType = serviceType;
     }
 
-    if (status) {
-      where.status = status;
+    if (isActive !== undefined) {
+      where.isActive = isActive;
     }
 
     // Calculer le décalage pour la pagination
@@ -267,14 +267,14 @@ export const commissionService = {
       db.commission.findMany({
         where,
         include: {
-          payment: {
+          payments: {
             include: {
               delivery: true,
               service: true,
             },
           },
         },
-        orderBy: { calculatedAt: 'desc' },
+        orderBy: { createdAt: 'desc' },
         skip,
         take: limit,
       }),
@@ -283,7 +283,14 @@ export const commissionService = {
 
     // Calculer les totaux
     const totalAmount = commissions.reduce(
-      (sum, commission) => sum.plus(commission.amount),
+      (sum, commission) => {
+        const commissionPayments = commission.payments || [];
+        const paymentSum = commissionPayments.reduce(
+          (paySum, payment) => paySum.plus(payment.commissionAmount || 0),
+          new Decimal(0)
+        );
+        return sum.plus(paymentSum);
+      },
       new Decimal(0)
     );
 
@@ -314,14 +321,13 @@ export const commissionService = {
     // Récupérer toutes les commissions de la période
     const commissions = await db.commission.findMany({
       where: {
-        calculatedAt: {
+        createdAt: {
           gte: startDate,
           lte: endDate,
         },
-        status: 'PROCESSED',
       },
       include: {
-        payment: {
+        payments: {
           include: {
             delivery: true,
             service: true,
@@ -332,22 +338,34 @@ export const commissionService = {
 
     // Calculer les statistiques par type
     const byType = commissions.reduce((acc: any, commission) => {
-      if (!acc[commission.type]) {
-        acc[commission.type] = {
+      if (!acc[commission.serviceType]) {
+        acc[commission.serviceType] = {
           count: 0,
           total: new Decimal(0),
         };
       }
 
-      acc[commission.type].count++;
-      acc[commission.type].total = acc[commission.type].total.plus(commission.amount);
+      acc[commission.serviceType].count++;
+      
+      // Calculer le total des commissions pour ce type
+      const commissionTotal = commission.payments.reduce(
+        (sum, payment) => sum.plus(payment.commissionAmount || 0),
+        new Decimal(0)
+      );
+      acc[commission.serviceType].total = acc[commission.serviceType].total.plus(commissionTotal);
 
       return acc;
     }, {});
 
-    // Calculer les totaux
+    // Calculer les totaux généraux
     const totalCommissions = commissions.reduce(
-      (sum, commission) => sum.plus(commission.amount),
+      (sum, commission) => {
+        const commissionTotal = commission.payments.reduce(
+          (paySum, payment) => paySum.plus(payment.commissionAmount || 0),
+          new Decimal(0)
+        );
+        return sum.plus(commissionTotal);
+      },
       new Decimal(0)
     );
 
@@ -368,15 +386,12 @@ export const commissionService = {
     // Créer l'enregistrement de rapport financier
     const report = await db.financialReport.create({
       data: {
-        name: `Rapport de commissions ${startDate.toISOString().split('T')[0]} - ${endDate.toISOString().split('T')[0]}`,
-        type: 'COMMISSION',
-        period: `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}`,
-        startDate,
-        endDate,
+        reportType: 'COMMISSION',
+        periodStart: startDate,
+        periodEnd: endDate,
         data: reportData,
         totalRevenue: totalCommissions,
         totalCommissions,
-        transactionCount: commissions.length,
         status: 'GENERATED',
         generatedAt: new Date(),
       },
@@ -477,164 +492,13 @@ export const commissionService = {
     return promotion;
   },
 
+  /**
+   * Récupère les taux de commission actifs
+   */
   async getActiveCommissionRates() {
     return db.commission.findMany({
       where: { isActive: true },
     });
-  },
-
-  async calculateCommission(amount: number, serviceType: string, userRole: string) {
-    // Trouver la commission applicable
-    const commission = await db.commission.findFirst({
-      where: {
-        isActive: true,
-        serviceType,
-        applicableRoles: {
-          has: userRole,
-        },
-      },
-    });
-
-    if (!commission) {
-      return {
-        rate: 0.05, // Taux par défaut de 5%
-        amount: amount * 0.05,
-      };
-    }
-
-    let commissionAmount = 0;
-
-    if (commission.calculationType === 'PERCENTAGE') {
-      commissionAmount = amount * Number(commission.rate);
-    } else if (commission.calculationType === 'FLAT_FEE') {
-      commissionAmount = Number(commission.flatFee || 0);
-    }
-
-    // Appliquer min/max si définis
-    if (commission.minimumAmount && commissionAmount < Number(commission.minimumAmount)) {
-      commissionAmount = Number(commission.minimumAmount);
-    }
-
-    if (commission.maximumAmount && commissionAmount > Number(commission.maximumAmount)) {
-      commissionAmount = Number(commission.maximumAmount);
-    }
-
-    return {
-      rate: Number(commission.rate),
-      amount: commissionAmount,
-    };
-  },
-
-  async processServiceCommission(serviceId: string, totalAmount: number) {
-    const service = await db.service.findUnique({
-      where: { id: serviceId },
-      include: {
-        provider: {
-          include: {
-            user: true,
-          },
-        },
-      },
-    });
-
-    if (!service) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Service non trouvé',
-      });
-    }
-
-    // Calculer la commission
-    const { amount: commissionAmount } = await this.calculateCommission(
-      totalAmount,
-      'SERVICE',
-      'PROVIDER'
-    );
-
-    // Créer l'enregistrement de commission
-    const commission = await db.commission.create({
-      data: {
-        rate: commissionAmount / totalAmount,
-        serviceType: 'SERVICE',
-        calculationType: 'PERCENTAGE',
-        isActive: true,
-        applicableRoles: ['PROVIDER'],
-        description: `Commission sur service #${serviceId}`,
-      },
-    });
-
-    // Ajouter le montant au portefeuille du prestataire (moins la commission)
-    const providerWallet = await walletService.getWallet(service.provider.userId);
-    await walletService.createTransaction(providerWallet.id, {
-      amount: totalAmount - commissionAmount,
-      type: 'EARNING',
-      description: `Paiement pour service #${serviceId} (commission déduite)`,
-      metadata: {
-        serviceId,
-        commissionId: commission.id,
-        commissionAmount,
-      },
-    });
-
-    return {
-      totalAmount,
-      commissionAmount,
-      providerAmount: totalAmount - commissionAmount,
-    };
-  },
-
-  async processDeliveryCommission(deliveryId: string, totalAmount: number) {
-    const delivery = await db.delivery.findUnique({
-      where: { id: deliveryId },
-      include: {
-        deliverer: true,
-      },
-    });
-
-    if (!delivery || !delivery.delivererId) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Livraison non trouvée ou livreur non assigné',
-      });
-    }
-
-    // Calculer la commission
-    const { amount: commissionAmount } = await this.calculateCommission(
-      totalAmount,
-      'DELIVERY',
-      'DELIVERER'
-    );
-
-    // Créer l'enregistrement de commission
-    const commission = await db.commission.create({
-      data: {
-        rate: commissionAmount / totalAmount,
-        serviceType: 'DELIVERY',
-        calculationType: 'PERCENTAGE',
-        isActive: true,
-        applicableRoles: ['DELIVERER'],
-        description: `Commission sur livraison #${deliveryId}`,
-      },
-    });
-
-    // Ajouter le montant au portefeuille du livreur (moins la commission)
-    const delivererWallet = await walletService.getWallet(delivery.delivererId);
-    await walletService.createTransaction(delivererWallet.id, {
-      amount: totalAmount - commissionAmount,
-      type: 'EARNING',
-      description: `Paiement pour livraison #${deliveryId} (commission déduite)`,
-      metadata: {
-        deliveryId,
-        commissionId: commission.id,
-        commissionAmount,
-      },
-    });
-
-    return {
-      totalAmount,
-      commissionAmount,
-      delivererAmount: totalAmount - commissionAmount,
-    };
   },
 
   /**
@@ -649,11 +513,10 @@ export const commissionService = {
     commissionRate: number;
     netAmount: number;
   }> {
-    // Récupérer le taux de commission actif pour ce type de service et rôle
+    // Récupérer le taux de commission actif pour ce type de service
     const activeCommission = await db.commission.findFirst({
       where: {
         serviceType,
-        applicableRoles: { has: userRole },
         isActive: true,
       },
       orderBy: {
@@ -682,319 +545,45 @@ export const commissionService = {
   /**
    * Enregistre une commission pour un paiement
    */
-  async createCommission(data: {
-    paymentId: string;
-    amount: number;
+  async createCommissionRecord(data: {
     rate: number;
     serviceType: ServiceType;
     description: string;
-    userId: string;
-    deliveryId?: string;
-    serviceId?: string;
+    paymentIds?: string[];
     metadata?: Record<string, any>;
   }) {
     const {
-      paymentId,
-      amount,
       rate,
       serviceType,
       description,
-      userId,
-      deliveryId,
-      serviceId,
+      paymentIds = [],
       metadata = {},
     } = data;
-
-    // Vérifier que le paiement existe
-    const payment = await db.payment.findUnique({
-      where: { id: paymentId },
-    });
-
-    if (!payment) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Paiement non trouvé',
-      });
-    }
 
     // Créer l'enregistrement de commission
     const commission = await db.commission.create({
       data: {
-        amount: new Decimal(amount),
         rate: new Decimal(rate),
-        status: CommissionStatus.PENDING,
         serviceType,
         description,
-        userId,
-        paymentId,
-        deliveryId,
-        serviceId,
         isActive: true,
-        applicableRoles: [userId ? await this._getUserRole(userId) : 'DELIVERER'],
-        metadata,
+        calculationType: 'PERCENTAGE',
       },
     });
 
-    return commission;
-  },
-
-  /**
-   * Génère les factures de commission pour une période donnée
-   */
-  async generateMonthlyCommissionInvoices(
-    options: {
-      month?: number; // 0-11, mois actuel par défaut
-      year?: number; // année actuelle par défaut
-      roleFilter?: UserRole[];
-    } = {}
-  ) {
-    const now = new Date();
-    const targetMonth = options.month !== undefined ? options.month : now.getMonth();
-    const targetYear = options.year !== undefined ? options.year : now.getFullYear();
-
-    // Période pour laquelle générer les factures (mois précédent par défaut)
-    const startDate = startOfMonth(new Date(targetYear, targetMonth));
-    const endDate = endOfMonth(new Date(targetYear, targetMonth));
-
-    console.log(
-      `Génération des factures de commission du ${format(startDate, 'dd/MM/yyyy')} au ${format(endDate, 'dd/MM/yyyy')}`
-    );
-
-    // Récupérer les commissions pour la période
-    const commissions = await db.commission.findMany({
-      where: {
-        createdAt: {
-          gte: startDate,
-          lte: endDate,
-        },
-        status: CommissionStatus.PENDING,
-        ...(options.roleFilter
-          ? {
-              applicableRoles: {
-                hasSome: options.roleFilter,
-              },
-            }
-          : {}),
-      },
-      include: {
-        user: true,
-        payment: true,
-      },
-    });
-
-    if (commissions.length === 0) {
-      return {
-        success: true,
-        generated: 0,
-        message: 'Aucune commission à facturer pour cette période',
-      };
-    }
-
-    // Grouper les commissions par utilisateur
-    const commissionsByUser: Record<string, typeof commissions> = {};
-
-    for (const commission of commissions) {
-      if (!commission.userId) continue;
-
-      if (!commissionsByUser[commission.userId]) {
-        commissionsByUser[commission.userId] = [];
-      }
-
-      commissionsByUser[commission.userId].push(commission);
-    }
-
-    // Générer une facture par utilisateur
-    const results = [];
-    const period = {
-      start: startDate,
-      end: endDate,
-    };
-
-    for (const [userId, userCommissions] of Object.entries(commissionsByUser)) {
-      try {
-        // Calculer le total
-        const totalAmount = userCommissions.reduce((sum, comm) => sum + Number(comm.amount), 0);
-
-        if (totalAmount <= 0) continue;
-
-        // Créer les éléments de facture
-        const invoiceItems = userCommissions.map(comm => ({
-          commissionId: comm.id,
-          description: comm.description || `Commission sur ${comm.serviceType.toLowerCase()}`,
-          commissionAmount: Number(comm.amount),
-          serviceId: comm.serviceId,
-          deliveryId: comm.deliveryId,
-        }));
-
-        // Générer la facture
-        const invoice = await invoiceService.createCommissionInvoice(userId, invoiceItems, period);
-
-        // Mettre à jour le statut des commissions
-        await db.commission.updateMany({
-          where: {
-            id: {
-              in: userCommissions.map(c => c.id),
-            },
+    // Connecter les paiements si fournis
+    if (paymentIds.length > 0) {
+      await db.payment.updateMany({
+        where: {
+          id: {
+            in: paymentIds,
           },
-          data: {
-            status: CommissionStatus.INVOICED,
-            invoiceId: invoice.id,
-          },
-        });
-
-        results.push({
-          userId,
-          commissionCount: userCommissions.length,
-          totalAmount,
-          invoiceId: invoice.id,
-          success: true,
-        });
-      } catch (error) {
-        console.error(
-          `Erreur lors de la génération de la facture pour l'utilisateur ${userId}:`,
-          error
-        );
-        results.push({
-          userId,
-          commissionCount: userCommissions.length,
-          error: error instanceof Error ? error.message : 'Erreur inconnue',
-          success: false,
-        });
-      }
-    }
-
-    return {
-      success: true,
-      generated: results.filter(r => r.success).length,
-      total: Object.keys(commissionsByUser).length,
-      results,
-      period: {
-        start: format(startDate, 'MMMM yyyy', { locale: fr }),
-        end: format(endDate, 'dd MMMM yyyy', { locale: fr }),
-      },
-    };
-  },
-
-  /**
-   * Récupère le résumé des commissions d'un utilisateur par mois
-   */
-  async getUserCommissionSummary(userId: string, months: number = 6) {
-    const endDate = new Date();
-    const startDate = subMonths(endDate, months);
-
-    // Récupérer toutes les commissions de l'utilisateur pour la période
-    const commissions = await db.commission.findMany({
-      where: {
-        userId,
-        createdAt: {
-          gte: startDate,
-          lte: endDate,
         },
-      },
-    });
-
-    // Grouper par mois
-    const monthlySummary: Record<
-      string,
-      {
-        month: string;
-        total: number;
-        count: number;
-        avgRate: number;
-      }
-    > = {};
-
-    for (const commission of commissions) {
-      const date = new Date(commission.createdAt);
-      const monthKey = format(date, 'yyyy-MM');
-      const monthLabel = format(date, 'MMMM yyyy', { locale: fr });
-
-      if (!monthlySummary[monthKey]) {
-        monthlySummary[monthKey] = {
-          month: monthLabel,
-          total: 0,
-          count: 0,
-          avgRate: 0,
-        };
-      }
-
-      monthlySummary[monthKey].total += Number(commission.amount);
-      monthlySummary[monthKey].count += 1;
-    }
-
-    // Calculer les taux moyens
-    for (const key in monthlySummary) {
-      const summary = monthlySummary[key];
-      if (summary.count > 0) {
-        summary.avgRate = Number((summary.total / summary.count).toFixed(2));
-      }
-    }
-
-    return {
-      summary: Object.values(monthlySummary),
-      total: commissions.reduce((sum, c) => sum + Number(c.amount), 0),
-      count: commissions.length,
-    };
-  },
-
-  /**
-   * Ajuste le taux de commission pour un utilisateur spécifique
-   */
-  async adjustUserCommissionRate(userId: string, serviceType: ServiceType, newRate: number) {
-    // Vérifier que l'utilisateur existe
-    const user = await db.user.findUnique({
-      where: { id: userId },
-    });
-
-    if (!user) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Utilisateur non trouvé',
+        data: {
+          commissionId: commission.id,
+        },
       });
     }
-
-    // Vérifier que le taux est valide
-    if (newRate < 0 || newRate > 1) {
-      throw new TRPCError({
-        code: 'BAD_REQUEST',
-        message: 'Le taux de commission doit être compris entre 0 et 1',
-      });
-    }
-
-    // Déterminer le rôle de l'utilisateur
-    const userRole = await this._getUserRole(userId);
-
-    // Désactiver les anciennes commissions pour ce type de service et cet utilisateur
-    await db.commission.updateMany({
-      where: {
-        userId,
-        serviceType,
-        isActive: true,
-        applicableRoles: {
-          has: userRole,
-        },
-      },
-      data: {
-        isActive: false,
-      },
-    });
-
-    // Créer une nouvelle commission avec le nouveau taux
-    const commission = await db.commission.create({
-      data: {
-        rate: new Decimal(newRate),
-        serviceType,
-        description: `Taux de commission personnalisé pour ${serviceType.toLowerCase()}`,
-        userId,
-        isActive: true,
-        applicableRoles: [userRole],
-        status: CommissionStatus.ACTIVE,
-        metadata: {
-          isCustomRate: true,
-          previousRate: DEFAULT_COMMISSION_RATES[serviceType],
-        },
-      },
-    });
 
     return commission;
   },
@@ -1019,16 +608,49 @@ export const commissionService = {
   },
 };
 
-// Export des fonctions individuelles pour faciliter les tests et l'utilisation
-export const {
-  calculateCommission,
-  processCommission,
-  getCommissions,
-  generateCommissionReport,
-  updateCommissionRates,
-  createCommissionPromotion,
-  getActiveCommissionRates,
-  processServiceCommission,
-  processDeliveryCommission,
-  createCommission,
-} = commissionService;
+/**
+ * Fonction utilitaire pour créer une commission
+ * Exportée pour compatibilité avec payment.service.ts
+ */
+export async function createCommission(data: {
+  paymentId: string;
+  amount: number;
+  rate: number;
+  serviceType: ServiceType;
+  description?: string;
+}) {
+  const { paymentId, amount, rate, serviceType, description } = data;
+
+  // Calculer le montant de la commission
+  const commissionAmount = amount * rate;
+
+  // Créer l'enregistrement de commission
+  const commission = await db.commission.create({
+    data: {
+      rate: new Decimal(rate),
+      serviceType,
+      description: description || `Commission sur ${serviceType.toLowerCase()}`,
+      isActive: true,
+      calculationType: 'PERCENTAGE',
+    },
+  });
+
+  // Mettre à jour le paiement avec les informations de commission
+  await db.payment.update({
+    where: { id: paymentId },
+    data: {
+      commissionAmount: new Decimal(commissionAmount),
+      commissionId: commission.id,
+    },
+  });
+
+  return {
+    commission,
+    commissionAmount,
+    netAmount: amount - commissionAmount,
+  };
+}
+
+// Export principal du service
+// Utilisez commissionService.methodName() pour accéder aux méthodes
+export default commissionService;

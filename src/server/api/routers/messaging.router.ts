@@ -1,1 +1,33 @@
-import { router, protectedProcedure } from '@/server/api/trpc';\nimport { z } from 'zod';\n\nexport const messagingRouter = router({\n  getConversations: protectedProcedure\n    .query(async ({ ctx }) => {\n      // Récupérer les conversations de l'utilisateur\n    }),\n    \n  getMessages: protectedProcedure\n    .input(z.object({ conversationId: z.string() }))\n    .query(async ({ ctx, input }) => {\n      // Récupérer les messages d'une conversation\n    }),\n    \n  sendMessage: protectedProcedure\n    .input(z.object({\n      conversationId: z.string(),\n      content: z.string().min(1),\n    }))\n    .mutation(async ({ ctx, input }) => {\n      // Envoyer un message\n    }),\n    \n  createConversation: protectedProcedure\n    .input(z.object({\n      recipientId: z.string(),\n      initialMessage: z.string().optional(),\n    }))\n    .mutation(async ({ ctx, input }) => {\n      // Créer une nouvelle conversation\n    }),\n});
+import { router, protectedProcedure } from '@/server/api/trpc';
+import { z } from 'zod';
+
+export const messagingRouter = router({
+  getConversations: protectedProcedure
+    .query(async ({ ctx }) => {
+      // Récupérer les conversations de l'utilisateur
+    }),
+    
+  getMessages: protectedProcedure
+    .input(z.object({ conversationId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      // Récupérer les messages d'une conversation
+    }),
+    
+  sendMessage: protectedProcedure
+    .input(z.object({
+      conversationId: z.string(),
+      content: z.string().min(1),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // Envoyer un message
+    }),
+    
+  createConversation: protectedProcedure
+    .input(z.object({
+      recipientId: z.string(),
+      initialMessage: z.string().optional(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      // Créer une nouvelle conversation
+    }),
+});

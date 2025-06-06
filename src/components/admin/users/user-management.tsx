@@ -69,7 +69,7 @@ interface User {
   pendingVerificationsCount?: number;
   lastActivityAt?: Date | null;
   image?: string | null;
-  isBanned: boolean;
+  isBanned?: boolean;
   bannedAt?: Date | null;
   banReason?: string | null;
 }
@@ -91,6 +91,20 @@ export default function UserTable({
   const t = useTranslations('Admin.verification.users');
   const [selectAll, setSelectAll] = useState(false);
   const { toast } = useToast();
+
+  // Log détaillé pour debugging
+  console.log('🔍 [CLIENT] UserTable - Données reçues:', {
+    users: users,
+    usersType: typeof users,
+    isArray: Array.isArray(users),
+    usersLength: Array.isArray(users) ? users.length : 'N/A',
+    isLoading: isLoading,
+    firstUser: Array.isArray(users) ? users[0] : null
+  });
+
+  // Vérification défensive
+  const safeUsers = Array.isArray(users) ? users : [];
+  console.log('🔍 [CLIENT] safeUsers length:', safeUsers.length);
 
   // États pour les dialogs
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -138,7 +152,7 @@ export default function UserTable({
   // Gérer la sélection de tous les utilisateurs
   const handleSelectAll = (checked: boolean) => {
     setSelectAll(checked);
-    onSelectionChange(checked ? users.map(user => user.id) : []);
+    onSelectionChange(checked ? safeUsers.map(user => user.id) : []);
   };
 
   // Gérer la sélection individuelle
@@ -313,7 +327,7 @@ export default function UserTable({
                   </TableCell>
                 </TableRow>
               ))
-            ) : users.length === 0 ? (
+            ) : safeUsers.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={8} className="h-24 text-center">
                   <div className="flex flex-col items-center justify-center space-y-2">
@@ -323,7 +337,7 @@ export default function UserTable({
                 </TableCell>
               </TableRow>
             ) : (
-              users.map(user => (
+              safeUsers.map(user => (
                 <TableRow
                   key={user.id}
                   className={selectedUserIds.includes(user.id) ? 'bg-muted/50' : ''}

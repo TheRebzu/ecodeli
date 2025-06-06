@@ -23,6 +23,7 @@ import { walletRouter } from '@/server/api/routers/wallet.router';
 import { withdrawalRouter } from '@/server/api/routers/withdrawal.router';
 import { billingRouter } from './routers/billing.router';
 import { financialTaskRouter } from './routers/financial-task.router';
+import { financialRouter } from './routers/financial.router';
 import { notificationRouter } from './routers/notification.router';
 import { subscriptionRouter } from './routers/subscription.router';
 import { fileRouter } from './routers/file.router';
@@ -61,12 +62,13 @@ export const appRouter = router({
   adminWarehouse: adminWarehouseRouter,
   deliveryTracking: deliveryTrackingRouter,
   storage: storageRouter,
-  clientData: clientRouter,
+  client: clientRouter,
   profile: profileRouter,
   wallet: walletRouter,
   withdrawal: withdrawalRouter,
   billing: billingRouter,
   subscription: subscriptionRouter,
+  financial: financialRouter,
   financialTask: financialTaskRouter,
   notification: notificationRouter,
   file: fileRouter,

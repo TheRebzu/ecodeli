@@ -1,6 +1,7 @@
-import { router, protectedProcedure, clientProcedure } from '@/server/api/trpc';
+import { router, protectedProcedure, clientProcedure, adminProcedure, type Context } from '@/server/api/trpc';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
+import type { User, Client } from '@prisma/client';
 import { dashboardService } from '@/server/services/dashboard.service';
 import { serviceService } from '@/server/services/service.service';
 import { Prisma } from '@prisma/client';
@@ -591,4 +592,205 @@ export const clientRouter = router({
 
       return booking;
     }),
+
+  // === MÉTHODES ADMIN ===
+  
+  /**
+   * Get all clients for admin (paginated with filters)
+   */
+  getAllClients: adminProcedure
+    .input(z.object({
+      page: z.number().min(1).default(1),
+      limit: z.number().min(1).max(100).default(10),
+      search: z.string().optional(),
+      status: z.enum(['ACTIVE', 'PENDING_VERIFICATION', 'SUSPENDED', 'INACTIVE']).optional(),
+      sortBy: z.enum(['name', 'email', 'createdAt', 'lastLoginAt']).default('createdAt'),
+      sortDirection: z.enum(['asc', 'desc']).default('desc'),
+    }).optional().default({}))
+          .query(async ({ ctx, input }) => {
+        const {
+          page = 1,
+          limit = 10,
+          search,
+          status,
+          sortBy = 'createdAt',
+          sortDirection = 'desc',
+        } = input || {};
+
+      // Construire les conditions de filtrage
+      const where: any = {
+        role: 'CLIENT',
+      };
+
+      if (status) {
+        where.status = status;
+      }
+
+      if (search) {
+        where.OR = [
+          { name: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } },
+          { client: { city: { contains: search, mode: 'insensitive' } } },
+        ];
+      }
+
+      // Calculer offset pour pagination
+      const offset = (page - 1) * limit;
+
+      // Requête pour récupérer les clients avec pagination
+      const [clients, totalCount] = await Promise.all([
+        ctx.db.user.findMany({
+          where,
+          include: {
+            client: true,
+            _count: {
+              select: {
+                clientAnnouncements: true,
+                documents: true,
+              },
+            },
+          },
+          orderBy: { [sortBy]: sortDirection },
+          skip: offset,
+          take: limit,
+        }),
+        ctx.db.user.count({ where }),
+      ]);
+
+      // Calculer statistiques pour chaque client
+      const clientsWithStats = await Promise.all(
+        clients.map(async (client) => {
+          if (!client.client) return null;
+
+          // Récupérer les statistiques du client
+          const [totalOrders, totalSpent, lastOrderDate] = await Promise.all([
+            ctx.db.announcement.count({
+              where: { clientId: client.client.id },
+            }),
+            ctx.db.payment.aggregate({
+              where: { userId: client.id, status: 'COMPLETED' },
+              _sum: { amount: true },
+            }),
+            ctx.db.announcement.findFirst({
+              where: { clientId: client.client.id },
+              orderBy: { createdAt: 'desc' },
+              select: { createdAt: true },
+            }),
+          ]);
+
+          return {
+            id: client.id,
+            name: client.name,
+            email: client.email,
+            phoneNumber: client.phoneNumber,
+            status: client.status,
+            isVerified: client.isVerified,
+            createdAt: client.createdAt,
+            lastLoginAt: client.lastLoginAt,
+            client: {
+              id: client.client.id,
+              address: client.client.address,
+              city: client.client.city,
+              postalCode: client.client.postalCode,
+              country: client.client.country,
+            },
+            stats: {
+              totalOrders,
+              totalSpent: totalSpent._sum.amount?.toNumber() || 0,
+              lastOrderDate: lastOrderDate?.createdAt,
+              documentsCount: client._count.documents,
+            },
+          };
+        })
+      );
+
+      // Filtrer les clients null (qui n'ont pas de profil client)
+      const validClients = clientsWithStats.filter(Boolean);
+
+      const totalPages = Math.ceil(totalCount / limit);
+
+      // Debug logging
+      console.log('🔍 [API] getAllClients Debug:');
+      console.log(`  - Utilisateurs trouvés: ${clients.length}`);
+      console.log(`  - Clients valides: ${validClients.length}`);
+      console.log(`  - Total count: ${totalCount}`);
+      console.log(`  - Pagination: page=${page}, limit=${limit}, totalPages=${totalPages}`);
+      
+      if (validClients.length > 0) {
+        console.log('  - Premier client:', {
+          id: validClients[0].id,
+          name: validClients[0].name,
+          email: validClients[0].email,
+          status: validClients[0].status,
+        });
+      }
+
+      const result = {
+        clients: validClients,
+        pagination: {
+          page,
+          limit,
+          total: totalCount,
+          totalPages,
+          hasNext: page < totalPages,
+          hasPrev: page > 1,
+        },
+      };
+      
+      console.log('🚀 [API] Retour final:', {
+        clientsCount: result.clients.length,
+        pagination: result.pagination,
+      });
+
+      return result;
+    }),
+
+  /**
+   * Get client statistics for admin dashboard
+   */
+  getClientStats: adminProcedure.query(async ({ ctx }) => {
+    const [
+      totalClients,
+      activeClients,
+      pendingClients,
+      suspendedClients,
+      inactiveClients,
+      newClientsThisMonth,
+      totalRevenue,
+      averageOrderValue,
+    ] = await Promise.all([
+      ctx.db.user.count({ where: { role: 'CLIENT' } }),
+      ctx.db.user.count({ where: { role: 'CLIENT', status: 'ACTIVE' } }),
+      ctx.db.user.count({ where: { role: 'CLIENT', status: 'PENDING_VERIFICATION' } }),
+      ctx.db.user.count({ where: { role: 'CLIENT', status: 'SUSPENDED' } }),
+      ctx.db.user.count({ where: { role: 'CLIENT', status: 'INACTIVE' } }),
+      ctx.db.user.count({
+        where: {
+          role: 'CLIENT',
+          createdAt: {
+            gte: new Date(new Date().getFullYear(), new Date().getMonth(), 1),
+          },
+        },
+      }),
+      ctx.db.payment.aggregate({
+        where: { status: 'COMPLETED' },
+        _sum: { amount: true },
+      }),
+      ctx.db.payment.aggregate({
+        where: { status: 'COMPLETED' },
+        _avg: { amount: true },
+      }),
+    ]);
+
+    return {
+      totalClients,
+      activeClients,
+      pendingClients,
+      suspendedClients,
+      inactiveClients,
+      newClientsThisMonth,
+      totalRevenue: totalRevenue._sum.amount?.toNumber() || 0,
+      averageOrderValue: averageOrderValue._avg.amount?.toNumber() || 0,
+    };
+  }),
 });

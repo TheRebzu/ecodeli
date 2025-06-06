@@ -1,1 +1,19 @@
-import { db } from '../db';\n\nexport const MessagingService = {\n  async getConversations(userId: string) {\n    // Récupérer les conversations de l'utilisateur\n  },\n  \n  async getMessages(conversationId: string, limit = 50, cursor?: string) {\n    // Récupérer les messages d'une conversation avec pagination\n  },\n  \n  async sendMessage(conversationId: string, senderId: string, content: string) {\n    // Envoyer un message\n  },\n  \n  async createConversation(userId: string, recipientId: string, initialMessage?: string) {\n    // Créer une nouvelle conversation\n  },\n};
+import { db } from '../db';
+
+export const MessagingService = {
+  async getConversations(userId: string) {
+    // Récupérer les conversations de l'utilisateur
+  },
+  
+  async getMessages(conversationId: string, limit = 50, cursor?: string) {
+    // Récupérer les messages d'une conversation avec pagination
+  },
+  
+  async sendMessage(conversationId: string, senderId: string, content: string) {
+    // Envoyer un message
+  },
+  
+  async createConversation(userId: string, recipientId: string, initialMessage?: string) {
+    // Créer une nouvelle conversation
+  },
+};

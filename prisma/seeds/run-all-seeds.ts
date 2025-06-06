@@ -21,6 +21,7 @@ import { seedClientUsers } from './users/client-users-seed';
 import { seedDelivererUsers } from './users/deliverer-users-seed';
 import { seedMerchantUsers } from './users/merchant-users-seed';
 import { seedProviderUsers } from './users/provider-users-seed';
+import { seedMultiVerificationUsers } from './users/multi-verification-users-seed';
 
 // Import des seeds de vérification
 import {
@@ -143,6 +144,14 @@ const SEED_DEFINITIONS: SeedDefinition[] = [
     dependencies: ['permissions'],
     seedFunction: seedProviderUsers,
     description: 'Utilisateurs prestataires',
+    priority: 2,
+  },
+  {
+    name: 'multi-verification-users',
+    category: 'users',
+    dependencies: ['permissions'],
+    seedFunction: seedMultiVerificationUsers,
+    description: 'Utilisateurs de test avec statuts de vérification variés',
     priority: 2,
   },
 

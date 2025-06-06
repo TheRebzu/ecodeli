@@ -237,34 +237,173 @@
         "approved": "Approuvés"
       },
       "users": {
-        "title": "title",
-        "subtitle": "subtitle",
-        "quickStats": "quickStats",
-        "totalUsers": "totalUsers",
-        "activeUsers": "activeUsers",
-        "newToday": "newToday",
-        "pendingVerification": "pendingVerification",
-        "selectAll": "selectAll",
-        "noUsers": "noUsers",
-        "verified": "verified",
-        "unverified": "unverified",
-        "never": "never",
-        "pending": "pending",
-        "openMenu": "openMenu",
+        "title": "Gestion des utilisateurs",
+        "subtitle": "Gérez et administrez tous les utilisateurs de la plateforme",
+        "quickStats": "Statistiques rapides",
+        "totalUsers": "Total utilisateurs",
+        "activeUsers": "Utilisateurs actifs",
+        "newToday": "Nouveaux aujourd'hui",
+        "pendingVerification": "En attente de vérification",
+        "selectAll": "Tout sélectionner",
+        "noUsers": "Aucun utilisateur trouvé",
+        "verified": "Vérifié",
+        "unverified": "Non vérifié",
+        "never": "Jamais",
+        "pending": "En attente",
+        "openMenu": "Ouvrir le menu",
+        "actions": {
+          "export": "Exporter",
+          "addUser": "Ajouter un utilisateur"
+        },
+        "tabs": {
+          "all": "Tous les utilisateurs",
+          "stats": "Statistiques"
+        },
+        "table": {
+          "user": "Utilisateur",
+          "role": "Rôle",
+          "status": "Statut",
+          "created": "Créé le",
+          "lastActive": "Dernière activité",
+          "documents": "Documents"
+        },
+        "roles": {
+          "ADMIN": "Administrateur",
+          "CLIENT": "Client",
+          "DELIVERER": "Livreur",
+          "MERCHANT": "Commerçant",
+          "PROVIDER": "Prestataire"
+        },
+        "status": {
+          "ACTIVE": "Actif",
+          "INACTIVE": "Inactif",
+          "SUSPENDED": "Suspendu",
+          "PENDING_VERIFICATION": "En attente de vérification"
+        },
+        "actions": {
+          "title": "Actions",
+          "view": "Voir le profil",
+          "edit": "Modifier",
+          "verify": "Vérifier",
+          "activate": "Activer",
+          "deactivate": "Désactiver",
+          "suspend": "Suspendre",
+          "ban": "Bannir",
+          "unban": "Débannir",
+          "delete": "Supprimer",
+          "resetPassword": "Réinitialiser le mot de passe"
+        },
         "stats": {
-          "totalUsers": "totalUsers",
-          "activeUsers": "activeUsers",
-          "newUsers": "newUsers",
-          "churnRate": "churnRate",
-          "growthRate": "growthRate"
+          "title": "Statistiques",
+          "totalUsers": "Total utilisateurs",
+          "activeUsers": "Utilisateurs actifs",
+          "newUsers": "Nouveaux utilisateurs",
+          "churnRate": "Taux d'attrition",
+          "growthRate": "Taux de croissance"
+        },
+        "table": {
+          "user": "Utilisateur",
+          "role": "Rôle",
+          "status": "Statut",
+          "created": "Créé le",
+          "lastActive": "Dernière activité",
+          "documents": "Documents"
+        },
+        "roles": {
+          "ADMIN": "Administrateur",
+          "CLIENT": "Client",
+          "DELIVERER": "Livreur",
+          "MERCHANT": "Commerçant",
+          "PROVIDER": "Prestataire"
+        },
+        "status": {
+          "ACTIVE": "Actif",
+          "INACTIVE": "Inactif",
+          "SUSPENDED": "Suspendu",
+          "PENDING_VERIFICATION": "En attente de vérification"
+        },
+        "actions": {
+          "title": "Actions",
+          "view": "Voir le profil",
+          "edit": "Modifier",
+          "verify": "Vérifier",
+          "activate": "Activer",
+          "deactivate": "Désactiver",
+          "suspend": "Suspendre",
+          "ban": "Bannir",
+          "unban": "Débannir",
+          "delete": "Supprimer",
+          "resetPassword": "Réinitialiser le mot de passe"
         },
         "bulkActions": {
-          "button": "button",
-          "title": "title",
-          "confirmationText": "confirmationText",
-          "cancel": "cancel",
-          "processing": "processing",
-          "confirm": "confirm"
+          "button": "Actions en masse",
+          "title": "Actions en masse",
+          "confirmationText": "Vous avez sélectionné {count} utilisateurs",
+          "cancel": "Annuler",
+          "processing": "Traitement en cours...",
+          "confirm": "Confirmer",
+          "actions": {
+            "ACTIVATE": {
+              "label": "Activer",
+              "title": "Activer les utilisateurs"
+            },
+            "DEACTIVATE": {
+              "label": "Désactiver",
+              "title": "Désactiver les utilisateurs"
+            },
+            "SUSPEND": {
+              "label": "Suspendre",
+              "title": "Suspendre les utilisateurs"
+            },
+            "FORCE_PASSWORD_RESET": {
+              "label": "Réinitialiser le mot de passe",
+              "title": "Forcer la réinitialisation du mot de passe"
+            },
+            "SEND_VERIFICATION_EMAIL": {
+              "label": "Envoyer email de vérification",
+              "title": "Envoyer des emails de vérification"
+            },
+            "ASSIGN_ROLE": {
+              "label": "Assigner un rôle",
+              "title": "Assigner un rôle"
+            },
+            "ASSIGN_PERMISSION": {
+              "label": "Assigner une permission",
+              "title": "Assigner des permissions"
+            },
+            "REVOKE_PERMISSION": {
+              "label": "Révoquer une permission",
+              "title": "Révoquer des permissions"
+            },
+            "ADD_TAG": {
+              "label": "Ajouter un tag",
+              "title": "Ajouter des tags"
+            },
+            "REMOVE_TAG": {
+              "label": "Supprimer un tag",
+              "title": "Supprimer des tags"
+            },
+            "SEND_NOTIFICATION": {
+              "label": "Envoyer une notification",
+              "title": "Envoyer des notifications"
+            },
+            "EXPORT_DATA": {
+              "label": "Exporter les données",
+              "title": "Exporter les données"
+            },
+            "DELETE": {
+              "label": "Supprimer",
+              "title": "Supprimer les utilisateurs"
+            },
+            "BAN": {
+              "label": "Bannir",
+              "title": "Bannir les utilisateurs"
+            },
+            "UNBAN": {
+              "label": "Débannir",
+              "title": "Débannir les utilisateurs"
+            }
+          }
         }
       },
       "documents": "documents",
@@ -281,6 +420,68 @@
       "confirm": "confirm",
       "approveDocument": "approveDocument",
       "approvalNotesPlaceholder": "approvalNotesPlaceholder"
+    },
+    "clients": {
+      "title": "Gestion des Clients",
+      "subtitle": "Administrez et supervisez tous les clients de la plateforme",
+      "quickStats": "Aperçu des Clients",
+      "totalClients": "Total clients",
+      "activeClients": "Clients actifs",
+      "suspendedClients": "Clients suspendus",
+      "newClientsThisMonth": "Nouveaux ce mois",
+      "totalRevenue": "Chiffre d'affaires total",
+      "averageOrderValue": "Panier moyen",
+      "searchPlaceholder": "Rechercher par nom, email ou ville...",
+      "filters": {
+        "all": "Tous",
+        "active": "Actifs",
+        "suspended": "Suspendus"
+      },
+      "bulkActions": {
+        "selected": "{count} client(s) sélectionné(s)",
+        "export": "Exporter sélection",
+        "suspend": "Suspendre",
+        "reactivate": "Réactiver"
+      },
+      "table": {
+        "client": "Client",
+        "contact": "Contact",
+        "location": "Localisation",
+        "status": "Statut",
+        "orders": "Commandes",
+        "totalSpent": "Total dépensé",
+        "registeredOn": "Inscrit le",
+        "actions": "Actions",
+        "lastOrder": "Dernière"
+      },
+      "status": {
+        "active": "Actif",
+        "suspended": "Suspendu"
+      },
+      "actions": {
+        "view": "Voir",
+        "edit": "Modifier",
+        "suspend": "Suspendre",
+        "export": "Exporter",
+        "addClient": "Ajouter un client"
+      },
+      "stats": {
+        "title": "Statistiques Détaillées",
+        "description": "Analyse complète des clients et de leur activité",
+        "performance": "Performance Globale",
+        "geographic": "Répartition Géographique",
+        "retentionRate": "Taux de rétention",
+        "cities": {
+          "paris": "Paris",
+          "lyon": "Lyon",
+          "marseille": "Marseille",
+          "others": "Autres"
+        }
+      },
+      "tabs": {
+        "list": "Liste des Clients",
+        "stats": "Statistiques"
+      }
     },
     "Verification": {
       "loading": "loading"

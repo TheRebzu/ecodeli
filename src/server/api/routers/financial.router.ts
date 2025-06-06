@@ -10,7 +10,7 @@ import { UserRole, PaymentStatus } from '@prisma/client';
 import { paymentService } from '@/server/services/payment.service';
 import { walletService } from '@/server/services/wallet.service';
 import { invoiceService } from '@/server/services/invoice.service';
-import { CommissionService } from '@/server/services/commission.service';
+import { commissionService } from '@/server/services/commission.service';
 import { subscriptionService } from '@/server/services/subscription.service';
 import {
   financialProtect,
@@ -23,6 +23,80 @@ import {
  * Router tRPC pour les fonctionnalités financières
  */
 export const financialRouter = createTRPCRouter({
+  /**
+   * STATISTIQUES FINANCIÈRES
+   */
+  getStats: adminProcedure
+    .input(z.object({
+      startDate: z.coerce.date(),
+      endDate: z.coerce.date(),
+    }))
+    .query(async ({ ctx, input }) => {
+      try {
+        const [
+          totalPayments,
+          completedPayments,
+          pendingPayments,
+          failedPayments,
+          totalAmount,
+          refundedAmount,
+        ] = await Promise.all([
+          ctx.db.payment.count({
+            where: { createdAt: { gte: input.startDate, lte: input.endDate } },
+          }),
+          ctx.db.payment.count({
+            where: {
+              status: PaymentStatus.COMPLETED,
+              createdAt: { gte: input.startDate, lte: input.endDate },
+            },
+          }),
+          ctx.db.payment.count({
+            where: {
+              status: PaymentStatus.PENDING,
+              createdAt: { gte: input.startDate, lte: input.endDate },
+            },
+          }),
+          ctx.db.payment.count({
+            where: {
+              status: PaymentStatus.FAILED,
+              createdAt: { gte: input.startDate, lte: input.endDate },
+            },
+          }),
+          ctx.db.payment.aggregate({
+            where: {
+              status: PaymentStatus.COMPLETED,
+              createdAt: { gte: input.startDate, lte: input.endDate },
+            },
+            _sum: { amount: true },
+          }),
+          ctx.db.payment.aggregate({
+            where: {
+              status: PaymentStatus.REFUNDED,
+              createdAt: { gte: input.startDate, lte: input.endDate },
+            },
+            _sum: { amount: true },
+          }),
+        ]);
+
+        return {
+          totalPayments,
+          completedPayments,
+          pendingPayments,
+          failedPayments,
+          totalAmount: totalAmount._sum.amount || 0,
+          refundedAmount: refundedAmount._sum.amount || 0,
+          successRate: totalPayments > 0 ? (completedPayments / totalPayments) * 100 : 0,
+          timeRange: {
+            startDate: input.startDate,
+            endDate: input.endDate,
+          },
+        };
+      } catch (error) {
+        console.error('Erreur dans financial.getStats:', error);
+        throw error;
+      }
+    }),
+
   /**
    * PAIEMENTS
    */
@@ -331,7 +405,7 @@ export const financialRouter = createTRPCRouter({
     .mutation(async ({ input }) => {
       const { userId, serviceType, newRate } = input;
 
-      return await CommissionService.adjustUserCommissionRate(userId, serviceType, newRate);
+      return await commissionService.adjustUserCommissionRate(userId, serviceType, newRate);
     }),
 
   getUserCommissions: protectedProcedure
@@ -355,7 +429,7 @@ export const financialRouter = createTRPCRouter({
         });
       }
 
-      return await CommissionService.getUserCommissionSummary(targetUserId, months);
+      return await commissionService.getUserCommissionSummary(targetUserId, months);
     }),
 
   generateMonthlyCommissionInvoices: adminProcedure
@@ -367,7 +441,7 @@ export const financialRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input }) => {
-      return await CommissionService.generateMonthlyCommissionInvoices(input);
+      return await commissionService.generateMonthlyCommissionInvoices(input);
     }),
 
   /**
