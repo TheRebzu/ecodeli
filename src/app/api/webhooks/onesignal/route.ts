@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
 
       if (userId && type) {
         // Mettre à jour les statistiques de notification si nécessaire
-        await prisma.notificationMetric.create({
+        await db.notificationMetric.create({
           data: {
             userId,
             type,

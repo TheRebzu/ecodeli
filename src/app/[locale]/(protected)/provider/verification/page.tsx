@@ -4,7 +4,7 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/server/auth/next-auth';
 import { redirect } from 'next/navigation';
 import { ProviderVerificationForm } from '@/components/verification/provider-verification-form';
-import { VerificationStatus } from '@/types/verification';
+import { VerificationStatus } from '@/types/documents/verification';
 import { VerificationStatusBanner } from '@/components/verification/verification-status-banner';
 import { db } from '@/server/db';
 

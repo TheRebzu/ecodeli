@@ -6,8 +6,8 @@ import { useTranslations } from 'next-intl';
 import {
   merchantRegisterSchema,
   MerchantRegisterSchemaType,
-} from '@/schemas/merchant-register.schema';
-import { UserRole } from '@/schemas/register.schema';
+} from '@/schemas/merchant/merchant-register.schema';
+import { UserRole } from '@/schemas/auth/register.schema';
 import { Button } from '@/components/ui/button';
 import {
   Form,

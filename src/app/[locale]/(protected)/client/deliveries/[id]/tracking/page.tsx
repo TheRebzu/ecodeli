@@ -28,13 +28,13 @@ import {
   Locate,
 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import DeliveryTrackingMap from '@/components/deliveries/delivery-tracking-map';
-import DeliveryContact from '@/components/deliveries/delivery-contact';
-import DeliveryETA from '@/components/deliveries/delivery-eta';
-import DeliveryStatusBadge from '@/components/deliveries/delivery-status-badge';
-import { useLiveTrackingDetails } from '@/hooks/use-live-tracking';
-import { DeliveryStatus } from '@/types/delivery';
-import { cn } from '@/lib/utils';
+import DeliveryTrackingMap from '@/components/shared/maps/delivery-tracking-map';
+import DeliveryContact from '@/components/deliverer/deliveries/delivery-contact';
+import DeliveryETA from '@/components/deliverer/deliveries/delivery-eta';
+import DeliveryStatusBadge from '@/components/shared/deliveries/delivery-status-badge';
+import { useLiveTrackingDetails } from '@/hooks/delivery/use-live-tracking';
+import { DeliveryStatus } from '@/types/delivery/delivery';
+import { cn } from '@/lib/utils/common';
 
 export default function LiveTrackingPage() {
   const t = useTranslations('client.liveTracking');

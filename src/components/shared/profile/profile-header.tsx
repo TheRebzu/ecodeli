@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { useProfile } from '@/hooks/use-profile';
+import { useProfile } from '@/hooks/shared/use-profile';
 import { useProfileStore } from '@/store/use-profile-store';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EditIcon, UserIcon, FileIcon, HomeIcon, SettingsIcon, ShieldIcon } from 'lucide-react';
 import { UserRole } from '@prisma/client';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 
 const getRoleBadge = (role: UserRole) => {
   const roleColors = {
@@ -92,7 +92,7 @@ export function ProfileHeader() {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
             <Avatar className="h-16 w-16">
-              <AvatarImage src={profile.image || ''} alt={profile.name} />
+              <AvatarImage src={profile.image || undefined} alt={profile.name} />
               <AvatarFallback>{profile.name?.slice(0, 2).toUpperCase() || 'U'}</AvatarFallback>
             </Avatar>
             <div className="ml-4">

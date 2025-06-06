@@ -1,4 +1,4 @@
-import { EmailVerification } from '@/components/auth/email-verification';
+import { EmailVerification } from '@/components/auth/verification/email-verification';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {

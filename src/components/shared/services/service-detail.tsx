@@ -26,9 +26,9 @@ import {
   CalendarIcon,
   MessageSquareIcon,
 } from 'lucide-react';
-import { formatPrice, formatDuration, formatDateLocalized } from '@/lib/format';
+import { formatPrice, formatDuration, formatDateLocalized } from '@/lib/i18n/formatters';
 import { BookingForm } from '@/components/client/services/service-booking-form';
-import { useServiceBooking } from '@/hooks/use-service-booking';
+import { useServiceBooking } from '@/hooks/features/use-service-booking';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {
   Accordion,

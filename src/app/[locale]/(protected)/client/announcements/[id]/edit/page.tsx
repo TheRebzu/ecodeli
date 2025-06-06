@@ -7,14 +7,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, AlertCircle, ArrowRight, CheckCircle, Loader2 } from 'lucide-react';
-import { useAnnouncement } from '@/hooks/use-announcement';
+import { useAnnouncement } from '@/hooks/delivery/use-announcement';
 import AnnouncementForm from '@/components/announcements/announcement-form';
-import { UpdateAnnouncementInput } from '@/schemas/announcement.schema';
+import { UpdateAnnouncementInput } from '@/schemas/delivery/announcement.schema';
 import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';
 import { Link } from '@/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useRoleProtection } from '@/hooks/use-role-protection';
+import { useRoleProtection } from '@/hooks/auth/use-role-protection';
 
 export default function EditAnnouncementPage() {
   useRoleProtection(['CLIENT']);

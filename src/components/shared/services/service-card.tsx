@@ -12,7 +12,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { StarIcon, MapPinIcon, ClockIcon, EuroIcon } from 'lucide-react';
-import { formatPrice, formatDuration } from '@/lib/format';
+import { formatPrice, formatDuration } from '@/lib/i18n/formatters';
 import { useRouter } from 'next/navigation';
 
 interface ServiceCardProps {

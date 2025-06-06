@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ProfileHeader } from '@/components/profile/profile-header';
+import { ProfileHeader } from '@/components/shared/profile/profile-header';
 import { ProfileInfoCard } from '@/components/profile/profile-info-card';
 import { ProfilePreferences } from '@/components/profile/profile-preferences';
 import { ClientProfileForm } from '@/components/profile/client/client-profile-form';

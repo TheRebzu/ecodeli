@@ -31,7 +31,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from '@/components/ui/accordion';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
 import { AnnouncementStatus } from '@prisma/client';

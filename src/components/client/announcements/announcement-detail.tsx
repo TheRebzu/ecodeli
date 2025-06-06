@@ -47,7 +47,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 
 // Types pour les détails de l'annonce
 type AnnouncementWithDetails = Announcement & {
@@ -356,7 +356,7 @@ export function AnnouncementDetail({
         <HoverCardTrigger asChild>
           <div className="flex items-center gap-2 cursor-pointer">
             <Avatar className="h-8 w-8">
-              <AvatarImage src={user.image || ''} alt={user.name} />
+                                    <AvatarImage src={user.image || undefined} alt={user.name} />
               <AvatarFallback>
                 {user.name
                   .split(' ')
@@ -373,7 +373,7 @@ export function AnnouncementDetail({
         <HoverCardContent className="w-80">
           <div className="flex justify-between space-x-4">
             <Avatar>
-              <AvatarImage src={user.image || ''} />
+                                <AvatarImage src={user.image || undefined} />
               <AvatarFallback>
                 {user.name
                   .split(' ')

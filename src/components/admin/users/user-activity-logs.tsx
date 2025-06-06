@@ -37,7 +37,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { DatePicker } from '@/components/ui/date-picker';
-import { ActivityType, UserActivityLogItem } from '@/types/admin';
+import { ActivityType, UserActivityLogItem } from '@/types/actors/admin';
 import {
   Dialog,
   DialogClose,

@@ -1,10 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useOnboarding } from '@/context/onboarding-context';
-import { TutorialStep } from '../tutorial-step';
-import { TutorialProgress } from '../tutorial-progress';
-import { TutorialNavigation } from '../tutorial-navigation';
+import { useOnboarding } from '@/components/shared/onboarding/onboarding-context';
+import { TutorialStep } from '../../shared/onboarding/tutorial-step';
+import { TutorialProgress } from '../../shared/onboarding/tutorial-progress';
+import { TutorialNavigation } from '../../shared/onboarding/tutorial-navigation';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

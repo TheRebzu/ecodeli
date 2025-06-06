@@ -4,7 +4,7 @@ import React, { useMemo } from 'react';
 import { Marker, Popup, Polyline } from 'react-leaflet';
 import L from 'leaflet';
 import { Home, Store, Clock, MapPin } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 import LeafletMap, { MapBounds, MapPoint } from '@/components/maps/leaflet-map';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

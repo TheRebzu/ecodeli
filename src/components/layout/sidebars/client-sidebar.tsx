@@ -35,7 +35,7 @@ import {
   Crown,
 } from 'lucide-react';
 import { BaseSidebar, type SidebarSection } from './base-sidebar';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/hooks/auth/use-auth';
 import { useSession } from 'next-auth/react';
 
 interface ClientSidebarProps {

@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { FilterX, Search } from 'lucide-react';
-import { AnnouncementStatus } from '@/types/announcement';
+import { AnnouncementStatus } from '@/types/announcements/announcement';
 
 // Schéma de validation pour les filtres
 const filterSchema = z.object({

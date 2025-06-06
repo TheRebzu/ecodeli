@@ -16,7 +16,7 @@ import {
 
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { UserStatsData } from '@/types/admin';
+import { UserStatsData } from '@/types/actors/admin';
 
 interface UserStatsProps {
   data: UserStatsData;

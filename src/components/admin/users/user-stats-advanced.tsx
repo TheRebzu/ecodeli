@@ -29,10 +29,10 @@ import {
   Download,
   RefreshCw,
 } from 'lucide-react';
-import { UserAdvancedStatsData } from '@/types/admin';
+import { UserAdvancedStatsData } from '@/types/actors/admin';
 import { UserRole, UserStatus } from '@prisma/client';
 import { api } from '@/trpc/react';
-import { UserStatsAdvancedSchemaType } from '@/schemas/user-management.schema';
+import { UserStatsAdvancedSchemaType } from '@/schemas/user/user-management.schema';
 import {
   Area,
   AreaChart,

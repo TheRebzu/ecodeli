@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useForm, type SubmitHandler } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useSearchParams } from 'next/navigation';
-import { loginSchema, type LoginSchemaType } from '@/schemas';
+import { loginSchema, type LoginSchemaType } from '@/schemas/validation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -27,10 +27,10 @@ import {
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Loader2, AlertTriangle, KeyRound, MailIcon } from 'lucide-react';
 import AppLink from '@/components/shared/app-link';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/hooks/auth/use-auth';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslations } from 'next-intl';
-import { getAuthErrorMessage } from '@/lib/auth-error';
+import { getAuthErrorMessage } from '@/lib/auth/errors';
 import { signIn } from 'next-auth/react';
 
 export function LoginForm({ locale = 'fr' }: { locale?: string }) {

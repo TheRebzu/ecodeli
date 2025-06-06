@@ -26,13 +26,13 @@ import {
   ClipboardList,
   QrCode,
 } from 'lucide-react';
-import { formatDate, formatTime, formatCurrency } from '@/lib/utils';
-import { DeliveryStatusBadge } from '@/components/deliveries/delivery-status-badge';
-import { DeliveryMap } from '@/components/deliveries/delivery-map';
-import { DeliveryTimeline } from '@/components/deliveries/delivery-timeline';
-import { DeliveryNotes } from '@/components/deliveries/delivery-notes';
-import { DeliveryStatusUpdate } from '@/components/deliveries/delivery-status-update';
-import { DeliveryContact } from '@/components/deliveries/delivery-contact';
+import { formatDate, formatTime, formatCurrency } from '@/utils/document-utils';
+import { DeliveryStatusBadge } from '@/components/shared/deliveries/delivery-status-badge';
+import { DeliveryMap } from '@/components/merchant/deliveries/delivery-map';
+import { DeliveryTimeline } from '@/components/merchant/announcements/delivery-timeline';
+import { DeliveryNotes } from '@/components/deliverer/deliveries/delivery-notes';
+import { DeliveryStatusUpdate } from '@/components/deliverer/deliveries/delivery-status-update';
+import { DeliveryContact } from '@/components/deliverer/deliveries/delivery-contact';
 import { useLocalStorage } from '@/hooks/use-local-storage';
 
 export default function DeliveryDetailPage() {

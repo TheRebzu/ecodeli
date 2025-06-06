@@ -2,7 +2,7 @@
 
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
-import { useWarehouse } from '@/hooks/use-warehouse';
+import { useWarehouse } from '@/hooks/common/use-warehouse';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -27,7 +27,7 @@ import { Progress } from '@/components/ui/progress';
 import { Pagination } from '@/components/ui/pagination';
 import { Search, PlusCircle, Edit, Trash2, ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { type WarehouseDetailResponse } from '@/types/warehouse';
+import { type WarehouseDetailResponse } from '@/types/warehouses/warehouse';
 import { Heading } from '@/components/ui/heading';
 import { Separator } from '@/components/ui/separator';
 import {

@@ -36,7 +36,7 @@ import {
 } from '@/components/ui/select';
 import { AlertCircle, CheckCircle2, Phone, MessageSquare, Send, ChevronRight } from 'lucide-react';
 import { useDeliveryContact } from '@/hooks/use-delivery-contact';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 
 // Schéma de validation
 const contactSchema = z.object({

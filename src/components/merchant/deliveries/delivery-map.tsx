@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Delivery, DeliveryStatus } from '@prisma/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import dynamic from 'next/dynamic';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 
 // Dynamically import Leaflet-dependent components to avoid SSR issues
 const MapContainer = dynamic(() => import('react-leaflet').then(mod => mod.MapContainer), {

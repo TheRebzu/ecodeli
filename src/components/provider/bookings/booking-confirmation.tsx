@@ -21,8 +21,8 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { formatDate, formatTime, formatPrice } from '@/lib/format';
-import { downloadToICS } from '@/lib/calendar';
+import { formatDate, formatTime, formatPrice } from '@/lib/i18n/formatters';
+import { downloadToICS } from '@/components/ui/calendar';
 import Link from 'next/link';
 
 interface BookingConfirmationProps {

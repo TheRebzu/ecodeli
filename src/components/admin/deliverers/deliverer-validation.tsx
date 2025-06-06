@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { api } from '@/trpc/react';
-import { DocumentVerification } from '@/components/admin/verification/document-verification';
+import { DocumentVerification } from '@/components/auth/document-verification';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';

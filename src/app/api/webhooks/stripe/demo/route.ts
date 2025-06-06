@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import { paymentService } from '@/server/services/payment.service';
+import { paymentService } from '@/server/services/shared/payment.service';
 import { db } from '@/server/db';
 import { env } from '@/env.mjs';
-import { sendNotification } from '@/server/services/notification.service';
+import { sendNotification } from '@/lib/services/notification.service';
 
 /**
  * Route pour simuler les webhooks Stripe en mode démo

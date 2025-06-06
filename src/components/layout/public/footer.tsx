@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 import { ModeToggle } from '@/components/ui/mode-toggle';
 import { Facebook, Instagram, Twitter, Youtube, Phone, Mail } from 'lucide-react';
 

@@ -41,10 +41,10 @@ import {
   RotateCw,
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency } from '@/utils/document-utils';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/components/ui/use-toast';
-import { useWallet } from '@/hooks/use-wallet';
+import { useWallet } from '@/hooks/payment/use-wallet';
 import { useTranslations } from 'next-intl';
 import { Badge } from '@/components/ui/badge';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';

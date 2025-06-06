@@ -19,8 +19,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import { cn } from '@/lib/utils';
-import { UserFilters } from '@/types/admin';
+import { cn } from '@/lib/utils/common';
+import { UserFilters } from '@/types/actors/admin';
 
 const filterSchema = z.object({
   search: z.string().optional(),

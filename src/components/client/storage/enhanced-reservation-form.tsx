@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { boxReservationCreateSchema, BoxReservationCreateInput } from '@/schemas/storage.schema';
+import { boxReservationCreateSchema, BoxReservationCreateInput } from '@/schemas/storage/storage.schema';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

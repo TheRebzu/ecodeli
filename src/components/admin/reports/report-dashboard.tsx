@@ -23,7 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { formatCurrency, generateChartColors } from '@/lib/utils';
+import { formatCurrency, generateChartColors } from '@/utils/document-utils';
 import {
   Table,
   TableBody,
@@ -38,7 +38,7 @@ import {
   DeliveryPerformanceReport as DeliveryPerformanceReportType,
   SalesReport as SalesReportType,
   UserActivityReport as UserActivityReportType,
-} from '@/types/reports';
+} from '@/types/administration/reports';
 
 interface ReportDashboardProps {
   salesReport: SalesReportType;

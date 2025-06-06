@@ -11,7 +11,7 @@ import {
   TimelineContent,
   TimelineDot,
 } from '@/components/ui/timeline';
-import { formatDate, formatTime } from '@/lib/utils';
+import { formatDate, formatTime } from '@/utils/document-utils';
 
 interface DeliveryTimelineProps {
   deliveryId: string;

@@ -29,7 +29,7 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { CheckCircle2, AlertCircle, Camera, Upload, User, MapPin, Package } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { DeliveryStatus } from '@/types/delivery';
+import { DeliveryStatus } from '@/types/delivery/delivery';
 
 // Schéma de validation
 const confirmationSchema = z.object({

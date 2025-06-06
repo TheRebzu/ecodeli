@@ -21,7 +21,7 @@ import {
   MapPin,
   Truck,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 
 // Déclaration pour étendre l'interface Leaflet avec Routing Machine
 declare module 'leaflet' {

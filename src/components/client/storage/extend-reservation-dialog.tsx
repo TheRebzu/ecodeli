@@ -15,11 +15,11 @@ import {
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { CalendarClock, Info } from 'lucide-react';
-import { ReservationWithBoxAndWarehouse } from '@/types/storage';
-import { useBoxReservation } from '@/hooks/use-storage';
+import { ReservationWithBoxAndWarehouse } from '@/types/warehouses/storage-box';
+import { useBoxReservation } from '@/hooks/common/use-storage';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 
 export type ExtendReservationDialogProps = {
   reservation: ReservationWithBoxAndWarehouse;

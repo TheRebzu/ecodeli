@@ -314,3 +314,12 @@ const enforceFinancialAccess = t.middleware(async ({ ctx, next }) => {
  * Procédures financières (authentification, compte actif et portefeuille vérifié)
  */
 export const financialProcedure = t.procedure.use(enforceUserIsAuthed).use(enforceFinancialAccess);
+
+// Exports avec noms compatibles pour la rétrocompatibilité
+export const createTRPCRouter = router;
+
+
+// Export pour compatibilité
+export const createCallerFactory = (router: any) => {
+  return (ctx?: any) => router.createCaller(ctx);
+};

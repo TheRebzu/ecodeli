@@ -30,7 +30,7 @@ import {
 } from 'lucide-react';
 
 import { api } from '@/trpc/react';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency } from '@/utils/document-utils';
 import { useToast } from '@/components/ui/use-toast';
 
 import {

@@ -1,5 +1,5 @@
 import { Metadata } from 'next';
-import { ForgotPasswordForm } from '@/components/auth/forgot-password';
+import { ForgotPasswordForm } from '@/components/auth/login/forgot-password-form';
 
 export const metadata: Metadata = {
   title: 'Mot de passe oublié | EcoDeli',

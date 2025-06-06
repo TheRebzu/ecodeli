@@ -11,16 +11,16 @@ import { Link } from '@/navigation';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
-import { useAnnouncement } from '@/hooks/use-announcement';
-import { useDeliveryTracking } from '@/hooks/use-delivery-tracking';
-import DeliveryTrackingMap from '@/components/deliveries/delivery-tracking-map';
-import DeliveryStatus from '@/components/deliveries/delivery-status';
-import DeliveryTimeline from '@/components/deliveries/delivery-timeline';
+import { useAnnouncement } from '@/hooks/delivery/use-announcement';
+import { useDeliveryTracking } from '@/hooks/features/use-delivery-tracking';
+import DeliveryTrackingMap from '@/components/shared/maps/delivery-tracking-map';
+import DeliveryStatus from '@/components/shared/deliveries/delivery-status';
+import DeliveryTimeline from '@/components/merchant/announcements/delivery-timeline';
 import CodeVerification from '@/components/deliveries/code-verification';
-import DeliveryRatingForm from '@/components/deliveries/delivery-rating-form';
+import DeliveryRatingForm from '@/components/client/deliveries/delivery-rating-form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { DeliveryStatus as DeliveryStatusEnum } from '@/types/delivery';
-import { useRoleProtection } from '@/hooks/use-role-protection';
+import { DeliveryStatus as DeliveryStatusEnum } from '@/types/delivery/delivery';
+import { useRoleProtection } from '@/hooks/auth/use-role-protection';
 
 export default function AnnouncementTrackingPage() {
   useRoleProtection(['CLIENT']);

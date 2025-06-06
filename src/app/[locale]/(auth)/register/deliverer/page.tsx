@@ -1,10 +1,10 @@
 import { Metadata } from 'next';
-import DelivererRegisterForm from '@/components/auth/register-forms/deliverer-register-form';
+import DelivererRegisterForm from '@/components/auth/register/deliverer-register-form';
 import { getServerSession } from 'next-auth';
 import { redirect, notFound } from 'next/navigation';
 import { authOptions } from '@/server/auth/next-auth';
 import { getTranslations } from 'next-intl/server';
-import { PageProps, MetadataProps } from '@/types/next';
+import { PageProps, MetadataProps } from '@/server/auth/next-auth';
 
 type Props = {
   params: { locale: string };

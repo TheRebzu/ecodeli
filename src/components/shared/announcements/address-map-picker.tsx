@@ -7,10 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 import debounce from 'lodash/debounce';
 import dynamic from 'next/dynamic';
-import { useGeocoding } from '@/hooks/use-geocoding';
+import { useGeocoding } from '@/hooks/system/use-geocoding';
 
 // Import dynamique de la carte pour éviter les erreurs côté serveur
 const Map = dynamic(() => import('@/components/maps/leaflet-map'), {

@@ -11,8 +11,8 @@ import {
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { useDeliveryStatus } from '@/hooks/use-delivery-status';
-import { DeliveryStatus } from '@/types/delivery';
+import { useDeliveryStatus } from '@/hooks/delivery/use-delivery-status';
+import { DeliveryStatus } from '@/types/delivery/delivery';
 import {
   CheckCircle2,
   Truck,

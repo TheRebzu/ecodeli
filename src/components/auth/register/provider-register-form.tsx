@@ -6,8 +6,8 @@ import { useTranslations } from 'next-intl';
 import {
   providerRegisterSchema,
   ProviderRegisterSchemaType,
-} from '@/schemas/provider-register.schema';
-import { UserRole } from '@/schemas/register.schema';
+} from '@/schemas/provider/provider-register.schema';
+import { UserRole } from '@/schemas/auth/register.schema';
 import { Button } from '@/components/ui/button';
 import {
   Form,

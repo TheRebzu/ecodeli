@@ -24,7 +24,7 @@ import {
 import { useRouter } from 'next/navigation';
 import { formatDistanceToNow } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import DocumentVerificationStatus from './documents/document-verification-status';
+import DocumentVerificationStatus from '../documents/document-verification-status';
 
 const StatCard = ({
   title,

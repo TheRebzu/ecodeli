@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
-import { NotificationCenter } from '@/components/notifications/notification-center';
-import { PageProps, MetadataProps } from '@/types/next';
+import { NotificationCenter } from '@/components/shared/messaging/notification-center';
+import { PageProps, MetadataProps } from '@/server/auth/next-auth';
 
 export const metadata: Metadata = {
   title: 'Notifications | EcoDeli Client',

@@ -32,7 +32,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency } from '@/utils/document-utils';
 import { useToast } from '@/components/ui/use-toast';
 import { useTranslations } from 'next-intl';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -40,7 +40,7 @@ import { Loader2 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { PaymentMethodSelector, type SavedCard } from './payment-method-selector';
-import { useInitiatePayment } from '@/hooks/use-payment';
+import { useInitiatePayment } from '@/hooks/payment/use-payment';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';
 

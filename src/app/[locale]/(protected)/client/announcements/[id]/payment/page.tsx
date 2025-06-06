@@ -7,7 +7,7 @@ import { ArrowLeft, AlertCircle, CreditCard, CheckCircle, Loader2 } from 'lucide
 
 import { api } from '@/trpc/react';
 import { useToast } from '@/components/ui/use-toast';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency } from '@/utils/document-utils';
 
 import {
   Card,

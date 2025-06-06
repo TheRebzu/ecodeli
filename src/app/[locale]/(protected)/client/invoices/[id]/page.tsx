@@ -12,7 +12,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Separator } from '@/components/ui/separator';
-import { InvoiceDetails } from '@/components/payments/invoice-details';
+import { InvoiceDetails } from '@/components/shared/payments/invoice-details';
 import {
   DropdownMenu,
   DropdownMenuContent,

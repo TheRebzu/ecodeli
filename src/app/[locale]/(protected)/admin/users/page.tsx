@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { api } from '@/trpc/react';
-import { UserFilters } from '@/types/admin';
+import { UserFilters } from '@/types/actors/admin';
 import UserStatsAdvanced from '@/components/admin/users/user-stats-advanced';
 import UserBulkActions from '@/components/admin/users/user-bulk-actions';
 import UserTable from '@/components/admin/users/user-table';

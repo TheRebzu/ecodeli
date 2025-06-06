@@ -16,7 +16,7 @@ import {
 } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MapPin, Clock, Package, Truck, Heart } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 import type { AnnouncementStatus, UserRole } from '@prisma/client';
 import Link from 'next/link';
 

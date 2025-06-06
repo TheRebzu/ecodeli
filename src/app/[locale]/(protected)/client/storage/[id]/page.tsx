@@ -20,8 +20,8 @@ import Link from 'next/link';
 import { cookies } from 'next/headers';
 import { createServerComponentClient } from '@/trpc/server';
 import { notFound } from 'next/navigation';
-import { BoxDetailTabs } from '@/components/storage/box-detail-tabs';
-import { PageProps, MetadataProps } from '@/types/next';
+import { BoxDetailTabs } from '@/components/client/storage/box-detail-tabs';
+import { PageProps, MetadataProps } from '@/server/auth/next-auth';
 
 export async function generateMetadata({
   params: { locale },

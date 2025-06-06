@@ -2,7 +2,8 @@
 
 import { useTranslations } from 'next-intl';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { formatCurrency, cn } from '@/lib/utils';
+import { formatCurrency } from '@/utils/document-utils';
+import { cn } from '@/lib/utils/common';
 import { TrendingUp, TrendingDown, Clock, Truck, CheckCircle, AlertTriangle } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 

@@ -17,7 +17,7 @@ export async function verifyToken(token: string) {
     // vérifier la session directement
     if (token.startsWith('nextauth:')) {
       const sessionToken = token.replace('nextauth:', '');
-      const session = await prisma.session.findUnique({
+      const session = await db.session.findUnique({
         where: { sessionToken },
         include: {
           user: true,

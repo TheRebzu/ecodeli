@@ -37,7 +37,10 @@
     "docker:prod:down": "cd docker && docker-compose -f docker-compose.prod.yml down",
     "// Analysis": "",
     "analyze:deps": "tsx scripts/analyze-dependencies.ts",
-    "analyze:bundle": "ANALYZE=true next build"
+    "analyze:bundle": "ANALYZE=true next build",
+    "fix:imports": "tsx scripts/fix-imports-auto.ts",
+    "fix:imports:dry": "tsx scripts/fix-imports-auto.ts --dry-run",
+    "fix:all-imports": "node scripts/fix-all-imports.cjs"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.9.1",

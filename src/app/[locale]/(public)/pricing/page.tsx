@@ -9,7 +9,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 import { ArrowRight, BadgeCheck, CheckCircle, XCircle } from 'lucide-react';
 import Link from 'next/link';
 

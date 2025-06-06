@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { BoxUsageHistoryRecord } from '@/types/storage';
+import { BoxUsageHistoryRecord } from '@/types/warehouses/storage-box';
 
 // Imports dynamiques des composants client avec export nommés
 export const DynamicBoxReservations = dynamic(

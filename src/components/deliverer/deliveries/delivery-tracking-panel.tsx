@@ -14,12 +14,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import DeliveryTrackingMap from './delivery-tracking-map';
-import DeliveryTimeline from './delivery-timeline';
-import DeliveryStatusIndicator from './delivery-status';
+import DeliveryTrackingMap from '../../shared/maps/delivery-tracking-map';
+import DeliveryTimeline from '../../merchant/announcements/delivery-timeline';
+import DeliveryStatusIndicator from '../../shared/deliveries/delivery-status';
 import DeliveryETA from './delivery-eta';
-import { useDeliveryLiveTracking } from '@/hooks/use-delivery-tracking';
-import { DeliveryStatus } from '@/types/delivery';
+import { useDeliveryLiveTracking } from '@/hooks/features/use-delivery-tracking';
+import { DeliveryStatus } from '@/types/delivery/delivery';
 import {
   Truck,
   Clock,
@@ -35,7 +35,7 @@ import {
   Info,
   RefreshCw,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 

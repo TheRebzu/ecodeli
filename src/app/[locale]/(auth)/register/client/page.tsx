@@ -3,11 +3,11 @@ import { redirect } from 'next/navigation';
 import { getTranslations } from 'next-intl/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/server/auth/next-auth';
-import ClientRegisterForm from '@/components/auth/register-forms/client-register-form';
+import ClientRegisterForm from '@/components/auth/register/client-register-form';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
-import { PageProps, MetadataProps } from '@/types/next';
+import { PageProps, MetadataProps } from '@/server/auth/next-auth';
 
 export async function generateMetadata({
   params,

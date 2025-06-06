@@ -5,14 +5,14 @@ import { useTranslations } from 'next-intl';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Link } from '@/navigation';
-import { useAnnouncement } from '@/hooks/use-announcement';
+import { useAnnouncement } from '@/hooks/delivery/use-announcement';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { AnnouncementDetail } from '@/components/announcements/announcement-detail';
-import DelivererProposalsList from '@/components/announcements/deliverer-proposals-list';
+import { AnnouncementDetail } from '@/components/client/announcements/announcement-detail';
+import DelivererProposalsList from '@/components/deliverer/announcements/deliverer-proposals-list';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   AlertCircle,
@@ -38,7 +38,7 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { useRoleProtection } from '@/hooks/use-role-protection';
+import { useRoleProtection } from '@/hooks/auth/use-role-protection';
 import { UserRole } from '@prisma/client';
 
 // Définition précise du type d'application pour l'annonce

@@ -41,7 +41,7 @@ interface Document {
 }
 
 // Import de la fonction partagée pour afficher le nom du type de document
-import { getDocumentTypeName } from '@/lib/document-utils';
+import { getDocumentTypeName } from '@/utils/document-utils';
 
 export function DocumentVerification() {
   const [selectedRole, setSelectedRole] = useState<UserRole>(UserRole.DELIVERER);

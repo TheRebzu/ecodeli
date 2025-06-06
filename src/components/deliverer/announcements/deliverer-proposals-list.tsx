@@ -58,7 +58,7 @@ import {
   Euro,
   Loader,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 
 // Types pour le composant
 type DelivererProposalStatus = 'PENDING' | 'ACCEPTED' | 'REJECTED' | 'CANCELLED';

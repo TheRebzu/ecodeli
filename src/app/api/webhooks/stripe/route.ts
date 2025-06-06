@@ -5,8 +5,8 @@ import { buffer } from 'node:stream/consumers';
 import { db } from '@/server/db';
 import { PaymentStatus, InvoiceStatus, SubscriptionStatus } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
-import { sendNotification } from '@/server/services/notification.service';
-import { paymentService } from '@/server/services/payment.service';
+import { sendNotification } from '@/lib/services/notification.service';
+import { paymentService } from '@/server/services/shared/payment.service';
 
 // Initialiser Stripe avec la clé secrète
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {

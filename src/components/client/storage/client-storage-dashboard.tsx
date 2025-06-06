@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { BoxRecommendations } from './box-recommendations';
 import { ClientStorageStats } from './client-storage-stats';
 import { WarehouseMap } from './warehouse-map';
-import { BoxSearchForm } from './box-search-form';
+import { BoxSearchForm } from './box-search';
 import { EnhancedReservationForm } from './enhanced-reservation-form';
 import {
   Search,

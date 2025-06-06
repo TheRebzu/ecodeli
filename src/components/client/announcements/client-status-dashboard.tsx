@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Announcement, AnnouncementStatus } from '@/types/announcement';
+import { Announcement, AnnouncementStatus } from '@/types/announcements/announcement';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useRouter } from 'next/navigation';

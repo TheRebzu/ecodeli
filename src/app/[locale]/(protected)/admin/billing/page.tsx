@@ -58,7 +58,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 
 // Import du composant de tableau de bord de facturation
-import BillingDashboard from '@/components/payments/admin/billing-dashboard';
+import BillingDashboard from '@/components/admin/financial/billing-dashboard';
 
 /**
  * Page d'administration de la facturation

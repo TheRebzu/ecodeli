@@ -4,7 +4,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import { MapContainer, TileLayer, useMap, ZoomControl, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 
 // Correction pour les icônes en SSR/CSR
 import markerIcon from 'leaflet/dist/images/marker-icon.png';

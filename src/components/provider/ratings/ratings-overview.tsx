@@ -4,8 +4,8 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { createDetailedReviewSchema } from '@/schemas/ratings.schema';
-import { RatingStars } from './rating-stars';
+import { createDetailedReviewSchema } from '@/schemas/service/ratings.schema';
+import { RatingStars } from '@/components/ui/star-rating';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import {

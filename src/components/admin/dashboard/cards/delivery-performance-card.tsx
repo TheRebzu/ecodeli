@@ -14,7 +14,7 @@ import {
   Activity,
   Timer,
 } from 'lucide-react';
-import { generateChartColors } from '@/lib/utils';
+import { generateChartColors } from '@/utils/document-utils';
 
 interface DeliveryData {
   period: string;

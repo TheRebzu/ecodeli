@@ -1,7 +1,7 @@
 'use client';
 
 import { type ReactNode } from 'react';
-import { OnboardingProvider } from '@/context/onboarding-context';
+import { OnboardingProvider } from '@/components/shared/onboarding/onboarding-context';
 import { useTranslations } from 'next-intl';
 
 interface OnboardingWrapperProps {

@@ -8,8 +8,8 @@ import { ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import DeliveryConfirmationForm from '@/components/deliveries/delivery-confirmation-form';
-import { useDeliveryConfirmation } from '@/hooks/use-delivery-confirmation';
+import DeliveryConfirmationForm from '@/components/deliverer/deliveries/delivery-confirmation-form';
+import { useDeliveryConfirmation } from '@/hooks/delivery/use-delivery-confirmation';
 
 export default function DeliveryConfirmationPage() {
   const t = useTranslations('client.deliveryConfirmation');

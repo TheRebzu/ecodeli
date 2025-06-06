@@ -16,8 +16,8 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { SubscriptionManager } from '@/components/profile/subscription-manager';
-import { SubscriptionPlans } from '@/components/payments/subscription-plans';
+import { SubscriptionManager } from '@/components/client/payments/subscription-manager';
+import { SubscriptionPlans } from '@/components/shared/payments/subscription-plans';
 
 export default function SubscriptionPage() {
   const t = useTranslations('subscription');

@@ -32,8 +32,8 @@ import { Euro, CheckCircle, Truck, Clock, Calendar, Loader2, Ban } from 'lucide-
 import { Badge } from '@/components/ui/badge';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { cn } from '@/lib/utils';
-import { Announcement } from '@/types/announcement';
+import { cn } from '@/lib/utils/common';
+import { Announcement } from '@/types/announcements/announcement';
 
 // Schéma de validation pour le formulaire de proposition
 const proposalFormSchema = z.object({

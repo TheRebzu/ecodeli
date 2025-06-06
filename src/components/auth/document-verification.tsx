@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useAuth } from '@/hooks/use-auth';
+import { useAuth } from '@/hooks/auth/use-auth';
 import { useDocumentUpload } from '@/hooks/use-document-upload';
 import { DocumentType } from '@prisma/client';
 import {
@@ -35,11 +35,11 @@ import {
   X,
   CheckCircle2,
 } from 'lucide-react';
-import { api } from '@/hooks/use-trpc';
+import { api } from '@/hooks/system/use-trpc';
 import Image from 'next/image';
 
 // Import de la fonction partagée pour afficher le nom du type de document
-import { getDocumentTypeName } from '@/lib/document-utils';
+import { getDocumentTypeName } from '@/utils/document-utils';
 
 export function DocumentVerification() {
   const { user, role } = useAuth();

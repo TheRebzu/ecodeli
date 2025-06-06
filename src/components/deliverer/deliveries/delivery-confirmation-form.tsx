@@ -28,7 +28,7 @@ import { ButtonWithLoading } from '@/components/ui/button-with-loading';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Textarea } from '@/components/ui/textarea';
-import { useDeliveryConfirmation } from '@/hooks/use-delivery-confirmation';
+import { useDeliveryConfirmation } from '@/hooks/delivery/use-delivery-confirmation';
 import {
   CheckCircle2,
   AlertCircle,
@@ -39,7 +39,7 @@ import {
   ThumbsUp,
   Delete,
 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 
 // Schéma de validation
 const confirmationSchema = z.object({

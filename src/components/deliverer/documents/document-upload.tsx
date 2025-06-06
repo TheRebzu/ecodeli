@@ -37,11 +37,11 @@ import { useToast } from '@/components/ui/use-toast';
 import { CalendarIcon, Upload, X, AlertTriangle, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 import { api } from '@/trpc/react';
 import { DocumentType, UserRole } from '@prisma/client';
 import { useTranslations } from 'next-intl';
-import { useDocuments } from '@/hooks/use-documents';
+import { useDocuments } from '@/hooks/shared/use-documents';
 
 // Schéma de validation pour le formulaire
 const documentUploadSchema = z.object({
@@ -70,7 +70,7 @@ const documentTypeLabels: Record<DocumentType, string> = {
 };
 
 // Import de la fonction centralisée pour les documents requis par rôle
-import { getRequiredDocumentTypesByRole } from '@/lib/document-utils';
+import { getRequiredDocumentTypesByRole } from '@/utils/document-utils';
 
 // Fonction pour obtenir la liste des documents disponibles par rôle (incluant le type OTHER)
 const getAvailableDocumentTypesByRole = (role: string): DocumentType[] => {

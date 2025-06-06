@@ -39,7 +39,7 @@ import {
   Clock,
 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { cn } from '@/lib/utils';
+import { cn } from '@/lib/utils/common';
 import { useDeliveryRating } from '@/hooks/use-delivery-rating';
 
 // Schéma de validation

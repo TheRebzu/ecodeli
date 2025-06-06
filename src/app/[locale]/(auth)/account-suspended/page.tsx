@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/card';
 import { Link } from '@/navigation';
 import { useUserBan } from '@/hooks/use-user-ban';
-import { UserBanAction } from '@/types/user';
+import { UserBanAction } from '@/types/users/verification';
 
 export default function AccountSuspendedPage() {
   const t = useTranslations('auth');

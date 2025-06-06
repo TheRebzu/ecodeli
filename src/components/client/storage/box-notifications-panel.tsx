@@ -5,8 +5,8 @@ import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { api } from '@/trpc/react';
-import { BoxSearchInput } from '@/schemas/storage.schema';
-import { BoxSearchForm } from './box-search-form';
+import { BoxSearchInput } from '@/schemas/storage/storage.schema';
+import { BoxSearchForm } from './box-search';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Bell, CalendarDays, MapPin, Trash2, Package, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
@@ -24,7 +24,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { BoxAvailabilitySubscription } from '@/types/storage';
+import { BoxAvailabilitySubscription } from '@/types/warehouses/storage-box';
 
 export function BoxNotificationsPanel() {
   const t = useTranslations('storage');
