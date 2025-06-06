@@ -441,7 +441,7 @@ export function DeliverersTable({
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
                       <DropdownMenuItem asChild>
-                        <Link href={`/admin/deliverers/${deliverer.id}`}>
+                        <Link href={`/admin/users/${deliverer.id}`}>
                           <Eye className="mr-2 h-4 w-4" />
                           Voir le profil
                         </Link>

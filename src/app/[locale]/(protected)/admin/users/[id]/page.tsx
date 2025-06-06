@@ -389,47 +389,37 @@ export default function UserDetailPage() {
                   <CardContent className="space-y-4">
                     <div>
                       <span className="font-semibold">Vehicle Type:</span>
-                      <span className="ml-2">{user.deliverer.vehicleType || 'Not specified'}</span>
+                      <span className="ml-2">{displayUser.deliverer.vehicleType || 'Not specified'}</span>
                     </div>
                     <div>
                       <span className="font-semibold">License Plate:</span>
-                      <span className="ml-2">{user.deliverer.licensePlate || 'Not specified'}</span>
+                      <span className="ml-2">{'Not specified'}</span>
                     </div>
                     <div>
                       <span className="font-semibold">Max Capacity:</span>
-                      <span className="ml-2">
-                        {user.deliverer.maxCapacity
-                          ? `${user.deliverer.maxCapacity} kg`
-                          : 'Not specified'}
-                      </span>
+                      <span className="ml-2">{'Not specified'}</span>
                     </div>
                     <div>
                       <span className="font-semibold">Status:</span>
                       <Badge
-                        className={`ml-2 ${user.deliverer.isActive ? 'bg-green-500' : 'bg-gray-500'}`}
+                        className={`ml-2 ${displayUser.deliverer.isVerified ? 'bg-green-500' : 'bg-gray-500'}`}
                       >
-                        {user.deliverer.isActive ? 'Active' : 'Inactive'}
+                        {displayUser.deliverer.isVerified ? 'Verified' : 'Not Verified'}
                       </Badge>
                     </div>
                     <div>
                       <span className="font-semibold">Verification Date:</span>
-                      <span className="ml-2">
-                        {user.deliverer.verificationDate
-                          ? format(new Date(user.deliverer.verificationDate), 'PPP')
-                          : 'Not verified yet'}
-                      </span>
+                      <span className="ml-2">{'Not verified yet'}</span>
                     </div>
                     <div>
                       <span className="font-semibold">Rating:</span>
-                      <span className="ml-2">
-                        {user.deliverer.rating ? `${user.deliverer.rating} / 5` : 'No ratings yet'}
-                      </span>
+                      <span className="ml-2">{'No ratings yet'}</span>
                     </div>
                   </CardContent>
                 </Card>
               )}
 
-              {user.role === UserRole.MERCHANT && user.merchant && (
+              {displayUser.role === UserRole.MERCHANT && displayUser.merchant && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-lg">Merchant Information</CardTitle>
@@ -437,37 +427,33 @@ export default function UserDetailPage() {
                   <CardContent className="space-y-4">
                     <div>
                       <span className="font-semibold">Company Name:</span>
-                      <span className="ml-2">{user.merchant.companyName}</span>
+                      <span className="ml-2">{'Not specified'}</span>
                     </div>
                     <div>
                       <span className="font-semibold">Business Type:</span>
-                      <span className="ml-2">{user.merchant.businessType || 'Not specified'}</span>
+                      <span className="ml-2">{'Not specified'}</span>
                     </div>
                     <div>
                       <span className="font-semibold">VAT Number:</span>
-                      <span className="ml-2">{user.merchant.vatNumber || 'Not specified'}</span>
+                      <span className="ml-2">{'Not specified'}</span>
                     </div>
                     <div>
                       <span className="font-semibold">Verification Status:</span>
                       <Badge
-                        className={`ml-2 ${user.merchant.isVerified ? 'bg-green-500' : 'bg-yellow-500'}`}
+                        className={`ml-2 ${displayUser.merchant.isVerified ? 'bg-green-500' : 'bg-yellow-500'}`}
                       >
-                        {user.merchant.isVerified ? 'Verified' : 'Pending Verification'}
+                        {displayUser.merchant.isVerified ? 'Verified' : 'Pending Verification'}
                       </Badge>
                     </div>
                     <div>
                       <span className="font-semibold">Verification Date:</span>
-                      <span className="ml-2">
-                        {user.merchant.verificationDate
-                          ? format(new Date(user.merchant.verificationDate), 'PPP')
-                          : 'Not verified yet'}
-                      </span>
+                      <span className="ml-2">{'Not verified yet'}</span>
                     </div>
                   </CardContent>
                 </Card>
               )}
 
-              {user.role === UserRole.PROVIDER && user.provider && (
+              {displayUser.role === UserRole.PROVIDER && displayUser.provider && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-lg">Provider Information</CardTitle>
