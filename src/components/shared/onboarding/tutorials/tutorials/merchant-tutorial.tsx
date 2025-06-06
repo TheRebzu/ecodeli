@@ -2,9 +2,9 @@
 
 import { useEffect } from 'react';
 import { useOnboarding } from '@/components/shared/onboarding/onboarding-context';
-import { TutorialStep } from '../../tutorial-step';
-import { TutorialProgress } from '../../tutorial-progress';
-import { TutorialNavigation } from '../../tutorial-navigation';
+import { TutorialStep } from '@/components/shared/onboarding/tutorial-step';
+import { TutorialProgress } from '@/components/shared/onboarding/tutorial-progress';
+import { TutorialNavigation } from '@/components/shared/onboarding/tutorial-navigation';
 import { useTranslations } from 'next-intl';
 
 // Définition des étapes du tutoriel commerçant

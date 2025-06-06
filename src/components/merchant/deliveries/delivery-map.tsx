@@ -24,7 +24,7 @@ const Polyline = dynamic(() => import('react-leaflet').then(mod => mod.Polyline)
 // Leaflet icon setup (needs to be imported client-side)
 const LeafletIconSetup = dynamic(
   () =>
-    import('@/components/maps/leaflet-icon-setup').then(mod => {
+    import('../../shared/maps/leaflet-icon-setup').then(mod => {
       return mod.LeafletIconSetup;
     }),
   { ssr: false }

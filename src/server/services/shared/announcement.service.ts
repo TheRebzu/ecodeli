@@ -1,4 +1,4 @@
-import { db } from '../../db';
+import { db } from '@/server/db';
 import {
   AnnouncementStatus,
   AnnouncementPriority,
@@ -9,7 +9,7 @@ import {
   GeoSearchParams,
 } from '@/types/announcements/announcement';
 import { Prisma } from '@prisma/client';
-import { AuditService } from '../admin/audit.service';
+import { AuditService } from '@/server/services/admin/audit.service';
 
 /**
  * Calcule la distance en kilomètres entre deux points géographiques

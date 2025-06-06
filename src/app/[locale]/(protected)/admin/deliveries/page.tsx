@@ -1,12 +1,12 @@
 import { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { DeliveryDashboard } from '@/components/admin/deliveries/delivery-dashboard';
+import { DeliveryDashboard } from '@/config/dashboard';
 import { DeliveryIssues } from '@/components/admin/deliveries/delivery-issues';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertTriangle, Download, FileBarChart, MapPin, RefreshCw, Truck } from 'lucide-react';
-import { dashboardService } from '@/server/services/dashboard.service';
+import { dashboardService } from '@/server/services/admin/dashboard.service';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('admin.deliveries');

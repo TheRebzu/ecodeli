@@ -11,7 +11,7 @@ import {
 } from '@/schemas/delivery/delivery-tracking.schema';
 import { DeliveryStatus, UserRole } from '@prisma/client';
 import { Prisma } from '@prisma/client';
-import type { Coordinates, GeoPoint } from '@/types/delivery-tracking';
+import type { Coordinates, GeoPoint } from '@/socket/delivery-tracking';
 import {
   DeliveryConfirmationData,
   DeliveryIssueData,

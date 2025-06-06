@@ -1,5 +1,5 @@
 import { TRPCError } from '@trpc/server';
-import { db } from '../db';
+import { db } from '@/server/db';
 import { UserRole } from '@prisma/client';
 
 // Vérification spécifique pour les livreurs vérifiés

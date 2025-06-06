@@ -1,4 +1,4 @@
-import { db } from '../../db';
+import { db } from '@/server/db';
 // import { UserBanAction } from '@/types/users/verification';
 
 // Type local pour UserBanAction

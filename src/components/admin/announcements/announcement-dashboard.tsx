@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { AnnouncementTable } from './announcement-table';
-import { AnnouncementStats } from './announcement-stats';
-import { AnnouncementFilters } from './announcement-filters';
+import { AnnouncementTable } from '@/components/admin/announcements/announcement-table';
+import { AnnouncementStats } from '@/components/admin/announcements/announcement-stats';
+import { AnnouncementFilters } from '@/components/admin/announcements/announcement-filters';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

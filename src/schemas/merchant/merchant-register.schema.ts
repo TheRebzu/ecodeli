@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { UserRole, registerBaseFields } from '../auth/register.schema';
+import { UserRole, registerBaseFields } from '@/schemas/auth/register.schema';
 
 /**
  * Schéma d'inscription pour les commerçants

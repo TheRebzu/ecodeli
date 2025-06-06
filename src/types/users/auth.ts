@@ -1,7 +1,7 @@
-import type { ClientRegisterSchemaType } from '@/schemas/client-register.schema';
-import type { DelivererRegisterSchemaType } from '@/schemas/deliverer-register.schema';
-import type { MerchantRegisterSchemaType } from '@/schemas/merchant-register.schema';
-import type { ProviderRegisterSchemaType } from '@/schemas/provider-register.schema';
+import type { ClientRegisterSchemaType } from '@/schemas/client/client-register.schema';
+import type { DelivererRegisterSchemaType } from '@/schemas/deliverer/deliverer-register.schema';
+import type { MerchantRegisterSchemaType } from '@/schemas/merchant/merchant-register.schema';
+import type { ProviderRegisterSchemaType } from '@/schemas/provider/provider-register.schema';
 
 export interface AuthResponse {
   success: boolean;

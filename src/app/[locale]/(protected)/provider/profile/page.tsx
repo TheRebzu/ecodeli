@@ -2,9 +2,9 @@
 
 import React from 'react';
 import { ProfileHeader } from '@/components/shared/profile/profile-header';
-import { ProfileInfoCard } from '@/components/profile/profile-info-card';
-import { ProfilePreferences } from '@/components/profile/profile-preferences';
-import { ProfileDocumentsList } from '@/components/profile/profile-documents-list';
+import { ProfileInfoCard } from '@/components/ui/card';
+import { ProfilePreferences } from '@/types/users/preferences';
+import { ProfileDocumentsList } from '@/components/shared/documents/document-list';
 import { ProviderProfileForm } from '@/components/profile/provider/provider-profile-form';
 import { useProfileStore } from '@/store/use-profile-store';
 

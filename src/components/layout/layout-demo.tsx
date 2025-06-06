@@ -1,6 +1,6 @@
 'use client';
 
-import { ProtectedLayout } from './protected/protected-layout';
+import { ProtectedLayout } from '@/components/layout/protected/protected-layout';
 import { Button } from '@/components/ui/button';
 import { Plus, Download } from 'lucide-react';
 

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { DocumentPreviewProps } from './document-types';
+import { DocumentPreviewProps } from '@/components/shared/documents/document-types';
 import { getDocumentTypeName } from '@/utils/document-utils';
 import { formatDate } from '@/utils/document-utils';
 import { DownloadIcon } from 'lucide-react';

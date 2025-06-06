@@ -20,7 +20,7 @@ import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils/common';
 import { formatCurrency  } from '@/utils/document-utils';
 
-import { DelivererWalletDashboard } from '@/components/payments/deliverer/deliverer-wallet-dashboard';
+import { DelivererWalletDashboard } from '@/config/dashboard';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';

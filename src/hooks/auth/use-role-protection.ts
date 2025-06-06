@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import type { UserRole } from '@prisma/client';
-import { useAuth } from './use-auth';
+import { useAuth } from '@/hooks/auth/use-auth';
 import { useToast } from '@/components/ui/use-toast';
 
 /**

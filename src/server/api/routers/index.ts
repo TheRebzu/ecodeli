@@ -1,24 +1,25 @@
-import { router } from '@/server/api/trpc';
-import { authRouter } from './auth/auth.router';
-import { announcementRouter } from './shared/announcement.router';
-import { deliveryRouter } from '../../../hooks/delivery';
-import { userRouter } from './common/user.router';
-import { adminRouter } from './admin';
-import { serviceRouter } from '../../../schemas/service';
-// Importez vos autres routeurs ici
-
 /**
- * Routeur principal de l'application
- * Regroupe tous les sous-routeurs
+ * Index automatiquement généré pour C:\Users\Amine\WebstormProjects\ecodeli\src\server\api\routers
+ * Généré le: 06/06/2025 13:30:10
  */
-export const appRouter = router({
-  auth: authRouter,
-  announcement: announcementRouter,
-  delivery: deliveryRouter,
-  user: userRouter,
-  admin: adminRouter,
-  service: serviceRouter,
-  // Ajoutez vos autres routeurs ici
-});
 
-export type AppRouter = typeof appRouter;
+// Exports des fichiers locaux
+export * from './client-tutorial.router';
+export * from './deliverer-routes.router';
+export * from './delivery-validation-codes.router';
+export * from './messaging.router';
+export * from './provider-monthly-billing.router';
+
+// Exports des sous-dossiers
+export * from './admin';
+export * from './auth';
+export * from './client';
+export * from './common';
+export * from './deliverer';
+export * from './matching';
+export * from './merchant';
+export * from './onboarding';
+export * from './provider';
+export * from './real-time';
+export * from './scheduled-tasks';
+export * from './shared';

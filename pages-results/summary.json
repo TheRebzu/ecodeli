@@ -1,0 +1,29 @@
+{
+  "timestamp": "2025-06-06T12:02:10.777Z",
+  "total_types": 3,
+  "types_overview": {
+    "public": {
+      "total_pages": 3,
+      "errors": 2,
+      "critical_errors": 0,
+      "success_rate": 33
+    },
+    "auth": {
+      "total_pages": 1,
+      "errors": 0,
+      "critical_errors": 0,
+      "success_rate": 100
+    },
+    "unknown": {
+      "total_pages": 4,
+      "errors": 0,
+      "critical_errors": 0,
+      "success_rate": 100
+    }
+  },
+  "critical_errors": [],
+  "recommendations": [
+    "📊 Voir les fichiers *-results.json pour les détails par type",
+    "🔍 Utiliser --errors-only pour voir seulement les erreurs lors des tests"
+  ]
+}

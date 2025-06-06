@@ -1,4 +1,4 @@
-import { calculateDistance, calculateETA } from '../utils';
+import { calculateDistance, calculateETA } from '@/lib/utils/index';
 
 export const mapService = {
   // Créer une carte centrée sur une position

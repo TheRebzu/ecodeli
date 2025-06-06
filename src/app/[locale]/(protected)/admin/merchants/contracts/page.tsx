@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { ContractManagement } from '@/components/admin/contracts/contract-management';
+import { ContractManagement } from '@/components/admin/users/user-management';
 
 export const metadata: Metadata = {
   title: 'Gestion des contrats | EcoDeli Admin',

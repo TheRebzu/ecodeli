@@ -3,7 +3,7 @@ import { getServerSession } from 'next-auth';
 import { redirect, notFound } from 'next/navigation';
 import { authOptions } from '@/server/auth/next-auth';
 import { getTranslations } from 'next-intl/server';
-import DelivererDocumentUpload from '@/components/documents/deliverer-document-upload';
+import DelivererDocumentUpload from '@/components/deliverer/documents/deliverer-document-verification';
 import { UserStatus } from '@prisma/client';
 import { createCaller } from '@/trpc/server';
 import ForceVerifyDelivererButton from '@/components/deliverer/documents/force-verify-deliverer-button';

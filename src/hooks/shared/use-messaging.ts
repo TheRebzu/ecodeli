@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
-import { api } from '../system/use-trpc';
-import { useMessagingStore } from '@/store/use-messaging-store';
-import { useSocket } from '../system/use-socket';
+import { api } from '@/hooks/system/use-trpc';
+import { useMessagingStore } from '@/store/use-verification-store';
+import { useSocket } from '@/hooks/system/use-socket';
 
 export function useMessaging(conversationId?: string) {
   const socket = useSocket();

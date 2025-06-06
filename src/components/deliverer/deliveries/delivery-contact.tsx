@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { ButtonWithLoading } from '@/components/ui/button-with-loading';
+import { ButtonWithLoading } from '@/app/[locale]/(public)/loading';
 import { Textarea } from '@/components/ui/textarea';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import {
@@ -35,7 +35,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { AlertCircle, CheckCircle2, Phone, MessageSquare, Send, ChevronRight } from 'lucide-react';
-import { useDeliveryContact } from '@/hooks/use-delivery-contact';
+import { useDeliveryContact } from '@/components/deliverer/deliveries/delivery-contact';
 import { cn } from '@/lib/utils/common';
 
 // Schéma de validation

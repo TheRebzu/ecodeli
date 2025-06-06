@@ -2,10 +2,10 @@
 
 import React from 'react';
 import { ProfileHeader } from '@/components/shared/profile/profile-header';
-import { ProfileInfoCard } from '@/components/profile/profile-info-card';
-import { ProfilePreferences } from '@/components/profile/profile-preferences';
-import { ProfileDocumentsList } from '@/components/profile/profile-documents-list';
-import { MerchantProfileForm } from '@/components/profile/merchant/merchant-profile-form';
+import { ProfileInfoCard } from '@/components/ui/card';
+import { ProfilePreferences } from '@/types/users/preferences';
+import { ProfileDocumentsList } from '@/components/shared/documents/document-list';
+import { MerchantProfileForm } from '@/components/ui/form';
 import { useProfileStore } from '@/store/use-profile-store';
 
 export default function MerchantProfilePage() {

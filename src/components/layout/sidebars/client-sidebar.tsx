@@ -34,7 +34,7 @@ import {
   Layers,
   Crown,
 } from 'lucide-react';
-import { BaseSidebar, type SidebarSection } from './base-sidebar';
+import { BaseSidebar, type SidebarSection } from '@/components/layout/sidebars/base-sidebar';
 import { useAuth } from '@/hooks/auth/use-auth';
 import { useSession } from 'next-auth/react';
 

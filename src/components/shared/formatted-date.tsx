@@ -1,6 +1,6 @@
 'use client';
 
-import { useLocalizedFormat } from '@/hooks/use-localized-format';
+import { useLocalizedFormat } from '@/hooks/system/use-socket';
 
 type DateFormat = 'short' | 'medium' | 'long' | string;
 

@@ -1,5 +1,5 @@
 import { SupportedLanguage } from '@/lib/i18n/user-locale';
-import { DocumentType } from '../../db/enums';
+import { DocumentType } from '@/server/db/enums';
 import { TRPCError } from '@trpc/server';
 import formData from 'form-data';
 import Mailgun from 'mailgun.js';

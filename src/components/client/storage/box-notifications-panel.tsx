@@ -6,7 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { api } from '@/trpc/react';
 import { BoxSearchInput } from '@/schemas/storage/storage.schema';
-import { BoxSearchForm } from './box-search';
+import { BoxSearchForm } from '@/components/client/storage/box-search';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Bell, CalendarDays, MapPin, Trash2, Package, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';

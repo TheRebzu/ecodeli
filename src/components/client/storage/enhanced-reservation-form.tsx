@@ -9,8 +9,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Progress } from '@/components/ui/progress';
-import { OptimalPricingCalculator } from './optimal-pricing-calculator';
-import { BoxRecommendations } from './box-recommendations';
+import { OptimalPricingCalculator } from '@/components/client/storage/optimal-pricing-calculator';
+import { BoxRecommendations } from '@/components/client/storage/box-recommendations';
 import {
   Form,
   FormControl,

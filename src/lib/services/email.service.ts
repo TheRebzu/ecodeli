@@ -1,4 +1,4 @@
-import { SupportedLanguage } from '../../types/i18n/locale';
+import { SupportedLanguage } from '@/types/i18n/locale';
 import * as nodemailer from 'nodemailer';
 
 /**

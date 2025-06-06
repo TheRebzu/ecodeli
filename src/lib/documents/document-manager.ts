@@ -82,7 +82,7 @@ export function getRequiredDocumentTypesByRole(role: UserRole | string): Documen
  */
 import { db } from '@/server/db';
 import { UserRole } from '@prisma/client';
-import { seedTypeToPrismaType, doesSeedTypeMatchPrismaType } from '../../types/documents/document';
+import { seedTypeToPrismaType, doesSeedTypeMatchPrismaType } from '@/types/documents/document';
 
 /**
  * Vérifie si un document est expiré

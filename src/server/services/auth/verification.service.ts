@@ -15,7 +15,7 @@ import type {
   MerchantVerification,
   ProviderVerification,
   VerificationUpdateRequest,
-} from '@/types/verification';
+} from '@/types/users/verification';
 
 type UploadResult = {
   fileUrl: string;

@@ -2,7 +2,7 @@ import { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { db } from '@/server/db';
 import { notFound } from 'next/navigation';
-import { UserDocumentVerification } from '@/components/admin/verification/user-document-verification';
+import { UserDocumentVerification } from '@/types/users/verification';
 
 export async function generateMetadata({
   params,

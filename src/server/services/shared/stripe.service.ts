@@ -1,7 +1,7 @@
 // src/server/services/stripe.service.ts
 import Stripe from 'stripe';
 import { db } from '@/server/db';
-import { walletService } from './wallet.service';
+import { walletService } from '@/server/services/shared/wallet.service';
 import { TRPCError } from '@trpc/server';
 import { v4 as uuidv4 } from 'uuid';
 import { TransactionType } from '@prisma/client';

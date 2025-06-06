@@ -2,10 +2,10 @@
 
 import React from 'react';
 import { ProfileHeader } from '@/components/shared/profile/profile-header';
-import { ProfileInfoCard } from '@/components/profile/profile-info-card';
-import { ProfilePreferences } from '@/components/profile/profile-preferences';
-import { ProfileDocumentsList } from '@/components/profile/profile-documents-list';
-import { DelivererProfileForm } from '@/components/profile/deliverer/deliverer-profile-form';
+import { ProfileInfoCard } from '@/components/ui/card';
+import { ProfilePreferences } from '@/types/users/preferences';
+import { ProfileDocumentsList } from '@/components/shared/documents/document-list';
+import { DelivererProfileForm } from '@/components/ui/form';
 import { useProfileStore } from '@/store/use-profile-store';
 
 export default function DelivererProfilePage() {

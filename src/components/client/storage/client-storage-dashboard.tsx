@@ -5,11 +5,11 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { BoxRecommendations } from './box-recommendations';
-import { ClientStorageStats } from './client-storage-stats';
-import { WarehouseMap } from './warehouse-map';
-import { BoxSearchForm } from './box-search';
-import { EnhancedReservationForm } from './enhanced-reservation-form';
+import { BoxRecommendations } from '@/components/client/storage/box-recommendations';
+import { ClientStorageStats } from '@/components/client/storage/client-storage-stats';
+import { WarehouseMap } from '@/components/client/storage/warehouse-map';
+import { BoxSearchForm } from '@/components/client/storage/box-search';
+import { EnhancedReservationForm } from '@/components/client/storage/enhanced-reservation-form';
 import {
   Search,
   MapPin,

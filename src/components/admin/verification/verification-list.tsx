@@ -17,10 +17,10 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { PendingVerificationsTab } from './pending-verifications-tab';
-import { ProcessedVerificationsTab } from './processed-verifications-tab';
+import { PendingVerificationsTab } from '@/components/admin/verification/pending-verifications-tab';
+import { ProcessedVerificationsTab } from '@/components/admin/verification/processed-verifications-tab';
 import { VerificationFilters } from '@/types/documents/verification';
-import { VerificationFilterForm } from './verification-filter-form';
+import { VerificationFilterForm } from '@/components/admin/verification/verification-filter-form';
 
 export default function VerificationList() {
   const t = useTranslations('admin.verification');

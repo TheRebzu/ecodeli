@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { router, publicProcedure, protectedProcedure, verifiedDelivererProcedure } from '../../trpc';
-import { AnnouncementService } from '../../../services/shared/announcement.service';
+import { router, publicProcedure, protectedProcedure, verifiedDelivererProcedure } from '@/server/api/trpc';
+import { AnnouncementService } from '@/server/services/shared/announcement.service';
 import {
   createAnnouncementSchema,
   updateAnnouncementSchema,

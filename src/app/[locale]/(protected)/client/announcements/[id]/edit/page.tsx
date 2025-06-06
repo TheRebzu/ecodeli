@@ -8,7 +8,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, AlertCircle, ArrowRight, CheckCircle, Loader2 } from 'lucide-react';
 import { useAnnouncement } from '@/hooks/delivery/use-announcement';
-import AnnouncementForm from '@/components/announcements/announcement-form';
+import AnnouncementForm from '@/components/ui/form';
 import { UpdateAnnouncementInput } from '@/schemas/delivery/announcement.schema';
 import { toast } from 'sonner';
 import { Separator } from '@/components/ui/separator';

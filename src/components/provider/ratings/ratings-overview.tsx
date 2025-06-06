@@ -5,7 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { createDetailedReviewSchema } from '@/schemas/service/ratings.schema';
-import { RatingStars } from '@/components/ui/star-rating';
+import { RatingStars } from '@/components/client/deliveries/delivery-rating-form';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import {

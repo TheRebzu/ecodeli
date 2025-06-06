@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { ExtendedPrismaClient } from '@/types/prisma-client';
+import { ExtendedPrismaClient } from '@/trpc/client';
 
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined;

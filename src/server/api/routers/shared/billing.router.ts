@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { router as router, adminProcedure, protectedProcedure } from '../../trpc';
-import { billingService } from '../../../services/shared/billing.service';
+import { router as router, adminProcedure, protectedProcedure } from '@/server/api/trpc';
+import { billingService } from '@/server/services/shared/billing.service';
 import { TRPCError } from '@trpc/server';
 import { format, subMonths } from 'date-fns';
 import { BillingService } from '@/server/services/shared/billing.service';

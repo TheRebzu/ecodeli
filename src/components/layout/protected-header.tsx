@@ -3,12 +3,12 @@
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Shield } from 'lucide-react';
-import { MainHeader } from './protected/header';
-import { AdminSidebar } from './sidebars/admin-sidebar';
-import { ClientSidebar } from './sidebars/client-sidebar';
-import { DelivererSidebar } from './sidebars/deliverer-sidebar';
-import { MerchantSidebar } from './sidebars/merchant-sidebar';
-import { ProviderSidebar } from './sidebars/provider-sidebar';
+import { MainHeader } from '@/components/layout/protected/header';
+import { AdminSidebar } from '@/components/layout/sidebars/admin-sidebar';
+import { ClientSidebar } from '@/components/layout/sidebars/client-sidebar';
+import { DelivererSidebar } from '@/components/layout/sidebars/deliverer-sidebar';
+import { MerchantSidebar } from '@/components/layout/sidebars/merchant-sidebar';
+import { ProviderSidebar } from '@/components/layout/sidebars/provider-sidebar';
 import { Badge } from '@/components/ui/badge';
 import { useAuth } from '@/hooks/auth/use-auth';
 

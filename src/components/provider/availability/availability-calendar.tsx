@@ -31,7 +31,7 @@ import { Separator } from '@/components/ui/separator';
 import { Clock, CalendarDays, Plus, X, AlertCircle } from 'lucide-react';
 import { api } from '@/trpc/react';
 import { toast } from 'sonner';
-import { TimeslotPicker } from './timeslot-picker';
+import { TimeslotPicker } from '@/components/provider/availability/timeslot-picker';
 
 interface AvailabilityFormProps {
   onSuccess?: () => void;

@@ -16,7 +16,7 @@ import {
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { ButtonWithLoading } from '@/components/ui/button-with-loading';
+import { ButtonWithLoading } from '@/app/[locale]/(public)/loading';
 import {
   Form,
   FormControl,

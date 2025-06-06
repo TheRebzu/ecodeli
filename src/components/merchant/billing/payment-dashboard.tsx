@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
-import InvoiceList, { Invoice } from './invoice-list';
+import InvoiceList, { Invoice } from '@/components/merchant/billing/invoice-list';
 
 // Données factices de statistiques de facturation pour la démo
 interface BillingStats {

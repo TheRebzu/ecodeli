@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { api } from '@/trpc/react';
 import { useTranslations } from 'next-intl';
-import { useLocalizedFormat } from '../../components/ui/form';
+import { useLocalizedFormat } from '@/components/ui/form';
 
 interface UseServiceBookingProps {
   serviceId?: string;

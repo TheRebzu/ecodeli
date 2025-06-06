@@ -15,7 +15,7 @@ import dynamic from 'next/dynamic';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 // Import dynamique de la carte Leaflet pour éviter les erreurs côté serveur
-const MapComponent = dynamic(() => import('@/components/maps/map-component'), {
+const MapComponent = dynamic(() => import('../../shared/maps/map-component'), {
   ssr: false,
   loading: () => <Skeleton className="w-full h-[500px] rounded-md" />,
 });

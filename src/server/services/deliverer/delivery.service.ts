@@ -1,4 +1,4 @@
-import { db } from '../../db';
+import { db } from '@/server/db';
 import { TRPCError } from '@trpc/server';
 import {
   DeliveryStatus,
@@ -14,7 +14,7 @@ import type {
   DeliveryConfirmation,
   DeliveryRatingInput,
 } from '@/types/delivery';
-import { NotificationService } from '../../../lib/services/notification.service';
+import { NotificationService } from '@/lib/services/notification.service';
 
 export const DeliveryService = {
   /**

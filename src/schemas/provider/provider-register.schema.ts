@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { UserRole, registerBaseFields, addressFields } from '../auth/register.schema';
+import { UserRole, registerBaseFields, addressFields } from '@/schemas/auth/register.schema';
 
 // Types de services proposés par les prestataires
 export enum ServiceType {

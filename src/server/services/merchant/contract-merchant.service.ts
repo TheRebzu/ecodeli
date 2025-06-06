@@ -1,9 +1,9 @@
-import { db } from '../../db';
+import { db } from '@/server/db';
 import { TRPCError } from '@trpc/server';
 import { ContractStatus, ContractType } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
 import { addDays, addMonths, isBefore, format } from 'date-fns';
-import { contractService, ContractService } from '../shared/contract.service';
+import { contractService, ContractService } from '@/server/services/shared/contract.service';
 
 export interface MerchantContractCreateInput {
   merchantId: string;

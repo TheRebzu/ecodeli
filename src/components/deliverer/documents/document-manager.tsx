@@ -9,7 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useToast } from '@/components/ui/use-toast';
 import { api } from '@/trpc/react';
 import { Upload, FileText, CheckCircle, XCircle, Clock, AlertTriangle, Eye } from 'lucide-react';
-import DocumentUploadForm from '@/components/documents/document-upload-form';
+import DocumentUploadForm from '@/components/ui/form';
 import DocumentPreview from '@/components/shared/documents/document-preview';
 
 const REQUIRED_DOCUMENTS = [

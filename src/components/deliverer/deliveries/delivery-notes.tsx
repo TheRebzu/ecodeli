@@ -14,7 +14,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { ButtonWithLoading } from '@/components/ui/button-with-loading';
+import { ButtonWithLoading } from '@/app/[locale]/(public)/loading';
 import {
   Form,
   FormControl,

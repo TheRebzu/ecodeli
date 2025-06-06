@@ -1,11 +1,11 @@
-import { db } from '../../db';
+import { db } from '@/server/db';
 import { Decimal } from '@prisma/client/runtime/library';
-import { paymentService } from '../shared/payment.service';
-import { walletService } from '../shared/wallet.service';
+import { paymentService } from '@/server/services/shared/payment.service';
+import { walletService } from '@/server/services/shared/wallet.service';
 import { TRPCError } from '@trpc/server';
 import { endOfMonth, startOfMonth, format, subMonths } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { invoiceService } from '../shared/invoice.service';
+import { invoiceService } from '@/server/services/shared/invoice.service';
 import { CommissionStatus, ServiceType, UserRole } from '@prisma/client';
 
 // Vérifier si le wallet service est correctement initialisé

@@ -71,8 +71,8 @@ import {
 import {
   WalletTransaction as Transaction,
   WithdrawalRequest as Withdrawal,
-} from '@/types/prisma-client';
-import { WalletBalance } from '../../shared/payments/wallet-balance';
+} from '@/trpc/client';
+import { WalletBalance } from '@/components/shared/payments/wallet-balance';
 import { useWallet } from '@/hooks/payment/use-wallet';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';

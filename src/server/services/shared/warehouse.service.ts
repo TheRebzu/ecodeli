@@ -1,4 +1,4 @@
-import { db } from '../../db';
+import { db } from '@/server/db';
 import { TRPCError } from '@trpc/server';
 import { Prisma } from '@prisma/client';
 

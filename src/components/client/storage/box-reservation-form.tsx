@@ -17,7 +17,7 @@ import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { BoxWithWarehouse } from '@/types/warehouses/storage-box';
 import { useTranslations } from 'next-intl';
-import { BoxDetailCard } from './box-detail-card';
+import { BoxDetailCard } from '@/components/client/storage/box-detail-card';
 import { useBoxReservation } from '@/hooks/common/use-storage';
 import { AlertCircle, CheckCircle2 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';

@@ -18,7 +18,7 @@ import {
 import { Calendar, Clock, MapPin, Package2, Truck } from 'lucide-react';
 import { DeliveryStatus } from '@prisma/client';
 import { formatDate, formatTime } from '@/utils/document-utils';
-import { useLocalStorage } from '@/hooks/use-local-storage';
+import { useLocalStorage } from '@/hooks/common/use-storage';
 import { Skeleton } from '@/components/ui/skeleton';
 
 // Type pour les filtres

@@ -1,6 +1,6 @@
 import { TRPCError } from '@trpc/server';
 import { PrismaClient, UserRole, UserStatus, Prisma } from '@prisma/client';
-import { db } from '../../db';
+import { db } from '@/server/db';
 import { sendEmailNotification } from '@/lib/services/email.service';
 import { getUserPreferredLocale } from '@/lib/i18n/user-locale';
 import { UserFilters, ActivityType } from '@/types/actors/admin';

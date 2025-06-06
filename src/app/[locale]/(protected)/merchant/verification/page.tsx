@@ -3,9 +3,9 @@ import { getTranslations } from 'next-intl/server';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/server/auth/next-auth';
 import { redirect } from 'next/navigation';
-import { MerchantVerificationForm } from '@/components/verification/merchant-verification-form';
+import { MerchantVerificationForm } from '@/components/ui/form';
 import { VerificationStatus } from '@/types/documents/verification';
-import { VerificationStatusBanner } from '@/components/verification/verification-status-banner';
+import { VerificationStatusBanner } from '@/components/admin/verification/verification-list';
 import { db } from '@/server/db';
 
 export async function generateMetadata({

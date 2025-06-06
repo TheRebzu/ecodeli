@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import DeliveryStatusIndicator from './delivery-status';
+import DeliveryStatusIndicator from '@/components/shared/deliveries/delivery-status';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { useDeliveryLiveTracking } from '@/hooks/features/use-delivery-tracking';
