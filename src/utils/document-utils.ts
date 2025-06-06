@@ -112,3 +112,72 @@ export function getStatusBadgeProps(status: string) {
       return { variant: 'outline' as const, label: 'Inconnu' };
   }
 }
+
+/**
+ * Formate une date en format relatif (ex: "il y a 2 jours", "dans 3 heures")
+ * @param date - La date à formater
+ * @returns String formatée représentant le temps relatif
+ */
+export function formatRelativeDate(date: Date | string | null | undefined): string {
+  if (!date) {
+    return 'Non défini';
+  }
+
+  const targetDate = typeof date === 'string' ? new Date(date) : date;
+  
+  // Vérifier si la date est valide
+  if (isNaN(targetDate.getTime())) {
+    return 'Date invalide';
+  }
+
+  const now = new Date();
+  const diffInMs = now.getTime() - targetDate.getTime();
+  const diffInSeconds = Math.floor(diffInMs / 1000);
+  const diffInMinutes = Math.floor(diffInSeconds / 60);
+  const diffInHours = Math.floor(diffInMinutes / 60);
+  const diffInDays = Math.floor(diffInHours / 24);
+  const diffInWeeks = Math.floor(diffInDays / 7);
+  const diffInMonths = Math.floor(diffInDays / 30);
+  const diffInYears = Math.floor(diffInDays / 365);
+
+  // Format relatif en français
+  if (Math.abs(diffInSeconds) < 60) {
+    return diffInSeconds >= 0 ? 'À l\'instant' : 'Dans quelques secondes';
+  } else if (Math.abs(diffInMinutes) < 60) {
+    if (diffInMinutes >= 0) {
+      return diffInMinutes === 1 ? 'Il y a 1 minute' : `Il y a ${diffInMinutes} minutes`;
+    } else {
+      return Math.abs(diffInMinutes) === 1 ? 'Dans 1 minute' : `Dans ${Math.abs(diffInMinutes)} minutes`;
+    }
+  } else if (Math.abs(diffInHours) < 24) {
+    if (diffInHours >= 0) {
+      return diffInHours === 1 ? 'Il y a 1 heure' : `Il y a ${diffInHours} heures`;
+    } else {
+      return Math.abs(diffInHours) === 1 ? 'Dans 1 heure' : `Dans ${Math.abs(diffInHours)} heures`;
+    }
+  } else if (Math.abs(diffInDays) < 7) {
+    if (diffInDays >= 0) {
+      return diffInDays === 1 ? 'Il y a 1 jour' : `Il y a ${diffInDays} jours`;
+    } else {
+      return Math.abs(diffInDays) === 1 ? 'Dans 1 jour' : `Dans ${Math.abs(diffInDays)} jours`;
+    }
+  } else if (Math.abs(diffInWeeks) < 4) {
+    if (diffInWeeks >= 0) {
+      return diffInWeeks === 1 ? 'Il y a 1 semaine' : `Il y a ${diffInWeeks} semaines`;
+    } else {
+      return Math.abs(diffInWeeks) === 1 ? 'Dans 1 semaine' : `Dans ${Math.abs(diffInWeeks)} semaines`;
+    }
+  } else if (Math.abs(diffInMonths) < 12) {
+    if (diffInMonths >= 0) {
+      return diffInMonths === 1 ? 'Il y a 1 mois' : `Il y a ${diffInMonths} mois`;
+    } else {
+      return Math.abs(diffInMonths) === 1 ? 'Dans 1 mois' : `Dans ${Math.abs(diffInMonths)} mois`;
+    }
+  } else {
+    if (diffInYears >= 0) {
+      return diffInYears === 1 ? 'Il y a 1 an' : `Il y a ${diffInYears} ans`;
+    } else {
+      return Math.abs(diffInYears) === 1 ? 'Dans 1 an' : `Dans ${Math.abs(diffInYears)} ans`;
+    }
+  }
+}

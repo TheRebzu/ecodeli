@@ -7,17 +7,17 @@ import {
 } from '@/server/api/trpc';
 import { TRPCError } from '@trpc/server';
 import { UserRole, PaymentStatus } from '@prisma/client';
-import { paymentService } from '@/server/services/payment.service';
+import { paymentService } from '@/server/services/shared/payment.service';
 import { walletService } from '@/server/services/wallet.service';
-import { invoiceService } from '@/server/services/invoice.service';
-import { commissionService } from '@/server/services/commission.service';
-import { subscriptionService } from '@/server/services/subscription.service';
+import { invoiceService } from '@/server/services/shared/invoice.service';
+import { commissionService } from '@/server/services/admin/commission.service';
+import { subscriptionService } from '@/server/services/shared/subscription.service';
 import {
   financialProtect,
   validateFinancialAmount,
   validateWithdrawal,
   preventDoubleInvoicing,
-} from './financial-security.middleware';
+} from '../../middlewares/financial-security.middleware';
 
 /**
  * Router tRPC pour les fonctionnalités financières

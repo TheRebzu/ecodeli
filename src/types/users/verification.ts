@@ -5,6 +5,14 @@
 import { Document } from '@prisma/client';
 
 /**
+ * Actions de bannissement possibles
+ */
+export enum UserBanAction {
+  BAN = 'BAN',
+  UNBAN = 'UNBAN',
+}
+
+/**
  * Statuts de vérification possibles
  */
 export enum VerificationStatus {

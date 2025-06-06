@@ -599,6 +599,88 @@ export const adminUserRouter = router({
       });
     }),
 
+  /**
+   * Toggle user activation status
+   */
+  toggleUserActivation: adminProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        isActive: z.boolean(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user || ctx.session.user.role !== 'ADMIN') {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: "Vous n'avez pas les permissions nécessaires pour activer/désactiver un utilisateur.",
+        });
+      }
+
+      const adminService = new AdminService(ctx.db);
+
+      // Journaliser l'action
+      await AuditService.createAuditLog(
+        'user',
+        input.userId,
+        input.isActive ? 'user_activated' : 'user_deactivated',
+        ctx.session.user.id,
+        null,
+        { 
+          action: input.isActive ? 'activate' : 'deactivate',
+          userId: input.userId
+        }
+      );
+
+      return adminService.toggleUserActivation(input.userId, input.isActive);
+    }),
+
+  /**
+   * Ban or unban a user
+   */
+  banUser: adminProcedure
+    .input(
+      z.object({
+        userId: z.string(),
+        action: z.enum(['BAN', 'UNBAN']),
+        reason: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      if (!ctx.session?.user || ctx.session.user.role !== 'ADMIN') {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: "Vous n'avez pas les permissions nécessaires pour bannir un utilisateur.",
+        });
+      }
+
+      const adminService = new AdminService(ctx.db);
+
+      // Validation: raison obligatoire pour le bannissement
+      if (input.action === 'BAN' && !input.reason) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Une raison est obligatoire pour bannir un utilisateur.',
+        });
+      }
+
+      // Journaliser l'action
+      await AuditService.createAuditLog(
+        'user',
+        input.userId,
+        input.action === 'BAN' ? 'user_banned' : 'user_unbanned',
+        ctx.session.user.id,
+        null,
+        { 
+          action: input.action,
+          reason: input.reason,
+          userId: input.userId
+        }
+      );
+
+      return adminService.banUser(input.userId, input.action, input.reason);
+    }),
+
   // /**
   //  * Manage user devices - Temporarily disabled
   //  */

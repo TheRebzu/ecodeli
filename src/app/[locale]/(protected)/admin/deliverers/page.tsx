@@ -34,6 +34,11 @@ export default function AdminDeliverersPage() {
   const safeDeliverersData = deliverersData?.json || deliverersData;
   const safeStatsData = statsData?.json || statsData;
 
+  // Debug pour vérifier les données
+  // console.log('deliverersData:', deliverersData);
+  // console.log('isLoadingDeliverers:', isLoadingDeliverers);
+  // console.log('deliverersError:', deliverersError);
+
   // Fonction pour actualiser les données
   const handleRefresh = () => {
     refetchDeliverers();
@@ -42,15 +47,17 @@ export default function AdminDeliverersPage() {
 
   // Filtrer les livreurs par statut (utilisation des données extraites)
   const getFilteredDeliverers = (status?: string) => {
-    if (!safeDeliverersData?.deliverers) return [];
+    if (!safeDeliverersData?.deliverers) {
+      return [];
+    }
     
     switch (status) {
       case 'active':
-        return safeDeliverersData.deliverers.filter(d => d.status === 'ACTIVE');
+        return safeDeliverersData.deliverers.filter((d: any) => d.status === 'ACTIVE');
       case 'pending':
-        return safeDeliverersData.deliverers.filter(d => d.status === 'PENDING_VERIFICATION');
+        return safeDeliverersData.deliverers.filter((d: any) => d.status === 'PENDING_VERIFICATION');
       case 'suspended':
-        return safeDeliverersData.deliverers.filter(d => d.status === 'SUSPENDED');
+        return safeDeliverersData.deliverers.filter((d: any) => d.status === 'SUSPENDED');
       default:
         return safeDeliverersData.deliverers;
     }
@@ -133,6 +140,7 @@ export default function AdminDeliverersPage() {
                 totalPages={safeDeliverersData?.totalPages || 1}
                 currentPage={currentPage}
                 onPageChange={setCurrentPage}
+                onRefresh={handleRefresh}
               />
             </CardContent>
           </Card>
@@ -153,6 +161,7 @@ export default function AdminDeliverersPage() {
                 totalPages={1}
                 currentPage={1}
                 onPageChange={setCurrentPage}
+                onRefresh={handleRefresh}
               />
             </CardContent>
           </Card>
@@ -173,6 +182,7 @@ export default function AdminDeliverersPage() {
                 totalPages={1}
                 currentPage={1}
                 onPageChange={setCurrentPage}
+                onRefresh={handleRefresh}
               />
             </CardContent>
           </Card>
@@ -193,6 +203,7 @@ export default function AdminDeliverersPage() {
                 totalPages={1}
                 currentPage={1}
                 onPageChange={setCurrentPage}
+                onRefresh={handleRefresh}
               />
             </CardContent>
           </Card>

@@ -483,6 +483,75 @@
         "stats": "Statistiques"
       }
     },
+    "deliverers": {
+      "title": "Gestion des Livreurs",
+      "subtitle": "Administrez et supervisez tous les livreurs de la plateforme",
+      "quickStats": "Aperçu des Livreurs",
+      "totalDeliverers": "Total livreurs",
+      "activeDeliverers": "Livreurs actifs",
+      "suspendedDeliverers": "Livreurs suspendus",
+      "pendingApplications": "Candidatures en attente",
+      "verifiedDeliverers": "Livreurs vérifiés",
+      "averageRating": "Note moyenne",
+      "totalDeliveries": "Total livraisons",
+      "totalEarnings": "Revenus totaux",
+      "searchPlaceholder": "Rechercher par nom ou email...",
+      "filters": {
+        "all": "Tous",
+        "active": "Actifs",
+        "inactive": "Inactifs",
+        "suspended": "Suspendus",
+        "pending": "En attente"
+      },
+      "verification": {
+        "all": "Toutes",
+        "pending": "En attente",
+        "approved": "Approuvé",
+        "rejected": "Rejeté"
+      },
+      "table": {
+        "deliverer": "Livreur",
+        "contact": "Contact",
+        "status": "Statut",
+        "verification": "Vérification",
+        "performance": "Performance",
+        "earnings": "Revenus",
+        "joinedOn": "Inscrit le",
+        "lastActive": "Dernière activité",
+        "actions": "Actions"
+      },
+      "status": {
+        "active": "Actif",
+        "inactive": "Inactif",
+        "suspended": "Suspendu",
+        "pending_verification": "En attente"
+      },
+      "verificationStatus": {
+        "verified": "Vérifié",
+        "pending": "En attente",
+        "rejected": "Rejeté"
+      },
+      "actions": {
+        "view": "Voir",
+        "edit": "Modifier",
+        "verify": "Vérifier",
+        "suspend": "Suspendre",
+        "activate": "Activer",
+        "export": "Exporter"
+      },
+      "stats": {
+        "title": "Statistiques Détaillées",
+        "description": "Analyse complète des livreurs et de leur activité",
+        "performance": "Performance Globale",
+        "satisfaction": "Taux de satisfaction",
+        "growth": "Croissance mensuelle",
+        "averageDeliveries": "Livraisons moyennes par livreur"
+      },
+      "tabs": {
+        "list": "Liste des Livreurs",
+        "stats": "Statistiques"
+      }
+    },
     "Verification": {
       "loading": "loading"
     }

@@ -68,7 +68,7 @@ export default function AdminClientsPage() {
 
   const handleSelectAll = (selected: boolean) => {
     if (selected) {
-      setSelectedClientIds(clients.map(client => client.id));
+      setSelectedClientIds(clients.map((client: any) => client.id));
     } else {
       setSelectedClientIds([]);
     }
@@ -279,7 +279,7 @@ export default function AdminClientsPage() {
                         </TableCell>
                       </TableRow>
                     ) : (
-                      clients.map((client) => (
+                      clients.map((client: any) => (
                         <TableRow key={client.id}>
                           <TableCell>
                             <input 

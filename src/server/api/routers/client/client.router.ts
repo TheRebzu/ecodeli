@@ -2,8 +2,8 @@ import { router, protectedProcedure, clientProcedure, adminProcedure, type Conte
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import type { User, Client } from '@prisma/client';
-import { dashboardService } from '@/server/services/dashboard.service';
-import { serviceService } from '@/server/services/service.service';
+import { dashboardService } from '@/server/services/admin/dashboard.service';
+import { serviceService } from '@/server/services/provider/provider-service.service';
 import { Prisma } from '@prisma/client';
 
 // Définir les interfaces pour les données récupérées de la base de données

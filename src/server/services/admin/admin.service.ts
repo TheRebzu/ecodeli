@@ -156,10 +156,10 @@ export class AdminService {
       }
 
       // Execute count query
-      const totalUsers = await this.db.user.count({ where });
+      const totalUsers = await this.prisma.user.count({ where });
 
       // Execute main query
-      const users = await this.db.user.findMany({
+      const users = await this.prisma.user.findMany({
         where,
         select: {
           id: true,
@@ -1926,6 +1926,176 @@ export class AdminService {
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
         message: 'Error generating financial report',
+      });
+    }
+  }
+
+  /**
+   * Active ou désactive un utilisateur
+   */
+  async toggleUserActivation(userId: string, isActive: boolean) {
+    try {
+      // Vérifier que l'utilisateur existe
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, name: true, email: true, status: true },
+      });
+
+      if (!user) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Utilisateur non trouvé',
+        });
+      }
+
+      // Déterminer le nouveau statut
+      const newStatus = isActive ? UserStatus.ACTIVE : UserStatus.INACTIVE;
+
+      // Mettre à jour l'utilisateur
+      const updatedUser = await this.prisma.user.update({
+        where: { id: userId },
+        data: {
+          status: newStatus,
+          updatedAt: new Date(),
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          status: true,
+          updatedAt: true,
+        },
+      });
+
+      // Envoyer une notification par email si nécessaire
+      if (isActive) {
+        await sendEmailNotification({
+          to: user.email,
+          subject: 'Compte réactivé',
+          template: 'account-reactivated',
+          data: {
+            userName: user.name,
+          },
+        });
+      } else {
+        await sendEmailNotification({
+          to: user.email,
+          subject: 'Compte désactivé',
+          template: 'account-deactivated',
+          data: {
+            userName: user.name,
+          },
+        });
+      }
+
+      return {
+        success: true,
+        user: updatedUser,
+        message: `Utilisateur ${isActive ? 'activé' : 'désactivé'} avec succès`,
+      };
+    } catch (error) {
+      console.error('Error toggling user activation:', error);
+      if (error instanceof TRPCError) {
+        throw error;
+      }
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la modification de l\'activation utilisateur',
+      });
+    }
+  }
+
+  /**
+   * Bannit ou débannit un utilisateur
+   */
+  async banUser(userId: string, action: 'BAN' | 'UNBAN', reason?: string) {
+    try {
+      // Vérifier que l'utilisateur existe
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        select: { id: true, name: true, email: true, isBanned: true },
+      });
+
+      if (!user) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Utilisateur non trouvé',
+        });
+      }
+
+      // Vérifier la cohérence de l'action
+      if (action === 'BAN' && user.isBanned) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Cet utilisateur est déjà banni',
+        });
+      }
+
+      if (action === 'UNBAN' && !user.isBanned) {
+        throw new TRPCError({
+          code: 'BAD_REQUEST',
+          message: 'Cet utilisateur n\'est pas banni',
+        });
+      }
+
+      // Mettre à jour l'utilisateur
+      const updateData: any = {
+        isBanned: action === 'BAN',
+        updatedAt: new Date(),
+      };
+
+      if (action === 'BAN') {
+        updateData.bannedAt = new Date();
+        updateData.banReason = reason;
+        updateData.status = UserStatus.SUSPENDED;
+      } else {
+        updateData.bannedAt = null;
+        updateData.banReason = null;
+        updateData.status = UserStatus.ACTIVE;
+      }
+
+      const updatedUser = await this.prisma.user.update({
+        where: { id: userId },
+        data: updateData,
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          isBanned: true,
+          bannedAt: true,
+          banReason: true,
+          status: true,
+          updatedAt: true,
+        },
+      });
+
+      // Envoyer une notification par email
+      const emailTemplate = action === 'BAN' ? 'account-banned' : 'account-unbanned';
+      const emailSubject = action === 'BAN' ? 'Compte suspendu' : 'Compte réactivé';
+
+      await sendEmailNotification({
+        to: user.email,
+        subject: emailSubject,
+        template: emailTemplate,
+        data: {
+          userName: user.name,
+          reason: reason || 'Aucune raison spécifiée',
+        },
+      });
+
+      return {
+        success: true,
+        user: updatedUser,
+        message: `Utilisateur ${action === 'BAN' ? 'banni' : 'débanni'} avec succès`,
+      };
+    } catch (error) {
+      console.error('Error banning/unbanning user:', error);
+      if (error instanceof TRPCError) {
+        throw error;
+      }
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors du bannissement/débannissement de l\'utilisateur',
       });
     }
   }

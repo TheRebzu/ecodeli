@@ -21,7 +21,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -46,6 +56,7 @@ import {
 import { api } from '@/trpc/react';
 import { useToast } from '@/components/ui/use-toast';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Link } from '@/navigation';
 
 type DelivererStatus = 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'PENDING_VERIFICATION';
 type VerificationStatus = 'PENDING' | 'APPROVED' | 'REJECTED';
@@ -77,6 +88,7 @@ interface DeliverersTableProps {
   totalPages: number;
   currentPage: number;
   onPageChange: (page: number) => void;
+  onRefresh?: () => void;
 }
 
 export function DeliverersTable({
@@ -85,45 +97,113 @@ export function DeliverersTable({
   totalPages,
   currentPage,
   onPageChange,
+  onRefresh,
 }: DeliverersTableProps) {
-  const t = useTranslations('admin.deliverers');
+  const t = useTranslations('Admin');
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('ALL');
   const [verificationFilter, setVerificationFilter] = useState('ALL');
 
+  // États pour les dialogs
+  const [isStatusDialogOpen, setIsStatusDialogOpen] = useState(false);
+  const [statusAction, setStatusAction] = useState<{
+    delivererId: string;
+    name: string;
+    newStatus: DelivererStatus;
+  } | null>(null);
+
+  const [isVerificationDialogOpen, setIsVerificationDialogOpen] = useState(false);
+  const [verificationAction, setVerificationAction] = useState<{
+    delivererId: string;
+    name: string;
+  } | null>(null);
+
+  const [isMessageDialogOpen, setIsMessageDialogOpen] = useState(false);
+  const [messageAction, setMessageAction] = useState<{
+    delivererId: string;
+    name: string;
+  } | null>(null);
+  const [messageContent, setMessageContent] = useState('');
+  const [messageSubject, setMessageSubject] = useState('');
+
   // Mutations pour les actions admin
-  const updateStatusMutation = api.adminUser.updateStatus.useMutation({
+  const updateStatusMutation = api.admin.deliverers.updateStatus.useMutation({
     onSuccess: () => {
       toast({
-        title: 'Succès',
-        description: 'Statut du livreur mis à jour',
+        title: 'Statut du livreur mis à jour',
       });
+      setIsStatusDialogOpen(false);
+      onRefresh?.();
     },
     onError: (error) => {
       toast({
-        title: 'Erreur',
-        description: error.message,
+        title: `Erreur: ${error.message}`,
         variant: 'destructive',
       });
     },
   });
 
-  const verifyDelivererMutation = api.verification.approveUser.useMutation({
+  const verifyDelivererMutation = api.admin.deliverers.verifyDeliverer.useMutation({
     onSuccess: () => {
       toast({
-        title: 'Succès',
-        description: 'Livreur vérifié avec succès',
+        title: 'Livreur vérifié avec succès',
       });
+      setIsVerificationDialogOpen(false);
+      onRefresh?.();
     },
     onError: (error) => {
       toast({
-        title: 'Erreur',
-        description: error.message,
+        title: `Erreur: ${error.message}`,
         variant: 'destructive',
       });
     },
   });
+
+  // Handlers pour les actions
+  const handleSendMessage = (delivererId: string, name: string) => {
+    setMessageAction({ delivererId, name });
+    setMessageSubject('');
+    setMessageContent('');
+    setIsMessageDialogOpen(true);
+  };
+
+  const handleStatusChange = (delivererId: string, name: string, newStatus: DelivererStatus) => {
+    setStatusAction({ delivererId, name, newStatus });
+    setIsStatusDialogOpen(true);
+  };
+
+  const handleVerifyDeliverer = (delivererId: string, name: string) => {
+    setVerificationAction({ delivererId, name });
+    setIsVerificationDialogOpen(true);
+  };
+
+  const handleConfirmStatusChange = () => {
+    if (statusAction) {
+      updateStatusMutation.mutate({
+        userId: statusAction.delivererId,
+        status: statusAction.newStatus,
+      });
+    }
+  };
+
+  const handleConfirmVerification = () => {
+    if (verificationAction) {
+      verifyDelivererMutation.mutate({
+        userId: verificationAction.delivererId,
+      });
+    }
+  };
+
+  const handleConfirmMessage = () => {
+    if (messageAction && messageContent && messageSubject) {
+      // Ici on pourrait implémenter l'envoi de message
+      toast({
+        title: 'Message envoyé',
+      });
+      setIsMessageDialogOpen(false);
+    }
+  };
 
   // Filtrer les livreurs
   const filteredDeliverers = deliverers.filter((deliverer) => {
@@ -195,19 +275,6 @@ export function DeliverersTable({
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
-  };
-
-  const handleStatusChange = (delivererId: string, newStatus: DelivererStatus) => {
-    updateStatusMutation.mutate({
-      userId: delivererId,
-      status: newStatus,
-    });
-  };
-
-  const handleVerifyDeliverer = (delivererId: string) => {
-    verifyDelivererMutation.mutate({
-      userId: delivererId,
-    });
   };
 
   const formatEarnings = (amount: number) => {
@@ -373,22 +440,26 @@ export function DeliverersTable({
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                      <DropdownMenuItem>
-                        <Eye className="mr-2 h-4 w-4" />
-                        Voir le profil
+                      <DropdownMenuItem asChild>
+                        <Link href={`/admin/deliverers/${deliverer.id}`}>
+                          <Eye className="mr-2 h-4 w-4" />
+                          Voir le profil
+                        </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleSendMessage(deliverer.id, `${deliverer.firstName} ${deliverer.lastName}`)}>
                         <MessageCircle className="mr-2 h-4 w-4" />
                         Envoyer un message
                       </DropdownMenuItem>
-                      <DropdownMenuItem>
-                        <MapPin className="mr-2 h-4 w-4" />
-                        Voir les zones
+                      <DropdownMenuItem asChild>
+                        <Link href={`/admin/verification/deliverer/${deliverer.id}`}>
+                          <MapPin className="mr-2 h-4 w-4" />
+                          Voir les documents
+                        </Link>
                       </DropdownMenuItem>
                       <DropdownMenuSeparator />
                       {!deliverer.isVerified && deliverer.verificationStatus === 'PENDING' && (
                         <DropdownMenuItem
-                          onClick={() => handleVerifyDeliverer(deliverer.id)}
+                          onClick={() => handleVerifyDeliverer(deliverer.id, `${deliverer.firstName} ${deliverer.lastName}`)}
                         >
                           <UserCheck className="mr-2 h-4 w-4" />
                           Vérifier
@@ -396,7 +467,7 @@ export function DeliverersTable({
                       )}
                       {deliverer.status === 'ACTIVE' && (
                         <DropdownMenuItem
-                          onClick={() => handleStatusChange(deliverer.id, 'SUSPENDED')}
+                          onClick={() => handleStatusChange(deliverer.id, `${deliverer.firstName} ${deliverer.lastName}`, 'SUSPENDED')}
                         >
                           <Ban className="mr-2 h-4 w-4" />
                           Suspendre
@@ -404,7 +475,7 @@ export function DeliverersTable({
                       )}
                       {deliverer.status === 'SUSPENDED' && (
                         <DropdownMenuItem
-                          onClick={() => handleStatusChange(deliverer.id, 'ACTIVE')}
+                          onClick={() => handleStatusChange(deliverer.id, `${deliverer.firstName} ${deliverer.lastName}`, 'ACTIVE')}
                         >
                           <CheckCircle className="mr-2 h-4 w-4" />
                           Réactiver
@@ -445,6 +516,105 @@ export function DeliverersTable({
           </div>
         </div>
       )}
+
+      {/* Dialog de confirmation de changement de statut */}
+      <Dialog open={isStatusDialogOpen} onOpenChange={setIsStatusDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>
+              {statusAction?.newStatus === 'SUSPENDED' ? 'Suspendre le livreur' : 'Réactiver le livreur'}
+            </DialogTitle>
+            <DialogDescription>
+              {statusAction?.newStatus === 'SUSPENDED'
+                ? `Vous êtes sur le point de suspendre ${statusAction?.name}. Le livreur ne pourra plus accepter de nouvelles livraisons.`
+                : `Vous êtes sur le point de réactiver ${statusAction?.name}. Le livreur pourra à nouveau accepter des livraisons.`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsStatusDialogOpen(false)}>
+              Annuler
+            </Button>
+            <Button
+              variant={statusAction?.newStatus === 'SUSPENDED' ? 'destructive' : 'default'}
+              onClick={handleConfirmStatusChange}
+              disabled={updateStatusMutation.isPending}
+            >
+              {updateStatusMutation.isPending
+                ? 'Traitement...'
+                : statusAction?.newStatus === 'SUSPENDED'
+                  ? 'Confirmer la suspension'
+                  : 'Confirmer la réactivation'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de confirmation de vérification */}
+      <Dialog open={isVerificationDialogOpen} onOpenChange={setIsVerificationDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Vérifier le livreur</DialogTitle>
+            <DialogDescription>
+              Vous êtes sur le point de vérifier {verificationAction?.name}. Cette action validera ses documents et lui permettra de commencer à effectuer des livraisons.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsVerificationDialogOpen(false)}>
+              Annuler
+            </Button>
+            <Button
+              onClick={handleConfirmVerification}
+              disabled={verifyDelivererMutation.isPending}
+            >
+              {verifyDelivererMutation.isPending ? 'Traitement...' : 'Confirmer la vérification'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog d'envoi de message */}
+      <Dialog open={isMessageDialogOpen} onOpenChange={setIsMessageDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Envoyer un message</DialogTitle>
+            <DialogDescription>
+              Envoyer un message à {messageAction?.name}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="message-subject">Sujet</Label>
+              <Input
+                id="message-subject"
+                value={messageSubject}
+                onChange={(e) => setMessageSubject(e.target.value)}
+                placeholder="Sujet du message"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="message-content">Message</Label>
+              <Textarea
+                id="message-content"
+                value={messageContent}
+                onChange={(e) => setMessageContent(e.target.value)}
+                placeholder="Contenu de votre message..."
+                className="min-h-[100px]"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsMessageDialogOpen(false)}>
+              Annuler
+            </Button>
+            <Button
+              onClick={handleConfirmMessage}
+              disabled={!messageContent || !messageSubject}
+            >
+              Envoyer le message
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
