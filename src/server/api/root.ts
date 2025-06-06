@@ -31,6 +31,7 @@ import { providerRouter } from './routers/provider.router';
 import { contractRouter } from './routers/contract.router';
 import { uploadRouter } from './routers/upload.router';
 import { geocodingRouter } from './routers/geocoding.router';
+import { adminRouter } from './routers/admin.router';
 
 // Re-export createTRPCContext from trpc.ts
 export { createTRPCContext } from './trpc';
@@ -57,6 +58,7 @@ export const appRouter = router({
   document: documentRouter,
   verification: verificationRouter,
   userPreferences: userPreferencesRouter,
+  admin: adminRouter,
   adminUser: adminUserRouter,
   adminDashboard: adminDashboardRouter,
   adminWarehouse: adminWarehouseRouter,

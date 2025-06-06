@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 
 interface DeliverersStatsProps {
-  data: {
+  data?: {
     totalDeliverers: number;
     activeDeliverers: number;
     verifiedDeliverers: number;
@@ -34,9 +34,10 @@ interface DeliverersStatsProps {
     growthRate: number;
     activeZones: number;
   };
+  isLoading?: boolean;
 }
 
-export function DeliverersStats({ data }: DeliverersStatsProps) {
+export function DeliverersStats({ data, isLoading }: DeliverersStatsProps) {
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('fr-FR', {
       style: 'currency',
@@ -44,7 +45,8 @@ export function DeliverersStats({ data }: DeliverersStatsProps) {
     }).format(amount);
   };
 
-  const getGrowthIcon = (rate: number) => {
+  const getGrowthIcon = (rate: number | undefined) => {
+    if (!rate || rate === undefined) return null;
     if (rate > 0) {
       return <TrendingUp className="h-4 w-4 text-green-600" />;
     } else if (rate < 0) {
@@ -53,10 +55,44 @@ export function DeliverersStats({ data }: DeliverersStatsProps) {
     return null;
   };
 
-  const getGrowthColor = (rate: number) => {
+  const getGrowthColor = (rate: number | undefined) => {
+    if (!rate || rate === undefined) return 'text-muted-foreground';
     if (rate > 0) return 'text-green-600';
     if (rate < 0) return 'text-red-600';
     return 'text-muted-foreground';
+  };
+
+  // Valeurs par défaut pendant le chargement
+  const defaultData = {
+    totalDeliverers: 0,
+    activeDeliverers: 0,
+    verifiedDeliverers: 0,
+    pendingVerification: 0,
+    suspendedDeliverers: 0,
+    averageRating: 0,
+    totalDeliveries: 0,
+    averageEarnings: 0,
+    vehicledDeliverers: 0,
+    topPerformers: [],
+    growthRate: 0,
+    activeZones: 0,
+  };
+
+  // Extraire les données de la bonne propriété
+  let actualData: any = data;
+  
+  // Si les données sont emballées dans une propriété 'json', les extraire
+  if (data && typeof data === 'object' && 'json' in data && (data as any).json) {
+    console.log('🔧 Extraction des données depuis data.json');
+    actualData = (data as any).json;
+  }
+  
+  const statsData = actualData || defaultData;
+  
+  // Protection supplémentaire : s'assurer que toutes les propriétés existent
+  const safeStatsData = {
+    ...defaultData,
+    ...statsData,
   };
 
   return (
@@ -68,11 +104,11 @@ export function DeliverersStats({ data }: DeliverersStatsProps) {
           <Users className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{data.totalDeliverers}</div>
+          <div className="text-2xl font-bold">{isLoading ? '...' : safeStatsData.totalDeliverers}</div>
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
-            {getGrowthIcon(data.growthRate)}
-            <span className={getGrowthColor(data.growthRate)}>
-              {data.growthRate > 0 ? '+' : ''}{data.growthRate.toFixed(1)}% ce mois
+            {!isLoading && getGrowthIcon(safeStatsData.growthRate)}
+            <span className={getGrowthColor(safeStatsData.growthRate)}>
+              {isLoading ? 'Chargement...' : `${safeStatsData.growthRate > 0 ? '+' : ''}${safeStatsData.growthRate.toFixed(1)}% ce mois`}
             </span>
           </div>
         </CardContent>
@@ -85,9 +121,9 @@ export function DeliverersStats({ data }: DeliverersStatsProps) {
           <UserCheck className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{data.activeDeliverers}</div>
+          <div className="text-2xl font-bold">{isLoading ? '...' : safeStatsData.activeDeliverers}</div>
           <p className="text-xs text-muted-foreground">
-            {Math.round((data.activeDeliverers / data.totalDeliverers) * 100)}% du total
+            {isLoading ? 'Chargement...' : `${Math.round((safeStatsData.activeDeliverers / safeStatsData.totalDeliverers) * 100)}% du total`}
           </p>
         </CardContent>
       </Card>
@@ -101,9 +137,9 @@ export function DeliverersStats({ data }: DeliverersStatsProps) {
           </Badge>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{data.verifiedDeliverers}</div>
+          <div className="text-2xl font-bold">{isLoading ? '...' : safeStatsData.verifiedDeliverers}</div>
           <p className="text-xs text-muted-foreground">
-            {data.pendingVerification} en attente de vérification
+            {isLoading ? 'Chargement...' : `${safeStatsData.pendingVerification} en attente de vérification`}
           </p>
         </CardContent>
       </Card>
@@ -115,9 +151,9 @@ export function DeliverersStats({ data }: DeliverersStatsProps) {
           <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{data.averageRating.toFixed(1)}</div>
+          <div className="text-2xl font-bold">{isLoading ? '...' : safeStatsData.averageRating.toFixed(1)}</div>
           <p className="text-xs text-muted-foreground">
-            Sur {data.totalDeliveries} livraisons
+            {isLoading ? 'Chargement...' : `Sur ${safeStatsData.totalDeliveries} livraisons`}
           </p>
         </CardContent>
       </Card>
@@ -140,7 +176,7 @@ export function DeliverersStats({ data }: DeliverersStatsProps) {
           </svg>
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{formatCurrency(data.averageEarnings)}</div>
+          <div className="text-2xl font-bold">{isLoading ? '...' : formatCurrency(safeStatsData.averageEarnings)}</div>
           <p className="text-xs text-muted-foreground">
             Par livreur ce mois
           </p>
@@ -154,9 +190,9 @@ export function DeliverersStats({ data }: DeliverersStatsProps) {
           <Truck className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{data.vehicledDeliverers}</div>
+          <div className="text-2xl font-bold">{isLoading ? '...' : safeStatsData.vehicledDeliverers}</div>
           <p className="text-xs text-muted-foreground">
-            {Math.round((data.vehicledDeliverers / data.totalDeliverers) * 100)}% ont un véhicule
+            {isLoading ? 'Chargement...' : `${Math.round((safeStatsData.vehicledDeliverers / safeStatsData.totalDeliverers) * 100)}% ont un véhicule`}
           </p>
         </CardContent>
       </Card>
@@ -168,7 +204,7 @@ export function DeliverersStats({ data }: DeliverersStatsProps) {
           <MapPin className="h-4 w-4 text-muted-foreground" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold">{data.activeZones}</div>
+          <div className="text-2xl font-bold">{isLoading ? '...' : safeStatsData.activeZones}</div>
           <p className="text-xs text-muted-foreground">
             Zones avec livreurs actifs
           </p>
@@ -182,7 +218,7 @@ export function DeliverersStats({ data }: DeliverersStatsProps) {
           <UserX className="h-4 w-4 text-red-500" />
         </CardHeader>
         <CardContent>
-          <div className="text-2xl font-bold text-red-600">{data.suspendedDeliverers}</div>
+          <div className="text-2xl font-bold text-red-600">{isLoading ? '...' : safeStatsData.suspendedDeliverers}</div>
           <p className="text-xs text-muted-foreground">
             Nécessitent une attention
           </p>
@@ -199,7 +235,7 @@ export function DeliverersStats({ data }: DeliverersStatsProps) {
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-            {data.topPerformers.map((performer, index) => (
+            {safeStatsData.topPerformers.map((performer, index) => (
               <div
                 key={performer.id}
                 className="flex items-center space-x-3 p-3 rounded-lg border bg-muted/50"

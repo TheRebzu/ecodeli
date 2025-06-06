@@ -55,24 +55,7 @@ export default function AdminClientsPage() {
     refetch,
   } = useAdminClients();
 
-  // Debug des données dans le composant
-  console.log('🎨 [PAGE] État du composant:', {
-    clientsLength: clients?.length || 0,
-    isLoading,
-    hasError: !!error,
-    errorMessage: error?.message,
-    pagination,
-    filters,
-  });
 
-  if (clients && clients.length > 0) {
-    console.log('🎨 [PAGE] Premier client à afficher:', {
-      id: clients[0].id,
-      name: clients[0].name,
-      email: clients[0].email,
-      status: clients[0].status,
-    });
-  }
 
   // Gérer la sélection des clients
   const handleClientSelection = (clientId: string, selected: boolean) => {
@@ -346,12 +329,12 @@ export default function AdminClientsPage() {
                           </TableCell>
                           <TableCell>
                             <div className="flex space-x-1">
-                              <Link href={`/fr/admin/clients/${client.id}`}>
+                              <Link href={`/fr/admin/users/${client.id}`}>
                                 <Button variant="ghost" size="sm">
                                   <EyeIcon className="h-4 w-4" />
                                 </Button>
                               </Link>
-                              <Link href={`/fr/admin/clients/${client.id}/edit`}>
+                              <Link href={`/fr/admin/users/${client.id}/edit`}>
                                 <Button variant="ghost" size="sm">
                                   <EditIcon className="h-4 w-4" />
                                 </Button>

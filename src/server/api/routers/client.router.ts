@@ -709,23 +709,7 @@ export const clientRouter = router({
 
       const totalPages = Math.ceil(totalCount / limit);
 
-      // Debug logging
-      console.log('🔍 [API] getAllClients Debug:');
-      console.log(`  - Utilisateurs trouvés: ${clients.length}`);
-      console.log(`  - Clients valides: ${validClients.length}`);
-      console.log(`  - Total count: ${totalCount}`);
-      console.log(`  - Pagination: page=${page}, limit=${limit}, totalPages=${totalPages}`);
-      
-      if (validClients.length > 0) {
-        console.log('  - Premier client:', {
-          id: validClients[0].id,
-          name: validClients[0].name,
-          email: validClients[0].email,
-          status: validClients[0].status,
-        });
-      }
-
-      const result = {
+      return {
         clients: validClients,
         pagination: {
           page,
@@ -736,13 +720,6 @@ export const clientRouter = router({
           hasPrev: page > 1,
         },
       };
-      
-      console.log('🚀 [API] Retour final:', {
-        clientsCount: result.clients.length,
-        pagination: result.pagination,
-      });
-
-      return result;
     }),
 
   /**

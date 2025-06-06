@@ -60,8 +60,8 @@ interface Deliverer {
   status: DelivererStatus;
   isVerified: boolean;
   verificationStatus: VerificationStatus;
-  createdAt: Date;
-  lastActiveAt?: Date;
+  createdAt: Date | string;
+  lastActiveAt?: Date | string | null;
   totalDeliveries: number;
   completedDeliveries: number;
   rating: number;
@@ -89,8 +89,8 @@ export function DeliverersTable({
   const t = useTranslations('admin.deliverers');
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [verificationFilter, setVerificationFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('ALL');
+  const [verificationFilter, setVerificationFilter] = useState('ALL');
 
   // Mutations pour les actions admin
   const updateStatusMutation = api.adminUser.updateStatus.useMutation({
@@ -140,12 +140,12 @@ export function DeliverersTable({
     }
 
     // Filtre par statut
-    if (statusFilter && deliverer.status !== statusFilter) {
+    if (statusFilter && statusFilter !== 'ALL' && deliverer.status !== statusFilter) {
       return false;
     }
 
     // Filtre par vérification
-    if (verificationFilter && deliverer.verificationStatus !== verificationFilter) {
+    if (verificationFilter && verificationFilter !== 'ALL' && deliverer.verificationStatus !== verificationFilter) {
       return false;
     }
 
@@ -217,12 +217,26 @@ export function DeliverersTable({
     }).format(amount);
   };
 
-  const formatDate = (date: Date) => {
-    return new Intl.DateTimeFormat('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-    }).format(date);
+  const formatDate = (date: Date | string | null | undefined) => {
+    if (!date) return '-';
+    
+    try {
+      const dateObj = typeof date === 'string' ? new Date(date) : date;
+      
+      // Vérifier si la date est valide
+      if (isNaN(dateObj.getTime())) {
+        return '-';
+      }
+      
+      return new Intl.DateTimeFormat('fr-FR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      }).format(dateObj);
+    } catch (error) {
+      console.warn('Erreur lors du formatage de la date:', date, error);
+      return '-';
+    }
   };
 
   const getCompletionRate = (completed: number, total: number) => {
@@ -252,7 +266,7 @@ export function DeliverersTable({
             <SelectValue placeholder="Statut" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Tous les statuts</SelectItem>
+            <SelectItem value="ALL">Tous les statuts</SelectItem>
             <SelectItem value="ACTIVE">Actif</SelectItem>
             <SelectItem value="INACTIVE">Inactif</SelectItem>
             <SelectItem value="SUSPENDED">Suspendu</SelectItem>
@@ -264,7 +278,7 @@ export function DeliverersTable({
             <SelectValue placeholder="Vérification" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Toutes</SelectItem>
+            <SelectItem value="ALL">Toutes</SelectItem>
             <SelectItem value="PENDING">En attente</SelectItem>
             <SelectItem value="APPROVED">Approuvé</SelectItem>
             <SelectItem value="REJECTED">Rejeté</SelectItem>
