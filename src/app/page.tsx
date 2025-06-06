@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation';
-import { routing } from '../../src/i18n/routing';
+import { routing } from '@/i18n/routing';
 
 export default function RootPage() {
   // Rediriger vers la page d'accueil /fr/home

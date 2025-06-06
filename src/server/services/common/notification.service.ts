@@ -5,7 +5,7 @@ import { sendEmailNotification } from '@/lib/services/email.service';
 import { getUserPreferredLocale } from '@/lib/i18n/user-locale';
 import { DeliveryStatus } from '@prisma/client';
 import { OneSignalService } from '@/lib/integrations/onesignal';
-import { userPreferencesService } from './user-preferences.service';
+import { userPreferencesService } from '@/server/services/common/user-preferences.service';
 
 // Types manquants définis localement
 type SupportedLanguage = 'fr' | 'en';

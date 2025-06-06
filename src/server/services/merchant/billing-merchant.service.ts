@@ -1,12 +1,12 @@
-import { db } from '../../db';
+import { db } from '@/server/db';
 import { Decimal } from '@prisma/client/runtime/library';
 import { format, addDays, addMonths, startOfMonth, endOfMonth } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { billingService, BillingService } from '../shared/billing.service';
-import { invoiceService } from '../shared/invoice.service';
-import { paymentService } from '../shared/payment.service';
-import { EmailService } from '../../../lib/services/email.service';
-import { NotificationService } from '../../../lib/services/notification.service';
+import { billingService, BillingService } from '@/server/services/shared/billing.service';
+import { invoiceService } from '@/server/services/shared/invoice.service';
+import { paymentService } from '@/server/services/shared/payment.service';
+import { EmailService } from '@/lib/services/email.service';
+import { NotificationService } from '@/lib/services/notification.service';
 
 interface MerchantContractTerms {
   daysInPeriod: number;

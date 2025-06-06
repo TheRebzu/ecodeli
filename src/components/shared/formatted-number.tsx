@@ -1,6 +1,6 @@
 'use client';
 
-import { useLocalizedFormat } from '@/hooks/use-localized-format';
+import { useLocalizedFormat } from '@/hooks/system/use-socket';
 
 interface FormattedNumberProps {
   value: number | null | undefined;

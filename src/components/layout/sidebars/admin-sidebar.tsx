@@ -59,7 +59,7 @@ import {
   Server,
   Home,
 } from 'lucide-react';
-import { BaseSidebar, type SidebarSection } from './base-sidebar';
+import { BaseSidebar, type SidebarSection } from '@/components/layout/sidebars/base-sidebar';
 
 interface AdminSidebarProps {
   locale: string;

@@ -1,7 +1,7 @@
 import { db } from '@/server/db';
 import { TRPCError } from '@trpc/server';
-import { billingService } from '../shared/billing.service';
-import { invoiceService } from '../shared/invoice.service';
+import { billingService } from '@/server/services/shared/billing.service';
+import { invoiceService } from '@/server/services/shared/invoice.service';
 import type { ContractStatus } from '@prisma/client';
 
 /**

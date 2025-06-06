@@ -34,7 +34,7 @@ import {
   Users,
   Globe,
 } from 'lucide-react';
-import { BaseSidebar, type SidebarSection } from './base-sidebar';
+import { BaseSidebar, type SidebarSection } from '@/components/layout/sidebars/base-sidebar';
 
 interface DelivererSidebarProps {
   locale: string;

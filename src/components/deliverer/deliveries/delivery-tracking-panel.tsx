@@ -14,10 +14,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
-import DeliveryTrackingMap from '../../shared/maps/delivery-tracking-map';
-import DeliveryTimeline from '../../merchant/announcements/delivery-timeline';
-import DeliveryStatusIndicator from '../../shared/deliveries/delivery-status';
-import DeliveryETA from './delivery-eta';
+import DeliveryTrackingMap from '@/components/shared/maps/delivery-tracking-map';
+import DeliveryTimeline from '@/components/merchant/announcements/delivery-timeline';
+import DeliveryStatusIndicator from '@/components/shared/deliveries/delivery-status';
+import DeliveryETA from '@/components/deliverer/deliveries/delivery-eta';
 import { useDeliveryLiveTracking } from '@/hooks/features/use-delivery-tracking';
 import { DeliveryStatus } from '@/types/delivery/delivery';
 import {

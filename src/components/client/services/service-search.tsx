@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useSearchServices } from '@/hooks/services/use-search-services';
 import { ServiceCard } from '@/components/shared/services/service-card';
-import { ServiceSearchForm } from './search/service-search-form';
+import { ServiceSearchForm } from '@/components/client/services/search/service-search-form';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Pagination } from '@/components/ui/pagination';

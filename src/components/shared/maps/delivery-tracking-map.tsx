@@ -7,7 +7,7 @@ import 'leaflet-rotatedmarker';
 import { Truck, MapPin, Home, Store, Clock, Navigation, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils/common';
 import { useTheme } from 'next-themes';
-import LeafletMap, { MapBounds, MapPoint } from './leaflet-map';
+import LeafletMap, { MapBounds, MapPoint } from '@/components/shared/maps/leaflet-map';
 import { useDeliveryLiveTracking } from '@/hooks/features/use-delivery-tracking';
 import { useDeliveryETA } from '@/hooks/delivery/use-delivery-status';
 import { Button } from '@/components/ui/button';

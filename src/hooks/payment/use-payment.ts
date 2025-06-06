@@ -1,715 +1,440 @@
-import { useCallback, useState } from 'react';
+import { useState, useCallback } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/trpc/react';
-import { Elements } from '@stripe/react-stripe-js';
-import { loadStripe } from '@stripe/stripe-js';
-import { toast } from '@/components/ui/use-toast';
-import { usePaymentStore } from '@/store/use-payment-store';
-import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
-// Initialiser Stripe
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
+// Types pour les méthodes de paiement
+export type PaymentMethod = {
+  id: string;
+  type: string;
+  last4: string;
+  expiryMonth?: number;
+  expiryYear?: number;
+  brand?: string;
+  isDefault: boolean;
+};
 
-// Types exportés depuis le store
-export type { PaymentMethod, PaymentHistoryItem } from '@/store/use-payment-store';
+// Types pour les éléments de l'historique des paiements
+export type PaymentHistoryItem = {
+  id: string;
+  amount: number;
+  currency: string;
+  status: string;
+  date: Date;
+  description?: string;
+  delivery?: {
+    id: string;
+    status: string;
+  };
+  service?: {
+    id: string;
+    title: string;
+  };
+};
+
+// Type pour la pagination de l'historique
+export type PaginationInfo = {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
+
+// État du formulaire de paiement
+export type PaymentFormState = {
+  amount: number;
+  currency: string;
+  description: string;
+  deliveryId?: string;
+  serviceId?: string;
+  subscriptionId?: string;
+  paymentMethodId?: string;
+  metadata?: Record<string, any>;
+};
+
+// Interface pour l'état du paiement en cours
+export type CurrentPaymentState = {
+  id: string | null;
+  paymentIntentId: string | null;
+  clientSecret: string | null;
+  amount: number | null;
+  currency: string | null;
+  status: string | null;
+  error: string | null;
+  metadata: Record<string, any> | null;
+  isEscrow: boolean;
+};
 
 /**
- * Hook pour l'initialisation d'un paiement
- * @returns Fonctions et états pour initialiser un paiement
+ * Hook principal pour gérer l'état du paiement en cours
  */
-export function useInitiatePayment() {
-  const router = useRouter();
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
-  
-  const {
-    isProcessing,
-    errors,
-    form,
-    setForm,
-    resetForm,
-    clearErrors,
-    createPaymentIntent,
-    isDemoMode
-  } = usePaymentStore();
+export const useCurrentPayment = () => {
+  const [currentPayment, setCurrentPayment] = useState<CurrentPaymentState>({
+    id: null,
+    paymentIntentId: null,
+    clientSecret: null,
+    amount: null,
+    currency: null,
+    status: null,
+    error: null,
+    metadata: null,
+    isEscrow: false,
+  });
 
-  /**
-   * Initialise un paiement
-   * @param data Données du paiement
-   * @param redirectUrl URL de redirection après paiement
-   */
-  const initiatePayment = useCallback(
-    async (
-      data: {
-        amount: number;
-        currency?: string;
-        description: string;
-        deliveryId?: string;
-        serviceId?: string;
-        subscriptionId?: string;
-        paymentMethodId?: string;
-        metadata?: Record<string, any>;
-      },
-      redirectUrl?: string
-    ) => {
-      clearErrors();
-      
-      try {
-        // Mettre à jour le formulaire dans le store
-        setForm({
-          amount: data.amount,
-          currency: data.currency || 'EUR',
-          description: data.description,
-          deliveryId: data.deliveryId,
-          serviceId: data.serviceId,
-          subscriptionId: data.subscriptionId,
-          paymentMethodId: data.paymentMethodId,
-          metadata: data.metadata
-        });
-        
-        // Créer l'intent de paiement
-        const result = await createPaymentIntent(data);
-        
-        if (result?.clientSecret) {
-          setClientSecret(result.clientSecret);
-          
-          if (redirectUrl) {
-            // Rediriger vers la page de confirmation avec le secret client
-            router.push(`${redirectUrl}?payment_intent=${result.paymentIntentId}&client_secret=${result.clientSecret}`);
-          }
-          
-          return {
-            success: true,
-            clientSecret: result.clientSecret,
-            paymentIntentId: result.paymentIntentId
-          };
-        }
-        
-        return { success: false, error: 'Impossible de créer l\'intent de paiement' };
-      } catch (error) {
-        console.error('Erreur lors de l\'initialisation du paiement:', error);
-        const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue lors de l\'initialisation du paiement';
-        
-        toast({
-          variant: 'destructive',
-          title: 'Erreur de paiement',
-          description: errorMessage
-        });
-        
-        return { success: false, error: errorMessage };
-      }
-    },
-    [clearErrors, setForm, createPaymentIntent, router]
-  );
+  const updateCurrentPayment = useCallback((updates: Partial<CurrentPaymentState>) => {
+    setCurrentPayment(prev => ({ ...prev, ...updates }));
+  }, []);
 
-  /**
-   * Réinitialise l'état du paiement
-   */
-  const resetPayment = useCallback(() => {
-    resetForm();
-    clearErrors();
-    setClientSecret(null);
-  }, [resetForm, clearErrors]);
-
-  /**
-   * Crée un wrapper Stripe Elements
-   */
-  const PaymentElementsProvider = useCallback(
-    ({ children }: { children: React.ReactNode }) => {
-      if (!clientSecret) {
-        return <>{children}</>;
-      }
-
-      const options = {
-        clientSecret,
-        appearance: {
-          theme: 'stripe',
-        },
-      };
-
-      return (
-        <Elements stripe={stripePromise} options={options}>
-          {children}
-        </Elements>
-      );
-    },
-    [clientSecret]
-  );
+  const resetCurrentPayment = useCallback(() => {
+    setCurrentPayment({
+      id: null,
+      paymentIntentId: null,
+      clientSecret: null,
+      amount: null,
+      currency: null,
+      status: null,
+      error: null,
+      metadata: null,
+      isEscrow: false,
+    });
+  }, []);
 
   return {
-    initiatePayment,
-    resetPayment,
-    isProcessing,
-    errors,
-    clientSecret,
-    PaymentElementsProvider,
-    isDemoMode
+    currentPayment,
+    updateCurrentPayment,
+    resetCurrentPayment,
   };
-}
+};
 
 /**
- * Hook pour la confirmation d'un paiement
- * @returns Fonctions et états pour confirmer un paiement
+ * Hook pour gérer le formulaire de paiement
  */
-export function usePaymentConfirmation() {
-  const {
-    currentPayment,
-    isProcessing,
-    capturePayment,
-    cancelPayment,
-    refundPayment,
+export const usePaymentForm = () => {
+  const [form, setForm] = useState<PaymentFormState>({
+    amount: 0,
+    currency: 'EUR',
+    description: '',
+  });
+
+  const [errors, setErrors] = useState<Record<string, string> | null>(null);
+
+  const updateForm = useCallback((updates: Partial<PaymentFormState>) => {
+    setForm(prev => ({ ...prev, ...updates }));
+  }, []);
+
+  const resetForm = useCallback(() => {
+    setForm({
+      amount: 0,
+      currency: 'EUR',
+      description: '',
+    });
+    setErrors(null);
+  }, []);
+
+  const setFormErrors = useCallback((formErrors: Record<string, string> | null) => {
+    setErrors(formErrors);
+  }, []);
+
+  return {
+    form,
+    errors,
+    updateForm,
+    resetForm,
+    setFormErrors,
+  };
+};
+
+/**
+ * Hook pour créer un payment intent
+ */
+export const useCreatePaymentIntent = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (data: PaymentFormState) => {
+      const result = await api.payment.createPaymentIntent.mutate(data);
+      return result;
+    },
+    onSuccess: () => {
+      toast.success('Payment intent créé avec succès');
+      // Invalider les queries liées aux paiements
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+    },
+    onError: (error) => {
+      console.error('Erreur lors de la création du payment intent:', error);
+      toast.error(
+        error instanceof Error 
+          ? error.message 
+          : 'Une erreur est survenue lors de la création du paiement'
+      );
+    },
+  });
+};
+
+/**
+ * Hook pour capturer un paiement
+ */
+export const useCapturePayment = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (paymentId: string) => {
+      const result = await api.payment.capturePayment.mutate({ paymentId });
+      return result;
+    },
+    onSuccess: () => {
+      toast.success('Paiement capturé avec succès');
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      queryClient.invalidateQueries({ queryKey: ['payment-history'] });
+    },
+    onError: (error) => {
+      console.error('Erreur lors de la capture du paiement:', error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'Une erreur est survenue lors de la validation du paiement'
+      );
+    },
+  });
+};
+
+/**
+ * Hook pour annuler un paiement
+ */
+export const useCancelPayment = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (paymentId: string) => {
+      const result = await api.payment.cancelPayment.mutate({ paymentId });
+      return result;
+    },
+    onSuccess: () => {
+      toast.success('Paiement annulé avec succès');
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      queryClient.invalidateQueries({ queryKey: ['payment-history'] });
+    },
+    onError: (error) => {
+      console.error("Erreur lors de l'annulation du paiement:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Une erreur est survenue lors de l'annulation du paiement"
+      );
+    },
+  });
+};
+
+/**
+ * Hook pour rembourser un paiement
+ */
+export const useRefundPayment = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ paymentId, amount, reason }: { 
+      paymentId: string; 
+      amount?: number; 
+      reason: string;
+    }) => {
+      const result = await api.payment.refundPayment.mutate({ 
+        paymentId, 
+        amount, 
+        reason 
+      });
+      return result;
+    },
+    onSuccess: () => {
+      toast.success('Remboursement effectué avec succès');
+      queryClient.invalidateQueries({ queryKey: ['payments'] });
+      queryClient.invalidateQueries({ queryKey: ['payment-history'] });
+    },
+    onError: (error) => {
+      console.error('Erreur lors du remboursement:', error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : 'Une erreur est survenue lors du remboursement'
+      );
+    },
+  });
+};
+
+/**
+ * Hook pour récupérer les méthodes de paiement
+ */
+export const usePaymentMethods = () => {
+  return useQuery({
+    queryKey: ['payment-methods'],
+    queryFn: async () => {
+      const result = await api.payment.getPaymentMethods.query();
+      return result.paymentMethods || [];
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: false,
+  });
+};
+
+/**
+ * Hook pour l'historique des paiements avec pagination
+ */
+export const usePaymentHistory = (
+  page: number = 1,
+  limit: number = 10,
+  filters?: {
+    startDate?: Date;
+    endDate?: Date;
+    status?: string;
+    type?: string;
+  }
+) => {
+  return useQuery({
+    queryKey: ['payment-history', page, limit, filters],
+    queryFn: async () => {
+      const result = await api.payment.getPaymentHistory.query({
+        page,
+        limit,
+        startDate: filters?.startDate,
+        endDate: filters?.endDate,
+        status: filters?.status,
+        type: filters?.type,
+      });
+      return {
+        items: result.payments || [],
+        pagination: {
+          total: result.total,
+          page,
+          limit,
+          totalPages: result.pages,
+        } as PaginationInfo,
+      };
+    },
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    refetchOnWindowFocus: false,
+  });
+};
+
+/**
+ * Hook pour les paiements démonstration (mode démo)
+ */
+export const useDemoPayments = () => {
+  const [isDemoMode] = useState(process.env.NEXT_PUBLIC_DEMO_MODE === 'true');
+
+  const simulatePaymentSuccess = useCallback(async (paymentId: string) => {
+    if (!isDemoMode) return false;
+
+    try {
+      await fetch('/api/webhooks/stripe/demo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          eventType: 'payment_intent.succeeded',
+          paymentId,
+          status: 'succeeded',
+          metadata: {
+            demoMode: true,
+          },
+        }),
+      });
+
+      toast.success('Paiement réussi (mode démo)');
+      return true;
+    } catch (error) {
+      console.error('Erreur lors de la simulation de paiement réussi:', error);
+      toast.error('Erreur de simulation');
+      return false;
+    }
+  }, [isDemoMode]);
+
+  const simulatePaymentFailure = useCallback(async (paymentId: string, reason?: string) => {
+    if (!isDemoMode) return false;
+
+    try {
+      await fetch('/api/webhooks/stripe/demo', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          eventType: 'payment_intent.payment_failed',
+          paymentId,
+          status: 'failed',
+          metadata: {
+            reason: reason || 'Échec du paiement en mode démonstration',
+            demoMode: true,
+          },
+        }),
+      });
+
+      toast.error(reason || 'Paiement échoué (mode démo)');
+      return true;
+    } catch (error) {
+      console.error("Erreur lors de la simulation d'échec de paiement:", error);
+      toast.error('Erreur de simulation');
+      return false;
+    }
+  }, [isDemoMode]);
+
+  return {
+    isDemoMode,
     simulatePaymentSuccess,
     simulatePaymentFailure,
-    simulatePaymentDispute,
-    simulatePaymentRefund,
-    isDemoMode
-  } = usePaymentStore();
-
-  /**
-   * Confirme un paiement
-   * @param paymentIntentId ID de l'intent de paiement
-   */
-  const confirmPayment = useCallback(
-    async (paymentIntentId: string) => {
-      try {
-        const result = await capturePayment(paymentIntentId);
-        
-        if (result) {
-          toast({
-            title: 'Paiement confirmé',
-            description: 'Le paiement a été traité avec succès'
-          });
-        }
-        
-        return { success: result };
-      } catch (error) {
-        console.error('Erreur lors de la confirmation du paiement:', error);
-        const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue lors de la confirmation du paiement';
-        
-        toast({
-          variant: 'destructive',
-          title: 'Erreur de paiement',
-          description: errorMessage
-        });
-        
-        return { success: false, error: errorMessage };
-      }
-    },
-    [capturePayment]
-  );
-
-  /**
-   * Annule un paiement
-   * @param paymentIntentId ID de l'intent de paiement
-   */
-  const cancelPaymentIntent = useCallback(
-    async (paymentIntentId: string) => {
-      try {
-        const result = await cancelPayment(paymentIntentId);
-        
-        if (result) {
-          toast({
-            title: 'Paiement annulé',
-            description: 'Le paiement a été annulé avec succès'
-          });
-        }
-        
-        return { success: result };
-      } catch (error) {
-        console.error('Erreur lors de l\'annulation du paiement:', error);
-        const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue lors de l\'annulation du paiement';
-        
-        toast({
-          variant: 'destructive',
-          title: 'Erreur d\'annulation',
-          description: errorMessage
-        });
-        
-        return { success: false, error: errorMessage };
-      }
-    },
-    [cancelPayment]
-  );
-
-  /**
-   * Rembourse un paiement
-   * @param paymentIntentId ID de l'intent de paiement
-   * @param amount Montant à rembourser (optionnel, rembourse tout si non spécifié)
-   */
-  const refundPaymentIntent = useCallback(
-    async (paymentIntentId: string, amount?: number) => {
-      try {
-        const result = await refundPayment(paymentIntentId, amount);
-        
-        if (result) {
-          toast({
-            title: 'Remboursement effectué',
-            description: amount
-              ? `Le remboursement partiel de ${amount} € a été effectué avec succès`
-              : 'Le remboursement a été effectué avec succès'
-          });
-        }
-        
-        return { success: result };
-      } catch (error) {
-        console.error('Erreur lors du remboursement:', error);
-        const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue lors du remboursement';
-        
-        toast({
-          variant: 'destructive',
-          title: 'Erreur de remboursement',
-          description: errorMessage
-        });
-        
-        return { success: false, error: errorMessage };
-      }
-    },
-    [refundPayment]
-  );
-
-  // Fonctions de simulation en mode démo
-  const simulateSuccess = useCallback(
-    async (paymentId: string) => {
-      if (!isDemoMode) return { success: false, error: 'Mode démo non activé' };
-      
-      try {
-        const result = await simulatePaymentSuccess(paymentId);
-        return { success: result };
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la simulation';
-        return { success: false, error: errorMessage };
-      }
-    },
-    [isDemoMode, simulatePaymentSuccess]
-  );
-
-  const simulateFailure = useCallback(
-    async (paymentId: string, reason?: string) => {
-      if (!isDemoMode) return { success: false, error: 'Mode démo non activé' };
-      
-      try {
-        const result = await simulatePaymentFailure(paymentId, reason);
-        return { success: result };
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la simulation';
-        return { success: false, error: errorMessage };
-      }
-    },
-    [isDemoMode, simulatePaymentFailure]
-  );
-
-  const simulateDispute = useCallback(
-    async (paymentId: string, reason?: string) => {
-      if (!isDemoMode) return { success: false, error: 'Mode démo non activé' };
-      
-      try {
-        const result = await simulatePaymentDispute(paymentId, reason);
-        return { success: result };
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la simulation';
-        return { success: false, error: errorMessage };
-      }
-    },
-    [isDemoMode, simulatePaymentDispute]
-  );
-
-  const simulateRefund = useCallback(
-    async (paymentId: string, amount?: number) => {
-      if (!isDemoMode) return { success: false, error: 'Mode démo non activé' };
-      
-      try {
-        const result = await simulatePaymentRefund(paymentId, amount);
-        return { success: result };
-      } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la simulation';
-        return { success: false, error: errorMessage };
-      }
-    },
-    [isDemoMode, simulatePaymentRefund]
-  );
-
-  return {
-    currentPayment,
-    isProcessing,
-    confirmPayment,
-    cancelPayment: cancelPaymentIntent,
-    refundPayment: refundPaymentIntent,
-    simulateSuccess,
-    simulateFailure,
-    simulateDispute,
-    simulateRefund,
-    isDemoMode
   };
-}
+};
 
 /**
- * Hook pour l'historique des paiements
- * @returns Fonctions et états pour gérer l'historique des paiements
+ * Hook composite pour gérer tous les aspects des paiements
  */
-export function usePaymentHistory() {
-  const {
-    paymentHistory,
-    isRefreshing,
-    getPaymentHistory,
-    setPaymentHistoryFilter,
-    paymentMethods,
-    getPaymentMethods,
-    isDemoMode
-  } = usePaymentStore();
-
-  /**
-   * Charge l'historique des paiements
-   * @param page Numéro de page
-   * @param limit Nombre d'éléments par page
-   */
-  const loadPaymentHistory = useCallback(
-    async (page: number = 1, limit: number = 10) => {
-      try {
-        await getPaymentHistory(page, limit);
-        return { success: true };
-      } catch (error) {
-        console.error('Erreur lors du chargement de l\'historique des paiements:', error);
-        const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue lors du chargement de l\'historique';
-        
-        toast({
-          variant: 'destructive',
-          title: 'Erreur',
-          description: errorMessage
-        });
-        
-        return { success: false, error: errorMessage };
-      }
-    },
-    [getPaymentHistory]
-  );
-
-  /**
-   * Filtre l'historique des paiements
-   * @param filter Filtre à appliquer
-   */
-  const filterPaymentHistory = useCallback(
-    (filter: {
-      startDate?: Date;
-      endDate?: Date;
-      status?: string;
-      type?: string;
-    }) => {
-      setPaymentHistoryFilter(filter);
-      loadPaymentHistory(1);
-    },
-    [setPaymentHistoryFilter, loadPaymentHistory]
-  );
-
-  /**
-   * Charge les méthodes de paiement
-   */
-  const loadPaymentMethods = useCallback(async () => {
-    try {
-      const methods = await getPaymentMethods();
-      return { success: true, methods };
-    } catch (error) {
-      console.error('Erreur lors du chargement des méthodes de paiement:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Une erreur est survenue lors du chargement des méthodes de paiement';
-      
-      toast({
-        variant: 'destructive',
-        title: 'Erreur',
-        description: errorMessage
-      });
-      
-      return { success: false, error: errorMessage };
-    }
-  }, [getPaymentMethods]);
+export const usePayments = () => {
+  const currentPayment = useCurrentPayment();
+  const paymentForm = usePaymentForm();
+  const createPaymentIntent = useCreatePaymentIntent();
+  const capturePayment = useCapturePayment();
+  const cancelPayment = useCancelPayment();
+  const refundPayment = useRefundPayment();
+  const demoPayments = useDemoPayments();
 
   return {
-    paymentHistory,
-    paymentMethods,
-    isRefreshing,
-    loadPaymentHistory,
-    filterPaymentHistory,
-    loadPaymentMethods,
-    isDemoMode
-  };
-}
-
-/**
- * Hook pour gérer les paiements (compatible avec code existant)
- * @deprecated Utiliser plutôt useInitiatePayment, usePaymentConfirmation et usePaymentHistory
- */
-export function usePayment() {
-  const [isLoading, setIsLoading] = useState(false);
-  const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
-
-  // Requêtes tRPC
-  const createPaymentIntentMutation = trpc.payment.createPaymentIntent.useMutation();
-  const capturePaymentMutation = trpc.payment.capturePayment.useMutation();
-  const cancelPaymentMutation = trpc.payment.cancelPayment.useMutation();
-  const refundPaymentMutation = trpc.payment.refundPayment.useMutation();
-  const addPaymentMethodMutation = trpc.payment.addPaymentMethod.useMutation();
-  const removePaymentMethodMutation = trpc.payment.removePaymentMethod.useMutation();
-  const paymentMethodsQuery = trpc.payment.getPaymentMethods.useQuery(undefined, {
-    enabled: false,
-  });
-  const paymentHistoryQuery = trpc.payment.getPaymentHistory.useQuery(
-    { page: 1, limit: 10 },
-    { enabled: false }
-  );
-
-  /**
-   * Crée un intent de paiement
-   */
-  const createPaymentIntent = useCallback(
-    async (data: {
-      amount: number;
-      currency?: string;
-      deliveryId?: string;
-      serviceId?: string;
-      subscriptionId?: string;
-      paymentMethodId?: string;
-      description?: string;
-      metadata?: Record<string, string>;
-    }) => {
-      setIsLoading(true);
-      try {
-        const { amount, currency = 'eur', deliveryId, serviceId, subscriptionId, paymentMethodId, description, metadata } = data;
-        const result = await createPaymentIntentMutation.mutateAsync({
-          amount,
-          currency,
-          deliveryId,
-          serviceId,
-          subscriptionId,
-          paymentMethodId,
-          description,
-          metadata
-        });
-
-        if (result.clientSecret) {
-          setClientSecret(result.clientSecret);
-          setPaymentIntentId(result.paymentIntentId);
-        }
-
-        return result;
-      } catch (error) {
-        console.error('Erreur lors de la création du payment intent:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Erreur de paiement',
-          description: error instanceof Error ? error.message : 'Une erreur est survenue lors de la création du paiement'
-        });
-        throw error;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [createPaymentIntentMutation]
-  );
-
-  /**
-   * Capture un paiement après validation
-   */
-  const capturePayment = useCallback(
-    async (paymentIntentId: string) => {
-      setIsLoading(true);
-      try {
-        const result = await capturePaymentMutation.mutateAsync({ paymentIntentId });
-        return result;
-      } catch (error) {
-        console.error('Erreur lors de la capture du paiement:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Erreur de paiement',
-          description: error instanceof Error ? error.message : 'Une erreur est survenue lors de la validation du paiement'
-        });
-        throw error;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [capturePaymentMutation]
-  );
-
-  /**
-   * Annule un paiement
-   */
-  const cancelPayment = useCallback(
-    async (paymentIntentId: string) => {
-      setIsLoading(true);
-      try {
-        const result = await cancelPaymentMutation.mutateAsync({ paymentIntentId });
-        return result;
-      } catch (error) {
-        console.error('Erreur lors de l\'annulation du paiement:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Erreur de paiement',
-          description: error instanceof Error ? error.message : 'Une erreur est survenue lors de l\'annulation du paiement'
-        });
-        throw error;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [cancelPaymentMutation]
-  );
-
-  /**
-   * Rembourse un paiement
-   */
-  const refundPayment = useCallback(
-    async (paymentIntentId: string, amount?: number) => {
-      setIsLoading(true);
-      try {
-        const result = await refundPaymentMutation.mutateAsync({ paymentIntentId, amount });
-        return result;
-      } catch (error) {
-        console.error('Erreur lors du remboursement:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Erreur de remboursement',
-          description: error instanceof Error ? error.message : 'Une erreur est survenue lors du remboursement'
-        });
-        throw error;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [refundPaymentMutation]
-  );
-
-  /**
-   * Récupère les méthodes de paiement
-   */
-  const getPaymentMethods = useCallback(async () => {
-    try {
-      const result = await paymentMethodsQuery.refetch();
-      return result.data?.paymentMethods || [];
-    } catch (error) {
-      console.error('Erreur lors de la récupération des méthodes de paiement:', error);
-      toast({
-        variant: 'destructive',
-        title: 'Erreur',
-        description: error instanceof Error ? error.message : 'Une erreur est survenue lors de la récupération des méthodes de paiement'
-      });
-      return [];
-    }
-  }, [paymentMethodsQuery]);
-
-  /**
-   * Ajoute une méthode de paiement
-   */
-  const addPaymentMethod = useCallback(
-    async (paymentMethodId: string, setAsDefault: boolean = false) => {
-      setIsLoading(true);
-      try {
-        const result = await addPaymentMethodMutation.mutateAsync({
-          paymentMethodId,
-          setAsDefault
-        });
-        
-        // Actualiser la liste des méthodes de paiement
-        await paymentMethodsQuery.refetch();
-        
-        return result;
-      } catch (error) {
-        console.error('Erreur lors de l\'ajout de la méthode de paiement:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Erreur',
-          description: error instanceof Error ? error.message : 'Une erreur est survenue lors de l\'ajout de la méthode de paiement'
-        });
-        throw error;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [addPaymentMethodMutation, paymentMethodsQuery]
-  );
-
-  /**
-   * Supprime une méthode de paiement
-   */
-  const removePaymentMethod = useCallback(
-    async (paymentMethodId: string) => {
-      setIsLoading(true);
-      try {
-        const result = await removePaymentMethodMutation.mutateAsync({ paymentMethodId });
-        
-        // Actualiser la liste des méthodes de paiement
-        await paymentMethodsQuery.refetch();
-        
-        return result;
-      } catch (error) {
-        console.error('Erreur lors de la suppression de la méthode de paiement:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Erreur',
-          description: error instanceof Error ? error.message : 'Une erreur est survenue lors de la suppression de la méthode de paiement'
-        });
-        throw error;
-      } finally {
-        setIsLoading(false);
-      }
-    },
-    [removePaymentMethodMutation, paymentMethodsQuery]
-  );
-
-  /**
-   * Récupère l'historique des paiements
-   */
-  const getPaymentHistory = useCallback(
-    async (page: number = 1, limit: number = 10) => {
-      try {
-        const result = await paymentHistoryQuery.refetch({ page, limit });
-        return result.data || { payments: [], pagination: { total: 0, page, limit, totalPages: 0 } };
-      } catch (error) {
-        console.error('Erreur lors de la récupération de l\'historique des paiements:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Erreur',
-          description: error instanceof Error ? error.message : 'Une erreur est survenue lors de la récupération de l\'historique'
-        });
-        return { payments: [], pagination: { total: 0, page, limit, totalPages: 0 } };
-      }
-    },
-    [paymentHistoryQuery]
-  );
-
-  /**
-   * Crée un wrapper Stripe Elements
-   */
-  const PaymentElementsProvider = useCallback(
-    ({ children }: { children: React.ReactNode }) => {
-      if (!clientSecret) {
-        return <>{children}</>;
-      }
-
-      const options = {
-        clientSecret,
-        appearance: {
-          theme: 'stripe',
-        },
-      };
-
-      return (
-        <Elements stripe={stripePromise} options={options}>
-          {children}
-        </Elements>
-      );
-    },
-    [clientSecret]
-  );
-
-  return {
-    isLoading,
-    clientSecret,
-    paymentIntentId,
+    // État du paiement courant
+    ...currentPayment,
+    
+    // Formulaire de paiement
+    ...paymentForm,
+    
+    // Mutations
     createPaymentIntent,
     capturePayment,
     cancelPayment,
     refundPayment,
-    getPaymentMethods,
-    addPaymentMethod,
-    removePaymentMethod,
-    getPaymentHistory,
-    PaymentElementsProvider,
+    
+    // Fonctions démo
+    ...demoPayments,
+    
+    // États de chargement depuis les mutations
+    isCreating: createPaymentIntent.isPending,
+    isCapturing: capturePayment.isPending,
+    isCanceling: cancelPayment.isPending,
+    isRefunding: refundPayment.isPending,
+    
+    // États d'erreur depuis les mutations
+    createError: createPaymentIntent.error,
+    captureError: capturePayment.error,
+    cancelError: cancelPayment.error,
+    refundError: refundPayment.error,
   };
-} 
+};
+
+// Export des hooks individuels pour une utilisation spécifique
+export {
+  useCurrentPayment,
+  usePaymentForm,
+  useCreatePaymentIntent,
+  useCapturePayment,
+  useCancelPayment,
+  useRefundPayment,
+  usePaymentMethods,
+  usePaymentHistory,
+  useDemoPayments,
+}; 

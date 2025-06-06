@@ -12,7 +12,7 @@ import {
   ShieldIcon,
   User2Icon,
 } from 'lucide-react';
-import { DocumentTypeIconProps } from './document-types';
+import { DocumentTypeIconProps } from '@/components/shared/documents/document-types';
 
 /**
  * Component to display an appropriate icon based on document type

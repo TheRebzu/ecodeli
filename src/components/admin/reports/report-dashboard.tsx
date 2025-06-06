@@ -10,10 +10,10 @@ import { Button } from '@/components/ui/button';
 import { DownloadIcon, RefreshCw, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { SalesReport } from './sales-report';
-import { UserActivityReport } from './user-activity-report';
-import { DeliveryPerformanceReport } from './delivery-performance-report';
-import { ReportFilters } from './report-filters';
+import { SalesReport } from '@/components/admin/reports/sales-report';
+import { UserActivityReport } from '@/components/admin/reports/user-activity-report';
+import { DeliveryPerformanceReport } from '@/components/admin/reports/delivery-performance-report';
+import { ReportFilters } from '@/components/admin/reports/report-filters';
 import { toast } from 'sonner';
 import { AreaChart, BarChart, LineChart, PieChart } from '@/components/ui/charts';
 import {

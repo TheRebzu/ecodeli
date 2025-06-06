@@ -14,7 +14,7 @@ import { fr } from 'date-fns/locale';
 import { Decimal } from '@prisma/client/runtime/library';
 import { InvoiceStatus } from '@prisma/client';
 import { createHash } from 'crypto';
-import { PdfService, InvoicePdfData } from '../common/pdf.service';
+import { PdfService, InvoicePdfData } from '@/server/services/common/pdf.service';
 import { writeFile } from 'fs/promises';
 import path from 'path';
 import { mkdir } from 'fs/promises';

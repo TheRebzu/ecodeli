@@ -40,7 +40,11 @@
     "analyze:bundle": "ANALYZE=true next build",
     "fix:imports": "tsx scripts/fix-imports-auto.ts",
     "fix:imports:dry": "tsx scripts/fix-imports-auto.ts --dry-run",
-    "fix:all-imports": "node scripts/fix-all-imports.cjs"
+    "fix:all-imports": "node scripts/fix-all-imports.cjs",
+    "// Index Generation": "",
+    "index:generate": "node scripts/generate-indexes.mjs",
+    "index:clean": "node scripts/generate-indexes.mjs --clean",
+    "index:rebuild": "node scripts/generate-indexes.mjs --clean && node scripts/generate-indexes.mjs"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.9.1",
@@ -167,6 +171,7 @@
     "tailwind-merge": "^3.3.0",
     "tailwindcss": "^4.1.8",
     "tailwindcss-animate": "^1.0.7",
+    "ts-morph": "^26.0.0",
     "ts-node": "^10.9.2",
     "tsx": "^4.19.4",
     "tw-animate-css": "^1.3.4",

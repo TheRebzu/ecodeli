@@ -1,7 +1,7 @@
 import { Server } from 'socket.io';
 import { createAdapter } from '@socket.io/redis-adapter';
 import { createClient } from 'redis';
-import { verifyToken } from '../server/auth/session';
+import { verifyToken } from '@/server/auth/session';
 
 // Optimisations pour Socket.IO
 const ioConfig = {

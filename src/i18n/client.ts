@@ -1,7 +1,7 @@
 'use client';
 
 import { createTranslator } from 'next-intl';
-import { routing } from './routing';
+import { routing } from '@/i18n/routing';
 
 /**
  * Asynchronously loads translations for the specified locale

@@ -4,11 +4,11 @@ import { ReactNode } from 'react';
 import { useSession } from 'next-auth/react';
 import { usePathname } from 'next/navigation';
 import { UserRole } from '@prisma/client';
-import { RoleBasedSidebar } from './role-based-sidebar';
-import { ProtectedHeader } from './header';
-import { ProtectedFooter } from './footer';
-import { PageHeader } from './page-header';
-import { DashboardShell } from '../dashboard-shell';
+import { RoleBasedSidebar } from '@/components/layout/protected/role-based-sidebar';
+import { ProtectedHeader } from '@/components/layout/protected/header';
+import { ProtectedFooter } from '@/components/layout/protected/footer';
+import { PageHeader } from '@/components/layout/protected/page-header';
+import { DashboardShell } from '@/components/layout/dashboard-shell';
 import { Spinner } from '@/components/ui/spinner';
 import { AuthGuard } from '@/components/auth/guards/auth-guard';
 

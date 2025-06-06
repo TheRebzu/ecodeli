@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { api } from '@/trpc/react';
 import { Button } from '@/components/ui/button';
 import { PageHeader } from '@/components/ui/page-header';
-import { AnnouncementForm } from '@/components/announcements/merchant/announcement-form';
+import { AnnouncementForm } from '@/components/ui/form';
 import { ArrowLeft, Save, Settings, FileText } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';

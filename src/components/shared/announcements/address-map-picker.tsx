@@ -13,7 +13,7 @@ import dynamic from 'next/dynamic';
 import { useGeocoding } from '@/hooks/system/use-geocoding';
 
 // Import dynamique de la carte pour éviter les erreurs côté serveur
-const Map = dynamic(() => import('@/components/maps/leaflet-map'), {
+const Map = dynamic(() => import('../maps/leaflet-map'), {
   ssr: false,
   loading: () => (
     <div className="flex items-center justify-center h-[300px] bg-muted/20">

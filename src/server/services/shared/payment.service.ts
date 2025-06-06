@@ -1,8 +1,8 @@
 import { db } from '@/server/db';
 import { Decimal } from '@prisma/client/runtime/library';
 import { TRPCError } from '@trpc/server';
-import { stripeService } from './stripe.service';
-import { walletService } from './wallet.service';
+import { stripeService } from '@/server/services/shared/stripe.service';
+import { walletService } from '@/server/services/shared/wallet.service';
 import { PaymentStatus, TransactionType } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
 import { randomUUID } from 'crypto';
@@ -10,11 +10,11 @@ import {
   CreatePaymentInput,
   ProcessPaymentInput,
   RefundPaymentInput,
-} from '../../../schemas/payment/payment.schema';
-import { createInvoice } from './invoice.service';
-import { addWalletTransaction } from './wallet.service';
-import { logger } from '../../../lib/utils/logger';
-import { createCommission } from '../admin/commission.service';
+} from '@/schemas/payment/payment.schema';
+import { createInvoice } from '@/server/services/shared/invoice.service';
+import { addWalletTransaction } from '@/server/services/shared/wallet.service';
+import { logger } from '@/lib/utils/logger';
+import { createCommission } from '@/server/services/admin/commission.service';
 
 /**
  * Service de gestion des paiements

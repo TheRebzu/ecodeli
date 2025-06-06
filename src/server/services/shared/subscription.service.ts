@@ -1,9 +1,9 @@
 import { db } from '@/server/db';
 import { TRPCError } from '@trpc/server';
 import { PlanType, SubscriptionStatus } from '@prisma/client';
-import { stripeService } from './stripe.service';
-import { paymentService } from './payment.service';
-import { invoiceService } from './invoice.service';
+import { stripeService } from '@/server/services/shared/stripe.service';
+import { paymentService } from '@/server/services/shared/payment.service';
+import { invoiceService } from '@/server/services/shared/invoice.service';
 import { addMonths, addYears, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 import { Decimal } from '@prisma/client/runtime/library';
 

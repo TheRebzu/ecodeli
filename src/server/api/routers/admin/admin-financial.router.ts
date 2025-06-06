@@ -17,7 +17,7 @@ import {
   validateFinancialAmount,
   validateWithdrawal,
   preventDoubleInvoicing,
-} from '../../middlewares/financial-security.middleware';
+} from '@/server/api/middlewares/financial-security.middleware';
 
 /**
  * Router tRPC pour les fonctionnalités financières

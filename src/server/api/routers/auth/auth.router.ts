@@ -13,7 +13,7 @@ import { accountVerificationSchema } from '@/schemas/auth/verification.schema';
 import { createAdminSchema } from '@/schemas/admin/admin.schema';
 import { z } from 'zod';
 import { DocumentType, UserRole, VerificationStatus } from '@prisma/client';
-import { DocumentStatus } from '../../../db/enums';
+import { DocumentStatus } from '@/server/db/enums';
 import { TRPCError } from '@trpc/server';
 import { authenticator } from 'otplib';
 import { hashPassword, verifyPassword } from '@/lib/security/passwords';

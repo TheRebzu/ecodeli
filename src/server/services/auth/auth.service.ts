@@ -1,13 +1,13 @@
-import { db } from '../../db';
+import { db } from '@/server/db';
 import { hash, compare } from 'bcryptjs';
-import { UserRole, UserStatus } from '../../db/enums';
+import { UserRole, UserStatus } from '@/server/db/enums';
 import { randomBytes } from 'crypto';
 import { TRPCError } from '@trpc/server';
 import { LoginSchemaType } from '@/schemas/auth/login.schema';
 import { PrismaClient } from '@prisma/client';
-import { sendVerificationEmail, sendPasswordResetEmail } from '../../../lib/services/email.service';
-import { EmailService } from '../common/email.service';
-import { TokenService } from './token.service';
+import { sendVerificationEmail, sendPasswordResetEmail } from '@/lib/services/email.service';
+import { EmailService } from '@/server/services/common/email.service';
+import { TokenService } from '@/server/services/auth/token.service';
 import {
   ClientRegisterSchemaType,
   DelivererRegisterSchemaType,
@@ -15,8 +15,8 @@ import {
   ProviderRegisterSchemaType,
 } from '@/schemas/validation';
 import { VerificationStatus } from '@prisma/client';
-import { DocumentService } from '../common/document.service';
-import { NotificationService } from '../../../lib/services/notification.service';
+import { DocumentService } from '@/server/services/common/document.service';
+import { NotificationService } from '@/lib/services/notification.service';
 import { SupportedLanguage } from '@/types/i18n/translation';
 
 type RegisterBaseParams = {

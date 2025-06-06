@@ -5,9 +5,9 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Button } from '@/components/ui/button';
 import { RefreshCwIcon } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { DocumentCard } from './document-card';
-import { DocumentListProps, BaseDocument } from './document-types';
-import { DocumentPreview } from './document-preview';
+import { DocumentCard } from '@/components/shared/documents/document-card';
+import { DocumentListProps, BaseDocument } from '@/components/shared/documents/document-types';
+import { DocumentPreview } from '@/components/shared/documents/document-preview';
 
 /**
  * A reusable component for displaying a list of documents

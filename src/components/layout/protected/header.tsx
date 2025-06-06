@@ -27,8 +27,8 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { LanguageSwitcher } from '../common/language-switcher';
-import { ThemeToggle } from '../common/theme-toggle';
+import { LanguageSwitcher } from '@/components/layout/common/language-switcher';
+import { ThemeToggle } from '@/components/layout/common/theme-toggle';
 import { useAuth } from '@/hooks/auth/use-auth';
 
 interface ProtectedHeaderProps {

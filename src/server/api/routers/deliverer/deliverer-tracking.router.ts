@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { router, protectedProcedure } from '../../trpc';
+import { router, protectedProcedure } from '@/server/api/trpc';
 import { DeliveryService } from '@/server/services/deliverer/delivery.service';
 import { UserRole } from '@prisma/client';
 import { TRPCError } from '@trpc/server';

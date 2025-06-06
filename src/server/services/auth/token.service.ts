@@ -1,4 +1,4 @@
-import { db } from '../../db';
+import { db } from '@/server/db';
 import { randomBytes, createHash } from 'crypto';
 import { TRPCError } from '@trpc/server';
 import { PrismaClient } from '@prisma/client';

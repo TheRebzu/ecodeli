@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { router, protectedProcedure, publicProcedure } from '../../trpc';
+import { router, protectedProcedure, publicProcedure } from '@/server/api/trpc';
 import { UploadService, type UploadType } from '@/server/services/common/upload.service';
 import { TRPCError } from '@trpc/server';
 

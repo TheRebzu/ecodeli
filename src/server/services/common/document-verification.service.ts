@@ -5,8 +5,8 @@
 import { db } from '@/server/db';
 import { PrismaClient, UserRole, UserStatus } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
-import { DocumentService } from './document.service';
-import { VerificationService } from '../auth/verification.service';
+import { DocumentService } from '@/server/services/common/document.service';
+import { VerificationService } from '@/server/services/auth/verification.service';
 import {
   Document,
   DocumentStatus,

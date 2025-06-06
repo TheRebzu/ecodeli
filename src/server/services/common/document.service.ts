@@ -1,13 +1,13 @@
 import { PrismaClient, DocumentType, VerificationStatus, UserRole } from '@prisma/client';
-import { EmailService } from './email.service';
-import { DocumentStatus } from '../../db/enums';
+import { EmailService } from '@/server/services/common/email.service';
+import { DocumentStatus } from '@/server/db/enums';
 import fs from 'fs/promises';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { TRPCError } from '@trpc/server';
-import { db } from '../../db';
+import { db } from '@/server/db';
 import crypto from 'crypto';
-import { NotificationService, sendNotification } from './notification.service';
+import { NotificationService, sendNotification } from '@/server/services/common/notification.service';
 import { getUserPreferredLocale } from '@/lib/i18n/user-locale';
 
 // Interface Document pour typer les retours

@@ -16,7 +16,7 @@ import { useDeliveryTracking } from '@/hooks/features/use-delivery-tracking';
 import DeliveryTrackingMap from '@/components/shared/maps/delivery-tracking-map';
 import DeliveryStatus from '@/components/shared/deliveries/delivery-status';
 import DeliveryTimeline from '@/components/merchant/announcements/delivery-timeline';
-import CodeVerification from '@/components/deliveries/code-verification';
+import CodeVerification from '@/types/users/verification';
 import DeliveryRatingForm from '@/components/client/deliveries/delivery-rating-form';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DeliveryStatus as DeliveryStatusEnum } from '@/types/delivery/delivery';

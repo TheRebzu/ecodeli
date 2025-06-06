@@ -27,7 +27,7 @@ import {
   Truck,
   Phone,
 } from 'lucide-react';
-import { useDeliveryArrival } from '@/hooks/use-delivery-arrival';
+import { useDeliveryArrival } from '@/hooks/features/use-delivery-validation';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 

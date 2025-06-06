@@ -2,9 +2,9 @@
 
 import React from 'react';
 import { ProfileHeader } from '@/components/shared/profile/profile-header';
-import { ProfileInfoCard } from '@/components/profile/profile-info-card';
-import { ProfilePreferences } from '@/components/profile/profile-preferences';
-import { ClientProfileForm } from '@/components/profile/client/client-profile-form';
+import { ProfileInfoCard } from '@/components/ui/card';
+import { ProfilePreferences } from '@/types/users/preferences';
+import { ClientProfileForm } from '@/components/ui/form';
 import { useProfileStore } from '@/store/use-profile-store';
 import { UserRole } from '@prisma/client';
 

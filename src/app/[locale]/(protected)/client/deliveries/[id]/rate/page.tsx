@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
 import { Button } from '@/components/ui/button';
-import { ButtonWithLoading } from '@/components/ui/button-with-loading';
+import { ButtonWithLoading } from '@/app/[locale]/(public)/loading';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   Card,
@@ -40,7 +40,7 @@ import {
 } from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { cn } from '@/lib/utils/common';
-import { useDeliveryRating } from '@/hooks/use-delivery-rating';
+import { useDeliveryRating } from '@/hooks/features/use-delivery-tracking';
 
 // Schéma de validation
 const ratingSchema = z.object({

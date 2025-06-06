@@ -22,7 +22,7 @@ import DeliveryTrackingPanel from '@/components/deliverer/deliveries/delivery-tr
 import DeliveryContact from '@/components/deliverer/deliveries/delivery-contact';
 import DeliveryArrivalNotice from '@/components/deliverer/deliveries/delivery-arrival-notice';
 import DeliveryConfirmationForm from '@/components/deliverer/deliveries/delivery-confirmation-form';
-import { useDeliveryDetails } from '@/hooks/use-delivery-details';
+import { useDeliveryDetails } from '@/hooks/delivery/use-delivery-status';
 import { DeliveryStatus } from '@/types/delivery/delivery';
 
 export default function ClientDeliveryDetailsPage() {

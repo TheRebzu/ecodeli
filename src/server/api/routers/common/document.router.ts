@@ -2,7 +2,7 @@ import { TRPCError } from '@trpc/server';
 import { z } from 'zod';
 import { router, protectedProcedure, adminProcedure } from '@/server/api/trpc';
 import { DocumentService } from '@/server/services/common/document.service';
-import { DocumentStatus, DocumentType } from '../../../db/enums';
+import { DocumentStatus, DocumentType } from '@/server/db/enums';
 import { UserRole, VerificationStatus } from '@prisma/client';
 import {
   uploadDocumentSchema,

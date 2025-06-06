@@ -11,7 +11,7 @@ import { useTranslations } from 'next-intl';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Badge } from '@/components/ui/badge';
-import { JsonView } from '@/components/data-display/json-view';
+import { JsonView } from '@/components/admin/deliverers/document-review';
 
 // Type pour les logs d'audit
 interface AuditLog {

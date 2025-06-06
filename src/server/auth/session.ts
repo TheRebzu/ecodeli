@@ -2,7 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { TRPCError } from '@trpc/server';
 import { db } from '@/server/db';
 import { getServerSession } from 'next-auth';
-import { authOptions } from './next-auth';
+import { authOptions } from '@/server/auth/next-auth';
 
 const prisma = db;
 

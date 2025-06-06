@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/server/auth/next-auth';
-import { ProviderVerificationList } from '@/components/admin/verification/provider-verification-list';
+import { ProviderVerificationList } from '@/components/admin/verification/users-verification-list';
 import { getTranslations } from 'next-intl/server';
 import { db } from '@/server/db';
 

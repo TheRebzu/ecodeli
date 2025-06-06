@@ -1,11 +1,11 @@
 'use client';
 
 import { useState } from 'react';
-import { BoxSearchForm } from './box-search';
+import { BoxSearchForm } from '@/components/client/storage/box-search';
 import { BoxSearchInput } from '@/schemas/storage/storage.schema';
 import { useBoxSearch } from '@/hooks/common/use-storage';
-import { BoxDetailCard } from './box-detail-card';
-import { BoxReservationForm } from './box-reservation-form';
+import { BoxDetailCard } from '@/components/client/storage/box-detail-card';
+import { BoxReservationForm } from '@/components/client/storage/box-reservation-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useTranslations } from 'next-intl';
 import { BoxWithWarehouse } from '@/types/warehouses/storage-box';

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useSession } from 'next-auth/react';
-import { useSocket } from '../system/use-socket';
+import { useSocket } from '@/hooks/system/use-socket';
 
 /**
  * Custom hook for live tracking of deliveries

@@ -1,17 +1,17 @@
-import { db } from '../../db';
+import { db } from '@/server/db';
 import { Decimal } from '@prisma/client/runtime/library';
 import { format, startOfMonth, endOfMonth, addMonths, isSameMonth, parseISO } from 'date-fns';
 import { fr, enUS } from 'date-fns/locale';
 import { Prisma } from '@prisma/client';
 
 // Import des services nécessaires
-import { PaymentService } from './payment.service';
-import { WalletService } from './wallet.service';
-import { InvoiceService } from './invoice.service';
-import { CommissionService } from '../admin/commission.service';
-import { NotificationService } from '../../../lib/services/notification.service';
-import { EmailService } from '../../../lib/services/email.service';
-import { AuditService } from '../admin/audit.service';
+import { PaymentService } from '@/server/services/shared/payment.service';
+import { WalletService } from '@/server/services/shared/wallet.service';
+import { InvoiceService } from '@/server/services/shared/invoice.service';
+import { CommissionService } from '@/server/services/admin/commission.service';
+import { NotificationService } from '@/lib/services/notification.service';
+import { EmailService } from '@/lib/services/email.service';
+import { AuditService } from '@/server/services/admin/audit.service';
 
 interface BillingPeriod {
   startDate: Date;

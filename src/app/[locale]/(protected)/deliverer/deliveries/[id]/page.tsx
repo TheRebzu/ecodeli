@@ -33,7 +33,7 @@ import { DeliveryTimeline } from '@/components/merchant/announcements/delivery-t
 import { DeliveryNotes } from '@/components/deliverer/deliveries/delivery-notes';
 import { DeliveryStatusUpdate } from '@/components/deliverer/deliveries/delivery-status-update';
 import { DeliveryContact } from '@/components/deliverer/deliveries/delivery-contact';
-import { useLocalStorage } from '@/hooks/use-local-storage';
+import { useLocalStorage } from '@/hooks/common/use-storage';
 
 export default function DeliveryDetailPage() {
   const params = useParams();

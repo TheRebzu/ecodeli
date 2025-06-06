@@ -1,5 +1,5 @@
 import { DeliveryStatusEnum } from '@prisma/client';
-import { GeoPoint } from '../../components/deliverer/deliveries/delivery-tracking';
+import { GeoPoint } from '@/components/deliverer/deliveries/delivery-tracking';
 
 // Types d'événements de tracking
 export type TrackingEventType =

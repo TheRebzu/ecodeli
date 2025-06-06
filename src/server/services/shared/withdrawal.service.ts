@@ -1,18 +1,18 @@
 import { db } from '@/server/db';
 import Stripe from 'stripe';
 import { Decimal } from '@prisma/client/runtime/library';
-import { walletService } from './wallet.service';
+import { walletService } from '@/server/services/shared/wallet.service';
 import {
   TransactionStatus,
   TransactionType,
   Wallet,
   WithdrawalRequest,
   WithdrawalStatus,
-} from '@/types/prisma-client';
-import { NotificationService } from '../../../lib/services/notification.service';
-import { EmailService } from '../../../lib/services/email.service';
-import { AuditService } from '../admin/audit.service';
-import { WalletService } from './wallet.service';
+} from '@/trpc/client';
+import { NotificationService } from '@/lib/services/notification.service';
+import { EmailService } from '@/lib/services/email.service';
+import { AuditService } from '@/server/services/admin/audit.service';
+import { WalletService } from '@/server/services/shared/wallet.service';
 
 // Récupérer la clé API Stripe depuis les variables d'environnement
 const STRIPE_SECRET_KEY = process.env.STRIPE_SECRET_KEY || '';

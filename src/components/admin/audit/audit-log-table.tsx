@@ -22,7 +22,7 @@ import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AuditLogDetails } from './audit-log-details';
+import { AuditLogDetails } from '@/components/admin/audit/audit-log-details';
 import Image from 'next/image';
 
 // Définir un type spécifique au lieu de any

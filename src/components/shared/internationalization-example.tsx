@@ -1,7 +1,7 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useLocalizedFormat } from '@/hooks/use-localized-format';
+import { useLocalizedFormat } from '@/hooks/system/use-socket';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { LanguageSwitcher } from '@/components/ui/language-switcher';

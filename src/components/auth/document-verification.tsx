@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/auth/use-auth';
-import { useDocumentUpload } from '@/hooks/use-document-upload';
+import { useDocumentUpload } from '@/components/deliverer/documents/document-upload';
 import { DocumentType } from '@prisma/client';
 import {
   Card,

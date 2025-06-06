@@ -3,7 +3,7 @@
 import { VerificationStatus } from '@prisma/client';
 import { Badge } from '@/components/ui/badge';
 import { AlertCircle, CheckCircle, Clock, X } from 'lucide-react';
-import { DocumentStatusBadgeProps } from './document-types';
+import { DocumentStatusBadgeProps } from '@/components/shared/documents/document-types';
 
 /**
  * A component to display document verification status with appropriate styling

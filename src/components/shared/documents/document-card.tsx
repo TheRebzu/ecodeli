@@ -4,9 +4,9 @@ import { formatDate, formatFileSize } from '@/utils/document-utils';
 import { Button } from '@/components/ui/button';
 import { TrashIcon, EyeIcon, DownloadIcon } from 'lucide-react';
 import { getDocumentTypeName } from '@/utils/document-utils';
-import { DocumentStatusBadge } from './document-status-badge';
-import { DocumentTypeIcon } from './document-type-icon';
-import { DocumentCardProps } from './document-types';
+import { DocumentStatusBadge } from '@/components/shared/documents/document-status-badge';
+import { DocumentTypeIcon } from '@/components/shared/documents/document-type-icon';
+import { DocumentCardProps } from '@/components/shared/documents/document-types';
 
 /**
  * A reusable card component for displaying document information

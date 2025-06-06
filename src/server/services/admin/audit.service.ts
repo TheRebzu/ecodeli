@@ -1,4 +1,4 @@
-import { db } from '../../db';
+import { db } from '@/server/db';
 
 /**
  * Service pour la gestion des journaux d'audit

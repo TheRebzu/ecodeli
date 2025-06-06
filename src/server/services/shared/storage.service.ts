@@ -1,4 +1,4 @@
-import { db } from '../../db';
+import { db } from '@/server/db';
 import {
   BoxSearchInput,
   BoxReservationCreateInput,
@@ -12,7 +12,7 @@ import {
 import { TRPCError } from '@trpc/server';
 import { Prisma, PaymentStatus } from '@prisma/client';
 import { generateRandomCode } from '@/lib/utils/common';
-import { NotificationService } from '../../../lib/services/notification.service';
+import { NotificationService } from '@/lib/services/notification.service';
 
 // Types personnalisés pour les enums manquants
 export enum BoxType {

@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import type { UserDocument } from '@/types/verification';
+import type { UserDocument } from '@/types/users/verification';
 import { VerificationStatus } from '@/types/documents/verification';
 
 interface DocumentUploadProgress {

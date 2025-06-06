@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { api } from '@/trpc/react';
 import { useToast } from '@/components/ui/use-toast';
-import type { UserDocument } from '@/types/verification';
+import type { UserDocument } from '@/types/users/verification';
 import { useAuthStore } from '@/store/use-auth-store';
 
 /**

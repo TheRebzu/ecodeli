@@ -4,7 +4,7 @@ import React from 'react';
 import { DeliveryStatus as DeliveryStatusEnum } from '@prisma/client';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils/common';
-import { STATUS_CONFIG } from './delivery-status';
+import { STATUS_CONFIG } from '@/components/shared/deliveries/delivery-status';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 interface DeliveryStatusBadgeProps {

@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { DeliveryTable } from './delivery-table';
-import { DeliveryStats } from './delivery-stats';
-import { DeliveryFilters } from './delivery-filters';
-import { LiveMap } from './live-map';
+import { DeliveryTable } from '@/components/admin/deliveries/delivery-table';
+import { DeliveryStats } from '@/components/admin/deliveries/delivery-stats';
+import { DeliveryFilters } from '@/components/admin/deliveries/delivery-filters';
+import { LiveMap } from '@/components/admin/deliveries/live-map';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
