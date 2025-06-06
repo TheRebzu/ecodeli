@@ -32,30 +32,7 @@ export function useAdminClients() {
     ...filters,
   });
 
-  // Debug des données reçues
-  console.log('📨 [HOOK] État du hook:', {
-    isLoading,
-    hasError: !!error,
-    errorMessage: error?.message,
-    hasData: !!clientsData,
-    clientsCount: clientsData?.json?.clients?.length || 0,
-    pagination: clientsData?.json?.pagination,
-  });
 
-  // Debug de la structure complète des données
-  if (clientsData?.json) {
-    console.log('📊 [HOOK] Données réelles (json):', clientsData.json);
-    console.log('📊 [HOOK] Clients trouvés:', clientsData.json.clients?.length || 0);
-  }
-
-  if (clientsData?.json?.clients && clientsData.json.clients.length > 0) {
-    console.log('📨 [HOOK] Premier client reçu:', {
-      id: clientsData.json.clients[0].id,
-      name: clientsData.json.clients[0].name,
-      email: clientsData.json.clients[0].email,
-      status: clientsData.json.clients[0].status,
-    });
-  }
 
   // Récupérer les statistiques des clients
   const {

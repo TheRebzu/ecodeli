@@ -15,117 +15,45 @@ import {
   MessageCircle,
   MapPin
 } from 'lucide-react';
+import { api } from '@/trpc/react';
 
 export default function AdminDeliverersPage() {
   const [currentPage, setCurrentPage] = useState(1);
-  // Données simulées pour les statistiques
-  const statsData = {
-    totalDeliverers: 156,
-    activeDeliverers: 142,
-    verifiedDeliverers: 134,
-    pendingVerification: 8,
-    suspendedDeliverers: 6,
-    averageRating: 4.6,
-    totalDeliveries: 2847,
-    averageEarnings: 850,
-    vehicledDeliverers: 89,
-    topPerformers: [
-      { id: '1', name: 'Jean Dupont', rating: 4.9, deliveries: 156 },
-      { id: '2', name: 'Marie Martin', rating: 4.8, deliveries: 142 },
-      { id: '3', name: 'Pierre Durand', rating: 4.7, deliveries: 138 },
-      { id: '4', name: 'Sophie Bernard', rating: 4.7, deliveries: 125 },
-    ],
-    growthRate: 12.5,
-    activeZones: 25,
+  const [searchTerm, setSearchTerm] = useState('');
+  
+  // Récupération des données réelles depuis la base de données
+  const { data: deliverersData, isLoading: isLoadingDeliverers, refetch: refetchDeliverers, error: deliverersError } = api.admin.deliverers.getAll.useQuery({
+    page: currentPage,
+    limit: 10,
+    search: searchTerm || undefined,
+  });
+
+  const { data: statsData, isLoading: isLoadingStats, refetch: refetchStats, error: statsError } = api.admin.deliverers.getStats.useQuery();
+
+  // Extraction des données wrappées dans json (gestion du format tRPC)
+  const safeDeliverersData = deliverersData?.json || deliverersData;
+  const safeStatsData = statsData?.json || statsData;
+
+  // Fonction pour actualiser les données
+  const handleRefresh = () => {
+    refetchDeliverers();
+    refetchStats();
   };
 
-  // Données simulées pour les livreurs
-  const deliverersData = {
-    deliverers: [
-      {
-        id: '1',
-        firstName: 'Jean',
-        lastName: 'Dupont',
-        email: 'jean.dupont@example.com',
-        phone: '+33 6 12 34 56 78',
-        image: undefined,
-        status: 'ACTIVE' as const,
-        isVerified: true,
-        verificationStatus: 'APPROVED' as const,
-        createdAt: new Date('2024-01-15'),
-        lastActiveAt: new Date('2024-12-05'),
-        totalDeliveries: 156,
-        completedDeliveries: 152,
-        rating: 4.9,
-        earnings: 1250,
-        hasVehicle: true,
-        vehicleType: 'Vélo électrique',
-        preferredZones: ['Centre-ville', 'Quartier Nord'],
-      },
-      {
-        id: '2',
-        firstName: 'Marie',
-        lastName: 'Martin',
-        email: 'marie.martin@example.com',
-        phone: '+33 6 98 76 54 32',
-        image: undefined,
-        status: 'ACTIVE' as const,
-        isVerified: true,
-        verificationStatus: 'APPROVED' as const,
-        createdAt: new Date('2024-02-20'),
-        lastActiveAt: new Date('2024-12-05'),
-        totalDeliveries: 142,
-        completedDeliveries: 138,
-        rating: 4.8,
-        earnings: 980,
-        hasVehicle: false,
-        vehicleType: undefined,
-        preferredZones: ['Centre-ville'],
-      },
-      {
-        id: '3',
-        firstName: 'Pierre',
-        lastName: 'Durand',
-        email: 'pierre.durand@example.com',
-        phone: '+33 6 11 22 33 44',
-        image: undefined,
-        status: 'PENDING_VERIFICATION' as const,
-        isVerified: false,
-        verificationStatus: 'PENDING' as const,
-        createdAt: new Date('2024-11-01'),
-        lastActiveAt: new Date('2024-12-04'),
-        totalDeliveries: 5,
-        completedDeliveries: 4,
-        rating: 4.2,
-        earnings: 45,
-        hasVehicle: true,
-        vehicleType: 'Scooter',
-        preferredZones: ['Quartier Sud'],
-      },
-      {
-        id: '4',
-        firstName: 'Sophie',
-        lastName: 'Bernard',
-        email: 'sophie.bernard@example.com',
-        phone: '+33 6 55 66 77 88',
-        image: undefined,
-        status: 'SUSPENDED' as const,
-        isVerified: true,
-        verificationStatus: 'APPROVED' as const,
-        createdAt: new Date('2024-03-10'),
-        lastActiveAt: new Date('2024-11-28'),
-        totalDeliveries: 89,
-        completedDeliveries: 82,
-        rating: 4.1,
-        earnings: 650,
-        hasVehicle: false,
-        vehicleType: undefined,
-        preferredZones: ['Quartier Est', 'Quartier Ouest'],
-      },
-    ],
-    total: 156,
-    totalPages: 16,
-    currentPage: 1,
+  // Filtrer les livreurs par statut (utilisation des données extraites)
+  const getFilteredDeliverers = (status?: string) => {
+    if (!safeDeliverersData?.deliverers) return [];
+    
+    switch (status) {
+      case 'active':
+        return safeDeliverersData.deliverers.filter(d => d.status === 'ACTIVE');
+      case 'pending':
+        return safeDeliverersData.deliverers.filter(d => d.status === 'PENDING_VERIFICATION');
+      case 'suspended':
+        return safeDeliverersData.deliverers.filter(d => d.status === 'SUSPENDED');
+      default:
+        return safeDeliverersData.deliverers;
+    }
   };
 
   return (
@@ -140,7 +68,7 @@ export default function AdminDeliverersPage() {
         </div>
 
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleRefresh}>
             <RefreshCw className="mr-2 h-4 w-4" />
             Actualiser
           </Button>
@@ -160,7 +88,10 @@ export default function AdminDeliverersPage() {
       </div>
 
       {/* Statistiques */}
-      <DeliverersStats data={statsData} />
+      <DeliverersStats 
+        data={safeStatsData} 
+        isLoading={isLoadingStats} 
+      />
 
       {/* Contenu principal avec onglets */}
       <Tabs defaultValue="all" className="space-y-4">
@@ -197,9 +128,9 @@ export default function AdminDeliverersPage() {
             </CardHeader>
             <CardContent className="p-0">
               <DeliverersTable
-                deliverers={deliverersData.deliverers}
-                isLoading={false}
-                totalPages={deliverersData.totalPages}
+                deliverers={getFilteredDeliverers()}
+                isLoading={isLoadingDeliverers}
+                totalPages={safeDeliverersData?.totalPages || 1}
                 currentPage={currentPage}
                 onPageChange={setCurrentPage}
               />
@@ -217,8 +148,8 @@ export default function AdminDeliverersPage() {
             </CardHeader>
             <CardContent className="p-0">
               <DeliverersTable
-                deliverers={deliverersData.deliverers.filter(d => d.status === 'ACTIVE')}
-                isLoading={false}
+                deliverers={getFilteredDeliverers('active')}
+                isLoading={isLoadingDeliverers}
                 totalPages={1}
                 currentPage={1}
                 onPageChange={setCurrentPage}
@@ -237,8 +168,8 @@ export default function AdminDeliverersPage() {
             </CardHeader>
             <CardContent className="p-0">
               <DeliverersTable
-                deliverers={deliverersData.deliverers.filter(d => d.status === 'PENDING_VERIFICATION')}
-                isLoading={false}
+                deliverers={getFilteredDeliverers('pending')}
+                isLoading={isLoadingDeliverers}
                 totalPages={1}
                 currentPage={1}
                 onPageChange={setCurrentPage}
@@ -257,8 +188,8 @@ export default function AdminDeliverersPage() {
             </CardHeader>
             <CardContent className="p-0">
               <DeliverersTable
-                deliverers={deliverersData.deliverers.filter(d => d.status === 'SUSPENDED')}
-                isLoading={false}
+                deliverers={getFilteredDeliverers('suspended')}
+                isLoading={isLoadingDeliverers}
                 totalPages={1}
                 currentPage={1}
                 onPageChange={setCurrentPage}
