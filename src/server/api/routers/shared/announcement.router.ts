@@ -768,7 +768,7 @@ export const announcementRouter = router({
     }),
 
   // Obtenir des statistiques sur les annonces
-  getStats: protectedProcedure.input(announcementStatsSchema).query(async ({ ctx, input }) => {
+  getStats: protectedProcedure.input(announcementStatsSchema.optional().default({})).query(async ({ ctx, input }) => {
     try {
       // Vérifier que l'utilisateur est un admin, sinon limiter aux statistiques personnelles
       const isAdmin = ctx.session.user.role === UserRole.ADMIN;

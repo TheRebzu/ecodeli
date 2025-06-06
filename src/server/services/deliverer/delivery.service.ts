@@ -18,6 +18,62 @@ import { NotificationService } from '../../../lib/services/notification.service'
 
 export const DeliveryService = {
   /**
+   * Récupère les statistiques de livraisons
+   */
+  async getStats(startDate: Date, endDate: Date) {
+    try {
+      const [
+        totalDeliveries,
+        pendingDeliveries,
+        inProgressDeliveries,
+        completedDeliveries,
+        cancelledDeliveries,
+      ] = await Promise.all([
+        db.delivery.count({
+          where: { createdAt: { gte: startDate, lte: endDate } },
+        }),
+        db.delivery.count({
+          where: {
+            status: DeliveryStatus.PENDING,
+            createdAt: { gte: startDate, lte: endDate },
+          },
+        }),
+        db.delivery.count({
+          where: {
+            status: { in: [DeliveryStatus.PICKED_UP, DeliveryStatus.IN_TRANSIT] },
+            createdAt: { gte: startDate, lte: endDate },
+          },
+        }),
+        db.delivery.count({
+          where: {
+            status: DeliveryStatus.DELIVERED,
+            createdAt: { gte: startDate, lte: endDate },
+          },
+        }),
+        db.delivery.count({
+          where: {
+            status: DeliveryStatus.CANCELLED,
+            createdAt: { gte: startDate, lte: endDate },
+          },
+        }),
+      ]);
+
+      return {
+        totalDeliveries,
+        pendingDeliveries,
+        inProgressDeliveries,
+        completedDeliveries,
+        cancelledDeliveries,
+        completionRate: totalDeliveries > 0 ? (completedDeliveries / totalDeliveries) * 100 : 0,
+        timeRange: { startDate, endDate },
+      };
+    } catch (error) {
+      console.error('Erreur dans getStats:', error);
+      throw error;
+    }
+  },
+
+  /**
    * Récupère toutes les livraisons avec filtres
    */
   async getAll(filters: DeliveryFilters, userId: string, userRole: string) {

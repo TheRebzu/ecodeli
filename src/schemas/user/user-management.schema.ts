@@ -41,7 +41,7 @@ export const userFiltersSchema = z.object({
     ])
     .default('createdAt'),
   sortDirection: z.enum(['asc', 'desc']).default('desc'),
-});
+}).optional().default({});
 
 // Schema pour mettre à jour le statut d'un utilisateur
 export const updateUserStatusSchema = z.object({

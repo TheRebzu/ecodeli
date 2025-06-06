@@ -17,6 +17,20 @@ import {
 export const deliveryRouter = router({
   // ===== ENDPOINTS EXISTANTS AMÉLIORÉS =====
 
+  getStats: adminProcedure
+    .input(z.object({
+      startDate: z.coerce.date(),
+      endDate: z.coerce.date(),
+    }))
+    .query(async ({ input }) => {
+      try {
+        return await DeliveryService.getStats(input.startDate, input.endDate);
+      } catch (error) {
+        console.error('Erreur dans delivery.getStats:', error);
+        throw error;
+      }
+    }),
+
   getAll: protectedProcedure.input(deliveryFilterSchema).query(async ({ ctx, input }) => {
     return await DeliveryService.getAll(input, ctx.session.user.id, ctx.session.user.role);
   }),

@@ -47,7 +47,61 @@ export default function UserDetailPage() {
     action: () => void;
   } | null>(null);
 
-  const { data: user, isLoading } = api.adminUser.getUserDetail.useQuery({ userId });
+  // TEMPORAIRE: Récupérer la liste des utilisateurs pour trouver celui avec l'ID correct
+  const { data: usersData, isLoading } = api.adminUser.getUsers.useQuery({
+    page: 1,
+    limit: 50, // Récupérer plus d'utilisateurs pour être sûr de trouver le bon
+  });
+  
+  // DEBUG: Afficher les données reçues
+  console.log('🔍 DEBUG - usersData:', usersData);
+  console.log('🔍 DEBUG - userId cherché:', userId);
+  console.log('🔍 DEBUG - usersData?.json?.users:', usersData?.json?.users);
+  
+  // Trouver l'utilisateur avec l'ID correct dans la liste (les données sont dans json.users)
+  const user = usersData?.json?.users?.find((u: any) => u.id === userId);
+  console.log('🔍 DEBUG - user trouvé:', user);
+  
+  // Si l'utilisateur n'est pas trouvé, créer des données par défaut
+  const displayUser = user ? {
+    id: user.id,
+    name: user.name || 'Nom non défini',
+    email: user.email,
+    role: user.role,
+    status: user.status,
+    phoneNumber: user.phoneNumber || 'Non défini',
+    createdAt: user.createdAt,
+    updatedAt: user.createdAt, // Utiliser createdAt comme updatedAt
+    emailVerified: user.isVerified ? user.createdAt : null,
+    isVerified: user.isVerified,
+    lastLoginAt: user.lastLoginAt,
+    twoFactorEnabled: false, // Ajouter cette propriété manquante
+    // Profils simulés basés sur le rôle
+    client: user.role === 'CLIENT' ? { id: 'client-' + user.id, address: null } : null,
+    deliverer: user.role === 'DELIVERER' ? { 
+      id: 'deliverer-' + user.id, 
+      isVerified: user.isVerified,
+      address: null,
+      vehicleType: null 
+    } : null,
+    merchant: user.role === 'MERCHANT' ? { 
+      id: 'merchant-' + user.id,
+      isVerified: user.isVerified,
+      address: null 
+    } : null,
+    provider: user.role === 'PROVIDER' ? { 
+      id: 'provider-' + user.id,
+      isVerified: user.isVerified,
+      address: null 
+    } : null,
+    admin: user.role === 'ADMIN' ? { id: 'admin-' + user.id } : null,
+    documents: [],
+    verificationHistory: [],
+    activityLogs: [],
+  } : null;
+
+  // TODO: Remettre l'API réelle quand l'authentification admin sera configurée
+  // const { data: user, isLoading } = api.adminUser.getUserDetail.useQuery({ userId });
   const updateUserStatusMutation = api.adminUser.updateUserStatus.useMutation({
     onSuccess: () => {
       router.refresh();
@@ -145,7 +199,7 @@ export default function UserDetailPage() {
     );
   }
 
-  if (!user) {
+  if (!displayUser) {
     return (
       <div className="container mx-auto py-6 space-y-6">
         <div className="flex items-center gap-2">
@@ -167,14 +221,14 @@ export default function UserDetailPage() {
   }
 
   const isVerified =
-    user.role === UserRole.CLIENT || user.role === UserRole.ADMIN
+    displayUser.role === UserRole.CLIENT || displayUser.role === UserRole.ADMIN
       ? true
-      : user.role === UserRole.DELIVERER && user.deliverer
-        ? user.deliverer.isVerified
-        : user.role === UserRole.MERCHANT && user.merchant
-          ? user.merchant.isVerified
-          : user.role === UserRole.PROVIDER && user.provider
-            ? user.provider.isVerified
+      : displayUser.role === UserRole.DELIVERER && displayUser.deliverer
+        ? displayUser.deliverer.isVerified
+        : displayUser.role === UserRole.MERCHANT && displayUser.merchant
+          ? displayUser.merchant.isVerified
+          : displayUser.role === UserRole.PROVIDER && displayUser.provider
+            ? displayUser.provider.isVerified
             : false;
 
   return (
@@ -190,10 +244,13 @@ export default function UserDetailPage() {
         <CardHeader>
           <div className="flex justify-between items-start">
             <div>
-              <CardTitle className="text-2xl">{user.name}</CardTitle>
+              <CardTitle className="text-2xl">{displayUser.name}</CardTitle>
               <CardDescription className="mt-1 flex items-center gap-2 text-base">
-                {getRoleBadge(user.role)}
-                {getStatusBadge(user.status)}
+                {getRoleBadge(displayUser.role)}
+                {getStatusBadge(displayUser.status)}
+                <Badge variant="outline" className="bg-yellow-50 text-yellow-600 border-yellow-200">
+                  🧪 Mode Test
+                </Badge>
                 {isVerified ? (
                   <Badge variant="outline" className="border-green-500 text-green-500">
                     <Check className="mr-1 h-3 w-3" />
@@ -208,12 +265,12 @@ export default function UserDetailPage() {
               </CardDescription>
             </div>
             <div className="flex gap-2">
-              {user.status !== UserStatus.ACTIVE && (
+              {displayUser.status !== UserStatus.ACTIVE && (
                 <Button onClick={handleActivateUser} className="bg-green-500 hover:bg-green-600">
                   Activate
                 </Button>
               )}
-              {user.status !== UserStatus.SUSPENDED && (
+              {displayUser.status !== UserStatus.SUSPENDED && (
                 <Button onClick={handleSuspendUser} variant="destructive">
                   Suspend
                 </Button>
@@ -229,16 +286,16 @@ export default function UserDetailPage() {
             <TabsList>
               <TabsTrigger value="information">Information</TabsTrigger>
               <TabsTrigger value="activity">Activity</TabsTrigger>
-              {user.role === UserRole.ADMIN && (
+              {displayUser.role === UserRole.ADMIN && (
                 <TabsTrigger value="permissions">Permissions</TabsTrigger>
               )}
-              {user.role === UserRole.DELIVERER && (
+              {displayUser.role === UserRole.DELIVERER && (
                 <TabsTrigger value="deliveries">Deliveries</TabsTrigger>
               )}
-              {user.role === UserRole.MERCHANT && (
+              {displayUser.role === UserRole.MERCHANT && (
                 <TabsTrigger value="contracts">Contracts</TabsTrigger>
               )}
-              {user.role === UserRole.PROVIDER && (
+              {displayUser.role === UserRole.PROVIDER && (
                 <TabsTrigger value="services">Services</TabsTrigger>
               )}
             </TabsList>
@@ -253,37 +310,37 @@ export default function UserDetailPage() {
                     <div className="flex items-center gap-2">
                       <UserIcon className="h-4 w-4 text-muted-foreground" />
                       <span className="font-semibold">Name:</span>
-                      <span>{user.name}</span>
+                      <span>{displayUser.name}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Mail className="h-4 w-4 text-muted-foreground" />
                       <span className="font-semibold">Email:</span>
-                      <span>{user.email}</span>
+                      <span>{displayUser.email}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Phone className="h-4 w-4 text-muted-foreground" />
                       <span className="font-semibold">Phone:</span>
-                      <span>{user.phoneNumber || 'Not provided'}</span>
+                      <span>{displayUser.phoneNumber || 'Not provided'}</span>
                     </div>
-                    {user.client?.address ||
-                    user.deliverer?.address ||
-                    user.merchant?.address ||
-                    user.provider?.address ? (
+                    {displayUser.client?.address ||
+                    displayUser.deliverer?.address ||
+                    displayUser.merchant?.address ||
+                    displayUser.provider?.address ? (
                       <div className="flex items-center gap-2">
                         <MapPin className="h-4 w-4 text-muted-foreground" />
                         <span className="font-semibold">Address:</span>
                         <span>
-                          {user.client?.address ||
-                            user.deliverer?.address ||
-                            user.merchant?.address ||
-                            user.provider?.address}
+                          {displayUser.client?.address ||
+                            displayUser.deliverer?.address ||
+                            displayUser.merchant?.address ||
+                            displayUser.provider?.address}
                         </span>
                       </div>
                     ) : null}
                     <div className="flex items-center gap-2">
                       <Shield className="h-4 w-4 text-muted-foreground" />
                       <span className="font-semibold">2FA:</span>
-                      <span>{user.twoFactorEnabled ? 'Enabled' : 'Disabled'}</span>
+                      <span>{displayUser.twoFactorEnabled ? 'Enabled' : 'Disabled'}</span>
                     </div>
                   </CardContent>
                 </Card>
@@ -296,26 +353,26 @@ export default function UserDetailPage() {
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span className="font-semibold">Created:</span>
-                      <span>{format(new Date(user.createdAt), 'PPP')}</span>
+                      <span>{format(new Date(displayUser.createdAt), 'PPP')}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span className="font-semibold">Last Updated:</span>
-                      <span>{format(new Date(user.updatedAt), 'PPP')}</span>
+                      <span>{format(new Date(displayUser.updatedAt), 'PPP')}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span className="font-semibold">Last Login:</span>
                       <span>
-                        {user.lastLoginAt ? format(new Date(user.lastLoginAt), 'PPP') : 'Never'}
+                        {displayUser.lastLoginAt ? format(new Date(displayUser.lastLoginAt), 'PPP') : 'Never'}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span className="font-semibold">Email Verified:</span>
                       <span>
-                        {user.emailVerified
-                          ? format(new Date(user.emailVerified), 'PPP')
+                        {displayUser.emailVerified
+                          ? format(new Date(displayUser.emailVerified), 'PPP')
                           : 'Not verified'}
                       </span>
                     </div>
@@ -324,7 +381,7 @@ export default function UserDetailPage() {
               </div>
 
               {/* Role-specific information */}
-              {user.role === UserRole.DELIVERER && user.deliverer && (
+              {displayUser.role === UserRole.DELIVERER && displayUser.deliverer && (
                 <Card>
                   <CardHeader>
                     <CardTitle className="text-lg">Deliverer Information</CardTitle>

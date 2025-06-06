@@ -6,6 +6,8 @@ import { compare } from 'bcryptjs';
 import { db } from '../db';
 import { UserRole, UserStatus } from '../db/enums';
 import { authenticator } from 'otplib';
+import { GetServerSidePropsContext } from 'next';
+import { getServerSession } from 'next-auth/next';
 
 // Ensure we have a stable and consistent secret
 const getAuthSecret = () => {
@@ -246,4 +248,20 @@ export const authOptions: NextAuthOptions = {
       return session;
     },
   },
+};
+
+/**
+ * Fonction pour obtenir la session côté serveur
+ * Compatible avec les deux approches (Pages Router et App Router)
+ */
+export const getServerAuthSession = (ctx?: {
+  req: GetServerSidePropsContext['req'];
+  res: GetServerSidePropsContext['res'];
+}) => {
+  if (ctx?.req && ctx?.res) {
+    // Pages Router: utilisation des objets req et res
+    return getServerSession(ctx.req, ctx.res, authOptions);
+  }
+  // App Router: utilisation sans contexte spécifique
+  return getServerSession(authOptions);
 };

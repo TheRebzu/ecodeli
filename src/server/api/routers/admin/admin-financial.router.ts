@@ -3,26 +3,100 @@ import {
   financialProcedure,
   protectedProcedure,
   adminProcedure,
-  router as router,
+  router as createTRPCRouter,
 } from '@/server/api/trpc';
 import { TRPCError } from '@trpc/server';
 import { UserRole, PaymentStatus } from '@prisma/client';
-import { paymentService } from '@/server/services/shared/payment.service';
-import { walletService } from '@/server/services/shared/wallet.service';
-import { invoiceService } from '@/server/services/shared/invoice.service';
-import { commissionService } from '@/server/services/admin/commission.service';
-import { subscriptionService } from '@/server/services/shared/subscription.service';
+import { paymentService } from '@/server/services/payment.service';
+import { walletService } from '@/server/services/wallet.service';
+import { invoiceService } from '@/server/services/invoice.service';
+import { commissionService } from '@/server/services/commission.service';
+import { subscriptionService } from '@/server/services/subscription.service';
 import {
   financialProtect,
   validateFinancialAmount,
   validateWithdrawal,
   preventDoubleInvoicing,
-} from '../../middlewares/financial-security.middleware';
+} from './financial-security.middleware';
 
 /**
  * Router tRPC pour les fonctionnalités financières
  */
-export const financialRouter = router({
+export const financialRouter = createTRPCRouter({
+  /**
+   * STATISTIQUES FINANCIÈRES
+   */
+  getStats: adminProcedure
+    .input(z.object({
+      startDate: z.coerce.date(),
+      endDate: z.coerce.date(),
+    }))
+    .query(async ({ ctx, input }) => {
+      try {
+        const [
+          totalPayments,
+          completedPayments,
+          pendingPayments,
+          failedPayments,
+          totalAmount,
+          refundedAmount,
+        ] = await Promise.all([
+          ctx.db.payment.count({
+            where: { createdAt: { gte: input.startDate, lte: input.endDate } },
+          }),
+          ctx.db.payment.count({
+            where: {
+              status: PaymentStatus.COMPLETED,
+              createdAt: { gte: input.startDate, lte: input.endDate },
+            },
+          }),
+          ctx.db.payment.count({
+            where: {
+              status: PaymentStatus.PENDING,
+              createdAt: { gte: input.startDate, lte: input.endDate },
+            },
+          }),
+          ctx.db.payment.count({
+            where: {
+              status: PaymentStatus.FAILED,
+              createdAt: { gte: input.startDate, lte: input.endDate },
+            },
+          }),
+          ctx.db.payment.aggregate({
+            where: {
+              status: PaymentStatus.COMPLETED,
+              createdAt: { gte: input.startDate, lte: input.endDate },
+            },
+            _sum: { amount: true },
+          }),
+          ctx.db.payment.aggregate({
+            where: {
+              status: PaymentStatus.REFUNDED,
+              createdAt: { gte: input.startDate, lte: input.endDate },
+            },
+            _sum: { amount: true },
+          }),
+        ]);
+
+        return {
+          totalPayments,
+          completedPayments,
+          pendingPayments,
+          failedPayments,
+          totalAmount: totalAmount._sum.amount || 0,
+          refundedAmount: refundedAmount._sum.amount || 0,
+          successRate: totalPayments > 0 ? (completedPayments / totalPayments) * 100 : 0,
+          timeRange: {
+            startDate: input.startDate,
+            endDate: input.endDate,
+          },
+        };
+      } catch (error) {
+        console.error('Erreur dans financial.getStats:', error);
+        throw error;
+      }
+    }),
+
   /**
    * PAIEMENTS
    */

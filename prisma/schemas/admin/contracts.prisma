@@ -4,7 +4,7 @@
 /// Contrat conclu avec un commerçant
 model Contract {
   id            String         @id @default(cuid())
-  contractNumber String         @unique // Numéro de contrat auto-généré
+  contractNumber String?        @unique // Numéro de contrat auto-généré
   merchantId    String
   templateId    String?        // Template de contrat utilisé
   title         String

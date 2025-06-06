@@ -3,7 +3,7 @@ import { type CreateNextContextOptions } from '@trpc/server/adapters/next';
 import { type Session } from 'next-auth';
 import superjson from 'superjson';
 import { ZodError } from 'zod';
-import { getServerAuthSession } from '@/server/auth';
+import { getServerAuthSession } from '@/server/auth/next-auth';
 import { db } from '@/server/db';
 import { UserRole } from '@prisma/client';
 import { headers as getHeaders } from 'next/headers';
@@ -59,7 +59,7 @@ export const createTRPCContext = async (opts?: CreateNextContextOptionsWithAuth)
     if (opts.auth) {
       return createInnerTRPCContext({
         session: opts.auth.session,
-        headers: opts.req.headers,
+        headers: opts.req?.headers || {},
       });
     }
 
@@ -68,7 +68,7 @@ export const createTRPCContext = async (opts?: CreateNextContextOptionsWithAuth)
     const session = await getServerAuthSession({ req, res });
     return createInnerTRPCContext({
       session,
-      headers: req.headers,
+      headers: req?.headers || {},
     });
   }
 
@@ -77,7 +77,11 @@ export const createTRPCContext = async (opts?: CreateNextContextOptionsWithAuth)
   let session = null;
 
   try {
-    headers = getHeaders();
+    // Sécuriser l'accès aux headers avec une vérification
+    const headersList = await getHeaders();
+    if (headersList) {
+      headers = Object.fromEntries(headersList.entries());
+    }
     // Récupérer la session sans req/res avec Next.js App Router
     session = await getServerAuthSession();
   } catch (error: any) {
