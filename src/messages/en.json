@@ -1328,7 +1328,10 @@
     "minRating": "[TO_TRANSLATE] minRating",
     "ratingPlaceholder": "[TO_TRANSLATE] ratingPlaceholder",
     "anyRating": "[TO_TRANSLATE] anyRating",
-    "search": "[TO_TRANSLATE] search"
+    "search": "[TO_TRANSLATE] search",
+    "sortBy": "[TO_TRANSLATE] sortBy",
+    "sortDirection": "[TO_TRANSLATE] sortDirection",
+    "createdAt": "[TO_TRANSLATE] createdAt"
   },
   "": {
     "": "[TO_TRANSLATE] "
@@ -2042,7 +2045,10 @@
     "deliveries": "[TO_TRANSLATE] deliveries",
     "earnings": "[TO_TRANSLATE] earnings",
     "routes": "[TO_TRANSLATE] routes",
-    "activity": "[TO_TRANSLATE] activity"
+    "activity": "[TO_TRANSLATE] activity",
+    "dashboard": "[TO_TRANSLATE] dashboard",
+    "moderation": "[TO_TRANSLATE] moderation",
+    "disputes": "[TO_TRANSLATE] disputes"
   },
   "list": {
     "title": "documents téléchargés",
@@ -4132,7 +4138,15 @@
       "refresh": "refresh",
       "export": "export",
       "allAnnouncements": "allAnnouncements",
-      "manageAllAnnouncements": "manageAllAnnouncements"
+      "manageAllAnnouncements": "manageAllAnnouncements",
+      "description": "[TO_TRANSLATE] description",
+      "moderationRequired": "[TO_TRANSLATE] moderationRequired",
+      "moderationPendingCount": "[TO_TRANSLATE] moderationPendingCount",
+      "viewPending": "[TO_TRANSLATE] viewPending",
+      "totalAnnouncements": "[TO_TRANSLATE] totalAnnouncements",
+      "activeAnnouncements": "[TO_TRANSLATE] activeAnnouncements",
+      "pendingAnnouncements": "[TO_TRANSLATE] pendingAnnouncements",
+      "completedAnnouncements": "[TO_TRANSLATE] completedAnnouncements"
     },
     "users": {
       "activationStatus": {
@@ -7118,5 +7132,15 @@
   "anyTime": "[TO_TRANSLATE] anyTime",
   "minRating": "[TO_TRANSLATE] minRating",
   "ratingPlaceholder": "[TO_TRANSLATE] ratingPlaceholder",
-  "anyRating": "[TO_TRANSLATE] anyRating"
+  "anyRating": "[TO_TRANSLATE] anyRating",
+  "moderation": {
+    "title": "[TO_TRANSLATE] title",
+    "description": "[TO_TRANSLATE] description",
+    "comingSoon": "[TO_TRANSLATE] comingSoon"
+  },
+  "disputes": {
+    "title": "[TO_TRANSLATE] title",
+    "description": "[TO_TRANSLATE] description",
+    "comingSoon": "[TO_TRANSLATE] comingSoon"
+  }
 }

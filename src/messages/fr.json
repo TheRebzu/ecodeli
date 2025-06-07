@@ -252,8 +252,17 @@
         "pending": "En attente",
         "openMenu": "Ouvrir le menu",
         "actions": {
-          "export": "Exporter",
-          "addUser": "Ajouter un utilisateur"
+          "title": "Actions",
+          "view": "Voir le profil",
+          "edit": "Modifier",
+          "verify": "Vérifier",
+          "activate": "Activer",
+          "deactivate": "Désactiver",
+          "suspend": "Suspendre",
+          "ban": "Bannir",
+          "unban": "Débannir",
+          "delete": "Supprimer",
+          "resetPassword": "Réinitialiser le mot de passe"
         },
         "tabs": {
           "all": "Tous les utilisateurs",
@@ -280,19 +289,6 @@
           "SUSPENDED": "Suspendu",
           "PENDING_VERIFICATION": "En attente de vérification"
         },
-        "actions": {
-          "title": "Actions",
-          "view": "Voir le profil",
-          "edit": "Modifier",
-          "verify": "Vérifier",
-          "activate": "Activer",
-          "deactivate": "Désactiver",
-          "suspend": "Suspendre",
-          "ban": "Bannir",
-          "unban": "Débannir",
-          "delete": "Supprimer",
-          "resetPassword": "Réinitialiser le mot de passe"
-        },
         "stats": {
           "title": "Statistiques",
           "totalUsers": "Total utilisateurs",
@@ -300,40 +296,6 @@
           "newUsers": "Nouveaux utilisateurs",
           "churnRate": "Taux d'attrition",
           "growthRate": "Taux de croissance"
-        },
-        "table": {
-          "user": "Utilisateur",
-          "role": "Rôle",
-          "status": "Statut",
-          "created": "Créé le",
-          "lastActive": "Dernière activité",
-          "documents": "Documents"
-        },
-        "roles": {
-          "ADMIN": "Administrateur",
-          "CLIENT": "Client",
-          "DELIVERER": "Livreur",
-          "MERCHANT": "Commerçant",
-          "PROVIDER": "Prestataire"
-        },
-        "status": {
-          "ACTIVE": "Actif",
-          "INACTIVE": "Inactif",
-          "SUSPENDED": "Suspendu",
-          "PENDING_VERIFICATION": "En attente de vérification"
-        },
-        "actions": {
-          "title": "Actions",
-          "view": "Voir le profil",
-          "edit": "Modifier",
-          "verify": "Vérifier",
-          "activate": "Activer",
-          "deactivate": "Désactiver",
-          "suspend": "Suspendre",
-          "ban": "Bannir",
-          "unban": "Débannir",
-          "delete": "Supprimer",
-          "resetPassword": "Réinitialiser le mot de passe"
         },
         "bulkActions": {
           "button": "Actions en masse",
@@ -1727,7 +1689,10 @@
     "minRating": "minRating",
     "ratingPlaceholder": "ratingPlaceholder",
     "anyRating": "anyRating",
-    "search": "search"
+    "search": "search",
+    "sortBy": "sortBy",
+    "sortDirection": "sortDirection",
+    "createdAt": "createdAt"
   },
   "auth": {
     "login": {
@@ -3914,7 +3879,10 @@
     "deliveries": "deliveries",
     "earnings": "earnings",
     "routes": "routes",
-    "activity": "activity"
+    "activity": "activity",
+    "dashboard": "dashboard",
+    "moderation": "moderation",
+    "disputes": "disputes"
   },
   "payments": {
     "downloadStarted": "downloadStarted",
@@ -5772,7 +5740,15 @@
       "refresh": "refresh",
       "export": "export",
       "allAnnouncements": "allAnnouncements",
-      "manageAllAnnouncements": "manageAllAnnouncements"
+      "manageAllAnnouncements": "manageAllAnnouncements",
+      "description": "description",
+      "moderationRequired": "moderationRequired",
+      "moderationPendingCount": "moderationPendingCount",
+      "viewPending": "viewPending",
+      "totalAnnouncements": "totalAnnouncements",
+      "activeAnnouncements": "activeAnnouncements",
+      "pendingAnnouncements": "pendingAnnouncements",
+      "completedAnnouncements": "completedAnnouncements"
     },
     "users": {
       "activationStatus": {
@@ -7401,5 +7377,15 @@
   "anyTime": "anyTime",
   "minRating": "minRating",
   "ratingPlaceholder": "ratingPlaceholder",
-  "anyRating": "anyRating"
+  "anyRating": "anyRating",
+  "moderation": {
+    "title": "title",
+    "description": "description",
+    "comingSoon": "comingSoon"
+  },
+  "disputes": {
+    "title": "title",
+    "description": "description",
+    "comingSoon": "comingSoon"
+  }
 }

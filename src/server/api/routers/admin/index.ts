@@ -4,6 +4,7 @@
  */
 
 // Exports des fichiers locaux
+export * from './admin-announcements.router';
 export * from './admin-audit.router';
 export * from './admin-commission.router';
 export * from './admin-contracts.router';
