@@ -159,4 +159,3 @@ export function formatDateLocalized(
   const defaultFormat = locale === 'fr' ? 'dd/MM/yyyy' : 'MM/dd/yyyy';
   return formatDateCustom(date, defaultFormat, locale);
 }
-import { format } from 'date-fns';\nimport { fr, enUS } from 'date-fns/locale';\n\nexport const formatCurrency = (amount: number, currency = 'EUR', locale = 'fr-FR') => {\n  return new Intl.NumberFormat(locale, {\n    style: 'currency',\n    currency,\n  }).format(amount);\n};\n\nexport const formatDate = (date: Date | string, pattern = 'PP', locale = 'fr') => {\n  const dateObj = date instanceof Date ? date : new Date(date);\n  const localeObj = locale === 'fr' ? fr : enUS;\n  \n  return format(dateObj, pattern, { locale: localeObj });\n};

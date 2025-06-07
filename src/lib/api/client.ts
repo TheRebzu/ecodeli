@@ -1,8 +1,21 @@
 import { createTRPCReact } from '@trpc/react-query';
 import type { AppRouter } from '@/server/api/root';
+import { TRPCClientError } from '@trpc/client';
 
 export const api = createTRPCReact<AppRouter>();
-import { TRPCClientError } from '@trpc/client';\n\nexport function handleApiError(error: unknown): string {\n  if (error instanceof TRPCClientError) {\n    return error.message;\n  }\n  \n  if (error instanceof Error) {\n    return error.message;\n  }\n  \n  return 'Une erreur inconnue est survenue';\n};
+
+export function handleApiError(error: unknown): string {
+  if (error instanceof TRPCClientError) {
+    return error.message;
+  }
+  
+  if (error instanceof Error) {
+    return error.message;
+  }
+  
+  return 'Une erreur inconnue est survenue';
+}
+
 import { api } from '@/trpc/react';
 
 interface RegisterUserData {
