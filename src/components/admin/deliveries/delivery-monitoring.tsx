@@ -21,7 +21,7 @@ export function DeliveryDashboard() {
   const [mapView, setMapView] = useState(false);
   const [filters, setFilters] = useState({
     status: '',
-    searchTerm: '',
+    search: '',
     startDate: '',
     endDate: '',
     page: 1,
@@ -30,7 +30,7 @@ export function DeliveryDashboard() {
 
   const deliveriesQuery = api.delivery.getAll.useQuery({
     status: filters.status ? (filters.status as DeliveryStatus) : undefined,
-    searchTerm: filters.searchTerm || undefined,
+    search: filters.search || undefined,
     startDate: filters.startDate ? new Date(filters.startDate) : undefined,
     endDate: filters.endDate ? new Date(filters.endDate) : undefined,
     page: filters.page,
@@ -38,8 +38,8 @@ export function DeliveryDashboard() {
   });
 
   const statsQuery = api.delivery.getStats.useQuery({
-    startDate: filters.startDate ? new Date(filters.startDate) : undefined,
-    endDate: filters.endDate ? new Date(filters.endDate) : undefined,
+    ...(filters.startDate && { startDate: new Date(filters.startDate) }),
+    ...(filters.endDate && { endDate: new Date(filters.endDate) }),
   });
 
   const handleTabChange = (value: string) => {

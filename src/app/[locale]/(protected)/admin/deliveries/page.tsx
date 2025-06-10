@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { DeliveryDashboard } from '@/config/dashboard';
+import { DeliveryDashboard } from '@/components/admin/deliveries/delivery-monitoring';
 import { DeliveryIssues } from '@/components/admin/deliveries/delivery-issues';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';

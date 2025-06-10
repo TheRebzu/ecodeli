@@ -73,6 +73,9 @@ export const deliveryFilterSchema = z.object({
   startDate: z.coerce.date().optional(),
   endDate: z.coerce.date().optional(),
   search: z.string().optional(),
+  searchTerm: z.string().optional(),
+  page: z.number().min(1).default(1),
+  limit: z.number().min(1).max(100).default(10),
 });
 
 // Schéma pour la création d'une livraison dans le système de suivi

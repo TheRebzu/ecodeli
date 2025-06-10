@@ -19,12 +19,16 @@ export const deliveryRouter = router({
 
   getStats: adminProcedure
     .input(z.object({
-      startDate: z.coerce.date(),
-      endDate: z.coerce.date(),
+      startDate: z.coerce.date().optional(),
+      endDate: z.coerce.date().optional(),
     }))
     .query(async ({ input }) => {
       try {
-        return await DeliveryService.getStats(input.startDate, input.endDate);
+        // Utiliser des valeurs par défaut si non fournies
+        const startDate = input.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // 30 jours par défaut
+        const endDate = input.endDate || new Date();
+        
+        return await DeliveryService.getStats(startDate, endDate);
       } catch (error) {
         console.error('Erreur dans delivery.getStats:', error);
         throw error;
