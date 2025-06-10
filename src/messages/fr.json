@@ -5212,10 +5212,104 @@
     "checking": "checking",
     "checkVerificationStatus": "checkVerificationStatus"
   },
+  "Admin": {
+    "verification": {
+      "tabs": {
+        "all": "Tous",
+        "pending": "En attente",
+        "approved": "Approuvés", 
+        "rejected": "Rejetés"
+      },
+      "userDocumentsTitle": "Documents de l'utilisateur",
+      "documentsListTitle": "Liste des documents",
+      "documentsListDescription": "Tous les documents téléchargés par l'utilisateur",
+      "backToUsers": "Retour aux utilisateurs",
+      "loading": "Chargement...",
+      "rejectDocument": "Rejeter le document",
+      "rejectDocumentDescription": "Veuillez indiquer une raison de rejet. Elle sera visible par l'utilisateur.",
+      "approveDocument": "Approuver le document",
+      "approveDocumentDescription": "Ajoutez des notes optionnelles pour cette approbation (non visible par l'utilisateur).",
+      "rejectionReasonPlaceholder": "Entrez la raison du rejet",
+      "approvalNotesPlaceholder": "Notes optionnelles pour l'approbation",
+      "cancel": "Annuler",
+      "confirm": "Confirmer",
+      "documentApproved": "Document approuvé avec succès",
+      "documentRejected": "Document rejeté avec succès",
+      "status": {
+        "pending": "En attente",
+        "approved": "Approuvé",
+        "rejected": "Rejeté"
+      },
+      "documentTypes": {
+        "ID_CARD": "Carte d'identité",
+        "DRIVING_LICENSE": "Permis de conduire",
+        "SELFIE": "Selfie",
+        "OTHER": "Autre"
+      },
+      "actions": {
+        "view": "Voir",
+        "approve": "Approuver",
+        "reject": "Rejeter"
+      },
+      "noDocuments": "Aucun document trouvé"
+    }
+  },
   "admin": {
     "verification": {
-      "title": "title",
-      "description": "description",
+      "metadata": {
+        "title": "Vérifications - EcoDeli Admin",
+        "description": "Gérez les demandes de vérification des utilisateurs de la plateforme"
+      },
+      "title": "Vérifications",
+      "description": "Gérez les demandes de vérification des utilisateurs",
+      "userVerification": {
+        "title": "Vérification des documents",
+        "description": "Gérez les documents de vérification de cet utilisateur"
+      },
+      "tabs": {
+        "all": "Tous",
+        "pending": "En attente",
+        "approved": "Approuvés", 
+        "rejected": "Rejetés"
+      },
+      "userDocumentsTitle": "Documents de l'utilisateur",
+      "documentsListTitle": "Liste des documents",
+      "documentsListDescription": "Tous les documents téléchargés par l'utilisateur",
+      "backToUsers": "Retour aux utilisateurs",
+      "loading": "Chargement...",
+      "rejectDocument": "Rejeter le document",
+      "rejectDocumentDescription": "Veuillez indiquer une raison de rejet. Elle sera visible par l'utilisateur.",
+      "approveDocument": "Approuver le document",
+      "approveDocumentDescription": "Ajoutez des notes optionnelles pour cette approbation (non visible par l'utilisateur).",
+      "rejectionReasonPlaceholder": "Entrez la raison du rejet",
+      "approvalNotesPlaceholder": "Notes optionnelles pour l'approbation",
+      "cancel": "Annuler",
+      "confirm": "Confirmer",
+      "documentApproved": "Document approuvé avec succès",
+      "documentRejected": "Document rejeté avec succès",
+      "status": {
+        "pending": "En attente",
+        "approved": "Approuvé",
+        "rejected": "Rejeté"
+      },
+      "documentTypes": {
+        "ID_CARD": "Carte d'identité",
+        "DRIVING_LICENSE": "Permis de conduire",
+        "SELFIE": "Selfie",
+        "OTHER": "Autre"
+      },
+             "actions": {
+         "view": "Voir",
+         "approve": "Approuver",
+         "reject": "Rejeter"
+       },
+       "noDocuments": "Aucun document trouvé",
+       "documentsTable": {
+         "documentType": "Type de document",
+         "uploadedDate": "Date de téléchargement",
+         "status": "Statut",
+         "actions": "Actions"
+       },
       "filters": {
         "role": "role",
         "allRoles": "allRoles",
