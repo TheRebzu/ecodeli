@@ -28,6 +28,7 @@ import { financialTaskRouter } from './routers/shared/financial-task.router';
 import { adminRouter } from './routers/admin/admin.router';
 import { adminUserRouter } from './routers/admin/admin-users.router';
 import { adminServicesRouter } from './routers/admin/admin-services.router';
+import { adminContractsRouter } from './routers/admin/admin-contracts.router';
 
 // Client routers
 import { clientRouter } from './routers/client/client.router';
@@ -90,6 +91,7 @@ export const appRouter = router({
   admin: adminRouter,
   adminUser: adminUserRouter, // Direct access to admin user router
   adminServices: adminServicesRouter, // Direct access to admin services router
+  adminContracts: adminContractsRouter, // Direct access to admin contracts router
   adminWarehouse: warehouseRouter, // alias pour admin warehouse
   
   // Client
