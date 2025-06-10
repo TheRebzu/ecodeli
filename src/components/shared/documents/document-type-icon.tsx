@@ -8,7 +8,7 @@ import {
   CarIcon,
   HomeIcon,
   BuildingIcon,
-  CertificateIcon,
+  AwardIcon,
   ShieldIcon,
   User2Icon,
 } from 'lucide-react';
@@ -31,7 +31,7 @@ export function DocumentTypeIcon({ type, size = 5 }: DocumentTypeIconProps) {
       case DocumentType.BUSINESS_REGISTRATION:
         return <BuildingIcon className={`h-${size} w-${size} text-primary`} />;
       case DocumentType.QUALIFICATION_CERTIFICATE:
-        return <CertificateIcon className={`h-${size} w-${size} text-primary`} />;
+        return <AwardIcon className={`h-${size} w-${size} text-primary`} />;
       case DocumentType.INSURANCE:
         return <ShieldIcon className={`h-${size} w-${size} text-primary`} />;
       case DocumentType.SELFIE:

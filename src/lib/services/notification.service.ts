@@ -12,6 +12,27 @@ export interface NotificationData {
 /**
  * Service pour gérer les notifications du système
  */
+/**
+ * Fonction utilitaire pour envoyer une notification à un utilisateur
+ * Compatible avec l'ancienne API
+ */
+export async function sendNotification(params: {
+  userId: string;
+  title: string;
+  message: string;
+  type: NotificationType;
+  link?: string;
+  data?: Record<string, any>;
+}) {
+  return NotificationService.sendToUser(params.userId, {
+    title: params.title,
+    message: params.message,
+    type: params.type,
+    link: params.link,
+    data: params.data,
+  });
+}
+
 export class NotificationService {
   /**
    * Envoie une notification à un utilisateur spécifique

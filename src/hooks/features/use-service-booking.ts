@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { api } from '@/trpc/react';
 import { useTranslations } from 'next-intl';
-import { useLocalizedFormat } from '@/components/ui/form';
+// Removed useLocalizedFormat import as it doesn't exist
 
 interface UseServiceBookingProps {
   serviceId?: string;
@@ -20,7 +20,7 @@ export function useServiceBooking({ serviceId, providerId }: UseServiceBookingPr
   const utils = api.useUtils();
   const t = useTranslations('service.booking');
   const tStatus = useTranslations('service.booking.status');
-  const { formatLocalizedDate } = useLocalizedFormat();
+  // Removed formatLocalizedDate as useLocalizedFormat doesn't exist
 
   // État local pour la réservation
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);

@@ -1,8 +1,20 @@
 /**
  * Utilities pour la manipulation des documents
  */
-import { Document, UserRole, VerificationStatus } from '@prisma/client';
 import { db } from '@/server/db';
+import { formatCurrency as formatCurrencyUtil, formatDate as formatDateUtil } from '@/lib/utils/common';
+
+// Import types from proper locations
+import type { Document, VerificationStatus } from '@/types/documents/verification';
+
+// UserRole enum values for typing
+export enum UserRole {
+  CLIENT = 'CLIENT',
+  DELIVERER = 'DELIVERER', 
+  MERCHANT = 'MERCHANT',
+  PROVIDER = 'PROVIDER',
+  ADMIN = 'ADMIN',
+}
 
 // Type pour les documents avec informations de statut étendues
 export type DocumentWithFullStatus = Document & {
@@ -64,7 +76,7 @@ export async function getUserDocumentsWithFullStatus(
     });
 
     // Ajoute des informations dérivées pour chaque document
-    return documents.map(doc => {
+    return documents.map((doc: any) => {
       // Détermine le statut effectif en fonction du statut et de la date d'expiration
       const isExpired = doc.expiryDate ? new Date(doc.expiryDate) < new Date() : false;
       const lastVerification =
@@ -180,4 +192,224 @@ export function formatRelativeDate(date: Date | string | null | undefined): stri
       return Math.abs(diffInYears) === 1 ? 'Dans 1 an' : `Dans ${Math.abs(diffInYears)} ans`;
     }
   }
+}
+
+/**
+ * Formate un montant en devise avec la localisation française
+ * Réexporte la fonction de formatage depuis common utils
+ * @param amount - Montant à formater
+ * @param currency - Code de la devise (ex: EUR, USD)
+ * @returns Montant formaté avec la devise
+ */
+export function formatCurrency(amount: number, currency: string = 'EUR'): string {
+  return formatCurrencyUtil(amount, currency);
+}
+
+/**
+ * Formate une date en format français lisible
+ * Réexporte la fonction de formatage depuis common utils
+ * @param date - Date à formater (string ou Date)
+ * @returns Date formatée en français
+ */
+export function formatDate(date: string | Date): string {
+  return formatDateUtil(date);
+}
+
+/**
+ * Formate une heure à partir d'une date
+ * @param date - Date à formater (string ou Date)
+ * @returns Heure formatée (HH:MM)
+ */
+export function formatTime(date: string | Date): string {
+  const dateObj = typeof date === 'string' ? new Date(date) : date;
+  
+  if (isNaN(dateObj.getTime())) {
+    return '--:--';
+  }
+  
+  return new Intl.DateTimeFormat('fr-FR', {
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(dateObj);
+}
+
+/**
+ * Obtient le nom d'affichage d'un type de document
+ * @param type - Type de document
+ * @returns Nom d'affichage du type de document
+ */
+export function getDocumentTypeName(type: string): string {
+  const typeNames: Record<string, string> = {
+    IDENTITY_CARD: 'Carte d\'identité',
+    PASSPORT: 'Passeport',
+    DRIVING_LICENSE: 'Permis de conduire',
+    VEHICLE_REGISTRATION: 'Carte grise',
+    INSURANCE_CERTIFICATE: 'Attestation d\'assurance',
+    CRIMINAL_RECORD: 'Extrait de casier judiciaire',
+    BANK_RIB: 'RIB',
+    KBIS: 'Extrait Kbis',
+    PROFESSIONAL_CARD: 'Carte professionnelle',
+    DIPLOMA: 'Diplôme',
+    CERTIFICATE: 'Certificat',
+    CONTRACT: 'Contrat',
+    INVOICE: 'Facture',
+    RECEIPT: 'Reçu',
+    OTHER: 'Autre document',
+  };
+  
+  return typeNames[type] || type;
+}
+
+/**
+ * Formate la taille d'un fichier en format lisible
+ * @param bytes - Taille en bytes
+ * @returns Taille formatée (ex: "1.5 MB")
+ */
+export function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 B';
+  
+  const k = 1024;
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+}
+
+/**
+ * Obtient les types de documents requis par rôle utilisateur
+ * @param role - Rôle de l'utilisateur
+ * @returns Liste des types de documents requis
+ */
+export function getRequiredDocumentTypesByRole(role: UserRole): Array<{
+  type: string;
+  name: string;
+  required: boolean;
+  description?: string;
+}> {
+  const documentTypes = {
+    CLIENT: [
+      { type: 'IDENTITY_CARD', name: 'Carte d\'identité', required: true, description: 'Document d\'identité valide' },
+      { type: 'BANK_RIB', name: 'RIB', required: false, description: 'Relevé d\'identité bancaire' },
+    ],
+    DELIVERER: [
+      { type: 'IDENTITY_CARD', name: 'Carte d\'identité', required: true, description: 'Document d\'identité valide' },
+      { type: 'DRIVING_LICENSE', name: 'Permis de conduire', required: true, description: 'Permis de conduire valide' },
+      { type: 'VEHICLE_REGISTRATION', name: 'Carte grise', required: true, description: 'Carte grise du véhicule' },
+      { type: 'INSURANCE_CERTIFICATE', name: 'Attestation d\'assurance', required: true, description: 'Assurance véhicule' },
+      { type: 'CRIMINAL_RECORD', name: 'Casier judiciaire', required: true, description: 'Extrait de casier judiciaire' },
+      { type: 'BANK_RIB', name: 'RIB', required: true, description: 'Pour les virements' },
+    ],
+    MERCHANT: [
+      { type: 'IDENTITY_CARD', name: 'Carte d\'identité', required: true, description: 'Document d\'identité du représentant' },
+      { type: 'KBIS', name: 'Extrait Kbis', required: true, description: 'Extrait Kbis récent (moins de 3 mois)' },
+      { type: 'BANK_RIB', name: 'RIB professionnel', required: true, description: 'RIB du compte professionnel' },
+      { type: 'INSURANCE_CERTIFICATE', name: 'Assurance professionnelle', required: false, description: 'RC professionnelle' },
+    ],
+    PROVIDER: [
+      { type: 'IDENTITY_CARD', name: 'Carte d\'identité', required: true, description: 'Document d\'identité valide' },
+      { type: 'PROFESSIONAL_CARD', name: 'Carte professionnelle', required: true, description: 'Justificatif d\'activité' },
+      { type: 'INSURANCE_CERTIFICATE', name: 'Assurance professionnelle', required: true, description: 'RC professionnelle' },
+      { type: 'DIPLOMA', name: 'Diplôme/Certification', required: false, description: 'Qualifications professionnelles' },
+      { type: 'BANK_RIB', name: 'RIB', required: true, description: 'Pour les paiements' },
+    ],
+    ADMIN: [],
+  };
+
+  return documentTypes[role] || [];
+}
+
+/**
+ * Formate une valeur de distance en format lisible
+ * @param distanceInMeters - Distance en mètres
+ * @returns Distance formatée avec unité appropriée
+ */
+export function formatDistanceValue(distanceInMeters: number): string {
+  if (distanceInMeters < 1000) {
+    return `${Math.round(distanceInMeters)} m`;
+  } else {
+    return `${(distanceInMeters / 1000).toFixed(1)} km`;
+  }
+}
+
+/**
+ * Génère des couleurs pour les graphiques
+ * @param count - Nombre de couleurs à générer
+ * @returns Tableau de couleurs hex
+ */
+export function generateChartColors(count: number): string[] {
+  const baseColors = [
+    '#3B82F6', // Blue
+    '#10B981', // Green
+    '#F59E0B', // Yellow
+    '#EF4444', // Red
+    '#8B5CF6', // Purple
+    '#06B6D4', // Cyan
+    '#F97316', // Orange
+    '#84CC16', // Lime
+    '#EC4899', // Pink
+    '#6B7280', // Gray
+  ];
+
+  if (count <= baseColors.length) {
+    return baseColors.slice(0, count);
+  }
+
+  // Génère des couleurs supplémentaires si nécessaire
+  const colors = [...baseColors];
+  for (let i = baseColors.length; i < count; i++) {
+    // Génère une couleur HSL aléatoire mais harmonieuse
+    const hue = (i * 137.508) % 360; // Nombre d'or pour distribution harmonieuse
+    const saturation = 60 + (i % 3) * 15; // Variation de saturation
+    const lightness = 45 + (i % 4) * 10; // Variation de luminosité
+    colors.push(`hsl(${hue}, ${saturation}%, ${lightness}%)`);
+  }
+
+  return colors;
+}
+
+/**
+ * Obtient la plage de dates actuelle basée sur un type de période
+ * @param periodType - Type de période ('day', 'week', 'month', 'year')
+ * @returns Objet avec les dates de début et fin
+ */
+export function getCurrentDateRange(periodType: 'day' | 'week' | 'month' | 'year' = 'month'): {
+  startDate: Date;
+  endDate: Date;
+} {
+  const now = new Date();
+  const startDate = new Date();
+  const endDate = new Date();
+
+  switch (periodType) {
+    case 'day':
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setHours(23, 59, 59, 999);
+      break;
+
+    case 'week':
+      const dayOfWeek = now.getDay();
+      const diff = now.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1); // Lundi comme premier jour
+      startDate.setDate(diff);
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setDate(diff + 6);
+      endDate.setHours(23, 59, 59, 999);
+      break;
+
+    case 'month':
+      startDate.setDate(1);
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setMonth(endDate.getMonth() + 1);
+      endDate.setDate(0); // Dernier jour du mois
+      endDate.setHours(23, 59, 59, 999);
+      break;
+
+    case 'year':
+      startDate.setMonth(0, 1);
+      startDate.setHours(0, 0, 0, 0);
+      endDate.setMonth(11, 31);
+      endDate.setHours(23, 59, 59, 999);
+      break;
+  }
+
+  return { startDate, endDate };
 }

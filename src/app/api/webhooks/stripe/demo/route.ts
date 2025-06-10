@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
 import { paymentService } from '@/server/services/shared/payment.service';
 import { db } from '@/server/db';
-import { env } from '@/env.mjs';
 import { sendNotification } from '@/lib/services/notification.service';
 
 /**
@@ -11,7 +10,7 @@ import { sendNotification } from '@/lib/services/notification.service';
  */
 export async function POST(request: Request) {
   // Vérifier que le mode démo est activé
-  if (env.DEMO_MODE !== 'true') {
+  if (process.env.DEMO_MODE !== 'true') {
     return NextResponse.json({ error: "Le mode démo n'est pas activé" }, { status: 403 });
   }
 

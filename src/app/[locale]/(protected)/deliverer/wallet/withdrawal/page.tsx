@@ -56,11 +56,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 
-export const metadata = {
-  title: 'Demande de virement | EcoDeli',
-  description: 'Retirez vos revenus vers votre compte bancaire',
-};
-
 // Schéma de validation du formulaire
 const withdrawalFormSchema = z.object({
   amount: z.coerce

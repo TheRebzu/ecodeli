@@ -113,4 +113,81 @@ export const TimelineItem = React.forwardRef<HTMLDivElement, TimelineItemProps>(
 );
 TimelineItem.displayName = 'TimelineItem';
 
+// Composants additionnels pour compatibilité
+interface TimelineDotProps extends React.HTMLAttributes<HTMLDivElement> {
+  active?: boolean;
+  success?: boolean;
+  error?: boolean;
+  pending?: boolean;
+  icon?: React.ReactNode;
+}
+
+export const TimelineDot = React.forwardRef<HTMLDivElement, TimelineDotProps>(
+  ({ className, active, success, error, pending, icon, ...props }, ref) => {
+    const getStatusColor = () => {
+      if (active) return 'bg-primary border-primary';
+      if (success) return 'bg-green-500 border-green-500';
+      if (error) return 'bg-destructive border-destructive';
+      if (pending) return 'bg-yellow-500 border-yellow-500';
+      return 'bg-muted border-muted';
+    };
+
+    return (
+      <div 
+        ref={ref} 
+        className={cn(
+          'h-4 w-4 rounded-full border-2',
+          getStatusColor(),
+          className
+        )} 
+        {...props}
+      >
+        {icon && (
+          <div className="absolute inset-0 flex items-center justify-center text-[10px] text-background">
+            {icon}
+          </div>
+        )}
+      </div>
+    );
+  }
+);
+TimelineDot.displayName = 'TimelineDot';
+
+interface TimelineConnectorProps extends React.HTMLAttributes<HTMLDivElement> {}
+
+export const TimelineConnector = React.forwardRef<HTMLDivElement, TimelineConnectorProps>(
+  ({ className, ...props }, ref) => {
+    return (
+      <div 
+        ref={ref} 
+        className={cn('w-px bg-border', className)} 
+        {...props} 
+      />
+    );
+  }
+);
+TimelineConnector.displayName = 'TimelineConnector';
+
+interface TimelineContentProps extends React.HTMLAttributes<HTMLDivElement> {
+  children: React.ReactNode;
+}
+
+export const TimelineContent = React.forwardRef<HTMLDivElement, TimelineContentProps>(
+  ({ className, children, ...props }, ref) => {
+    return (
+      <div 
+        ref={ref} 
+        className={cn('text-sm', className)} 
+        {...props}
+      >
+        {children}
+      </div>
+    );
+  }
+);
+TimelineContent.displayName = 'TimelineContent';
+
+// Alias pour compatibilité
+export const TimelineSeparator = TimelineConnector;
+
 export { Timeline as Root, TimelineItem as Item };
