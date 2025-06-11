@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getServerSession } from 'next-auth';
-import { authOptions } from '@/types/users/auth';
+import { authOptions } from '@/server/auth/next-auth';
 // @ts-ignore - Ce package nécessite d'être installé via "npm install formidable"
 import formidable from 'formidable';
 import { createTRPCContext } from '@/server/api/trpc';

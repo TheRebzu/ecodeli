@@ -1,8 +1,7 @@
 import { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { Package, Search, Bell } from 'lucide-react';
-import { Container, PageHeading, Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/use-toast';
-import { PageProps, MetadataProps } from '@/server/auth/next-auth';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
   DynamicBoxReservations,
   DynamicBoxSearchPanel,
@@ -12,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { redirect, notFound } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/server/auth/next-auth';
-import { UserRole } from '@prisma/client';
 
 export async function generateMetadata({
   params,
@@ -39,8 +37,11 @@ export default async function StorageDashboardPage({ params }: { params: { local
   const t = await getTranslations({ locale, namespace: 'storage' });
 
   return (
-    <Container>
-      <PageHeading title={t('dashboardPage.title')} description={t('dashboardPage.description')} />
+    <div className="container mx-auto px-4 py-6">
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold tracking-tight">{t('dashboardPage.title')}</h1>
+        <p className="text-muted-foreground">{t('dashboardPage.description')}</p>
+      </div>
 
       <Tabs defaultValue="reservations" className="w-full">
         <TabsList className="w-full md:w-auto mb-6">
@@ -70,6 +71,6 @@ export default async function StorageDashboardPage({ params }: { params: { local
           <DynamicBoxNotificationsPanel />
         </TabsContent>
       </Tabs>
-    </Container>
+    </div>
   );
 }

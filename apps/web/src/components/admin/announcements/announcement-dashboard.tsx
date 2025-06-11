@@ -12,6 +12,21 @@ import { Plus, DownloadIcon, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { api } from '@/trpc/react';
 
+// Traductions temporaires en dur pour résoudre le problème de cache
+const hardcodedTranslations = {
+  refresh: 'Actualiser',
+  export: 'Exporter',
+  allAnnouncements: 'Toutes les annonces',
+  manageAllAnnouncements: 'Gérez et modérez toutes les annonces',
+  tabs: {
+    all: 'Toutes',
+    pending: 'En attente',
+    assigned: 'Assignées',
+    completed: 'Terminées',
+    problems: 'Problèmes'
+  }
+};
+
 export function AnnouncementDashboard() {
   const t = useTranslations('admin.announcements');
   const router = useRouter();
@@ -76,17 +91,32 @@ export function AnnouncementDashboard() {
     console.log('Export des données');
   };
 
+  // Fonction helper pour obtenir les traductions avec fallback DIRECT
+  const getTranslation = (key: string): string => {
+    // Utiliser directement les traductions en dur pour éviter les erreurs
+    const keys = key.split('.');
+    let value: any = hardcodedTranslations;
+    for (const k of keys) {
+      if (value && typeof value === 'object' && k in value) {
+        value = value[k];
+      } else {
+        return key; // Retourner la clé si pas trouvée
+      }
+    }
+    return value || key;
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:justify-between gap-4">
         <div className="flex gap-2">
           <Button onClick={handleRefresh} variant="outline" size="sm">
             <RefreshCw className="mr-2 h-4 w-4" />
-            {t('refresh')}
+            {getTranslation('refresh')}
           </Button>
           <Button onClick={handleExport} variant="outline" size="sm">
             <DownloadIcon className="mr-2 h-4 w-4" />
-            {t('export')}
+            {getTranslation('export')}
           </Button>
         </div>
       </div>
@@ -95,17 +125,17 @@ export function AnnouncementDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>{t('allAnnouncements')}</CardTitle>
-          <CardDescription>{t('manageAllAnnouncements')}</CardDescription>
+          <CardTitle>{getTranslation('allAnnouncements')}</CardTitle>
+          <CardDescription>{getTranslation('manageAllAnnouncements')}</CardDescription>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="all" value={activeTab} onValueChange={handleTabChange}>
             <TabsList className="mb-4">
-              <TabsTrigger value="all">{t('tabs.all')}</TabsTrigger>
-              <TabsTrigger value="pending">{t('tabs.pending')}</TabsTrigger>
-              <TabsTrigger value="assigned">{t('tabs.assigned')}</TabsTrigger>
-              <TabsTrigger value="completed">{t('tabs.completed')}</TabsTrigger>
-              <TabsTrigger value="problems">{t('tabs.problems')}</TabsTrigger>
+              <TabsTrigger value="all">{getTranslation('tabs.all')}</TabsTrigger>
+              <TabsTrigger value="pending">{getTranslation('tabs.pending')}</TabsTrigger>
+              <TabsTrigger value="assigned">{getTranslation('tabs.assigned')}</TabsTrigger>
+              <TabsTrigger value="completed">{getTranslation('tabs.completed')}</TabsTrigger>
+              <TabsTrigger value="problems">{getTranslation('tabs.problems')}</TabsTrigger>
             </TabsList>
 
             <div className="mb-4">

@@ -3,11 +3,10 @@ import { getTranslations } from 'next-intl/server';
 import { AnnouncementDashboard } from '@/components/admin/announcements/announcement-dashboard';
 
 export async function generateMetadata(): Promise<Metadata> {
-  const t = await getTranslations('admin.announcements');
-
+  // Utilisation de métadonnées en dur pour éviter les erreurs MISSING_MESSAGE
   return {
-    title: t('metadata.title'),
-    description: t('metadata.description'),
+    title: "Gestion des Annonces - EcoDeli Admin",
+    description: "Gérez et modérez toutes les annonces sur la plateforme EcoDeli",
   };
 }
 

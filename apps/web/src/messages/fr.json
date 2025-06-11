@@ -5519,10 +5519,146 @@
     "checking": "checking",
     "checkVerificationStatus": "checkVerificationStatus"
   },
+  "Admin": {
+    "verification": {
+      "tabs": {
+        "all": "Tous",
+        "pending": "En attente",
+        "approved": "Approuvés", 
+        "rejected": "Rejetés"
+      },
+      "userDocumentsTitle": "Documents de l'utilisateur",
+      "documentsListTitle": "Liste des documents",
+      "documentsListDescription": "Tous les documents téléchargés par l'utilisateur",
+      "backToUsers": "Retour aux utilisateurs",
+      "loading": "Chargement...",
+      "rejectDocument": "Rejeter le document",
+      "rejectDocumentDescription": "Veuillez indiquer une raison de rejet. Elle sera visible par l'utilisateur.",
+      "approveDocument": "Approuver le document",
+      "approveDocumentDescription": "Ajoutez des notes optionnelles pour cette approbation (non visible par l'utilisateur).",
+      "rejectionReasonPlaceholder": "Entrez la raison du rejet",
+      "approvalNotesPlaceholder": "Notes optionnelles pour l'approbation",
+      "cancel": "Annuler",
+      "confirm": "Confirmer",
+      "documentApproved": "Document approuvé avec succès",
+      "documentRejected": "Document rejeté avec succès",
+      "status": {
+        "pending": "En attente",
+        "approved": "Approuvé",
+        "rejected": "Rejeté"
+      },
+      "documentTypes": {
+        "ID_CARD": "Carte d'identité",
+        "DRIVING_LICENSE": "Permis de conduire",
+        "DRIVERS_LICENSE": "Permis de conduire",
+        "SELFIE": "Selfie",
+        "OTHER": "Autre",
+        "PASSPORT": "Passeport",
+        "PROOF_OF_ADDRESS": "Justificatif de domicile",
+        "BUSINESS_LICENSE": "Licence commerciale",
+        "TAX_CERTIFICATE": "Certificat fiscal",
+        "BUSINESS_REGISTRATION": "Registre du commerce",
+        "VAT_REGISTRATION": "Déclaration TVA",
+        "INSURANCE_CERTIFICATE": "Certificat d'assurance",
+        "PROFESSIONAL_QUALIFICATION": "Qualification professionnelle",
+        "VEHICLE_REGISTRATION": "Carte grise",
+        "QUALIFICATION_CERTIFICATE": "Certificat de qualification",
+        "INSURANCE": "Attestation d'assurance"
+      },
+      "actions": {
+        "view": "Voir",
+        "approve": "Approuver",
+        "reject": "Rejeter"
+      },
+      "noDocuments": "Aucun document trouvé",
+             "documentsTable": {
+         "documentType": "Type de document",
+         "uploadedDate": "Date de téléchargement",
+         "status": "Statut",
+         "actions": "Actions"
+       },
+       "usersVerification": {
+         "title": "Vérification des utilisateurs",
+         "description": "Consultez et vérifiez les documents des utilisateurs",
+         "searchPlaceholder": "Rechercher par nom ou email",
+         "search": "Rechercher"
+       },
+       "tabs": {
+         "all": "Tous",
+         "pending": "En attente",
+         "approved": "Approuvés",
+         "rejected": "Rejetés",
+         "clients": "Clients",
+         "deliverers": "Livreurs",
+         "merchants": "Commerçants",
+         "providers": "Prestataires"
+       },
+       "table": {
+         "user": "Utilisateur",
+         "role": "Rôle",
+         "status": "Statut",
+         "documents": "Documents",
+         "created": "Créé le",
+         "actions": "Actions"
+       }
+    }
+  },
   "admin": {
     "verification": {
-      "title": "title",
-      "description": "description",
+      "metadata": {
+        "title": "Vérifications - EcoDeli Admin",
+        "description": "Gérez les demandes de vérification des utilisateurs de la plateforme"
+      },
+      "title": "Vérifications",
+      "description": "Gérez les demandes de vérification des utilisateurs",
+      "userVerification": {
+        "title": "Vérification des documents",
+        "description": "Gérez les documents de vérification de cet utilisateur"
+      },
+      "tabs": {
+        "all": "Tous",
+        "pending": "En attente",
+        "approved": "Approuvés", 
+        "rejected": "Rejetés"
+      },
+      "userDocumentsTitle": "Documents de l'utilisateur",
+      "documentsListTitle": "Liste des documents",
+      "documentsListDescription": "Tous les documents téléchargés par l'utilisateur",
+      "backToUsers": "Retour aux utilisateurs",
+      "loading": "Chargement...",
+      "rejectDocument": "Rejeter le document",
+      "rejectDocumentDescription": "Veuillez indiquer une raison de rejet. Elle sera visible par l'utilisateur.",
+      "approveDocument": "Approuver le document",
+      "approveDocumentDescription": "Ajoutez des notes optionnelles pour cette approbation (non visible par l'utilisateur).",
+      "rejectionReasonPlaceholder": "Entrez la raison du rejet",
+      "approvalNotesPlaceholder": "Notes optionnelles pour l'approbation",
+      "cancel": "Annuler",
+      "confirm": "Confirmer",
+      "documentApproved": "Document approuvé avec succès",
+      "documentRejected": "Document rejeté avec succès",
+      "status": {
+        "pending": "En attente",
+        "approved": "Approuvé",
+        "rejected": "Rejeté"
+      },
+      "documentTypes": {
+        "ID_CARD": "Carte d'identité",
+        "DRIVING_LICENSE": "Permis de conduire",
+        "SELFIE": "Selfie",
+        "OTHER": "Autre"
+      },
+             "actions": {
+         "view": "Voir",
+         "approve": "Approuver",
+         "reject": "Rejeter"
+       },
+       "noDocuments": "Aucun document trouvé",
+       "documentsTable": {
+         "documentType": "Type de document",
+         "uploadedDate": "Date de téléchargement",
+         "status": "Statut",
+         "actions": "Actions"
+       },
       "filters": {
         "role": "role",
         "allRoles": "allRoles",
@@ -5648,7 +5784,115 @@
       "liveDeliveries": "liveDeliveries",
       "liveDeliveriesDescription": "liveDeliveriesDescription",
       "allDeliveries": "allDeliveries",
-      "manageAllDeliveries": "manageAllDeliveries"
+      "manageAllDeliveries": "manageAllDeliveries",
+      "tabs": {
+        "all": "Toutes",
+        "pending": "En attente",
+        "inTransit": "En transit",
+        "completed": "Terminées",
+        "problems": "Problèmes"
+      },
+      "columns": {
+        "trackingNumber": "N° de suivi",
+        "status": "Statut",
+        "client": "Client",
+        "deliverer": "Livreur",
+        "date": "Date",
+        "actions": "Actions"
+      }
+    },
+    "announcements": {
+      "metadata": {
+        "title": "Gestion des Annonces - EcoDeli Admin",
+        "description": "Gérez et modérez toutes les annonces sur la plateforme EcoDeli"
+      },
+      "tabs": {
+        "all": "Toutes",
+        "pending": "En attente",
+        "assigned": "Assignées",
+        "completed": "Terminées",
+        "problems": "Problèmes"
+      },
+      "columns": {
+        "title": "Titre",
+        "type": "Type",
+        "status": "Statut",
+        "client": "Client",
+        "price": "Prix",
+        "date": "Date",
+        "actions": "Actions"
+      },
+      "refresh": "Actualiser",
+      "export": "Exporter",
+      "allAnnouncements": "Toutes les annonces",
+      "manageAllAnnouncements": "Gérez et modérez toutes les annonces",
+      "noAnnouncements": "Aucune annonce trouvée",
+      "searchPlaceholder": "Rechercher par titre, client...",
+      "search": "Rechercher",
+      "advancedFilters": "Filtres avancés",
+      "resetFilters": "Réinitialiser les filtres",
+      "actions": "Actions",
+      "view": "Voir",
+      "edit": "Modifier",
+      "delete": "Supprimer",
+      "publish": "Publier",
+      "cancel": "Annuler",
+      "changeStatus": "Changer le statut",
+      "markAsResolved": "Marquer comme résolu",
+      "reportProblem": "Signaler un problème",
+      "deleteConfirmTitle": "Confirmer la suppression",
+      "deleteConfirmMessage": "Êtes-vous sûr de vouloir supprimer cette annonce ? Cette action est irréversible.",
+      "deleteSuccess": "Annonce supprimée avec succès",
+      "deleteError": "Erreur lors de la suppression : {error}",
+      "statusUpdateSuccess": "Statut mis à jour avec succès",
+      "statusUpdateError": "Erreur lors de la mise à jour : {error}",
+      "status": {
+        "draft": "Brouillon",
+        "published": "Publiée",
+        "inApplication": "En candidature",
+        "assigned": "Assignée",
+        "inProgress": "En cours",
+        "delivered": "Livrée",
+        "completed": "Terminée",
+        "paid": "Payée",
+        "problem": "Problème",
+        "dispute": "Litige",
+        "cancelled": "Annulée"
+      },
+      "type": {
+        "packageDelivery": "Livraison de colis",
+        "groceryShopping": "Courses alimentaires",
+        "personTransport": "Transport de personne",
+        "airportTransfer": "Navette aéroport",
+        "foreignPurchase": "Achat à l'étranger",
+        "petCare": "Garde d'animaux",
+        "homeServices": "Services à domicile"
+      },
+      "stats": {
+        "totalAnnouncements": "Total des annonces",
+        "announcementsRegistered": "annonces enregistrées",
+        "completedAnnouncements": "Annonces terminées",
+        "completionRate": "taux de réussite",
+        "noCompletedAnnouncements": "Aucune annonce terminée",
+        "averagePrice": "Prix moyen",
+        "perAnnouncement": "par annonce", 
+        "revenue": "Revenus",
+        "totalRevenue": "revenus totaux",
+        "statusDistribution": "Répartition par statut",
+        "announcements": "Annonces",
+        "typeDistribution": "Répartition par type"
+      },
+      "filters": {
+        "status": "Statut",
+        "allStatuses": "Tous les statuts",
+        "type": "Type",
+        "allTypes": "Tous les types",
+        "client": "Client",
+        "allClients": "Tous les clients",
+        "dateFrom": "Date de début",
+        "dateTo": "Date de fin",
+        "selectDate": "Sélectionner une date"
+      }
     },
     "invoices": {
       "invoiceGenerated": "invoiceGenerated",

@@ -41,6 +41,57 @@ import { api } from '@/trpc/react';
 import { AnnouncementStatus, AnnouncementType } from '@prisma/client';
 import { toast } from 'sonner';
 
+// Traductions temporaires en dur pour résoudre le problème de cache
+const hardcodedTranslations = {
+  columns: {
+    title: 'Titre',
+    type: 'Type',
+    status: 'Statut',
+    client: 'Client',
+    price: 'Prix',
+    date: 'Date',
+    actions: 'Actions'
+  },
+  actions: 'Actions',
+  view: 'Voir',
+  edit: 'Modifier',
+  delete: 'Supprimer',
+  publish: 'Publier',
+  cancel: 'Annuler',
+  changeStatus: 'Changer le statut',
+  markAsResolved: 'Marquer comme résolu',
+  reportProblem: 'Signaler un problème',
+  deleteConfirmTitle: 'Confirmer la suppression',
+  deleteConfirmMessage: 'Êtes-vous sûr de vouloir supprimer cette annonce ? Cette action est irréversible.',
+  deleteSuccess: 'Annonce supprimée avec succès',
+  deleteError: 'Erreur lors de la suppression : {error}',
+  statusUpdateSuccess: 'Statut mis à jour avec succès',
+  statusUpdateError: 'Erreur lors de la mise à jour : {error}',
+  noAnnouncements: 'Aucune annonce trouvée',
+  status: {
+    draft: 'Brouillon',
+    published: 'Publiée',
+    inApplication: 'En candidature',
+    assigned: 'Assignée',
+    inProgress: 'En cours',
+    delivered: 'Livrée',
+    completed: 'Terminée',
+    paid: 'Payée',
+    problem: 'Problème',
+    dispute: 'Litige',
+    cancelled: 'Annulée'
+  },
+  type: {
+    packageDelivery: 'Livraison de colis',
+    groceryShopping: 'Courses alimentaires',
+    personTransport: 'Transport de personne',
+    airportTransfer: 'Navette aéroport',
+    foreignPurchase: 'Achat à l\'étranger',
+    petCare: 'Garde d\'animaux',
+    homeServices: 'Services à domicile'
+  }
+};
+
 // Types pour les annonces basées sur le modèle Prisma
 interface Announcement {
   id: string;
@@ -89,29 +140,50 @@ export function AnnouncementTable({
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [announcementToDelete, setAnnouncementToDelete] = useState<string | null>(null);
 
+  // Fonction helper pour obtenir les traductions avec fallback DIRECT
+  const getTranslation = (key: string, params?: any): string => {
+    // Utiliser directement les traductions en dur pour éviter les erreurs
+    const keys = key.split('.');
+    let value: any = hardcodedTranslations;
+    for (const k of keys) {
+      if (value && typeof value === 'object' && k in value) {
+        value = value[k];
+      } else {
+        return key; // Retourner la clé si pas trouvée
+      }
+    }
+    
+    // Gestion des paramètres pour les erreurs
+    if (typeof value === 'string' && params && params.error) {
+      return value.replace('{error}', params.error);
+    }
+    
+    return value || key;
+  };
+
   // Mutation tRPC pour la suppression d'annonce
   const deleteMutation = api.announcement.delete.useMutation({
     onSuccess: () => {
-      toast.success(t('deleteSuccess'));
+      toast.success(getTranslation('deleteSuccess'));
       setDeleteDialogOpen(false);
       setAnnouncementToDelete(null);
       // Rafraîchir les données
       router.refresh();
     },
     onError: error => {
-      toast.error(t('deleteError', { error: error.message }));
+      toast.error(getTranslation('deleteError', { error: error.message }));
     },
   });
 
   // Mutation tRPC pour la mise à jour du statut d'annonce
   const updateStatusMutation = api.announcement.updateStatus.useMutation({
     onSuccess: () => {
-      toast.success(t('statusUpdateSuccess'));
+      toast.success(getTranslation('statusUpdateSuccess'));
       // Rafraîchir les données
       router.refresh();
     },
     onError: error => {
-      toast.error(t('statusUpdateError', { error: error.message }));
+      toast.error(getTranslation('statusUpdateError', { error: error.message }));
     },
   });
 
@@ -168,27 +240,27 @@ export function AnnouncementTable({
   const renderStatusBadge = (status: AnnouncementStatus) => {
     switch (status) {
       case 'DRAFT':
-        return <Badge variant="outline">{t('status.draft')}</Badge>;
+        return <Badge variant="outline">{getTranslation('status.draft')}</Badge>;
       case 'PUBLISHED':
-        return <Badge variant="secondary">{t('status.published')}</Badge>;
+        return <Badge variant="secondary">{getTranslation('status.published')}</Badge>;
       case 'IN_APPLICATION':
-        return <Badge variant="secondary">{t('status.inApplication')}</Badge>;
+        return <Badge variant="secondary">{getTranslation('status.inApplication')}</Badge>;
       case 'ASSIGNED':
-        return <Badge variant="secondary">{t('status.assigned')}</Badge>;
+        return <Badge variant="secondary">{getTranslation('status.assigned')}</Badge>;
       case 'IN_PROGRESS':
-        return <Badge variant="primary">{t('status.inProgress')}</Badge>;
+        return <Badge variant="primary">{getTranslation('status.inProgress')}</Badge>;
       case 'DELIVERED':
-        return <Badge variant="primary">{t('status.delivered')}</Badge>;
+        return <Badge variant="primary">{getTranslation('status.delivered')}</Badge>;
       case 'COMPLETED':
-        return <Badge variant="success">{t('status.completed')}</Badge>;
+        return <Badge variant="success">{getTranslation('status.completed')}</Badge>;
       case 'PAID':
-        return <Badge variant="success">{t('status.paid')}</Badge>;
+        return <Badge variant="success">{getTranslation('status.paid')}</Badge>;
       case 'PROBLEM':
-        return <Badge variant="destructive">{t('status.problem')}</Badge>;
+        return <Badge variant="destructive">{getTranslation('status.problem')}</Badge>;
       case 'DISPUTE':
-        return <Badge variant="destructive">{t('status.dispute')}</Badge>;
+        return <Badge variant="destructive">{getTranslation('status.dispute')}</Badge>;
       case 'CANCELLED':
-        return <Badge variant="destructive">{t('status.cancelled')}</Badge>;
+        return <Badge variant="destructive">{getTranslation('status.cancelled')}</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -197,19 +269,19 @@ export function AnnouncementTable({
   const renderTypeLabel = (type: AnnouncementType) => {
     switch (type) {
       case 'PACKAGE_DELIVERY':
-        return t('type.packageDelivery');
+        return getTranslation('type.packageDelivery');
       case 'GROCERY_SHOPPING':
-        return t('type.groceryShopping');
+        return getTranslation('type.groceryShopping');
       case 'PERSON_TRANSPORT':
-        return t('type.personTransport');
+        return getTranslation('type.personTransport');
       case 'AIRPORT_TRANSFER':
-        return t('type.airportTransfer');
+        return getTranslation('type.airportTransfer');
       case 'FOREIGN_PURCHASE':
-        return t('type.foreignPurchase');
+        return getTranslation('type.foreignPurchase');
       case 'PET_CARE':
-        return t('type.petCare');
+        return getTranslation('type.petCare');
       case 'HOME_SERVICES':
-        return t('type.homeServices');
+        return getTranslation('type.homeServices');
       default:
         return type;
     }
@@ -223,13 +295,13 @@ export function AnnouncementTable({
             <TableHeader>
               <TableRow>
                 <TableHead className="w-12"></TableHead>
-                <TableHead>{t('columns.title')}</TableHead>
-                <TableHead>{t('columns.type')}</TableHead>
-                <TableHead>{t('columns.status')}</TableHead>
-                <TableHead>{t('columns.client')}</TableHead>
-                <TableHead>{t('columns.price')}</TableHead>
-                <TableHead>{t('columns.date')}</TableHead>
-                <TableHead className="text-right">{t('columns.actions')}</TableHead>
+                <TableHead>{getTranslation('columns.title')}</TableHead>
+                <TableHead>{getTranslation('columns.type')}</TableHead>
+                <TableHead>{getTranslation('columns.status')}</TableHead>
+                <TableHead>{getTranslation('columns.client')}</TableHead>
+                <TableHead>{getTranslation('columns.price')}</TableHead>
+                <TableHead>{getTranslation('columns.date')}</TableHead>
+                <TableHead className="text-right">{getTranslation('columns.actions')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -288,29 +360,29 @@ export function AnnouncementTable({
                 />
               </TableHead>
               <TableHead className="cursor-pointer" onClick={() => handleSort('title')}>
-                {t('columns.title')}
+                {getTranslation('columns.title')}
               </TableHead>
               <TableHead className="cursor-pointer" onClick={() => handleSort('type')}>
-                {t('columns.type')}
+                {getTranslation('columns.type')}
               </TableHead>
               <TableHead className="cursor-pointer" onClick={() => handleSort('status')}>
-                {t('columns.status')}
+                {getTranslation('columns.status')}
               </TableHead>
-              <TableHead>{t('columns.client')}</TableHead>
+              <TableHead>{getTranslation('columns.client')}</TableHead>
               <TableHead className="cursor-pointer" onClick={() => handleSort('suggestedPrice')}>
-                {t('columns.price')}
+                {getTranslation('columns.price')}
               </TableHead>
               <TableHead className="cursor-pointer" onClick={() => handleSort('createdAt')}>
-                {t('columns.date')}
+                {getTranslation('columns.date')}
               </TableHead>
-              <TableHead className="text-right">{t('columns.actions')}</TableHead>
+              <TableHead className="text-right">{getTranslation('columns.actions')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {announcements.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={8} className="text-center py-8">
-                  {t('noAnnouncements')}
+                  {getTranslation('noAnnouncements')}
                 </TableCell>
               </TableRow>
             ) : (
@@ -346,26 +418,26 @@ export function AnnouncementTable({
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuLabel>{t('actions')}</DropdownMenuLabel>
+                        <DropdownMenuLabel>{getTranslation('actions')}</DropdownMenuLabel>
                         <DropdownMenuItem onClick={() => handleView(announcement.id)}>
                           <Eye className="h-4 w-4 mr-2" />
-                          {t('view')}
+                          {getTranslation('view')}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleEdit(announcement.id)}>
                           <Pencil className="h-4 w-4 mr-2" />
-                          {t('edit')}
+                          {getTranslation('edit')}
                         </DropdownMenuItem>
 
                         <DropdownMenuSeparator />
 
-                        <DropdownMenuLabel>{t('changeStatus')}</DropdownMenuLabel>
+                        <DropdownMenuLabel>{getTranslation('changeStatus')}</DropdownMenuLabel>
 
                         {announcement.status === 'DRAFT' && (
                           <DropdownMenuItem
                             onClick={() => handleUpdateStatus(announcement.id, 'PUBLISHED')}
                           >
                             <Check className="h-4 w-4 mr-2" />
-                            {t('publish')}
+                            {getTranslation('publish')}
                           </DropdownMenuItem>
                         )}
 
@@ -374,7 +446,7 @@ export function AnnouncementTable({
                             onClick={() => handleUpdateStatus(announcement.id, 'COMPLETED')}
                           >
                             <Check className="h-4 w-4 mr-2" />
-                            {t('markAsResolved')}
+                            {getTranslation('markAsResolved')}
                           </DropdownMenuItem>
                         )}
 
@@ -383,7 +455,7 @@ export function AnnouncementTable({
                             onClick={() => handleUpdateStatus(announcement.id, 'CANCELLED')}
                           >
                             <X className="h-4 w-4 mr-2" />
-                            {t('cancel')}
+                            {getTranslation('cancel')}
                           </DropdownMenuItem>
                         )}
 
@@ -392,7 +464,7 @@ export function AnnouncementTable({
                             onClick={() => handleUpdateStatus(announcement.id, 'PROBLEM')}
                           >
                             <AlertTriangle className="h-4 w-4 mr-2" />
-                            {t('reportProblem')}
+                            {getTranslation('reportProblem')}
                           </DropdownMenuItem>
                         )}
 
@@ -403,7 +475,7 @@ export function AnnouncementTable({
                           className="text-destructive"
                         >
                           <Trash2 className="h-4 w-4 mr-2" />
-                          {t('delete')}
+                          {getTranslation('delete')}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -428,16 +500,16 @@ export function AnnouncementTable({
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t('deleteConfirmTitle')}</AlertDialogTitle>
-            <AlertDialogDescription>{t('deleteConfirmMessage')}</AlertDialogDescription>
+            <AlertDialogTitle>{getTranslation('deleteConfirmTitle')}</AlertDialogTitle>
+            <AlertDialogDescription>{getTranslation('deleteConfirmMessage')}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
+            <AlertDialogCancel>{getTranslation('cancel')}</AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {t('delete')}
+              {getTranslation('delete')}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

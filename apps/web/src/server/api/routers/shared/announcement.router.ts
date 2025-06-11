@@ -18,7 +18,7 @@ import { UserRole } from '@prisma/client';
 
 export const announcementRouter = router({
   // Récupération de toutes les annonces avec filtres
-  getAll: publicProcedure.input(announcementFilterSchema).query(async ({ input }) => {
+  getAll: publicProcedure.input(announcementFilterSchema.optional().default({})).query(async ({ input }) => {
     try {
       return await AnnouncementService.getAll(input);
     } catch (error) {
@@ -838,10 +838,10 @@ export const announcementRouter = router({
         ctx.db.announcement.aggregate({
           where: {
             ...where,
-            status: 'PAID',
-            finalPrice: { not: null },
+            status: 'COMPLETED',
+            suggestedPrice: { not: null },
           },
-          _sum: { finalPrice: true },
+          _sum: { suggestedPrice: true },
         }),
       ]);
 
@@ -866,7 +866,7 @@ export const announcementRouter = router({
         completedCount,
         cancelledCount,
         averagePrice: averagePrice._avg.suggestedPrice || 0,
-        totalRevenue: totalRevenue._sum.finalPrice || 0,
+        totalRevenue: totalRevenue._sum.suggestedPrice || 0,
         typeDistribution: isAdmin ? typeDistribution : undefined,
       };
     } catch (error) {
