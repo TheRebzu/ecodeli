@@ -112,28 +112,7 @@ groups:
           summary: "Croissance rapide de la base de données"
           description: "La base de données a grandi de {{ $value | humanizeBytes }} en 24h."
 
-  # Alertes sur Redis
-  - name: redis
-    rules:
-      # Utilisation mémoire Redis élevée
-      - alert: HighRedisMemoryUsage
-        expr: redis_memory_used_bytes / redis_memory_max_bytes * 100 > 80
-        for: 5m
-        labels:
-          severity: warning
-        annotations:
-          summary: "Utilisation mémoire Redis élevée"
-          description: "Redis utilise {{ $value }}% de sa mémoire allouée."
-
-      # Redis non disponible
-      - alert: RedisDown
-        expr: redis_up == 0
-        for: 1m
-        labels:
-          severity: critical
-        annotations:
-          summary: "Redis est en panne"
-          description: "Le serveur Redis n'est pas accessible."
+  
 
   # Alertes métier spécifiques à EcoDeli
   - name: ecodeli-business

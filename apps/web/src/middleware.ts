@@ -82,40 +82,7 @@ const allowedNonVerifiedPaths: Record<UserRole, string[]> = {
   ADMIN: [], // Les admins n'ont pas besoin de vérification
 };
 
-// Temporarily disable rate limiting until environment variables are configured
-/*
-// Configuration pour le rate limiting
-let authLimiter: Ratelimit | null = null;
-let apiLimiter: Ratelimit | null = null;
 
-// Créer les limiteurs de taux seulement si les variables d'environnement sont disponibles
-if (process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN) {
-  try {
-    const redis = new Redis({
-      url: process.env.UPSTASH_REDIS_REST_URL,
-      token: process.env.UPSTASH_REDIS_REST_TOKEN,
-    });
-
-    // Configuration des limiteurs de taux différents selon le type de route
-    authLimiter = new Ratelimit({
-      redis,
-      limiter: Ratelimit.slidingWindow(10, '5 m'),  // 10 requêtes par 5 minutes
-      analytics: true,
-      prefix: 'ratelimit:auth',
-    });
-
-    apiLimiter = new Ratelimit({
-      redis,
-      limiter: Ratelimit.slidingWindow(60, '1 m'),  // 60 requêtes par minute
-      analytics: true,
-      prefix: 'ratelimit:api',
-    });
-  } catch (error) {
-    console.error('Failed to initialize Upstash Redis for rate limiting:', error);
-    // Continue without rate limiting
-  }
-}
-*/
 
 export async function middleware(request: NextRequest) {
   try {

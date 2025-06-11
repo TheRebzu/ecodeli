@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/trpc/react';
 import { toast } from 'sonner';
 
@@ -148,135 +147,161 @@ export const usePaymentForm = () => {
  * Hook pour créer un payment intent
  */
 export const useCreatePaymentIntent = () => {
-  const queryClient = useQueryClient();
+  const [isLoading, setIsLoading] = useState(false);
   
-  return useMutation({
-    mutationFn: async (data: PaymentFormState) => {
+  const createPaymentIntent = useCallback(async (data: PaymentFormState) => {
+    setIsLoading(true);
+    try {
       const result = await api.payment.createPaymentIntent.mutate(data);
-      return result;
-    },
-    onSuccess: () => {
       toast.success('Payment intent créé avec succès');
-      // Invalider les queries liées aux paiements
-      queryClient.invalidateQueries({ queryKey: ['payments'] });
-    },
-    onError: (error) => {
+      return result;
+    } catch (error) {
       console.error('Erreur lors de la création du payment intent:', error);
       toast.error(
         error instanceof Error 
           ? error.message 
           : 'Une erreur est survenue lors de la création du paiement'
       );
-    },
-  });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  return {
+    createPaymentIntent,
+    isLoading,
+  };
 };
 
 /**
  * Hook pour capturer un paiement
  */
 export const useCapturePayment = () => {
-  const queryClient = useQueryClient();
+  const [isLoading, setIsLoading] = useState(false);
   
-  return useMutation({
-    mutationFn: async (paymentId: string) => {
+  const capturePayment = useCallback(async (paymentId: string) => {
+    setIsLoading(true);
+    try {
       const result = await api.payment.capturePayment.mutate({ paymentId });
-      return result;
-    },
-    onSuccess: () => {
       toast.success('Paiement capturé avec succès');
-      queryClient.invalidateQueries({ queryKey: ['payments'] });
-      queryClient.invalidateQueries({ queryKey: ['payment-history'] });
-    },
-    onError: (error) => {
+      return result;
+    } catch (error) {
       console.error('Erreur lors de la capture du paiement:', error);
       toast.error(
         error instanceof Error
           ? error.message
           : 'Une erreur est survenue lors de la validation du paiement'
       );
-    },
-  });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  return {
+    capturePayment,
+    isLoading,
+  };
 };
 
 /**
  * Hook pour annuler un paiement
  */
 export const useCancelPayment = () => {
-  const queryClient = useQueryClient();
+  const [isLoading, setIsLoading] = useState(false);
   
-  return useMutation({
-    mutationFn: async (paymentId: string) => {
+  const cancelPayment = useCallback(async (paymentId: string) => {
+    setIsLoading(true);
+    try {
       const result = await api.payment.cancelPayment.mutate({ paymentId });
-      return result;
-    },
-    onSuccess: () => {
       toast.success('Paiement annulé avec succès');
-      queryClient.invalidateQueries({ queryKey: ['payments'] });
-      queryClient.invalidateQueries({ queryKey: ['payment-history'] });
-    },
-    onError: (error) => {
-      console.error("Erreur lors de l'annulation du paiement:", error);
+      return result;
+    } catch (error) {
+      console.error('Erreur lors de l\'annulation du paiement:', error);
       toast.error(
         error instanceof Error
           ? error.message
-          : "Une erreur est survenue lors de l'annulation du paiement"
+          : 'Une erreur est survenue lors de l\'annulation du paiement'
       );
-    },
-  });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  return {
+    cancelPayment,
+    isLoading,
+  };
 };
 
 /**
  * Hook pour rembourser un paiement
  */
 export const useRefundPayment = () => {
-  const queryClient = useQueryClient();
+  const [isLoading, setIsLoading] = useState(false);
   
-  return useMutation({
-    mutationFn: async ({ paymentId, amount, reason }: { 
-      paymentId: string; 
-      amount?: number; 
-      reason: string;
-    }) => {
+  const refundPayment = useCallback(async (paymentId: string, amount?: number) => {
+    setIsLoading(true);
+    try {
       const result = await api.payment.refundPayment.mutate({ 
         paymentId, 
-        amount, 
-        reason 
+        amount 
       });
-      return result;
-    },
-    onSuccess: () => {
       toast.success('Remboursement effectué avec succès');
-      queryClient.invalidateQueries({ queryKey: ['payments'] });
-      queryClient.invalidateQueries({ queryKey: ['payment-history'] });
-    },
-    onError: (error) => {
+      return result;
+    } catch (error) {
       console.error('Erreur lors du remboursement:', error);
       toast.error(
         error instanceof Error
           ? error.message
           : 'Une erreur est survenue lors du remboursement'
       );
-    },
-  });
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  return {
+    refundPayment,
+    isLoading,
+  };
 };
 
 /**
  * Hook pour récupérer les méthodes de paiement
  */
 export const usePaymentMethods = () => {
-  return useQuery({
-    queryKey: ['payment-methods'],
-    queryFn: async () => {
-      const result = await api.payment.getPaymentMethods.query();
-      return result.paymentMethods || [];
-    },
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: false,
-  });
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchPaymentMethods = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const methods = await api.payment.getPaymentMethods.query();
+      setPaymentMethods(methods);
+    } catch (err) {
+      console.error('Erreur lors du chargement des méthodes de paiement:', err);
+      setError('Impossible de charger les méthodes de paiement');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  return {
+    paymentMethods,
+    isLoading,
+    error,
+    refetch: fetchPaymentMethods,
+  };
 };
 
 /**
- * Hook pour l'historique des paiements avec pagination
+ * Hook pour récupérer l'historique des paiements
  */
 export const usePaymentHistory = (
   page: number = 1,
@@ -288,104 +313,113 @@ export const usePaymentHistory = (
     type?: string;
   }
 ) => {
-  return useQuery({
-    queryKey: ['payment-history', page, limit, filters],
-    queryFn: async () => {
+  const [paymentHistory, setPaymentHistory] = useState<PaymentHistoryItem[]>([]);
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    total: 0,
+    page: 1,
+    limit: 10,
+    totalPages: 0,
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchPaymentHistory = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
       const result = await api.payment.getPaymentHistory.query({
         page,
         limit,
-        startDate: filters?.startDate,
-        endDate: filters?.endDate,
-        status: filters?.status,
-        type: filters?.type,
+        filters,
       });
-      return {
-        items: result.payments || [],
-        pagination: {
-          total: result.total,
-          page,
-          limit,
-          totalPages: result.pages,
-        } as PaginationInfo,
-      };
-    },
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    refetchOnWindowFocus: false,
-  });
-};
-
-/**
- * Hook pour les paiements démonstration (mode démo)
- */
-export const useDemoPayments = () => {
-  const [isDemoMode] = useState(process.env.NEXT_PUBLIC_DEMO_MODE === 'true');
-
-  const simulatePaymentSuccess = useCallback(async (paymentId: string) => {
-    if (!isDemoMode) return false;
-
-    try {
-      await fetch('/api/webhooks/stripe/demo', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          eventType: 'payment_intent.succeeded',
-          paymentId,
-          status: 'succeeded',
-          metadata: {
-            demoMode: true,
-          },
-        }),
-      });
-
-      toast.success('Paiement réussi (mode démo)');
-      return true;
-    } catch (error) {
-      console.error('Erreur lors de la simulation de paiement réussi:', error);
-      toast.error('Erreur de simulation');
-      return false;
+      setPaymentHistory(result.payments);
+      setPagination(result.pagination);
+    } catch (err) {
+      console.error('Erreur lors du chargement de l\'historique:', err);
+      setError('Impossible de charger l\'historique des paiements');
+    } finally {
+      setIsLoading(false);
     }
-  }, [isDemoMode]);
-
-  const simulatePaymentFailure = useCallback(async (paymentId: string, reason?: string) => {
-    if (!isDemoMode) return false;
-
-    try {
-      await fetch('/api/webhooks/stripe/demo', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          eventType: 'payment_intent.payment_failed',
-          paymentId,
-          status: 'failed',
-          metadata: {
-            reason: reason || 'Échec du paiement en mode démonstration',
-            demoMode: true,
-          },
-        }),
-      });
-
-      toast.error(reason || 'Paiement échoué (mode démo)');
-      return true;
-    } catch (error) {
-      console.error("Erreur lors de la simulation d'échec de paiement:", error);
-      toast.error('Erreur de simulation');
-      return false;
-    }
-  }, [isDemoMode]);
+  }, [page, limit, filters]);
 
   return {
-    isDemoMode,
-    simulatePaymentSuccess,
-    simulatePaymentFailure,
+    paymentHistory,
+    pagination,
+    isLoading,
+    error,
+    refetch: fetchPaymentHistory,
   };
 };
 
 /**
- * Hook composite pour gérer tous les aspects des paiements
+ * Hook pour les paiements de démonstration
+ */
+export const useDemoPayments = () => {
+  const [isLoading, setIsLoading] = useState(false);
+
+  const createDemoPayment = useCallback(async (
+    amount: number,
+    currency: string = 'EUR',
+    description: string = 'Paiement de démonstration'
+  ) => {
+    setIsLoading(true);
+    try {
+      const result = await api.payment.createDemoPayment.mutate({
+        amount,
+        currency,
+        description,
+      });
+      toast.success('Paiement de démonstration créé avec succès');
+      return result;
+    } catch (error) {
+      console.error('Erreur lors de la création du paiement de démonstration:', error);
+      toast.error('Une erreur est survenue lors de la création du paiement de démonstration');
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const simulateSuccess = useCallback(async (paymentId: string) => {
+    setIsLoading(true);
+    try {
+      const result = await api.payment.simulatePaymentSuccess.mutate({ paymentId });
+      toast.success('Paiement simulé comme réussi');
+      return result;
+    } catch (error) {
+      console.error('Erreur lors de la simulation de succès:', error);
+      toast.error('Une erreur est survenue lors de la simulation');
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  const simulateFailure = useCallback(async (paymentId: string) => {
+    setIsLoading(true);
+    try {
+      const result = await api.payment.simulatePaymentFailure.mutate({ paymentId });
+      toast.success('Paiement simulé comme échoué');
+      return result;
+    } catch (error) {
+      console.error('Erreur lors de la simulation d\'échec:', error);
+      toast.error('Une erreur est survenue lors de la simulation');
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  return {
+    createDemoPayment,
+    simulateSuccess,
+    simulateFailure,
+    isLoading,
+  };
+};
+
+/**
+ * Hook général pour les opérations de paiement
  */
 export const usePayments = () => {
   const currentPayment = useCurrentPayment();
@@ -397,44 +431,12 @@ export const usePayments = () => {
   const demoPayments = useDemoPayments();
 
   return {
-    // État du paiement courant
     ...currentPayment,
-    
-    // Formulaire de paiement
     ...paymentForm,
-    
-    // Mutations
-    createPaymentIntent,
-    capturePayment,
-    cancelPayment,
-    refundPayment,
-    
-    // Fonctions démo
+    ...createPaymentIntent,
+    ...capturePayment,
+    ...cancelPayment,
+    ...refundPayment,
     ...demoPayments,
-    
-    // États de chargement depuis les mutations
-    isCreating: createPaymentIntent.isPending,
-    isCapturing: capturePayment.isPending,
-    isCanceling: cancelPayment.isPending,
-    isRefunding: refundPayment.isPending,
-    
-    // États d'erreur depuis les mutations
-    createError: createPaymentIntent.error,
-    captureError: capturePayment.error,
-    cancelError: cancelPayment.error,
-    refundError: refundPayment.error,
   };
-};
-
-// Export des hooks individuels pour une utilisation spécifique
-export {
-  useCurrentPayment,
-  usePaymentForm,
-  useCreatePaymentIntent,
-  useCapturePayment,
-  useCancelPayment,
-  useRefundPayment,
-  usePaymentMethods,
-  usePaymentHistory,
-  useDemoPayments,
 }; 

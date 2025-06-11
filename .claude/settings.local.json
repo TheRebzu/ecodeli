@@ -1,14 +1,30 @@
 {
   "allowed_tools": [
-    "agent", "bash", "edit", "glob", "grep", "ls", 
-    "multiedit", "notebookedit", "notebookread", 
-    "read", "todoread", "todowrite", "webfetch", 
-    "websearch", "write"
+    "agent",
+    "bash",
+    "edit",
+    "glob",
+    "grep",
+    "ls",
+    "multiedit",
+    "notebookedit",
+    "notebookread",
+    "read",
+    "todoread",
+    "todowrite",
+    "webfetch",
+    "websearch",
+    "write"
   ],
   "auto_approve": {
     "bash_commands": true,
     "file_modifications": true,
     "web_access": true
   },
-  "security_level": "permissive"
+  "security_level": "permissive",
+  "permissions": {
+    "allow": [
+      "Bash(find:*)"
+    ]
+  }
 }

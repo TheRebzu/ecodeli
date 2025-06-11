@@ -96,6 +96,12 @@ model Merchant {
   contracts        Contract[]
   verification     MerchantVerification?
   user             User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Nouvelles relations pour le cahier des charges
+  cashRegister     MerchantCashRegister?  @relation("MerchantCashRegister")
+  cartDrops        CartDrop[]             @relation("MerchantCartDrops")
+  cartDropGroups   CartDropGroup[]        @relation("MerchantCartDropGroups")
+  deliveryZones    MerchantDeliveryZone[] @relation("MerchantDeliveryZones")
 
   @@map("merchants")
 }

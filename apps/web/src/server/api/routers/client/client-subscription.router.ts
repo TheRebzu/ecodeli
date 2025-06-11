@@ -1,57 +1,91 @@
-// src/server/api/routers/subscription.router.ts
 import { router, protectedProcedure, adminProcedure } from '@/server/api/trpc';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
-import { subscriptionService } from '@/server/services/shared/subscription.service';
-import { PlanType } from '@prisma/client';
-import { db } from '@/server/db';
+import { ClientSubscriptionPlan, UsageType } from '@prisma/client';
 import { format, isBefore, isEqual, addMonths } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Decimal } from '@prisma/client/runtime/library';
 
 /**
- * Router tRPC pour la gestion des abonnements
- * Fournit des endpoints pour gérer les abonnements, formules et avantages
+ * Router tRPC pour la gestion des abonnements clients EcoDeli
+ * Système 3-tier: FREE/STARTER(9.90€)/PREMIUM(19.99€) avec suivi d'usage
+ * Conforme au cahier des charges officiel
  */
 export const subscriptionRouter = router({
   /**
-   * Récupère l'abonnement actif de l'utilisateur
+   * Récupère l'abonnement actif de l'utilisateur avec usage
    */
   getMySubscription: protectedProcedure.query(async ({ ctx }) => {
     try {
-      const userId = ctx.session.user.id;
-
-      // Récupérer l'abonnement actif de l'utilisateur
-      const activeSubscription = await ctx.db.subscription.findFirst({
-        where: {
-          userId,
-          status: 'ACTIVE',
-        },
-        include: {
-          invoices: {
-            orderBy: { issuedDate: 'desc' },
-            take: 3,
-          },
-        },
-      });
-
-      // Récupérer tous les plans disponibles
-      const availablePlans = await subscriptionService.getAvailablePlans();
-
-      // Déterminer le plan courant
-      let currentPlan = null;
-      if (activeSubscription) {
-        currentPlan = availablePlans.find(plan => plan.type === activeSubscription.planType);
-      } else {
-        // Tous les utilisateurs ont au moins un plan FREE par défaut
-        currentPlan = availablePlans.find(plan => plan.type === 'FREE');
+      const { user } = ctx.session;
+      
+      if (user.role !== 'CLIENT') {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Seuls les clients peuvent consulter leurs abonnements"
+        });
       }
 
+      // Récupérer l'abonnement actif du client
+      const activeSubscription = await ctx.db.clientSubscriptionPlan.findFirst({
+        where: {
+          clientId: user.id,
+          isActive: true
+        },
+        include: {
+          usageHistory: {
+            where: {
+              month: new Date().getMonth() + 1,
+              year: new Date().getFullYear()
+            },
+            orderBy: { createdAt: 'desc' }
+          },
+          client: {
+            select: {
+              id: true,
+              name: true,
+              email: true
+            }
+          }
+        }
+      });
+
+      // Si pas d'abonnement, créer un plan FREE par défaut
+      if (!activeSubscription) {
+        const freePlan = await ctx.db.clientSubscriptionPlan.create({
+          data: {
+            clientId: user.id,
+            plan: 'FREE',
+            isActive: true,
+            startDate: new Date(),
+            monthlyPrice: 0,
+            announcementsIncluded: 3,
+            storageGBIncluded: 0,
+            supportLevel: 'COMMUNITY'
+          }
+        });
+        
+        return {
+          subscription: freePlan,
+          currentUsage: null,
+          limits: getPlanLimits('FREE'),
+          availableUpgrades: await getAvailableUpgrades('FREE')
+        };
+      }
+
+      // Calculer l'usage du mois en cours
+      const currentUsage = await calculateCurrentMonthUsage(user.id, ctx.db);
+      const limits = getPlanLimits(activeSubscription.plan);
+      
       return {
         subscription: activeSubscription,
-        currentPlan,
-        availablePlans,
-        isDemoMode: process.env.DEMO_MODE === 'true',
+        currentUsage,
+        limits,
+        availableUpgrades: await getAvailableUpgrades(activeSubscription.plan),
+        usagePercentages: {
+          announcements: limits.announcements > 0 ? (currentUsage.announcements / limits.announcements) * 100 : 0,
+          storage: limits.storage > 0 ? (currentUsage.storage / limits.storage) * 100 : 0
+        }
       };
     } catch (error: any) {
       throw new TRPCError({
@@ -63,29 +97,101 @@ export const subscriptionRouter = router({
   }),
 
   /**
-   * Récupère tous les plans d'abonnement disponibles
+   * Récupère tous les plans d'abonnement EcoDeli
    */
   getAvailablePlans: protectedProcedure.query(async ({ ctx }) => {
     try {
-      const plans = await subscriptionService.getAvailablePlans();
+      const { user } = ctx.session;
+      
+      if (user.role !== 'CLIENT') {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Seuls les clients peuvent consulter les plans"
+        });
+      }
 
-      // Calculer les économies pour les plans annuels
-      const plansWithSavings = plans.map(plan => {
-        if (plan.priceYearly && plan.priceMonthly) {
-          const monthlyCostInYearlyPlan = plan.priceYearly / 12;
-          const savings = {
-            monthly: plan.priceMonthly - monthlyCostInYearlyPlan,
-            percentage: ((plan.priceMonthly - monthlyCostInYearlyPlan) / plan.priceMonthly) * 100,
-            yearly: plan.priceMonthly * 12 - plan.priceYearly,
-          };
-          return { ...plan, savings };
+      const plans = [
+        {
+          id: 'FREE',
+          name: 'Gratuit',
+          price: 0,
+          description: 'Pour découvrir EcoDeli',
+          features: [
+            '3 annonces par mois',
+            'Support communautaire',
+            'Accès aux services de base',
+            'Notifications par email'
+          ],
+          limits: {
+            announcements: 3,
+            storage: 0,
+            prioritySupport: false,
+            advancedFeatures: false
+          },
+          popular: false
+        },
+        {
+          id: 'STARTER',
+          name: 'Starter',
+          price: 9.90,
+          description: 'Pour les utilisateurs réguliers',
+          features: [
+            '20 annonces par mois',
+            '2 GB stockage cloud',
+            'Support par email',
+            'Statistiques de base',
+            'Notifications en temps réel'
+          ],
+          limits: {
+            announcements: 20,
+            storage: 2, // GB
+            prioritySupport: false,
+            advancedFeatures: true
+          },
+          popular: true
+        },
+        {
+          id: 'PREMIUM',
+          name: 'Premium',
+          price: 19.99,
+          description: 'Pour les power users',
+          features: [
+            'Annonces illimitées',
+            '10 GB stockage cloud',
+            'Support prioritaire',
+            'Analytics avancées',
+            'API access',
+            'Intégrations tierces',
+            'Matching prioritaire'
+          ],
+          limits: {
+            announcements: -1, // Illimité
+            storage: 10, // GB
+            prioritySupport: true,
+            advancedFeatures: true
+          },
+          popular: false
         }
-        return plan;
+      ];
+
+      // Obtenir le plan actuel de l'utilisateur
+      const currentSubscription = await ctx.db.clientSubscriptionPlan.findFirst({
+        where: {
+          clientId: user.id,
+          isActive: true
+        }
       });
 
+      const currentPlan = currentSubscription?.plan || 'FREE';
+
       return {
-        plans: plansWithSavings,
-        isDemoMode: process.env.DEMO_MODE === 'true',
+        plans: plans.map(plan => ({
+          ...plan,
+          isCurrent: plan.id === currentPlan,
+          canUpgrade: canUpgrade(currentPlan, plan.id as ClientSubscriptionPlan),
+          canDowngrade: canDowngrade(currentPlan, plan.id as ClientSubscriptionPlan)
+        })),
+        currentPlan
       };
     } catch (error: any) {
       throw new TRPCError({
@@ -97,334 +203,439 @@ export const subscriptionRouter = router({
   }),
 
   /**
-   * S'abonner à un plan
+   * Changer de plan d'abonnement
    */
-  subscribe: protectedProcedure
+  changePlan: protectedProcedure
     .input(
       z.object({
-        planType: z.enum(['FREE', 'STARTER', 'PREMIUM', 'CUSTOM']),
-        billingCycle: z.enum(['MONTHLY', 'YEARLY']).default('MONTHLY'),
-        couponCode: z.string().optional(),
-        autoRenew: z.boolean().default(true),
+        newPlan: z.nativeEnum(ClientSubscriptionPlan),
+        paymentMethodId: z.string().optional()
       })
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const userId = ctx.session.user.id;
-        const { planType, billingCycle, couponCode, autoRenew } = input;
-
-        // Vérifier si l'utilisateur a déjà un abonnement
-        const existingSubscription = await ctx.db.subscription.findFirst({
-          where: {
-            userId,
-            status: 'ACTIVE',
-          },
-        });
-
-        // Obtenir les détails du plan
-        const planDetails = await subscriptionService.getPlanDetails(planType);
-
-        // Appliquer réduction si code promo
-        let finalPrice =
-          billingCycle === 'YEARLY'
-            ? planDetails.priceYearly || planDetails.price * 12
-            : planDetails.price;
-
-        let appliedDiscount = 0;
-        if (couponCode) {
-          const discountResult = await subscriptionService.applyCouponCode(couponCode, planType);
-          if (discountResult.valid) {
-            appliedDiscount = discountResult.discountPercent;
-            finalPrice = finalPrice * (1 - discountResult.discountPercent / 100);
-          }
-        }
-
-        // Créer ou mettre à jour l'abonnement
-        let subscription;
-
-        if (existingSubscription) {
-          // Gestion des upgrades/downgrades
-          const isUpgrade = subscriptionService.isPlanUpgrade(
-            existingSubscription.planType,
-            planType
-          );
-          const isDowngrade = !isUpgrade && existingSubscription.planType !== planType;
-
-          if (isUpgrade) {
-            // Immédiatement upgrader
-            subscription = await subscriptionService.upgradePlan(
-              userId,
-              existingSubscription.id,
-              planType,
-              {
-                billingCycle,
-                autoRenew,
-                appliedDiscount,
-              }
-            );
-          } else if (isDowngrade) {
-            // Downgrade à la fin de la période en cours
-            subscription = await subscriptionService.downgradePlan(
-              userId,
-              existingSubscription.id,
-              planType,
-              {
-                billingCycle,
-                autoRenew,
-                appliedDiscount,
-                effectiveImmediately: process.env.DEMO_MODE === 'true',
-              }
-            );
-          } else {
-            // Mise à jour du cycle de facturation uniquement
-            subscription = await ctx.db.subscription.update({
-              where: { id: existingSubscription.id },
-              data: {
-                billingCycle,
-                autoRenew,
-                discountPercent: appliedDiscount > 0 ? appliedDiscount : undefined,
-              },
-            });
-          }
-        } else {
-          // Nouvel abonnement
-          subscription = await subscriptionService.createSubscription(userId, planType, {
-            billingCycle,
-            autoRenew,
-            appliedDiscount,
+        const { user } = ctx.session;
+        const { newPlan, paymentMethodId } = input;
+        
+        if (user.role !== 'CLIENT') {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Seuls les clients peuvent changer d'abonnement"
           });
         }
 
-        // Si c'est un plan payant et en mode DEMO, générer une facture immédiatement
-        if (process.env.DEMO_MODE === 'true' && planType !== 'FREE') {
-          await subscriptionService.processRenewal(subscription.id);
+        // Récupérer l'abonnement actuel
+        const currentSubscription = await ctx.db.clientSubscriptionPlan.findFirst({
+          where: {
+            clientId: user.id,
+            isActive: true
+          }
+        });
+
+        const currentPlan = currentSubscription?.plan || 'FREE';
+        
+        if (currentPlan === newPlan) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Vous êtes déjà sur ce plan"
+          });
         }
+
+        // Valider la transition de plan
+        if (!canUpgrade(currentPlan, newPlan) && !canDowngrade(currentPlan, newPlan)) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "Transition de plan non autorisée"
+          });
+        }
+
+        const isUpgrade = getPlanPriority(newPlan) > getPlanPriority(currentPlan);
+        const planDetails = getPlanDetails(newPlan);
+
+        // Désactiver l'ancien abonnement
+        if (currentSubscription) {
+          await ctx.db.clientSubscriptionPlan.update({
+            where: { id: currentSubscription.id },
+            data: {
+              isActive: false,
+              endDate: new Date()
+            }
+          });
+        }
+
+        // Créer le nouvel abonnement
+        const newSubscription = await ctx.db.clientSubscriptionPlan.create({
+          data: {
+            clientId: user.id,
+            plan: newPlan,
+            isActive: true,
+            startDate: new Date(),
+            monthlyPrice: planDetails.price,
+            announcementsIncluded: planDetails.limits.announcements === -1 ? null : planDetails.limits.announcements,
+            storageGBIncluded: planDetails.limits.storage,
+            supportLevel: planDetails.limits.prioritySupport ? 'PRIORITY' : 'STANDARD',
+            paymentMethodId,
+            autoRenew: newPlan !== 'FREE'
+          }
+        });
+
+        // Enregistrer l'historique de changement
+        await ctx.db.clientSubscriptionHistory.create({
+          data: {
+            clientId: user.id,
+            subscriptionId: newSubscription.id,
+            action: isUpgrade ? 'UPGRADE' : 'DOWNGRADE',
+            fromPlan: currentPlan,
+            toPlan: newPlan,
+            effectiveDate: new Date(),
+            reason: isUpgrade ? 'Plan upgrade requested' : 'Plan downgrade requested'
+          }
+        });
+
+        // TODO: Gérer le paiement pour les plans payants
+        // TODO: Envoyer notification par email
 
         return {
           success: true,
-          subscription,
-          message: existingSubscription
-            ? `Abonnement mis à jour avec succès vers ${planDetails.name}`
-            : `Abonnement ${planDetails.name} créé avec succès`,
-          planDetails,
-          isDemoMode: process.env.DEMO_MODE === 'true',
+          subscription: newSubscription,
+          message: `Abonnement mis à jour vers ${planDetails.name} avec succès`,
+          isUpgrade,
+          effectiveImmediately: true
         };
       } catch (error: any) {
+        if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || "Erreur lors de la création de l'abonnement",
-          cause: error,
+          message: "Erreur lors du changement d'abonnement"
         });
       }
     }),
 
   /**
-   * Annule un abonnement
+   * Annuler un abonnement payant (retour vers FREE)
    */
   cancelSubscription: protectedProcedure
     .input(
       z.object({
         reason: z.string().optional(),
-        cancelImmediately: z.boolean().default(false),
+        feedback: z.string().max(1000).optional()
       })
     )
     .mutation(async ({ ctx, input }) => {
       try {
-        const userId = ctx.session.user.id;
-        const { reason, cancelImmediately } = input;
+        const { user } = ctx.session;
+        const { reason, feedback } = input;
+        
+        if (user.role !== 'CLIENT') {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Seuls les clients peuvent annuler leurs abonnements"
+          });
+        }
 
         // Récupérer l'abonnement actif
-        const activeSubscription = await ctx.db.subscription.findFirst({
+        const activeSubscription = await ctx.db.clientSubscriptionPlan.findFirst({
           where: {
-            userId,
-            status: 'ACTIVE',
-          },
-        });
-
-        if (!activeSubscription) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Aucun abonnement actif trouvé',
-          });
-        }
-
-        // Annuler l'abonnement
-        const result = await subscriptionService.cancelSubscription(userId, activeSubscription.id, {
-          reason,
-          cancelImmediately,
-        });
-
-        return {
-          success: true,
-          message: cancelImmediately
-            ? 'Abonnement annulé immédiatement'
-            : `Abonnement programmé pour se terminer le ${format(new Date(activeSubscription.currentPeriodEnd || new Date()), 'PPP', { locale: fr })}`,
-          subscription: result.subscription,
-          effectiveEndDate: result.effectiveEndDate,
-        };
-      } catch (error: any) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || "Erreur lors de l'annulation de l'abonnement",
-          cause: error,
-        });
-      }
-    }),
-
-  /**
-   * Change les paramètres d'un abonnement
-   */
-  updateSubscriptionSettings: protectedProcedure
-    .input(
-      z.object({
-        autoRenew: z.boolean().optional(),
-        paymentMethodId: z.string().optional(),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      try {
-        const userId = ctx.session.user.id;
-
-        // Récupérer l'abonnement actif
-        const activeSubscription = await ctx.db.subscription.findFirst({
-          where: {
-            userId,
-            status: 'ACTIVE',
-          },
-        });
-
-        if (!activeSubscription) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Aucun abonnement actif trouvé',
-          });
-        }
-
-        // Construire les données à mettre à jour
-        const updateData: any = {};
-
-        if (input.autoRenew !== undefined) {
-          updateData.autoRenew = input.autoRenew;
-          updateData.cancelAtPeriodEnd = !input.autoRenew;
-        }
-
-        if (input.paymentMethodId) {
-          // Vérifier que la méthode de paiement existe
-          const paymentMethod = await ctx.db.paymentMethod.findUnique({
-            where: {
-              id: input.paymentMethodId,
-              userId,
-            },
-          });
-
-          if (!paymentMethod) {
-            throw new TRPCError({
-              code: 'NOT_FOUND',
-              message: 'Méthode de paiement non trouvée',
-            });
+            clientId: user.id,
+            isActive: true
           }
+        });
 
-          updateData.defaultPaymentMethodId = input.paymentMethodId;
+        if (!activeSubscription || activeSubscription.plan === 'FREE') {
+          throw new TRPCError({
+            code: 'BAD_REQUEST',
+            message: 'Aucun abonnement payant à annuler',
+          });
         }
 
-        // Mettre à jour l'abonnement
-        const updatedSubscription = await ctx.db.subscription.update({
+        // Calculer la date de fin (fin du mois en cours)
+        const endOfMonth = new Date();
+        endOfMonth.setMonth(endOfMonth.getMonth() + 1);
+        endOfMonth.setDate(0); // Dernier jour du mois
+        endOfMonth.setHours(23, 59, 59, 999);
+
+        // Marquer comme non renouvelable
+        await ctx.db.clientSubscriptionPlan.update({
           where: { id: activeSubscription.id },
-          data: updateData,
+          data: {
+            autoRenew: false,
+            scheduledEndDate: endOfMonth,
+            cancellationReason: reason,
+            cancellationFeedback: feedback,
+            cancelledAt: new Date()
+          }
+        });
+
+        // Créer un plan FREE pour la suite
+        const freePlan = await ctx.db.clientSubscriptionPlan.create({
+          data: {
+            clientId: user.id,
+            plan: 'FREE',
+            isActive: false, // Sera activé à la fin du plan payant
+            startDate: endOfMonth,
+            monthlyPrice: 0,
+            announcementsIncluded: 3,
+            storageGBIncluded: 0,
+            supportLevel: 'COMMUNITY'
+          }
+        });
+
+        // Enregistrer l'historique
+        await ctx.db.clientSubscriptionHistory.create({
+          data: {
+            clientId: user.id,
+            subscriptionId: activeSubscription.id,
+            action: 'CANCELLATION',
+            fromPlan: activeSubscription.plan,
+            toPlan: 'FREE',
+            effectiveDate: endOfMonth,
+            reason: reason || 'User cancellation request'
+          }
         });
 
         return {
           success: true,
-          subscription: updatedSubscription,
-          message: "Paramètres d'abonnement mis à jour avec succès",
+          message: `Abonnement programmé pour se terminer le ${format(endOfMonth, 'PPP', { locale: fr })}. Vous conservez vos avantages jusqu'à cette date.`,
+          endDate: endOfMonth,
+          nextPlan: freePlan
         };
       } catch (error: any) {
+        if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || "Erreur lors de la mise à jour des paramètres d'abonnement",
-          cause: error,
+          message: "Erreur lors de l'annulation de l'abonnement"
         });
       }
     }),
 
   /**
-   * Vérifie la validité d'un code promo
+   * Enregistrer l'usage d'une fonctionnalité
    */
-  validateCouponCode: protectedProcedure
+  recordUsage: protectedProcedure
     .input(
       z.object({
-        code: z.string(),
-        planType: z.enum(['FREE', 'STARTER', 'PREMIUM', 'CUSTOM']),
+        type: z.nativeEnum(UsageType),
+        amount: z.number().min(0).default(1),
+        metadata: z.record(z.any()).optional()
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      try {
+        const { user } = ctx.session;
+        const { type, amount, metadata } = input;
+        
+        if (user.role !== 'CLIENT') {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Seuls les clients peuvent enregistrer de l'usage"
+          });
+        }
+
+        // Récupérer l'abonnement actuel
+        const subscription = await ctx.db.clientSubscriptionPlan.findFirst({
+          where: {
+            clientId: user.id,
+            isActive: true
+          }
+        });
+
+        if (!subscription) {
+          throw new TRPCError({
+            code: "NOT_FOUND",
+            message: "Aucun abonnement trouvé"
+          });
+        }
+
+        // Vérifier les limites avant d'enregistrer l'usage
+        const currentUsage = await calculateCurrentMonthUsage(user.id, ctx.db);
+        const limits = getPlanLimits(subscription.plan);
+        
+        const canUse = await checkUsageLimit(type, currentUsage, limits, amount);
+        if (!canUse.allowed) {
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: canUse.message
+          });
+        }
+
+        // Enregistrer l'usage
+        const usage = await ctx.db.clientUsageHistory.create({
+          data: {
+            clientId: user.id,
+            subscriptionId: subscription.id,
+            type,
+            amount,
+            month: new Date().getMonth() + 1,
+            year: new Date().getFullYear(),
+            metadata,
+            recordedAt: new Date()
+          }
+        });
+
+        // Mettre à jour le compteur mensuel
+        await ctx.db.clientMonthlyUsage.upsert({
+          where: {
+            clientId_month_year: {
+              clientId: user.id,
+              month: new Date().getMonth() + 1,
+              year: new Date().getFullYear()
+            }
+          },
+          update: {
+            [getUsageFieldName(type)]: {
+              increment: amount
+            },
+            updatedAt: new Date()
+          },
+          create: {
+            clientId: user.id,
+            month: new Date().getMonth() + 1,
+            year: new Date().getFullYear(),
+            [getUsageFieldName(type)]: amount,
+            subscriptionPlan: subscription.plan
+          }
+        });
+
+        return {
+          success: true,
+          usage,
+          remainingQuota: calculateRemainingQuota(type, currentUsage, limits, amount)
+        };
+      } catch (error: any) {
+        if (error instanceof TRPCError) throw error;
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: "Erreur lors de l'enregistrement de l'usage"
+        });
+      }
+    }),
+
+  /**
+   * Obtenir l'historique d'usage détaillé
+   */
+  getUsageHistory: protectedProcedure
+    .input(
+      z.object({
+        type: z.nativeEnum(UsageType).optional(),
+        month: z.number().min(1).max(12).optional(),
+        year: z.number().min(2020).optional(),
+        limit: z.number().min(1).max(100).default(50)
       })
     )
     .query(async ({ ctx, input }) => {
       try {
-        const { code, planType } = input;
+        const { user } = ctx.session;
+        const { type, month, year, limit } = input;
+        
+        if (user.role !== 'CLIENT') {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Seuls les clients peuvent consulter leur historique d'usage"
+          });
+        }
 
-        // Vérifier la validité du code promo
-        const result = await subscriptionService.applyCouponCode(code, planType);
+        const where: any = {
+          clientId: user.id
+        };
+        
+        if (type) where.type = type;
+        if (month) where.month = month;
+        if (year) where.year = year;
 
-        return result;
+        const history = await ctx.db.clientUsageHistory.findMany({
+          where,
+          orderBy: { recordedAt: 'desc' },
+          take: limit,
+          include: {
+            subscription: {
+              select: {
+                plan: true
+              }
+            }
+          }
+        });
+
+        // Calculer les statistiques par type
+        const stats = await ctx.db.clientUsageHistory.groupBy({
+          by: ['type'],
+          where: {
+            clientId: user.id,
+            month: month || new Date().getMonth() + 1,
+            year: year || new Date().getFullYear()
+          },
+          _sum: {
+            amount: true
+          }
+        });
+
+        return {
+          history,
+          monthlyStats: stats.reduce((acc, stat) => {
+            acc[stat.type] = stat._sum.amount || 0;
+            return acc;
+          }, {} as Record<string, number>)
+        };
       } catch (error: any) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de la validation du code promo',
-          cause: error,
+          message: "Erreur lors de la récupération de l'historique"
         });
       }
     }),
 
   /**
-   * Simule un renouvellement d'abonnement (uniquement en mode démo)
+   * Vérifier si une action est autorisée selon le plan
    */
-  simulateRenewal: protectedProcedure.mutation(async ({ ctx }) => {
-    try {
-      // Vérifier qu'on est en mode démo
-      if (process.env.DEMO_MODE !== 'true') {
+  checkUsageLimit: protectedProcedure
+    .input(
+      z.object({
+        type: z.nativeEnum(UsageType),
+        amount: z.number().min(1).default(1)
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      try {
+        const { user } = ctx.session;
+        const { type, amount } = input;
+        
+        if (user.role !== 'CLIENT') {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "Seuls les clients peuvent vérifier leurs limites"
+          });
+        }
+
+        // Récupérer l'abonnement actuel
+        const subscription = await ctx.db.clientSubscriptionPlan.findFirst({
+          where: {
+            clientId: user.id,
+            isActive: true
+          }
+        });
+
+        if (!subscription) {
+          // Plan FREE par défaut
+          const currentUsage = await calculateCurrentMonthUsage(user.id, ctx.db);
+          const limits = getPlanLimits('FREE');
+          return await checkUsageLimit(type, currentUsage, limits, amount);
+        }
+
+        const currentUsage = await calculateCurrentMonthUsage(user.id, ctx.db);
+        const limits = getPlanLimits(subscription.plan);
+        
+        return await checkUsageLimit(type, currentUsage, limits, amount);
+      } catch (error: any) {
         throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Cette fonctionnalité est uniquement disponible en mode démonstration',
+          code: 'INTERNAL_SERVER_ERROR',
+          message: "Erreur lors de la vérification des limites"
         });
       }
-
-      const userId = ctx.session.user.id;
-
-      // Récupérer l'abonnement actif
-      const activeSubscription = await ctx.db.subscription.findFirst({
-        where: {
-          userId,
-          status: 'ACTIVE',
-        },
-      });
-
-      if (!activeSubscription) {
-        throw new TRPCError({
-          code: 'NOT_FOUND',
-          message: 'Aucun abonnement actif trouvé',
-        });
-      }
-
-      // Traiter le renouvellement
-      const result = await subscriptionService.processRenewal(activeSubscription.id);
-
-      return {
-        success: true,
-        ...result,
-        message: "Renouvellement d'abonnement simulé avec succès",
-      };
-    } catch (error: any) {
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: error.message || 'Erreur lors de la simulation du renouvellement',
-        cause: error,
-      });
-    }
-  }),
+    }),
 
   // ==== ADMIN PROCEDURES ====
 
   /**
-   * Récupère tous les abonnements (admin uniquement)
+   * Récupère tous les abonnements clients (admin uniquement)
    */
   getAllSubscriptions: adminProcedure
     .input(
@@ -970,4 +1181,156 @@ export const subscriptionRouter = router({
     }),
 });
 
-export default subscriptionRouter;
+});
+
+// Helper functions
+function getPlanLimits(plan: ClientSubscriptionPlan) {
+  switch (plan) {
+    case 'FREE':
+      return {
+        announcements: 3,
+        storage: 0, // GB
+        prioritySupport: false,
+        advancedFeatures: false
+      };
+    case 'STARTER':
+      return {
+        announcements: 20,
+        storage: 2, // GB
+        prioritySupport: false,
+        advancedFeatures: true
+      };
+    case 'PREMIUM':
+      return {
+        announcements: -1, // Illimité
+        storage: 10, // GB
+        prioritySupport: true,
+        advancedFeatures: true
+      };
+    default:
+      return getPlanLimits('FREE');
+  }
+}
+
+function getPlanDetails(plan: ClientSubscriptionPlan) {
+  switch (plan) {
+    case 'FREE':
+      return {
+        name: 'Gratuit',
+        price: 0,
+        limits: getPlanLimits('FREE')
+      };
+    case 'STARTER':
+      return {
+        name: 'Starter',
+        price: 9.90,
+        limits: getPlanLimits('STARTER')
+      };
+    case 'PREMIUM':
+      return {
+        name: 'Premium',
+        price: 19.99,
+        limits: getPlanLimits('PREMIUM')
+      };
+    default:
+      return getPlanDetails('FREE');
+  }
+}
+
+function getPlanPriority(plan: ClientSubscriptionPlan): number {
+  switch (plan) {
+    case 'FREE': return 0;
+    case 'STARTER': return 1;
+    case 'PREMIUM': return 2;
+    default: return 0;
+  }
+}
+
+function canUpgrade(from: ClientSubscriptionPlan, to: ClientSubscriptionPlan): boolean {
+  return getPlanPriority(to) > getPlanPriority(from);
+}
+
+function canDowngrade(from: ClientSubscriptionPlan, to: ClientSubscriptionPlan): boolean {
+  return getPlanPriority(to) < getPlanPriority(from);
+}
+
+async function getAvailableUpgrades(currentPlan: ClientSubscriptionPlan) {
+  const allPlans: ClientSubscriptionPlan[] = ['FREE', 'STARTER', 'PREMIUM'];
+  return allPlans.filter(plan => canUpgrade(currentPlan, plan));
+}
+
+async function calculateCurrentMonthUsage(clientId: string, db: any) {
+  const currentMonth = new Date().getMonth() + 1;
+  const currentYear = new Date().getFullYear();
+  
+  const usage = await db.clientMonthlyUsage.findUnique({
+    where: {
+      clientId_month_year: {
+        clientId,
+        month: currentMonth,
+        year: currentYear
+      }
+    }
+  });
+  
+  return {
+    announcements: usage?.announcementsCount || 0,
+    storage: usage?.storageUsedGB || 0,
+    apiCalls: usage?.apiCallsCount || 0
+  };
+}
+
+async function checkUsageLimit(type: UsageType, currentUsage: any, limits: any, amount: number) {
+  switch (type) {
+    case 'ANNOUNCEMENTS':
+      if (limits.announcements === -1) {
+        return { allowed: true, message: 'Illimité' };
+      }
+      if (currentUsage.announcements + amount > limits.announcements) {
+        return { 
+          allowed: false, 
+          message: `Limite d'annonces atteinte (${limits.announcements}/mois). Passez à un plan supérieur.` 
+        };
+      }
+      return { allowed: true, message: 'OK' };
+      
+    case 'STORAGE':
+      if (currentUsage.storage + amount > limits.storage) {
+        return { 
+          allowed: false, 
+          message: `Limite de stockage atteinte (${limits.storage}GB). Passez à un plan supérieur.` 
+        };
+      }
+      return { allowed: true, message: 'OK' };
+      
+    case 'API_CALLS':
+      // Les appels API ne sont pas limités pour l'instant
+      return { allowed: true, message: 'OK' };
+      
+    default:
+      return { allowed: true, message: 'OK' };
+  }
+}
+
+function getUsageFieldName(type: UsageType): string {
+  switch (type) {
+    case 'ANNOUNCEMENTS': return 'announcementsCount';
+    case 'STORAGE': return 'storageUsedGB';
+    case 'API_CALLS': return 'apiCallsCount';
+    default: return 'announcementsCount';
+  }
+}
+
+function calculateRemainingQuota(type: UsageType, currentUsage: any, limits: any, usedAmount: number) {
+  switch (type) {
+    case 'ANNOUNCEMENTS':
+      if (limits.announcements === -1) return -1; // Illimité
+      return Math.max(0, limits.announcements - (currentUsage.announcements + usedAmount));
+    case 'STORAGE':
+      return Math.max(0, limits.storage - (currentUsage.storage + usedAmount));
+    default:
+      return -1;
+  }
+}
+
+export { subscriptionRouter };

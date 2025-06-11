@@ -564,4 +564,118 @@ enum NotificationStatus {
   DELIVERED // Délivrée
   READ      // Lue
   FAILED    // Échec
+}
+
+// ===== NOUVEAUX ENUMS POUR LE CAHIER DES CHARGES =====
+
+/// Type de plan d'abonnement client EcoDeli
+enum ClientSubscriptionPlan {
+  FREE     // Gratuit : Pas d'assurance, pas de réduction
+  STARTER  // Starter (9,90€/mois) : Assurance 115€, 5% réduction, prioritaire +15%
+  PREMIUM  // Premium (19,99€/mois) : Assurance 3000€, 9% réduction, 1er envoi offert, 3 prioritaires/mois gratuits
+}
+
+/// Type de service à la personne
+enum PersonalServiceType {
+  PERSON_TRANSPORT     // Transport de personnes (médecin, gare, travail)
+  AIRPORT_TRANSFER     // Transfert aéroport
+  GROCERY_SHOPPING     // Courses avec liste fournie
+  INTERNATIONAL_PURCHASE // Achats à l'étranger (ex: Jelly UK, cuberdons Belgique)
+  PET_SITTING          // Garde animaux pendant transport
+  HOME_SERVICES        // Petits travaux ménagers/jardinage
+  OTHER                // Autre service
+}
+
+/// Statut d'habilitation prestataire
+enum HabilitationStatus {
+  PENDING     // En attente
+  APPROVED    // Approuvée
+  REJECTED    // Rejetée
+  EXPIRED     // Expirée
+  SUSPENDED   // Suspendue
+}
+
+/// Type d'intervention prestataire
+enum InterventionType {
+  SCHEDULED   // Planifiée
+  EMERGENCY   // Urgence
+  RECURRING   // Récurrente
+  ONE_TIME    // Ponctuelle
+}
+
+/// Statut d'une intervention
+enum InterventionStatus {
+  SCHEDULED   // Planifiée
+  IN_PROGRESS // En cours
+  COMPLETED   // Terminée
+  CANCELLED   // Annulée
+  POSTPONED   // Reportée
+}
+
+/// Type d'évaluation
+enum EvaluationType {
+  CLIENT_TO_PROVIDER  // Client vers prestataire
+  PROVIDER_TO_CLIENT  // Prestataire vers client
+  ADMIN_REVIEW        // Évaluation admin
+}
+
+/// Statut de facturation automatique
+enum AutoInvoicingStatus {
+  ENABLED     // Activée
+  DISABLED    // Désactivée
+  SUSPENDED   // Suspendue
+  PENDING     // En attente
+}
+
+/// Type de KPI plateforme
+enum KpiType {
+  REVENUE       // Chiffre d'affaires
+  USER_COUNT    // Nombre d'utilisateurs
+  DELIVERY_COUNT // Nombre de livraisons
+  CONVERSION    // Taux de conversion
+  SATISFACTION  // Satisfaction client
+  PERFORMANCE   // Performance
+}
+
+/// Type de statistique multi-sites
+enum SiteStatsType {
+  PARIS       // Entrepôt Paris
+  MARSEILLE   // Entrepôt Marseille
+  LYON        // Entrepôt Lyon
+  LILLE       // Entrepôt Lille
+  MONTPELLIER // Entrepôt Montpellier
+  RENNES      // Entrepôt Rennes
+}
+
+/// Type de prévision financière
+enum ForecastType {
+  MONTHLY     // Mensuelle
+  QUARTERLY   // Trimestrielle
+  YEARLY      // Annuelle
+  CUSTOM      // Personnalisée
+}
+
+/// Statut de route planifiée
+enum PlannedRouteStatus {
+  DRAFT       // Brouillon
+  PUBLISHED   // Publiée
+  ACTIVE      // Active
+  COMPLETED   // Terminée
+  CANCELLED   // Annulée
+}
+
+/// Type de lâcher de chariot
+enum CartDropType {
+  INSTANT     // Immédiat
+  SCHEDULED   // Planifié
+  RECURRING   // Récurrent
+}
+
+/// Statut de lâcher de chariot
+enum CartDropStatus {
+  PENDING     // En attente
+  CONFIRMED   // Confirmé
+  IN_PROGRESS // En cours
+  DELIVERED   // Livré
+  CANCELLED   // Annulé
 } 

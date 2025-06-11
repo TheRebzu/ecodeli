@@ -1,0 +1,217 @@
+// ===== SYSTÈME DE TUTORIELS =====
+
+/// Type de tutoriel
+enum TutorialType {
+  ONBOARDING    // Tutoriel d'accueil
+  FEATURE_GUIDE // Guide de fonctionnalité
+  OVERLAY       // Tutoriel en superposition
+  INTERACTIVE   // Tutoriel interactif
+  VIDEO         // Tutoriel vidéo
+  WALKTHROUGH   // Parcours guidé
+}
+
+/// Statut d'un tutoriel
+enum TutorialStatus {
+  DRAFT      // Brouillon
+  PUBLISHED  // Publié
+  ARCHIVED   // Archivé
+  DISABLED   // Désactivé
+}
+
+/// Type de contenu d'étape
+enum StepContentType {
+  TEXT     // Texte simple
+  HTML     // HTML enrichi
+  VIDEO    // Vidéo
+  IMAGE    // Image
+  OVERLAY  // Superposition
+  TOOLTIP  // Info-bulle
+  MODAL    // Modal
+  HIGHLIGHT // Surbrillance d'élément
+}
+
+/// Type d'action attendue
+enum StepActionType {
+  CLICK       // Cliquer
+  HOVER       // Survol
+  INPUT       // Saisie
+  SCROLL      // Défilement
+  NAVIGATE    // Navigation
+  WAIT        // Attendre
+  COMPLETE    // Terminer
+  SKIP        // Passer
+}
+
+/// Statut de progression
+enum ProgressStatus {
+  NOT_STARTED // Non commencé
+  IN_PROGRESS // En cours
+  COMPLETED   // Terminé
+  SKIPPED     // Ignoré
+  ABANDONED   // Abandonné
+}
+
+/// Modèle de tutoriel
+model Tutorial {
+  id          String        @id @default(cuid())
+  title       String        // Titre du tutoriel
+  description String?       // Description
+  type        TutorialType  @default(ONBOARDING)
+  status      TutorialStatus @default(DRAFT)
+  targetRole  UserRole?     // Rôle ciblé (optionnel, pour tous si null)
+  
+  // Configuration
+  isRequired  Boolean       @default(false) // Tutoriel obligatoire
+  priority    Int           @default(0)     // Ordre de priorité
+  
+  // Conditions d'affichage
+  showOnLogin Boolean       @default(false) // Afficher à la connexion
+  showOnPage  String?       // Page spécifique où afficher
+  triggerEvent String?      // Événement qui déclenche le tutoriel
+  
+  // Métadonnées
+  version     String        @default("1.0")
+  language    String        @default("fr")
+  estimatedDuration Int?    // Durée estimée en minutes
+  
+  // Relations
+  steps       TutorialStep[]
+  progress    TutorialProgress[]
+  
+  // Audit
+  createdBy   String?
+  creator     User?         @relation("TutorialCreator", fields: [createdBy], references: [id], onDelete: SetNull)
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@map("tutorials")
+}
+
+/// Modèle d'étape de tutoriel
+model TutorialStep {
+  id          String          @id @default(cuid())
+  tutorialId  String
+  stepNumber  Int             // Ordre de l'étape
+  title       String          // Titre de l'étape
+  content     String          // Contenu de l'étape
+  contentType StepContentType @default(TEXT)
+  
+  // Configuration d'affichage
+  targetElement String?       // Sélecteur CSS de l'élément ciblé
+  position      String?       // Position (top, bottom, left, right)
+  width         Int?          // Largeur en pixels
+  height        Int?          // Hauteur en pixels
+  
+  // Action attendue
+  actionType    StepActionType? // Type d'action attendue
+  actionTarget  String?        // Élément sur lequel agir
+  actionValue   String?        // Valeur à saisir (pour INPUT)
+  
+  // Configuration comportementale
+  isSkippable   Boolean        @default(true)  // Peut être ignorée
+  autoAdvance   Boolean        @default(false) // Avancement automatique
+  duration      Int?           // Durée d'affichage (en ms)
+  
+  // Validation
+  validationRule String?       // Règle de validation JavaScript
+  errorMessage   String?       // Message d'erreur si validation échoue
+  
+  // Relations
+  tutorial    Tutorial @relation(fields: [tutorialId], references: [id], onDelete: Cascade)
+  completions TutorialStepCompletion[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([tutorialId, stepNumber])
+  @@map("tutorial_steps")
+}
+
+/// Modèle de progression dans un tutoriel
+model TutorialProgress {
+  id          String         @id @default(cuid())
+  userId      String
+  tutorialId  String
+  status      ProgressStatus @default(NOT_STARTED)
+  
+  // Progression
+  currentStep Int            @default(0) // Étape actuelle (0 = non commencé)
+  totalSteps  Int            @default(0) // Nombre total d'étapes
+  
+  // Timestamps
+  startedAt   DateTime?      // Début du tutoriel
+  completedAt DateTime?      // Fin du tutoriel
+  lastViewedAt DateTime?     // Dernière consultation
+  
+  // Métadonnées
+  timeSpent   Int            @default(0) // Temps passé en secondes
+  skipCount   Int            @default(0) // Nombre d'étapes ignorées
+  retryCount  Int            @default(0) // Nombre de tentatives
+  
+  // Relations
+  user        User     @relation("TutorialProgressToUser", fields: [userId], references: [id], onDelete: Cascade)
+  tutorial    Tutorial @relation(fields: [tutorialId], references: [id], onDelete: Cascade)
+  stepCompletions TutorialStepCompletion[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, tutorialId])
+  @@map("tutorial_progress")
+}
+
+/// Modèle de complétion d'étape
+model TutorialStepCompletion {
+  id             String           @id @default(cuid())
+  progressId     String
+  stepId         String
+  stepNumber     Int              // Numéro de l'étape
+  status         ProgressStatus   @default(COMPLETED)
+  
+  // Temps de complétion
+  completedAt    DateTime         @default(now())
+  timeSpent      Int              @default(0) // Temps passé sur cette étape (en secondes)
+  
+  // Interaction
+  actionPerformed String?         // Action effectuée par l'utilisateur
+  userInput      String?          // Saisie utilisateur si applicable
+  
+  // Métadonnées
+  errorCount     Int              @default(0) // Nombre d'erreurs
+  hintUsed       Boolean          @default(false) // Aide utilisée
+  
+  // Relations
+  progress       TutorialProgress @relation(fields: [progressId], references: [id], onDelete: Cascade)
+  step           TutorialStep     @relation(fields: [stepId], references: [id], onDelete: Cascade)
+  
+  createdAt      DateTime         @default(now())
+
+  @@unique([progressId, stepId])
+  @@map("tutorial_step_completions")
+}
+
+/// Modèle de configuration d'overlay
+model OverlayConfig {
+  id          String   @id @default(cuid())
+  userId      String
+  pagePath    String   // Chemin de la page
+  isEnabled   Boolean  @default(true)
+  
+  // Configuration d'affichage
+  overlayData Json     // Données de configuration de l'overlay
+  
+  // Conditions
+  showOnFirstVisit Boolean @default(true)
+  maxDisplayCount  Int     @default(3) // Nombre maximum d'affichages
+  currentCount     Int     @default(0) // Compteur actuel
+  
+  // Relations
+  user        User     @relation("OverlayConfigToUser", fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, pagePath])
+  @@map("overlay_configs")
+}

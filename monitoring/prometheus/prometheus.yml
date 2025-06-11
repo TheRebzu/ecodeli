@@ -34,10 +34,7 @@ scrape_configs:
       - targets: ['postgres-exporter:9187']
     scrape_interval: 30s
 
-  # Redis via l'exporter
-  - job_name: 'redis'
-    static_configs:
-      - targets: ['redis-exporter:9121']
+  
     scrape_interval: 30s
 
   # Node Exporter pour les métriques système

@@ -1,0 +1,254 @@
+// ===== MODÈLES LÂCHER DE CHARIOT =====
+// Ce fichier contient les modèles pour l'intégration caisse et le lâcher de chariot selon le cahier des charges
+
+/// Configuration d'intégration caisse pour un commerçant
+model MerchantCashRegister {
+  id                String    @id @default(cuid())
+  merchantId        String    @unique
+  
+  // Informations de l'intégration
+  cashRegisterType  String    // Type de caisse (ex: "SAGE", "CEGID", "CUSTOM")
+  apiEndpoint       String?   // Endpoint API de la caisse
+  apiKey            String?   // Clé API (chiffrée)
+  webhookUrl        String?   // URL de webhook pour notifications
+  
+  // Configuration technique
+  isActive          Boolean   @default(false)
+  lastSync          DateTime? // Dernière synchronisation
+  syncFrequency     Int       @default(5) // Fréquence de sync en minutes
+  
+  // Paramètres du lâcher de chariot
+  autoCreateDelivery Boolean  @default(true) // Création automatique annonce livraison
+  defaultRadius     Float     @default(10) // Rayon de livraison par défaut en km
+  deliveryTimeSlots Json?     // Créneaux de livraison disponibles
+  
+  // Groupage par zone
+  enableZoneGrouping Boolean  @default(true) // Groupage par zone activé
+  maxGroupSize      Int       @default(5) // Taille max du groupe
+  groupingRadius    Float     @default(2) // Rayon de groupage en km
+  
+  // Notifications
+  notifyCustomer    Boolean   @default(true) // Notifier le client
+  notifyMerchant    Boolean   @default(true) // Notifier le commerçant
+  
+  // Métadonnées
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  
+  // Relations
+  merchant          Merchant  @relation("MerchantCashRegister", fields: [merchantId], references: [id], onDelete: Cascade)
+  
+  // Transactions de lâcher de chariot
+  cartDrops         CartDrop[]
+  
+  // Terminaux associés
+  terminals         CashRegisterTerminal[] @relation("CashRegisterTerminals")
+
+  @@index([isActive])
+  @@map("merchant_cash_registers")
+}
+
+/// Transaction de lâcher de chariot
+model CartDrop {
+  id                  String          @id @default(cuid())
+  cashRegisterId      String
+  merchantId          String
+  
+  // Informations de la transaction
+  transactionId       String          @unique // ID transaction caisse
+  receiptNumber       String?         // Numéro de ticket de caisse
+  
+  // Client et commande
+  customerName        String?         // Nom du client
+  customerPhone       String?         // Téléphone du client
+  customerEmail       String?         // Email du client
+  userId              String?         // User ID si client connecté
+  
+  // Détails de la commande
+  items               Json            // Articles commandés (array)
+  totalAmount         Decimal         @db.Decimal(8,2) // Montant total
+  deliveryFee         Decimal         @db.Decimal(6,2) // Frais de livraison
+  
+  // Livraison
+  deliveryAddress     String          // Adresse de livraison
+  deliveryLat         Float           // Latitude livraison
+  deliveryLng         Float           // Longitude livraison
+  deliveryInstructions String?        // Instructions de livraison
+  
+  // Planning
+  type                CartDropType    @default(INSTANT)
+  status              CartDropStatus  @default(PENDING)
+  requestedDeliveryTime DateTime?     // Créneau demandé
+  confirmedDeliveryTime DateTime?     // Créneau confirmé
+  
+  // Groupage
+  groupId             String?         // ID du groupe si groupé
+  groupPosition       Int?            // Position dans le groupe
+  isGroupLead         Boolean         @default(false) // Premier du groupe
+  
+  // Suivi
+  preparationTime     Int?            // Temps de préparation en minutes
+  readyAt             DateTime?       // Prêt pour livraison
+  pickedUpAt          DateTime?       // Récupéré par livreur
+  deliveredAt         DateTime?       // Livré au client
+  
+  // Assignment
+  assignedDelivererId String?         // Livreur assigné
+  assignedAt          DateTime?       // Date d'assignation
+  deliveryCode        String?         // Code de validation livraison
+  
+  // Paiement et facturation
+  isPaid              Boolean         @default(false)
+  paymentMethod       String?         // Méthode de paiement
+  paidAt              DateTime?
+  merchantCommission  Decimal?        @db.Decimal(6,2) // Commission du commerçant
+  
+  // Métadonnées
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  completedAt         DateTime?
+  
+  // Relations
+  cashRegister        MerchantCashRegister @relation(fields: [cashRegisterId], references: [id], onDelete: Restrict)
+  merchant            Merchant        @relation("MerchantCartDrops", fields: [merchantId], references: [id], onDelete: Cascade)
+  customer            User?           @relation("CartDropCustomer", fields: [userId], references: [id])
+  assignedDeliverer   User?           @relation("CartDropDeliverer", fields: [assignedDelivererId], references: [id])
+  
+  // Groupe de livraison
+  group               CartDropGroup?  @relation(fields: [groupId], references: [id])
+
+  @@index([cashRegisterId])
+  @@index([merchantId])
+  @@index([status])
+  @@index([groupId])
+  @@index([requestedDeliveryTime])
+  @@map("cart_drops")
+}
+
+/// Groupe de livraisons pour optimisation
+model CartDropGroup {
+  id                String          @id @default(cuid())
+  merchantId        String
+  
+  // Informations du groupe
+  title             String          // Titre du groupe (ex: "Groupe Zone Nord 14h")
+  deliveryZone      String          // Zone de livraison
+  centerLat         Float           // Latitude centre du groupe
+  centerLng         Float           // Longitude centre du groupe
+  radius            Float           // Rayon du groupe en km
+  
+  // Planning
+  scheduledTime     DateTime        // Heure de livraison programmée
+  status            CartDropStatus  @default(PENDING)
+  
+  // Capacités
+  maxItems          Int             @default(5) // Nombre max de commandes
+  currentItems      Int             @default(0) // Nombre actuel
+  totalWeight       Float?          // Poids total estimé
+  totalVolume       Float?          // Volume total estimé
+  
+  // Assignment
+  assignedDelivererId String?       // Livreur assigné au groupe
+  assignedAt        DateTime?       // Date d'assignation
+  
+  // Optimisation de route
+  optimizedRoute    Json?           // Route optimisée (array d'étapes)
+  estimatedDuration Int?            // Durée estimée en minutes
+  estimatedDistance Float?          // Distance estimée en km
+  
+  // Suivi
+  startedAt         DateTime?       // Début de la tournée
+  completedAt       DateTime?       // Fin de la tournée
+  
+  // Métadonnées
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  // Relations
+  merchant          Merchant        @relation("MerchantCartDropGroups", fields: [merchantId], references: [id], onDelete: Cascade)
+  assignedDeliverer User?           @relation("CartDropGroupDeliverer", fields: [assignedDelivererId], references: [id])
+  
+  // Commandes du groupe
+  cartDrops         CartDrop[]
+
+  @@index([merchantId])
+  @@index([status])
+  @@index([scheduledTime])
+  @@map("cart_drop_groups")
+}
+
+/// Configuration des zones de livraison pour un commerçant
+model MerchantDeliveryZone {
+  id            String    @id @default(cuid())
+  merchantId    String
+  
+  // Informations de la zone
+  name          String    // Nom de la zone (ex: "Centre-ville", "Zone Nord")
+  description   String?   // Description
+  
+  // Géométrie de la zone
+  coordinates   Json      // Polygone définissant la zone (array de {lat, lng})
+  centerLat     Float     // Latitude du centre
+  centerLng     Float     // Longitude du centre
+  radius        Float?    // Rayon approximatif en km
+  
+  // Paramètres de livraison
+  deliveryFee   Decimal   @db.Decimal(6,2) // Frais de livraison pour cette zone
+  freeThreshold Decimal?  @db.Decimal(8,2) // Seuil de gratuité
+  maxDeliveryTime Int     @default(60) // Temps max de livraison en minutes
+  
+  // Disponibilité
+  isActive      Boolean   @default(true)
+  timeSlots     Json?     // Créneaux disponibles par jour
+  
+  // Priorité et groupage
+  priority      Int       @default(0) // Priorité de la zone
+  groupingEnabled Boolean @default(true) // Groupage activé
+  minGroupSize  Int       @default(2) // Taille min du groupe
+  
+  // Métadonnées
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Relations
+  merchant      Merchant  @relation("MerchantDeliveryZones", fields: [merchantId], references: [id], onDelete: Cascade)
+
+  @@index([merchantId])
+  @@index([isActive])
+  @@map("merchant_delivery_zones")
+}
+
+/// Terminal de caisse physique
+model CashRegisterTerminal {
+  id                String             @id @default(cuid())
+  cashRegisterId    String
+  
+  // Informations du terminal
+  terminalName      String             // Nom du terminal
+  terminalId        String             // ID unique du terminal
+  location          String?            // Emplacement dans le magasin
+  
+  // Configuration
+  isActive          Boolean            @default(true)
+  softwareVersion   String?            // Version du logiciel
+  lastHeartbeat     DateTime?          // Dernière connexion
+  
+  // Paramètres d'affichage
+  displayCartDrop   Boolean            @default(true) // Afficher option lâcher chariot
+  autoSuggestDelivery Boolean          @default(true) // Suggérer automatiquement
+  
+  // Statistiques
+  dailyTransactions Int                @default(0) // Transactions du jour
+  cartDropRequests  Int                @default(0) // Demandes lâcher chariot
+  
+  // Métadonnées
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  
+  // Relations
+  cashRegister      MerchantCashRegister @relation("CashRegisterTerminals", fields: [cashRegisterId], references: [id], onDelete: Cascade)
+
+  @@unique([cashRegisterId, terminalId])
+  @@index([isActive])
+  @@map("cash_register_terminals")
+}

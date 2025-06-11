@@ -29,6 +29,10 @@ model Delivery {
   proofs             DeliveryProof[]
   ratings            DeliveryRating[]
   payments           Payment[]       @relation("PaymentToDelivery")
+  
+  // Nouvelles relations pour le cahier des charges
+  validationCode     DeliveryValidationCode? @relation("DeliveryValidationCodeToDelivery")
+  nfcTransactions    NFCCardTransaction[]    @relation("NFCTransactionToDelivery")
 
   @@index([announcementId])
   @@index([delivererId])
@@ -164,8 +168,8 @@ model ScheduleException {
   @@map("schedule_exceptions")
 }
 
-/// Routes habituelles des livreurs
-model DelivererRoute {
+/// Routes habituelles des livreurs - zones de service
+model DelivererServiceRoute {
   id               String     @id @default(cuid())
   delivererId      String
   name             String     // Nom donné par le livreur (ex: "Secteur Centre-ville")
@@ -194,7 +198,7 @@ model DelivererRoute {
   updatedAt        DateTime   @updatedAt
   
   // Relation avec User et zones
-  deliverer        User       @relation("DelivererRoutes", fields: [delivererId], references: [id], onDelete: Cascade)
+  deliverer        User       @relation("DelivererServiceRoutes", fields: [delivererId], references: [id], onDelete: Cascade)
   zones            DeliveryZone[]
   statistics       RouteStatistics[]
   
@@ -202,7 +206,7 @@ model DelivererRoute {
   @@index([isActive])
   @@index([priority])
   @@index([successRate])
-  @@map("deliverer_routes")
+  @@map("deliverer_service_routes")
 }
 
 /// Zones géographiques couvertes par les routes
@@ -231,8 +235,8 @@ model DeliveryZone {
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt
   
-  // Relation avec DelivererRoute
-  route            DelivererRoute @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  // Relation avec DelivererServiceRoute
+  route            DelivererServiceRoute @relation(fields: [routeId], references: [id], onDelete: Cascade)
   
   @@index([routeId])
   @@index([centerLatitude, centerLongitude])
@@ -267,8 +271,8 @@ model RouteStatistics {
   
   createdAt         DateTime       @default(now())
   
-  // Relation avec DelivererRoute
-  route             DelivererRoute @relation(fields: [routeId], references: [id], onDelete: Cascade)
+  // Relation avec DelivererServiceRoute
+  route             DelivererServiceRoute @relation(fields: [routeId], references: [id], onDelete: Cascade)
   
   @@unique([routeId, date])
   @@index([routeId])

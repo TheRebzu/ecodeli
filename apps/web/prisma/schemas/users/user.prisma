@@ -68,6 +68,8 @@ model User {
   
   // Relations avec les entités métier
   clientAnnouncements      Announcement[]                @relation("ClientAnnouncements")
+  merchantAnnouncements    Announcement[]                @relation("MerchantAnnouncements")
+  relayDelivererAnnouncements Announcement[]             @relation("RelayDelivererAnnouncements")
   delivererAnnouncements   Announcement[]                @relation("DelivererAnnouncements")
   performedAuditLogs       AuditLog[]                    @relation("AuditLogPerformer")
   boxSubscriptions         BoxAvailabilitySubscription[]
@@ -115,6 +117,7 @@ model User {
   // Relations avec les livreurs
   delivererSchedules       DelivererSchedule[]           @relation("DelivererSchedules")
   delivererRoutes          DelivererRoute[]              @relation("DelivererRoutes")
+  delivererServiceRoutes   DelivererServiceRoute[]       @relation("DelivererServiceRoutes")
   delivererAvailabilities  DelivererAvailability[]       @relation("DelivererAvailabilities")
   delivererStats           DelivererStats[]              @relation("DelivererStats")
   verifiedApplications     DeliveryApplication[]         @relation("ApplicationVerifier")
@@ -134,6 +137,58 @@ model User {
   respondedNegotiations    ContractNegotiation[]         @relation("NegotiationResponder")
   providerExceptions       ProviderException[]
   providerSpecialSlots     ProviderSpecialSlot[]
+
+  // ===== NOUVELLES RELATIONS POUR LE CAHIER DES CHARGES =====
+  
+  // Relations routes planifiées
+  plannedRoutes            DelivererPlannedRoute[]   @relation("DelivererPlannedRouteToDeliverer")
+  routeOptimizations       RouteOptimization[]       @relation("RouteOptimization")
+  assignedCartDrops        CartDrop[]                @relation("CartDropDeliverer")
+  assignedCartDropGroups   CartDropGroup[]           @relation("CartDropGroupDeliverer")
+  cartDropOrders           CartDrop[]                @relation("CartDropCustomer")
+  
+  // Relations abonnements clients
+  clientSubscription       ClientSubscriptionDetail? @relation("ClientSubscription")
+  
+  // Relations services personnels
+  personalServicesProvided PersonalService[]         @relation("PersonalServiceProvider")
+  personalServicesApproved PersonalService[]         @relation("PersonalServiceApprover")
+  personalServiceBookings  PersonalServiceBooking[]  @relation("PersonalServiceClient")
+  personalServiceReviews   PersonalServiceReview[]   @relation("PersonalServiceReviewer")
+  personalServiceReviewed  PersonalServiceReview[]   @relation("PersonalServiceReviewed")
+  personalServiceModerated PersonalServiceReview[]   @relation("PersonalServiceModerator")
+  
+  // Relations habilitations prestataires
+  providerHabilitations    ProviderHabilitation[]    @relation("ProviderHabilitations")
+  habilitationValidations  ProviderHabilitation[]    @relation("HabilitationValidator")
+  providerInterventions    ProviderIntervention[]    @relation("ProviderInterventions")
+  providerEvaluations      ProviderEvaluation[]      @relation("ProviderEvaluated")
+  providerEvaluationsGiven ProviderEvaluation[]      @relation("ProviderEvaluator")
+  evaluationModerations    ProviderEvaluation[]      @relation("EvaluationModerator")
+  
+  // Relations facturation automatique
+  autoInvoicing            ProviderAutoInvoicing?    @relation("ProviderAutoInvoicing")
+  monthlyInvoices          ProviderMonthlyInvoice[]  @relation("ProviderMonthlyInvoices")
+  
+  // Relations KPIs et monitoring
+  createdForecasts         FinancialForecast[]       @relation("ForecastCreator")
+  createdAlerts            AlertConfiguration[]      @relation("AlertCreator")
+  resolvedAlerts           AlertTrigger[]            @relation("AlertResolver")
+  
+  // Relations tutoriels
+  createdTutorials         Tutorial[]                @relation("TutorialCreator")
+  tutorialProgress         TutorialProgress[]        @relation("TutorialProgressToUser")
+  overlayConfigs           OverlayConfig[]           @relation("OverlayConfigToUser")
+  
+  // Relations cartes NFC
+  nfcCards                 NFCCard[]                 @relation("NFCCardToDeliverer")
+  nfcAssignments           NFCCardAssignment[]       @relation("NFCAssignmentToDeliverer")
+  nfcAssignedByAdmin       NFCCardAssignment[]       @relation("NFCAssignmentToAdmin")
+  nfcTransactions          NFCCardTransaction[]      @relation("NFCTransactionToDeliverer")
+  
+  // Relations matching manquantes
+  matchingResults          MatchingResult[]          @relation("MatchingResultToDeliverer")
+  matchingPreferences      DelivererMatchingPreferences? @relation("DelivererMatchingPreferences")
 
   @@index([email])
   @@index([role])

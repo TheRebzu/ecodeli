@@ -89,7 +89,7 @@ check_system_health() {
     
     # Vérification des services
     log "🔍 Vérification des services..."
-    local services=("web" "postgres" "redis" "nginx" "prometheus" "grafana")
+    local services=("web" "postgres" "nginx" "prometheus" "grafana")
     
     for service in "${services[@]}"; do
         if docker-compose -f "$PROJECT_ROOT/docker-compose.yml" ps "$service" | grep -q "Up"; then
@@ -197,10 +197,7 @@ optimize_performance() {
     docker-compose -f "$PROJECT_ROOT/docker-compose.yml" exec -T postgres psql -U postgres -d ecodeli -c "REINDEX DATABASE ecodeli;"
     log_success "Optimisation PostgreSQL terminée"
     
-    # Optimisation Redis
-    log "📦 Optimisation Redis..."
-    docker-compose -f "$PROJECT_ROOT/docker-compose.yml" exec -T redis redis-cli BGREWRITEAOF
-    log_success "Optimisation Redis terminée"
+
     
     # Nettoyage des logs
     log "📝 Nettoyage des logs..."

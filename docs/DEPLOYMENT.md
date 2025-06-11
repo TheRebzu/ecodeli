@@ -59,7 +59,7 @@ nano .env
 ```bash
 # .env - Configuration minimum
 DATABASE_URL="postgresql://ecodeli_user:CHANGE_ME_DB_PASSWORD@postgres:5432/ecodeli"
-REDIS_URL="redis://redis:6379"
+
 
 # Authentification
 NEXTAUTH_SECRET="CHANGE_ME_LONG_RANDOM_STRING_64_CHARS_MIN"

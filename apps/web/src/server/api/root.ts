@@ -38,6 +38,7 @@ import { storageRouter } from './routers/client/client-storage.router';
 import { delivererRouter } from './routers/deliverer/deliverer.router';
 import { deliveryRouter } from './routers/deliverer/deliverer-deliveries.router';
 import { deliveryTrackingRouter } from './routers/deliverer/deliverer-tracking.router';
+import { delivererDocumentsRouter } from './routers/deliverer/deliverer-documents.router';
 
 // Provider routers
 import { providerRouter } from './routers/provider/provider.router';
@@ -48,6 +49,14 @@ import { contractRouter } from './routers/merchant/merchant-contracts.router';
 
 // Subscription router (assuming it exists in shared or we create it)
 import { subscriptionRouter } from './routers/client/client-subscription.router';
+
+// New enhanced routers for EcoDeli specifications
+import { delivererRoutesRouter } from './routers/deliverer/deliverer-routes.router';
+import { clientSubscriptionEnhancedRouter } from './routers/client/client-subscription-enhanced.router';
+import { personalServicesRouter } from './routers/services/personal-services.router';
+import { nfcManagementRouter } from './routers/deliverer/nfc-management.router';
+import { cartDropRouter } from './routers/merchant/cart-drop.router';
+import { matchingRouter } from './routers/matching/matching.router';
 
 // Financial router (using admin financial)
 import { financialRouter } from './routers/admin/admin-financial.router';
@@ -103,6 +112,7 @@ export const appRouter = router({
   deliverer: delivererRouter,
   delivery: deliveryRouter,
   deliveryTracking: deliveryTrackingRouter,
+  delivererDocuments: delivererDocumentsRouter,
   
   // Provider
   provider: providerRouter,
@@ -113,6 +123,14 @@ export const appRouter = router({
   
   // Financial
   financial: financialRouter,
+  
+  // New enhanced routers
+  delivererRoutes: delivererRoutesRouter,
+  clientSubscriptionEnhanced: clientSubscriptionEnhancedRouter,
+  personalServices: personalServicesRouter,
+  nfcManagement: nfcManagementRouter,
+  cartDrop: cartDropRouter,
+  matching: matchingRouter,
   
   // Legacy aliases (renamed from fileRouter to uploadRouter for clarity)
   file: uploadRouter,

@@ -15,13 +15,12 @@ services:
     environment:
       - NODE_ENV=production
       - DATABASE_URL=postgresql://ecodeli_user:${POSTGRES_PASSWORD}@postgres:5432/ecodeli_db
-      - REDIS_URL=redis://redis:6379
+
       - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
       - NEXTAUTH_URL=${NEXTAUTH_URL}
       - API_SECRET_KEY=${API_SECRET_KEY}
     depends_on:
       - postgres
-      - redis
     networks:
       - ecodeli-network
     restart: unless-stopped
@@ -91,31 +90,7 @@ services:
       -c log_line_prefix='%t [%p]: [%l-1] user=%u,db=%d,app=%a,client=%h '
       -c shared_preload_libraries=pg_stat_statements
 
-  # =============================================================================
-  # CACHE REDIS
-  # =============================================================================
-  redis:
-    image: redis:7-alpine
-    container_name: ecodeli-redis
-    ports:
-      - "6379:6379"
-    command: >
-      redis-server
-      --appendonly yes
-      --appendfsync everysec
-      --maxmemory 512mb
-      --maxmemory-policy allkeys-lru
-    volumes:
-      - redis-data:/data
-      - redis-logs:/var/log/redis
-    networks:
-      - ecodeli-network
-    restart: unless-stopped
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 30s
-      timeout: 5s
-      retries: 3
+
 
   # =============================================================================
   # REVERSE PROXY NGINX
@@ -231,18 +206,7 @@ services:
       - ecodeli-network
     restart: unless-stopped
 
-  redis-exporter:
-    image: oliver006/redis_exporter:latest
-    container_name: ecodeli-redis-exporter
-    ports:
-      - "9121:9121"
-    environment:
-      - REDIS_ADDR=redis://redis:6379
-    depends_on:
-      - redis
-    networks:
-      - ecodeli-network
-    restart: unless-stopped
+
 
   # =============================================================================
   # SERVICE DE BACKUP
@@ -265,12 +229,11 @@ services:
     volumes:
       - ./docker/postgres/backup:/backups
       - postgres-data:/var/lib/postgresql/data:ro
-      - redis-data:/redis-data:ro
+
       - web-uploads:/web-uploads:ro
       - backup-logs:/var/log/backup
     depends_on:
       - postgres
-      - redis
     networks:
       - ecodeli-network
     restart: unless-stopped
@@ -294,8 +257,7 @@ services:
 volumes:
   postgres-data:
     driver: local
-  redis-data:
-    driver: local
+
   prometheus-data:
     driver: local
   grafana-data:
@@ -306,8 +268,7 @@ volumes:
     driver: local
   postgres-logs:
     driver: local
-  redis-logs:
-    driver: local
+
   nginx-logs:
     driver: local
   web-logs:

@@ -69,7 +69,7 @@ test_connectivity() {
     
     local services=(
         "postgres:5432"
-        "redis:6379"
+        ""
         "web:3000"
     )
     
@@ -103,11 +103,7 @@ backup_postgresql() {
     fi
 }
 
-# Fonction de backup Redis
-backup_redis() {
-    log "📦 === Backup Redis ==="
-    
-    if [ -x "$SCRIPT_DIR/backup-redis.sh" ]; then
+
         if "$SCRIPT_DIR/backup-redis.sh"; then
             log "✅ Backup Redis terminé"
             return 0

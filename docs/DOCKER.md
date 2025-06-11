@@ -17,7 +17,6 @@ graph TB
     
     subgraph "Data Layer"
         DB[(PostgreSQL)]
-        CACHE[(Redis)]
     end
     
     subgraph "Monitoring"
@@ -33,11 +32,11 @@ graph TB
     LB --> DESKTOP
     LB --> GRAF
     WEB --> DB
-    WEB --> CACHE
+
     DESKTOP --> WEB
     PROM --> WEB
     PROM --> DB
-    PROM --> CACHE
+
     BACKUP --> DB
 ```
 
@@ -51,7 +50,7 @@ graph TB
 | web | node:20-alpine + app | 3000 | Application Next.js |
 | desktop | openjdk:17-jre-alpine + app | 8080 | Application JavaFX |
 | postgres | postgres:16-alpine + config | 5432 | Base de données principale |
-| redis | redis:7-alpine | 6379 | Cache et sessions |
+
 | prometheus | prom/prometheus | 9090 | Collecte de métriques |
 | grafana | grafana/grafana | 3000 | Dashboards et alertes |
 | backup | alpine + scripts | - | Service de backup automatisé |
@@ -176,29 +175,7 @@ HEALTHCHECK --interval=30s --timeout=5s \
 - Logs structurés
 - SSL activé
 
-### Redis
 
-```dockerfile
-FROM redis:7-alpine
-
-# Configuration personnalisée
-COPY redis.conf /usr/local/etc/redis/redis.conf
-
-# Scripts de monitoring
-COPY redis-monitor.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/redis-monitor.sh
-
-HEALTHCHECK --interval=30s --timeout=3s \
-    CMD redis-cli ping || exit 1
-
-CMD ["redis-server", "/usr/local/etc/redis/redis.conf"]
-```
-
-**Configuration:**
-- Persistence RDB + AOF
-- Maxmemory policy: allkeys-lru
-- Monitoring activé
-- Connexions sécurisées
 
 ## 🔧 Docker Compose
 

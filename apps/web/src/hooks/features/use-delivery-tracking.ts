@@ -5,7 +5,7 @@ import { api } from '@/trpc/react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 import { useSocket } from '@/hooks/system/use-socket';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+
 import { DeliveryPosition, DeliveryTracker } from '@/socket/delivery-tracking-client';
 import { DeliveryStatus as PrismaDeliveryStatus } from '@prisma/client';
 import {
@@ -811,7 +811,7 @@ export function useDeliveryLiveTracking(deliveryId?: string) {
     queryKey: ['delivery', deliveryId],
     queryFn: async () => {
       if (!deliveryId) return null;
-      const result = await trpc.delivery.getById.query({ id: deliveryId });
+      const result = await api.delivery.getById.query({ id: deliveryId });
       return result;
     },
     enabled: !!deliveryId && !isReady,
@@ -918,7 +918,7 @@ export function useDeliveryHistory(deliveryId?: string) {
     queryKey: ['delivery-history', deliveryId],
     queryFn: async () => {
       if (!deliveryId) return null;
-      return await trpc.delivery.getHistory.query({ id: deliveryId });
+      return await api.delivery.getHistory.query({ id: deliveryId });
     },
     enabled: !!deliveryId,
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -1046,7 +1046,7 @@ export function useNearbyDeliveries(
     queryFn: async () => {
       if (!userLocation) return [];
 
-      return await trpc.delivery.findNearby.query({
+      return await api.delivery.findNearby.query({
         latitude: userLocation.lat,
         longitude: userLocation.lng,
         radius,
@@ -1065,7 +1065,7 @@ export function useNearbyDeliveries(
   const queryClient = useQueryClient();
   const { mutate: acceptDelivery, isPending: isAccepting } = useMutation({
     mutationFn: async (deliveryId: string) => {
-      return await trpc.delivery.acceptDelivery.mutate({ id: deliveryId });
+      return await api.delivery.acceptDelivery.mutate({ id: deliveryId });
     },
     onSuccess: () => {
       toast.success('Livraison acceptée avec succès');

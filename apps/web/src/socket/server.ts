@@ -1,6 +1,4 @@
 import { Server } from 'socket.io';
-import { createAdapter } from '@socket.io/redis-adapter';
-import { createClient } from 'redis';
 import { verifyToken } from '@/server/auth/session';
 
 // Optimisations pour Socket.IO
@@ -15,27 +13,15 @@ const ioConfig = {
 // Variable globale pour stocker l'instance du serveur Socket.IO
 let globalSocketServer: Server | null = null;
 
-export async function initializeSocketServer(httpServer) {
-  // Création des clients Redis pour PubSub
-  const pubClient = createClient({
-    url: process.env.REDIS_URL || 'redis://localhost:6379',
-  });
-
-  const subClient = pubClient.duplicate();
-
-  await Promise.all([pubClient.connect(), subClient.connect()]);
-
-  // Création du serveur Socket.IO
+export async function initializeSocketServer(httpServer: any) {
+  // Création du serveur Socket.IO sans Redis
   const io = new Server(httpServer, ioConfig);
 
   // Stocker l'instance dans la variable globale
   globalSocketServer = io;
 
-  // Configurer l'adaptateur Redis pour le scaling horizontal
-  io.adapter(createAdapter(pubClient, subClient));
-
   // Middleware d'authentification
-  io.use(async (socket, next) => {
+  io.use(async (socket: any, next: any) => {
     try {
       const token = socket.handshake.auth.token;
       if (!token) return next(new Error('Authentication error'));
@@ -56,14 +42,17 @@ export async function initializeSocketServer(httpServer) {
   });
 
   // Événements de connexion
-  io.on('connection', socket => {
+  io.on('connection', (socket: any) => {
     console.log(`User connected: ${socket.user.id}, role: ${socket.user.role}`);
 
     // Rejoindre les chambres appropriées selon le rôle
     setupUserRooms(socket);
 
     // Configuration des événements de livraison
-    require('./delivery-tracking')(io, socket);
+    const deliveryTracking = require('./delivery-tracking');
+    if (deliveryTracking) {
+      deliveryTracking(io, socket);
+    }
 
     socket.on('disconnect', () => {
       console.log(`User disconnected: ${socket.user.id}`);
@@ -82,7 +71,7 @@ export function getSocketServer(): Server | null {
 }
 
 // Configurer les chambres selon le rôle de l'utilisateur
-function setupUserRooms(socket) {
+function setupUserRooms(socket: any) {
   const { id, role } = socket.user;
 
   // Chambre personnelle

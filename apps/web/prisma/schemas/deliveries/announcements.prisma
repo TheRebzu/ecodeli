@@ -97,7 +97,13 @@ model Announcement {
   deliveries        Delivery[]
   matchingResults   AnnouncementMatching[]
   delivererNotifications DelivererNotification[] @relation("AnnouncementNotifications")
-  routeMatches      RouteAnnouncementMatch[]
+  routeMatches      PlannedRouteAnnouncement[]  @relation("PlannedRouteAnnouncement")
+  routeAnnouncementMatches RouteAnnouncementMatch[] @relation("RouteAnnouncementToAnnouncement")
+  
+  // Relations matching manquantes
+  matchingCriteria  MatchingCriteria[]          @relation("MatchingCriteriaToAnnouncement")
+  matchingResultsNew MatchingResult[]           @relation("MatchingResultToAnnouncement")
+  routeAnnouncementsOld RouteAnnouncement[]     @relation("RouteAnnouncementToAnnouncement")
   
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @updatedAt
@@ -370,7 +376,7 @@ model RouteAnnouncementMatch {
   
   // Relations
   route            DelivererRoute      @relation(fields: [routeId], references: [id])
-  announcement     Announcement        @relation(fields: [announcementId], references: [id])
+  announcement     Announcement        @relation("RouteAnnouncementToAnnouncement", fields: [announcementId], references: [id])
   
   @@unique([routeId, announcementId])
   @@index([routeId])

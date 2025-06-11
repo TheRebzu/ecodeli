@@ -1,7 +1,6 @@
 'use client';
 
 import { type ReactNode, useState } from 'react';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { httpBatchLink } from '@trpc/client';
 import { api } from '@/trpc/react';
 
@@ -10,15 +9,6 @@ interface TRPCProviderProps {
 }
 
 export function TRPCProvider({ children }: TRPCProviderProps) {
-  const [queryClient] = useState(() => new QueryClient({
-    defaultOptions: {
-      queries: {
-        staleTime: 5 * 60 * 1000, // 5 minutes
-        retry: false,
-      },
-    },
-  }));
-
   const [trpcClient] = useState(() =>
     api.createClient({
       links: [
@@ -35,10 +25,8 @@ export function TRPCProvider({ children }: TRPCProviderProps) {
   );
 
   return (
-    <api.Provider client={trpcClient} queryClient={queryClient}>
-      <QueryClientProvider client={queryClient}>
-        {children}
-      </QueryClientProvider>
+    <api.Provider client={trpcClient} queryClient={undefined}>
+      {children}
     </api.Provider>
   );
 }

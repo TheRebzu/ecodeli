@@ -1,5 +1,4 @@
 import { useState, useCallback, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import { api } from '@/trpc/react';
 import { useDeliveryTrackingStore, useStatusHistory } from '@/store/use-delivery-tracking-store';
@@ -22,36 +21,43 @@ type StatusUpdateOptions = {
  * @param deliveryId - ID de la livraison
  */
 export function useDeliveryStatusUpdate(deliveryId?: string) {
-  const queryClient = useQueryClient();
+  const [availableStatuses, setAvailableStatuses] = useState<DeliveryStatus[]>([]);
+  const [isLoadingStatuses, setIsLoadingStatuses] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
   const [lastStatusUpdate, setLastStatusUpdate] = useState<{
     status: DeliveryStatus;
     timestamp: Date;
     success: boolean;
   } | null>(null);
 
-  // Récupérer les statuts disponibles pour la transition suivante
-  const { data: availableStatuses, isLoading: isLoadingStatuses } = useQuery({
-    queryKey: ['available-statuses', deliveryId],
-    queryFn: async () => {
-      if (!deliveryId) return [];
-      return await trpc.delivery.getAvailableStatuses.query({ id: deliveryId });
-    },
-    enabled: !!deliveryId,
-    staleTime: 1000 * 60, // 1 minute
-  });
+  // Fonction pour charger les statuts disponibles
+  const fetchAvailableStatuses = useCallback(async () => {
+    if (!deliveryId) return;
+    
+    setIsLoadingStatuses(true);
+    try {
+      const statuses = await api.delivery.getAvailableStatuses.query({ id: deliveryId });
+      setAvailableStatuses(statuses);
+    } catch (error) {
+      console.error('Erreur lors du chargement des statuts disponibles:', error);
+    } finally {
+      setIsLoadingStatuses(false);
+    }
+  }, [deliveryId]);
 
-  // Mutation pour mettre à jour le statut
-  const { mutate: updateStatus, isPending: isUpdating } = useMutation({
-    mutationFn: async ({
-      status,
-      options = {},
-    }: {
-      status: DeliveryStatus;
-      options?: StatusUpdateOptions;
-    }) => {
-      if (!deliveryId) throw new Error('ID de livraison non spécifié');
+  // Fonction pour mettre à jour le statut
+  const updateStatus = useCallback(async ({
+    status,
+    options = {},
+  }: {
+    status: DeliveryStatus;
+    options?: StatusUpdateOptions;
+  }) => {
+    if (!deliveryId) throw new Error('ID de livraison non spécifié');
 
-      return await trpc.delivery.updateStatus.mutate({
+    setIsUpdating(true);
+    try {
+      await api.delivery.updateStatus.mutate({
         id: deliveryId,
         status,
         notes: options.notes,
@@ -62,32 +68,36 @@ export function useDeliveryStatusUpdate(deliveryId?: string) {
             ? { latitude: options.latitude, longitude: options.longitude }
             : undefined,
       });
-    },
-    onSuccess: (data, variables) => {
+
       // Mettre à jour le dernier statut
       setLastStatusUpdate({
-        status: variables.status,
+        status,
         timestamp: new Date(),
         success: true,
       });
 
       // Message de succès
-      toast.success(`Statut mis à jour: ${variables.status}`);
+      toast.success(`Statut mis à jour: ${status}`);
 
-      // Invalider les requêtes liées
-      queryClient.invalidateQueries({ queryKey: ['delivery', deliveryId] });
-      queryClient.invalidateQueries({ queryKey: ['delivery-history', deliveryId] });
-      queryClient.invalidateQueries({ queryKey: ['available-statuses', deliveryId] });
-    },
-    onError: error => {
-      toast.error(`Erreur lors de la mise à jour du statut: ${error.message}`);
-    },
-  });
+      // Recharger les données
+      await fetchAvailableStatuses();
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+      toast.error(`Erreur lors de la mise à jour du statut: ${errorMessage}`);
+      throw error;
+    } finally {
+      setIsUpdating(false);
+    }
+  }, [deliveryId, fetchAvailableStatuses]);
+
+  // Charger les statuts disponibles au montage
+  useEffect(() => {
+    fetchAvailableStatuses();
+  }, [fetchAvailableStatuses]);
 
   // Vérifier si un statut est disponible
   const isStatusAvailable = useCallback(
     (status: DeliveryStatus): boolean => {
-      if (!availableStatuses) return false;
       return availableStatuses.includes(status);
     },
     [availableStatuses]
@@ -98,7 +108,7 @@ export function useDeliveryStatusUpdate(deliveryId?: string) {
     updateStatus,
 
     // Données
-    availableStatuses: availableStatuses || [],
+    availableStatuses,
     lastStatusUpdate,
 
     // Helper functions
@@ -115,24 +125,35 @@ export function useDeliveryStatusUpdate(deliveryId?: string) {
  * @param deliveryId - ID de la livraison
  */
 export function useDeliveryStatusHistory(deliveryId?: string) {
+  const [statusHistory, setStatusHistory] = useState<any[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
   // Historique des statuts depuis le store (temps réel)
   const realtimeStatusHistory = useStatusHistory();
 
-  // Requête pour obtenir l'historique complet des statuts
-  const {
-    data: statusHistory,
-    isLoading,
-    error,
-    refetch,
-  } = useQuery({
-    queryKey: ['status-history', deliveryId],
-    queryFn: async () => {
-      if (!deliveryId) return [];
-      return await trpc.delivery.getStatusHistory.query({ id: deliveryId });
-    },
-    enabled: !!deliveryId,
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
+  // Fonction pour charger l'historique des statuts
+  const fetchStatusHistory = useCallback(async () => {
+    if (!deliveryId) return;
+
+    setIsLoading(true);
+    setError(null);
+    try {
+      const history = await api.delivery.getStatusHistory.query({ id: deliveryId });
+      setStatusHistory(history);
+    } catch (err) {
+      const errorObj = err instanceof Error ? err : new Error('Erreur inconnue');
+      setError(errorObj);
+      console.error('Erreur lors du chargement de l\'historique des statuts:', errorObj);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [deliveryId]);
+
+  // Charger l'historique au montage
+  useEffect(() => {
+    fetchStatusHistory();
+  }, [fetchStatusHistory]);
 
   // Fusionner les statuts en temps réel avec ceux de l'API
   const mergedStatusHistory = useCallback(() => {
@@ -198,11 +219,10 @@ export function useDeliveryStatusHistory(deliveryId?: string) {
 
       if (startIndex === -1 || endIndex === -1) return null;
 
-      // Calculer la durée en millisecondes
       const startTime = new Date(sortedHistory[startIndex].timestamp).getTime();
       const endTime = new Date(sortedHistory[endIndex].timestamp).getTime();
 
-      return endTime - startTime;
+      return endTime - startTime; // Durée en millisecondes
     },
     [mergedStatusHistory]
   );
@@ -210,207 +230,47 @@ export function useDeliveryStatusHistory(deliveryId?: string) {
   return {
     // Données
     statusHistory: mergedStatusHistory(),
+    lastStatus: getLastStatus(),
 
-    // Fonctions utilitaires
-    getLastStatus,
+    // Actions
+    refetch: fetchStatusHistory,
     getDurationBetweenStatuses,
 
     // États
     isLoading,
     error,
-    refetch,
   };
 }
 
 /**
- * Hook pour gérer l'estimation du temps d'arrivée (ETA)
+ * Hook pour calculer et suivre l'ETA d'une livraison
  * @param deliveryId - ID de la livraison
  */
 export function useDeliveryETA(deliveryId?: string) {
-  const queryClient = useQueryClient();
-  const [lastEtaUpdate, setLastEtaUpdate] = useState<Date | null>(null);
+  const [eta, setEta] = useState<Date | null>(null);
+  const [isCalculating, setIsCalculating] = useState(false);
+  
+  const calculateETA = useCallback(async () => {
+    if (!deliveryId) return;
 
-  // Récupérer l'ETA actuel depuis le store Zustand
-  const { lastEta, metrics } = useDeliveryTrackingStore(state => ({
-    lastEta: state.lastEta,
-    metrics: state.metrics,
-  }));
+    setIsCalculating(true);
+    try {
+      const etaData = await api.delivery.calculateETA.query({ id: deliveryId });
+      setEta(etaData.estimatedDeliveryTime ? new Date(etaData.estimatedDeliveryTime) : null);
+    } catch (error) {
+      console.error('Erreur lors du calcul de l\'ETA:', error);
+    } finally {
+      setIsCalculating(false);
+    }
+  }, [deliveryId]);
 
-  // Requête pour obtenir le dernier ETA calculé par le serveur
-  const {
-    data: serverEta,
-    isLoading,
-    error,
-    refetch: refetchEta,
-  } = useQuery({
-    queryKey: ['delivery-eta', deliveryId],
-    queryFn: async () => {
-      if (!deliveryId) return null;
-      return await trpc.delivery.getETA.query({ id: deliveryId });
-    },
-    enabled: !!deliveryId,
-    staleTime: 1000 * 30, // 30 secondes
-  });
-
-  // Calculer l'ETA le plus récent (entre le serveur et le temps réel)
-  const mostRecentEta = useCallback(() => {
-    if (!lastEta && !serverEta) return null;
-
-    if (!lastEta) return serverEta;
-    if (!serverEta)
-      return {
-        estimatedArrival: lastEta.eta,
-        remainingDistance: lastEta.distance,
-        timestamp: lastEta.timestamp,
-      };
-
-    // Comparer les timestamps
-    const lastEtaTime = new Date(lastEta.timestamp).getTime();
-    const serverEtaTime = new Date(serverEta.timestamp).getTime();
-
-    return lastEtaTime > serverEtaTime
-      ? {
-          estimatedArrival: lastEta.eta,
-          remainingDistance: lastEta.distance,
-          timestamp: lastEta.timestamp,
-        }
-      : serverEta;
-  }, [lastEta, serverEta]);
-
-  // Mutation pour mettre à jour l'ETA
-  const { mutate: updateEta, isPending: isUpdating } = useMutation({
-    mutationFn: async ({
-      estimatedArrival,
-      remainingDistance,
-    }: {
-      estimatedArrival: Date;
-      remainingDistance: number;
-    }) => {
-      if (!deliveryId) throw new Error('ID de livraison non spécifié');
-
-      return await trpc.delivery.updateETA.mutate({
-        id: deliveryId,
-        estimatedArrival,
-        remainingDistance,
-      });
-    },
-    onSuccess: () => {
-      // Mettre à jour le dernier ETA
-      setLastEtaUpdate(new Date());
-
-      // Invalider les requêtes liées
-      queryClient.invalidateQueries({ queryKey: ['delivery-eta', deliveryId] });
-      queryClient.invalidateQueries({ queryKey: ['delivery', deliveryId] });
-
-      // Message de succès
-      toast.success('ETA mis à jour avec succès');
-
-      // Émettre l'événement en temps réel
-      if (socket && socket.connected && deliveryId) {
-        const etaInfo = mostRecentEta();
-        if (etaInfo) {
-          emitDeliveryTrackingEvent({
-            type: 'ETA_UPDATE',
-            deliveryId,
-            eta: etaInfo.estimatedArrival,
-            distance: etaInfo.remainingDistance,
-          });
-        }
-      }
-    },
-    onError: error => {
-      toast.error(`Erreur lors de la mise à jour de l'ETA: ${error.message}`);
-    },
-  });
-
-  // Formater l'ETA en texte lisible
-  const formatETA = useCallback(
-    (includeDistance = true): string => {
-      const eta = mostRecentEta();
-      if (!eta) return 'ETA indisponible';
-
-      const estimatedArrival = new Date(eta.estimatedArrival);
-      const now = new Date();
-
-      // Si l'ETA est dépassé
-      if (estimatedArrival < now) {
-        return 'Arrivée imminente';
-      }
-
-      // Calculer la différence en minutes
-      const diffMs = estimatedArrival.getTime() - now.getTime();
-      const diffMinutes = Math.round(diffMs / 60000);
-
-      // Formater le texte
-      let etaText = '';
-
-      if (diffMinutes < 1) {
-        etaText = "Moins d'une minute";
-      } else if (diffMinutes === 1) {
-        etaText = '1 minute';
-      } else if (diffMinutes < 60) {
-        etaText = `${diffMinutes} minutes`;
-      } else {
-        const hours = Math.floor(diffMinutes / 60);
-        const minutes = diffMinutes % 60;
-
-        if (minutes === 0) {
-          etaText = hours === 1 ? '1 heure' : `${hours} heures`;
-        } else {
-          etaText = `${hours}h${minutes.toString().padStart(2, '0')}`;
-        }
-      }
-
-      // Ajouter la distance si demandé
-      if (includeDistance && eta.remainingDistance) {
-        const distanceKm = (eta.remainingDistance / 1000).toFixed(1);
-        etaText += ` (${distanceKm} km)`;
-      }
-
-      return etaText;
-    },
-    [mostRecentEta]
-  );
-
-  // Obtenir l'heure d'arrivée au format heure locale
-  const getArrivalTime = useCallback((): string => {
-    const eta = mostRecentEta();
-    if (!eta || !eta.estimatedArrival) return '--:--';
-
-    const estimatedArrival = new Date(eta.estimatedArrival);
-    return estimatedArrival.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  }, [mostRecentEta]);
+  useEffect(() => {
+    calculateETA();
+  }, [calculateETA]);
 
   return {
-    // Données
-    eta: mostRecentEta(),
-    etaFromRealtime: lastEta
-      ? {
-          estimatedArrival: lastEta.eta,
-          remainingDistance: lastEta.distance,
-          timestamp: lastEta.timestamp,
-        }
-      : null,
-    etaFromServer: serverEta,
-    lastEtaUpdate,
-
-    // Métriques en temps réel
-    remainingTime: metrics.remainingTime, // en secondes
-    remainingDistance: metrics.remainingDistance, // en mètres
-    estimatedTimeOfArrival: metrics.estimatedTimeOfArrival,
-    completionPercentage: metrics.completionPercentage,
-
-    // Actions
-    updateEta,
-    refetchEta,
-
-    // Fonctions utilitaires
-    formatETA,
-    getArrivalTime,
-
-    // États
-    isLoading,
-    isUpdating,
-    error,
+    eta,
+    isCalculating,
+    recalculate: calculateETA,
   };
 }

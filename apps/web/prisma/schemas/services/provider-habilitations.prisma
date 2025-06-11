@@ -1,0 +1,304 @@
+// ===== MODÈLES HABILITATIONS ET ÉVALUATIONS PRESTATAIRES =====
+// Ce fichier contient les modèles pour la validation et le suivi des prestataires selon le cahier des charges
+
+/// Habilitation spécifique d'un prestataire
+model ProviderHabilitation {
+  id                String              @id @default(cuid())
+  providerId        String
+  habilitationType  String              // Type d'habilitation (ex: "FIRST_AID", "CHILDCARE", "ELDERLY_CARE")
+  
+  // Informations de l'habilitation
+  title             String              // Titre de l'habilitation
+  description       String?             // Description
+  issuingAuthority  String              // Autorité délivrant l'habilitation
+  
+  // Statut et validation
+  status            HabilitationStatus  @default(PENDING)
+  
+  // Documents justificatifs
+  certificateUrl    String?             // URL du certificat
+  documentUrls      String[]            // URLs des documents supplémentaires
+  
+  // Dates importantes
+  issuedAt          DateTime?           // Date de délivrance
+  expiresAt         DateTime?           // Date d'expiration
+  validatedAt       DateTime?           // Date de validation par EcoDeli
+  validatedBy       String?             // Admin qui a validé
+  
+  // Informations de renouvellement
+  renewalRequired   Boolean             @default(false)
+  renewalNoticeDays Int?                // Préavis de renouvellement en jours
+  lastRenewalAt     DateTime?           // Dernier renouvellement
+  
+  // Métadonnées de validation
+  validationNotes   String?             // Notes de validation
+  rejectionReason   String?             // Raison du rejet
+  
+  // Métadonnées
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  // Relations
+  provider          User                @relation("ProviderHabilitations", fields: [providerId], references: [id], onDelete: Cascade)
+  validator         User?               @relation("HabilitationValidator", fields: [validatedBy], references: [id])
+  
+  // Services nécessitant cette habilitation
+  requiredByServices ProviderServiceHabilitation[]
+
+  @@index([providerId])
+  @@index([status])
+  @@index([habilitationType])
+  @@index([expiresAt])
+  @@map("provider_habilitations")
+}
+
+/// Association entre services et habilitations requises
+model ProviderServiceHabilitation {
+  id               String              @id @default(cuid())
+  serviceId        String              // PersonalService ID
+  habilitationId   String
+  isRequired       Boolean             @default(true) // Obligatoire ou recommandée
+  
+  // Relations
+  habilitation     ProviderHabilitation @relation(fields: [habilitationId], references: [id], onDelete: Cascade)
+
+  @@unique([serviceId, habilitationId])
+  @@index([serviceId])
+  @@map("provider_service_habilitations")
+}
+
+/// Intervention effectuée par un prestataire
+model ProviderIntervention {
+  id                String              @id @default(cuid())
+  providerId        String
+  bookingId         String              @unique // Lié à une PersonalServiceBooking
+  
+  // Informations de l'intervention
+  interventionType  InterventionType    @default(SCHEDULED)
+  status            InterventionStatus  @default(SCHEDULED)
+  
+  // Planning
+  scheduledStart    DateTime            // Début programmé
+  scheduledEnd      DateTime            // Fin programmée
+  actualStart       DateTime?           // Début réel
+  actualEnd         DateTime?           // Fin réelle
+  
+  // Localisation
+  address           String              // Adresse d'intervention
+  lat               Float               // Latitude
+  lng               Float               // Longitude
+  travelTime        Int?                // Temps de trajet en minutes
+  travelDistance    Float?              // Distance en km
+  
+  // Check-in/out
+  checkedInAt       DateTime?           // Heure d'arrivée sur site
+  checkedOutAt      DateTime?           // Heure de départ du site
+  gpsCheckin        Json?               // Coordonnées GPS check-in {lat, lng}
+  gpsCheckout       Json?               // Coordonnées GPS check-out {lat, lng}
+  
+  // Détails de l'intervention
+  workDescription   String              @db.Text // Description du travail effectué
+  materialUsed      Json?               // Matériaux utilisés (array)
+  toolsUsed         Json?               // Outils utilisés (array)
+  
+  // Documentation
+  beforePhotos      String[]            // Photos avant intervention
+  duringPhotos      String[]            // Photos pendant intervention
+  afterPhotos       String[]            // Photos après intervention
+  signatureUrl      String?             // Signature du client
+  completionProof   String?             // Preuve de réalisation
+  
+  // Problèmes et incidents
+  issues            Json?               // Problèmes rencontrés (array)
+  additionalWork    String?             // Travaux supplémentaires effectués
+  extraCharges      Json?               // Frais supplémentaires détaillés
+  
+  // Facturation
+  hoursWorked       Float?              // Heures travaillées
+  quotedPrice       Decimal             @db.Decimal(8,2) // Prix devisé
+  finalPrice        Decimal?            @db.Decimal(8,2) // Prix final
+  invoiceGenerated  Boolean             @default(false)
+  invoiceUrl        String?             // URL de la facture générée
+  
+  // Évaluation client
+  clientSatisfaction Int?               // Note client sur 5
+  clientFeedback    String?             // Commentaires client
+  
+  // Notes internes
+  internalNotes     String?             // Notes internes du prestataire
+  adminNotes        String?             // Notes administratives
+  
+  // Métadonnées
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  completedAt       DateTime?
+  
+  // Relations
+  provider          User                @relation("ProviderInterventions", fields: [providerId], references: [id], onDelete: Cascade)
+  evaluation        ProviderEvaluation? @relation("InterventionEvaluation")
+
+  @@index([providerId])
+  @@index([status])
+  @@index([scheduledStart])
+  @@index([interventionType])
+  @@map("provider_interventions")
+}
+
+/// Évaluation détaillée d'un prestataire par un client
+model ProviderEvaluation {
+  id                String          @id @default(cuid())
+  providerId        String
+  clientId          String
+  interventionId    String?         @unique // Intervention évaluée (optionnel)
+  evaluationType    EvaluationType  @default(CLIENT_TO_PROVIDER)
+  
+  // Évaluation globale
+  overallRating     Int             // Note globale sur 5
+  comment           String?         @db.Text // Commentaire détaillé
+  
+  // Critères détaillés
+  punctualityRating Int?            // Ponctualité sur 5
+  qualityRating     Int?            // Qualité du travail sur 5
+  communicationRating Int?          // Communication sur 5
+  professionalismRating Int?        // Professionnalisme sur 5
+  valueRating       Int?            // Rapport qualité/prix sur 5
+  cleanlinessRating Int?            // Propreté sur 5
+  
+  // Recommandations
+  wouldRecommend    Boolean?        // Recommanderait ce prestataire
+  wouldRebook       Boolean?        // Re-ferait appel à ce prestataire
+  strengths         String[]        // Points forts (tags)
+  improvements      String[]        // Points d'amélioration (tags)
+  
+  // Réponse du prestataire
+  providerResponse  String?         @db.Text // Réponse du prestataire
+  providerResponseAt DateTime?      // Date de réponse
+  
+  // Modération et validation
+  isVerified        Boolean         @default(false) // Évaluation vérifiée
+  isPublic          Boolean         @default(true)  // Visible publiquement
+  moderatedBy       String?         // Admin modérateur
+  moderatedAt       DateTime?
+  moderationNotes   String?         // Notes de modération
+  
+  // Impact sur le prestataire
+  affectsRating     Boolean         @default(true) // Compte dans la note moyenne
+  isDisplayed       Boolean         @default(true) // Affiché sur le profil
+  
+  // Métadonnées
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  
+  // Relations
+  provider          User            @relation("ProviderEvaluated", fields: [providerId], references: [id], onDelete: Cascade)
+  client            User            @relation("ProviderEvaluator", fields: [clientId], references: [id], onDelete: Cascade)
+  intervention      ProviderIntervention? @relation("InterventionEvaluation", fields: [interventionId], references: [id])
+  moderator         User?           @relation("EvaluationModerator", fields: [moderatedBy], references: [id])
+
+  @@index([providerId])
+  @@index([clientId])
+  @@index([overallRating])
+  @@index([isPublic, affectsRating])
+  @@index([createdAt])
+  @@map("provider_evaluations")
+}
+
+/// Facturation automatique des prestataires
+model ProviderAutoInvoicing {
+  id                String              @id @default(cuid())
+  providerId        String              @unique
+  
+  // Configuration
+  status            AutoInvoicingStatus @default(DISABLED)
+  billingDay        Int                 @default(1) // Jour du mois pour facturation (1-28)
+  
+  // Informations de facturation
+  companyName       String?             // Nom de l'entreprise
+  siretNumber       String?             // Numéro SIRET
+  vatNumber         String?             // Numéro TVA
+  billingAddress    Json?               // Adresse de facturation complète
+  
+  // Configuration de la facture
+  invoiceTemplate   String?             // Template de facture utilisé
+  includeDetails    Boolean             @default(true) // Inclure détails des interventions
+  groupByService    Boolean             @default(false) // Grouper par type de service
+  
+  // Paramètres de paiement
+  bankAccountIban   String?             // IBAN pour virement
+  bankAccountBic    String?             // BIC
+  paymentTerms      Int                 @default(30) // Délai de paiement en jours
+  
+  // Seuils et conditions
+  minimumAmount     Decimal?            @db.Decimal(8,2) // Montant minimum pour facturation
+  commissionRate    Decimal             @db.Decimal(5,4) @default(0.15) // Taux commission EcoDeli
+  
+  // Notifications
+  emailNotifications Boolean            @default(true)
+  smsNotifications  Boolean             @default(false)
+  
+  // Métadonnées
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  lastInvoiceDate   DateTime?           // Dernière facture générée
+  nextInvoiceDate   DateTime?           // Prochaine facture prévue
+  
+  // Relations
+  provider          User                @relation("ProviderAutoInvoicing", fields: [providerId], references: [id], onDelete: Cascade)
+  
+  // Historique des factures générées
+  generatedInvoices ProviderMonthlyInvoice[]
+
+  @@index([status])
+  @@index([nextInvoiceDate])
+  @@map("provider_auto_invoicing")
+}
+
+/// Facture mensuelle générée automatiquement
+model ProviderMonthlyInvoice {
+  id                String                @id @default(cuid())
+  autoInvoicingId   String
+  providerId        String
+  
+  // Période facturée
+  periodMonth       Int                   // Mois (1-12)
+  periodYear        Int                   // Année
+  
+  // Informations de la facture
+  invoiceNumber     String                @unique // Numéro de facture auto-généré
+  issueDate         DateTime              @default(now())
+  dueDate           DateTime              // Date d'échéance
+  
+  // Montants
+  totalEarnings     Decimal               @db.Decimal(10,2) // Gains totaux du prestataire
+  platformCommission Decimal             @db.Decimal(8,2)  // Commission EcoDeli
+  netAmount         Decimal               @db.Decimal(10,2) // Montant net à payer
+  vatAmount         Decimal?              @db.Decimal(8,2)  // TVA si applicable
+  
+  // Détails des prestations
+  interventionCount Int                   @default(0) // Nombre d'interventions
+  hoursWorked       Float                 @default(0) // Heures travaillées
+  averageRating     Float?                // Note moyenne de la période
+  
+  // Statut et paiement
+  status            InvoiceStatus         @default(ISSUED)
+  paidAt            DateTime?             // Date de paiement
+  paymentMethod     String?               // Méthode de paiement
+  
+  // Fichiers
+  pdfUrl            String?               // URL du PDF de facture
+  detailsJson       Json?                 // Détails des interventions (JSON)
+  
+  // Métadonnées
+  createdAt         DateTime              @default(now())
+  updatedAt         DateTime              @updatedAt
+  
+  // Relations
+  autoInvoicing     ProviderAutoInvoicing @relation(fields: [autoInvoicingId], references: [id], onDelete: Cascade)
+  provider          User                  @relation("ProviderMonthlyInvoices", fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, periodYear, periodMonth])
+  @@index([autoInvoicingId])
+  @@index([status])
+  @@index([issueDate])
+  @@map("provider_monthly_invoices")
+}

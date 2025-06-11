@@ -1,0 +1,255 @@
+// ===== MODÈLES SERVICES À LA PERSONNE =====
+// Ce fichier contient les modèles pour les services spécifiques selon le cahier des charges
+
+/// Service à la personne spécialisé
+model PersonalService {
+  id                String               @id @default(cuid())
+  providerId        String               // Prestataire qui offre le service
+  serviceType       PersonalServiceType  // Type de service selon cahier des charges
+  
+  // Informations de base
+  title             String               // Titre du service
+  description       String               @db.Text // Description détaillée
+  shortDescription  String?              // Description courte pour listing
+  
+  // Tarification
+  basePrice         Decimal              @db.Decimal(8,2) // Prix de base
+  pricePerHour      Decimal?             @db.Decimal(6,2) // Prix horaire si applicable
+  pricePerKm        Decimal?             @db.Decimal(4,2) // Prix au kilomètre si applicable
+  minimumPrice      Decimal?             @db.Decimal(6,2) // Prix minimum
+  
+  // Disponibilité géographique
+  serviceRadius     Float                @default(25) // Rayon d'intervention en km
+  baseLocation      String               // Adresse de base du prestataire
+  baseLat           Float                // Latitude base
+  baseLng           Float                // Longitude base
+  
+  // Spécificités par type de service
+  
+  // PERSON_TRANSPORT - Transport de personnes
+  maxPassengers     Int?                 // Nombre max de passagers
+  hasWheelchairAccess Boolean?           // Accessible PMR
+  vehicleType       VehicleType?         // Type de véhicule
+  hasChildSeat      Boolean?             // Siège enfant disponible
+  
+  // AIRPORT_TRANSFER - Transfert aéroport
+  airportCoverage   String[]             // Aéroports desservis (codes IATA)
+  trackFlights      Boolean?             // Suivi des vols
+  waitingIncluded   Int?                 // Minutes d'attente incluses
+  luggageCapacity   String?              // Capacité bagages
+  
+  // GROCERY_SHOPPING - Courses
+  maxShoppingValue  Decimal?             @db.Decimal(8,2) // Valeur max des courses
+  hasShoppingCard   Boolean?             // Possède cartes de fidélité
+  preferredStores   String[]             // Magasins préférés
+  specialtyProducts Boolean?             // Produits spécialisés (bio, halal, etc.)
+  
+  // INTERNATIONAL_PURCHASE - Achats à l'étranger
+  countriesCovered  String[]             // Pays couverts (codes ISO)
+  maxPurchaseValue  Decimal?             @db.Decimal(10,2) // Valeur max d'achat
+  customsHandling   Boolean?             // Gestion douanes
+  shippingIncluded  Boolean?             // Expédition incluse
+  
+  // PET_SITTING - Garde d'animaux
+  petTypesAccepted  String[]             // Types d'animaux acceptés
+  maxPetSize        String?              // Taille max (small, medium, large)
+  hasVeterinaryExp  Boolean?             // Expérience vétérinaire
+  homeOrTravel      String?              // À domicile ou déplacement
+  
+  // HOME_SERVICES - Services à domicile
+  serviceCategories String[]             // Catégories (ménage, jardinage, etc.)
+  toolsProvided     Boolean?             // Outils fournis
+  materialsIncluded Boolean?             // Matériaux inclus
+  maxJobDuration    Int?                 // Durée max en heures
+  
+  // Qualifications et certifications
+  certifications    Json?                // Certifications du prestataire
+  insurance         Json?                // Assurances souscrites
+  backgroundCheck   Boolean              @default(false) // Vérification casier
+  
+  // Paramètres de service
+  advanceBooking    Int                  @default(24) // Préavis requis en heures
+  cancellationPolicy String?            // Politique d'annulation
+  isEmergencyService Boolean             @default(false) // Service d'urgence
+  
+  // Disponibilité
+  isActive          Boolean              @default(true)
+  isApproved        Boolean              @default(false) // Approuvé par admin
+  approvedAt        DateTime?
+  approvedBy        String?              // Admin qui a approuvé
+  
+  // Évaluations
+  averageRating     Float?               // Note moyenne sur 5
+  totalReviews      Int                  @default(0)
+  totalBookings     Int                  @default(0)
+  
+  // Métadonnées
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  
+  // Relations
+  provider          User                 @relation("PersonalServiceProvider", fields: [providerId], references: [id], onDelete: Cascade)
+  approver          User?                @relation("PersonalServiceApprover", fields: [approvedBy], references: [id])
+  
+  // Réservations de ce service
+  bookings          PersonalServiceBooking[]
+  
+  // Évaluations reçues
+  reviews           PersonalServiceReview[]
+  
+  // Photos du service
+  photos            PersonalServicePhoto[]
+
+  @@index([providerId])
+  @@index([serviceType])
+  @@index([isActive, isApproved])
+  @@index([averageRating])
+  @@index([baseLat, baseLng]) // Pour recherche géographique
+  @@map("personal_services")
+}
+
+/// Réservation d'un service à la personne
+model PersonalServiceBooking {
+  id                String               @id @default(cuid())
+  serviceId         String
+  clientId          String
+  
+  // Détails de la réservation
+  scheduledAt       DateTime             // Date/heure programmée
+  duration          Int?                 // Durée estimée en minutes
+  status            BookingStatus        @default(PENDING)
+  
+  // Lieu du service
+  serviceAddress    String               // Adresse où effectuer le service
+  serviceLat        Float                // Latitude
+  serviceLng        Float                // Longitude
+  accessInstructions String?             // Instructions d'accès
+  
+  // Détails spécifiques selon le type
+  serviceDetails    Json                 // Détails spécifiques (JSON)
+  specialRequests   String?              // Demandes spéciales du client
+  
+  // Tarification
+  quotedPrice       Decimal              @db.Decimal(8,2) // Prix devisé
+  finalPrice        Decimal?             @db.Decimal(8,2) // Prix final
+  extraCharges      Json?                // Frais supplémentaires détaillés
+  
+  // Suivi de l'intervention
+  providerArrivedAt DateTime?            // Arrivée du prestataire
+  serviceStartedAt  DateTime?            // Début du service
+  serviceCompletedAt DateTime?           // Fin du service
+  
+  // Photos et preuves
+  beforePhotos      String[]             // Photos avant intervention
+  afterPhotos       String[]             // Photos après intervention
+  completionProof   String?              // Preuve de réalisation
+  
+  // Communication
+  clientNotes       String?              // Notes du client
+  providerNotes     String?              // Notes du prestataire
+  
+  // Paiement
+  isPaid            Boolean              @default(false)
+  paidAt            DateTime?
+  paymentMethod     String?              // Méthode de paiement
+  
+  // Annulation/Report
+  cancelledAt       DateTime?
+  cancellationReason CancellationReason?
+  rescheduledFrom   DateTime?            // Programmation précédente
+  rescheduledTo     DateTime?            // Nouvelle programmation
+  
+  // Métadonnées
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  
+  // Relations
+  service           PersonalService      @relation(fields: [serviceId], references: [id], onDelete: Restrict)
+  client            User                 @relation("PersonalServiceClient", fields: [clientId], references: [id], onDelete: Cascade)
+  
+  // Évaluation de cette réservation
+  review            PersonalServiceReview?
+
+  @@index([serviceId])
+  @@index([clientId])
+  @@index([status])
+  @@index([scheduledAt])
+  @@map("personal_service_bookings")
+}
+
+/// Évaluations des services à la personne
+model PersonalServiceReview {
+  id              String                 @id @default(cuid())
+  serviceId       String
+  bookingId       String                 @unique // Une évaluation par réservation
+  clientId        String
+  providerId      String
+  
+  // Évaluation
+  rating          Int                    // Note sur 5
+  comment         String?                @db.Text // Commentaire détaillé
+  
+  // Critères d'évaluation spécifiques
+  punctuality     Int?                   // Ponctualité sur 5
+  quality         Int?                   // Qualité sur 5
+  communication   Int?                   // Communication sur 5
+  value           Int?                   // Rapport qualité/prix sur 5
+  
+  // Recommandation
+  wouldRecommend  Boolean?               // Recommanderait-il ?
+  wouldBookAgain  Boolean?               // Re-réserverait-il ?
+  
+  // Réponse du prestataire
+  providerResponse String?               @db.Text // Réponse du prestataire
+  providerResponseAt DateTime?           // Date de réponse
+  
+  // Modération
+  isModerated     Boolean                @default(false)
+  isPublic        Boolean                @default(true)
+  moderatedBy     String?                // Admin modérateur
+  moderatedAt     DateTime?
+  moderationNotes String?                // Notes de modération
+  
+  // Métadonnées
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  
+  // Relations
+  service         PersonalService        @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  booking         PersonalServiceBooking @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+  client          User                   @relation("PersonalServiceReviewer", fields: [clientId], references: [id], onDelete: Cascade)
+  provider        User                   @relation("PersonalServiceReviewed", fields: [providerId], references: [id], onDelete: Cascade)
+  moderator       User?                  @relation("PersonalServiceModerator", fields: [moderatedBy], references: [id])
+
+  @@index([serviceId])
+  @@index([clientId])
+  @@index([providerId])
+  @@index([rating])
+  @@index([isPublic])
+  @@map("personal_service_reviews")
+}
+
+/// Photos des services à la personne
+model PersonalServicePhoto {
+  id              String          @id @default(cuid())
+  serviceId       String
+  url             String          // URL de la photo
+  caption         String?         // Légende
+  sortOrder       Int             @default(0) // Ordre d'affichage
+  isMainPhoto     Boolean         @default(false) // Photo principale
+  
+  // Métadonnées de l'image
+  fileSize        Int?            // Taille en bytes
+  mimeType        String?         // Type MIME
+  width           Int?            // Largeur en pixels
+  height          Int?            // Hauteur en pixels
+  
+  createdAt       DateTime        @default(now())
+  
+  // Relations
+  service         PersonalService @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+
+  @@index([serviceId, sortOrder])
+  @@index([isMainPhoto])
+  @@map("personal_service_photos")
+}
