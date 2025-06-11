@@ -1,0 +1,114 @@
+# =============================================================================
+# DOCKERFILE SIMPLIFIÉ POUR L'APPLICATION WEB NEXT.JS
+# =============================================================================
+
+# Stage 1: Dependencies
+FROM node:20-alpine AS deps
+WORKDIR /app
+
+# Installation de pnpm
+RUN npm install -g pnpm
+
+# Copie des fichiers de dépendances (dans le contexte apps/web)
+COPY package.json pnpm-lock.yaml ./
+COPY pnpm-workspace.yaml ./
+
+# Installation des dépendances
+RUN pnpm install --frozen-lockfile
+
+# =============================================================================
+# Stage 2: Development
+FROM node:20-alpine AS development
+WORKDIR /app
+
+# Installation des outils de développement
+RUN apk add --no-cache curl git && npm install -g pnpm
+
+# Copie des dépendances
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copie du code source
+COPY . .
+
+# Génération du client Prisma (si présent)
+RUN if [ -d "prisma" ]; then pnpm prisma generate; fi
+
+# Exposition du port
+EXPOSE 3000
+
+# Variables d'environnement pour le développement
+ENV NODE_ENV development
+ENV NEXT_TELEMETRY_DISABLED 1
+ENV WATCHPACK_POLLING true
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:3000/api/health || exit 1
+
+# Commande de démarrage
+CMD ["pnpm", "dev"]
+
+# =============================================================================
+# Stage 3: Builder
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+# Installation de pnpm
+RUN npm install -g pnpm
+
+# Copie des dépendances depuis le stage deps
+COPY --from=deps /app/node_modules ./node_modules
+
+# Copie du code source
+COPY . .
+
+# Génération du client Prisma (si présent)
+RUN if [ -d "prisma" ]; then pnpm prisma generate; fi
+
+# Build de l'application
+ENV NEXT_TELEMETRY_DISABLED 1
+ENV NODE_ENV production
+
+RUN pnpm build
+
+# =============================================================================
+# Stage 4: Production
+FROM node:20-alpine AS production
+WORKDIR /app
+
+# Création d'un utilisateur non-root
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
+
+# Installation des dépendances système nécessaires
+RUN apk add --no-cache curl dumb-init
+
+# Copie des fichiers de build
+COPY --from=builder /app/public ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+
+# Configuration des permissions
+RUN chown -R nextjs:nodejs /app
+
+# Changement vers l'utilisateur non-root
+USER nextjs
+
+# Exposition du port
+EXPOSE 3000
+
+# Variables d'environnement pour la production
+ENV NODE_ENV production
+ENV NEXT_TELEMETRY_DISABLED 1
+ENV PORT 3000
+ENV HOSTNAME "0.0.0.0"
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD curl -f http://localhost:3000/api/health || exit 1
+
+# Script d'entrypoint avec dumb-init pour une gestion propre des signaux
+ENTRYPOINT ["dumb-init", "--"]
+
+# Commande de démarrage
+CMD ["node", "server.js"] 

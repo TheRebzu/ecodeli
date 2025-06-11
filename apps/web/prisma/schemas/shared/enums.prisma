@@ -1,0 +1,567 @@
+// ===== ENUMS PARTAGÉS =====
+
+// ===== DOMAINE UTILISATEURS =====
+
+/// Type de rôle utilisateur dans le système
+enum UserRole {
+  CLIENT     // Utilisateur standard qui requiert des services
+  DELIVERER  // Livreur qui effectue les livraisons
+  MERCHANT   // Commerçant qui propose des produits
+  PROVIDER   // Prestataire qui offre des services
+  ADMIN      // Administrateur de la plateforme
+}
+
+/// Statut du compte utilisateur
+enum UserStatus {
+  PENDING_VERIFICATION // En attente de vérification
+  ACTIVE               // Compte actif
+  SUSPENDED            // Compte temporairement suspendu
+  INACTIVE             // Compte inactif
+}
+
+/// Type de document d'identification
+enum DocumentType {
+  ID_CARD            // Carte d'identité
+  PASSPORT           // Passeport
+  DRIVERS_LICENSE    // Permis de conduire
+  PROOF_OF_ADDRESS   // Justificatif de domicile
+  VEHICLE_INSURANCE  // Assurance véhicule
+  VEHICLE_REGISTRATION // Carte grise
+  BUSINESS_LICENSE   // Licence commerciale
+  INSURANCE_CERTIFICATE // Certificat d'assurance
+  PROFESSIONAL_QUALIFICATION // Qualification professionnelle
+  TAX_CERTIFICATE    // Certificat fiscal
+  BUSINESS_REGISTRATION // Enregistrement entreprise
+  VAT_REGISTRATION   // Enregistrement TVA
+  OTHER              // Autre type de document
+}
+
+/// Statut d'un document
+enum DocumentStatus {
+  PENDING   // En attente de vérification
+  APPROVED  // Document approuvé
+  REJECTED  // Document rejeté
+  EXPIRED   // Document expiré
+}
+
+/// Statut de vérification
+enum VerificationStatus {
+  PENDING    // En attente d'examen
+  APPROVED   // Vérifié et approuvé
+  REJECTED   // Rejeté pour non-conformité
+}
+
+/// Type de token d'authentification
+enum TokenType {
+  EMAIL_VERIFICATION // Vérification d'email
+  PASSWORD_RESET     // Réinitialisation de mot de passe
+  TWO_FACTOR_AUTH    // Authentification à deux facteurs
+}
+
+/// Type d'activité utilisateur pour le journal d'audit
+enum ActivityType {
+  LOGIN               // Connexion
+  LOGOUT              // Déconnexion
+  PROFILE_UPDATE      // Mise à jour du profil
+  PASSWORD_CHANGE     // Changement de mot de passe
+  STATUS_CHANGE       // Changement de statut
+  ROLE_CHANGE         // Changement de rôle
+  VERIFICATION_SUBMIT // Soumission de vérification
+  VERIFICATION_REVIEW // Révision de vérification
+  DOCUMENT_UPLOAD     // Téléversement de document
+  ACCOUNT_CREATION    // Création de compte
+  OTHER               // Autre activité
+}
+
+// ===== DOMAINE LIVRAISONS =====
+
+/// Statut d'une annonce de livraison
+enum AnnouncementStatus {
+  DRAFT        // Brouillon
+  PUBLISHED    // Publiée
+  IN_APPLICATION // En cours de candidature
+  ASSIGNED     // Assignée
+  IN_PROGRESS  // En cours
+  DELIVERED    // Livrée
+  COMPLETED    // Terminée
+  PAID         // Payée
+  PROBLEM      // Problème
+  DISPUTE      // Litige
+  CANCELLED    // Annulée
+}
+
+/// Type d'annonce
+enum AnnouncementType {
+  PACKAGE_DELIVERY   // Livraison de colis
+  PARTIAL_DELIVERY   // Livraison partielle (livreur prend en charge une partie du trajet)
+  FINAL_DISTRIBUTION // Distribution finale (livraison des marchandises déjà livrées)
+  CART_DROP          // Lâcher de chariot (livraison depuis un commerçant partenaire)
+  GROCERY_SHOPPING   // Courses alimentaires
+  PERSON_TRANSPORT   // Transport de personnes
+  AIRPORT_TRANSFER   // Transfert aéroport
+  FOREIGN_PURCHASE   // Achat à l'étranger
+  PET_CARE           // Garde d'animaux
+  HOME_SERVICES      // Services à domicile
+}
+
+/// Priorité d'une annonce
+enum AnnouncementPriority {
+  LOW     // Basse
+  MEDIUM  // Moyenne
+  HIGH    // Haute
+  URGENT  // Urgente
+}
+
+/// Statut d'une livraison
+enum DeliveryStatus {
+  PENDING   // En attente
+  ACCEPTED  // Acceptée
+  PICKED_UP // Récupérée
+  IN_TRANSIT // En transit
+  DELIVERED // Livrée
+  CONFIRMED // Confirmée
+  CANCELLED // Annulée
+  DISPUTED  // Contestée
+}
+
+/// Statut détaillé d'une livraison (modèle plus complet)
+enum DeliveryStatusEnum {
+  CREATED          // Créée
+  ASSIGNED         // Assignée
+  PENDING_PICKUP   // En attente de récupération
+  PICKED_UP        // Récupérée
+  IN_TRANSIT       // En transit
+  NEARBY           // À proximité
+  ARRIVED          // Arrivée
+  ATTEMPT_DELIVERY // Tentative de livraison
+  DELIVERED        // Livrée
+  NOT_DELIVERED    // Non livrée
+  RESCHEDULED      // Reprogrammée
+  RETURNED         // Retournée
+  CANCELLED        // Annulée
+}
+
+/// Type de point de contrôle pour le suivi
+enum CheckpointType {
+  DEPARTURE        // Départ
+  PICKUP           // Récupération
+  WAYPOINT         // Point de passage
+  DELIVERY_ATTEMPT // Tentative de livraison
+  DELIVERY         // Livraison
+  RETURN_POINT     // Point de retour
+  WAREHOUSE        // Entrepôt
+  CUSTOMS          // Douanes
+  HANDOFF          // Transfert
+  OTHER            // Autre
+}
+
+/// Type de problème de livraison
+enum DeliveryIssueType {
+  ACCESS_PROBLEM    // Problème d'accès
+  ADDRESS_NOT_FOUND // Adresse non trouvée
+  CUSTOMER_ABSENT   // Client absent
+  DAMAGED_PACKAGE   // Colis endommagé
+  DELIVERY_REFUSED  // Livraison refusée
+  VEHICLE_BREAKDOWN // Panne de véhicule
+  TRAFFIC_JAM       // Embouteillage
+  WEATHER_CONDITION // Condition météorologique
+  SECURITY_ISSUE    // Problème de sécurité
+  OTHER             // Autre problème
+}
+
+/// Gravité d'un problème
+enum IssueSeverity {
+  LOW      // Basse
+  MEDIUM   // Moyenne
+  HIGH     // Haute
+  CRITICAL // Critique
+}
+
+/// Statut d'un problème
+enum IssueStatus {
+  OPEN        // Ouvert
+  IN_PROGRESS // En cours
+  RESOLVED    // Résolu
+  ESCALATED   // Escaladé
+  CLOSED      // Fermé
+}
+
+/// Type d'adresse
+enum AddressType {
+  PICKUP   // Récupération
+  DELIVERY // Livraison
+  WAYPOINT // Point de passage
+}
+
+/// Type de colis
+enum PackageType {
+  STANDARD     // Standard
+  FRAGILE      // Fragile
+  REFRIGERATED // Réfrigéré
+  OVERSIZED    // Surdimensionné
+  DOCUMENTS    // Documents
+  FOOD         // Nourriture
+  ELECTRONICS  // Électronique
+}
+
+/// Statut d'une candidature
+enum ApplicationStatus {
+  PENDING   // En attente
+  ACCEPTED  // Acceptée
+  REJECTED  // Rejetée
+  CANCELLED // Annulée
+}
+
+// ===== DOMAINE STOCKAGE =====
+
+/// Type de box de stockage
+enum BoxType {
+  STANDARD           // Standard
+  CLIMATE_CONTROLLED // Contrôle climatique
+  SECURE             // Sécurisé
+  EXTRA_LARGE        // Très large
+  REFRIGERATED       // Réfrigéré
+  FRAGILE            // Pour objets fragiles
+}
+
+/// Statut d'une box
+enum BoxStatus {
+  AVAILABLE   // Disponible
+  RESERVED    // Réservée
+  OCCUPIED    // Occupée
+  MAINTENANCE // En maintenance
+  DAMAGED     // Endommagée
+  INACTIVE    // Inactive
+}
+
+/// Type d'action sur une box
+enum BoxActionType {
+  RESERVATION_CREATED   // Réservation créée
+  RESERVATION_UPDATED   // Réservation mise à jour
+  RESERVATION_CANCELLED // Réservation annulée
+  BOX_ACCESSED          // Box accédée
+  BOX_CLOSED            // Box fermée
+  PAYMENT_PROCESSED     // Paiement traité
+  EXTENDED_RENTAL       // Location prolongée
+  INSPECTION_COMPLETED  // Inspection terminée
+}
+
+/// Statut d'une réservation
+enum ReservationStatus {
+  PENDING   // En attente
+  ACTIVE    // Active
+  COMPLETED // Terminée
+  CANCELLED // Annulée
+  OVERDUE   // En retard
+  EXTENDED  // Prolongée
+}
+
+// ===== DOMAINE SERVICES =====
+
+/// Statut d'une réservation de service
+enum BookingStatus {
+  PENDING     // En attente
+  CONFIRMED   // Confirmée
+  COMPLETED   // Terminée
+  CANCELLED   // Annulée
+  RESCHEDULED // Reprogrammée
+}
+
+/// Statut d'un contrat
+enum ContractStatus {
+  DRAFT             // Brouillon
+  PENDING_SIGNATURE // En attente de signature
+  ACTIVE            // Actif
+  SUSPENDED         // Suspendu
+  TERMINATED        // Résilié
+  EXPIRED           // Expiré
+  CANCELLED         // Annulé
+
+  @@map("ContractStatus")
+}
+
+/// Type de contrat
+enum ContractType {
+  STANDARD      // Contrat standard
+  PREMIUM       // Contrat premium avec avantages
+  PARTNER       // Contrat partenaire privilégié
+  TRIAL         // Contrat d'essai
+  CUSTOM        // Contrat personnalisé
+
+  @@map("ContractType")
+}
+
+/// Type de service
+enum ServiceType {
+  DELIVERY // Livraison
+  SERVICE  // Service
+  STORAGE  // Stockage
+  CUSTOM   // Personnalisé
+}
+
+/// Type d'exception de disponibilité
+enum ExceptionType {
+  VACATION      // Congés
+  SICK_LEAVE    // Arrêt maladie
+  UNAVAILABLE   // Indisponible
+  MAINTENANCE   // Maintenance
+  EMERGENCY     // Urgence
+  PERSONAL      // Personnel
+  CLOSED        // Fermé
+}
+
+// ===== DOMAINE FINANCIER =====
+
+/// Statut de paiement
+enum PaymentStatus {
+  PENDING     // En attente
+  PROCESSING  // En cours de traitement
+  COMPLETED   // Terminé
+  FAILED      // Échoué
+  REFUNDED    // Remboursé
+  CANCELLED   // Annulé
+}
+
+/// Type de transaction
+enum TransactionType {
+  DEPOSIT              // Dépôt
+  WITHDRAWAL           // Retrait
+  TRANSFER             // Transfert
+  EARNING              // Gain
+  REFUND               // Remboursement
+  PLATFORM_FEE         // Frais de plateforme
+  COMMISSION           // Commission
+  BONUS                // Bonus
+  ADJUSTMENT           // Ajustement
+  TAX                  // Taxe
+  SERVICE_FEE          // Frais de service
+  DELIVERY_PAYOUT      // Paiement de livraison
+  SERVICE_PAYOUT       // Paiement de service
+  SUBSCRIPTION_PAYMENT // Paiement d'abonnement
+  MONTHLY_FEE          // Frais mensuels
+}
+
+/// Statut d'une transaction
+enum TransactionStatus {
+  PENDING    // En attente
+  PROCESSING // En cours de traitement
+  COMPLETED  // Terminée
+  FAILED     // Échouée
+  CANCELLED  // Annulée
+  DISPUTED   // Contestée
+  REFUNDED   // Remboursée
+}
+
+/// Statut d'un retrait
+enum WithdrawalStatus {
+  PENDING    // En attente
+  PROCESSING // En cours de traitement
+  COMPLETED  // Terminé
+  FAILED     // Échoué
+  CANCELLED  // Annulé
+  REJECTED   // Rejeté
+  SCHEDULED  // Programmé
+}
+
+/// Statut d'un abonnement
+enum SubscriptionStatus {
+  ACTIVE    // Actif
+  CANCELLED // Annulé
+  PAST_DUE  // En retard
+  TRIALING  // En période d'essai
+  UNPAID    // Non payé
+}
+
+/// Type de plan d'abonnement
+enum PlanType {
+  FREE     // Gratuit
+  STARTER  // Débutant
+  PREMIUM  // Premium
+  CUSTOM   // Personnalisé
+}
+
+/// Statut d'une facture
+enum InvoiceStatus {
+  DRAFT    // Brouillon
+  ISSUED   // Émise
+  PAID     // Payée
+  OVERDUE  // En retard
+  CANCELLED // Annulée
+}
+
+/// Priorité d'une tâche financière
+enum FinancialTaskPriority {
+  LOW    // Basse
+  MEDIUM // Moyenne
+  HIGH   // Haute
+}
+
+/// Catégorie d'une tâche financière
+enum FinancialTaskCategory {
+  PAYMENT    // Paiement
+  INVOICE    // Facture
+  WITHDRAWAL // Retrait
+  OTHER      // Autre
+}
+
+/// Statut d'une commission
+enum CommissionStatus {
+  PENDING   // En attente
+  PROCESSED // Traitée
+  FAILED    // Échouée
+  INVOICED  // Facturée
+  ACTIVE    // Active
+}
+
+/// Intervalle de temps
+enum Interval {
+  DAY   // Jour
+  WEEK  // Semaine
+  MONTH // Mois
+  YEAR  // Année
+}
+
+/// Raisons de rejet pour les documents de vérification
+enum RejectionReason {
+  UNREADABLE         // Document illisible
+  EXPIRED            // Document expiré
+  INCOMPLETE         // Informations manquantes
+  FAKE               // Document potentiellement falsifié
+  WRONG_TYPE         // Mauvais type de document
+  LOW_QUALITY        // Qualité d'image insuffisante
+  INFORMATION_MISMATCH // Informations ne correspondent pas
+  OTHER              // Autre raison
+}
+
+// ===== DOMAINE RENDEZ-VOUS =====
+
+/// Statut d'un rendez-vous
+enum AppointmentStatus {
+  PENDING      // En attente de confirmation
+  CONFIRMED    // Confirmé par le prestataire
+  RESCHEDULED  // Reprogrammé
+  IN_PROGRESS  // En cours
+  COMPLETED    // Terminé
+  CANCELLED    // Annulé
+  NO_SHOW      // Client absent
+  PROVIDER_ABSENT // Prestataire absent
+}
+
+/// Raison de reprogrammation d'un rendez-vous
+enum RescheduleReason {
+  CLIENT_REQUEST    // Demande du client
+  PROVIDER_REQUEST  // Demande du prestataire
+  WEATHER_CONDITION // Conditions météorologiques
+  EMERGENCY         // Urgence
+  ILLNESS           // Maladie
+  TECHNICAL_ISSUE   // Problème technique
+  TRAFFIC_DELAY     // Retard de circulation
+  DOUBLE_BOOKING    // Double réservation
+  LOCATION_ISSUE    // Problème de lieu
+  OTHER            // Autre raison
+}
+
+/// Raison d'annulation d'un rendez-vous
+enum CancellationReason {
+  CLIENT_CANCELLED     // Annulation client
+  PROVIDER_CANCELLED   // Annulation prestataire
+  SYSTEM_CANCELLED     // Annulation système
+  NO_PAYMENT          // Défaut de paiement
+  SERVICE_UNAVAILABLE // Service indisponible
+  LOCATION_INACCESSIBLE // Lieu inaccessible
+  WEATHER_CONDITION   // Conditions météorologiques
+  EMERGENCY           // Urgence
+  ILLNESS             // Maladie
+  MUTUAL_AGREEMENT    // Accord mutuel
+  POLICY_VIOLATION    // Violation des conditions
+  OTHER              // Autre raison
+}
+
+/// Type de notification pour les rendez-vous
+enum AppointmentNotificationType {
+  REMINDER_24H     // Rappel 24h avant
+  REMINDER_2H      // Rappel 2h avant
+  REMINDER_30MIN   // Rappel 30min avant
+  CONFIRMATION     // Confirmation du rendez-vous
+  RESCHEDULE       // Notification de reprogrammation
+  CANCELLATION     // Notification d'annulation
+  PROVIDER_EN_ROUTE // Prestataire en route
+  ARRIVAL          // Arrivée du prestataire
+  COMPLETION       // Fin du rendez-vous
+}
+
+// ===== ENUMS MANQUANTS POUR DELIVERIES =====
+
+/// Statut de vérification de document
+enum DocumentVerificationStatus {
+  PENDING    // En attente de vérification
+  APPROVED   // Approuvé
+  REJECTED   // Rejeté
+  EXPIRED    // Expiré
+}
+
+/// Type de document requis
+enum RequiredDocumentType {
+  IDENTITY         // Pièce d'identité
+  DRIVING_LICENSE  // Permis de conduire
+  INSURANCE        // Assurance
+  VEHICLE_REGISTRATION // Carte grise
+  BANK_RIB         // RIB bancaire
+  BUSINESS_LICENSE // Licence commerciale
+  OTHER            // Autre
+}
+
+/// Type de véhicule
+enum VehicleType {
+  CAR        // Voiture
+  MOTORCYCLE // Moto
+  BICYCLE    // Vélo
+  SCOOTER    // Scooter
+  VAN        // Camionnette
+  TRUCK      // Camion
+  FOOT       // À pied
+  OTHER      // Autre
+}
+
+/// Niveau d'urgence
+enum UrgencyLevel {
+  LOW     // Faible
+  NORMAL  // Normal
+  HIGH    // Élevé
+  URGENT  // Urgent
+}
+
+/// Genre
+enum Gender {
+  MALE    // Homme
+  FEMALE  // Femme
+  OTHER   // Autre
+  NO_PREFERENCE // Aucune préférence
+}
+
+/// Statut de matching
+enum MatchingStatus {
+  SUGGESTED  // Suggéré
+  ACCEPTED   // Accepté
+  REJECTED   // Rejeté
+  EXPIRED    // Expiré
+}
+
+/// Type de notification
+enum NotificationType {
+  INFO     // Information
+  WARNING  // Avertissement
+  ERROR    // Erreur
+  SUCCESS  // Succès
+  REMINDER // Rappel
+  ALERT    // Alerte
+}
+
+/// Statut de notification
+enum NotificationStatus {
+  PENDING   // En attente
+  SENT      // Envoyée
+  DELIVERED // Délivrée
+  READ      // Lue
+  FAILED    // Échec
+} 

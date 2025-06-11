@@ -1,36 +1,14 @@
 {
-  "permissions": {
-    "allow": [
-      "WebFetch(domain:docs.anthropic.com)",
-      "Bash(find:*)",
-      "Bash(ls:*)",
-      "Bash(claude config --help)",
-      "Bash(claude config list)",
-      "Bash(claude mcp:*)",
-      "Bash(npx tsx:*)",
-      "Bash(grep:*)",
-      "Bash(npm run i18n:add-language:*)",
-      "Bash(for:*)",
-      "Bash(do echo \"=== $file ===\")",
-      "Bash(wc:*)",
-      "Bash(head:*)",
-      "Bash(echo)",
-      "Bash(done)",
-      "Bash(echo:*)",
-      "Bash(python3:*)",
-      "Bash(npm run i18n:generate:*)",
-      "Bash(rg:*)",
-      "Bash(npm run prisma:seed:users:*)",
-      "Bash(mkdir:*)",
-      "Bash(npm install)",
-      "Bash(node:*)",
-      "Bash(npx ts-node:*)",
-      "Bash(npm run build:*)",
-      "Bash(npm run lint)",
-      "Bash(npx tsc:*)",
-      "Bash(rm:*)",
-      "Bash(mv:*)"
-    ],
-    "deny": []
-  }
+  "allowed_tools": [
+    "agent", "bash", "edit", "glob", "grep", "ls", 
+    "multiedit", "notebookedit", "notebookread", 
+    "read", "todoread", "todowrite", "webfetch", 
+    "websearch", "write"
+  ],
+  "auto_approve": {
+    "bash_commands": true,
+    "file_modifications": true,
+    "web_access": true
+  },
+  "security_level": "permissive"
 }

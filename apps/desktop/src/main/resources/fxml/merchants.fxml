@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.*?>
+
+<VBox fx:id="merchantsVBox" spacing="10.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.ecodeli.desktop.controllers.MerchantsController">
+   <children>
+      <!-- Header -->
+      <HBox alignment="CENTER_LEFT" spacing="10.0">
+         <children>
+            <Label styleClass="page-title" text="Commerçants">
+               <font>
+                  <Font name="System Bold" size="24.0" />
+               </font>
+            </Label>
+            <Region HBox.hgrow="ALWAYS" />
+            <Button fx:id="refreshButton" mnemonicParsing="false" text="🔄 Actualiser" />
+            <ProgressIndicator fx:id="loadingIndicator" maxHeight="20.0" maxWidth="20.0" visible="false" />
+         </children>
+      </HBox>
+      
+      <!-- Filters -->
+      <VBox spacing="10.0" styleClass="filter-panel">
+         <children>
+            <Label text="Filtres et recherche">
+               <font>
+                  <Font name="System Bold" size="14.0" />
+               </font>
+            </Label>
+            <HBox spacing="10.0">
+               <children>
+                  <VBox spacing="5.0">
+                     <children>
+                        <Label text="Recherche:" />
+                        <TextField fx:id="searchField" prefWidth="200.0" promptText="Nom, email, ville..." />
+                     </children>
+                  </VBox>
+                  <VBox spacing="5.0">
+                     <children>
+                        <Label text="Type d'entreprise:" />
+                        <ComboBox fx:id="businessTypeFilter" prefWidth="150.0" />
+                     </children>
+                  </VBox>
+                  <VBox spacing="5.0">
+                     <children>
+                        <Label text="Ville:" />
+                        <ComboBox fx:id="cityFilter" prefWidth="150.0" />
+                     </children>
+                  </VBox>
+                  <VBox spacing="5.0">
+                     <children>
+                        <Label text="Options:" />
+                        <CheckBox fx:id="activeOnlyCheckBox" mnemonicParsing="false" text="Actifs seulement" />
+                     </children>
+                  </VBox>
+               </children>
+            </HBox>
+         </children>
+         <padding>
+            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+         </padding>
+      </VBox>
+      
+      <!-- Statistics -->
+      <HBox spacing="20.0" styleClass="stats-panel">
+         <children>
+            <VBox alignment="CENTER" spacing="5.0">
+               <children>
+                  <Label text="Total commerçants" />
+                  <Label fx:id="totalMerchantsLabel" styleClass="stat-number" text="0">
+                     <font>
+                        <Font name="System Bold" size="16.0" />
+                     </font>
+                  </Label>
+               </children>
+            </VBox>
+            <Separator orientation="VERTICAL" />
+            <VBox alignment="CENTER" spacing="5.0">
+               <children>
+                  <Label text="Actifs" />
+                  <Label fx:id="activeMerchantsLabel" styleClass="stat-number" text="0">
+                     <font>
+                        <Font name="System Bold" size="16.0" />
+                     </font>
+                  </Label>
+               </children>
+            </VBox>
+            <Separator orientation="VERTICAL" />
+            <VBox alignment="CENTER" spacing="5.0">
+               <children>
+                  <Label text="Revenus totaux" />
+                  <Label fx:id="totalRevenueLabel" styleClass="stat-number" text="0 €">
+                     <font>
+                        <Font name="System Bold" size="16.0" />
+                     </font>
+                  </Label>
+               </children>
+            </VBox>
+         </children>
+         <padding>
+            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+         </padding>
+      </HBox>
+      
+      <!-- Table -->
+      <TableView fx:id="merchantsTable" VBox.vgrow="ALWAYS">
+        <columns>
+          <TableColumn fx:id="companyNameColumn" prefWidth="150.0" text="Entreprise" />
+          <TableColumn fx:id="contactNameColumn" prefWidth="120.0" text="Contact" />
+          <TableColumn fx:id="emailColumn" prefWidth="180.0" text="Email" />
+          <TableColumn fx:id="cityColumn" prefWidth="100.0" text="Ville" />
+          <TableColumn fx:id="businessTypeColumn" prefWidth="120.0" text="Type" />
+          <TableColumn fx:id="revenueColumn" prefWidth="100.0" text="Revenus" />
+          <TableColumn fx:id="ordersColumn" prefWidth="80.0" text="Commandes" />
+          <TableColumn fx:id="statusColumn" prefWidth="80.0" text="Statut" />
+        </columns>
+         <columnResizePolicy>
+            <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+         </columnResizePolicy>
+      </TableView>
+   </children>
+   <padding>
+      <Insets bottom="15.0" left="15.0" right="15.0" top="15.0" />
+   </padding>
+</VBox>
