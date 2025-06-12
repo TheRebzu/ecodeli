@@ -11,6 +11,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ['/admin/', '/api/', '/protected/'],
       },
     ],
-    sitemap: ${baseUrl}/sitemap.xml,
+    sitemap: `${baseUrl}/sitemap.xml`,
   };
 }

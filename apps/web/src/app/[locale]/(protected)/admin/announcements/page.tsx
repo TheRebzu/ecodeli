@@ -5,8 +5,8 @@ import { AnnouncementDashboard } from '@/components/admin/announcements/announce
 export async function generateMetadata(): Promise<Metadata> {
   // Utilisation de métadonnées en dur pour éviter les erreurs MISSING_MESSAGE
   return {
-    title: "Gestion des Annonces - EcoDeli Admin",
-    description: "Gérez et modérez toutes les annonces sur la plateforme EcoDeli",
+    title: 'Gestion des Annonces - EcoDeli Admin',
+    description: 'Gérez et modérez toutes les annonces sur la plateforme EcoDeli',
   };
 }
 

@@ -51,19 +51,19 @@ export function LanguageSwitcher({ locale, className }: LanguageSwitcherProps) {
     if (newLocale === locale) return;
 
     setIsLoading(true);
-    
+
     try {
       // Construire la nouvelle URL avec la nouvelle locale
       const segments = pathname.split('/').filter(Boolean);
-      
+
       // Retirer l'ancienne locale si elle existe
       if (languages.some(lang => lang.code === segments[0])) {
         segments.shift();
       }
-      
+
       // Ajouter la nouvelle locale
       const newPath = `/${newLocale}/${segments.join('/')}`;
-      
+
       router.push(newPath);
     } catch (error) {
       console.error('Erreur lors du changement de langue:', error);
@@ -75,19 +75,14 @@ export function LanguageSwitcher({ locale, className }: LanguageSwitcherProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button 
-          variant="ghost" 
-          size="sm" 
-          className={className}
-          disabled={isLoading}
-        >
+        <Button variant="ghost" size="sm" className={className} disabled={isLoading}>
           <Globe className="h-4 w-4 mr-2" />
           <span className="hidden sm:inline">{currentLanguage.flag}</span>
           <span className="ml-1 hidden md:inline">{currentLanguage.name}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">
-        {languages.map((language) => (
+        {languages.map(language => (
           <DropdownMenuItem
             key={language.code}
             onClick={() => handleLanguageChange(language.code)}
@@ -97,9 +92,7 @@ export function LanguageSwitcher({ locale, className }: LanguageSwitcherProps) {
               <span className="mr-2">{language.flag}</span>
               <span>{language.name}</span>
             </div>
-            {language.code === locale && (
-              <Check className="h-4 w-4" />
-            )}
+            {language.code === locale && <Check className="h-4 w-4" />}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

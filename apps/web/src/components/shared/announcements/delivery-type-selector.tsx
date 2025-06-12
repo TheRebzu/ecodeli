@@ -7,20 +7,20 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { 
-  Package, 
-  GitBranch, 
-  Target, 
-  ShoppingCart, 
-  ShoppingBag, 
-  Users, 
-  Plane, 
-  Globe, 
-  Heart, 
+import {
+  Package,
+  GitBranch,
+  Target,
+  ShoppingCart,
+  ShoppingBag,
+  Users,
+  Plane,
+  Globe,
+  Heart,
   Home,
   CheckCircle,
   Clock,
-  Shield
+  Shield,
 } from 'lucide-react';
 import { cn } from '@/lib/utils/common';
 
@@ -97,7 +97,7 @@ const DELIVERY_TYPES: DeliveryType[] = [
   {
     id: 'AIRPORT_TRANSFER',
     label: 'Transfert aéroport',
-    description: 'Transport spécialisé vers/depuis l\'aéroport',
+    description: "Transport spécialisé vers/depuis l'aéroport",
     icon: Plane,
     features: ['Ponctualité garantie', 'Suivi de vol', 'Bagages inclus'],
     estimatedTime: '1-2h',
@@ -105,7 +105,7 @@ const DELIVERY_TYPES: DeliveryType[] = [
   },
   {
     id: 'FOREIGN_PURCHASE',
-    label: 'Achat à l\'étranger',
+    label: "Achat à l'étranger",
     description: 'Achat et livraison de produits indisponibles localement',
     icon: Globe,
     features: ['Produits exclusifs', 'Douanes incluses', 'Authentification'],
@@ -114,8 +114,8 @@ const DELIVERY_TYPES: DeliveryType[] = [
   },
   {
     id: 'PET_CARE',
-    label: 'Transport d\'animaux',
-    description: 'Transport sécurisé d\'animaux de compagnie',
+    label: "Transport d'animaux",
+    description: "Transport sécurisé d'animaux de compagnie",
     icon: Heart,
     features: ['Transporteur qualifié', 'Bien-être animal', 'Assurance spéciale'],
     estimatedTime: '1-3h',
@@ -158,34 +158,30 @@ export const DeliveryTypeSelector: React.FC<DeliveryTypeSelectorProps> = ({
       <div className={cn('space-y-4', className)}>
         <RadioGroup value={selectedType} onValueChange={handleTypeSelect}>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-            {DELIVERY_TYPES.map((type) => {
+            {DELIVERY_TYPES.map(type => {
               const Icon = type.icon;
               const isSelected = selectedType === type.id;
-              
+
               return (
                 <div key={type.id} className="relative">
-                  <RadioGroupItem
-                    value={type.id}
-                    id={type.id}
-                    className="peer sr-only"
-                  />
+                  <RadioGroupItem value={type.id} id={type.id} className="peer sr-only" />
                   <Label
                     htmlFor={type.id}
                     className={cn(
-                      "flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all",
-                      isSelected && "border-primary bg-primary/5"
+                      'flex flex-col items-center justify-center rounded-lg border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all',
+                      isSelected && 'border-primary bg-primary/5'
                     )}
                   >
-                    <Icon className={cn(
-                      "mb-2 h-6 w-6",
-                      isSelected ? "text-primary" : "text-muted-foreground"
-                    )} />
+                    <Icon
+                      className={cn(
+                        'mb-2 h-6 w-6',
+                        isSelected ? 'text-primary' : 'text-muted-foreground'
+                      )}
+                    />
                     <div className="text-center">
                       <div className="font-medium text-sm">{type.label}</div>
                       {showPricing && (
-                        <div className="text-xs text-muted-foreground mt-1">
-                          {type.priceRange}
-                        </div>
+                        <div className="text-xs text-muted-foreground mt-1">{type.priceRange}</div>
                       )}
                     </div>
                     {type.popular && (
@@ -207,42 +203,40 @@ export const DeliveryTypeSelector: React.FC<DeliveryTypeSelectorProps> = ({
     <div className={cn('space-y-6', className)}>
       <div className="text-center space-y-2">
         <h2 className="text-2xl font-bold">{t('selectDeliveryType')}</h2>
-        <p className="text-muted-foreground">
-          {t('selectDeliveryTypeDescription')}
-        </p>
+        <p className="text-muted-foreground">{t('selectDeliveryTypeDescription')}</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {DELIVERY_TYPES.map((type) => {
+        {DELIVERY_TYPES.map(type => {
           const Icon = type.icon;
           const isSelected = selectedType === type.id;
-          
+
           return (
             <Card
               key={type.id}
               className={cn(
-                "cursor-pointer transition-all hover:shadow-md",
-                isSelected ? "ring-2 ring-primary border-primary" : "hover:border-primary/50"
+                'cursor-pointer transition-all hover:shadow-md',
+                isSelected ? 'ring-2 ring-primary border-primary' : 'hover:border-primary/50'
               )}
               onClick={() => handleTypeSelect(type.id)}
             >
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-3">
-                    <div className={cn(
-                      "p-2 rounded-lg",
-                      isSelected ? "bg-primary text-primary-foreground" : "bg-muted"
-                    )}>
+                    <div
+                      className={cn(
+                        'p-2 rounded-lg',
+                        isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                      )}
+                    >
                       <Icon className="h-5 w-5" />
                     </div>
                     <div>
                       <CardTitle className="text-lg">{type.label}</CardTitle>
-                      <CardDescription className="text-sm">
-                        {type.description}
-                      </CardDescription>
+                      <CardDescription className="text-sm">{type.description}</CardDescription>
                     </div>
                   </div>
-                  
+
                   <div className="flex flex-col items-end space-y-1">
                     {type.popular && (
                       <Badge variant="secondary" className="text-xs">
@@ -254,13 +248,11 @@ export const DeliveryTypeSelector: React.FC<DeliveryTypeSelectorProps> = ({
                         Recommandé
                       </Badge>
                     )}
-                    {isSelected && (
-                      <CheckCircle className="h-5 w-5 text-primary" />
-                    )}
+                    {isSelected && <CheckCircle className="h-5 w-5 text-primary" />}
                   </div>
                 </div>
               </CardHeader>
-              
+
               <CardContent className="pt-0">
                 <div className="space-y-3">
                   <div className="flex items-center justify-between text-sm">
@@ -269,11 +261,9 @@ export const DeliveryTypeSelector: React.FC<DeliveryTypeSelectorProps> = ({
                       <span className="text-muted-foreground">Délai :</span>
                       <span className="font-medium">{type.estimatedTime}</span>
                     </div>
-                    {showPricing && (
-                      <div className="font-bold text-primary">{type.priceRange}</div>
-                    )}
+                    {showPricing && <div className="font-bold text-primary">{type.priceRange}</div>}
                   </div>
-                  
+
                   <div className="space-y-2">
                     {type.features.map((feature, index) => (
                       <div key={index} className="flex items-center space-x-2 text-xs">

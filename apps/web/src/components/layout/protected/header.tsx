@@ -3,17 +3,17 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { 
-  Bell, 
-  Search, 
-  User, 
-  Settings, 
-  LogOut, 
+import {
+  Bell,
+  Search,
+  User,
+  Settings,
+  LogOut,
   Menu,
   MessageSquare,
   CreditCard,
   HelpCircle,
-  Shield
+  Shield,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -49,7 +49,7 @@ export function ProtectedHeader({ locale }: ProtectedHeaderProps) {
     if (!name) return 'U';
     return name
       .split(' ')
-      .map((part) => part.charAt(0))
+      .map(part => part.charAt(0))
       .join('')
       .toUpperCase()
       .slice(0, 2);
@@ -100,8 +100,8 @@ export function ProtectedHeader({ locale }: ProtectedHeaderProps) {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="icon" className="relative">
                 <Bell className="h-4 w-4" />
-                <Badge 
-                  variant="destructive" 
+                <Badge
+                  variant="destructive"
                   className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs flex items-center justify-center"
                 >
                   3
@@ -125,9 +125,7 @@ export function ProtectedHeader({ locale }: ProtectedHeaderProps) {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link href={`/${locale}/notifications`}>
-                  Voir toutes les notifications
-                </Link>
+                <Link href={`/${locale}/notifications`}>Voir toutes les notifications</Link>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -151,28 +149,22 @@ export function ProtectedHeader({ locale }: ProtectedHeaderProps) {
               <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                 <Avatar className="h-10 w-10">
                   <AvatarImage src={user?.image || undefined} alt={user?.name || ''} />
-                  <AvatarFallback>
-                    {getUserInitials(user?.name)}
-                  </AvatarFallback>
+                  <AvatarFallback>{getUserInitials(user?.name)}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">
-                    {user?.name || 'Utilisateur'}
-                  </p>
-                  <p className="text-xs leading-none text-muted-foreground">
-                    {user?.email}
-                  </p>
+                  <p className="text-sm font-medium leading-none">{user?.name || 'Utilisateur'}</p>
+                  <p className="text-xs leading-none text-muted-foreground">{user?.email}</p>
                   <Badge variant="secondary" className="w-fit text-xs">
                     {getRoleLabel(user?.role || '')}
                   </Badge>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              
+
               <DropdownMenuItem asChild>
                 <Link href={`/${locale}/profile`}>
                   <User className="mr-2 h-4 w-4" />
@@ -211,7 +203,7 @@ export function ProtectedHeader({ locale }: ProtectedHeaderProps) {
               )}
 
               <DropdownMenuSeparator />
-              
+
               <DropdownMenuItem onClick={handleLogout}>
                 <LogOut className="mr-2 h-4 w-4" />
                 <span>Déconnexion</span>
@@ -226,12 +218,7 @@ export function ProtectedHeader({ locale }: ProtectedHeaderProps) {
         <div className="border-t px-4 py-3 md:hidden">
           <div className="relative">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              type="search"
-              placeholder="Rechercher..."
-              className="pl-8"
-              autoFocus
-            />
+            <Input type="search" placeholder="Rechercher..." className="pl-8" autoFocus />
           </div>
         </div>
       )}

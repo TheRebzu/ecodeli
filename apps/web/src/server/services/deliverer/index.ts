@@ -10,4 +10,3 @@ export * from './deliverer-route.service';
 export * from './deliverer-wallet.service';
 export * from './delivery-tracking.service';
 export * from './delivery.service';
-

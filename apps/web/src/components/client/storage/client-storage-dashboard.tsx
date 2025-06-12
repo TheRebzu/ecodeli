@@ -9,7 +9,7 @@ import { BoxRecommendations } from '@/components/client/storage/box-recommendati
 import { ClientStorageStats } from '@/components/client/storage/client-storage-stats';
 import { WarehouseMap } from '@/components/client/storage/warehouse-map';
 import { BoxSearchForm } from '@/components/client/storage/box-search';
-import { EnhancedReservationForm } from '@/components/client/storage/enhanced-reservation-form';
+import { BoxReservationForm } from '@/components/client/storage/box-reservation-form';
 import {
   Search,
   MapPin,

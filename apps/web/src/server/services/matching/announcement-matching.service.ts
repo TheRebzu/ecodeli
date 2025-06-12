@@ -5,7 +5,11 @@
 
 import { PrismaClient } from '@prisma/client';
 import { logger } from '@/lib/utils/logger';
-import { getDistance, getBearing, getDestinationPoint } from '@/server/utils/distance-calculator.util';
+import {
+  getDistance,
+  getBearing,
+  getDestinationPoint,
+} from '@/server/utils/distance-calculator.util';
 
 export interface MatchingCriteria {
   routeId: string;
@@ -96,7 +100,8 @@ export class AnnouncementMatchingService {
 
       for (const route of availableRoutes) {
         const match = await this.evaluateMatch(announcement, route);
-        if (match && match.compatibilityScore >= 50) { // Seuil minimum
+        if (match && match.compatibilityScore >= 50) {
+          // Seuil minimum
           matches.push(match);
         }
       }
@@ -179,7 +184,7 @@ export class AnnouncementMatchingService {
         },
       };
     } catch (error) {
-      logger.error('Erreur lors de l\'évaluation du match:', error);
+      logger.error("Erreur lors de l'évaluation du match:", error);
       return null;
     }
   }
@@ -187,10 +192,7 @@ export class AnnouncementMatchingService {
   /**
    * Vérifie la compatibilité géographique
    */
-  private checkGeographicCompatibility(
-    announcement: AnnouncementData,
-    route: RouteData
-  ) {
+  private checkGeographicCompatibility(announcement: AnnouncementData, route: RouteData) {
     // Distance originale du trajet
     const originalDistance = getDistance(
       route.departureLatitude,
@@ -261,9 +263,12 @@ export class AnnouncementMatchingService {
 
     // Distance totale avec détour
     const totalWithDetour = distanceToDeparture + distancePickupToDelivery + distanceToArrival;
-    
+
     // Vérifier si c'est dans la distance minimale de matching
-    if (distanceToDeparture > route.minMatchDistance || distanceToArrival > route.minMatchDistance) {
+    if (
+      distanceToDeparture > route.minMatchDistance ||
+      distanceToArrival > route.minMatchDistance
+    ) {
       return null;
     }
 
@@ -323,10 +328,7 @@ export class AnnouncementMatchingService {
   /**
    * Vérifie la compatibilité temporelle
    */
-  private checkTemporalCompatibility(
-    announcement: AnnouncementData,
-    route: RouteData
-  ) {
+  private checkTemporalCompatibility(announcement: AnnouncementData, route: RouteData) {
     // Si le trajet est récurrent
     if (route.isRecurring) {
       if (!announcement.pickupDate) {
@@ -335,7 +337,7 @@ export class AnnouncementMatchingService {
 
       const dayOfWeek = announcement.pickupDate.getDay();
       const isCompatible = route.recurringDays.includes(dayOfWeek);
-      
+
       return {
         isCompatible,
         flexibility: isCompatible ? 'RECURRING_MATCH' : 'RECURRING_NO_MATCH',
@@ -344,14 +346,12 @@ export class AnnouncementMatchingService {
 
     // Si des dates spécifiques sont définies
     if (route.departureDate && announcement.pickupDate) {
-      const timeDiff = Math.abs(
-        route.departureDate.getTime() - announcement.pickupDate.getTime()
-      );
+      const timeDiff = Math.abs(route.departureDate.getTime() - announcement.pickupDate.getTime());
       const hoursDiff = timeDiff / (1000 * 60 * 60);
 
       // Flexibilité de 24h
       const isCompatible = hoursDiff <= 24;
-      
+
       return {
         isCompatible,
         flexibility: isCompatible ? 'TIME_FLEXIBLE' : 'TIME_INCOMPATIBLE',
@@ -366,10 +366,7 @@ export class AnnouncementMatchingService {
   /**
    * Vérifie la compatibilité des capacités
    */
-  private checkCapacityCompatibility(
-    announcement: AnnouncementData,
-    route: RouteData
-  ) {
+  private checkCapacityCompatibility(announcement: AnnouncementData, route: RouteData) {
     const reasons = [];
     let isCompatible = true;
 
@@ -453,7 +450,10 @@ export class AnnouncementMatchingService {
     let priceScore = 0;
     if (route.isNegotiable || announcement.isNegotiable) {
       priceScore = 10;
-    } else if (route.fixedPrice && Math.abs(route.fixedPrice - announcement.suggestedPrice) <= announcement.suggestedPrice * 0.2) {
+    } else if (
+      route.fixedPrice &&
+      Math.abs(route.fixedPrice - announcement.suggestedPrice) <= announcement.suggestedPrice * 0.2
+    ) {
       priceScore = 10;
     }
     score += priceScore;
@@ -565,7 +565,7 @@ export class AnnouncementMatchingService {
 
     // Ajustement selon le détour
     if (routeDetails.detourPercentage > 15) {
-      basePrice *= (1 + routeDetails.detourPercentage / 100);
+      basePrice *= 1 + routeDetails.detourPercentage / 100;
     }
 
     return Math.round(basePrice * 100) / 100; // Arrondir au centime
@@ -578,7 +578,7 @@ export class AnnouncementMatchingService {
     // Vitesse moyenne de 50 km/h en ville, 80 km/h sur route
     const averageSpeed = distance < 10 ? 30 : distance < 50 ? 50 : 80;
     const hours = distance / averageSpeed;
-    
+
     const totalMinutes = Math.round(hours * 60);
     const h = Math.floor(totalMinutes / 60);
     const m = totalMinutes % 60;
@@ -610,7 +610,7 @@ export class AnnouncementMatchingService {
         if (route && announcement) {
           // Notifier le livreur
           await this.notifyDeliverer(route, announcement, match);
-          
+
           // Optionnellement notifier le client
           if (match.compatibilityScore >= 90) {
             await this.notifyClient(route, announcement, match);
@@ -618,14 +618,18 @@ export class AnnouncementMatchingService {
         }
       }
     } catch (error) {
-      logger.error('Erreur lors de l\'envoi des notifications:', error);
+      logger.error("Erreur lors de l'envoi des notifications:", error);
     }
   }
 
   /**
    * Notifie le livreur d'un nouveau match
    */
-  private async notifyDeliverer(route: any, announcement: any, match: MatchingCriteria): Promise<void> {
+  private async notifyDeliverer(
+    route: any,
+    announcement: any,
+    match: MatchingCriteria
+  ): Promise<void> {
     // Créer une notification dans la base de données
     await this.prisma.delivererNotification.create({
       data: {
@@ -652,7 +656,11 @@ export class AnnouncementMatchingService {
   /**
    * Notifie le client d'un match de haute qualité
    */
-  private async notifyClient(route: any, announcement: any, match: MatchingCriteria): Promise<void> {
+  private async notifyClient(
+    route: any,
+    announcement: any,
+    match: MatchingCriteria
+  ): Promise<void> {
     // Créer une notification pour le client
     await this.prisma.clientNotification.create({
       data: {

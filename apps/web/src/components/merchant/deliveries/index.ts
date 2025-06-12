@@ -12,4 +12,3 @@ export { default as DeliveryStats } from './delivery-stats';
 export * from './delivery-stats';
 export { default as DeliveryTable } from './delivery-table';
 export * from './delivery-table';
-

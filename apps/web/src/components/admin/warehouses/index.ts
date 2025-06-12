@@ -12,4 +12,3 @@ export { default as WarehouseList } from './warehouse-list';
 export * from './warehouse-list';
 export { default as WarehouseManagement } from './warehouse-management';
 export * from './warehouse-management';
-

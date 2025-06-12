@@ -69,85 +69,24 @@ type ActiveDelivery = {
 export default function ActiveDeliveriesPage() {
   useRoleProtection(['DELIVERER']);
   const t = useTranslations('deliveries');
-  const [activeDeliveries, setActiveDeliveries] = useState<ActiveDelivery[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  // Utiliser les données de tRPC
+  const activeDeliveries = activeDeliveriesData?.deliveries || [];
+  const isLoading = deliveriesLoading;
+  const error = deliveriesError?.message || null;
   const [deliveryToUpdate, setDeliveryToUpdate] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
 
-  // Récupérer les livraisons actives du livreur
+  // Récupérer les livraisons actives du livreur via tRPC
+  const {
+    data: activeDeliveriesData,
+    isLoading: deliveriesLoading,
+    error: deliveriesError,
+  } = api.deliverer.deliveries.getActiveDeliveries.useQuery();
+
   const fetchActiveDeliveries = async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-
-      // Dans une implémentation réelle, cela serait remplacé par un appel tRPC
-      // const response = await api.deliveryTracking.getActiveDeliveries.query();
-      // setActiveDeliveries(response);
-
-      // Simulation pour la maquette
-      setTimeout(() => {
-        const mockDeliveries: ActiveDelivery[] = [
-          {
-            id: 'del-1',
-            announcementId: 'ann-1',
-            status: 'ACCEPTED',
-            clientName: 'Martin Dupont',
-            clientAddress: '123 Rue de la Paix, 75001 Paris',
-            clientPhone: '+33612345678',
-            pickupAddress: '456 Avenue des Champs-Élysées, 75008 Paris',
-            deliveryAddress: '789 Boulevard Haussmann, 75009 Paris',
-            pickupDate: new Date(Date.now() + 2 * 60 * 60 * 1000),
-            deliveryDate: new Date(Date.now() + 4 * 60 * 60 * 1000),
-            distance: 5.7,
-            createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000),
-            updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
-            requiresSignature: true,
-            specialInstructions: "Appeler avant d'arriver.",
-          },
-          {
-            id: 'del-2',
-            announcementId: 'ann-2',
-            status: 'EN_ROUTE_TO_PICKUP',
-            clientName: 'Sophie Martin',
-            clientAddress: '321 Rue de Rivoli, 75001 Paris',
-            pickupAddress: '654 Avenue Montaigne, 75008 Paris',
-            deliveryAddress: '987 Rue Saint-Honoré, 75001 Paris',
-            pickupDate: new Date(Date.now() + 1 * 60 * 60 * 1000),
-            deliveryDate: new Date(Date.now() + 3 * 60 * 60 * 1000),
-            distance: 3.2,
-            createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
-            updatedAt: new Date(Date.now() - 1 * 60 * 60 * 1000),
-            requiresSignature: false,
-          },
-          {
-            id: 'del-3',
-            announcementId: 'ann-3',
-            status: 'PICKED_UP',
-            clientName: 'Jean Lefebvre',
-            clientAddress: '555 Avenue des Ternes, 75017 Paris',
-            clientPhone: '+33698765432',
-            pickupAddress: '777 Rue de Passy, 75016 Paris',
-            deliveryAddress: '999 Boulevard Suchet, 75016 Paris',
-            pickupDate: new Date(Date.now() - 1 * 60 * 60 * 1000),
-            deliveryDate: new Date(Date.now() + 2 * 60 * 60 * 1000),
-            distance: 2.8,
-            createdAt: new Date(Date.now() - 8 * 60 * 60 * 1000),
-            updatedAt: new Date(Date.now() - 30 * 60 * 1000),
-            requiresSignature: true,
-          },
-        ];
-
-        setActiveDeliveries(mockDeliveries);
-        setIsLoading(false);
-      }, 1000);
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : 'Erreur lors du chargement des livraisons';
-      setError(message);
-      setIsLoading(false);
-    }
+    // Cette fonction est maintenant remplacée par le hook tRPC ci-dessus
+    // Garder pour la compatibilité avec les useEffect existants
   };
 
   // Mettre à jour le statut d'une livraison

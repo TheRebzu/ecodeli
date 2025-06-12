@@ -12,4 +12,3 @@ export { default as LeafletMap } from './leaflet-map';
 export * from './leaflet-map';
 export { default as MapComponent } from './map-component';
 export * from './map-component';
-

@@ -22,7 +22,7 @@ import {
 
 import { api } from '@/trpc/react';
 import { cn } from '@/lib/utils/common';
-import { formatCurrency  } from '@/utils/document-utils';
+import { formatCurrency } from '@/utils/document-utils';
 import { useToast } from '@/components/ui/use-toast';
 
 import {

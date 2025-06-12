@@ -9,4 +9,3 @@ export * from './use-merchant-catalog';
 export * from './use-merchant-contract';
 export * from './use-merchant-invoices';
 export * from './use-merchant-stats';
-

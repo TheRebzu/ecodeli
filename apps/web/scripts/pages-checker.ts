@@ -92,7 +92,9 @@ class PagesChecker {
     for (const user of users) {
       // Générer un token de session simple (pour les tests uniquement)
       const payload = `${user.id}-${user.email}-${Date.now()}`;
-      const sessionToken = createHash('sha256').update(payload + this.jwtSecret).digest('hex');
+      const sessionToken = createHash('sha256')
+        .update(payload + this.jwtSecret)
+        .digest('hex');
 
       this.testUsers.push({
         ...user,
@@ -101,11 +103,14 @@ class PagesChecker {
     }
 
     // Organiser les utilisateurs par rôle pour un meilleur reporting
-    const usersByRole = this.testUsers.reduce((acc, user) => {
-      if (!acc[user.role]) acc[user.role] = [];
-      acc[user.role].push(user);
-      return acc;
-    }, {} as Record<UserRole, TestUser[]>);
+    const usersByRole = this.testUsers.reduce(
+      (acc, user) => {
+        if (!acc[user.role]) acc[user.role] = [];
+        acc[user.role].push(user);
+        return acc;
+      },
+      {} as Record<UserRole, TestUser[]>
+    );
 
     console.log(`✅ ${this.testUsers.length} utilisateurs de test initialisés:`);
     Object.entries(usersByRole).forEach(([role, users]) => {
@@ -210,15 +215,18 @@ class PagesChecker {
       { pattern: /\[slug\]/g, values: ['test-slug', 'example', 'demo', 'article-1'] },
       { pattern: /\[userId\]/g, values: ['1', '2', '3', 'user-123'] },
       { pattern: /\[topic\]/g, values: ['help', 'faq', 'guide', 'tutorial'] },
-      { pattern: /\[\.\.\.rest\]/g, values: ['test', 'help/topic', 'admin/settings', 'deep/nested/path'] },
+      {
+        pattern: /\[\.\.\.rest\]/g,
+        values: ['test', 'help/topic', 'admin/settings', 'deep/nested/path'],
+      },
     ];
 
     // Générer toutes les combinaisons de paramètres dynamiques
     let currentRoutes = [route];
-    
+
     for (const param of dynamicParams) {
       const newRoutes: string[] = [];
-      
+
       for (const currentRoute of currentRoutes) {
         if (param.pattern.test(currentRoute)) {
           // Remplacer ce paramètre par toutes ses valeurs possibles
@@ -231,10 +239,10 @@ class PagesChecker {
           newRoutes.push(currentRoute);
         }
       }
-      
+
       currentRoutes = newRoutes;
     }
-    
+
     urls = currentRoutes.filter(url => url !== route); // Exclure la route originale
 
     return urls.length > 0 ? urls : [route]; // Tester toutes les variations d'URL
@@ -283,10 +291,12 @@ class PagesChecker {
         role: user?.role,
         error: error instanceof Error ? error.message : 'Unknown error',
         responseTime: Date.now() - startTime,
-        errorDetails: [{
-          type: 'CURL_ERROR',
-          message: error instanceof Error ? error.message : 'Unknown curl error',
-        }],
+        errorDetails: [
+          {
+            type: 'CURL_ERROR',
+            message: error instanceof Error ? error.message : 'Unknown curl error',
+          },
+        ],
       };
     }
   }
@@ -296,26 +306,31 @@ class PagesChecker {
    */
   private cleanAnsiCodes(text: string): string {
     // eslint-disable-next-line no-control-regex
-    return text.replace(/\x1b\[[0-9;]*m/g, '').replace(/\[39m|\[32m|\[31m|\[90m|\[36m|\[33m|\[22m|\[1m/g, '');
+    return text
+      .replace(/\x1b\[[0-9;]*m/g, '')
+      .replace(/\[39m|\[32m|\[31m|\[90m|\[36m|\[33m|\[22m|\[1m/g, '');
   }
 
   /**
    * Extrait les erreurs de build/compilation détaillées
    */
-  private extractBuildErrors(content: string): { type: string; message: string; details?: string }[] {
+  private extractBuildErrors(
+    content: string
+  ): { type: string; message: string; details?: string }[] {
     const buildErrors: { type: string; message: string; details?: string }[] = [];
 
     // Chercher les erreurs d'export/import
     const exportErrorRegex = /Error: \.\/src\/.*?\n[\s\S]*?(?=\n\n|\n[A-Z]|$)/g;
     const exportMatches = content.match(exportErrorRegex);
-    
+
     if (exportMatches) {
       exportMatches.forEach(match => {
         const cleanMatch = this.cleanAnsiCodes(match);
         const lines = cleanMatch.split('\n');
         const errorFile = lines[0].match(/Error: (\.\/src\/.*?):/)?.[1] || 'Unknown file';
-        const errorMessage = lines.find(line => line.includes('Export') || line.includes('doesn\'t exist')) || lines[0];
-        
+        const errorMessage =
+          lines.find(line => line.includes('Export') || line.includes("doesn't exist")) || lines[0];
+
         buildErrors.push({
           type: 'IMPORT_ERROR',
           message: `${errorFile}: ${errorMessage.trim()}`,
@@ -327,7 +342,7 @@ class PagesChecker {
     // Chercher les erreurs de module non trouvé
     const moduleErrorRegex = /Module not found[\s\S]*?(?=\n\n|\n[A-Z]|$)/g;
     const moduleMatches = content.match(moduleErrorRegex);
-    
+
     if (moduleMatches) {
       moduleMatches.forEach(match => {
         const cleanMatch = this.cleanAnsiCodes(match);
@@ -342,7 +357,7 @@ class PagesChecker {
     // Chercher les erreurs de syntaxe
     const syntaxErrorRegex = /SyntaxError[\s\S]*?(?=\n\n|\n[A-Z]|$)/g;
     const syntaxMatches = content.match(syntaxErrorRegex);
-    
+
     if (syntaxMatches) {
       syntaxMatches.forEach(match => {
         const cleanMatch = this.cleanAnsiCodes(match);
@@ -357,7 +372,7 @@ class PagesChecker {
     // Chercher les erreurs de TypeScript
     const tsErrorRegex = /Type error[\s\S]*?(?=\n\n|\n[A-Z]|$)/g;
     const tsMatches = content.match(tsErrorRegex);
-    
+
     if (tsMatches) {
       tsMatches.forEach(match => {
         const cleanMatch = this.cleanAnsiCodes(match);
@@ -372,7 +387,7 @@ class PagesChecker {
     // Chercher les erreurs Next.js de compilation
     const nextBuildErrorRegex = /Failed to compile[\s\S]*?(?=\n\n|\n[A-Z]|$)/g;
     const nextBuildMatches = content.match(nextBuildErrorRegex);
-    
+
     if (nextBuildMatches) {
       nextBuildMatches.forEach(match => {
         const cleanMatch = this.cleanAnsiCodes(match);
@@ -387,7 +402,7 @@ class PagesChecker {
     // Chercher les erreurs de hook React
     const hookErrorRegex = /Invalid hook call[\s\S]*?(?=\n\n|\n[A-Z]|$)/g;
     const hookMatches = content.match(hookErrorRegex);
-    
+
     if (hookMatches) {
       hookMatches.forEach(match => {
         const cleanMatch = this.cleanAnsiCodes(match);
@@ -402,7 +417,7 @@ class PagesChecker {
     // Chercher les erreurs de hydratation
     const hydrationErrorRegex = /Hydration failed[\s\S]*?(?=\n\n|\n[A-Z]|$)/g;
     const hydrationMatches = content.match(hydrationErrorRegex);
-    
+
     if (hydrationMatches) {
       hydrationMatches.forEach(match => {
         const cleanMatch = this.cleanAnsiCodes(match);
@@ -420,7 +435,10 @@ class PagesChecker {
   /**
    * Analyse le contenu d'une page pour détecter les erreurs
    */
-  private analyzePageErrors(content: string, status: number): {
+  private analyzePageErrors(
+    content: string,
+    status: number
+  ): {
     pageErrors?: string[];
     hasJavaScriptError?: boolean;
     hasRenderError?: boolean;
@@ -564,7 +582,7 @@ class PagesChecker {
           errorDetails.push({
             type: 'AUTH_ERROR',
             message: match,
-            details: 'Erreur d\'authentification détectée',
+            details: "Erreur d'authentification détectée",
           });
         });
       }
@@ -575,12 +593,17 @@ class PagesChecker {
       const titleMatch = content.match(/<title[^>]*>([^<]+)<\/title>/i);
       if (titleMatch) {
         const title = titleMatch[1];
-        if (title.includes('Error') || title.includes('404') || title.includes('500') || title.includes('Not Found')) {
+        if (
+          title.includes('Error') ||
+          title.includes('404') ||
+          title.includes('500') ||
+          title.includes('Not Found')
+        ) {
           errors.push(`Page d'erreur détectée: ${title}`);
           errorDetails.push({
             type: 'ERROR_PAGE',
             message: title,
-            details: 'Page d\'erreur HTML détectée via le titre',
+            details: "Page d'erreur HTML détectée via le titre",
           });
         }
       }
@@ -603,7 +626,7 @@ class PagesChecker {
           errorDetails.push({
             type: 'CONTENT_ERROR',
             message: match,
-            details: 'Message d\'erreur détecté dans le contenu visible',
+            details: "Message d'erreur détecté dans le contenu visible",
           });
         });
       }
@@ -620,12 +643,14 @@ class PagesChecker {
   /**
    * Teste toutes les pages extraites avec options de filtrage
    */
-  async testAllPages(options: { 
-    filterType?: 'protected' | 'public' | 'auth' | 'all';
-    filterRole?: UserRole;
-    maxPagesPerType?: number;
-    errorsOnly?: boolean;
-  } = {}): Promise<void> {
+  async testAllPages(
+    options: {
+      filterType?: 'protected' | 'public' | 'auth' | 'all';
+      filterRole?: UserRole;
+      maxPagesPerType?: number;
+      errorsOnly?: boolean;
+    } = {}
+  ): Promise<void> {
     console.log('\n📄 Extraction des pages...');
     let pages = this.extractPagePaths();
 
@@ -634,25 +659,35 @@ class PagesChecker {
       const originalCount = pages.length;
       pages = pages.filter(page => {
         switch (options.filterType) {
-          case 'protected': return page.isProtected;
-          case 'public': return page.isPublic;
-          case 'auth': return page.isAuth;
-          default: return true;
+          case 'protected':
+            return page.isProtected;
+          case 'public':
+            return page.isPublic;
+          case 'auth':
+            return page.isAuth;
+          default:
+            return true;
         }
       });
-      console.log(`🔍 Filtre par type "${options.filterType}": ${pages.length}/${originalCount} pages`);
+      console.log(
+        `🔍 Filtre par type "${options.filterType}": ${pages.length}/${originalCount} pages`
+      );
     }
 
     if (options.filterRole) {
       const originalCount = pages.length;
       pages = pages.filter(page => page.requiredRole === options.filterRole);
-      console.log(`🔍 Filtre par rôle "${options.filterRole}": ${pages.length}/${originalCount} pages`);
+      console.log(
+        `🔍 Filtre par rôle "${options.filterRole}": ${pages.length}/${originalCount} pages`
+      );
     }
 
     if (options.maxPagesPerType) {
       const originalCount = pages.length;
       pages = pages.slice(0, options.maxPagesPerType);
-      console.log(`🔍 Limite à ${options.maxPagesPerType} pages: ${pages.length}/${originalCount} pages`);
+      console.log(
+        `🔍 Limite à ${options.maxPagesPerType} pages: ${pages.length}/${originalCount} pages`
+      );
     }
 
     console.log(`\n📊 Résumé des pages trouvées:`);
@@ -696,10 +731,12 @@ class PagesChecker {
       pageCount++;
 
       console.log(`\n[${pageCount}/${pages.length}] 🔍 Page: ${page.filesystem}`);
-      console.log(`   Type: ${page.isProtected ? '🔒 Protégée' : page.isPublic ? '🌐 Publique' : '🔑 Auth'} ${page.requiredRole ? `(${page.requiredRole})` : ''}`);
+      console.log(
+        `   Type: ${page.isProtected ? '🔒 Protégée' : page.isPublic ? '🌐 Publique' : '🔑 Auth'} ${page.requiredRole ? `(${page.requiredRole})` : ''}`
+      );
       console.log(`   URLs à tester: ${testUrls.length}`);
 
-              for (const url of testUrls) {
+      for (const url of testUrls) {
         let testCount = 0;
 
         if (page.isPublic || page.isAuth) {
@@ -708,14 +745,16 @@ class PagesChecker {
           results.push(result);
           testCount++;
           const errorInfo = this.formatErrorInfo(result);
-          
+
           if (options.errorsOnly) {
             if (result.errorDetails && result.errorDetails.length > 0) {
               console.log(`     ❌ ${result.status} - ${url} - sans auth`);
               this.displayDetailedErrors(result);
             }
           } else {
-            console.log(`     ✓ ${result.status} (${result.responseTime}ms) - sans auth${errorInfo}`);
+            console.log(
+              `     ✓ ${result.status} (${result.responseTime}ms) - sans auth${errorInfo}`
+            );
           }
         } else if (page.isProtected) {
           // Test avec les utilisateurs appropriés
@@ -729,16 +768,21 @@ class PagesChecker {
             results.push(result);
             testCount++;
             const errorInfo = this.formatErrorInfo(result);
-            console.log(`     ✓ ${result.status} (${result.responseTime}ms) - sans auth${errorInfo}`);
+            console.log(
+              `     ✓ ${result.status} (${result.responseTime}ms) - sans auth${errorInfo}`
+            );
           } else {
             console.log(`     → Test avec ${relevantUsers.length} utilisateur(s):`);
-            for (const user of relevantUsers) { // Tester avec tous les utilisateurs pertinents
+            for (const user of relevantUsers) {
+              // Tester avec tous les utilisateurs pertinents
               const result = await this.testUrl(url, user);
               results.push(result);
               testCount++;
               const statusIcon = result.status === 200 ? '✅' : result.status >= 400 ? '❌' : '⚠️';
               const errorInfo = this.formatErrorInfo(result);
-              console.log(`       ${statusIcon} ${result.status} (${result.responseTime}ms) - ${user.role}${errorInfo}`);
+              console.log(
+                `       ${statusIcon} ${result.status} (${result.responseTime}ms) - ${user.role}${errorInfo}`
+              );
             }
           }
         } else {
@@ -771,7 +815,7 @@ class PagesChecker {
    */
   private formatErrorInfo(result: TestResult): string {
     let errorInfo = '';
-    
+
     if (result.errorDetails && result.errorDetails.length > 0) {
       const errorCount = result.errorDetails.length;
       const errorTypes = [...new Set(result.errorDetails.map(e => e.type))];
@@ -779,7 +823,7 @@ class PagesChecker {
     } else if (result.pageErrors && result.pageErrors.length > 0) {
       errorInfo = ` ⚠️ ${result.pageErrors.length} problème(s)`;
     }
-    
+
     return errorInfo;
   }
 
@@ -805,7 +849,7 @@ class PagesChecker {
     }
   }
 
-    /**
+  /**
    * Sauvegarde les résultats dans des fichiers séparés par type de compte et page
    */
   private saveResultsBySeparateFiles(results: TestResult[], pages: PagePath[]): void {
@@ -819,15 +863,15 @@ class PagesChecker {
 
     // Grouper par type de page
     const resultsByType: Record<string, TestResult[]> = {
-      'public': [],
-      'auth': [],
-      'admin': [],
-      'client': [],
-      'deliverer': [],
-      'merchant': [],
-      'provider': [],
+      public: [],
+      auth: [],
+      admin: [],
+      client: [],
+      deliverer: [],
+      merchant: [],
+      provider: [],
       'protected-other': [], // Pages protégées sans rôle spécifique
-      'unknown': [], // Pages sans type identifié
+      unknown: [], // Pages sans type identifié
     };
 
     // Associer chaque résultat à son type
@@ -837,7 +881,7 @@ class PagesChecker {
         const pageUrls = this.generateTestUrls(page);
         return pageUrls.includes(result.route) || page.route === result.route;
       });
-       
+
       if (!correspondingPage) {
         resultsByType['unknown'].push(result);
         return;
@@ -868,11 +912,9 @@ class PagesChecker {
       if (typeResults.length > 0) {
         // Statistiques pour ce type
         const stats = this.generateStatsForType(type, typeResults);
-        
+
         // Erreurs pour ce type
-        const errorsOnly = typeResults.filter(r => 
-          r.errorDetails && r.errorDetails.length > 0
-        );
+        const errorsOnly = typeResults.filter(r => r.errorDetails && r.errorDetails.length > 0);
 
         const fileData = {
           type: type,
@@ -889,8 +931,10 @@ class PagesChecker {
         const fileName = `${type}-results.json`;
         const filePath = path.join(resultsDir, fileName);
         fs.writeFileSync(filePath, JSON.stringify(fileData, null, 2));
-        
-        console.log(`   📄 ${type.toUpperCase()}: ${typeResults.length} page(s), ${errorsOnly.length} erreur(s) → ${fileName}`);
+
+        console.log(
+          `   📄 ${type.toUpperCase()}: ${typeResults.length} page(s), ${errorsOnly.length} erreur(s) → ${fileName}`
+        );
       }
     });
 
@@ -904,23 +948,30 @@ class PagesChecker {
    * Génère les statistiques pour un type de page
    */
   private generateStatsForType(type: string, results: TestResult[]): any {
-    const statusCounts = results.reduce((acc, result) => {
-      const status = result.status.toString();
-      acc[status] = (acc[status] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const statusCounts = results.reduce(
+      (acc, result) => {
+        const status = result.status.toString();
+        acc[status] = (acc[status] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
 
     const errorTypes = results
       .filter(r => r.errorDetails && r.errorDetails.length > 0)
       .flatMap(r => r.errorDetails!.map(e => e.type))
-      .reduce((acc, errorType) => {
-        acc[errorType] = (acc[errorType] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>);
+      .reduce(
+        (acc, errorType) => {
+          acc[errorType] = (acc[errorType] || 0) + 1;
+          return acc;
+        },
+        {} as Record<string, number>
+      );
 
-    const averageResponseTime = results.length > 0 
-      ? Math.round(results.reduce((sum, r) => sum + r.responseTime, 0) / results.length)
-      : 0;
+    const averageResponseTime =
+      results.length > 0
+        ? Math.round(results.reduce((sum, r) => sum + r.responseTime, 0) / results.length)
+        : 0;
 
     return {
       total_tests: results.length,
@@ -948,7 +999,7 @@ class PagesChecker {
       if (results.length > 0) {
         const errorsCount = results.filter(r => r.errorDetails && r.errorDetails.length > 0).length;
         const criticalErrors = results.filter(r => r.status >= 500 || r.status === 0).length;
-        
+
         summary.types_overview[type] = {
           total_pages: results.length,
           errors: errorsCount,
@@ -973,26 +1024,34 @@ class PagesChecker {
 
     // Recommandations
     if (summary.critical_errors.length > 0) {
-      summary.recommendations.push(`🚨 ${summary.critical_errors.length} erreur(s) critique(s) à corriger en priorité`);
+      summary.recommendations.push(
+        `🚨 ${summary.critical_errors.length} erreur(s) critique(s) à corriger en priorité`
+      );
     }
 
-              const buildErrors = Object.values(resultsByType)
-       .flat()
-       .filter(r => r.errorDetails?.some(e => 
-         ['IMPORT_ERROR', 'MODULE_NOT_FOUND', 'SYNTAX_ERROR', 'TYPESCRIPT_ERROR'].includes(e.type)
-       )).length;
+    const buildErrors = Object.values(resultsByType)
+      .flat()
+      .filter(r =>
+        r.errorDetails?.some(e =>
+          ['IMPORT_ERROR', 'MODULE_NOT_FOUND', 'SYNTAX_ERROR', 'TYPESCRIPT_ERROR'].includes(e.type)
+        )
+      ).length;
 
     if (buildErrors > 0) {
       summary.recommendations.push(`🔧 ${buildErrors} erreur(s) de build/compilation à corriger`);
     }
 
     summary.recommendations.push('📊 Voir les fichiers *-results.json pour les détails par type');
-    summary.recommendations.push('🔍 Utiliser --errors-only pour voir seulement les erreurs lors des tests');
+    summary.recommendations.push(
+      '🔍 Utiliser --errors-only pour voir seulement les erreurs lors des tests'
+    );
 
     const summaryPath = path.join(resultsDir, 'summary.json');
     fs.writeFileSync(summaryPath, JSON.stringify(summary, null, 2));
-    
-    console.log(`   📋 RÉSUMÉ: ${Object.keys(summary.types_overview).length} type(s), ${summary.critical_errors.length} erreur(s) critique(s) → summary.json`);
+
+    console.log(
+      `   📋 RÉSUMÉ: ${Object.keys(summary.types_overview).length} type(s), ${summary.critical_errors.length} erreur(s) critique(s) → summary.json`
+    );
   }
 
   /**
@@ -1002,11 +1061,14 @@ class PagesChecker {
     console.log('\n📊 ANALYSE DES RÉSULTATS');
     console.log('========================');
 
-    const statusCounts = results.reduce((acc, result) => {
-      const status = result.status.toString();
-      acc[status] = (acc[status] || 0) + 1;
-      return acc;
-    }, {} as Record<string, number>);
+    const statusCounts = results.reduce(
+      (acc, result) => {
+        const status = result.status.toString();
+        acc[status] = (acc[status] || 0) + 1;
+        return acc;
+      },
+      {} as Record<string, number>
+    );
 
     console.log('\n📈 Répartition des codes de statut:');
     Object.entries(statusCounts).forEach(([status, count]) => {
@@ -1019,7 +1081,9 @@ class PagesChecker {
     if (errors.length > 0) {
       console.log('\n🚨 ERREURS CRITIQUES:');
       errors.forEach(error => {
-        console.log(`   ${error.route}: ${error.status} ${error.error || ''} (${error.role || 'no-auth'})`);
+        console.log(
+          `   ${error.route}: ${error.status} ${error.error || ''} (${error.role || 'no-auth'})`
+        );
         if (error.errorDetails && error.errorDetails.length > 0) {
           error.errorDetails.forEach(detail => {
             console.log(`     💥 ${detail.type}: ${detail.message}`);
@@ -1030,11 +1094,18 @@ class PagesChecker {
 
     // Erreurs de build/compilation
     const buildErrorTypes = [
-      'IMPORT_ERROR', 'MODULE_NOT_FOUND', 'SYNTAX_ERROR', 'TYPESCRIPT_ERROR',
-      'NEXT_BUILD_ERROR', 'REACT_HOOK_ERROR', 'HYDRATION_ERROR'
+      'IMPORT_ERROR',
+      'MODULE_NOT_FOUND',
+      'SYNTAX_ERROR',
+      'TYPESCRIPT_ERROR',
+      'NEXT_BUILD_ERROR',
+      'REACT_HOOK_ERROR',
+      'HYDRATION_ERROR',
     ];
-    const buildErrors = results.filter(r => r.errorDetails?.some(e => buildErrorTypes.includes(e.type)));
-    
+    const buildErrors = results.filter(r =>
+      r.errorDetails?.some(e => buildErrorTypes.includes(e.type))
+    );
+
     if (buildErrors.length > 0) {
       console.log('\n🔧 ERREURS DE BUILD/COMPILATION:');
       buildErrors.forEach(error => {
@@ -1052,7 +1123,9 @@ class PagesChecker {
                   }
                 });
                 if (detail.details.split('\n').length > 8) {
-                  console.log(`        ... (voir pages-test-results.json pour les détails complets)`);
+                  console.log(
+                    `        ... (voir pages-test-results.json pour les détails complets)`
+                  );
                 }
               }
             }
@@ -1148,7 +1221,7 @@ async function main() {
 
     // Analyser les arguments de ligne de commande
     const args = process.argv.slice(2);
-    
+
     if (args.includes('--help') || args.includes('-h')) {
       console.log('\n📖 AIDE - VÉRIFICATEUR DE PAGES ECODELI');
       console.log('==========================================');
@@ -1159,7 +1232,7 @@ async function main() {
       console.log('   --curl <route>       Générer les commandes curl pour une page');
       console.log('   --protected          Tester uniquement les pages protégées');
       console.log('   --public             Tester uniquement les pages publiques');
-      console.log('   --auth               Tester uniquement les pages d\'authentification');
+      console.log("   --auth               Tester uniquement les pages d'authentification");
       console.log('   --admin              Tester uniquement les pages admin');
       console.log('   --client             Tester uniquement les pages client');
       console.log('   --deliverer          Tester uniquement les pages livreur');
@@ -1168,15 +1241,19 @@ async function main() {
       console.log('   --limit=N            Limiter à N pages');
       console.log('   --errors-only        Afficher seulement les pages avec erreurs détaillées');
       console.log('\n📝 EXEMPLES:');
-      console.log('   tsx scripts/pages-checker.ts                              # Toutes les pages');
+      console.log(
+        '   tsx scripts/pages-checker.ts                              # Toutes les pages'
+      );
       console.log('   tsx scripts/pages-checker.ts --protected                  # Pages protégées');
       console.log('   tsx scripts/pages-checker.ts --admin --limit=5            # 5 pages admin');
-      console.log('   tsx scripts/pages-checker.ts --errors-only                # Seulement les erreurs');
+      console.log(
+        '   tsx scripts/pages-checker.ts --errors-only                # Seulement les erreurs'
+      );
       console.log('   tsx scripts/pages-checker.ts --curl /fr/admin/users       # Commandes curl');
       console.log('   tsx scripts/quick-page-test.ts /fr/client/profile         # Test rapide');
       return;
     }
-    
+
     if (args.includes('--curl')) {
       const routeIndex = args.indexOf('--curl') + 1;
       if (args[routeIndex]) {
@@ -1187,11 +1264,11 @@ async function main() {
 
     // Options de filtrage
     const testOptions: any = {};
-    
+
     if (args.includes('--protected')) testOptions.filterType = 'protected';
     if (args.includes('--public')) testOptions.filterType = 'public';
     if (args.includes('--auth')) testOptions.filterType = 'auth';
-    
+
     if (args.includes('--admin')) testOptions.filterRole = 'ADMIN';
     if (args.includes('--client')) testOptions.filterRole = 'CLIENT';
     if (args.includes('--deliverer')) testOptions.filterRole = 'DELIVERER';
@@ -1215,18 +1292,23 @@ async function main() {
     console.log('   📊 ANALYSE DES RÉSULTATS:');
     console.log('   - Voir toutes les pages: cat pages-list.json | jq');
     console.log('   - Voir les résultats: cat pages-test-results.json | jq');
-    console.log('   - Filtrer les erreurs: cat pages-test-results.json | jq \'.[] | select(.status >= 400)\'');
+    console.log(
+      "   - Filtrer les erreurs: cat pages-test-results.json | jq '.[] | select(.status >= 400)'"
+    );
     console.log('   \n🔧 OPTIONS DE FILTRAGE:');
     console.log('   - Pages protégées seulement: tsx scripts/pages-checker.ts --protected');
     console.log('   - Pages publiques seulement: tsx scripts/pages-checker.ts --public');
     console.log('   - Pages auth seulement: tsx scripts/pages-checker.ts --auth');
     console.log('   - Pages admin seulement: tsx scripts/pages-checker.ts --admin');
     console.log('   - Limiter à 10 pages: tsx scripts/pages-checker.ts --limit=10');
-    console.log('   - Combiner filtres: tsx scripts/pages-checker.ts --protected --admin --limit=5');
+    console.log(
+      '   - Combiner filtres: tsx scripts/pages-checker.ts --protected --admin --limit=5'
+    );
     console.log('   \n🛠️ OUTILS:');
-    console.log('   - Générer curl pour une page: tsx scripts/pages-checker.ts --curl /fr/admin/users');
-    console.log('   - Test rapide d\'une page: tsx scripts/quick-page-test.ts /fr/client/profile');
-
+    console.log(
+      '   - Générer curl pour une page: tsx scripts/pages-checker.ts --curl /fr/admin/users'
+    );
+    console.log("   - Test rapide d'une page: tsx scripts/quick-page-test.ts /fr/client/profile");
   } catch (error) {
     console.error('❌ Erreur:', error);
     process.exit(1);
@@ -1238,4 +1320,4 @@ async function main() {
 // Exécution directe
 main();
 
-export { PagesChecker }; 
+export { PagesChecker };

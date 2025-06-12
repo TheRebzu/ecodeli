@@ -54,3 +54,25 @@ const CardFooter = React.forwardRef<HTMLDivElement, React.HTMLAttributes<HTMLDiv
 CardFooter.displayName = 'CardFooter';
 
 export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent };
+
+
+// Composant ProfileInfoCard pour l'affichage des informations de profil
+export function ProfileInfoCard({ 
+  title, 
+  children, 
+  ...props 
+}: { 
+  title: string; 
+  children: React.ReactNode; 
+} & React.ComponentProps<typeof Card>) {
+  return (
+    <Card {...props}>
+      <CardHeader>
+        <CardTitle>{title}</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {children}
+      </CardContent>
+    </Card>
+  );
+}

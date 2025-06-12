@@ -6,4 +6,3 @@
 // Exports des fichiers locaux
 export { default as ProviderProfileForm } from './provider-profile-form';
 export * from './provider-profile-form';
-

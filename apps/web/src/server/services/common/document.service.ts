@@ -7,7 +7,10 @@ import { v4 as uuidv4 } from 'uuid';
 import { TRPCError } from '@trpc/server';
 import { db } from '@/server/db';
 import crypto from 'crypto';
-import { NotificationService, sendNotification } from '@/server/services/common/notification.service';
+import {
+  NotificationService,
+  sendNotification,
+} from '@/server/services/common/notification.service';
 import { getUserPreferredLocale } from '@/lib/i18n/user-locale';
 
 // Interface Document pour typer les retours

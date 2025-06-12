@@ -257,7 +257,7 @@ export function UserStatsCard({
                 className={`text-lg font-semibold ${
                   calculatedRetentionRate >= 70
                     ? 'text-green-600'
-                    : (calculatedRetentionRate >= 50)
+                    : calculatedRetentionRate >= 50
                       ? 'text-yellow-600'
                       : 'text-red-600'
                 }`}

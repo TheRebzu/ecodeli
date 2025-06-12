@@ -13,7 +13,12 @@ interface PerformanceFilters {
   quarter?: number;
   dateFrom?: Date;
   dateTo?: Date;
-  sortBy?: 'totalRevenue' | 'totalCommissions' | 'totalOrders' | 'averageOrderValue' | 'customerSatisfaction';
+  sortBy?:
+    | 'totalRevenue'
+    | 'totalCommissions'
+    | 'totalOrders'
+    | 'averageOrderValue'
+    | 'customerSatisfaction';
   sortOrder?: 'asc' | 'desc';
   page: number;
   limit: number;
@@ -39,35 +44,29 @@ export function useContractPerformance(initialFilters: Partial<PerformanceFilter
     refetch: refetchPerformance,
   } = api.admin.contracts.getPerformance.useQuery(filters);
 
-  const {
-    data: performanceStats,
-    isLoading: isLoadingStats,
-  } = api.admin.contracts.getPerformanceStats.useQuery({
-    period: filters.period,
-    year: filters.year,
-    month: filters.month,
-    quarter: filters.quarter,
-  });
+  const { data: performanceStats, isLoading: isLoadingStats } =
+    api.admin.contracts.getPerformanceStats.useQuery({
+      period: filters.period,
+      year: filters.year,
+      month: filters.month,
+      quarter: filters.quarter,
+    });
 
-  const {
-    data: performanceTrends,
-    isLoading: isLoadingTrends,
-  } = api.admin.contracts.getPerformanceTrends.useQuery({
-    contractId: filters.contractId,
-    period: filters.period,
-    year: filters.year,
-  });
+  const { data: performanceTrends, isLoading: isLoadingTrends } =
+    api.admin.contracts.getPerformanceTrends.useQuery({
+      contractId: filters.contractId,
+      period: filters.period,
+      year: filters.year,
+    });
 
-  const {
-    data: topPerformers,
-    isLoading: isLoadingTopPerformers,
-  } = api.admin.contracts.getTopPerformers.useQuery({
-    period: filters.period,
-    year: filters.year,
-    month: filters.month,
-    quarter: filters.quarter,
-    limit: 10,
-  });
+  const { data: topPerformers, isLoading: isLoadingTopPerformers } =
+    api.admin.contracts.getTopPerformers.useQuery({
+      period: filters.period,
+      year: filters.year,
+      month: filters.month,
+      quarter: filters.quarter,
+      limit: 10,
+    });
 
   // Mutations
   const updatePerformanceMutation = api.admin.contracts.updatePerformance.useMutation({
@@ -78,7 +77,7 @@ export function useContractPerformance(initialFilters: Partial<PerformanceFilter
       });
       refetchPerformance();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: `Impossible de mettre à jour les performances: ${error.message}`,
@@ -87,25 +86,26 @@ export function useContractPerformance(initialFilters: Partial<PerformanceFilter
     },
   });
 
-  const generatePerformanceReportMutation = api.admin.contracts.generatePerformanceReport.useMutation({
-    onSuccess: (data) => {
-      toast({
-        title: 'Rapport généré',
-        description: 'Le rapport de performance a été généré avec succès.',
-      });
-      // Télécharger le rapport ou afficher l'URL
-      if (data.downloadUrl) {
-        window.open(data.downloadUrl, '_blank');
-      }
-    },
-    onError: (error) => {
-      toast({
-        title: 'Erreur',
-        description: `Impossible de générer le rapport: ${error.message}`,
-        variant: 'destructive',
-      });
-    },
-  });
+  const generatePerformanceReportMutation =
+    api.admin.contracts.generatePerformanceReport.useMutation({
+      onSuccess: data => {
+        toast({
+          title: 'Rapport généré',
+          description: 'Le rapport de performance a été généré avec succès.',
+        });
+        // Télécharger le rapport ou afficher l'URL
+        if (data.downloadUrl) {
+          window.open(data.downloadUrl, '_blank');
+        }
+      },
+      onError: error => {
+        toast({
+          title: 'Erreur',
+          description: `Impossible de générer le rapport: ${error.message}`,
+          variant: 'destructive',
+        });
+      },
+    });
 
   const recalculatePerformanceMutation = api.admin.contracts.recalculatePerformance.useMutation({
     onSuccess: () => {
@@ -115,7 +115,7 @@ export function useContractPerformance(initialFilters: Partial<PerformanceFilter
       });
       refetchPerformance();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: `Impossible de recalculer les performances: ${error.message}`,
@@ -174,9 +174,9 @@ export function useContractPerformance(initialFilters: Partial<PerformanceFilter
   };
 
   const changePeriod = (period: 'MONTHLY' | 'QUARTERLY' | 'YEARLY') => {
-    setFilters(prev => ({ 
-      ...prev, 
-      period, 
+    setFilters(prev => ({
+      ...prev,
+      period,
       page: 1,
       // Reset month/quarter based on period
       month: period === 'MONTHLY' ? new Date().getMonth() + 1 : undefined,
@@ -193,7 +193,8 @@ export function useContractPerformance(initialFilters: Partial<PerformanceFilter
   };
 
   // Utilitaires
-  const isLoading = isLoadingPerformance || 
+  const isLoading =
+    isLoadingPerformance ||
     updatePerformanceMutation.isPending ||
     generatePerformanceReportMutation.isPending ||
     recalculatePerformanceMutation.isPending;
@@ -210,7 +211,7 @@ export function useContractPerformance(initialFilters: Partial<PerformanceFilter
 
   const calculateAverageMetrics = () => {
     if (performance.length === 0) return null;
-    
+
     const totals = performance.reduce(
       (acc, item) => ({
         revenue: acc.revenue + (item.totalRevenue || 0),
@@ -296,4 +297,4 @@ export function useContractPerformance(initialFilters: Partial<PerformanceFilter
     formatCurrency,
     formatPercentage,
   };
-} 
+}

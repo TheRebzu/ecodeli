@@ -65,12 +65,12 @@ export const commissionService = {
 
     // Vérifier si une commission existe déjà
     const existingCommission = await db.commission.findFirst({
-      where: { 
+      where: {
         payments: {
           some: {
-            id: paymentId
-          }
-        }
+            id: paymentId,
+          },
+        },
       },
     });
 
@@ -282,17 +282,14 @@ export const commissionService = {
     ]);
 
     // Calculer les totaux
-    const totalAmount = commissions.reduce(
-      (sum, commission) => {
-        const commissionPayments = commission.payments || [];
-        const paymentSum = commissionPayments.reduce(
-          (paySum, payment) => paySum.plus(payment.commissionAmount || 0),
-          new Decimal(0)
-        );
-        return sum.plus(paymentSum);
-      },
-      new Decimal(0)
-    );
+    const totalAmount = commissions.reduce((sum, commission) => {
+      const commissionPayments = commission.payments || [];
+      const paymentSum = commissionPayments.reduce(
+        (paySum, payment) => paySum.plus(payment.commissionAmount || 0),
+        new Decimal(0)
+      );
+      return sum.plus(paymentSum);
+    }, new Decimal(0));
 
     // Préparer les métadonnées de pagination
     const totalPages = Math.ceil(total / limit);
@@ -346,7 +343,7 @@ export const commissionService = {
       }
 
       acc[commission.serviceType].count++;
-      
+
       // Calculer le total des commissions pour ce type
       const commissionTotal = commission.payments.reduce(
         (sum, payment) => sum.plus(payment.commissionAmount || 0),
@@ -358,16 +355,13 @@ export const commissionService = {
     }, {});
 
     // Calculer les totaux généraux
-    const totalCommissions = commissions.reduce(
-      (sum, commission) => {
-        const commissionTotal = commission.payments.reduce(
-          (paySum, payment) => paySum.plus(payment.commissionAmount || 0),
-          new Decimal(0)
-        );
-        return sum.plus(commissionTotal);
-      },
-      new Decimal(0)
-    );
+    const totalCommissions = commissions.reduce((sum, commission) => {
+      const commissionTotal = commission.payments.reduce(
+        (paySum, payment) => paySum.plus(payment.commissionAmount || 0),
+        new Decimal(0)
+      );
+      return sum.plus(commissionTotal);
+    }, new Decimal(0));
 
     // Préparer les données du rapport
     const reportData = {
@@ -552,13 +546,7 @@ export const commissionService = {
     paymentIds?: string[];
     metadata?: Record<string, any>;
   }) {
-    const {
-      rate,
-      serviceType,
-      description,
-      paymentIds = [],
-      metadata = {},
-    } = data;
+    const { rate, serviceType, description, paymentIds = [], metadata = {} } = data;
 
     // Créer l'enregistrement de commission
     const commission = await db.commission.create({

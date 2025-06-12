@@ -111,13 +111,13 @@ export function formatRelativeDate(date: string | Date | null | undefined): stri
   if (!date) {
     return 'Jamais';
   }
-  
+
   const dateObj = typeof date === 'string' ? new Date(date) : date;
-  
+
   if (isNaN(dateObj.getTime())) {
     return 'Date invalide';
   }
-  
+
   return formatDistanceToNow(dateObj, {
     addSuffix: true,
     locale: fr,

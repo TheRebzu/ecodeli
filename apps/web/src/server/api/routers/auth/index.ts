@@ -6,4 +6,3 @@
 // Exports des fichiers locaux
 export * from './auth.router';
 export * from './verification.router';
-

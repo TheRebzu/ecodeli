@@ -14,20 +14,78 @@ import {
   deliveryProofSchema,
 } from '@/schemas/delivery/delivery.schema';
 
+export const delivererDeliveriesRouter = router({
+  // Livraisons planifiées pour le dashboard
+  getPlannedDeliveries: protectedProcedure
+    .input(
+      z.object({
+        date: z.date().optional(),
+        limit: z.number().min(1).max(20).default(5),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      // Vérifier que l'utilisateur est un livreur
+      const deliverer = await ctx.db.user.findUnique({
+        where: { id: userId, role: 'DELIVERER' },
+        include: { deliverer: true },
+      });
+
+      if (!deliverer?.deliverer) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Accès non autorisé',
+        });
+      }
+
+      const targetDate = input.date || new Date();
+      const startOfDay = new Date(targetDate);
+      startOfDay.setHours(0, 0, 0, 0);
+      const endOfDay = new Date(targetDate);
+      endOfDay.setHours(23, 59, 59, 999);
+
+      return await ctx.db.delivery.findMany({
+        where: {
+          delivererId: deliverer.deliverer.id,
+          status: { in: ['ACCEPTED', 'SCHEDULED'] },
+          plannedDate: {
+            gte: startOfDay,
+            lte: endOfDay,
+          },
+        },
+        include: {
+          announcement: {
+            select: {
+              pickupAddress: true,
+              deliveryAddress: true,
+              price: true,
+              priority: true,
+            },
+          },
+        },
+        orderBy: { plannedDate: 'asc' },
+        take: input.limit,
+      });
+    }),
+});
+
 export const deliveryRouter = router({
   // ===== ENDPOINTS EXISTANTS AMÉLIORÉS =====
 
   getStats: adminProcedure
-    .input(z.object({
-      startDate: z.coerce.date().optional(),
-      endDate: z.coerce.date().optional(),
-    }))
+    .input(
+      z.object({
+        startDate: z.coerce.date().optional(),
+        endDate: z.coerce.date().optional(),
+      })
+    )
     .query(async ({ input }) => {
       try {
         // Utiliser des valeurs par défaut si non fournies
         const startDate = input.startDate || new Date(Date.now() - 30 * 24 * 60 * 60 * 1000); // 30 jours par défaut
         const endDate = input.endDate || new Date();
-        
+
         return await DeliveryService.getStats(startDate, endDate);
       } catch (error) {
         console.error('Erreur dans delivery.getStats:', error);

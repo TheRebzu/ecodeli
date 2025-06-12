@@ -8,10 +8,12 @@ export const adminDashboardRouter = router({
    * Récupère les statistiques générales du dashboard
    */
   getOverviewStats: adminProcedure
-    .input(z.object({
-      startDate: z.coerce.date(),
-      endDate: z.coerce.date(),
-    }))
+    .input(
+      z.object({
+        startDate: z.coerce.date(),
+        endDate: z.coerce.date(),
+      })
+    )
     .query(async ({ input }) => {
       try {
         // Utilise getDashboardData comme source pour les statistiques overview

@@ -25,7 +25,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils/common';
-import { formatCurrency  } from '@/utils/document-utils';
+import { formatCurrency } from '@/utils/document-utils';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Pagination,

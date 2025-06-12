@@ -5,11 +5,7 @@ import { Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils/common';
 import { Button } from '@/components/ui/button';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 export interface TimePickerProps {
@@ -41,18 +37,18 @@ export function TimePicker({
   placeholder = 'Select time',
 }: TimePickerProps) {
   const timeOptions = React.useMemo(() => generateTimeOptions(), []);
-  
+
   const formatDisplayTime = (timeString: string | undefined) => {
     if (!timeString) return placeholder;
-    
+
     try {
       // Parse the time string to get hours and minutes
       const [hours, minutes] = timeString.split(':').map(Number);
-      
+
       // Create a date object for today with the specified time
       const date = new Date();
       date.setHours(hours, minutes, 0, 0);
-      
+
       // Format the time using date-fns
       return format(date, 'p'); // 'p' formats as localized time (e.g., "10:00 AM")
     } catch (error) {
@@ -67,8 +63,8 @@ export function TimePicker({
         <Button
           variant="outline"
           className={cn(
-            "w-full justify-start text-left font-normal",
-            !value && "text-muted-foreground",
+            'w-full justify-start text-left font-normal',
+            !value && 'text-muted-foreground',
             className
           )}
           disabled={disabled}
@@ -80,10 +76,10 @@ export function TimePicker({
       <PopoverContent className="w-auto p-0" align="start">
         <ScrollArea className="h-72">
           <div className="p-1">
-            {timeOptions.map((time) => (
+            {timeOptions.map(time => (
               <Button
                 key={time}
-                variant={time === value ? "default" : "ghost"}
+                variant={time === value ? 'default' : 'ghost'}
                 className="w-full justify-start"
                 onClick={() => {
                   onChange?.(time);

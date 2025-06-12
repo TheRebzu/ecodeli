@@ -24,4 +24,3 @@ export { default as VerificationFilterForm } from './verification-filter-form';
 export * from './verification-filter-form';
 export { default as VerificationList } from './verification-list';
 export * from './verification-list';
-

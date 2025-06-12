@@ -29,7 +29,7 @@ export default function AdminContractsPage() {
     merchants,
     filters,
     editingContract,
-    
+
     // Loading states
     isLoadingContracts,
     isLoadingStats,
@@ -40,11 +40,11 @@ export default function AdminContractsPage() {
     isActivating,
     isSuspending,
     isGeneratingPdf,
-    
+
     // Modal states
     isCreateModalOpen,
     setIsCreateModalOpen,
-    
+
     // Actions
     handleFiltersChange,
     handleClearFilters,
@@ -57,7 +57,7 @@ export default function AdminContractsPage() {
     handleGeneratePdf,
     handleEditContract,
     setEditingContract,
-    
+
     // Refetch functions
     refetchContracts,
     refetchStats,
@@ -88,10 +88,7 @@ export default function AdminContractsPage() {
             )}
             Actualiser
           </Button>
-          <Button
-            onClick={() => setShowCreateForm(true)}
-            disabled={isCreating}
-          >
+          <Button onClick={() => setShowCreateForm(true)} disabled={isCreating}>
             {isCreating ? (
               <Loader2 className="h-4 w-4 animate-spin mr-2" />
             ) : (
@@ -105,10 +102,7 @@ export default function AdminContractsPage() {
       <Separator />
 
       {/* Statistiques */}
-      <ContractsStats 
-        stats={stats} 
-        isLoading={isLoadingStats} 
-      />
+      <ContractsStats stats={stats} isLoading={isLoadingStats} />
 
       <Separator />
 
@@ -173,23 +167,19 @@ export default function AdminContractsPage() {
           </CardHeader>
           <CardContent className="text-xs text-muted-foreground space-y-1">
             <div>Contrats chargés: {contracts.length}</div>
-            <div>Page actuelle: {currentPage}/{totalPages}</div>
+            <div>
+              Page actuelle: {currentPage}/{totalPages}
+            </div>
             <div>Filtres actifs: {Object.keys(filters).length}</div>
-            <div>Statistiques: {stats ? `Chargées (total: ${stats.totalContracts})` : 'En cours...'}</div>
+            <div>
+              Statistiques: {stats ? `Chargées (total: ${stats.totalContracts})` : 'En cours...'}
+            </div>
             <div>Commerçants: {merchants.length} disponibles</div>
             <div>États de chargement:</div>
-            <div className="ml-2">
-              - Contrats: {isLoadingContracts ? 'Chargement...' : 'OK'}
-            </div>
-            <div className="ml-2">
-              - Stats: {isLoadingStats ? 'Chargement...' : 'OK'}
-            </div>
-            <div className="ml-2">
-              - Commerçants: {isLoadingMerchants ? 'Chargement...' : 'OK'}
-            </div>
-            {editingContract && (
-              <div>Édition: {editingContract.contractNumber}</div>
-            )}
+            <div className="ml-2">- Contrats: {isLoadingContracts ? 'Chargement...' : 'OK'}</div>
+            <div className="ml-2">- Stats: {isLoadingStats ? 'Chargement...' : 'OK'}</div>
+            <div className="ml-2">- Commerçants: {isLoadingMerchants ? 'Chargement...' : 'OK'}</div>
+            {editingContract && <div>Édition: {editingContract.contractNumber}</div>}
           </CardContent>
         </Card>
       )}

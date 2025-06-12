@@ -1,31 +1,17 @@
-export type ContractStatus = 
+export type ContractStatus =
   | 'DRAFT'
-  | 'PENDING_SIGNATURE' 
+  | 'PENDING_SIGNATURE'
   | 'ACTIVE'
   | 'SUSPENDED'
   | 'TERMINATED'
   | 'EXPIRED'
   | 'CANCELLED';
 
-export type ContractType = 
-  | 'STANDARD'
-  | 'PREMIUM'
-  | 'PARTNER'
-  | 'TRIAL'
-  | 'CUSTOM';
+export type ContractType = 'STANDARD' | 'PREMIUM' | 'PARTNER' | 'TRIAL' | 'CUSTOM';
 
-export type NegotiationStatus = 
-  | 'PENDING'
-  | 'IN_PROGRESS'
-  | 'COMPLETED'
-  | 'CANCELLED';
+export type NegotiationStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED';
 
-export type AmendmentStatus = 
-  | 'DRAFT'
-  | 'PENDING_APPROVAL'
-  | 'APPROVED'
-  | 'REJECTED'
-  | 'ACTIVE';
+export type AmendmentStatus = 'DRAFT' | 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'ACTIVE';
 
 export interface Contract {
   id: string;
@@ -34,7 +20,7 @@ export interface Contract {
   content: string;
   status: ContractStatus;
   type: ContractType;
-  
+
   // Relations
   merchant: {
     id: string;
@@ -44,39 +30,39 @@ export interface Contract {
     firstName: string;
     lastName: string;
   };
-  
+
   template?: {
     id: string;
     name: string;
     type: ContractType;
   };
-  
+
   // Conditions financières
   monthlyFee?: number;
   commissionRate?: number;
   minimumVolume?: number;
   securityDeposit?: number;
-  
+
   // Informations métier
   merchantCategory?: string;
   deliveryZone?: string;
   maxDeliveryRadius?: number;
-  
+
   // Dates et durée
   effectiveDate?: Date;
   expiresAt?: Date;
   autoRenewal: boolean;
   renewalNotice?: number;
-  
+
   // Assurance
   insuranceRequired: boolean;
   insuranceAmount?: number;
-  
+
   // Métadonnées
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
-  
+
   // Relations optionnelles
   amendments?: ContractAmendment[];
   negotiations?: ContractNegotiation[];
@@ -89,20 +75,20 @@ export interface ContractTemplate {
   description?: string;
   type: ContractType;
   content: string;
-  
+
   // Valeurs par défaut
   defaultMonthlyFee?: number;
   defaultCommissionRate?: number;
   defaultRenewalNotice: number;
-  
+
   // Statut
   isActive: boolean;
-  
+
   // Métadonnées
   metadata?: Record<string, any>;
   createdAt: Date;
   updatedAt: Date;
-  
+
   // Statistiques d'utilisation
   usageCount?: number;
   contracts?: Contract[];
@@ -112,18 +98,18 @@ export interface ContractAmendment {
   id: string;
   contractId: string;
   contract?: Contract;
-  
+
   title: string;
   description: string;
   changes?: Record<string, any>;
-  
+
   effectiveDate?: Date;
   status: AmendmentStatus;
-  
+
   // Approbation
   approvedBy?: string;
   approvedAt?: Date;
-  
+
   // Métadonnées
   notes?: string;
   createdAt: Date;
@@ -134,7 +120,7 @@ export interface ContractNegotiation {
   id: string;
   contractId: string;
   contract?: Contract;
-  
+
   // Participants
   merchantId: string;
   merchant?: {
@@ -144,7 +130,7 @@ export interface ContractNegotiation {
     firstName: string;
     lastName: string;
   };
-  
+
   adminId: string;
   admin?: {
     id: string;
@@ -152,19 +138,19 @@ export interface ContractNegotiation {
     lastName: string;
     email: string;
   };
-  
+
   // Statut et propositions
   status: NegotiationStatus;
   merchantProposal?: Record<string, any>;
   adminCounterProposal?: Record<string, any>;
   finalTerms?: Record<string, any>;
-  
+
   // Métadonnées
   notes?: string;
   expiresAt?: Date;
   createdAt: Date;
   updatedAt: Date;
-  
+
   // Historique
   history: NegotiationHistory[];
 }
@@ -173,16 +159,22 @@ export interface NegotiationHistory {
   id: string;
   negotiationId: string;
   negotiation?: ContractNegotiation;
-  
-  action: 'CREATED' | 'PROPOSAL_SUBMITTED' | 'COUNTER_PROPOSAL' | 'ACCEPTED' | 'REJECTED' | 'MODIFIED';
-  
+
+  action:
+    | 'CREATED'
+    | 'PROPOSAL_SUBMITTED'
+    | 'COUNTER_PROPOSAL'
+    | 'ACCEPTED'
+    | 'REJECTED'
+    | 'MODIFIED';
+
   performedBy: {
     id: string;
     firstName: string;
     lastName: string;
     role: string;
   };
-  
+
   data?: Record<string, any>;
   comment?: string;
   createdAt: Date;
@@ -192,24 +184,24 @@ export interface ContractPerformance {
   id: string;
   contractId: string;
   contract?: Contract;
-  
+
   // Période
   period: 'MONTHLY' | 'QUARTERLY' | 'YEARLY';
   year: number;
   month?: number;
   quarter?: number;
-  
+
   // Métriques financières
   totalRevenue: number;
   totalCommissions: number;
-  
+
   // Métriques opérationnelles
   totalOrders: number;
   averageOrderValue: number;
   customerSatisfaction?: number;
   deliverySuccessRate: number;
   averageDeliveryTime?: number;
-  
+
   // Métadonnées
   notes?: string;
   createdAt: Date;
@@ -319,9 +311,14 @@ export interface ContractStatsResponse {
 
 // Types pour les événements en temps réel
 export interface ContractEvent {
-  type: 'CONTRACT_CREATED' | 'CONTRACT_UPDATED' | 'CONTRACT_SIGNED' | 'CONTRACT_EXPIRED' | 'NEGOTIATION_STARTED';
+  type:
+    | 'CONTRACT_CREATED'
+    | 'CONTRACT_UPDATED'
+    | 'CONTRACT_SIGNED'
+    | 'CONTRACT_EXPIRED'
+    | 'NEGOTIATION_STARTED';
   contractId: string;
   data: Record<string, any>;
   timestamp: Date;
   userId: string;
-} 
+}

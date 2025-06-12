@@ -119,12 +119,7 @@ export function ServicesFilters({
             )}
           </CardTitle>
           {getActiveFiltersCount() > 0 && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onReset}
-              disabled={isLoading}
-            >
+            <Button variant="outline" size="sm" onClick={onReset} disabled={isLoading}>
               <RotateCcw className="h-3 w-3 mr-1" />
               Reset
             </Button>
@@ -142,7 +137,7 @@ export function ServicesFilters({
                 id="search"
                 placeholder="Nom du service, description..."
                 value={localSearch}
-                onChange={(e) => setLocalSearch(e.target.value)}
+                onChange={e => setLocalSearch(e.target.value)}
                 className="pl-9"
                 disabled={isLoading}
               />
@@ -167,7 +162,7 @@ export function ServicesFilters({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tous les statuts</SelectItem>
-                {statusOptions.map((option) => (
+                {statusOptions.map(option => (
                   <SelectItem key={option.value} value={option.value}>
                     <div className="flex items-center gap-2">
                       <div className={`w-2 h-2 rounded-full ${option.color}`} />
@@ -191,7 +186,7 @@ export function ServicesFilters({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Toutes les catégories</SelectItem>
-                {categoryOptions.map((option) => (
+                {categoryOptions.map(option => (
                   <SelectItem key={option.value} value={option.value}>
                     {option.label}
                   </SelectItem>
@@ -208,8 +203,7 @@ export function ServicesFilters({
             <div className="flex flex-wrap gap-2">
               {filters.search && (
                 <Badge variant="secondary" className="flex items-center gap-1">
-                  <Search className="h-3 w-3" />
-                  "{filters.search}"
+                  <Search className="h-3 w-3" />"{filters.search}"
                   <Button
                     variant="ghost"
                     size="sm"
@@ -223,7 +217,7 @@ export function ServicesFilters({
                   </Button>
                 </Badge>
               )}
-              
+
               {filters.status && (
                 <Badge variant="secondary" className="flex items-center gap-1">
                   Statut: {getStatusBadge(filters.status)}
@@ -237,7 +231,7 @@ export function ServicesFilters({
                   </Button>
                 </Badge>
               )}
-              
+
               {filters.category && (
                 <Badge variant="secondary" className="flex items-center gap-1">
                   Catégorie: {getCategoryLabel(filters.category)}
@@ -257,4 +251,4 @@ export function ServicesFilters({
       </CardContent>
     </Card>
   );
-} 
+}

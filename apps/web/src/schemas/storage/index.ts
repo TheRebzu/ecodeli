@@ -14,4 +14,3 @@ export * from './storage.schema';
 export * from './warehouse-inventory.schema';
 export * from './warehouse-location.schema';
 export * from './warehouse.schema';
-

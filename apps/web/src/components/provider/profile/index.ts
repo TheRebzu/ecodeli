@@ -12,4 +12,3 @@ export { default as ProfileValidation } from './profile-validation';
 export * from './profile-validation';
 export { default as ServiceTypes } from './service-types';
 export * from './service-types';
-

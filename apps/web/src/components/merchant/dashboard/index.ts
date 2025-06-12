@@ -10,4 +10,3 @@ export { default as MerchantDashboard } from './merchant-dashboard';
 export * from './merchant-dashboard';
 export { default as SalesWidget } from './sales-widget';
 export * from './sales-widget';
-

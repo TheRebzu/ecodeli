@@ -16,7 +16,11 @@ import {
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, Zap } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import { useInitiatePayment, usePaymentConfirmation, usePaymentHistory } from '@/hooks/payment/use-payment';
+import {
+  useInitiatePayment,
+  usePaymentConfirmation,
+  usePaymentHistory,
+} from '@/hooks/payment/use-payment';
 import { toast } from '@/components/ui/use-toast';
 
 // Données de démo

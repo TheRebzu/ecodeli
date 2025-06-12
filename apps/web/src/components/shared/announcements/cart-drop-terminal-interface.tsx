@@ -2,13 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useTranslations } from 'next-intl';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -141,9 +135,11 @@ export const CartDropTerminalInterface: React.FC<CartDropTerminalInterfaceProps>
   className,
 }) => {
   const t = useTranslations('cartDrop');
-  
+
   // États du composant
-  const [currentStep, setCurrentStep] = useState<'client' | 'products' | 'delivery' | 'payment' | 'confirmation'>('client');
+  const [currentStep, setCurrentStep] = useState<
+    'client' | 'products' | 'delivery' | 'payment' | 'confirmation'
+  >('client');
   const [clientInfo, setClientInfo] = useState<ClientInfo | null>(null);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [selectedTimeSlot, setSelectedTimeSlot] = useState<TimeSlot | null>(null);
@@ -165,15 +161,16 @@ export const CartDropTerminalInterface: React.FC<CartDropTerminalInterfaceProps>
 
   // Filtrer les produits
   const filteredProducts = availableProducts.filter(product => {
-    const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         product.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch =
+      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.description?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = !selectedCategory || product.category === selectedCategory;
     return matchesSearch && matchesCategory && product.inStock;
   });
 
   // Calculer les totaux
-  const totalWeight = cart.reduce((sum, item) => sum + (item.product.weight * item.quantity), 0);
-  const totalPrice = cart.reduce((sum, item) => sum + (item.product.price * item.quantity), 0);
+  const totalWeight = cart.reduce((sum, item) => sum + item.product.weight * item.quantity, 0);
+  const totalPrice = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
   const deliveryPrice = selectedTimeSlot?.price || 0;
   const finalTotal = totalPrice + deliveryPrice;
 
@@ -182,7 +179,7 @@ export const CartDropTerminalInterface: React.FC<CartDropTerminalInterfaceProps>
     setIsProcessing(true);
     try {
       let client: ClientInfo | null = null;
-      
+
       if (type === 'QR' && onScanQR) {
         client = await onScanQR(data);
       } else if (type === 'NFC' && onScanNFC) {
@@ -225,17 +222,17 @@ export const CartDropTerminalInterface: React.FC<CartDropTerminalInterfaceProps>
   // Ajouter un produit au panier
   const addToCart = (product: Product) => {
     const existingItem = cart.find(item => item.product.id === product.id);
-    
+
     if (existingItem) {
-      setCart(cart.map(item =>
-        item.product.id === product.id
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-      ));
+      setCart(
+        cart.map(item =>
+          item.product.id === product.id ? { ...item, quantity: item.quantity + 1 } : item
+        )
+      );
     } else {
       setCart([...cart, { product, quantity: 1 }]);
     }
-    
+
     toast.success(t('productAdded', { name: product.name }));
   };
 
@@ -244,11 +241,11 @@ export const CartDropTerminalInterface: React.FC<CartDropTerminalInterfaceProps>
     if (newQuantity <= 0) {
       setCart(cart.filter(item => item.product.id !== productId));
     } else {
-      setCart(cart.map(item =>
-        item.product.id === productId
-          ? { ...item, quantity: newQuantity }
-          : item
-      ));
+      setCart(
+        cart.map(item =>
+          item.product.id === productId ? { ...item, quantity: newQuantity } : item
+        )
+      );
     }
   };
 
@@ -314,9 +311,7 @@ export const CartDropTerminalInterface: React.FC<CartDropTerminalInterfaceProps>
             <ShoppingCart className="h-6 w-6" />
             <span>{t('cartDropTerminal')}</span>
           </CardTitle>
-          <CardDescription>
-            {t('terminalDescription')}
-          </CardDescription>
+          <CardDescription>{t('terminalDescription')}</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center space-x-4">
@@ -328,12 +323,19 @@ export const CartDropTerminalInterface: React.FC<CartDropTerminalInterfaceProps>
               { step: 'confirmation', label: t('steps.confirmation'), icon: CheckCircle },
             ].map(({ step, label, icon: Icon }, index) => (
               <div key={step} className="flex items-center">
-                <div className={cn(
-                  'flex items-center justify-center w-10 h-10 rounded-full',
-                  currentStep === step ? 'bg-primary text-primary-foreground' :
-                  index < ['client', 'products', 'delivery', 'payment', 'confirmation'].indexOf(currentStep) ? 'bg-green-500 text-white' :
-                  'bg-muted text-muted-foreground'
-                )}>
+                <div
+                  className={cn(
+                    'flex items-center justify-center w-10 h-10 rounded-full',
+                    currentStep === step
+                      ? 'bg-primary text-primary-foreground'
+                      : index <
+                          ['client', 'products', 'delivery', 'payment', 'confirmation'].indexOf(
+                            currentStep
+                          )
+                        ? 'bg-green-500 text-white'
+                        : 'bg-muted text-muted-foreground'
+                  )}
+                >
                   <Icon className="h-5 w-5" />
                 </div>
                 <div className="ml-2 text-sm font-medium">{label}</div>
@@ -391,10 +393,7 @@ export const CartDropTerminalInterface: React.FC<CartDropTerminalInterfaceProps>
                 </div>
 
                 <div className="text-center">
-                  <Button
-                    variant="link"
-                    onClick={() => setIsManualClient(true)}
-                  >
+                  <Button variant="link" onClick={() => setIsManualClient(true)}>
                     {t('manualEntry')}
                   </Button>
                 </div>
@@ -407,7 +406,9 @@ export const CartDropTerminalInterface: React.FC<CartDropTerminalInterfaceProps>
                     <Input
                       id="client-name"
                       value={manualClientData.name}
-                      onChange={(e) => setManualClientData(prev => ({ ...prev, name: e.target.value }))}
+                      onChange={e =>
+                        setManualClientData(prev => ({ ...prev, name: e.target.value }))
+                      }
                       placeholder={t('clientNamePlaceholder')}
                     />
                   </div>
@@ -416,7 +417,9 @@ export const CartDropTerminalInterface: React.FC<CartDropTerminalInterfaceProps>
                     <Input
                       id="client-phone"
                       value={manualClientData.phone}
-                      onChange={(e) => setManualClientData(prev => ({ ...prev, phone: e.target.value }))}
+                      onChange={e =>
+                        setManualClientData(prev => ({ ...prev, phone: e.target.value }))
+                      }
                       placeholder={t('clientPhonePlaceholder')}
                     />
                   </div>
@@ -426,7 +429,9 @@ export const CartDropTerminalInterface: React.FC<CartDropTerminalInterfaceProps>
                       id="client-email"
                       type="email"
                       value={manualClientData.email}
-                      onChange={(e) => setManualClientData(prev => ({ ...prev, email: e.target.value }))}
+                      onChange={e =>
+                        setManualClientData(prev => ({ ...prev, email: e.target.value }))
+                      }
                       placeholder={t('clientEmailPlaceholder')}
                     />
                   </div>
@@ -435,7 +440,9 @@ export const CartDropTerminalInterface: React.FC<CartDropTerminalInterfaceProps>
                     <Input
                       id="client-address"
                       value={manualClientData.address}
-                      onChange={(e) => setManualClientData(prev => ({ ...prev, address: e.target.value }))}
+                      onChange={e =>
+                        setManualClientData(prev => ({ ...prev, address: e.target.value }))
+                      }
                       placeholder={t('addressPlaceholder')}
                     />
                   </div>
@@ -445,10 +452,7 @@ export const CartDropTerminalInterface: React.FC<CartDropTerminalInterfaceProps>
                   <Button onClick={handleManualClientEntry} disabled={isProcessing}>
                     {t('addClient')}
                   </Button>
-                  <Button
-                    variant="outline"
-                    onClick={() => setIsManualClient(false)}
-                  >
+                  <Button variant="outline" onClick={() => setIsManualClient(false)}>
                     {t('back')}
                   </Button>
                 </div>
@@ -466,9 +470,7 @@ export const CartDropTerminalInterface: React.FC<CartDropTerminalInterfaceProps>
             <Card>
               <CardHeader>
                 <CardTitle>{t('selectProducts')}</CardTitle>
-                <CardDescription>
-                  {t('selectProductsDescription')}
-                </CardDescription>
+                <CardDescription>{t('selectProductsDescription')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Filtres */}
@@ -477,7 +479,7 @@ export const CartDropTerminalInterface: React.FC<CartDropTerminalInterfaceProps>
                     <Input
                       placeholder={t('searchProducts')}
                       value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
+                      onChange={e => setSearchTerm(e.target.value)}
                       className="w-full"
                     />
                   </div>
@@ -499,7 +501,10 @@ export const CartDropTerminalInterface: React.FC<CartDropTerminalInterfaceProps>
                 {/* Liste des produits */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-96 overflow-y-auto">
                   {filteredProducts.map(product => (
-                    <Card key={product.id} className="cursor-pointer hover:shadow-md transition-shadow">
+                    <Card
+                      key={product.id}
+                      className="cursor-pointer hover:shadow-md transition-shadow"
+                    >
                       <CardContent className="p-4">
                         <div className="flex justify-between items-start mb-2">
                           <div className="flex-1">
@@ -518,15 +523,13 @@ export const CartDropTerminalInterface: React.FC<CartDropTerminalInterfaceProps>
                             />
                           )}
                         </div>
-                        
+
                         <div className="flex items-center justify-between">
                           <div className="space-y-1">
                             <div className="font-bold">{formatPrice(product.price)}</div>
-                            <div className="text-xs text-muted-foreground">
-                              {product.weight}kg
-                            </div>
+                            <div className="text-xs text-muted-foreground">{product.weight}kg</div>
                           </div>
-                          
+
                           <div className="flex items-center space-x-2">
                             {product.isFragile && (
                               <Badge variant="outline" className="text-xs">
@@ -538,10 +541,7 @@ export const CartDropTerminalInterface: React.FC<CartDropTerminalInterfaceProps>
                                 {t('cooling')}
                               </Badge>
                             )}
-                            <Button
-                              size="sm"
-                              onClick={() => addToCart(product)}
-                            >
+                            <Button size="sm" onClick={() => addToCart(product)}>
                               <Plus className="h-4 w-4" />
                             </Button>
                           </div>
@@ -573,7 +573,10 @@ export const CartDropTerminalInterface: React.FC<CartDropTerminalInterfaceProps>
                   <>
                     <div className="space-y-3 max-h-64 overflow-y-auto">
                       {cart.map(item => (
-                        <div key={item.product.id} className="flex items-center space-x-2 p-2 border rounded">
+                        <div
+                          key={item.product.id}
+                          className="flex items-center space-x-2 p-2 border rounded"
+                        >
                           <div className="flex-1">
                             <div className="font-medium text-sm">{item.product.name}</div>
                             <div className="text-xs text-muted-foreground">
@@ -684,14 +687,12 @@ export const CartDropTerminalInterface: React.FC<CartDropTerminalInterfaceProps>
                             <CheckCircle className="h-5 w-5 text-primary" />
                           )}
                         </div>
-                        
+
                         <div className="flex items-center justify-between text-sm">
                           <span className="text-muted-foreground">
                             {t('availableDeliverers', { count: slot.delivererCount })}
                           </span>
-                          <span className="font-bold">
-                            {formatPrice(slot.price)}
-                          </span>
+                          <span className="font-bold">{formatPrice(slot.price)}</span>
                         </div>
                       </div>
                     </CardContent>
@@ -701,16 +702,10 @@ export const CartDropTerminalInterface: React.FC<CartDropTerminalInterfaceProps>
             )}
 
             <div className="flex space-x-2 pt-4">
-              <Button
-                variant="outline"
-                onClick={() => setCurrentStep('products')}
-              >
+              <Button variant="outline" onClick={() => setCurrentStep('products')}>
                 {t('back')}
               </Button>
-              <Button
-                onClick={() => setCurrentStep('payment')}
-                disabled={!selectedTimeSlot}
-              >
+              <Button onClick={() => setCurrentStep('payment')} disabled={!selectedTimeSlot}>
                 {t('continueToPayment')}
               </Button>
             </div>
@@ -732,7 +727,9 @@ export const CartDropTerminalInterface: React.FC<CartDropTerminalInterfaceProps>
                 <h4 className="font-medium mb-3">{t('orderSummary')}</h4>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span>{t('products')} ({cart.length})</span>
+                    <span>
+                      {t('products')} ({cart.length})
+                    </span>
                     <span>{formatPrice(totalPrice)}</span>
                   </div>
                   <div className="flex justify-between">
@@ -782,24 +779,17 @@ export const CartDropTerminalInterface: React.FC<CartDropTerminalInterfaceProps>
               <Textarea
                 id="special-instructions"
                 value={specialInstructions}
-                onChange={(e) => setSpecialInstructions(e.target.value)}
+                onChange={e => setSpecialInstructions(e.target.value)}
                 placeholder={t('specialInstructionsPlaceholder')}
                 className="min-h-[80px]"
               />
             </div>
 
             <div className="flex space-x-2">
-              <Button
-                variant="outline"
-                onClick={() => setCurrentStep('delivery')}
-              >
+              <Button variant="outline" onClick={() => setCurrentStep('delivery')}>
                 {t('back')}
               </Button>
-              <Button
-                onClick={handleCreateOrder}
-                disabled={isProcessing}
-                className="flex-1"
-              >
+              <Button onClick={handleCreateOrder} disabled={isProcessing} className="flex-1">
                 {isProcessing ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 ) : (
@@ -819,11 +809,9 @@ export const CartDropTerminalInterface: React.FC<CartDropTerminalInterfaceProps>
             <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold mb-2">{t('orderConfirmed')}</h2>
             <p className="text-muted-foreground mb-6">{t('orderConfirmedDescription')}</p>
-            
+
             <div className="flex justify-center space-x-4">
-              <Button onClick={resetOrder}>
-                {t('newOrder')}
-              </Button>
+              <Button onClick={resetOrder}>{t('newOrder')}</Button>
               <Button variant="outline" onClick={() => window.print()}>
                 {t('printReceipt')}
               </Button>
@@ -837,18 +825,12 @@ export const CartDropTerminalInterface: React.FC<CartDropTerminalInterfaceProps>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>{t('scanQRCode')}</DialogTitle>
-            <DialogDescription>
-              {t('scanQRDescription')}
-            </DialogDescription>
+            <DialogDescription>{t('scanQRDescription')}</DialogDescription>
           </DialogHeader>
           <div className="text-center py-8">
             <QrCode className="h-24 w-24 mx-auto mb-4 text-muted-foreground" />
             <p className="text-sm text-muted-foreground">{t('scannerReady')}</p>
-            <Button
-              variant="outline"
-              className="mt-4"
-              onClick={() => setShowScanner(false)}
-            >
+            <Button variant="outline" className="mt-4" onClick={() => setShowScanner(false)}>
               {t('cancel')}
             </Button>
           </div>

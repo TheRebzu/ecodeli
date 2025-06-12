@@ -5524,7 +5524,7 @@
       "tabs": {
         "all": "Tous",
         "pending": "En attente",
-        "approved": "Approuvés", 
+        "approved": "Approuvés",
         "rejected": "Rejetés"
       },
       "userDocumentsTitle": "Documents de l'utilisateur",
@@ -5571,36 +5571,36 @@
         "reject": "Rejeter"
       },
       "noDocuments": "Aucun document trouvé",
-             "documentsTable": {
-         "documentType": "Type de document",
-         "uploadedDate": "Date de téléchargement",
-         "status": "Statut",
-         "actions": "Actions"
-       },
-       "usersVerification": {
-         "title": "Vérification des utilisateurs",
-         "description": "Consultez et vérifiez les documents des utilisateurs",
-         "searchPlaceholder": "Rechercher par nom ou email",
-         "search": "Rechercher"
-       },
-       "tabs": {
-         "all": "Tous",
-         "pending": "En attente",
-         "approved": "Approuvés",
-         "rejected": "Rejetés",
-         "clients": "Clients",
-         "deliverers": "Livreurs",
-         "merchants": "Commerçants",
-         "providers": "Prestataires"
-       },
-       "table": {
-         "user": "Utilisateur",
-         "role": "Rôle",
-         "status": "Statut",
-         "documents": "Documents",
-         "created": "Créé le",
-         "actions": "Actions"
-       }
+      "documentsTable": {
+        "documentType": "Type de document",
+        "uploadedDate": "Date de téléchargement",
+        "status": "Statut",
+        "actions": "Actions"
+      },
+      "usersVerification": {
+        "title": "Vérification des utilisateurs",
+        "description": "Consultez et vérifiez les documents des utilisateurs",
+        "searchPlaceholder": "Rechercher par nom ou email",
+        "search": "Rechercher"
+      },
+      "tabs": {
+        "all": "Tous",
+        "pending": "En attente",
+        "approved": "Approuvés",
+        "rejected": "Rejetés",
+        "clients": "Clients",
+        "deliverers": "Livreurs",
+        "merchants": "Commerçants",
+        "providers": "Prestataires"
+      },
+      "table": {
+        "user": "Utilisateur",
+        "role": "Rôle",
+        "status": "Statut",
+        "documents": "Documents",
+        "created": "Créé le",
+        "actions": "Actions"
+      }
     }
   },
   "admin": {
@@ -5618,7 +5618,7 @@
       "tabs": {
         "all": "Tous",
         "pending": "En attente",
-        "approved": "Approuvés", 
+        "approved": "Approuvés",
         "rejected": "Rejetés"
       },
       "userDocumentsTitle": "Documents de l'utilisateur",
@@ -5647,18 +5647,18 @@
         "SELFIE": "Selfie",
         "OTHER": "Autre"
       },
-             "actions": {
-         "view": "Voir",
-         "approve": "Approuver",
-         "reject": "Rejeter"
-       },
-       "noDocuments": "Aucun document trouvé",
-       "documentsTable": {
-         "documentType": "Type de document",
-         "uploadedDate": "Date de téléchargement",
-         "status": "Statut",
-         "actions": "Actions"
-       },
+      "actions": {
+        "view": "Voir",
+        "approve": "Approuver",
+        "reject": "Rejeter"
+      },
+      "noDocuments": "Aucun document trouvé",
+      "documentsTable": {
+        "documentType": "Type de document",
+        "uploadedDate": "Date de téléchargement",
+        "status": "Statut",
+        "actions": "Actions"
+      },
       "filters": {
         "role": "role",
         "allRoles": "allRoles",
@@ -5875,7 +5875,7 @@
         "completionRate": "taux de réussite",
         "noCompletedAnnouncements": "Aucune annonce terminée",
         "averagePrice": "Prix moyen",
-        "perAnnouncement": "par annonce", 
+        "perAnnouncement": "par annonce",
         "revenue": "Revenus",
         "totalRevenue": "revenus totaux",
         "statusDistribution": "Répartition par statut",

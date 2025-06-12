@@ -25,9 +25,9 @@ export function useUserBan() {
         variant: 'default',
       });
     },
-    onError: (error) => {
+    onError: error => {
       toast({
-        title: 'Erreur', 
+        title: 'Erreur',
         description: `Erreur lors du bannissement : ${error.message}`,
         variant: 'destructive',
       });
@@ -78,4 +78,4 @@ export function useUserBan() {
     error: userBanMutation.error,
     isSuccess: userBanMutation.isSuccess,
   };
-} 
+}

@@ -8,4 +8,3 @@ export { default as EmailVerification } from './email-verification';
 export * from './email-verification';
 export { default as TwoFactorAuth } from './two-factor-auth';
 export * from './two-factor-auth';
-

@@ -28,10 +28,8 @@ export function useContractNegotiations(initialFilters: Partial<NegotiationFilte
     refetch: refetchNegotiations,
   } = api.admin.contracts.getNegotiations.useQuery(filters);
 
-  const {
-    data: negotiationStats,
-    isLoading: isLoadingStats,
-  } = api.admin.contracts.getNegotiationStats.useQuery();
+  const { data: negotiationStats, isLoading: isLoadingStats } =
+    api.admin.contracts.getNegotiationStats.useQuery();
 
   // Mutations
   const acceptProposalMutation = api.admin.contracts.acceptNegotiationProposal.useMutation({
@@ -42,7 +40,7 @@ export function useContractNegotiations(initialFilters: Partial<NegotiationFilte
       });
       refetchNegotiations();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: `Impossible d'accepter la proposition: ${error.message}`,
@@ -59,7 +57,7 @@ export function useContractNegotiations(initialFilters: Partial<NegotiationFilte
       });
       refetchNegotiations();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: `Impossible de rejeter la proposition: ${error.message}`,
@@ -76,7 +74,7 @@ export function useContractNegotiations(initialFilters: Partial<NegotiationFilte
       });
       refetchNegotiations();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: `Impossible d'envoyer la contre-proposition: ${error.message}`,
@@ -93,7 +91,7 @@ export function useContractNegotiations(initialFilters: Partial<NegotiationFilte
       });
       refetchNegotiations();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: `Impossible de finaliser la négociation: ${error.message}`,
@@ -110,7 +108,7 @@ export function useContractNegotiations(initialFilters: Partial<NegotiationFilte
       });
       refetchNegotiations();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: `Impossible d'annuler la négociation: ${error.message}`,
@@ -176,7 +174,8 @@ export function useContractNegotiations(initialFilters: Partial<NegotiationFilte
   };
 
   // Utilitaires
-  const isLoading = isLoadingNegotiations || 
+  const isLoading =
+    isLoadingNegotiations ||
     acceptProposalMutation.isPending ||
     rejectProposalMutation.isPending ||
     makeCounterProposalMutation.isPending ||
@@ -219,4 +218,4 @@ export function useContractNegotiations(initialFilters: Partial<NegotiationFilte
     changePageSize,
     refetch: refetchNegotiations,
   };
-} 
+}

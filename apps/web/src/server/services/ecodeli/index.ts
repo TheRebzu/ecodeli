@@ -10,4 +10,3 @@ export * from './international-purchase.service';
 export * from './nfc-card.service';
 export * from './person-transport.service';
 export * from './pet-sitting.service';
-

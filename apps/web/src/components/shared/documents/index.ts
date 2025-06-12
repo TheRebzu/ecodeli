@@ -19,4 +19,3 @@ export { default as DocumentUploader } from './document-uploader';
 export * from './document-uploader';
 export { default as DocumentViewer } from './document-viewer';
 export * from './document-viewer';
-

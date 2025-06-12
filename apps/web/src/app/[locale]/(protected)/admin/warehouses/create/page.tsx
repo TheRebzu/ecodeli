@@ -1,15 +1,15 @@
 import { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { WarehouseForm } from '@/components/admin/warehouses/warehouse-form';
-import { PageProps, MetadataProps } from '@/server/auth/next-auth';
 
 export async function generateMetadata({
   params,
 }: {
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
+  const { locale } = await params;
   const t = await getTranslations({
-    locale: params.locale,
+    locale,
     namespace: 'admin.warehouses.form.meta',
   });
 

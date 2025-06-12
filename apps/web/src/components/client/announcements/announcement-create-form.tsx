@@ -108,17 +108,17 @@ const formSchema = z.object({
   requiresId: z.boolean().default(false),
   specialInstructions: z.string().optional(),
   photos: z.array(z.string()).default([]),
-  
+
   // Champs pour livraison partielle
   intermediatePointAddress: z.string().optional(),
   intermediatePointLatitude: z.number().optional(),
   intermediatePointLongitude: z.number().optional(),
-  
+
   // Champs pour lâcher de chariot
   cartDropSlot: z.string().optional(),
   isRecurring: z.boolean().default(false),
   recurringDays: z.array(z.number()).optional(),
-  
+
   // Assurance et abonnement
   insuranceRequired: z.boolean().default(false),
   priorityDelivery: z.boolean().default(false),

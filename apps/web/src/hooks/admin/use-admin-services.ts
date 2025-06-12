@@ -58,7 +58,7 @@ export function useAdminServices() {
       });
       refetch();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: error.message,
@@ -75,7 +75,7 @@ export function useAdminServices() {
       });
       refetch();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: error.message,
@@ -92,7 +92,7 @@ export function useAdminServices() {
       });
       refetch();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: error.message,
@@ -109,7 +109,7 @@ export function useAdminServices() {
       });
       refetch();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: error.message,
@@ -153,27 +153,27 @@ export function useAdminServices() {
     services: servicesData?.services || [],
     total: servicesData?.total || 0,
     stats: statsData,
-    
+
     // États
     isLoading,
     error,
-    
+
     // Filtres
     filters,
     updateFilters,
     resetFilters,
-    
+
     // Actions
     createService,
     updateService,
     updateServiceStatus,
     deleteService,
     refetch,
-    
+
     // États des mutations
     isCreating: createServiceMutation.isPending,
     isUpdating: updateServiceMutation.isPending,
     isUpdatingStatus: updateStatusMutation.isPending,
     isDeleting: deleteServiceMutation.isPending,
   };
-} 
+}

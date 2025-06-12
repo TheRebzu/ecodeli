@@ -9,4 +9,3 @@ export * from './use-client-management';
 export * from './use-deliverer-management';
 export * from './use-merchant-management';
 export * from './use-provider-management';
-

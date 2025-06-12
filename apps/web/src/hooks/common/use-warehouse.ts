@@ -1,6 +1,10 @@
 import { useState } from 'react';
 import { api } from '@/trpc/react';
-import type { WarehouseFilters, BoxFilters, ReservationFilters } from '@/types/warehouses/warehouse';
+import type {
+  WarehouseFilters,
+  BoxFilters,
+  ReservationFilters,
+} from '@/types/warehouses/warehouse';
 
 export const useWarehouse = () => {
   const [warehouseFilters, setWarehouseFilters] = useState<WarehouseFilters>({

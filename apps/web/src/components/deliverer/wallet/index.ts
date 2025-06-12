@@ -10,4 +10,3 @@ export { default as WalletDashboard } from './wallet-dashboard';
 export * from './wallet-dashboard';
 export { default as WithdrawalForm } from './withdrawal-form';
 export * from './withdrawal-form';
-

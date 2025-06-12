@@ -1,24 +1,27 @@
-import { z } from "zod";
+import { z } from 'zod';
 import { router, protectedProcedure, adminProcedure } from '@/server/api/trpc';
-import { TRPCError } from "@trpc/server";
-import { DocumentStatus, DocumentType, VerificationStatus } from "@prisma/client";
+import { TRPCError } from '@trpc/server';
+import { DocumentStatus, DocumentType, VerificationStatus } from '@prisma/client';
 
 /**
  * Router pour la gestion des documents des livreurs
- * Système de validation et vérification selon le cahier des charges
+ * Systï¿½me de validation et vï¿½rification selon le cahier des charges
  */
 
-// Schémas de validation
+// Schï¿½mas de validation
 const uploadDocumentSchema = z.object({
   type: z.nativeEnum(DocumentType),
   fileName: z.string().min(1).max(255),
   fileUrl: z.string().url(),
-  fileSize: z.number().min(1).max(10 * 1024 * 1024), // 10MB max
+  fileSize: z
+    .number()
+    .min(1)
+    .max(10 * 1024 * 1024), // 10MB max
   mimeType: z.string().min(1),
   description: z.string().max(500).optional(),
   expirationDate: z.date().optional(),
   issuingAuthority: z.string().max(100).optional(),
-  documentNumber: z.string().max(50).optional()
+  documentNumber: z.string().max(50).optional(),
 });
 
 const documentFiltersSchema = z.object({
@@ -28,7 +31,7 @@ const documentFiltersSchema = z.object({
   expirationDateFrom: z.date().optional(),
   expirationDateTo: z.date().optional(),
   limit: z.number().min(1).max(50).default(20),
-  offset: z.number().min(0).default(0)
+  offset: z.number().min(0).default(0),
 });
 
 const verifyDocumentSchema = z.object({
@@ -37,67 +40,69 @@ const verifyDocumentSchema = z.object({
   reviewNotes: z.string().max(1000).optional(),
   expirationDateOverride: z.date().optional(),
   requiresResubmission: z.boolean().default(false),
-  additionalRequirements: z.array(z.string()).optional()
+  additionalRequirements: z.array(z.string()).optional(),
 });
 
 const documentRequirementsSchema = z.object({
   delivererId: z.string().cuid(),
-  requiredDocuments: z.array(z.object({
-    type: z.nativeEnum(DocumentType),
-    isRequired: z.boolean(),
-    description: z.string(),
-    maxFileSize: z.number().optional(),
-    allowedFormats: z.array(z.string()).optional(),
-    validityPeriod: z.number().optional() // en jours
-  }))
+  requiredDocuments: z.array(
+    z.object({
+      type: z.nativeEnum(DocumentType),
+      isRequired: z.boolean(),
+      description: z.string(),
+      maxFileSize: z.number().optional(),
+      allowedFormats: z.array(z.string()).optional(),
+      validityPeriod: z.number().optional(), // en jours
+    })
+  ),
 });
 
 export const delivererDocumentsRouter = router({
   /**
-   * Télécharger un document (Livreur)
+   * Tï¿½lï¿½charger un document (Livreur)
    */
   uploadDocument: protectedProcedure
     .input(uploadDocumentSchema)
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
-      
+
       if (user.role !== 'DELIVERER') {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les livreurs peuvent télécharger des documents"
+          code: 'FORBIDDEN',
+          message: 'Seuls les livreurs peuvent tï¿½lï¿½charger des documents',
         });
       }
 
       try {
-        // Vérifier si le livreur existe
+        // Vï¿½rifier si le livreur existe
         const deliverer = await ctx.db.deliverer.findUnique({
-          where: { userId: user.id }
+          where: { userId: user.id },
         });
 
         if (!deliverer) {
           throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Profil livreur non trouvé"
+            code: 'NOT_FOUND',
+            message: 'Profil livreur non trouvï¿½',
           });
         }
 
-        // Vérifier s'il existe déjà un document de ce type en attente ou approuvé
+        // Vï¿½rifier s'il existe dï¿½jï¿½ un document de ce type en attente ou approuvï¿½
         const existingDocument = await ctx.db.document.findFirst({
           where: {
             userId: user.id,
             type: input.type,
-            status: { in: ['PENDING', 'APPROVED'] }
-          }
+            status: { in: ['PENDING', 'APPROVED'] },
+          },
         });
 
         if (existingDocument) {
           throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Un document de ce type est déjà en cours de traitement ou approuvé"
+            code: 'BAD_REQUEST',
+            message: 'Un document de ce type est dï¿½jï¿½ en cours de traitement ou approuvï¿½',
           });
         }
 
-        // Créer le document
+        // Crï¿½er le document
         const document = await ctx.db.document.create({
           data: {
             userId: user.id,
@@ -110,11 +115,11 @@ export const delivererDocumentsRouter = router({
             expirationDate: input.expirationDate,
             issuingAuthority: input.issuingAuthority,
             documentNumber: input.documentNumber,
-            status: 'PENDING'
-          }
+            status: 'PENDING',
+          },
         });
 
-        // Créer une entrée de vérification
+        // Crï¿½er une entrï¿½e de vï¿½rification
         await ctx.db.verification.create({
           data: {
             userId: user.id,
@@ -125,26 +130,26 @@ export const delivererDocumentsRouter = router({
             metadata: {
               uploadedAt: new Date().toISOString(),
               originalFileName: input.fileName,
-              fileSize: input.fileSize
-            }
-          }
+              fileSize: input.fileSize,
+            },
+          },
         });
 
-        // Mettre à jour le statut de vérification du livreur
+        // Mettre ï¿½ jour le statut de vï¿½rification du livreur
         await updateDelivererVerificationStatus(user.id, ctx.db);
 
-        // TODO: Envoyer notification aux admins pour révision
+        // TODO: Envoyer notification aux admins pour rï¿½vision
 
         return {
           success: true,
           document,
-          message: "Document téléchargé avec succès. Il sera examiné par nos équipes."
+          message: 'Document tï¿½lï¿½chargï¿½ avec succï¿½s. Il sera examinï¿½ par nos ï¿½quipes.',
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors du téléchargement du document"
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erreur lors du tï¿½lï¿½chargement du document',
         });
       }
     }),
@@ -152,128 +157,128 @@ export const delivererDocumentsRouter = router({
   /**
    * Obtenir les documents du livreur
    */
-  getMyDocuments: protectedProcedure
-    .input(documentFiltersSchema)
-    .query(async ({ ctx, input }) => {
-      const { user } = ctx.session;
-      
-      if (user.role !== 'DELIVERER') {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les livreurs peuvent consulter leurs documents"
-        });
+  getMyDocuments: protectedProcedure.input(documentFiltersSchema).query(async ({ ctx, input }) => {
+    const { user } = ctx.session;
+
+    if (user.role !== 'DELIVERER') {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Seuls les livreurs peuvent consulter leurs documents',
+      });
+    }
+
+    try {
+      const where: any = {
+        userId: user.id,
+        ...(input.type && { type: input.type }),
+        ...(input.status && { status: input.status }),
+      };
+
+      if (input.expirationDateFrom || input.expirationDateTo) {
+        where.expirationDate = {};
+        if (input.expirationDateFrom) where.expirationDate.gte = input.expirationDateFrom;
+        if (input.expirationDateTo) where.expirationDate.lte = input.expirationDateTo;
       }
 
-      try {
-        const where: any = {
-          userId: user.id,
-          ...(input.type && { type: input.type }),
-          ...(input.status && { status: input.status })
-        };
-
-        if (input.expirationDateFrom || input.expirationDateTo) {
-          where.expirationDate = {};
-          if (input.expirationDateFrom) where.expirationDate.gte = input.expirationDateFrom;
-          if (input.expirationDateTo) where.expirationDate.lte = input.expirationDateTo;
-        }
-
-        const documents = await ctx.db.document.findMany({
-          where,
-          include: {
-            verifications: {
-              orderBy: { createdAt: 'desc' },
-              take: 1,
-              include: {
-                reviewedByAdmin: {
-                  select: {
-                    name: true,
-                    email: true
-                  }
-                }
-              }
-            }
+      const documents = await ctx.db.document.findMany({
+        where,
+        include: {
+          verifications: {
+            orderBy: { createdAt: 'desc' },
+            take: 1,
+            include: {
+              reviewedByAdmin: {
+                select: {
+                  name: true,
+                  email: true,
+                },
+              },
+            },
           },
-          orderBy: { createdAt: 'desc' },
-          skip: input.offset,
-          take: input.limit
-        });
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: input.offset,
+        take: input.limit,
+      });
 
-        const totalCount = await ctx.db.document.count({ where });
+      const totalCount = await ctx.db.document.count({ where });
 
-        // Obtenir les exigences de documents pour ce livreur
-        const requirements = await getDocumentRequirements(user.id, ctx.db);
+      // Obtenir les exigences de documents pour ce livreur
+      const requirements = await getDocumentRequirements(user.id, ctx.db);
 
-        return {
-          success: true,
-          documents,
-          requirements,
-          pagination: {
-            total: totalCount,
-            offset: input.offset,
-            limit: input.limit,
-            hasMore: input.offset + input.limit < totalCount
-          }
-        };
-      } catch (error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la récupération des documents"
-        });
-      }
-    }),
+      return {
+        success: true,
+        documents,
+        requirements,
+        pagination: {
+          total: totalCount,
+          offset: input.offset,
+          limit: input.limit,
+          hasMore: input.offset + input.limit < totalCount,
+        },
+      };
+    } catch (error) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la rï¿½cupï¿½ration des documents',
+      });
+    }
+  }),
 
   /**
-   * Remplacer un document expiré ou rejeté
+   * Remplacer un document expirï¿½ ou rejetï¿½
    */
   replaceDocument: protectedProcedure
-    .input(z.object({
-      documentId: z.string().cuid(),
-      newDocument: uploadDocumentSchema
-    }))
+    .input(
+      z.object({
+        documentId: z.string().cuid(),
+        newDocument: uploadDocumentSchema,
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
-      
+
       if (user.role !== 'DELIVERER') {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les livreurs peuvent remplacer leurs documents"
+          code: 'FORBIDDEN',
+          message: 'Seuls les livreurs peuvent remplacer leurs documents',
         });
       }
 
       try {
-        // Vérifier que le document existe et appartient au livreur
+        // Vï¿½rifier que le document existe et appartient au livreur
         const existingDocument = await ctx.db.document.findFirst({
           where: {
             id: input.documentId,
-            userId: user.id
-          }
+            userId: user.id,
+          },
         });
 
         if (!existingDocument) {
           throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Document non trouvé"
+            code: 'NOT_FOUND',
+            message: 'Document non trouvï¿½',
           });
         }
 
-        // Vérifier que le document peut être remplacé
+        // Vï¿½rifier que le document peut ï¿½tre remplacï¿½
         if (!['EXPIRED', 'REJECTED'].includes(existingDocument.status)) {
           throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Seuls les documents expirés ou rejetés peuvent être remplacés"
+            code: 'BAD_REQUEST',
+            message: 'Seuls les documents expirï¿½s ou rejetï¿½s peuvent ï¿½tre remplacï¿½s',
           });
         }
 
-        // Marquer l'ancien document comme remplacé
+        // Marquer l'ancien document comme remplacï¿½
         await ctx.db.document.update({
           where: { id: input.documentId },
           data: {
             status: 'REPLACED',
-            replacedAt: new Date()
-          }
+            replacedAt: new Date(),
+          },
         });
 
-        // Créer le nouveau document
+        // Crï¿½er le nouveau document
         const newDocument = await ctx.db.document.create({
           data: {
             userId: user.id,
@@ -287,11 +292,11 @@ export const delivererDocumentsRouter = router({
             issuingAuthority: input.newDocument.issuingAuthority,
             documentNumber: input.newDocument.documentNumber,
             status: 'PENDING',
-            replacesDocumentId: input.documentId
-          }
+            replacesDocumentId: input.documentId,
+          },
         });
 
-        // Créer une nouvelle vérification
+        // Crï¿½er une nouvelle vï¿½rification
         await ctx.db.verification.create({
           data: {
             userId: user.id,
@@ -302,115 +307,120 @@ export const delivererDocumentsRouter = router({
             metadata: {
               isReplacement: true,
               replacedDocumentId: input.documentId,
-              uploadedAt: new Date().toISOString()
-            }
-          }
+              uploadedAt: new Date().toISOString(),
+            },
+          },
         });
 
         return {
           success: true,
           document: newDocument,
-          message: "Document remplacé avec succès"
+          message: 'Document remplacï¿½ avec succï¿½s',
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors du remplacement du document"
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erreur lors du remplacement du document',
         });
       }
     }),
 
   /**
-   * Obtenir le statut de vérification global
+   * Obtenir le statut de vï¿½rification global
    */
-  getVerificationStatus: protectedProcedure
-    .query(async ({ ctx }) => {
-      const { user } = ctx.session;
-      
-      if (user.role !== 'DELIVERER') {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les livreurs peuvent consulter leur statut de vérification"
-        });
-      }
+  getVerificationStatus: protectedProcedure.query(async ({ ctx }) => {
+    const { user } = ctx.session;
 
-      try {
-        const deliverer = await ctx.db.deliverer.findUnique({
-          where: { userId: user.id },
-          include: {
-            user: {
-              include: {
-                documents: {
-                  include: {
-                    verifications: {
-                      orderBy: { createdAt: 'desc' },
-                      take: 1
-                    }
-                  }
+    if (user.role !== 'DELIVERER') {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Seuls les livreurs peuvent consulter leur statut de vï¿½rification',
+      });
+    }
+
+    try {
+      const deliverer = await ctx.db.deliverer.findUnique({
+        where: { userId: user.id },
+        include: {
+          user: {
+            include: {
+              documents: {
+                include: {
+                  verifications: {
+                    orderBy: { createdAt: 'desc' },
+                    take: 1,
+                  },
                 },
-                verifications: {
-                  orderBy: { createdAt: 'desc' }
-                }
-              }
-            }
-          }
-        });
+              },
+              verifications: {
+                orderBy: { createdAt: 'desc' },
+              },
+            },
+          },
+        },
+      });
 
-        if (!deliverer) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Profil livreur non trouvé"
-          });
-        }
-
-        // Calculer le statut global
-        const requirements = await getDocumentRequirements(user.id, ctx.db);
-        const documentStatus = calculateDocumentCompletionStatus(deliverer.user.documents, requirements);
-
-        // Vérifier si le livreur peut être activé
-        const canBeActivated = documentStatus.allRequired && 
-                              deliverer.verificationStatus === 'VERIFIED' &&
-                              !deliverer.user.documents.some(doc => 
-                                doc.status === 'EXPIRED' || doc.status === 'REJECTED'
-                              );
-
-        return {
-          success: true,
-          data: {
-            overallStatus: deliverer.verificationStatus,
-            canBeActivated,
-            documentCompletion: documentStatus,
-            lastVerificationUpdate: deliverer.user.verifications[0]?.updatedAt,
-            nextExpiringDocument: getNextExpiringDocument(deliverer.user.documents),
-            pendingActions: getPendingActions(deliverer.user.documents, requirements)
-          }
-        };
-      } catch (error) {
-        if (error instanceof TRPCError) throw error;
+      if (!deliverer) {
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la récupération du statut"
+          code: 'NOT_FOUND',
+          message: 'Profil livreur non trouvï¿½',
         });
       }
-    }),
+
+      // Calculer le statut global
+      const requirements = await getDocumentRequirements(user.id, ctx.db);
+      const documentStatus = calculateDocumentCompletionStatus(
+        deliverer.user.documents,
+        requirements
+      );
+
+      // Vï¿½rifier si le livreur peut ï¿½tre activï¿½
+      const canBeActivated =
+        documentStatus.allRequired &&
+        deliverer.verificationStatus === 'VERIFIED' &&
+        !deliverer.user.documents.some(
+          doc => doc.status === 'EXPIRED' || doc.status === 'REJECTED'
+        );
+
+      return {
+        success: true,
+        data: {
+          overallStatus: deliverer.verificationStatus,
+          canBeActivated,
+          documentCompletion: documentStatus,
+          lastVerificationUpdate: deliverer.user.verifications[0]?.updatedAt,
+          nextExpiringDocument: getNextExpiringDocument(deliverer.user.documents),
+          pendingActions: getPendingActions(deliverer.user.documents, requirements),
+        },
+      };
+    } catch (error) {
+      if (error instanceof TRPCError) throw error;
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la rï¿½cupï¿½ration du statut',
+      });
+    }
+  }),
 
   // ==== ADMIN PROCEDURES ====
 
   /**
-   * Obtenir les documents en attente de vérification (Admin)
+   * Obtenir les documents en attente de vï¿½rification (Admin)
    */
   getPendingDocuments: adminProcedure
-    .input(z.object({
-      delivererId: z.string().optional(),
-      type: z.nativeEnum(DocumentType).optional(),
-      limit: z.number().min(1).max(100).default(20),
-      offset: z.number().min(0).default(0)
-    }))
+    .input(
+      z.object({
+        delivererId: z.string().optional(),
+        type: z.nativeEnum(DocumentType).optional(),
+        limit: z.number().min(1).max(100).default(20),
+        offset: z.number().min(0).default(0),
+      })
+    )
     .query(async ({ ctx, input }) => {
       try {
         const where: any = {
-          status: 'PENDING'
+          status: 'PENDING',
         };
 
         if (input.delivererId) where.userId = input.delivererId;
@@ -427,19 +437,19 @@ export const delivererDocumentsRouter = router({
                 deliverer: {
                   select: {
                     verificationStatus: true,
-                    isActive: true
-                  }
-                }
-              }
+                    isActive: true,
+                  },
+                },
+              },
             },
             verifications: {
               orderBy: { createdAt: 'desc' },
-              take: 1
-            }
+              take: 1,
+            },
           },
           orderBy: { createdAt: 'asc' }, // Plus anciens en premier
           skip: input.offset,
-          take: input.limit
+          take: input.limit,
         });
 
         const totalCount = await ctx.db.document.count({ where });
@@ -450,135 +460,137 @@ export const delivererDocumentsRouter = router({
             total: totalCount,
             offset: input.offset,
             limit: input.limit,
-            hasMore: input.offset + input.limit < totalCount
-          }
-        };
-      } catch (error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la récupération des documents"
-        });
-      }
-    }),
-
-  /**
-   * Vérifier un document (Admin)
-   */
-  verifyDocument: adminProcedure
-    .input(verifyDocumentSchema)
-    .mutation(async ({ ctx, input }) => {
-      try {
-        const document = await ctx.db.document.findUnique({
-          where: { id: input.documentId },
-          include: {
-            user: {
-              include: {
-                deliverer: true
-              }
-            }
-          }
-        });
-
-        if (!document) {
-          throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Document non trouvé"
-          });
-        }
-
-        // Mettre à jour le document
-        const updatedDocument = await ctx.db.document.update({
-          where: { id: input.documentId },
-          data: {
-            status: input.status === 'VERIFIED' ? 'APPROVED' : 
-                   input.status === 'REJECTED' ? 'REJECTED' : 'PENDING',
-            ...(input.expirationDateOverride && {
-              expirationDate: input.expirationDateOverride
-            }),
-            reviewedAt: new Date()
-          }
-        });
-
-        // Mettre à jour la vérification
-        await ctx.db.verification.updateMany({
-          where: {
-            documentId: input.documentId,
-            status: 'PENDING'
+            hasMore: input.offset + input.limit < totalCount,
           },
-          data: {
-            status: input.status,
-            reviewNotes: input.reviewNotes,
-            reviewedByAdminId: ctx.session.user.id,
-            reviewedAt: new Date(),
-            metadata: {
-              requiresResubmission: input.requiresResubmission,
-              additionalRequirements: input.additionalRequirements
-            }
-          }
-        });
-
-        // Mettre à jour le statut global du livreur
-        await updateDelivererVerificationStatus(document.userId, ctx.db);
-
-        // TODO: Envoyer notification au livreur
-
-        return {
-          success: true,
-          document: updatedDocument,
-          message: `Document ${input.status === 'VERIFIED' ? 'approuvé' : 'rejeté'} avec succès`
         };
       } catch (error) {
-        if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la vérification du document"
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erreur lors de la rï¿½cupï¿½ration des documents',
         });
       }
     }),
 
   /**
-   * Définir les exigences de documents (Admin)
+   * Vï¿½rifier un document (Admin)
+   */
+  verifyDocument: adminProcedure.input(verifyDocumentSchema).mutation(async ({ ctx, input }) => {
+    try {
+      const document = await ctx.db.document.findUnique({
+        where: { id: input.documentId },
+        include: {
+          user: {
+            include: {
+              deliverer: true,
+            },
+          },
+        },
+      });
+
+      if (!document) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Document non trouvï¿½',
+        });
+      }
+
+      // Mettre ï¿½ jour le document
+      const updatedDocument = await ctx.db.document.update({
+        where: { id: input.documentId },
+        data: {
+          status:
+            input.status === 'VERIFIED'
+              ? 'APPROVED'
+              : input.status === 'REJECTED'
+                ? 'REJECTED'
+                : 'PENDING',
+          ...(input.expirationDateOverride && {
+            expirationDate: input.expirationDateOverride,
+          }),
+          reviewedAt: new Date(),
+        },
+      });
+
+      // Mettre ï¿½ jour la vï¿½rification
+      await ctx.db.verification.updateMany({
+        where: {
+          documentId: input.documentId,
+          status: 'PENDING',
+        },
+        data: {
+          status: input.status,
+          reviewNotes: input.reviewNotes,
+          reviewedByAdminId: ctx.session.user.id,
+          reviewedAt: new Date(),
+          metadata: {
+            requiresResubmission: input.requiresResubmission,
+            additionalRequirements: input.additionalRequirements,
+          },
+        },
+      });
+
+      // Mettre ï¿½ jour le statut global du livreur
+      await updateDelivererVerificationStatus(document.userId, ctx.db);
+
+      // TODO: Envoyer notification au livreur
+
+      return {
+        success: true,
+        document: updatedDocument,
+        message: `Document ${input.status === 'VERIFIED' ? 'approuvï¿½' : 'rejetï¿½'} avec succï¿½s`,
+      };
+    } catch (error) {
+      if (error instanceof TRPCError) throw error;
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la vï¿½rification du document',
+      });
+    }
+  }),
+
+  /**
+   * Dï¿½finir les exigences de documents (Admin)
    */
   setDocumentRequirements: adminProcedure
     .input(documentRequirementsSchema)
     .mutation(async ({ ctx, input }) => {
       try {
-        // Vérifier que le livreur existe
+        // Vï¿½rifier que le livreur existe
         const deliverer = await ctx.db.deliverer.findUnique({
-          where: { userId: input.delivererId }
+          where: { userId: input.delivererId },
         });
 
         if (!deliverer) {
           throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Livreur non trouvé"
+            code: 'NOT_FOUND',
+            message: 'Livreur non trouvï¿½',
           });
         }
 
-        // TODO: Implémenter système de configuration des exigences
-        // Pour l'instant, retourner les exigences par défaut
+        // TODO: Implï¿½menter systï¿½me de configuration des exigences
+        // Pour l'instant, retourner les exigences par dï¿½faut
 
         return {
           success: true,
-          message: "Exigences définies avec succès"
+          message: 'Exigences dï¿½finies avec succï¿½s',
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la définition des exigences"
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erreur lors de la dï¿½finition des exigences',
         });
       }
-    })
+    }),
 });
 
 // Helper functions
 async function updateDelivererVerificationStatus(userId: string, db: any) {
   const documents = await db.document.findMany({
-    where: { 
+    where: {
       userId,
-      status: { in: ['APPROVED', 'PENDING', 'REJECTED'] }
-    }
+      status: { in: ['APPROVED', 'PENDING', 'REJECTED'] },
+    },
   });
 
   const requirements = await getDocumentRequirements(userId, db);
@@ -593,21 +605,21 @@ async function updateDelivererVerificationStatus(userId: string, db: any) {
 
   await db.deliverer.update({
     where: { userId },
-    data: { verificationStatus }
+    data: { verificationStatus },
   });
 }
 
 async function getDocumentRequirements(userId: string, db: any) {
   // Pour l'instant, exigences standard pour tous les livreurs
-  // TODO: Implémenter système configurable selon le type de livreur
+  // TODO: Implï¿½menter systï¿½me configurable selon le type de livreur
   return [
     {
       type: 'IDENTITY_CARD',
       isRequired: true,
-      description: 'Carte d\'identité ou passeport',
+      description: "Carte d'identitï¿½ ou passeport",
       maxFileSize: 5 * 1024 * 1024,
       allowedFormats: ['pdf', 'jpg', 'jpeg', 'png'],
-      validityPeriod: 365 * 10 // 10 ans
+      validityPeriod: 365 * 10, // 10 ans
     },
     {
       type: 'DRIVING_LICENSE',
@@ -615,53 +627,53 @@ async function getDocumentRequirements(userId: string, db: any) {
       description: 'Permis de conduire valide',
       maxFileSize: 5 * 1024 * 1024,
       allowedFormats: ['pdf', 'jpg', 'jpeg', 'png'],
-      validityPeriod: 365 * 15 // 15 ans
+      validityPeriod: 365 * 15, // 15 ans
     },
     {
       type: 'VEHICLE_REGISTRATION',
       isRequired: true,
-      description: 'Carte grise du véhicule',
+      description: 'Carte grise du vï¿½hicule',
       maxFileSize: 5 * 1024 * 1024,
       allowedFormats: ['pdf', 'jpg', 'jpeg', 'png'],
-      validityPeriod: null // Pas d'expiration
+      validityPeriod: null, // Pas d'expiration
     },
     {
       type: 'INSURANCE_CERTIFICATE',
       isRequired: true,
-      description: 'Attestation d\'assurance véhicule',
+      description: "Attestation d'assurance vï¿½hicule",
       maxFileSize: 5 * 1024 * 1024,
       allowedFormats: ['pdf', 'jpg', 'jpeg', 'png'],
-      validityPeriod: 365 // 1 an
-    }
+      validityPeriod: 365, // 1 an
+    },
   ];
 }
 
 function calculateDocumentCompletionStatus(documents: any[], requirements: any[]) {
   const requiredTypes = requirements.filter(req => req.isRequired).map(req => req.type);
-  
-  const providedTypes = documents
-    .filter(doc => doc.status === 'APPROVED')
-    .map(doc => doc.type);
-    
-  const allRequired = requiredTypes.every(type => 
+
+  const providedTypes = documents.filter(doc => doc.status === 'APPROVED').map(doc => doc.type);
+
+  const allRequired = requiredTypes.every(type =>
     documents.some(doc => doc.type === type && doc.status !== 'REJECTED')
   );
-  
-  const allApproved = requiredTypes.every(type => 
+
+  const allApproved = requiredTypes.every(type =>
     documents.some(doc => doc.type === type && doc.status === 'APPROVED')
   );
-  
-  const completionRate = requiredTypes.length > 0 
-    ? (providedTypes.filter(type => requiredTypes.includes(type)).length / requiredTypes.length) * 100
-    : 0;
+
+  const completionRate =
+    requiredTypes.length > 0
+      ? (providedTypes.filter(type => requiredTypes.includes(type)).length / requiredTypes.length) *
+        100
+      : 0;
 
   return {
     allRequired,
     allApproved,
     completionRate: Math.round(completionRate),
-    missingDocuments: requiredTypes.filter(type => 
-      !documents.some(doc => doc.type === type && doc.status !== 'REJECTED')
-    )
+    missingDocuments: requiredTypes.filter(
+      type => !documents.some(doc => doc.type === type && doc.status !== 'REJECTED')
+    ),
   };
 }
 
@@ -669,49 +681,48 @@ function getNextExpiringDocument(documents: any[]) {
   const approvedDocs = documents
     .filter(doc => doc.status === 'APPROVED' && doc.expirationDate)
     .sort((a, b) => new Date(a.expirationDate).getTime() - new Date(b.expirationDate).getTime());
-    
+
   return approvedDocs[0] || null;
 }
 
 function getPendingActions(documents: any[], requirements: any[]) {
   const actions = [];
-  
-  // Documents rejetés à remplacer
+
+  // Documents rejetï¿½s ï¿½ remplacer
   const rejectedDocs = documents.filter(doc => doc.status === 'REJECTED');
   rejectedDocs.forEach(doc => {
     actions.push({
       type: 'REPLACE_DOCUMENT',
       documentType: doc.type,
-      message: 'Document rejeté - remplacement requis'
+      message: 'Document rejetï¿½ - remplacement requis',
     });
   });
-  
-  // Documents expirés
-  const expiredDocs = documents.filter(doc => 
-    doc.status === 'APPROVED' && 
-    doc.expirationDate && 
-    new Date(doc.expirationDate) < new Date()
+
+  // Documents expirï¿½s
+  const expiredDocs = documents.filter(
+    doc =>
+      doc.status === 'APPROVED' && doc.expirationDate && new Date(doc.expirationDate) < new Date()
   );
   expiredDocs.forEach(doc => {
     actions.push({
       type: 'RENEW_DOCUMENT',
       documentType: doc.type,
-      message: 'Document expiré - renouvellement requis'
+      message: 'Document expirï¿½ - renouvellement requis',
     });
   });
-  
+
   // Documents manquants
   const requiredTypes = requirements.filter(req => req.isRequired).map(req => req.type);
-  const missingTypes = requiredTypes.filter(type => 
-    !documents.some(doc => doc.type === type && doc.status !== 'REJECTED')
+  const missingTypes = requiredTypes.filter(
+    type => !documents.some(doc => doc.type === type && doc.status !== 'REJECTED')
   );
   missingTypes.forEach(type => {
     actions.push({
       type: 'UPLOAD_DOCUMENT',
       documentType: type,
-      message: 'Document requis manquant'
+      message: 'Document requis manquant',
     });
   });
-  
+
   return actions;
 }

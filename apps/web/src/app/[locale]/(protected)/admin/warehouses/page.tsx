@@ -1,14 +1,14 @@
 import { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
 import { WarehouseList } from '@/components/admin/warehouses/warehouse-list';
-import { PageProps, MetadataProps } from '@/server/auth/next-auth';
 
 export async function generateMetadata({
   params,
 }: {
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
-  const t = await getTranslations({ locale: params.locale, namespace: 'admin.warehouses.meta' });
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: 'admin.warehouses.meta' });
 
   return {
     title: t('title'),

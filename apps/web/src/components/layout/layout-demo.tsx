@@ -44,21 +44,21 @@ export function LayoutDemo({ locale }: LayoutDemoProps) {
               Le sidebar s'adapte automatiquement selon le rôle de l'utilisateur connecté
             </p>
           </div>
-          
+
           <div className="rounded-lg border p-4">
             <h3 className="font-semibold">Routes Complètes</h3>
             <p className="text-sm text-muted-foreground mt-2">
               Toutes les routes de l'arborescence sont intégrées dans chaque sidebar
             </p>
           </div>
-          
+
           <div className="rounded-lg border p-4">
             <h3 className="font-semibold">Responsive</h3>
             <p className="text-sm text-muted-foreground mt-2">
               Interface adaptative avec support mobile et collapse automatique
             </p>
           </div>
-          
+
           <div className="rounded-lg border p-4">
             <h3 className="font-semibold">Notifications</h3>
             <p className="text-sm text-muted-foreground mt-2">
@@ -80,7 +80,7 @@ export function LayoutDemo({ locale }: LayoutDemoProps) {
                 <li>• Prestataire - Services et rendez-vous</li>
               </ul>
             </div>
-            
+
             <div>
               <h3 className="font-medium mb-2">Composants Layout</h3>
               <ul className="text-sm text-muted-foreground space-y-1">
@@ -96,4 +96,4 @@ export function LayoutDemo({ locale }: LayoutDemoProps) {
       </div>
     </ProtectedLayout>
   );
-} 
+}

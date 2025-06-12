@@ -17,7 +17,7 @@ export function useMediaQuery(query: string): boolean {
     }
 
     const mediaQuery = window.matchMedia(query);
-    
+
     // Définir la valeur initiale
     setMatches(mediaQuery.matches);
 
@@ -38,4 +38,4 @@ export function useMediaQuery(query: string): boolean {
   return matches;
 }
 
-export default useMediaQuery; 
+export default useMediaQuery;

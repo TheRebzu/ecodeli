@@ -24,12 +24,12 @@ const CONFIG = {
     'src/server/services',
     'src/types',
     'src/utils',
-    'src/store'
+    'src/store',
   ],
-  
+
   // Extensions de fichiers à inclure
   fileExtensions: ['.ts', '.tsx', '.js', '.jsx'],
-  
+
   // Fichiers à exclure
   excludeFiles: [
     'index.ts',
@@ -41,25 +41,19 @@ const CONFIG = {
     '.spec.ts',
     '.spec.tsx',
     '.stories.ts',
-    '.stories.tsx'
+    '.stories.tsx',
   ],
-  
+
   // Dossiers à exclure
-  excludeDirectories: [
-    'node_modules',
-    '.next',
-    '.git',
-    'dist',
-    'build'
-  ]
+  excludeDirectories: ['node_modules', '.next', '.git', 'dist', 'build'],
 };
 
 /**
  * Vérifie si un fichier doit être exclu
  */
 function shouldExcludeFile(fileName) {
-  return CONFIG.excludeFiles.some(exclude => 
-    fileName.includes(exclude) || fileName.endsWith(exclude)
+  return CONFIG.excludeFiles.some(
+    exclude => fileName.includes(exclude) || fileName.endsWith(exclude)
   );
 }
 
@@ -77,11 +71,11 @@ function getFilesInDirectory(dirPath) {
   try {
     const items = fs.readdirSync(dirPath);
     const files = [];
-    
+
     for (const item of items) {
       const itemPath = path.join(dirPath, item);
       const stat = fs.statSync(itemPath);
-      
+
       if (stat.isFile()) {
         const ext = path.extname(item);
         if (CONFIG.fileExtensions.includes(ext) && !shouldExcludeFile(item)) {
@@ -89,12 +83,12 @@ function getFilesInDirectory(dirPath) {
             name: item,
             nameWithoutExt: path.basename(item, ext),
             path: itemPath,
-            ext
+            ext,
           });
         }
       }
     }
-    
+
     return files;
   } catch (error) {
     console.warn(`⚠️  Impossible de lire le dossier ${dirPath}:`, error.message);
@@ -109,19 +103,19 @@ function getSubDirectories(dirPath) {
   try {
     const items = fs.readdirSync(dirPath);
     const subDirs = [];
-    
+
     for (const item of items) {
       const itemPath = path.join(dirPath, item);
       const stat = fs.statSync(itemPath);
-      
+
       if (stat.isDirectory() && !shouldExcludeDirectory(item)) {
         subDirs.push({
           name: item,
-          path: itemPath
+          path: itemPath,
         });
       }
     }
-    
+
     return subDirs;
   } catch (error) {
     console.warn(`⚠️  Impossible de lire le dossier ${dirPath}:`, error.message);
@@ -134,13 +128,13 @@ function getSubDirectories(dirPath) {
  */
 function generateIndexContent(files, subDirs, currentPath) {
   let content = '';
-  
+
   // En-tête du fichier
   content += `/**\n`;
   content += ` * Index automatiquement généré pour ${currentPath}\n`;
   content += ` * Généré le: ${new Date().toLocaleString('fr-FR')}\n`;
   content += ` */\n\n`;
-  
+
   // Exports des fichiers du dossier courant
   if (files.length > 0) {
     content += `// Exports des fichiers locaux\n`;
@@ -172,7 +166,7 @@ function generateIndexContent(files, subDirs, currentPath) {
     }
     content += '\n';
   }
-  
+
   // Exports des sous-dossiers
   if (subDirs.length > 0) {
     content += `// Exports des sous-dossiers\n`;
@@ -184,7 +178,7 @@ function generateIndexContent(files, subDirs, currentPath) {
       }
     }
   }
-  
+
   return content;
 }
 
@@ -204,19 +198,20 @@ function toPascalCase(str) {
 function generateIndexForDirectory(dirPath) {
   const files = getFilesInDirectory(dirPath);
   const subDirs = getSubDirectories(dirPath);
-  
+
   // Générer récursivement les index des sous-dossiers d'abord
   for (const subDir of subDirs) {
     generateIndexForDirectory(subDir.path);
   }
-  
+
   // Ne générer un index que s'il y a des fichiers ou des sous-dossiers avec des index
-  if (files.length > 0 || subDirs.some(subDir => 
-    fs.existsSync(path.join(subDir.path, 'index.ts'))
-  )) {
+  if (
+    files.length > 0 ||
+    subDirs.some(subDir => fs.existsSync(path.join(subDir.path, 'index.ts')))
+  ) {
     const indexPath = path.join(dirPath, 'index.ts');
     const content = generateIndexContent(files, subDirs, dirPath);
-    
+
     try {
       fs.writeFileSync(indexPath, content, 'utf8');
       console.log(`✅ Généré: ${indexPath}`);
@@ -232,10 +227,10 @@ function generateIndexForDirectory(dirPath) {
  */
 function generateAllIndexes() {
   console.log('🚀 Génération des fichiers index.ts...\n');
-  
+
   for (const targetDir of CONFIG.targetDirectories) {
     const fullPath = path.resolve(targetDir);
-    
+
     if (fs.existsSync(fullPath)) {
       console.log(`📂 Traitement du dossier: ${targetDir}`);
       generateIndexForDirectory(fullPath);
@@ -244,7 +239,7 @@ function generateAllIndexes() {
       console.warn(`⚠️  Dossier introuvable: ${targetDir}`);
     }
   }
-  
+
   console.log('✨ Génération terminée !');
   console.log('\n📋 Résumé:');
   console.log('   - Utilisez ces imports simplifiés dans vos fichiers');
@@ -257,15 +252,15 @@ function generateAllIndexes() {
  */
 function cleanExistingIndexes() {
   console.log('🧹 Nettoyage des fichiers index existants...\n');
-  
+
   function cleanDirectory(dirPath) {
     try {
       const items = fs.readdirSync(dirPath);
-      
+
       for (const item of items) {
         const itemPath = path.join(dirPath, item);
         const stat = fs.statSync(itemPath);
-        
+
         if (stat.isFile() && item === 'index.ts') {
           fs.unlinkSync(itemPath);
           console.log(`🗑️  Supprimé: ${itemPath}`);
@@ -277,25 +272,25 @@ function cleanExistingIndexes() {
       console.warn(`⚠️  Erreur lors du nettoyage de ${dirPath}:`, error.message);
     }
   }
-  
+
   for (const targetDir of CONFIG.targetDirectories) {
     const fullPath = path.resolve(targetDir);
     if (fs.existsSync(fullPath)) {
       cleanDirectory(fullPath);
     }
   }
-  
+
   console.log('');
 }
 
 // Exécution du script
 function main() {
   const args = process.argv.slice(2);
-  
+
   if (args.includes('--clean')) {
     cleanExistingIndexes();
   }
-  
+
   if (args.includes('--help') || args.includes('-h')) {
     console.log(`
 🔧 Générateur d'index automatique
@@ -312,15 +307,11 @@ Exemple:
     `);
     return;
   }
-  
+
   generateAllIndexes();
 }
 
 // Lancer le script
 main();
 
-export {
-  generateAllIndexes,
-  cleanExistingIndexes,
-  CONFIG
-}; 
+export { generateAllIndexes, cleanExistingIndexes, CONFIG };

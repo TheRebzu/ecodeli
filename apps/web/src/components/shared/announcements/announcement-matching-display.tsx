@@ -2,24 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import {
   Dialog,
   DialogContent,
@@ -160,9 +149,7 @@ export const AnnouncementMatchingDisplay: React.FC<AnnouncementMatchingDisplayPr
 
   // Détection des nouveaux matches
   useEffect(() => {
-    const unreadMatches = matches
-      .filter(match => !match.notified)
-      .map(match => match.id);
+    const unreadMatches = matches.filter(match => !match.notified).map(match => match.id);
     setNewMatches(unreadMatches);
   }, [matches]);
 
@@ -237,18 +224,15 @@ export const AnnouncementMatchingDisplay: React.FC<AnnouncementMatchingDisplayPr
           <Route className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-semibold mb-2">{t('noMatches.title')}</h3>
           <p className="text-muted-foreground mb-6">
-            {userRole === 'DELIVERER' 
+            {userRole === 'DELIVERER'
               ? t('noMatches.delivererDescription')
-              : t('noMatches.clientDescription')
-            }
+              : t('noMatches.clientDescription')}
           </p>
           {enableNotifications && (
             <Alert className="text-left max-w-md mx-auto">
               <Bell className="h-4 w-4" />
               <AlertTitle>{t('notifications.title')}</AlertTitle>
-              <AlertDescription>
-                {t('notifications.description')}
-              </AlertDescription>
+              <AlertDescription>{t('notifications.description')}</AlertDescription>
             </Alert>
           )}
         </CardContent>
@@ -262,11 +246,9 @@ export const AnnouncementMatchingDisplay: React.FC<AnnouncementMatchingDisplayPr
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">{t('title')}</h2>
-          <p className="text-muted-foreground">
-            {t('matchesFound', { count: matches.length })}
-          </p>
+          <p className="text-muted-foreground">{t('matchesFound', { count: matches.length })}</p>
         </div>
-        
+
         {onNotificationToggle && (
           <TooltipProvider>
             <Tooltip>
@@ -285,10 +267,7 @@ export const AnnouncementMatchingDisplay: React.FC<AnnouncementMatchingDisplayPr
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                {enableNotifications
-                  ? t('disableNotifications')
-                  : t('enableNotifications')
-                }
+                {enableNotifications ? t('disableNotifications') : t('enableNotifications')}
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -299,9 +278,7 @@ export const AnnouncementMatchingDisplay: React.FC<AnnouncementMatchingDisplayPr
       {newMatches.length > 0 && (
         <Alert className="border-blue-200 bg-blue-50">
           <Zap className="h-4 w-4 text-blue-600" />
-          <AlertTitle className="text-blue-800">
-            {t('newMatches.title')}
-          </AlertTitle>
+          <AlertTitle className="text-blue-800">{t('newMatches.title')}</AlertTitle>
           <AlertDescription className="text-blue-700">
             {t('newMatches.description', { count: newMatches.length })}
           </AlertDescription>
@@ -310,11 +287,11 @@ export const AnnouncementMatchingDisplay: React.FC<AnnouncementMatchingDisplayPr
 
       {/* Liste des matches */}
       <div className="space-y-4">
-        {sortedMatches.map((match) => {
+        {sortedMatches.map(match => {
           const isNew = newMatches.includes(match.id);
           const compatibility = match.matching.compatibilityScore;
           const compatibilityLevel = getCompatibilityLevel(compatibility);
-          
+
           return (
             <Card
               key={match.id}
@@ -322,7 +299,9 @@ export const AnnouncementMatchingDisplay: React.FC<AnnouncementMatchingDisplayPr
                 'cursor-pointer transition-all hover:shadow-md',
                 isNew && 'ring-2 ring-blue-500 border-blue-200',
                 compatibility >= COMPATIBILITY_THRESHOLDS.excellent && 'border-green-200',
-                compatibility >= COMPATIBILITY_THRESHOLDS.good && compatibility < COMPATIBILITY_THRESHOLDS.excellent && 'border-blue-200'
+                compatibility >= COMPATIBILITY_THRESHOLDS.good &&
+                  compatibility < COMPATIBILITY_THRESHOLDS.excellent &&
+                  'border-blue-200'
               )}
               onClick={() => handleMatchClick(match)}
             >
@@ -331,10 +310,7 @@ export const AnnouncementMatchingDisplay: React.FC<AnnouncementMatchingDisplayPr
                   <div className="flex-1">
                     <div className="flex items-center space-x-2 mb-2">
                       <CardTitle className="text-lg">
-                        {userRole === 'DELIVERER' 
-                          ? match.announcement.title
-                          : match.route.title
-                        }
+                        {userRole === 'DELIVERER' ? match.announcement.title : match.route.title}
                       </CardTitle>
                       {isNew && (
                         <Badge variant="secondary" className="bg-blue-100 text-blue-800">
@@ -357,28 +333,25 @@ export const AnnouncementMatchingDisplay: React.FC<AnnouncementMatchingDisplayPr
                       </span>
                     </CardDescription>
                   </div>
-                  
+
                   <div className="text-right space-y-2">
                     <div className="flex items-center space-x-2">
-                      <span className="text-sm font-medium">
-                        {compatibility}%
-                      </span>
+                      <span className="text-sm font-medium">{compatibility}%</span>
                       <div className="w-16">
-                        <Progress 
-                          value={compatibility} 
+                        <Progress
+                          value={compatibility}
                           className="h-2"
-                          style={{
-                            '--progress-background': getCompatibilityColor(compatibility)
-                          } as React.CSSProperties}
+                          style={
+                            {
+                              '--progress-background': getCompatibilityColor(compatibility),
+                            } as React.CSSProperties
+                          }
                         />
                       </div>
                     </div>
-                    <Badge 
+                    <Badge
                       variant="outline"
-                      className={cn(
-                        'text-white border-0',
-                        getCompatibilityColor(compatibility)
-                      )}
+                      className={cn('text-white border-0', getCompatibilityColor(compatibility))}
                     >
                       {getCompatibilityLabel(compatibility)}
                     </Badge>
@@ -391,17 +364,17 @@ export const AnnouncementMatchingDisplay: React.FC<AnnouncementMatchingDisplayPr
                   {/* Informations sur la personne */}
                   <div className="flex items-center space-x-3">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage 
-                        src={userRole === 'DELIVERER' 
-                          ? match.announcement.client.image
-                          : match.route.deliverer.image
-                        } 
+                      <AvatarImage
+                        src={
+                          userRole === 'DELIVERER'
+                            ? match.announcement.client.image
+                            : match.route.deliverer.image
+                        }
                       />
                       <AvatarFallback>
                         {userRole === 'DELIVERER'
                           ? match.announcement.client.name.substring(0, 2).toUpperCase()
-                          : match.route.deliverer.name.substring(0, 2).toUpperCase()
-                        }
+                          : match.route.deliverer.name.substring(0, 2).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
                     <div className="flex-1">
@@ -409,24 +382,25 @@ export const AnnouncementMatchingDisplay: React.FC<AnnouncementMatchingDisplayPr
                         <span className="font-medium">
                           {userRole === 'DELIVERER'
                             ? match.announcement.client.name
-                            : match.route.deliverer.name
-                          }
+                            : match.route.deliverer.name}
                         </span>
                         <div className="flex items-center space-x-1">
                           <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
                           <span className="text-sm">
                             {userRole === 'DELIVERER'
                               ? match.announcement.client.rating.toFixed(1)
-                              : match.route.deliverer.rating.toFixed(1)
-                            }
+                              : match.route.deliverer.rating.toFixed(1)}
                           </span>
                         </div>
                       </div>
                       <div className="text-sm text-muted-foreground">
                         {userRole === 'DELIVERER'
-                          ? t('completedOrders', { count: match.announcement.client.completedDeliveries })
-                          : t('completedDeliveries', { count: match.route.deliverer.completedDeliveries })
-                        }
+                          ? t('completedOrders', {
+                              count: match.announcement.client.completedDeliveries,
+                            })
+                          : t('completedDeliveries', {
+                              count: match.route.deliverer.completedDeliveries,
+                            })}
                       </div>
                     </div>
                   </div>
@@ -441,8 +415,7 @@ export const AnnouncementMatchingDisplay: React.FC<AnnouncementMatchingDisplayPr
                           <div className="text-muted-foreground">
                             {userRole === 'DELIVERER'
                               ? match.announcement.pickupAddress
-                              : match.route.departureAddress
-                            }
+                              : match.route.departureAddress}
                           </div>
                         </div>
                       </div>
@@ -455,8 +428,7 @@ export const AnnouncementMatchingDisplay: React.FC<AnnouncementMatchingDisplayPr
                           <div className="text-muted-foreground">
                             {userRole === 'DELIVERER'
                               ? match.announcement.deliveryAddress
-                              : match.route.arrivalAddress
-                            }
+                              : match.route.arrivalAddress}
                           </div>
                         </div>
                       </div>
@@ -489,13 +461,13 @@ export const AnnouncementMatchingDisplay: React.FC<AnnouncementMatchingDisplayPr
                         <span>{match.matching.estimatedDuration}</span>
                       </span>
                     </div>
-                    
+
                     <div className="flex items-center space-x-2">
                       {onContact && (
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={(e) => {
+                          onClick={e => {
                             e.stopPropagation();
                             onContact(
                               userRole === 'DELIVERER'
@@ -508,12 +480,12 @@ export const AnnouncementMatchingDisplay: React.FC<AnnouncementMatchingDisplayPr
                           {t('contact')}
                         </Button>
                       )}
-                      
+
                       {onViewDetails && (
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={(e) => {
+                          onClick={e => {
                             e.stopPropagation();
                             onViewDetails(match.id);
                           }}
@@ -522,11 +494,11 @@ export const AnnouncementMatchingDisplay: React.FC<AnnouncementMatchingDisplayPr
                           {t('details')}
                         </Button>
                       )}
-                      
+
                       {onApply && (
                         <Button
                           size="sm"
-                          onClick={(e) => {
+                          onClick={e => {
                             e.stopPropagation();
                             onApply(match.id);
                           }}
@@ -536,12 +508,12 @@ export const AnnouncementMatchingDisplay: React.FC<AnnouncementMatchingDisplayPr
                           {userRole === 'DELIVERER' ? t('apply') : t('accept')}
                         </Button>
                       )}
-                      
+
                       {onReject && (
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={(e) => {
+                          onClick={e => {
                             e.stopPropagation();
                             onReject(match.id);
                           }}
@@ -564,18 +536,16 @@ export const AnnouncementMatchingDisplay: React.FC<AnnouncementMatchingDisplayPr
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>{t('matchDetails')}</DialogTitle>
-              <DialogDescription>
-                {t('matchDetailsDescription')}
-              </DialogDescription>
+              <DialogDescription>{t('matchDetailsDescription')}</DialogDescription>
             </DialogHeader>
-            
+
             <div className="space-y-6">
               {/* Score de compatibilité */}
               <div className="text-center">
                 <div className="text-4xl font-bold mb-2">
                   {selectedMatch.matching.compatibilityScore}%
                 </div>
-                <Badge 
+                <Badge
                   variant="outline"
                   className={cn(
                     'text-white border-0 text-lg px-4 py-1',
@@ -600,24 +570,22 @@ export const AnnouncementMatchingDisplay: React.FC<AnnouncementMatchingDisplayPr
                         <div className="font-medium">
                           {userRole === 'DELIVERER'
                             ? selectedMatch.announcement.title
-                            : selectedMatch.route.title
-                          }
+                            : selectedMatch.route.title}
                         </div>
                         <div className="text-sm text-muted-foreground">
                           {userRole === 'DELIVERER'
                             ? selectedMatch.announcement.description
-                            : `${selectedMatch.route.departureAddress} → ${selectedMatch.route.arrivalAddress}`
-                          }
+                            : `${selectedMatch.route.departureAddress} → ${selectedMatch.route.arrivalAddress}`}
                         </div>
                       </div>
-                      
+
                       {userRole === 'DELIVERER' && selectedMatch.announcement.weight && (
                         <div className="flex items-center space-x-2">
                           <Package className="h-4 w-4" />
                           <span className="text-sm">{selectedMatch.announcement.weight} kg</span>
                         </div>
                       )}
-                      
+
                       <div className="flex items-center space-x-2">
                         <Euro className="h-4 w-4" />
                         <span className="text-sm">
@@ -644,14 +612,14 @@ export const AnnouncementMatchingDisplay: React.FC<AnnouncementMatchingDisplayPr
                           {selectedMatch.matching.distance.toFixed(1)} km
                         </span>
                       </div>
-                      
+
                       <div className="flex justify-between">
                         <span className="text-sm">{t('estimatedDuration')}</span>
                         <span className="text-sm font-medium">
                           {selectedMatch.matching.estimatedDuration}
                         </span>
                       </div>
-                      
+
                       {selectedMatch.matching.detourPercentage > 0 && (
                         <div className="flex justify-between">
                           <span className="text-sm">{t('detour')}</span>
@@ -660,7 +628,7 @@ export const AnnouncementMatchingDisplay: React.FC<AnnouncementMatchingDisplayPr
                           </span>
                         </div>
                       )}
-                      
+
                       <div className="flex justify-between">
                         <span className="text-sm">{t('estimatedEarnings')}</span>
                         <span className="text-sm font-medium">
@@ -703,7 +671,7 @@ export const AnnouncementMatchingDisplay: React.FC<AnnouncementMatchingDisplayPr
                     {t('contact')}
                   </Button>
                 )}
-                
+
                 {onApply && (
                   <Button
                     onClick={() => {

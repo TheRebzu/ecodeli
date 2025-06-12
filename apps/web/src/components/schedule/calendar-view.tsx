@@ -33,13 +33,8 @@ export function CalendarView({
         <CardTitle>Calendrier</CardTitle>
       </CardHeader>
       <CardContent>
-        <Calendar
-          mode="single"
-          selected={date}
-          onSelect={setDate}
-          className="rounded-md border"
-        />
+        <Calendar mode="single" selected={date} onSelect={setDate} className="rounded-md border" />
       </CardContent>
     </Card>
   );
-} 
+}

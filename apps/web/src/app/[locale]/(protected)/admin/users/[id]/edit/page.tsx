@@ -7,15 +7,7 @@ import { UserRole, UserStatus } from '@prisma/client';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import {
-  ArrowLeft,
-  Save,
-  User as UserIcon,
-  Mail,
-  Phone,
-  Shield,
-  Calendar,
-} from 'lucide-react';
+import { ArrowLeft, Save, User as UserIcon, Mail, Phone, Shield, Calendar } from 'lucide-react';
 
 import { api } from '@/trpc/react';
 import { Button } from '@/components/ui/button';
@@ -65,31 +57,37 @@ export default function UserEditPage() {
   const { toast } = useToast();
 
   // TEMPORAIRE: Récupérer la liste des utilisateurs pour trouver celui avec l'ID correct
-  const { data: usersData, isLoading, error } = api.adminUser.getUsers.useQuery({
+  const {
+    data: usersData,
+    isLoading,
+    error,
+  } = api.adminUser.getUsers.useQuery({
     page: 1,
     limit: 50, // Récupérer plus d'utilisateurs pour être sûr de trouver le bon
   });
-  
+
   // DEBUG: Afficher les données reçues
   console.log('🔍 DEBUG EDIT - usersData:', usersData);
   console.log('🔍 DEBUG EDIT - userId cherché:', userId);
   console.log('🔍 DEBUG EDIT - usersData?.json?.users:', usersData?.json?.users);
-  
+
   // Trouver l'utilisateur avec l'ID correct dans la liste (les données sont dans json.users)
   const foundUser = usersData?.json?.users?.find((u: any) => u.id === userId);
   console.log('🔍 DEBUG EDIT - user trouvé:', foundUser);
-  
+
   // Si l'utilisateur n'est pas trouvé, créer des données par défaut
-  const user = foundUser ? {
-    id: foundUser.id,
-    name: foundUser.name || 'Nom non défini',
-    email: foundUser.email,
-    role: foundUser.role,
-    status: foundUser.status,
-    phoneNumber: foundUser.phoneNumber || '',
-    createdAt: foundUser.createdAt,
-    updatedAt: foundUser.createdAt, // Utiliser createdAt comme updatedAt
-  } : null;
+  const user = foundUser
+    ? {
+        id: foundUser.id,
+        name: foundUser.name || 'Nom non défini',
+        email: foundUser.email,
+        role: foundUser.role,
+        status: foundUser.status,
+        phoneNumber: foundUser.phoneNumber || '',
+        createdAt: foundUser.createdAt,
+        updatedAt: foundUser.createdAt, // Utiliser createdAt comme updatedAt
+      }
+    : null;
 
   // TODO: Remettre l'API réelle quand l'authentification admin sera configurée
   // const { data: user, isLoading, error } = api.adminUser.getUserDetail.useQuery({
@@ -109,15 +107,15 @@ export default function UserEditPage() {
   if (error) {
     console.error('❌ Erreur getUserDetail:', error);
   }
-  
+
   const updateUserStatusMutation = api.adminUser.updateUserStatus.useMutation({
     onSuccess: () => {
       toast({
         title: 'Statut mis à jour',
-        description: 'Le statut de l\'utilisateur a été mis à jour avec succès.',
+        description: "Le statut de l'utilisateur a été mis à jour avec succès.",
       });
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: 'Erreur lors de la mise à jour du statut: ' + error.message,
@@ -130,11 +128,11 @@ export default function UserEditPage() {
     onSuccess: () => {
       toast({
         title: 'Rôle mis à jour',
-        description: 'Le rôle de l\'utilisateur a été mis à jour avec succès.',
+        description: "Le rôle de l'utilisateur a été mis à jour avec succès.",
       });
       router.refresh();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: 'Erreur lors de la mise à jour du rôle: ' + error.message,
@@ -189,7 +187,7 @@ export default function UserEditPage() {
 
       toast({
         title: 'Utilisateur mis à jour',
-        description: 'Les informations de l\'utilisateur ont été mises à jour avec succès.',
+        description: "Les informations de l'utilisateur ont été mises à jour avec succès.",
       });
 
       router.push(`/admin/users/${userId}`);
@@ -396,7 +394,7 @@ export default function UserEditPage() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {Object.values(UserRole).map((role) => (
+                              {Object.values(UserRole).map(role => (
                                 <SelectItem key={role} value={role}>
                                   {role}
                                 </SelectItem>
@@ -421,7 +419,7 @@ export default function UserEditPage() {
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              {Object.values(UserStatus).map((status) => (
+                              {Object.values(UserStatus).map(status => (
                                 <SelectItem key={status} value={status}>
                                   {status.replace('_', ' ')}
                                 </SelectItem>
@@ -480,9 +478,7 @@ export default function UserEditPage() {
                   <div className="text-center text-muted-foreground">
                     <Shield className="mx-auto h-12 w-12 mb-4" />
                     <h3 className="text-lg font-semibold mb-2">Permissions</h3>
-                    <p>
-                      La gestion des permissions sera bientôt disponible.
-                    </p>
+                    <p>La gestion des permissions sera bientôt disponible.</p>
                   </div>
                 </CardContent>
               </Card>

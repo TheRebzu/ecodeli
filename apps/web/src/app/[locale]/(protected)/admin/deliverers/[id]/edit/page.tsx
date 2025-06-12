@@ -70,12 +70,16 @@ export default function DelivererEditPage() {
   const { toast } = useToast();
 
   // Récupérer les données du livreur
-  const { data: delivererData, isLoading, error } = api.admin.deliverers.getById.useQuery({
-    id: delivererId
+  const {
+    data: delivererData,
+    isLoading,
+    error,
+  } = api.admin.deliverers.getById.useQuery({
+    id: delivererId,
   });
 
   const deliverer = delivererData;
-  
+
   const updateDelivererMutation = api.admin.deliverers.update.useMutation({
     onSuccess: () => {
       toast({
@@ -84,7 +88,7 @@ export default function DelivererEditPage() {
       });
       router.push(`/admin/deliverers/${delivererId}`);
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: 'Erreur lors de la mise à jour: ' + error.message,
@@ -210,7 +214,9 @@ export default function DelivererEditPage() {
         <CardHeader>
           <div className="flex justify-between items-start">
             <div>
-              <CardTitle className="text-2xl">{deliverer.firstName} {deliverer.lastName}</CardTitle>
+              <CardTitle className="text-2xl">
+                {deliverer.firstName} {deliverer.lastName}
+              </CardTitle>
               <CardDescription className="mt-1 flex items-center gap-2 text-base">
                 {getStatusBadge(deliverer.status)}
                 <Badge variant="outline" className="bg-yellow-50 text-yellow-600 border-yellow-200">
@@ -309,7 +315,9 @@ export default function DelivererEditPage() {
                               <SelectItem value="ACTIVE">Actif</SelectItem>
                               <SelectItem value="INACTIVE">Inactif</SelectItem>
                               <SelectItem value="SUSPENDED">Suspendu</SelectItem>
-                              <SelectItem value="PENDING_VERIFICATION">En attente de vérification</SelectItem>
+                              <SelectItem value="PENDING_VERIFICATION">
+                                En attente de vérification
+                              </SelectItem>
                             </SelectContent>
                           </Select>
                           <FormMessage />
@@ -342,10 +350,7 @@ export default function DelivererEditPage() {
                     <Button type="button" variant="outline" onClick={() => router.back()}>
                       Annuler
                     </Button>
-                    <Button
-                      type="submit"
-                      disabled={updateDelivererMutation.isPending}
-                    >
+                    <Button type="submit" disabled={updateDelivererMutation.isPending}>
                       <Save className="mr-2 h-4 w-4" />
                       {updateDelivererMutation.isPending ? 'Sauvegarde...' : 'Sauvegarder'}
                     </Button>
@@ -374,15 +379,10 @@ export default function DelivererEditPage() {
                         render={({ field }) => (
                           <FormItem className="flex flex-row items-start space-x-3 space-y-0">
                             <FormControl>
-                              <Checkbox
-                                checked={field.value}
-                                onCheckedChange={field.onChange}
-                              />
+                              <Checkbox checked={field.value} onCheckedChange={field.onChange} />
                             </FormControl>
                             <div className="space-y-1 leading-none">
-                              <FormLabel>
-                                Possède un véhicule
-                              </FormLabel>
+                              <FormLabel>Possède un véhicule</FormLabel>
                               <FormDescription>
                                 Cochez si le livreur possède un véhicule de transport
                               </FormDescription>
@@ -422,10 +422,7 @@ export default function DelivererEditPage() {
                         <Button type="button" variant="outline" onClick={() => router.back()}>
                           Annuler
                         </Button>
-                        <Button
-                          type="submit"
-                          disabled={updateDelivererMutation.isPending}
-                        >
+                        <Button type="submit" disabled={updateDelivererMutation.isPending}>
                           <Save className="mr-2 h-4 w-4" />
                           {updateDelivererMutation.isPending ? 'Sauvegarde...' : 'Sauvegarder'}
                         </Button>
@@ -440,4 +437,4 @@ export default function DelivererEditPage() {
       </Card>
     </div>
   );
-} 
+}

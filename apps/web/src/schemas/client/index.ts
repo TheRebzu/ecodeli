@@ -16,4 +16,3 @@ export * from './overlay-config.schema';
 export * from './tutorial-progress.schema';
 export * from './tutorial-step.schema';
 export * from './tutorial.schema';
-

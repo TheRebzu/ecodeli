@@ -13,16 +13,16 @@ const prisma = new PrismaClient();
 async function extractClientSession() {
   try {
     console.log('🔍 Recherche du compte client Jean Dupont...');
-    
+
     // Vérification que l'utilisateur existe
     const user = await prisma.user.findUnique({
-      where: { 
-        email: 'jean.dupont@orange.fr' 
+      where: {
+        email: 'jean.dupont@orange.fr',
       },
       include: {
         profile: true,
-        ClientProfile: true
-      }
+        ClientProfile: true,
+      },
     });
 
     if (!user) {
@@ -52,7 +52,7 @@ async function extractClientSession() {
         email: user.email,
         role: user.role,
         iat: Math.floor(Date.now() / 1000),
-        exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24h
+        exp: Math.floor(Date.now() / 1000) + 24 * 60 * 60, // 24h
       },
       jwtSecret
     );
@@ -65,7 +65,7 @@ async function extractClientSession() {
         email: user.email,
         role: user.role,
         image: user.image,
-        expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+        expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
       },
       jwtSecret
     );
@@ -79,23 +79,23 @@ async function extractClientSession() {
         role: user.role,
         status: user.status,
         isVerified: user.isVerified,
-        image: user.image
+        image: user.image,
       },
       tokens: {
         access_token: token,
-        session_token: sessionToken
+        session_token: sessionToken,
       },
       cookies: {
         'next-auth.session-token': sessionToken,
-        'next-auth.csrf-token': 'csrf-token-value'
+        'next-auth.csrf-token': 'csrf-token-value',
       },
-      expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+      expires: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
     };
 
     // Sauvegarde dans un fichier
     const outputPath = path.join(process.cwd(), 'cookies_jean_dupont_session.txt');
     const curlCookies = `next-auth.session-token=${sessionToken}; next-auth.csrf-token=csrf-token-value`;
-    
+
     const output = `# Session pour Jean Dupont (Client)
 # Généré le: ${new Date().toISOString()}
 # Expire le: ${sessionData.expires}
@@ -137,18 +137,17 @@ curl -H "Authorization: Bearer \$ACCESS_TOKEN" \\
 `;
 
     fs.writeFileSync(outputPath, output);
-    
+
     console.log('\n🎉 Session extraite avec succès!');
     console.log(`📁 Fichier sauvegardé: ${outputPath}`);
     console.log('\n📋 Cookies pour curl:');
     console.log(`"${curlCookies}"`);
     console.log('\n🔑 Token JWT:');
     console.log(token);
-    
-    return sessionData;
 
+    return sessionData;
   } catch (error) {
-    console.error('❌ Erreur lors de l\'extraction de session:', error);
+    console.error("❌ Erreur lors de l'extraction de session:", error);
     process.exit(1);
   } finally {
     await prisma.$disconnect();
@@ -160,4 +159,4 @@ if (require.main === module) {
   extractClientSession();
 }
 
-module.exports = { extractClientSession }; 
+module.exports = { extractClientSession };

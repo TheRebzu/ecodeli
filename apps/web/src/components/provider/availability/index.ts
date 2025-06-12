@@ -14,4 +14,3 @@ export { default as TimeSlotManager } from './time-slot-manager';
 export * from './time-slot-manager';
 export { default as TimeslotPicker } from './timeslot-picker';
 export * from './timeslot-picker';
-

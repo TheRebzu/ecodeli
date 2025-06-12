@@ -12,7 +12,7 @@ const handler = async (req: Request) => {
       createContext: () => createTRPCContext(),
       onError: ({ error, path }) => {
         console.error(`❌ tRPC Error on '${path}':`, error.message);
-        
+
         // Log détaillé pour les erreurs critiques
         if (error.code === 'INTERNAL_SERVER_ERROR') {
           console.error('Stack trace:', error.stack);
@@ -22,10 +22,10 @@ const handler = async (req: Request) => {
   } catch (error) {
     console.error('❌ Handler tRPC error:', error);
     return new Response(
-      JSON.stringify({ 
-        message: 'Erreur interne du serveur', 
-        code: 'INTERNAL_SERVER_ERROR' 
-      }), 
+      JSON.stringify({
+        message: 'Erreur interne du serveur',
+        code: 'INTERNAL_SERVER_ERROR',
+      }),
       {
         status: 500,
         headers: { 'content-type': 'application/json' },

@@ -148,7 +148,7 @@ export const usePaymentForm = () => {
  */
 export const useCreatePaymentIntent = () => {
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const createPaymentIntent = useCallback(async (data: PaymentFormState) => {
     setIsLoading(true);
     try {
@@ -158,8 +158,8 @@ export const useCreatePaymentIntent = () => {
     } catch (error) {
       console.error('Erreur lors de la création du payment intent:', error);
       toast.error(
-        error instanceof Error 
-          ? error.message 
+        error instanceof Error
+          ? error.message
           : 'Une erreur est survenue lors de la création du paiement'
       );
       throw error;
@@ -179,7 +179,7 @@ export const useCreatePaymentIntent = () => {
  */
 export const useCapturePayment = () => {
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const capturePayment = useCallback(async (paymentId: string) => {
     setIsLoading(true);
     try {
@@ -210,7 +210,7 @@ export const useCapturePayment = () => {
  */
 export const useCancelPayment = () => {
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const cancelPayment = useCallback(async (paymentId: string) => {
     setIsLoading(true);
     try {
@@ -218,11 +218,11 @@ export const useCancelPayment = () => {
       toast.success('Paiement annulé avec succès');
       return result;
     } catch (error) {
-      console.error('Erreur lors de l\'annulation du paiement:', error);
+      console.error("Erreur lors de l'annulation du paiement:", error);
       toast.error(
         error instanceof Error
           ? error.message
-          : 'Une erreur est survenue lors de l\'annulation du paiement'
+          : "Une erreur est survenue lors de l'annulation du paiement"
       );
       throw error;
     } finally {
@@ -241,22 +241,20 @@ export const useCancelPayment = () => {
  */
 export const useRefundPayment = () => {
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const refundPayment = useCallback(async (paymentId: string, amount?: number) => {
     setIsLoading(true);
     try {
-      const result = await api.payment.refundPayment.mutate({ 
-        paymentId, 
-        amount 
+      const result = await api.payment.refundPayment.mutate({
+        paymentId,
+        amount,
       });
       toast.success('Remboursement effectué avec succès');
       return result;
     } catch (error) {
       console.error('Erreur lors du remboursement:', error);
       toast.error(
-        error instanceof Error
-          ? error.message
-          : 'Une erreur est survenue lors du remboursement'
+        error instanceof Error ? error.message : 'Une erreur est survenue lors du remboursement'
       );
       throw error;
     } finally {
@@ -335,8 +333,8 @@ export const usePaymentHistory = (
       setPaymentHistory(result.payments);
       setPagination(result.pagination);
     } catch (err) {
-      console.error('Erreur lors du chargement de l\'historique:', err);
-      setError('Impossible de charger l\'historique des paiements');
+      console.error("Erreur lors du chargement de l'historique:", err);
+      setError("Impossible de charger l'historique des paiements");
     } finally {
       setIsLoading(false);
     }
@@ -357,28 +355,31 @@ export const usePaymentHistory = (
 export const useDemoPayments = () => {
   const [isLoading, setIsLoading] = useState(false);
 
-  const createDemoPayment = useCallback(async (
-    amount: number,
-    currency: string = 'EUR',
-    description: string = 'Paiement de démonstration'
-  ) => {
-    setIsLoading(true);
-    try {
-      const result = await api.payment.createDemoPayment.mutate({
-        amount,
-        currency,
-        description,
-      });
-      toast.success('Paiement de démonstration créé avec succès');
-      return result;
-    } catch (error) {
-      console.error('Erreur lors de la création du paiement de démonstration:', error);
-      toast.error('Une erreur est survenue lors de la création du paiement de démonstration');
-      throw error;
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const createDemoPayment = useCallback(
+    async (
+      amount: number,
+      currency: string = 'EUR',
+      description: string = 'Paiement de démonstration'
+    ) => {
+      setIsLoading(true);
+      try {
+        const result = await api.payment.createDemoPayment.mutate({
+          amount,
+          currency,
+          description,
+        });
+        toast.success('Paiement de démonstration créé avec succès');
+        return result;
+      } catch (error) {
+        console.error('Erreur lors de la création du paiement de démonstration:', error);
+        toast.error('Une erreur est survenue lors de la création du paiement de démonstration');
+        throw error;
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    []
+  );
 
   const simulateSuccess = useCallback(async (paymentId: string) => {
     setIsLoading(true);
@@ -402,7 +403,7 @@ export const useDemoPayments = () => {
       toast.success('Paiement simulé comme échoué');
       return result;
     } catch (error) {
-      console.error('Erreur lors de la simulation d\'échec:', error);
+      console.error("Erreur lors de la simulation d'échec:", error);
       toast.error('Une erreur est survenue lors de la simulation');
       throw error;
     } finally {
@@ -439,4 +440,4 @@ export const usePayments = () => {
     ...refundPayment,
     ...demoPayments,
   };
-}; 
+};

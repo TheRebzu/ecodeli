@@ -24,14 +24,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 
 interface PaymentPageProps {
-  params: {
+  params: Promise<{
     id: string;
     locale: string;
-  };
+  }>;
 }
 
-export default function AnnouncementPaymentPage({ params }: PaymentPageProps) {
-  const { id } = params;
+export default async function AnnouncementPaymentPage({ params }: AnnouncementPaymentPageProps) {
+  const { id  } = await params;
   const t = useTranslations('payments');
   const router = useRouter();
   const { toast } = useToast();

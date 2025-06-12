@@ -17,10 +17,10 @@ import Link from 'next/link';
 import { api } from '@/trpc/server';
 
 interface BookPageProps {
-  searchParams: {
+  searchParams: Promise<{
     serviceId?: string;
     date?: string;
-  };
+  }>;
 }
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -34,7 +34,7 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function BookPage({ searchParams }: BookPageProps) {
   const t = await getTranslations('services');
-  const { serviceId, date } = searchParams;
+  const { serviceId, date } = await searchParams;
 
   // Rediriger vers la liste des services si l'ID du service n'est pas fourni
   if (!serviceId) {

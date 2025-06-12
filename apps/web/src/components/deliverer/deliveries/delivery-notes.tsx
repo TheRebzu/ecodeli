@@ -63,15 +63,12 @@ interface DeliveryNotesProps {
   onNoteAdded?: () => void;
   onCancel?: () => void;
   className?: string;
+  notes?: string;
+  onNotesChange?: (notes: string) => void;
+  readOnly?: boolean;
 }
 
-export default function DeliveryNotes({
-  deliveryId,
-  previousNotes = [],
-  onNoteAdded,
-  onCancel,
-  className = '',
-}: DeliveryNotesProps) {
+export function DeliveryNotes({ deliveryId, previousNotes = [], onNoteAdded, onCancel, className = '', notes, onNotesChange, readOnly = false }: DeliveryNotesProps) {
   const t = useTranslations('deliveries.notes');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -264,6 +261,14 @@ export default function DeliveryNotes({
           <h3 className="text-sm font-medium mb-2">{t('previousNotesTitle')}</h3>
           {renderPreviousNotes()}
         </div>
+
+        <Textarea
+          value={notes || ''}
+          onChange={(e) => onNotesChange?.(e.target.value)}
+          readOnly={readOnly}
+          placeholder="Ajouter des notes pour cette livraison..."
+          className="min-h-[100px]"
+        />
       </CardContent>
       <CardFooter className="flex justify-between">
         <Button variant="outline" onClick={onCancel} disabled={isSubmitting}>

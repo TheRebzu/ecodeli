@@ -19,7 +19,7 @@ interface QuickTestUser {
  */
 async function quickPageTest() {
   const targetRoute = process.argv[2];
-  
+
   if (!targetRoute) {
     console.log('❌ Erreur: Veuillez spécifier une route à tester');
     console.log('   Utilisation: tsx scripts/quick-page-test.ts /fr/admin/users');
@@ -55,7 +55,9 @@ async function quickPageTest() {
     // Générer les tokens de session
     const testUsers: QuickTestUser[] = users.map(user => {
       const payload = `${user.email}-${Date.now()}`;
-      const sessionToken = createHash('sha256').update(payload + jwtSecret).digest('hex');
+      const sessionToken = createHash('sha256')
+        .update(payload + jwtSecret)
+        .digest('hex');
       return {
         email: user.email,
         role: user.role,
@@ -73,7 +75,7 @@ async function quickPageTest() {
     console.log('================================');
     const fullUrl = `${baseUrl}${targetRoute}`;
     const noAuthCommand = `curl -s -w "Status: %{http_code}\\nTime: %{time_total}s\\n" -o /dev/null "${fullUrl}"`;
-    
+
     console.log(`Commande: ${noAuthCommand}`);
     try {
       const { stdout } = await execAsync(noAuthCommand);
@@ -85,12 +87,12 @@ async function quickPageTest() {
     // Test avec chaque utilisateur
     console.log('\n🔐 Tests avec authentification:');
     console.log('===============================');
-    
+
     for (const user of testUsers) {
       console.log(`\n👤 Test avec ${user.role} (${user.email}):`);
       const cookies = `next-auth.session-token=${user.sessionToken}; next-auth.csrf-token=csrf-token-value`;
       const authCommand = `curl -s -w "Status: %{http_code}\\nTime: %{time_total}s\\n" -o /dev/null -H "Cookie: ${cookies}" "${fullUrl}"`;
-      
+
       console.log(`Commande: curl -H "Cookie: [SESSION]" "${fullUrl}"`);
       try {
         const { stdout } = await execAsync(authCommand);
@@ -103,10 +105,10 @@ async function quickPageTest() {
     // Afficher les commandes pour copier-coller
     console.log('\n🔧 COMMANDES CURL COMPLÈTES:');
     console.log('============================');
-    
+
     console.log('\n📝 Sans authentification:');
     console.log(`curl -v "${fullUrl}"`);
-    
+
     console.log('\n🔐 Avec authentification:');
     testUsers.forEach(user => {
       const cookies = `next-auth.session-token=${user.sessionToken}; next-auth.csrf-token=csrf-token-value`;
@@ -124,7 +126,6 @@ async function quickPageTest() {
     console.log('500 - Erreur serveur');
 
     console.log('\n✅ Test terminé');
-
   } catch (error) {
     console.error('❌ Erreur lors du test:', error);
     process.exit(1);
@@ -134,4 +135,4 @@ async function quickPageTest() {
 }
 
 // Exécution
-quickPageTest(); 
+quickPageTest();

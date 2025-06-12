@@ -10,4 +10,3 @@ export { default as ClientQuickActions } from './client-quick-actions';
 export * from './client-quick-actions';
 export { default as ClientStatsWidget } from './client-stats-widget';
 export * from './client-stats-widget';
-

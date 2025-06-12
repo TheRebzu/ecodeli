@@ -48,12 +48,12 @@ export function PendingUserVerifications({ userRole = 'DELIVERER' }: { userRole?
   // Filtrer les utilisateurs par rôle et simuler des documents en attente
   const allUsers = usersData?.json?.users || [];
   const roleUsers = allUsers.filter((user: any) => user.role === userRole);
-  
+
   // Pour cette démo, on simule que certains utilisateurs ont des documents en attente
   const usersWithPendingDocs = roleUsers
     .filter((user: any) => !user.isVerified) // Utilisateurs non vérifiés
     .slice(0, PAGE_SIZE); // Limiter à PAGE_SIZE résultats
-    
+
   // Simuler la structure de données attendue
   const pendingVerificationsData = {
     data: usersWithPendingDocs.map((user: any) => ({

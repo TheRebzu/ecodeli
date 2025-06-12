@@ -20,4 +20,3 @@ export * from './pricing-rule.schema';
 export * from './subscription.schema';
 export * from './wallet.schema';
 export * from './withdrawal.schema';
-

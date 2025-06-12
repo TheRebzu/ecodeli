@@ -16,4 +16,3 @@ export { default as DeliveryStatus } from './delivery-status';
 export * from './delivery-status';
 export { default as DeliveryTimeline } from './delivery-timeline';
 export * from './delivery-timeline';
-

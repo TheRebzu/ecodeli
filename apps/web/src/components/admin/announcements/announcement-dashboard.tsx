@@ -23,8 +23,8 @@ const hardcodedTranslations = {
     pending: 'En attente',
     assigned: 'Assignées',
     completed: 'Terminées',
-    problems: 'Problèmes'
-  }
+    problems: 'Problèmes',
+  },
 };
 
 export function AnnouncementDashboard() {

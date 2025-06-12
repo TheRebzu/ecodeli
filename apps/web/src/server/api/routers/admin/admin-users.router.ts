@@ -27,67 +27,76 @@ export const adminUserRouter = router({
   /**
    * Get a paginated list of users with filters
    */
-  getUsers: adminProcedure
-    .input(z.any().optional())
-    .query(async ({ ctx, input }) => {
-      try {
-        console.log('🔍 [SERVER] adminUser.getUsers appelé avec:', { input, userId: ctx.session?.user?.id });
-        
-        const adminService = new AdminService(ctx.db);
-        
-        // Valeurs par défaut si input est vide
-        const {
-          page = 1,
-          limit = 10,
-          sortBy = 'createdAt',
-          sortDirection = 'desc',
-          ...filters
-        } = input || {};
+  getUsers: adminProcedure.input(z.any().optional()).query(async ({ ctx, input }) => {
+    try {
+      console.log('🔍 [SERVER] adminUser.getUsers appelé avec:', {
+        input,
+        userId: ctx.session?.user?.id,
+      });
 
-        console.log('🔍 [SERVER] Paramètres traités:', { page, limit, sortBy, sortDirection, filters });
+      const adminService = new AdminService(ctx.db);
 
-        const result = await adminService.getUsers(
-          { ...filters, page, limit },
-          { field: sortBy, direction: sortDirection }
-        );
+      // Valeurs par défaut si input est vide
+      const {
+        page = 1,
+        limit = 10,
+        sortBy = 'createdAt',
+        sortDirection = 'desc',
+        ...filters
+      } = input || {};
 
-        console.log('✅ [SERVER] Résultat getUsers:', { 
-          total: result.total, 
-          usersCount: result.users?.length || 0,
-          page: result.page,
-          hasUsersProperty: 'users' in result,
-          resultKeys: Object.keys(result),
-          firstUserSample: result.users?.[0] ? {
-            id: result.users[0].id,
-            name: result.users[0].name,
-            email: result.users[0].email
-          } : null
-        });
+      console.log('🔍 [SERVER] Paramètres traités:', {
+        page,
+        limit,
+        sortBy,
+        sortDirection,
+        filters,
+      });
 
-        // Test avec un retour simplifié pour debug
-        const simpleResult = {
-          users: result.users || [],
-          total: result.total || 0,
-          page: result.page || 1,
-          limit: result.limit || 10,
-          totalPages: result.totalPages || 1,
-        };
-        
-        console.log('🚀 [SERVER] Retour simplifié:', {
-          ...simpleResult,
-          users: simpleResult.users.slice(0, 2).map(u => ({ id: u.id, name: u.name }))
-        });
+      const result = await adminService.getUsers(
+        { ...filters, page, limit },
+        { field: sortBy, direction: sortDirection }
+      );
 
-        return simpleResult;
-      } catch (error) {
-        console.error('❌ [SERVER] Erreur dans getUsers:', error);
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: 'Erreur lors de la récupération des utilisateurs',
-          cause: error,
-        });
-      }
-    }),
+      console.log('✅ [SERVER] Résultat getUsers:', {
+        total: result.total,
+        usersCount: result.users?.length || 0,
+        page: result.page,
+        hasUsersProperty: 'users' in result,
+        resultKeys: Object.keys(result),
+        firstUserSample: result.users?.[0]
+          ? {
+              id: result.users[0].id,
+              name: result.users[0].name,
+              email: result.users[0].email,
+            }
+          : null,
+      });
+
+      // Test avec un retour simplifié pour debug
+      const simpleResult = {
+        users: result.users || [],
+        total: result.total || 0,
+        page: result.page || 1,
+        limit: result.limit || 10,
+        totalPages: result.totalPages || 1,
+      };
+
+      console.log('🚀 [SERVER] Retour simplifié:', {
+        ...simpleResult,
+        users: simpleResult.users.slice(0, 2).map(u => ({ id: u.id, name: u.name })),
+      });
+
+      return simpleResult;
+    } catch (error) {
+      console.error('❌ [SERVER] Erreur dans getUsers:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la récupération des utilisateurs',
+        cause: error,
+      });
+    }
+  }),
 
   /**
    * Get user details
@@ -290,10 +299,12 @@ export const adminUserRouter = router({
    * Get user statistics (alias for dashboard)
    */
   getStats: adminProcedure
-    .input(z.object({
-      startDate: z.coerce.date(),
-      endDate: z.coerce.date(),
-    }))
+    .input(
+      z.object({
+        startDate: z.coerce.date(),
+        endDate: z.coerce.date(),
+      })
+    )
     .query(async ({ ctx, input }) => {
       if (!ctx.session?.user || ctx.session.user.role !== 'ADMIN') {
         throw new TRPCError({
@@ -316,19 +327,17 @@ export const adminUserRouter = router({
   /**
    * Get user statistics
    */
-  getUserStats: adminProcedure
-    .input(z.object({}).optional().default({}))
-    .query(async ({ ctx }) => {
-      if (!ctx.session?.user || ctx.session.user.role !== 'ADMIN') {
-        throw new TRPCError({
-          code: 'FORBIDDEN',
-          message: "Vous n'avez pas les permissions nécessaires pour accéder aux statistiques.",
-        });
-      }
+  getUserStats: adminProcedure.input(z.object({}).optional().default({})).query(async ({ ctx }) => {
+    if (!ctx.session?.user || ctx.session.user.role !== 'ADMIN') {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: "Vous n'avez pas les permissions nécessaires pour accéder aux statistiques.",
+      });
+    }
 
-      const adminService = new AdminService(ctx.db);
-      return adminService.getUserStats();
-    }),
+    const adminService = new AdminService(ctx.db);
+    return adminService.getUserStats();
+  }),
 
   /**
    * Get advanced user statistics
@@ -613,7 +622,8 @@ export const adminUserRouter = router({
       if (!ctx.session?.user || ctx.session.user.role !== 'ADMIN') {
         throw new TRPCError({
           code: 'FORBIDDEN',
-          message: "Vous n'avez pas les permissions nécessaires pour activer/désactiver un utilisateur.",
+          message:
+            "Vous n'avez pas les permissions nécessaires pour activer/désactiver un utilisateur.",
         });
       }
 
@@ -626,9 +636,9 @@ export const adminUserRouter = router({
         input.isActive ? 'user_activated' : 'user_deactivated',
         ctx.session.user.id,
         null,
-        { 
+        {
           action: input.isActive ? 'activate' : 'deactivate',
-          userId: input.userId
+          userId: input.userId,
         }
       );
 
@@ -671,10 +681,10 @@ export const adminUserRouter = router({
         input.action === 'BAN' ? 'user_banned' : 'user_unbanned',
         ctx.session.user.id,
         null,
-        { 
+        {
           action: input.action,
           reason: input.reason,
-          userId: input.userId
+          userId: input.userId,
         }
       );
 

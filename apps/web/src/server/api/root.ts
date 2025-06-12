@@ -43,20 +43,32 @@ import { delivererDocumentsRouter } from './routers/deliverer/deliverer-document
 // Provider routers
 import { providerRouter } from './routers/provider/provider.router';
 import { serviceRouter } from './routers/provider/provider-services.router';
+import { providerSkillsRouter } from './routers/provider/provider-skills.router';
+import { providerCalendarRouter } from './routers/provider/provider-calendar.router';
+import { providerEvaluationsRouter } from './routers/provider/provider-evaluations.router';
 
 // Merchant routers
 import { contractRouter } from './routers/merchant/merchant-contracts.router';
+import { merchantCatalogRouter } from './routers/merchant/merchant-catalog.router';
+import { merchantAnnouncementsRouter } from './routers/merchant/merchant-announcements.router';
+import { merchantStatsRouter } from './routers/merchant/merchant-stats.router';
+import { merchantPaymentsRouter } from './routers/merchant/merchant-payments.router';
+import { cartDropRouter } from './routers/merchant/cart-drop.router';
 
 // Subscription router (assuming it exists in shared or we create it)
 import { subscriptionRouter } from './routers/client/client-subscription.router';
 
-// New enhanced routers for EcoDeli specifications
+// Routers spécialisés pour les spécifications EcoDeli
 import { delivererRoutesRouter } from './routers/deliverer/deliverer-routes.router';
-import { clientSubscriptionEnhancedRouter } from './routers/client/client-subscription-enhanced.router';
-import { personalServicesRouter } from './routers/services/personal-services.router';
+import { delivererValidationRouter } from './routers/deliverer/deliverer-validation.router';
+import { delivererWalletRouter } from './routers/deliverer/deliverer-wallet.router';
+import { delivererPerformanceRouter } from './routers/deliverer/deliverer-performance.router';
 import { nfcManagementRouter } from './routers/deliverer/nfc-management.router';
-import { cartDropRouter } from './routers/merchant/cart-drop.router';
-import { matchingRouter } from './routers/matching/matching.router';
+
+// New client routers
+import { clientAnnouncementsRouter } from './routers/client/client-announcements.router';
+import { clientTutorialRouter } from './routers/client/client-tutorial.router';
+import { clientPersonalServicesRouter } from './routers/client/client-personal-services.router';
 
 // Financial router (using admin financial)
 import { financialRouter } from './routers/admin/admin-financial.router';
@@ -76,7 +88,7 @@ export const appRouter = router({
   // Auth
   auth: authRouter,
   verification: verificationRouter,
-  
+
   // Common
   user: userRouter,
   payment: paymentRouter,
@@ -87,7 +99,7 @@ export const appRouter = router({
   wallet: walletRouter,
   upload: uploadRouter,
   geocoding: geocodingRouter,
-  
+
   // Shared
   announcement: announcementRouter,
   warehouse: warehouseRouter,
@@ -95,43 +107,51 @@ export const appRouter = router({
   billing: billingRouter,
   withdrawal: withdrawalRouter,
   financialTask: financialTaskRouter,
-  
+
   // Admin
   admin: adminRouter,
   adminUser: adminUserRouter, // Direct access to admin user router
   adminServices: adminServicesRouter, // Direct access to admin services router
   adminContracts: adminContractsRouter, // Direct access to admin contracts router
   adminWarehouse: warehouseRouter, // alias pour admin warehouse
-  
+
   // Client
   client: clientRouter,
   storage: storageRouter,
   subscription: subscriptionRouter,
-  
+  clientAnnouncements: clientAnnouncementsRouter,
+  clientTutorial: clientTutorialRouter,
+  clientPersonalServices: clientPersonalServicesRouter,
+
   // Deliverer
   deliverer: delivererRouter,
   delivery: deliveryRouter,
   deliveryTracking: deliveryTrackingRouter,
   delivererDocuments: delivererDocumentsRouter,
-  
+  delivererRoutes: delivererRoutesRouter,
+  delivererValidation: delivererValidationRouter,
+  delivererWallet: delivererWalletRouter,
+  delivererPerformance: delivererPerformanceRouter,
+  nfcManagement: nfcManagementRouter,
+
   // Provider
   provider: providerRouter,
   service: serviceRouter,
-  
+  providerSkills: providerSkillsRouter,
+  providerCalendar: providerCalendarRouter,
+  providerEvaluations: providerEvaluationsRouter,
+
   // Merchant
   contract: contractRouter,
-  
+  merchantCatalog: merchantCatalogRouter,
+  merchantAnnouncements: merchantAnnouncementsRouter,
+  merchantStats: merchantStatsRouter,
+  merchantPayments: merchantPaymentsRouter,
+  cartDrop: cartDropRouter,
+
   // Financial
   financial: financialRouter,
-  
-  // New enhanced routers
-  delivererRoutes: delivererRoutesRouter,
-  clientSubscriptionEnhanced: clientSubscriptionEnhancedRouter,
-  personalServices: personalServicesRouter,
-  nfcManagement: nfcManagementRouter,
-  cartDrop: cartDropRouter,
-  matching: matchingRouter,
-  
+
   // Legacy aliases (renamed from fileRouter to uploadRouter for clarity)
   file: uploadRouter,
 });

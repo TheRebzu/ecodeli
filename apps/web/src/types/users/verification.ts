@@ -2,7 +2,7 @@
  * Types pour la vérification des comptes merchant et provider
  */
 
-import { Document } from '@prisma/client';
+// Import supprimé - non utilisé
 
 /**
  * Actions de bannissement possibles
@@ -163,3 +163,27 @@ export interface VerificationStatusResponse {
   rejectionReason?: string;
   notes?: string;
 }
+
+
+// Export ajouté automatiquement
+// Types pour la vérification utilisateur
+export interface CodeVerification {
+  id: string;
+  userId: string;
+  code: string;
+  type: 'EMAIL' | 'PHONE' | 'TWO_FACTOR';
+  expiresAt: Date;
+  verified: boolean;
+  attempts: number;
+  maxAttempts: number;  
+  createdAt: Date;
+}
+
+export interface VerificationResult {
+  success: boolean;
+  message: string;
+  attemptsRemaining?: number;
+}
+
+// Export par défaut pour compatibilité
+export default CodeVerification;

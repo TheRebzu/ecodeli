@@ -36,7 +36,7 @@ class AnnouncementFeaturesTest {
   private testSuites: TestSuite[] = [];
 
   async runAllTests(): Promise<void> {
-    console.log('🧪 Démarrage des tests des fonctionnalités d\'annonces EcoDeli\n');
+    console.log("🧪 Démarrage des tests des fonctionnalités d'annonces EcoDeli\n");
 
     // Test 1: Validation TypeScript et imports
     await this.testTypeScriptValidation();
@@ -69,38 +69,38 @@ class AnnouncementFeaturesTest {
     // Test d'import des services de matching
     await this.runTest(suite, 'Import AnnouncementMatchingService', async () => {
       if (typeof AnnouncementMatchingService !== 'function') {
-        throw new Error('AnnouncementMatchingService n\'est pas une classe');
+        throw new Error("AnnouncementMatchingService n'est pas une classe");
       }
     });
 
     await this.runTest(suite, 'Import PartialDeliveryService', async () => {
       if (typeof PartialDeliveryService !== 'function') {
-        throw new Error('PartialDeliveryService n\'est pas une classe');
+        throw new Error("PartialDeliveryService n'est pas une classe");
       }
     });
 
     await this.runTest(suite, 'Import CartDropService', async () => {
       if (typeof CartDropService !== 'function') {
-        throw new Error('CartDropService n\'est pas une classe');
+        throw new Error("CartDropService n'est pas une classe");
       }
     });
 
     await this.runTest(suite, 'Import EscrowPaymentService', async () => {
       if (typeof EscrowPaymentService !== 'function') {
-        throw new Error('EscrowPaymentService n\'est pas une classe');
+        throw new Error("EscrowPaymentService n'est pas une classe");
       }
     });
 
     // Test d'import des workflows
     await this.runTest(suite, 'Import AnnouncementLifecycleWorkflow', async () => {
       if (typeof AnnouncementLifecycleWorkflow !== 'function') {
-        throw new Error('AnnouncementLifecycleWorkflow n\'est pas une classe');
+        throw new Error("AnnouncementLifecycleWorkflow n'est pas une classe");
       }
     });
 
     await this.runTest(suite, 'Import CartDropWorkflow', async () => {
       if (typeof CartDropWorkflow !== 'function') {
-        throw new Error('CartDropWorkflow n\'est pas une classe');
+        throw new Error("CartDropWorkflow n'est pas une classe");
       }
     });
 
@@ -134,7 +134,7 @@ class AnnouncementFeaturesTest {
         reasons: ['SAME_ROUTE', 'TIMING_COMPATIBLE'],
         distance: 15.5,
         detourPercentage: 8,
-        priceEstimate: 25.50,
+        priceEstimate: 25.5,
         estimatedDuration: '2h 30min',
         matchingPoints: {
           pickup: { latitude: 48.8566, longitude: 2.3522, address: 'Paris' },
@@ -210,15 +210,15 @@ class AnnouncementFeaturesTest {
         id: 'escrow_123456789',
         announcementId: 'ann-123',
         clientId: 'client-123',
-        amount: 45.50,
+        amount: 45.5,
         currency: 'EUR',
         paymentMethod: 'CARD' as any,
         status: 'PENDING' as any,
         breakdown: {
-          serviceAmount: 40.00,
-          deliveryFee: 32.00,
+          serviceAmount: 40.0,
+          deliveryFee: 32.0,
           platformFee: 1.58,
-          vatAmount: 9.10,
+          vatAmount: 9.1,
         },
         heldUntil: new Date(Date.now() + 48 * 60 * 60 * 1000),
         metadata: {
@@ -297,18 +297,18 @@ class AnnouncementFeaturesTest {
     });
 
     // Test de la logique métier
-    await this.runTest(suite, 'Validation logique de transition d\'état', async () => {
+    await this.runTest(suite, "Validation logique de transition d'état", async () => {
       const validTransitions = {
-        'DRAFT': ['ACTIVE', 'CANCELLED'],
-        'ACTIVE': ['MATCHED', 'EXPIRED', 'CANCELLED'],
-        'MATCHED': ['ASSIGNED', 'ACTIVE'],
-        'ASSIGNED': ['IN_PROGRESS', 'CANCELLED'],
-        'IN_PROGRESS': ['DELIVERED'],
-        'DELIVERED': ['VALIDATED', 'CANCELLED'],
-        'VALIDATED': ['COMPLETED'],
-        'COMPLETED': [],
-        'CANCELLED': [],
-        'EXPIRED': [],
+        DRAFT: ['ACTIVE', 'CANCELLED'],
+        ACTIVE: ['MATCHED', 'EXPIRED', 'CANCELLED'],
+        MATCHED: ['ASSIGNED', 'ACTIVE'],
+        ASSIGNED: ['IN_PROGRESS', 'CANCELLED'],
+        IN_PROGRESS: ['DELIVERED'],
+        DELIVERED: ['VALIDATED', 'CANCELLED'],
+        VALIDATED: ['COMPLETED'],
+        COMPLETED: [],
+        CANCELLED: [],
+        EXPIRED: [],
       };
 
       // Vérifier que la logique de transition est cohérente
@@ -332,7 +332,7 @@ class AnnouncementFeaturesTest {
     };
 
     // Test des types d'annonces compatibles
-    await this.runTest(suite, 'Types d\'annonces supportés', async () => {
+    await this.runTest(suite, "Types d'annonces supportés", async () => {
       const supportedTypes = [
         'PACKAGE_DELIVERY',
         'PARTIAL_DELIVERY',
@@ -354,12 +354,12 @@ class AnnouncementFeaturesTest {
       }
 
       if (supportedTypes.length < 10) {
-        throw new Error('Nombre insuffisant de types d\'annonces supportés');
+        throw new Error("Nombre insuffisant de types d'annonces supportés");
       }
     });
 
     // Test des statuts d'annonces
-    await this.runTest(suite, 'Statuts d\'annonces supportés', async () => {
+    await this.runTest(suite, "Statuts d'annonces supportés", async () => {
       const supportedStatuses = [
         'DRAFT',
         'ACTIVE',
@@ -385,7 +385,7 @@ class AnnouncementFeaturesTest {
     });
 
     // Test des priorités
-    await this.runTest(suite, 'Priorités d\'annonces supportées', async () => {
+    await this.runTest(suite, "Priorités d'annonces supportées", async () => {
       const supportedPriorities = ['LOW', 'MEDIUM', 'HIGH', 'URGENT'];
 
       if (supportedPriorities.length !== 4) {
@@ -404,38 +404,42 @@ class AnnouncementFeaturesTest {
     this.testSuites.push(suite);
   }
 
-  private async runTest(suite: TestSuite, testName: string, testFunction: () => Promise<void>): Promise<void> {
+  private async runTest(
+    suite: TestSuite,
+    testName: string,
+    testFunction: () => Promise<void>
+  ): Promise<void> {
     const startTime = Date.now();
-    
+
     try {
       await testFunction();
       const duration = Date.now() - startTime;
-      
+
       const result: TestResult = {
         name: testName,
         passed: true,
         duration,
       };
-      
+
       suite.tests.push(result);
       suite.totalPassed++;
       suite.totalDuration += duration;
-      
+
       console.log(`  ✅ ${testName} (${duration}ms)`);
     } catch (error) {
       const duration = Date.now() - startTime;
-      
+
       const result: TestResult = {
         name: testName,
         passed: false,
         error: error instanceof Error ? error.message : String(error),
         duration,
       };
-      
+
       suite.tests.push(result);
       suite.totalFailed++;
       suite.totalDuration += duration;
-      
+
       console.log(`  ❌ ${testName} (${duration}ms)`);
       console.log(`     Erreur: ${result.error}`);
     }
@@ -453,8 +457,10 @@ class AnnouncementFeaturesTest {
       totalTestsFailed += suite.totalFailed;
       totalDuration += suite.totalDuration;
 
-      const successRate = Math.round((suite.totalPassed / (suite.totalPassed + suite.totalFailed)) * 100);
-      
+      const successRate = Math.round(
+        (suite.totalPassed / (suite.totalPassed + suite.totalFailed)) * 100
+      );
+
       console.log(`📦 ${suite.name}:`);
       console.log(`   • Tests passés: ${suite.totalPassed}`);
       console.log(`   • Tests échoués: ${suite.totalFailed}`);
@@ -466,11 +472,15 @@ class AnnouncementFeaturesTest {
     console.log('🎯 Résumé global:');
     console.log(`   • Total tests passés: ${totalTestsPassed}`);
     console.log(`   • Total tests échoués: ${totalTestsFailed}`);
-    console.log(`   • Taux de réussite global: ${Math.round((totalTestsPassed / (totalTestsPassed + totalTestsFailed)) * 100)}%`);
+    console.log(
+      `   • Taux de réussite global: ${Math.round((totalTestsPassed / (totalTestsPassed + totalTestsFailed)) * 100)}%`
+    );
     console.log(`   • Durée totale: ${totalDuration}ms`);
 
     if (totalTestsFailed === 0) {
-      console.log('\n🎉 Tous les tests sont passés ! L\'implémentation des fonctionnalités d\'annonces est validée.');
+      console.log(
+        "\n🎉 Tous les tests sont passés ! L'implémentation des fonctionnalités d'annonces est validée."
+      );
     } else {
       console.log(`\n⚠️ ${totalTestsFailed} test(s) ont échoué. Vérifiez les erreurs ci-dessus.`);
     }
@@ -489,7 +499,7 @@ async function runTests() {
 const isMainModule = import.meta.url === `file://${process.argv[1]}`;
 if (isMainModule) {
   runTests().catch(error => {
-    console.error('❌ Erreur lors de l\'exécution des tests:', error);
+    console.error("❌ Erreur lors de l'exécution des tests:", error);
     process.exit(1);
   });
 }

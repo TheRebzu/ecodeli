@@ -3,13 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
@@ -106,7 +100,7 @@ export default function CartDropTerminalPage() {
               id: 'prod-1',
               name: 'Pain de mie complet',
               description: 'Pain de mie bio aux céréales complètes',
-              price: 3.50,
+              price: 3.5,
               weight: 0.5,
               category: 'FOOD',
               isFragile: false,
@@ -118,7 +112,7 @@ export default function CartDropTerminalPage() {
               id: 'prod-2',
               name: 'Lait frais bio 1L',
               description: 'Lait frais bio demi-écrémé',
-              price: 1.80,
+              price: 1.8,
               weight: 1.0,
               category: 'FOOD',
               isFragile: false,
@@ -130,7 +124,7 @@ export default function CartDropTerminalPage() {
               id: 'prod-3',
               name: 'Smartphone Samsung Galaxy',
               description: 'Smartphone Samsung Galaxy S24',
-              price: 899.00,
+              price: 899.0,
               weight: 0.2,
               category: 'ELECTRONICS',
               isFragile: true,
@@ -142,7 +136,7 @@ export default function CartDropTerminalPage() {
               id: 'prod-4',
               name: 'T-shirt bio coton',
               description: 'T-shirt en coton bio, taille M',
-              price: 29.90,
+              price: 29.9,
               weight: 0.2,
               category: 'CLOTHING',
               isFragile: false,
@@ -154,7 +148,7 @@ export default function CartDropTerminalPage() {
               id: 'prod-5',
               name: 'Livre de cuisine',
               description: 'Guide de cuisine française traditionnelle',
-              price: 24.90,
+              price: 24.9,
               weight: 0.8,
               category: 'BOOKS',
               isFragile: false,
@@ -166,7 +160,7 @@ export default function CartDropTerminalPage() {
               id: 'prod-6',
               name: 'Yaourts nature bio x12',
               description: 'Pack de 12 yaourts nature bio',
-              price: 4.20,
+              price: 4.2,
               weight: 1.5,
               category: 'FOOD',
               isFragile: false,
@@ -184,7 +178,7 @@ export default function CartDropTerminalPage() {
               endTime: '11:00',
               available: true,
               delivererCount: 3,
-              price: 5.90,
+              price: 5.9,
             },
             {
               id: 'slot-2',
@@ -192,7 +186,7 @@ export default function CartDropTerminalPage() {
               endTime: '13:00',
               available: true,
               delivererCount: 5,
-              price: 4.90,
+              price: 4.9,
             },
             {
               id: 'slot-3',
@@ -200,7 +194,7 @@ export default function CartDropTerminalPage() {
               endTime: '15:00',
               available: false,
               delivererCount: 0,
-              price: 6.90,
+              price: 6.9,
             },
             {
               id: 'slot-4',
@@ -208,7 +202,7 @@ export default function CartDropTerminalPage() {
               endTime: '17:00',
               available: true,
               delivererCount: 4,
-              price: 5.90,
+              price: 5.9,
             },
             {
               id: 'slot-5',
@@ -216,7 +210,7 @@ export default function CartDropTerminalPage() {
               endTime: '19:00',
               available: true,
               delivererCount: 6,
-              price: 7.90,
+              price: 7.9,
             },
             {
               id: 'slot-6',
@@ -224,14 +218,14 @@ export default function CartDropTerminalPage() {
               endTime: '21:00',
               available: true,
               delivererCount: 2,
-              price: 8.90,
+              price: 8.9,
             },
           ];
 
           // Statistiques du jour
           const mockTodayStats = {
             orders: 27,
-            revenue: 485.60,
+            revenue: 485.6,
             deliveries: 23,
             avgRating: 4.7,
           };
@@ -243,7 +237,8 @@ export default function CartDropTerminalPage() {
           setIsLoading(false);
         }, 1000);
       } catch (err) {
-        const message = err instanceof Error ? err.message : 'Erreur lors du chargement de la borne';
+        const message =
+          err instanceof Error ? err.message : 'Erreur lors du chargement de la borne';
         setError(message);
         setIsLoading(false);
       }
@@ -257,9 +252,9 @@ export default function CartDropTerminalPage() {
     try {
       // Simuler la création de commande
       await new Promise(resolve => setTimeout(resolve, 2000));
-      
+
       const orderId = `CMD-${Date.now()}`;
-      
+
       console.log('Nouvelle commande créée:', {
         orderId,
         ...orderData,
@@ -285,10 +280,10 @@ export default function CartDropTerminalPage() {
     try {
       // Simuler l'identification par QR
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       // Parser les données QR (simulation)
       const clientData = JSON.parse(qrData);
-      
+
       return {
         id: clientData.id || 'client-qr-123',
         name: clientData.name || 'Client QR Scan',
@@ -308,7 +303,7 @@ export default function CartDropTerminalPage() {
     try {
       // Simuler l'identification par NFC
       await new Promise(resolve => setTimeout(resolve, 800));
-      
+
       return {
         id: `client-nfc-${nfcId}`,
         name: 'Client NFC',
@@ -351,9 +346,7 @@ export default function CartDropTerminalPage() {
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>{t('error')}</AlertTitle>
-            <AlertDescription>
-              {error || t('terminalNotFound')}
-            </AlertDescription>
+            <AlertDescription>{error || t('terminalNotFound')}</AlertDescription>
           </Alert>
           <div className="mt-6">
             <Button variant="outline" asChild>
@@ -376,9 +369,7 @@ export default function CartDropTerminalPage() {
           <Alert>
             <Settings className="h-4 w-4" />
             <AlertTitle>{t('serviceDisabled')}</AlertTitle>
-            <AlertDescription>
-              {t('cartDropNotEnabled')}
-            </AlertDescription>
+            <AlertDescription>{t('cartDropNotEnabled')}</AlertDescription>
           </Alert>
           <div className="mt-6 flex space-x-4">
             <Button variant="outline" asChild>
@@ -544,8 +535,12 @@ export default function CartDropTerminalPage() {
                   </Badge>
                 </div>
                 <div className="text-sm text-muted-foreground">
-                  <p>{t('deliverers')}: {slot.delivererCount}</p>
-                  <p>{t('price')}: {formatCurrency(slot.price)}</p>
+                  <p>
+                    {t('deliverers')}: {slot.delivererCount}
+                  </p>
+                  <p>
+                    {t('price')}: {formatCurrency(slot.price)}
+                  </p>
                 </div>
               </div>
             ))}

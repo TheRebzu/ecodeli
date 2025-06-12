@@ -10,4 +10,3 @@ export * from './next.d';
 export * from './onesignal.d';
 export * from './speakeasy.d';
 export * from './stripe.d';
-

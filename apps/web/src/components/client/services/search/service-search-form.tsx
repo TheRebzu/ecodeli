@@ -134,11 +134,7 @@ export function ServiceSearchForm({ onSearch, className, defaultValues }: Servic
                   <FormControl>
                     <div className="relative">
                       <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder={t('queryPlaceholder')}
-                        className="pl-9"
-                        {...field}
-                      />
+                      <Input placeholder={t('queryPlaceholder')} className="pl-9" {...field} />
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -156,11 +152,7 @@ export function ServiceSearchForm({ onSearch, className, defaultValues }: Servic
                   <FormControl>
                     <div className="relative">
                       <MapPin className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder={t('locationPlaceholder')}
-                        className="pl-9"
-                        {...field}
-                      />
+                      <Input placeholder={t('locationPlaceholder')} className="pl-9" {...field} />
                     </div>
                   </FormControl>
                   <FormMessage />
@@ -185,7 +177,7 @@ export function ServiceSearchForm({ onSearch, className, defaultValues }: Servic
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="">{t('allCategories')}</SelectItem>
-                        {SERVICE_CATEGORIES.map((category) => (
+                        {SERVICE_CATEGORIES.map(category => (
                           <SelectItem key={category.value} value={category.value}>
                             {category.label}
                           </SelectItem>
@@ -208,12 +200,7 @@ export function ServiceSearchForm({ onSearch, className, defaultValues }: Servic
                       <FormControl>
                         <div className="relative">
                           <Euro className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            type="number"
-                            placeholder="0"
-                            className="pl-9"
-                            {...field}
-                          />
+                          <Input type="number" placeholder="0" className="pl-9" {...field} />
                         </div>
                       </FormControl>
                       <FormMessage />
@@ -230,12 +217,7 @@ export function ServiceSearchForm({ onSearch, className, defaultValues }: Servic
                       <FormControl>
                         <div className="relative">
                           <Euro className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                          <Input
-                            type="number"
-                            placeholder="1000"
-                            className="pl-9"
-                            {...field}
-                          />
+                          <Input type="number" placeholder="1000" className="pl-9" {...field} />
                         </div>
                       </FormControl>
                       <FormMessage />
@@ -259,7 +241,7 @@ export function ServiceSearchForm({ onSearch, className, defaultValues }: Servic
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="">{t('anyTime')}</SelectItem>
-                        {AVAILABILITY_OPTIONS.map((option) => (
+                        {AVAILABILITY_OPTIONS.map(option => (
                           <SelectItem key={option.value} value={option.value}>
                             {option.label}
                           </SelectItem>
@@ -312,4 +294,4 @@ export function ServiceSearchForm({ onSearch, className, defaultValues }: Servic
       </CardContent>
     </Card>
   );
-} 
+}

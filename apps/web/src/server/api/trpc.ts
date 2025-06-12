@@ -325,7 +325,6 @@ export const financialProcedure = t.procedure.use(enforceUserIsAuthed).use(enfor
 // Exports avec noms compatibles pour la rétrocompatibilité
 export const createTRPCRouter = router;
 
-
 // Export pour compatibilité
 export const createCallerFactory = (router: any) => {
   return (ctx?: any) => router.createCaller(ctx);

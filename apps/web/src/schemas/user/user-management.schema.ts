@@ -3,45 +3,48 @@ import { UserRole, UserStatus } from '@prisma/client';
 import { ActivityType } from '@/types/actors/admin';
 
 // Schema pour filtrer les utilisateurs dans l'interface d'administration
-export const userFiltersSchema = z.object({
-  role: z.nativeEnum(UserRole).optional(),
-  status: z.nativeEnum(UserStatus).optional(),
-  isVerified: z.boolean().optional(),
-  search: z.string().optional(),
-  dateFrom: z.coerce.date().optional(),
-  dateTo: z.coerce.date().optional(),
-  hasDocuments: z.boolean().optional(),
-  hasPendingVerifications: z.boolean().optional(),
-  country: z.string().optional(),
-  city: z.string().optional(),
-  lastLoginFrom: z.coerce.date().optional(),
-  lastLoginTo: z.coerce.date().optional(),
-  lastActivityFrom: z.coerce.date().optional(),
-  lastActivityTo: z.coerce.date().optional(),
-  documentType: z.string().optional(),
-  emailVerified: z.boolean().optional(),
-  phoneVerified: z.boolean().optional(),
-  tags: z.array(z.string()).optional(),
-  subscriptionStatus: z.string().optional(),
-  page: z.number().int().min(1).default(1),
-  limit: z.number().int().min(1).max(100).default(10),
-  sortBy: z
-    .enum([
-      'name',
-      'email',
-      'role',
-      'status',
-      'createdAt',
-      'lastLoginAt',
-      'lastActivityAt',
-      'documentsCount',
-      'isVerified',
-      'country',
-      'subscriptionStatus',
-    ])
-    .default('createdAt'),
-  sortDirection: z.enum(['asc', 'desc']).default('desc'),
-}).optional().default({});
+export const userFiltersSchema = z
+  .object({
+    role: z.nativeEnum(UserRole).optional(),
+    status: z.nativeEnum(UserStatus).optional(),
+    isVerified: z.boolean().optional(),
+    search: z.string().optional(),
+    dateFrom: z.coerce.date().optional(),
+    dateTo: z.coerce.date().optional(),
+    hasDocuments: z.boolean().optional(),
+    hasPendingVerifications: z.boolean().optional(),
+    country: z.string().optional(),
+    city: z.string().optional(),
+    lastLoginFrom: z.coerce.date().optional(),
+    lastLoginTo: z.coerce.date().optional(),
+    lastActivityFrom: z.coerce.date().optional(),
+    lastActivityTo: z.coerce.date().optional(),
+    documentType: z.string().optional(),
+    emailVerified: z.boolean().optional(),
+    phoneVerified: z.boolean().optional(),
+    tags: z.array(z.string()).optional(),
+    subscriptionStatus: z.string().optional(),
+    page: z.number().int().min(1).default(1),
+    limit: z.number().int().min(1).max(100).default(10),
+    sortBy: z
+      .enum([
+        'name',
+        'email',
+        'role',
+        'status',
+        'createdAt',
+        'lastLoginAt',
+        'lastActivityAt',
+        'documentsCount',
+        'isVerified',
+        'country',
+        'subscriptionStatus',
+      ])
+      .default('createdAt'),
+    sortDirection: z.enum(['asc', 'desc']).default('desc'),
+  })
+  .optional()
+  .default({});
 
 // Schema pour mettre à jour le statut d'un utilisateur
 export const updateUserStatusSchema = z.object({

@@ -12,4 +12,3 @@ export { default as TransactionStatsCard } from './transaction-stats-card';
 export * from './transaction-stats-card';
 export { default as UserStatsCard } from './user-stats-card';
 export * from './user-stats-card';
-

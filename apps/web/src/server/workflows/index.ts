@@ -4,15 +4,15 @@
  */
 
 export { AnnouncementLifecycleWorkflow } from './announcement-lifecycle.workflow';
-export type { 
+export type {
   AnnouncementStatus,
   AnnouncementLifecycleEvent,
-  AnnouncementWorkflowConfig 
+  AnnouncementWorkflowConfig,
 } from './announcement-lifecycle.workflow';
 
 export { CartDropWorkflow } from './cart-drop.workflow';
-export type { 
+export type {
   CartDropStatus,
   CartDropWorkflowEvent,
-  CartDropWorkflowConfig 
+  CartDropWorkflowConfig,
 } from './cart-drop.workflow';

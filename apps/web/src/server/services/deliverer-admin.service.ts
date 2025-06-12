@@ -82,26 +82,25 @@ export const delivererAdminService = {
       db.user.count({ where }),
     ]);
 
-    const transformedDeliverers = deliverers.map((deliverer) => {
+    const transformedDeliverers = deliverers.map(deliverer => {
       const completedDeliveries = deliverer.delivererDeliveries.filter(
-        (d) => d.status === 'DELIVERED'
+        d => d.status === 'DELIVERED'
       ).length;
       const totalDeliveries = deliverer.delivererDeliveries.length;
-      
+
       // Récupérer toutes les notes des livraisons
-      const allRatings = deliverer.delivererDeliveries
-        .flatMap((d) => d.ratings)
-        .map((r) => r.rating);
-      const averageRating = allRatings.length > 0 
-        ? allRatings.reduce((sum, rating) => sum + rating, 0) / allRatings.length 
-        : 0;
+      const allRatings = deliverer.delivererDeliveries.flatMap(d => d.ratings).map(r => r.rating);
+      const averageRating =
+        allRatings.length > 0
+          ? allRatings.reduce((sum, rating) => sum + rating, 0) / allRatings.length
+          : 0;
 
       let verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' = 'PENDING';
       if (deliverer.isVerified) {
         verificationStatus = 'APPROVED';
       } else {
         const hasRejectedDoc = deliverer.documents.some(
-          (doc) => doc.verificationStatus === 'REJECTED'
+          doc => doc.verificationStatus === 'REJECTED'
         );
         if (hasRejectedDoc) {
           verificationStatus = 'REJECTED';
@@ -302,4 +301,4 @@ export const delivererAdminService = {
 
     return deliverer;
   },
-}; 
+};

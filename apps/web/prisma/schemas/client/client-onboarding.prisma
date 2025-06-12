@@ -1,0 +1,294 @@
+// ===== MODÈLES TUTORIEL PREMIÈRE CONNEXION CLIENTS =====
+// Ce fichier contient les modèles pour le système de tutoriel bloquant step-by-step selon le cahier des charges
+
+/// Statut de tutoriel
+enum TutorialStatus {
+  NOT_STARTED    // Pas encore commencé
+  IN_PROGRESS    // En cours
+  COMPLETED      // Terminé
+  SKIPPED        // Ignoré (utilisateur expérimenté)
+}
+
+/// Type d'étape de tutoriel
+enum TutorialStepType {
+  OVERLAY        // Overlay bloquant avec explication
+  HIGHLIGHT      // Mise en évidence d'un élément
+  MODAL          // Modal d'information
+  INTERACTIVE    // Action requise de l'utilisateur
+  VIDEO          // Vidéo explicative
+  FORM           // Formulaire à remplir
+}
+
+/// Statut d'une étape
+enum TutorialStepStatus {
+  PENDING        // En attente
+  ACTIVE         // Étape actuelle
+  COMPLETED      // Terminée
+  SKIPPED        // Ignorée
+}
+
+/// Configuration globale du tutoriel client
+model ClientTutorialConfig {
+  id                String    @id @default(cuid())
+  
+  // Configuration générale
+  isEnabled         Boolean   @default(true) // Tutoriel activé globalement
+  isBlocking        Boolean   @default(true) // Tutoriel bloquant (overlays)
+  allowSkip         Boolean   @default(true) // Autoriser skip pour utilisateurs expérimentés
+  
+  // Versions et ciblage
+  version           String    @default("1.0") // Version du tutoriel
+  targetUserTypes   String[]  // Types d'utilisateurs ciblés ["CLIENT"]
+  minimumAppVersion String?   // Version minimale de l'app requise
+  
+  // Paramètres d'affichage
+  overlayOpacity    Float     @default(0.8) // Opacité des overlays
+  animationSpeed    String    @default("normal") // Vitesse des animations
+  themeMode         String    @default("auto") // Thème: auto, light, dark
+  
+  // Conditions de déclenchement
+  triggerOnFirstLogin Boolean @default(true) // Déclencher à la première connexion
+  triggerAfterInactivity Boolean @default(false) // Déclencher après inactivité
+  inactivityDays    Int?      @default(30) // Jours d'inactivité avant re-déclenchement
+  
+  // Métadonnées
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+  createdBy         String    // Admin créateur
+  
+  // Relations
+  creator           User      @relation("TutorialConfigCreator", fields: [createdBy], references: [id])
+  
+  // Étapes du tutoriel
+  tutorialSteps     ClientTutorialStep[]
+
+  @@index([isEnabled])
+  @@index([version])
+  @@map("client_tutorial_configs")
+}
+
+/// Étape individuelle du tutoriel
+model ClientTutorialStep {
+  id                String             @id @default(cuid())
+  configId          String
+  
+  // Ordre et identification
+  stepOrder         Int                // Ordre de l'étape (1, 2, 3...)
+  stepKey           String             // Clé unique de l'étape (ex: "welcome", "create_announcement")
+  stepType          TutorialStepType   // Type d'étape
+  
+  // Contenu
+  title             String             // Titre de l'étape
+  description       String             @db.Text // Description détaillée
+  shortDescription  String?            // Description courte pour navigation
+  
+  // Éléments visuels
+  iconUrl           String?            // Icône de l'étape
+  imageUrl          String?            // Image explicative
+  videoUrl          String?            // Vidéo tutoriel
+  
+  // Ciblage UI
+  targetSelector    String?            // Sélecteur CSS de l'élément à mettre en évidence
+  targetPage        String             // Page où afficher l'étape (ex: "/dashboard", "/announcements")
+  targetPosition    String?            // Position de l'overlay: "top", "bottom", "left", "right", "center"
+  
+  // Comportement
+  isBlocking        Boolean            @default(true) // Étape bloquante
+  autoAdvance       Boolean            @default(false) // Avancement automatique
+  autoAdvanceDelay  Int?               // Délai d'avancement auto en secondes
+  requiresAction    Boolean            @default(false) // Nécessite une action utilisateur
+  actionType        String?            // Type d'action: "click", "input", "navigate"
+  actionTarget      String?            // Cible de l'action
+  
+  // Contenu interactif
+  hasForm           Boolean            @default(false) // Contient un formulaire
+  formFields        Json?              // Champs du formulaire (JSON)
+  successMessage    String?            // Message de succès après action
+  
+  // Fonctionnalités explicables
+  featureCategory   String?            // Catégorie de fonctionnalité (ex: "announcements", "services", "storage")
+  featureImportance String?            // Importance: "essential", "recommended", "optional"
+  useCaseExample    String?            // Exemple d'usage concret
+  
+  // Navigation
+  canSkip           Boolean            @default(true) // Peut être ignorée
+  skipButtonText    String?            // Texte du bouton skip
+  nextButtonText    String?            // Texte du bouton suivant
+  prevButtonText    String?            // Texte du bouton précédent
+  
+  // Conditions d'affichage
+  showConditions    Json?              // Conditions pour afficher cette étape (JSON)
+  prerequisites     String[]           // Étapes prérequises (clés d'étapes)
+  
+  // Métadonnées
+  isActive          Boolean            @default(true) // Étape active
+  estimatedDuration Int?               // Durée estimée en secondes
+  
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  
+  // Relations
+  config            ClientTutorialConfig @relation(fields: [configId], references: [id], onDelete: Cascade)
+  
+  // Progressions des utilisateurs sur cette étape
+  userProgresses    ClientTutorialProgress[]
+
+  @@unique([configId, stepOrder])
+  @@index([configId, stepOrder])
+  @@index([targetPage])
+  @@index([stepKey])
+  @@map("client_tutorial_steps")
+}
+
+/// Progression d'un utilisateur dans le tutoriel
+model ClientTutorialProgress {
+  id                String             @id @default(cuid())
+  userId            String
+  configId          String
+  currentStepId     String?            // Étape actuelle
+  
+  // Statut global
+  status            TutorialStatus     @default(NOT_STARTED)
+  completionRate    Float              @default(0) // Pourcentage de completion (0-100)
+  
+  // Progression
+  totalSteps        Int                @default(0) // Nombre total d'étapes
+  completedSteps    Int                @default(0) // Étapes terminées
+  skippedSteps      Int                @default(0) // Étapes ignorées
+  
+  // Historique
+  startedAt         DateTime?          // Début du tutoriel
+  lastActivityAt    DateTime?          // Dernière activité
+  completedAt       DateTime?          // Tutoriel terminé
+  
+  // Raisons d'arrêt/skip
+  skipReason        String?            // Raison du skip (si applicable)
+  isExperiencedUser Boolean            @default(false) // Utilisateur expérimenté
+  
+  // Données de session
+  sessionData       Json?              // Données de progression de session
+  deviceInfo        String?            // Informations sur le dispositif
+  browserInfo       String?            // Informations navigateur
+  
+  // Évaluation
+  overallRating     Int?               // Note globale du tutoriel (1-5)
+  feedback          String?            // Commentaires utilisateur
+  suggestedImprovements String?        // Améliorations suggérées
+  
+  // Métadonnées
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  
+  // Relations
+  user              User               @relation("ClientTutorialUser", fields: [userId], references: [id], onDelete: Cascade)
+  config            ClientTutorialConfig @relation("ClientTutorialConfig", fields: [configId], references: [id], onDelete: Cascade)
+  currentStep       ClientTutorialStep? @relation(fields: [currentStepId], references: [id])
+  
+  // Détails des étapes
+  stepProgresses    ClientTutorialStepProgress[]
+
+  @@unique([userId, configId])
+  @@index([userId])
+  @@index([status])
+  @@index([completionRate])
+  @@map("client_tutorial_progresses")
+}
+
+/// Progression détaillée par étape
+model ClientTutorialStepProgress {
+  id              String                 @id @default(cuid())
+  progressId      String
+  stepId          String
+  
+  // Statut de l'étape
+  status          TutorialStepStatus     @default(PENDING)
+  
+  // Chronométrage
+  startedAt       DateTime?              // Début de l'étape
+  completedAt     DateTime?              // Fin de l'étape
+  timeSpent       Int?                   // Temps passé en secondes
+  
+  // Interactions
+  clickCount      Int                    @default(0) // Nombre de clics
+  scrollCount     Int                    @default(0) // Nombre de scrolls
+  interactionData Json?                  // Données d'interaction détaillées
+  
+  // Actions requises
+  actionCompleted Boolean                @default(false) // Action requise terminée
+  actionResult    String?                // Résultat de l'action
+  formData        Json?                  // Données de formulaire saisies
+  
+  // Aide et support
+  helpRequested   Boolean                @default(false) // Aide demandée
+  helpViewed      Int                    @default(0) // Nombre de fois l'aide consultée
+  
+  // Erreurs et difficultés
+  errorCount      Int                    @default(0) // Nombre d'erreurs
+  retryCount      Int                    @default(0) // Nombre de tentatives
+  difficultyLevel String?                // Niveau de difficulté perçu
+  
+  // Évaluation de l'étape
+  stepRating      Int?                   // Note de l'étape (1-5)
+  stepFeedback    String?                // Commentaire sur l'étape
+  wasHelpful      Boolean?               // L'étape était-elle utile ?
+  
+  // Métadonnées
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+  
+  // Relations
+  progress        ClientTutorialProgress @relation(fields: [progressId], references: [id], onDelete: Cascade)
+  step            ClientTutorialStep     @relation(fields: [stepId], references: [id], onDelete: Cascade)
+
+  @@unique([progressId, stepId])
+  @@index([progressId])
+  @@index([status])
+  @@map("client_tutorial_step_progresses")
+}
+
+/// Statistiques du tutoriel pour optimisation
+model TutorialAnalytics {
+  id                String    @id @default(cuid())
+  configId          String
+  
+  // Période d'analyse
+  periodStart       DateTime  // Début de la période
+  periodEnd         DateTime  // Fin de la période
+  
+  // Métriques globales
+  totalUsers        Int       @default(0) // Utilisateurs ayant commencé
+  completedUsers    Int       @default(0) // Utilisateurs ayant terminé
+  skippedUsers      Int       @default(0) // Utilisateurs ayant ignoré
+  completionRate    Float     @default(0) // Taux de completion (%)
+  
+  // Métriques de temps
+  averageTime       Int?      // Temps moyen total (secondes)
+  medianTime        Int?      // Temps médian
+  dropoffRate       Float     @default(0) // Taux d'abandon (%)
+  
+  // Points de friction
+  mostSkippedStep   String?   // Étape la plus ignorée
+  longestStep       String?   // Étape la plus longue
+  mostErrorStep     String?   // Étape avec le plus d'erreurs
+  
+  // Feedback agrégé
+  averageRating     Float?    // Note moyenne globale
+  commonFeedback    Json?     // Commentaires fréquents (JSON)
+  improvementSuggestions Json? // Suggestions d'amélioration groupées
+  
+  // Segmentation utilisateurs
+  mobileUsers       Int       @default(0) // Utilisateurs mobiles
+  desktopUsers      Int       @default(0) // Utilisateurs desktop
+  experiencedUsers  Int       @default(0) // Utilisateurs expérimentés
+  
+  // Métadonnées
+  calculatedAt      DateTime  @default(now())
+  createdAt         DateTime  @default(now())
+  
+  // Relations
+  config            ClientTutorialConfig @relation("TutorialAnalytics", fields: [configId], references: [id], onDelete: Cascade)
+
+  @@index([configId])
+  @@index([periodStart, periodEnd])
+  @@map("tutorial_analytics")
+}

@@ -27,7 +27,7 @@ interface InvoiceDetailsPageProps {
   }>;
 }
 
-export default function InvoiceDetailsPage({ params }: InvoiceDetailsPageProps) {
+export default async function InvoiceDetailsPage({ params }: InvoiceDetailsPageProps) {
   const { id, locale } = use(params);
   const t = useTranslations('invoices');
   const router = useRouter();

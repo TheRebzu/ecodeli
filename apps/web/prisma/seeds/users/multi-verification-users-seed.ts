@@ -1,4 +1,10 @@
-import { PrismaClient, UserRole, UserStatus, DocumentType, VerificationStatus } from '@prisma/client';
+import {
+  PrismaClient,
+  UserRole,
+  UserStatus,
+  DocumentType,
+  VerificationStatus,
+} from '@prisma/client';
 import { SeedLogger } from '../utils/seed-logger';
 import {
   SeedResult,
@@ -53,9 +59,9 @@ export async function seedMultiVerificationUsers(
   const existingTestUsers = await prisma.user.count({
     where: {
       email: {
-        endsWith: '@test-ecodeli.fr'
-      }
-    }
+        endsWith: '@test-ecodeli.fr',
+      },
+    },
   });
 
   if (existingTestUsers > 0 && !options.force) {
@@ -72,9 +78,9 @@ export async function seedMultiVerificationUsers(
     await prisma.user.deleteMany({
       where: {
         email: {
-          endsWith: '@test-ecodeli.fr'
-        }
-      }
+          endsWith: '@test-ecodeli.fr',
+        },
+      },
     });
     logger.info('MULTI_VERIFICATION_USERS', 'Utilisateurs de test précédents supprimés');
   }
@@ -94,11 +100,11 @@ export async function seedMultiVerificationUsers(
         {
           type: DocumentType.ID_CARD,
           status: VerificationStatus.APPROVED,
-          filename: 'admin_id_card.pdf'
-        }
+          filename: 'admin_id_card.pdf',
+        },
       ],
       hasCompletedOnboarding: true,
-      notes: 'Compte administrateur principal pour tests'
+      notes: 'Compte administrateur principal pour tests',
     },
 
     // === CLIENTS VARIÉS ===
@@ -111,16 +117,16 @@ export async function seedMultiVerificationUsers(
         {
           type: DocumentType.ID_CARD,
           status: VerificationStatus.APPROVED,
-          filename: 'jean_id_card.pdf'
+          filename: 'jean_id_card.pdf',
         },
         {
           type: DocumentType.PROOF_OF_ADDRESS,
           status: VerificationStatus.APPROVED,
-          filename: 'jean_proof_address.pdf'
-        }
+          filename: 'jean_proof_address.pdf',
+        },
       ],
       hasCompletedOnboarding: true,
-      notes: 'Client vérifié et actif - utilise régulièrement la plateforme'
+      notes: 'Client vérifié et actif - utilise régulièrement la plateforme',
     },
     {
       name: 'Marie Martin',
@@ -131,11 +137,11 @@ export async function seedMultiVerificationUsers(
         {
           type: DocumentType.ID_CARD,
           status: VerificationStatus.PENDING,
-          filename: 'marie_id_card.jpg'
-        }
+          filename: 'marie_id_card.jpg',
+        },
       ],
       hasCompletedOnboarding: false,
-      notes: 'Nouvelle cliente en attente de vérification de documents'
+      notes: 'Nouvelle cliente en attente de vérification de documents',
     },
     {
       name: 'Pierre Durand',
@@ -147,11 +153,11 @@ export async function seedMultiVerificationUsers(
           type: DocumentType.ID_CARD,
           status: VerificationStatus.REJECTED,
           rejectionReason: 'Document illisible, veuillez soumettre une image de meilleure qualité',
-          filename: 'pierre_id_card_blurry.jpg'
-        }
+          filename: 'pierre_id_card_blurry.jpg',
+        },
       ],
       hasCompletedOnboarding: false,
-      notes: 'Client suspendu suite à document rejeté - comportement suspect détecté'
+      notes: 'Client suspendu suite à document rejeté - comportement suspect détecté',
     },
 
     // === LIVREURS VARIÉS ===
@@ -164,26 +170,26 @@ export async function seedMultiVerificationUsers(
         {
           type: DocumentType.ID_CARD,
           status: VerificationStatus.APPROVED,
-          filename: 'antoine_id_card.pdf'
+          filename: 'antoine_id_card.pdf',
         },
         {
           type: DocumentType.DRIVERS_LICENSE,
           status: VerificationStatus.APPROVED,
-          filename: 'antoine_drivers_license.pdf'
+          filename: 'antoine_drivers_license.pdf',
         },
         {
           type: DocumentType.VEHICLE_INSURANCE,
           status: VerificationStatus.APPROVED,
-          filename: 'antoine_vehicle_insurance.pdf'
+          filename: 'antoine_vehicle_insurance.pdf',
         },
         {
           type: DocumentType.VEHICLE_REGISTRATION,
           status: VerificationStatus.APPROVED,
-          filename: 'antoine_vehicle_registration.pdf'
-        }
+          filename: 'antoine_vehicle_registration.pdf',
+        },
       ],
       hasCompletedOnboarding: true,
-      notes: 'Livreur expérimenté - excellentes évaluations - 500+ livraisons'
+      notes: 'Livreur expérimenté - excellentes évaluations - 500+ livraisons',
     },
     {
       name: 'Sophia Vélo',
@@ -194,22 +200,22 @@ export async function seedMultiVerificationUsers(
         {
           type: DocumentType.ID_CARD,
           status: VerificationStatus.APPROVED,
-          filename: 'sophia_id_card.pdf'
+          filename: 'sophia_id_card.pdf',
         },
         {
           type: DocumentType.DRIVERS_LICENSE,
           status: VerificationStatus.PENDING,
-          filename: 'sophia_drivers_license.jpg'
+          filename: 'sophia_drivers_license.jpg',
         },
         {
           type: DocumentType.VEHICLE_INSURANCE,
           status: VerificationStatus.REJECTED,
           rejectionReason: 'Assurance expirée. Veuillez soumettre une attestation valide.',
-          filename: 'sophia_expired_insurance.pdf'
-        }
+          filename: 'sophia_expired_insurance.pdf',
+        },
       ],
       hasCompletedOnboarding: false,
-      notes: 'Nouvelle livreuse vélo - en cours de vérification des documents'
+      notes: 'Nouvelle livreuse vélo - en cours de vérification des documents',
     },
     {
       name: 'Marc Suspendu',
@@ -220,17 +226,17 @@ export async function seedMultiVerificationUsers(
         {
           type: DocumentType.ID_CARD,
           status: VerificationStatus.APPROVED,
-          filename: 'marc_id_card.pdf'
+          filename: 'marc_id_card.pdf',
         },
         {
           type: DocumentType.DRIVERS_LICENSE,
           status: VerificationStatus.REJECTED,
           rejectionReason: 'Permis suspendu par les autorités. Non autorisé à livrer.',
-          filename: 'marc_suspended_license.pdf'
-        }
+          filename: 'marc_suspended_license.pdf',
+        },
       ],
       hasCompletedOnboarding: true,
-      notes: 'Livreur suspendu suite à problèmes de conduite - plaintes clients'
+      notes: 'Livreur suspendu suite à problèmes de conduite - plaintes clients',
     },
 
     // === COMMERÇANTS VARIÉS ===
@@ -243,21 +249,21 @@ export async function seedMultiVerificationUsers(
         {
           type: DocumentType.BUSINESS_LICENSE,
           status: VerificationStatus.APPROVED,
-          filename: 'boulangerie_business_license.pdf'
+          filename: 'boulangerie_business_license.pdf',
         },
         {
           type: DocumentType.VAT_REGISTRATION,
           status: VerificationStatus.APPROVED,
-          filename: 'boulangerie_vat_registration.pdf'
+          filename: 'boulangerie_vat_registration.pdf',
         },
         {
           type: DocumentType.INSURANCE_CERTIFICATE,
           status: VerificationStatus.APPROVED,
-          filename: 'boulangerie_insurance.pdf'
-        }
+          filename: 'boulangerie_insurance.pdf',
+        },
       ],
       hasCompletedOnboarding: true,
-      notes: 'Boulangerie partenaire - contrat signé - livraisons quotidiennes'
+      notes: 'Boulangerie partenaire - contrat signé - livraisons quotidiennes',
     },
     {
       name: 'Épicerie Bio Nature',
@@ -268,16 +274,16 @@ export async function seedMultiVerificationUsers(
         {
           type: DocumentType.BUSINESS_LICENSE,
           status: VerificationStatus.PENDING,
-          filename: 'epicerie_business_license.pdf'
+          filename: 'epicerie_business_license.pdf',
         },
         {
           type: DocumentType.TAX_CERTIFICATE,
           status: VerificationStatus.PENDING,
-          filename: 'epicerie_tax_certificate.pdf'
-        }
+          filename: 'epicerie_tax_certificate.pdf',
+        },
       ],
       hasCompletedOnboarding: false,
-      notes: 'Nouveau commerçant bio - dossier en cours d\'instruction'
+      notes: "Nouveau commerçant bio - dossier en cours d'instruction",
     },
     {
       name: 'Restaurant Fermé',
@@ -289,11 +295,11 @@ export async function seedMultiVerificationUsers(
           type: DocumentType.BUSINESS_LICENSE,
           status: VerificationStatus.REJECTED,
           rejectionReason: 'Licence commerciale expirée depuis plus de 6 mois',
-          filename: 'restaurant_expired_license.pdf'
-        }
+          filename: 'restaurant_expired_license.pdf',
+        },
       ],
       hasCompletedOnboarding: false,
-      notes: 'Restaurant fermé - licence expirée - compte désactivé'
+      notes: 'Restaurant fermé - licence expirée - compte désactivé',
     },
 
     // === PRESTATAIRES VARIÉS ===
@@ -306,21 +312,21 @@ export async function seedMultiVerificationUsers(
         {
           type: DocumentType.ID_CARD,
           status: VerificationStatus.APPROVED,
-          filename: 'paul_id_card.pdf'
+          filename: 'paul_id_card.pdf',
         },
         {
           type: DocumentType.PROFESSIONAL_QUALIFICATION,
           status: VerificationStatus.APPROVED,
-          filename: 'paul_plumbing_certification.pdf'
+          filename: 'paul_plumbing_certification.pdf',
         },
         {
           type: DocumentType.INSURANCE_CERTIFICATE,
           status: VerificationStatus.APPROVED,
-          filename: 'paul_professional_insurance.pdf'
-        }
+          filename: 'paul_professional_insurance.pdf',
+        },
       ],
       hasCompletedOnboarding: true,
-      notes: 'Plombier certifié - 15 ans d\'expérience - excellentes évaluations'
+      notes: "Plombier certifié - 15 ans d'expérience - excellentes évaluations",
     },
     {
       name: 'Électro Services',
@@ -331,22 +337,22 @@ export async function seedMultiVerificationUsers(
         {
           type: DocumentType.BUSINESS_REGISTRATION,
           status: VerificationStatus.APPROVED,
-          filename: 'electro_business_registration.pdf'
+          filename: 'electro_business_registration.pdf',
         },
         {
           type: DocumentType.PROFESSIONAL_QUALIFICATION,
           status: VerificationStatus.PENDING,
-          filename: 'electro_qualification.pdf'
+          filename: 'electro_qualification.pdf',
         },
         {
           type: DocumentType.INSURANCE_CERTIFICATE,
           status: VerificationStatus.REJECTED,
-          rejectionReason: 'Couverture d\'assurance insuffisante pour les services électriques',
-          filename: 'electro_insufficient_insurance.pdf'
-        }
+          rejectionReason: "Couverture d'assurance insuffisante pour les services électriques",
+          filename: 'electro_insufficient_insurance.pdf',
+        },
       ],
       hasCompletedOnboarding: false,
-      notes: 'Entreprise d\'électricité - en attente de documents complémentaires'
+      notes: "Entreprise d'électricité - en attente de documents complémentaires",
     },
     {
       name: 'Jardinage Amateur',
@@ -357,22 +363,25 @@ export async function seedMultiVerificationUsers(
         {
           type: DocumentType.ID_CARD,
           status: VerificationStatus.APPROVED,
-          filename: 'jardinage_id_card.pdf'
+          filename: 'jardinage_id_card.pdf',
         },
         {
           type: DocumentType.PROFESSIONAL_QUALIFICATION,
           status: VerificationStatus.REJECTED,
           rejectionReason: 'Aucune qualification professionnelle présentée',
-          filename: 'jardinage_no_qualification.pdf'
-        }
+          filename: 'jardinage_no_qualification.pdf',
+        },
       ],
       hasCompletedOnboarding: false,
-      notes: 'Prestataire suspendu - manque de qualifications - plaintes qualité'
-    }
+      notes: 'Prestataire suspendu - manque de qualifications - plaintes qualité',
+    },
   ];
 
   // Créer tous les utilisateurs
-  logger.info('MULTI_VERIFICATION_USERS', `Création de ${userProfiles.length} utilisateurs de test...`);
+  logger.info(
+    'MULTI_VERIFICATION_USERS',
+    `Création de ${userProfiles.length} utilisateurs de test...`
+  );
 
   for (const profile of userProfiles) {
     try {
@@ -388,13 +397,12 @@ export async function seedMultiVerificationUsers(
           isVerified: profile.status === UserStatus.ACTIVE,
           hasCompletedOnboarding: profile.hasCompletedOnboarding,
           notes: profile.notes,
-          createdAt: faker.date.between({ 
-            from: new Date('2024-01-01'), 
-            to: new Date() 
+          createdAt: faker.date.between({
+            from: new Date('2024-01-01'),
+            to: new Date(),
           }),
-          lastLoginAt: profile.status === UserStatus.ACTIVE ? 
-            faker.date.recent({ days: 7 }) : null,
-        }
+          lastLoginAt: profile.status === UserStatus.ACTIVE ? faker.date.recent({ days: 7 }) : null,
+        },
       });
 
       // Créer le profil spécifique selon le rôle
@@ -414,11 +422,11 @@ export async function seedMultiVerificationUsers(
             verificationStatus: docData.status,
             rejectionReason: docData.rejectionReason,
             isVerified: docData.status === VerificationStatus.APPROVED,
-            uploadedAt: faker.date.between({ 
-              from: user.createdAt, 
-              to: new Date() 
+            uploadedAt: faker.date.between({
+              from: user.createdAt,
+              to: new Date(),
             }),
-          }
+          },
         });
       }
 
@@ -427,24 +435,20 @@ export async function seedMultiVerificationUsers(
         'MULTI_VERIFICATION_USERS',
         `✓ ${profile.name} (${profile.role}) - ${profile.status}`
       );
-
     } catch (error) {
       result.errors++;
-      logger.error(
-        'MULTI_VERIFICATION_USERS',
-        `✗ Erreur création ${profile.name}: ${error}`
-      );
+      logger.error('MULTI_VERIFICATION_USERS', `✗ Erreur création ${profile.name}: ${error}`);
     }
   }
 
   // Statistiques finales
   const finalStats = await getUserCreationStats(prisma);
   logger.info('MULTI_VERIFICATION_USERS', '📊 Statistiques des utilisateurs créés:');
-  
+
   Object.entries(finalStats.byRole).forEach(([role, count]) => {
     logger.info('MULTI_VERIFICATION_USERS', `  - ${role}: ${count} utilisateurs`);
   });
-  
+
   Object.entries(finalStats.byStatus).forEach(([status, count]) => {
     logger.info('MULTI_VERIFICATION_USERS', `  - ${status}: ${count} utilisateurs`);
   });
@@ -475,7 +479,7 @@ async function createRoleSpecificProfile(
           city: addressData.city,
           postalCode: addressData.zipCode,
           country: 'France',
-        }
+        },
       });
       break;
 
@@ -488,7 +492,7 @@ async function createRoleSpecificProfile(
           isActive: status === UserStatus.ACTIVE,
           address: addressData.street,
           bio: faker.lorem.sentences(2),
-        }
+        },
       });
       break;
 
@@ -500,7 +504,7 @@ async function createRoleSpecificProfile(
           address: addressData.street,
           phone: generateFrenchPhone(),
           description: faker.lorem.paragraph(),
-        }
+        },
       });
       break;
 
@@ -511,12 +515,13 @@ async function createRoleSpecificProfile(
           companyName: faker.company.name(),
           address: addressData.street,
           phone: generateFrenchPhone(),
-          services: faker.helpers.arrayElements([
-            'Plomberie', 'Électricité', 'Jardinage', 'Ménage', 'Bricolage'
-          ], { min: 1, max: 3 }),
+          services: faker.helpers.arrayElements(
+            ['Plomberie', 'Électricité', 'Jardinage', 'Ménage', 'Bricolage'],
+            { min: 1, max: 3 }
+          ),
           description: faker.lorem.paragraph(),
           isVerified: status === UserStatus.ACTIVE,
-        }
+        },
       });
       break;
 
@@ -525,7 +530,7 @@ async function createRoleSpecificProfile(
         data: {
           userId,
           permissions: ['USER_MANAGEMENT', 'DOCUMENT_VERIFICATION', 'SYSTEM_CONFIG'],
-        }
+        },
       });
       break;
   }
@@ -538,39 +543,45 @@ async function getUserCreationStats(prisma: PrismaClient) {
   const users = await prisma.user.findMany({
     where: {
       email: {
-        endsWith: '@test-ecodeli.fr'
-      }
+        endsWith: '@test-ecodeli.fr',
+      },
     },
     select: {
       role: true,
-      status: true
-    }
+      status: true,
+    },
   });
 
   const documents = await prisma.document.count({
     where: {
       user: {
         email: {
-          endsWith: '@test-ecodeli.fr'
-        }
-      }
-    }
+          endsWith: '@test-ecodeli.fr',
+        },
+      },
+    },
   });
 
-  const byRole = users.reduce((acc, user) => {
-    acc[user.role] = (acc[user.role] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  const byRole = users.reduce(
+    (acc, user) => {
+      acc[user.role] = (acc[user.role] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
 
-  const byStatus = users.reduce((acc, user) => {
-    acc[user.status] = (acc[user.status] || 0) + 1;
-    return acc;
-  }, {} as Record<string, number>);
+  const byStatus = users.reduce(
+    (acc, user) => {
+      acc[user.status] = (acc[user.status] || 0) + 1;
+      return acc;
+    },
+    {} as Record<string, number>
+  );
 
   return {
     byRole,
     byStatus,
-    totalDocuments: documents
+    totalDocuments: documents,
   };
 }
 
@@ -586,12 +597,13 @@ export async function validateMultiVerificationUsers(
   const testUsers = await prisma.user.count({
     where: {
       email: {
-        endsWith: '@test-ecodeli.fr'
-      }
-    }
+        endsWith: '@test-ecodeli.fr',
+      },
+    },
   });
 
-  if (testUsers >= 13) { // Au moins 13 utilisateurs de test prévus
+  if (testUsers >= 13) {
+    // Au moins 13 utilisateurs de test prévus
     logger.validation(
       'MULTI_VERIFICATION_USERS',
       'PASSED',
@@ -606,4 +618,4 @@ export async function validateMultiVerificationUsers(
     );
     return false;
   }
-} 
+}

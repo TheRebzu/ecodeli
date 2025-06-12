@@ -125,7 +125,13 @@ export function isDocumentEffectivelyApproved(document: any): boolean {
  */
 export const REQUIRED_DOCUMENTS_BY_ROLE: Record<UserRole, readonly string[]> = {
   DELIVERER: ['IDENTITY_CARD', 'DRIVING_LICENSE', 'VEHICLE_REGISTRATION', 'INSURANCE_CERTIFICATE'],
-  PROVIDER: ['IDENTITY_CARD', 'PROFESSIONAL_DIPLOMA', 'INSURANCE_CERTIFICATE', 'BANK_RIB', 'CRIMINAL_RECORD'],
+  PROVIDER: [
+    'IDENTITY_CARD',
+    'PROFESSIONAL_DIPLOMA',
+    'INSURANCE_CERTIFICATE',
+    'BANK_RIB',
+    'CRIMINAL_RECORD',
+  ],
   MERCHANT: ['IDENTITY_CARD', 'KBIS', 'BANK_RIB'], // Types correspondant aux seeds
   CLIENT: ['IDENTITY_CARD'],
   ADMIN: [], // Les admins n'ont pas de documents requis
@@ -139,7 +145,7 @@ function doesDocumentMatchRequiredType(documentType: string, requiredType: strin
   if (documentType === requiredType) {
     return true;
   }
-  
+
   // Vérifier la correspondance via le mapping seeds/Prisma
   return doesSeedTypeMatchPrismaType(requiredType, documentType as any);
 }
@@ -149,11 +155,11 @@ function doesDocumentMatchRequiredType(documentType: string, requiredType: strin
  * Cette fonction centralise la logique de validation des documents
  */
 export async function areAllRequiredDocumentsApproved(
-  userId: string, 
+  userId: string,
   userRole: UserRole
 ): Promise<boolean> {
   const requiredDocumentTypes = REQUIRED_DOCUMENTS_BY_ROLE[userRole] || [];
-  
+
   if (requiredDocumentTypes.length === 0) {
     return true; // Aucun document requis
   }
@@ -167,9 +173,10 @@ export async function areAllRequiredDocumentsApproved(
   });
 
   // Vérifier que chaque type de document requis a au moins un document effectivement approuvé
-  return requiredDocumentTypes.every((requiredType: any) => 
-    userDocuments.some(doc => 
-      doesDocumentMatchRequiredType(doc.type, requiredType) && isDocumentEffectivelyApproved(doc)
+  return requiredDocumentTypes.every((requiredType: any) =>
+    userDocuments.some(
+      doc =>
+        doesDocumentMatchRequiredType(doc.type, requiredType) && isDocumentEffectivelyApproved(doc)
     )
   );
 }
@@ -179,7 +186,7 @@ export async function areAllRequiredDocumentsApproved(
  * Utilise la même logique que le frontend
  */
 export async function getUserDocumentVerificationStatus(
-  userId: string, 
+  userId: string,
   userRole: UserRole
 ): Promise<{
   isComplete: boolean;
@@ -190,7 +197,7 @@ export async function getUserDocumentVerificationStatus(
   verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | 'EXPIRED' | 'NOT_SUBMITTED';
 }> {
   const requiredDocumentTypes = REQUIRED_DOCUMENTS_BY_ROLE[userRole] || [];
-  
+
   if (requiredDocumentTypes.length === 0) {
     return {
       isComplete: true,
@@ -198,7 +205,7 @@ export async function getUserDocumentVerificationStatus(
       hasRejectedDocuments: false,
       hasPendingDocuments: false,
       missingDocuments: [],
-      verificationStatus: 'APPROVED'
+      verificationStatus: 'APPROVED',
     };
   }
 
@@ -212,15 +219,16 @@ export async function getUserDocumentVerificationStatus(
 
   // Analyser le statut de chaque document
   const documentStatuses = userDocuments.map(doc => getEffectiveDocumentStatus(doc));
-  
+
   // Identifier les documents approuvés avec correspondance flexible
   const approvedRequiredTypes = requiredDocumentTypes.filter((requiredType: any) =>
-    userDocuments.some(doc => 
-      doesDocumentMatchRequiredType(doc.type, requiredType) && 
-      getEffectiveDocumentStatus(doc) === 'APPROVED'
+    userDocuments.some(
+      doc =>
+        doesDocumentMatchRequiredType(doc.type, requiredType) &&
+        getEffectiveDocumentStatus(doc) === 'APPROVED'
     )
   );
-  
+
   const missingDocuments = requiredDocumentTypes.filter(
     (type: any) => !approvedRequiredTypes.includes(type)
   );
@@ -232,8 +240,9 @@ export async function getUserDocumentVerificationStatus(
   const isComplete = missingDocuments.length === 0;
 
   // Déterminer le statut global
-  let verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | 'EXPIRED' | 'NOT_SUBMITTED' = 'NOT_SUBMITTED';
-  
+  let verificationStatus: 'PENDING' | 'APPROVED' | 'REJECTED' | 'EXPIRED' | 'NOT_SUBMITTED' =
+    'NOT_SUBMITTED';
+
   if (userDocuments.length === 0) {
     verificationStatus = 'NOT_SUBMITTED';
   } else if (isComplete) {
@@ -254,7 +263,7 @@ export async function getUserDocumentVerificationStatus(
     hasRejectedDocuments,
     hasPendingDocuments,
     missingDocuments,
-    verificationStatus
+    verificationStatus,
   };
 }
 
@@ -268,14 +277,14 @@ export async function updateUserVerificationStatusConsistently(
 ): Promise<boolean> {
   try {
     const isAllApproved = await areAllRequiredDocumentsApproved(userId, userRole);
-    
+
     if (isAllApproved) {
       // Mettre à jour le statut utilisateur
       await db.user.update({
         where: { id: userId },
-        data: { 
+        data: {
           status: 'ACTIVE',
-          isVerified: true 
+          isVerified: true,
         },
       });
 
@@ -283,25 +292,25 @@ export async function updateUserVerificationStatusConsistently(
       if (userRole === 'DELIVERER') {
         await db.deliverer.update({
           where: { userId },
-          data: { 
+          data: {
             isVerified: true,
-            verificationDate: new Date()
+            verificationDate: new Date(),
           },
         });
       } else if (userRole === 'PROVIDER') {
         await db.provider.update({
           where: { userId },
-          data: { 
+          data: {
             isVerified: true,
-            verificationDate: new Date()
+            verificationDate: new Date(),
           },
         });
       } else if (userRole === 'MERCHANT') {
         await db.merchant.update({
           where: { userId },
-          data: { 
+          data: {
             isVerified: true,
-            verificationDate: new Date()
+            verificationDate: new Date(),
           },
         });
       }
@@ -314,7 +323,7 @@ export async function updateUserVerificationStatusConsistently(
     console.error('Erreur lors de la mise à jour du statut de vérification:', error);
     return false;
   }
-} 
+}
 import { DocumentType } from '@prisma/client';
 import { VerificationDocumentType } from '@/types/documents/verification';
 

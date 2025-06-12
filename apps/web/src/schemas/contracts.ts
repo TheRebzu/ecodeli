@@ -6,10 +6,24 @@ export const createContractSchema = z.object({
   templateId: z.string().optional(),
   title: z.string().min(1, 'Le titre est requis').max(200, 'Titre trop long'),
   content: z.string().min(10, 'Le contenu est trop court').max(50000, 'Contenu trop long'),
-  status: z.enum(['DRAFT', 'PENDING_SIGNATURE', 'ACTIVE', 'SUSPENDED', 'TERMINATED', 'EXPIRED', 'CANCELLED']).default('DRAFT'),
+  status: z
+    .enum([
+      'DRAFT',
+      'PENDING_SIGNATURE',
+      'ACTIVE',
+      'SUSPENDED',
+      'TERMINATED',
+      'EXPIRED',
+      'CANCELLED',
+    ])
+    .default('DRAFT'),
   type: z.enum(['STANDARD', 'PREMIUM', 'PARTNER', 'TRIAL', 'CUSTOM']).default('STANDARD'),
   monthlyFee: z.number().min(0, 'Les frais ne peuvent pas être négatifs').optional(),
-  commissionRate: z.number().min(0, 'Le taux ne peut pas être négatif').max(1, 'Le taux ne peut pas dépasser 100%').optional(),
+  commissionRate: z
+    .number()
+    .min(0, 'Le taux ne peut pas être négatif')
+    .max(1, 'Le taux ne peut pas dépasser 100%')
+    .optional(),
   minimumVolume: z.number().min(0, 'Le volume minimum ne peut pas être négatif').optional(),
   merchantCategory: z.string().optional(),
   deliveryZone: z.string().optional(),
@@ -19,20 +33,33 @@ export const createContractSchema = z.object({
   autoRenewal: z.boolean().default(false),
   renewalNotice: z.number().min(0, 'Le préavis ne peut pas être négatif').optional(),
   insuranceRequired: z.boolean().default(false),
-  insuranceAmount: z.number().min(0, 'Le montant de l\'assurance ne peut pas être négatif').optional(),
+  insuranceAmount: z
+    .number()
+    .min(0, "Le montant de l'assurance ne peut pas être négatif")
+    .optional(),
   securityDeposit: z.number().min(0, 'Le dépôt de garantie ne peut pas être négatif').optional(),
   notes: z.string().optional(),
 });
 
 // Schéma pour la mise à jour d'un contrat
 export const updateContractSchema = createContractSchema.partial().extend({
-  id: z.string().min(1, 'L\'ID du contrat est requis'),
+  id: z.string().min(1, "L'ID du contrat est requis"),
 });
 
 // Schéma pour les filtres de recherche
 export const contractFiltersSchema = z.object({
   search: z.string().optional(),
-  status: z.enum(['DRAFT', 'PENDING_SIGNATURE', 'ACTIVE', 'SUSPENDED', 'TERMINATED', 'EXPIRED', 'CANCELLED']).optional(),
+  status: z
+    .enum([
+      'DRAFT',
+      'PENDING_SIGNATURE',
+      'ACTIVE',
+      'SUSPENDED',
+      'TERMINATED',
+      'EXPIRED',
+      'CANCELLED',
+    ])
+    .optional(),
   type: z.enum(['STANDARD', 'PREMIUM', 'PARTNER', 'TRIAL', 'CUSTOM']).optional(),
   merchantId: z.string().optional(),
   merchantCategory: z.string().optional(),
@@ -46,7 +73,18 @@ export const contractFiltersSchema = z.object({
   maxCommissionRate: z.number().min(0).max(1).optional(),
   autoRenewal: z.boolean().optional(),
   insuranceRequired: z.boolean().optional(),
-  sortBy: z.enum(['title', 'status', 'type', 'monthlyFee', 'commissionRate', 'effectiveDate', 'expiresAt', 'createdAt']).default('createdAt'),
+  sortBy: z
+    .enum([
+      'title',
+      'status',
+      'type',
+      'monthlyFee',
+      'commissionRate',
+      'effectiveDate',
+      'expiresAt',
+      'createdAt',
+    ])
+    .default('createdAt'),
   sortOrder: z.enum(['asc', 'desc']).default('desc'),
   page: z.number().min(1).default(1),
   limit: z.number().min(1).max(100).default(10),
@@ -67,8 +105,8 @@ export const contractTemplateSchema = z.object({
 
 // Schéma pour les amendements de contrat
 export const contractAmendmentSchema = z.object({
-  contractId: z.string().min(1, 'L\'ID du contrat est requis'),
-  title: z.string().min(1, 'Le titre de l\'amendement est requis').max(200, 'Titre trop long'),
+  contractId: z.string().min(1, "L'ID du contrat est requis"),
+  title: z.string().min(1, "Le titre de l'amendement est requis").max(200, 'Titre trop long'),
   description: z.string().min(1, 'La description est requise').max(1000, 'Description trop longue'),
   changes: z.record(z.any()).optional(), // JSON des changements
   effectiveDate: z.date().optional(),
@@ -80,9 +118,9 @@ export const contractAmendmentSchema = z.object({
 
 // Schéma pour les négociations
 export const contractNegotiationSchema = z.object({
-  contractId: z.string().min(1, 'L\'ID du contrat est requis'),
-  merchantId: z.string().min(1, 'L\'ID du commerçant est requis'),
-  adminId: z.string().min(1, 'L\'ID de l\'administrateur est requis'),
+  contractId: z.string().min(1, "L'ID du contrat est requis"),
+  merchantId: z.string().min(1, "L'ID du commerçant est requis"),
+  adminId: z.string().min(1, "L'ID de l'administrateur est requis"),
   status: z.enum(['PENDING', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED']).default('PENDING'),
   merchantProposal: z.record(z.any()).optional(), // JSON de la proposition du commerçant
   adminCounterProposal: z.record(z.any()).optional(), // JSON de la contre-proposition admin
@@ -93,16 +131,23 @@ export const contractNegotiationSchema = z.object({
 
 // Schéma pour l'historique des négociations
 export const negotiationHistorySchema = z.object({
-  negotiationId: z.string().min(1, 'L\'ID de la négociation est requis'),
-  action: z.enum(['CREATED', 'PROPOSAL_SUBMITTED', 'COUNTER_PROPOSAL', 'ACCEPTED', 'REJECTED', 'MODIFIED']),
-  performedBy: z.string().min(1, 'L\'utilisateur qui a effectué l\'action est requis'),
+  negotiationId: z.string().min(1, "L'ID de la négociation est requis"),
+  action: z.enum([
+    'CREATED',
+    'PROPOSAL_SUBMITTED',
+    'COUNTER_PROPOSAL',
+    'ACCEPTED',
+    'REJECTED',
+    'MODIFIED',
+  ]),
+  performedBy: z.string().min(1, "L'utilisateur qui a effectué l'action est requis"),
   data: z.record(z.any()).optional(), // JSON des données de l\'action
   comment: z.string().optional(),
 });
 
 // Schéma pour les performances de contrat
 export const contractPerformanceSchema = z.object({
-  contractId: z.string().min(1, 'L\'ID du contrat est requis'),
+  contractId: z.string().min(1, "L'ID du contrat est requis"),
   period: z.enum(['MONTHLY', 'QUARTERLY', 'YEARLY']).default('MONTHLY'),
   year: z.number().min(2020).max(2030),
   month: z.number().min(1).max(12).optional(),
@@ -129,14 +174,22 @@ export type ContractPerformanceData = z.infer<typeof contractPerformanceSchema>;
 
 // Schémas de validation pour les actions administratives
 export const contractStatusUpdateSchema = z.object({
-  id: z.string().min(1, 'L\'ID du contrat est requis'),
-  status: z.enum(['DRAFT', 'PENDING_SIGNATURE', 'ACTIVE', 'SUSPENDED', 'TERMINATED', 'EXPIRED', 'CANCELLED']),
+  id: z.string().min(1, "L'ID du contrat est requis"),
+  status: z.enum([
+    'DRAFT',
+    'PENDING_SIGNATURE',
+    'ACTIVE',
+    'SUSPENDED',
+    'TERMINATED',
+    'EXPIRED',
+    'CANCELLED',
+  ]),
   reason: z.string().optional(),
   effectiveDate: z.date().optional(),
 });
 
 export const contractRenewalSchema = z.object({
-  id: z.string().min(1, 'L\'ID du contrat est requis'),
+  id: z.string().min(1, "L'ID du contrat est requis"),
   newExpiresAt: z.date(),
   updateTerms: z.boolean().default(false),
   newMonthlyFee: z.number().min(0).optional(),
@@ -153,4 +206,4 @@ export const bulkContractActionSchema = z.object({
 
 export type ContractStatusUpdateData = z.infer<typeof contractStatusUpdateSchema>;
 export type ContractRenewalData = z.infer<typeof contractRenewalSchema>;
-export type BulkContractActionData = z.infer<typeof bulkContractActionSchema>; 
+export type BulkContractActionData = z.infer<typeof bulkContractActionSchema>;

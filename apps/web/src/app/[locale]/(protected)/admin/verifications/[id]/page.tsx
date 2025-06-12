@@ -3,12 +3,13 @@ import { getTranslations } from 'next-intl/server';
 import { VerificationDetail } from '@/components/admin/verification/verification-detail';
 
 interface VerificationDetailPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export async function generateMetadata({ params }: VerificationDetailPageProps): Promise<Metadata> {
+  const resolvedParams = await params;
   const t = await getTranslations('admin.verification');
 
   return {
@@ -17,8 +18,9 @@ export async function generateMetadata({ params }: VerificationDetailPageProps):
   };
 }
 
-export default function VerificationDetailPage({ params }: VerificationDetailPageProps) {
-  const { id } = params;
+export default async function VerificationDetailPage({ params }: VerificationDetailPageProps) {
+  const resolvedParams = await params;
+  const { id } = resolvedParams;
 
   return (
     <div className="container mx-auto py-8">

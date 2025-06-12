@@ -10,4 +10,3 @@ export { default as ProviderDashboard } from './provider-dashboard';
 export * from './provider-dashboard';
 export { default as RatingsWidget } from './ratings-widget';
 export * from './ratings-widget';
-

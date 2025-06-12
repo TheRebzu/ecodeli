@@ -136,7 +136,7 @@ export function DeliverersTable({
       setIsStatusDialogOpen(false);
       onRefresh?.();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: `Erreur: ${error.message}`,
         variant: 'destructive',
@@ -152,7 +152,7 @@ export function DeliverersTable({
       setIsVerificationDialogOpen(false);
       onRefresh?.();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: `Erreur: ${error.message}`,
         variant: 'destructive',
@@ -206,7 +206,7 @@ export function DeliverersTable({
   };
 
   // Filtrer les livreurs
-  const filteredDeliverers = deliverers.filter((deliverer) => {
+  const filteredDeliverers = deliverers.filter(deliverer => {
     // Filtre par recherche
     if (searchTerm) {
       const searchLower = searchTerm.toLowerCase();
@@ -225,7 +225,11 @@ export function DeliverersTable({
     }
 
     // Filtre par vérification
-    if (verificationFilter && verificationFilter !== 'ALL' && deliverer.verificationStatus !== verificationFilter) {
+    if (
+      verificationFilter &&
+      verificationFilter !== 'ALL' &&
+      deliverer.verificationStatus !== verificationFilter
+    ) {
       return false;
     }
 
@@ -235,7 +239,11 @@ export function DeliverersTable({
   const renderStatusBadge = (status: DelivererStatus) => {
     switch (status) {
       case 'ACTIVE':
-        return <Badge variant="default" className="bg-green-100 text-green-800">Actif</Badge>;
+        return (
+          <Badge variant="default" className="bg-green-100 text-green-800">
+            Actif
+          </Badge>
+        );
       case 'INACTIVE':
         return <Badge variant="secondary">Inactif</Badge>;
       case 'SUSPENDED':
@@ -286,15 +294,15 @@ export function DeliverersTable({
 
   const formatDate = (date: Date | string | null | undefined) => {
     if (!date) return '-';
-    
+
     try {
       const dateObj = typeof date === 'string' ? new Date(date) : date;
-      
+
       // Vérifier si la date est valide
       if (isNaN(dateObj.getTime())) {
         return '-';
       }
-      
+
       return new Intl.DateTimeFormat('fr-FR', {
         day: '2-digit',
         month: '2-digit',
@@ -324,7 +332,7 @@ export function DeliverersTable({
           <Input
             placeholder="Rechercher par nom ou email..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={e => setSearchTerm(e.target.value)}
             className="pl-10"
           />
         </div>
@@ -370,27 +378,24 @@ export function DeliverersTable({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredDeliverers.map((deliverer) => (
+            {filteredDeliverers.map(deliverer => (
               <TableRow key={deliverer.id}>
                 <TableCell>
                   <div className="flex items-center space-x-3">
                     <Avatar className="h-8 w-8">
                       <AvatarImage src={deliverer.image} />
                       <AvatarFallback>
-                        {deliverer.firstName[0]}{deliverer.lastName[0]}
+                        {deliverer.firstName[0]}
+                        {deliverer.lastName[0]}
                       </AvatarFallback>
                     </Avatar>
                     <div>
                       <div className="font-medium">
                         {deliverer.firstName} {deliverer.lastName}
                       </div>
-                      <div className="text-sm text-muted-foreground">
-                        {deliverer.email}
-                      </div>
+                      <div className="text-sm text-muted-foreground">{deliverer.email}</div>
                       {deliverer.phone && (
-                        <div className="text-sm text-muted-foreground">
-                          {deliverer.phone}
-                        </div>
+                        <div className="text-sm text-muted-foreground">{deliverer.phone}</div>
                       )}
                     </div>
                   </div>
@@ -401,9 +406,12 @@ export function DeliverersTable({
                 </TableCell>
                 <TableCell>
                   <div className="text-sm">
-                    <div>{deliverer.completedDeliveries}/{deliverer.totalDeliveries}</div>
+                    <div>
+                      {deliverer.completedDeliveries}/{deliverer.totalDeliveries}
+                    </div>
                     <div className="text-muted-foreground">
-                      {getCompletionRate(deliverer.completedDeliveries, deliverer.totalDeliveries)}% réussite
+                      {getCompletionRate(deliverer.completedDeliveries, deliverer.totalDeliveries)}%
+                      réussite
                     </div>
                   </div>
                 </TableCell>
@@ -428,9 +436,7 @@ export function DeliverersTable({
                     </Badge>
                   )}
                 </TableCell>
-                <TableCell className="text-sm">
-                  {formatDate(deliverer.createdAt)}
-                </TableCell>
+                <TableCell className="text-sm">{formatDate(deliverer.createdAt)}</TableCell>
                 <TableCell className="text-right">
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -446,7 +452,14 @@ export function DeliverersTable({
                           Voir le profil
                         </Link>
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleSendMessage(deliverer.id, `${deliverer.firstName} ${deliverer.lastName}`)}>
+                      <DropdownMenuItem
+                        onClick={() =>
+                          handleSendMessage(
+                            deliverer.id,
+                            `${deliverer.firstName} ${deliverer.lastName}`
+                          )
+                        }
+                      >
                         <MessageCircle className="mr-2 h-4 w-4" />
                         Envoyer un message
                       </DropdownMenuItem>
@@ -459,7 +472,12 @@ export function DeliverersTable({
                       <DropdownMenuSeparator />
                       {!deliverer.isVerified && deliverer.verificationStatus === 'PENDING' && (
                         <DropdownMenuItem
-                          onClick={() => handleVerifyDeliverer(deliverer.id, `${deliverer.firstName} ${deliverer.lastName}`)}
+                          onClick={() =>
+                            handleVerifyDeliverer(
+                              deliverer.id,
+                              `${deliverer.firstName} ${deliverer.lastName}`
+                            )
+                          }
                         >
                           <UserCheck className="mr-2 h-4 w-4" />
                           Vérifier
@@ -467,7 +485,13 @@ export function DeliverersTable({
                       )}
                       {deliverer.status === 'ACTIVE' && (
                         <DropdownMenuItem
-                          onClick={() => handleStatusChange(deliverer.id, `${deliverer.firstName} ${deliverer.lastName}`, 'SUSPENDED')}
+                          onClick={() =>
+                            handleStatusChange(
+                              deliverer.id,
+                              `${deliverer.firstName} ${deliverer.lastName}`,
+                              'SUSPENDED'
+                            )
+                          }
                         >
                           <Ban className="mr-2 h-4 w-4" />
                           Suspendre
@@ -475,7 +499,13 @@ export function DeliverersTable({
                       )}
                       {deliverer.status === 'SUSPENDED' && (
                         <DropdownMenuItem
-                          onClick={() => handleStatusChange(deliverer.id, `${deliverer.firstName} ${deliverer.lastName}`, 'ACTIVE')}
+                          onClick={() =>
+                            handleStatusChange(
+                              deliverer.id,
+                              `${deliverer.firstName} ${deliverer.lastName}`,
+                              'ACTIVE'
+                            )
+                          }
                         >
                           <CheckCircle className="mr-2 h-4 w-4" />
                           Réactiver
@@ -522,7 +552,9 @@ export function DeliverersTable({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {statusAction?.newStatus === 'SUSPENDED' ? 'Suspendre le livreur' : 'Réactiver le livreur'}
+              {statusAction?.newStatus === 'SUSPENDED'
+                ? 'Suspendre le livreur'
+                : 'Réactiver le livreur'}
             </DialogTitle>
             <DialogDescription>
               {statusAction?.newStatus === 'SUSPENDED'
@@ -555,7 +587,8 @@ export function DeliverersTable({
           <DialogHeader>
             <DialogTitle>Vérifier le livreur</DialogTitle>
             <DialogDescription>
-              Vous êtes sur le point de vérifier {verificationAction?.name}. Cette action validera ses documents et lui permettra de commencer à effectuer des livraisons.
+              Vous êtes sur le point de vérifier {verificationAction?.name}. Cette action validera
+              ses documents et lui permettra de commencer à effectuer des livraisons.
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -577,9 +610,7 @@ export function DeliverersTable({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Envoyer un message</DialogTitle>
-            <DialogDescription>
-              Envoyer un message à {messageAction?.name}
-            </DialogDescription>
+            <DialogDescription>Envoyer un message à {messageAction?.name}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
@@ -587,7 +618,7 @@ export function DeliverersTable({
               <Input
                 id="message-subject"
                 value={messageSubject}
-                onChange={(e) => setMessageSubject(e.target.value)}
+                onChange={e => setMessageSubject(e.target.value)}
                 placeholder="Sujet du message"
               />
             </div>
@@ -596,7 +627,7 @@ export function DeliverersTable({
               <Textarea
                 id="message-content"
                 value={messageContent}
-                onChange={(e) => setMessageContent(e.target.value)}
+                onChange={e => setMessageContent(e.target.value)}
                 placeholder="Contenu de votre message..."
                 className="min-h-[100px]"
               />
@@ -606,10 +637,7 @@ export function DeliverersTable({
             <Button variant="outline" onClick={() => setIsMessageDialogOpen(false)}>
               Annuler
             </Button>
-            <Button
-              onClick={handleConfirmMessage}
-              disabled={!messageContent || !messageSubject}
-            >
+            <Button onClick={handleConfirmMessage} disabled={!messageContent || !messageSubject}>
               Envoyer le message
             </Button>
           </DialogFooter>
@@ -654,14 +682,30 @@ function LoadingState() {
                     </div>
                   </div>
                 </TableCell>
-                <TableCell><Skeleton className="h-6 w-16" /></TableCell>
-                <TableCell><Skeleton className="h-6 w-20" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-12" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-12" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-16" /></TableCell>
-                <TableCell><Skeleton className="h-4 w-20" /></TableCell>
-                <TableCell><Skeleton className="h-8 w-8" /></TableCell>
+                <TableCell>
+                  <Skeleton className="h-6 w-16" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-6 w-20" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-12" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-12" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-16" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-16" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-4 w-20" />
+                </TableCell>
+                <TableCell>
+                  <Skeleton className="h-8 w-8" />
+                </TableCell>
               </TableRow>
             ))}
           </TableBody>
@@ -669,4 +713,4 @@ function LoadingState() {
       </div>
     </div>
   );
-} 
+}

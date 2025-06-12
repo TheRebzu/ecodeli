@@ -12,4 +12,3 @@ export * from './cart-drop.service';
 export * from './geolocation-matching.service';
 export * from './matching-algorithm.service';
 export * from './route-planning.service';
-

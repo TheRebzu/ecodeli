@@ -1097,3 +1097,19 @@ export function useNearbyDeliveries(
     error,
   };
 }
+
+
+// Hook pour noter une livraison
+export function useDeliveryRating(deliveryId: string) {
+  const rateMutation = api.delivery.rate.useMutation();
+  
+  const rateDelivery = async (rating: number, comment?: string) => {
+    return rateMutation.mutateAsync({ deliveryId, rating, comment });
+  };
+  
+  return {
+    rateDelivery,
+    isRating: rateMutation.isLoading,
+    // TODO: Ajouter d'autres propriétés nécessaires
+  };
+}

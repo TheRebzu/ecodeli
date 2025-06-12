@@ -1005,8 +1005,10 @@ export class AdminService {
         ]);
 
         prevPeriodComparison = {
-          totalUsersDiff: prevTotalUsers > 0 ? ((totalUsers - prevTotalUsers) / prevTotalUsers) * 100 : 0,
-          activeUsersDiff: prevActiveUsers > 0 ? ((activeUsers - prevActiveUsers) / prevActiveUsers) * 100 : 0,
+          totalUsersDiff:
+            prevTotalUsers > 0 ? ((totalUsers - prevTotalUsers) / prevTotalUsers) * 100 : 0,
+          activeUsersDiff:
+            prevActiveUsers > 0 ? ((activeUsers - prevActiveUsers) / prevActiveUsers) * 100 : 0,
           newUsersDiff: prevNewUsers > 0 ? ((newUsers - prevNewUsers) / prevNewUsers) * 100 : 0,
         };
       }
@@ -1018,10 +1020,13 @@ export class AdminService {
           by: ['role'],
           _count: true,
         });
-        roleBreakdown = roleStats.reduce((acc, stat) => {
-          acc[stat.role] = stat._count;
-          return acc;
-        }, {} as Record<string, number>);
+        roleBreakdown = roleStats.reduce(
+          (acc, stat) => {
+            acc[stat.role] = stat._count;
+            return acc;
+          },
+          {} as Record<string, number>
+        );
       }
 
       // Status breakdown
@@ -1031,19 +1036,22 @@ export class AdminService {
           by: ['status'],
           _count: true,
         });
-        statusBreakdown = statusStats.reduce((acc, stat) => {
-          acc[stat.status] = stat._count;
-          return acc;
-        }, {} as Record<string, number>);
+        statusBreakdown = statusStats.reduce(
+          (acc, stat) => {
+            acc[stat.status] = stat._count;
+            return acc;
+          },
+          {} as Record<string, number>
+        );
       }
 
       // Country breakdown (simplified for now)
       let countryBreakdown = null;
       if (breakdownByCountry) {
         countryBreakdown = {
-          'France': Math.floor(totalUsers * 0.6),
-          'Belgium': Math.floor(totalUsers * 0.25),
-          'Switzerland': Math.floor(totalUsers * 0.15),
+          France: Math.floor(totalUsers * 0.6),
+          Belgium: Math.floor(totalUsers * 0.25),
+          Switzerland: Math.floor(totalUsers * 0.15),
         };
       }
 
@@ -1052,11 +1060,11 @@ export class AdminService {
       if (includeRetentionRate) {
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-        
+
         const usersCreated30DaysAgo = await this.prisma.user.count({
           where: { createdAt: { gte: thirtyDaysAgo, lt: startDate } },
         });
-        
+
         const activeUsersFrom30DaysAgo = await this.prisma.user.count({
           where: {
             createdAt: { gte: thirtyDaysAgo, lt: startDate },
@@ -1064,9 +1072,8 @@ export class AdminService {
           },
         });
 
-        retentionRate = usersCreated30DaysAgo > 0 
-          ? (activeUsersFrom30DaysAgo / usersCreated30DaysAgo) * 100 
-          : 0;
+        retentionRate =
+          usersCreated30DaysAgo > 0 ? (activeUsersFrom30DaysAgo / usersCreated30DaysAgo) * 100 : 0;
       }
 
       // Churn rate calculation
@@ -1673,11 +1680,7 @@ export class AdminService {
         ORDER BY period
       `;
 
-      const performanceData = await this.db.$queryRawUnsafe(
-        performanceQuery,
-        startDate,
-        endDate
-      );
+      const performanceData = await this.db.$queryRawUnsafe(performanceQuery, startDate, endDate);
 
       // Performance par zone
       const zoneQuery = `
@@ -1772,11 +1775,7 @@ export class AdminService {
         ORDER BY period
       `;
 
-      const activeUsersData = await this.db.$queryRawUnsafe(
-        activeUsersQuery,
-        startDate,
-        endDate
-      );
+      const activeUsersData = await this.db.$queryRawUnsafe(activeUsersQuery, startDate, endDate);
 
       // Répartition par rôles
       const rolesQuery = `
@@ -2000,7 +1999,7 @@ export class AdminService {
       }
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors de la modification de l\'activation utilisateur',
+        message: "Erreur lors de la modification de l'activation utilisateur",
       });
     }
   }
@@ -2034,7 +2033,7 @@ export class AdminService {
       if (action === 'UNBAN' && !user.isBanned) {
         throw new TRPCError({
           code: 'BAD_REQUEST',
-          message: 'Cet utilisateur n\'est pas banni',
+          message: "Cet utilisateur n'est pas banni",
         });
       }
 
@@ -2095,7 +2094,7 @@ export class AdminService {
       }
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: 'Erreur lors du bannissement/débannissement de l\'utilisateur',
+        message: "Erreur lors du bannissement/débannissement de l'utilisateur",
       });
     }
   }

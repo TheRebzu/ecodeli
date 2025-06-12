@@ -48,7 +48,14 @@ export interface CartDropOrder {
   totalPrice: number;
   paymentMethod: 'CARD' | 'CASH' | 'DIGITAL_WALLET';
   paymentStatus: 'PENDING' | 'PAID' | 'FAILED' | 'REFUNDED';
-  status: 'CREATED' | 'CONFIRMED' | 'PREPARED' | 'ASSIGNED' | 'IN_DELIVERY' | 'DELIVERED' | 'CANCELLED';
+  status:
+    | 'CREATED'
+    | 'CONFIRMED'
+    | 'PREPARED'
+    | 'ASSIGNED'
+    | 'IN_DELIVERY'
+    | 'DELIVERED'
+    | 'CANCELLED';
   specialInstructions?: string;
   createdAt: Date;
   estimatedDeliveryTime: Date;
@@ -148,7 +155,7 @@ export class CartDropService {
 
       // Créer la commande
       const orderId = `CART-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      
+
       const order: CartDropOrder = {
         id: orderId,
         clientId: orderData.clientInfo.id,
@@ -223,7 +230,10 @@ export class CartDropService {
       let paymentResult;
       switch (paymentDetails.method) {
         case 'CARD':
-          paymentResult = await this.processCardPayment(paymentDetails.cardToken!, paymentDetails.amount);
+          paymentResult = await this.processCardPayment(
+            paymentDetails.cardToken!,
+            paymentDetails.amount
+          );
           break;
         case 'DIGITAL_WALLET':
           paymentResult = await this.processDigitalWalletPayment(paymentDetails.amount);
@@ -280,13 +290,13 @@ export class CartDropService {
   }> {
     // Récupérer les informations des produits
     const productDetails = await this.getProductDetails(params.products, params.merchantId);
-    
+
     // Calculer le prix des produits
     let totalProductsPrice = 0;
     const productsWithPricing = productDetails.map(product => {
       const totalPrice = product.price * product.quantity;
       totalProductsPrice += totalPrice;
-      
+
       return {
         productId: product.id,
         quantity: product.quantity,
@@ -309,7 +319,7 @@ export class CartDropService {
 
     // Appliquer les règles de tarification
     const pricingRules = await this.getPricingRules(params.merchantId);
-    
+
     for (const rule of pricingRules) {
       if (!rule.isActive) continue;
 
@@ -321,7 +331,7 @@ export class CartDropService {
           shouldApply = this.checkCondition(distance, rule.condition);
           break;
         case 'weight':
-          const totalWeight = productDetails.reduce((sum, p) => sum + (p.weight * p.quantity), 0);
+          const totalWeight = productDetails.reduce((sum, p) => sum + p.weight * p.quantity, 0);
           shouldApply = this.checkCondition(totalWeight, rule.condition);
           break;
         case 'order_value':
@@ -335,7 +345,7 @@ export class CartDropService {
 
       if (shouldApply) {
         if (rule.adjustment.type === 'PERCENTAGE') {
-          deliveryPrice *= (1 + rule.adjustment.value / 100);
+          deliveryPrice *= 1 + rule.adjustment.value / 100;
         } else {
           deliveryPrice += rule.adjustment.value;
         }
@@ -359,7 +369,9 @@ export class CartDropService {
   /**
    * Assigne un livreur à une commande
    */
-  async assignDelivererToOrder(orderId: string): Promise<{ success: boolean; delivererId?: string }> {
+  async assignDelivererToOrder(
+    orderId: string
+  ): Promise<{ success: boolean; delivererId?: string }> {
     try {
       const order = await this.getOrder(orderId);
       if (!order) {
@@ -367,7 +379,7 @@ export class CartDropService {
       }
 
       if (order.status !== 'PREPARED') {
-        throw new Error('Commande pas encore prête pour l\'assignation');
+        throw new Error("Commande pas encore prête pour l'assignation");
       }
 
       // Trouver les livreurs disponibles dans le créneau
@@ -398,7 +410,7 @@ export class CartDropService {
       logger.info(`Livreur ${bestDeliverer.id} assigné à la commande ${orderId}`);
       return { success: true, delivererId: bestDeliverer.id };
     } catch (error) {
-      logger.error('Erreur lors de l\'assignation du livreur:', error);
+      logger.error("Erreur lors de l'assignation du livreur:", error);
       return { success: false };
     }
   }
@@ -482,8 +494,9 @@ export class CartDropService {
         order.deliveryLongitude
       );
 
-      if (distance > 0.1) { // 100m
-        throw new Error('Position de livraison trop éloignée de l\'adresse de destination');
+      if (distance > 0.1) {
+        // 100m
+        throw new Error("Position de livraison trop éloignée de l'adresse de destination");
       }
 
       // Finaliser la livraison
@@ -520,7 +533,10 @@ export class CartDropService {
     return { allAvailable: true, unavailable: [] };
   }
 
-  private async getTimeSlot(timeSlotId: string, merchantId: string): Promise<CartDropTimeSlot | null> {
+  private async getTimeSlot(
+    timeSlotId: string,
+    merchantId: string
+  ): Promise<CartDropTimeSlot | null> {
     // Simulation de récupération de créneau
     return {
       id: timeSlotId,
@@ -529,7 +545,7 @@ export class CartDropService {
       endTime: '16:00',
       maxOrders: 20,
       currentOrders: 12,
-      basePrice: 5.90,
+      basePrice: 5.9,
       dynamicPricing: true,
       isActive: true,
       availableDeliverers: 4,
@@ -541,22 +557,27 @@ export class CartDropService {
     const [hours, minutes] = timeSlot.startTime.split(':').map(Number);
     const estimatedTime = new Date(today);
     estimatedTime.setHours(hours, minutes, 0, 0);
-    
+
     // Si c'est déjà passé aujourd'hui, prévoir pour demain
     if (estimatedTime < today) {
       estimatedTime.setDate(estimatedTime.getDate() + 1);
     }
-    
+
     return estimatedTime;
   }
 
   private checkCondition(value: number, condition: any): boolean {
     switch (condition.operator) {
-      case 'GT': return value > condition.value;
-      case 'LT': return value < condition.value;
-      case 'EQ': return value === condition.value;
-      case 'BETWEEN': return value >= condition.value && value <= (condition.valueMax || condition.value);
-      default: return false;
+      case 'GT':
+        return value > condition.value;
+      case 'LT':
+        return value < condition.value;
+      case 'EQ':
+        return value === condition.value;
+      case 'BETWEEN':
+        return value >= condition.value && value <= (condition.valueMax || condition.value);
+      default:
+        return false;
     }
   }
 
@@ -628,7 +649,11 @@ export class CartDropService {
     logger.info(`Préparation déclenchée pour la commande ${orderId}`);
   }
 
-  private async findAvailableDeliverersForTimeSlot(timeSlot: any, merchantId: string, destination: any): Promise<any[]> {
+  private async findAvailableDeliverersForTimeSlot(
+    timeSlot: any,
+    merchantId: string,
+    destination: any
+  ): Promise<any[]> {
     return [{ id: 'deliverer-1', rating: 4.8, distance: 2.1, cartDropExperience: 156 }];
   }
 
@@ -636,7 +661,10 @@ export class CartDropService {
     logger.info(`Livreur assigné: ${orderId} -> ${delivererId}`);
   }
 
-  private async notifyDelivererAssignment(delivererId: string, order: CartDropOrder): Promise<void> {
+  private async notifyDelivererAssignment(
+    delivererId: string,
+    order: CartDropOrder
+  ): Promise<void> {
     logger.info(`Notification assignation envoyée au livreur ${delivererId}`);
   }
 
@@ -668,7 +696,10 @@ export class CartDropService {
     logger.info(`Paiement livreur traité: ${delivererId} pour ${orderId}`);
   }
 
-  private async notifyClientDeliveryCompleted(clientId: string, order: CartDropOrder): Promise<void> {
+  private async notifyClientDeliveryCompleted(
+    clientId: string,
+    order: CartDropOrder
+  ): Promise<void> {
     logger.info(`Notification livraison terminée envoyée au client ${clientId}`);
   }
 

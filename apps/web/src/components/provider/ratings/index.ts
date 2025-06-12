@@ -8,4 +8,3 @@ export { default as RatingResponse } from './rating-response';
 export * from './rating-response';
 export { default as RatingsOverview } from './ratings-overview';
 export * from './ratings-overview';
-

@@ -71,7 +71,7 @@ export function AdminSidebar({ locale }: AdminSidebarProps) {
   const sections: SidebarSection[] = [
     // Section principale - Dashboard
     {
-      title: 'Vue d\'ensemble',
+      title: "Vue d'ensemble",
       items: [
         {
           label: 'Tableau de bord',

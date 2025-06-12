@@ -167,3 +167,96 @@ export {
   FormMessage,
   FormField,
 };
+
+
+// Composant AnnouncementForm pour les formulaires d'annonces
+export function AnnouncementForm({ 
+  onSubmit, 
+  children, 
+  ...props 
+}: { 
+  onSubmit: (data: any) => void; 
+  children: React.ReactNode; 
+} & React.ComponentProps<'form'>) {
+  return (
+    <form onSubmit={onSubmit} {...props}>
+      {children}
+    </form>
+  );
+}
+
+// Export par défaut pour compatibilité
+export default AnnouncementForm;
+
+
+// Export ajouté automatiquement
+import { Form } from '@/components/ui/form';
+import { Card, CardContent } from '@/components/ui/card';
+
+// Composants de formulaires de profil
+export function ClientProfileForm({ children, ...props }: any) {
+  return (
+    <Card>
+      <CardContent>
+        <Form {...props}>
+          {children}
+          {/* TODO: Implémenter le formulaire client */}
+        </Form>
+      </CardContent>
+    </Card>
+  );
+}
+
+export function DelivererProfileForm({ children, ...props }: any) {
+  return (
+    <Card>
+      <CardContent>
+        <Form {...props}>
+          {children}
+          {/* TODO: Implémenter le formulaire livreur */}
+        </Form>
+      </CardContent>
+    </Card>
+  );
+}
+
+export function MerchantProfileForm({ children, ...props }: any) {
+  return (
+    <Card>
+      <CardContent>
+        <Form {...props}>
+          {children}
+          {/* TODO: Implémenter le formulaire marchand */}
+        </Form>
+      </CardContent>
+    </Card>
+  );
+}
+
+export function MerchantVerificationForm({ children, ...props }: any) {
+  return (
+    <Card>
+      <CardContent>
+        <Form {...props}>
+          {children}
+          {/* TODO: Implémenter le formulaire de vérification marchand */}
+        </Form>
+      </CardContent>
+    </Card>
+  );
+}
+
+export function ProviderVerificationForm({ children, ...props }: any) {
+  return (
+    <Card>
+      <CardContent>
+        <Form {...props}>
+          {children}
+          {/* TODO: Implémenter le formulaire de vérification prestataire */}
+        </Form>
+      </CardContent>
+    </Card>
+  );
+}
+
+// ... existing code ...

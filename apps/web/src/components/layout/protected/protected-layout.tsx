@@ -59,8 +59,8 @@ export function ProtectedLayout({
       <div className="flex h-screen overflow-hidden">
         {/* Sidebar latérale basée sur le rôle */}
         {showSidebar && session?.user && (
-          <RoleBasedSidebar 
-            locale={locale} 
+          <RoleBasedSidebar
+            locale={locale}
             userRole={session.user.role as UserRole}
             user={session.user}
           />
@@ -69,12 +69,7 @@ export function ProtectedLayout({
         {/* Contenu principal */}
         <div className="flex flex-1 flex-col overflow-hidden">
           {/* Header principal */}
-          {showHeader && (
-            <ProtectedHeader 
-              locale={locale}
-              user={session?.user}
-            />
-          )}
+          {showHeader && <ProtectedHeader locale={locale} user={session?.user} />}
 
           {/* Zone de contenu scrollable */}
           <main className="flex-1 overflow-auto">

@@ -16,4 +16,3 @@ export * from './provider-register.schema';
 export * from './provider-service.schema';
 export * from './provider-skill.schema';
 export * from './skill-validation.schema';
-

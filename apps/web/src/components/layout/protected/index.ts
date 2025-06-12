@@ -14,4 +14,3 @@ export { default as ProtectedLayout } from './protected-layout';
 export * from './protected-layout';
 export { default as RoleBasedSidebar } from './role-based-sidebar';
 export * from './role-based-sidebar';
-

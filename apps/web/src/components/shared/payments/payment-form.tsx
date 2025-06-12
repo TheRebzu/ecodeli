@@ -39,7 +39,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Loader2 } from 'lucide-react';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { PaymentMethodSelector, type SavedCard } from '@/components/shared/payments/payment-method-selector';
+import {
+  PaymentMethodSelector,
+  type SavedCard,
+} from '@/components/shared/payments/payment-method-selector';
 import { useInitiatePayment } from '@/hooks/payment/use-payment';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Badge } from '@/components/ui/badge';

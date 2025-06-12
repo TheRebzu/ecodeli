@@ -6,13 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from '@/components/ui/table';
 import {
   Dialog,
@@ -67,12 +67,16 @@ export default function ServiceCategoriesPage() {
     color: '#3B82F6',
     icon: 'Package',
   });
-  
+
   const { toast } = useToast();
 
   // Récupérer les catégories via tRPC
-  const { data: categoriesData, isLoading, refetch } = api.admin.services.categories.getAll.useQuery();
-  
+  const {
+    data: categoriesData,
+    isLoading,
+    refetch,
+  } = api.admin.services.categories.getAll.useQuery();
+
   const createCategoryMutation = api.admin.services.categories.create.useMutation({
     onSuccess: () => {
       refetch();
@@ -83,7 +87,7 @@ export default function ServiceCategoriesPage() {
       setIsCreateDialogOpen(false);
       setFormData({ name: '', description: '', color: '#3B82F6', icon: 'Package' });
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: error.message,
@@ -103,7 +107,7 @@ export default function ServiceCategoriesPage() {
       setSelectedCategory(null);
       setFormData({ name: '', description: '', color: '#3B82F6', icon: 'Package' });
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: error.message,
@@ -120,7 +124,7 @@ export default function ServiceCategoriesPage() {
         description: 'La catégorie a été supprimée avec succès.',
       });
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: error.message,
@@ -137,7 +141,7 @@ export default function ServiceCategoriesPage() {
         description: 'Le statut de la catégorie a été modifié avec succès.',
       });
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: error.message,
@@ -149,9 +153,10 @@ export default function ServiceCategoriesPage() {
   const categories = categoriesData?.categories || [];
 
   // Filtrer les catégories
-  const filteredCategories = categories.filter(category =>
-    category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    category.description.toLowerCase().includes(searchTerm.toLowerCase())
+  const filteredCategories = categories.filter(
+    category =>
+      category.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      category.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const totalCategories = filteredCategories.length;
@@ -159,9 +164,13 @@ export default function ServiceCategoriesPage() {
   const totalServices = filteredCategories.reduce((acc, c) => acc + c.servicesCount, 0);
 
   const getStatusBadge = (isActive: boolean) => {
-    return isActive ? 
-      <Badge variant="default" className="bg-green-100 text-green-800">Active</Badge> :
-      <Badge variant="secondary">Inactive</Badge>;
+    return isActive ? (
+      <Badge variant="default" className="bg-green-100 text-green-800">
+        Active
+      </Badge>
+    ) : (
+      <Badge variant="secondary">Inactive</Badge>
+    );
   };
 
   const handleCreateCategory = () => {
@@ -175,7 +184,7 @@ export default function ServiceCategoriesPage() {
 
   const handleEditCategory = () => {
     if (!selectedCategory) return;
-    
+
     updateCategoryMutation.mutate({
       id: selectedCategory.id,
       name: formData.name,
@@ -189,7 +198,8 @@ export default function ServiceCategoriesPage() {
     if (category.servicesCount > 0) {
       toast({
         title: 'Impossible de supprimer',
-        description: 'Cette catégorie contient des services. Veuillez d\'abord les déplacer ou les supprimer.',
+        description:
+          "Cette catégorie contient des services. Veuillez d'abord les déplacer ou les supprimer.",
         variant: 'destructive',
       });
       return;
@@ -232,9 +242,7 @@ export default function ServiceCategoriesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Catégories de Services</h1>
-          <p className="text-muted-foreground">
-            Gérez les catégories pour organiser vos services
-          </p>
+          <p className="text-muted-foreground">Gérez les catégories pour organiser vos services</p>
         </div>
 
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
@@ -257,7 +265,7 @@ export default function ServiceCategoriesPage() {
                 <Input
                   id="name"
                   value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  onChange={e => setFormData({ ...formData, name: e.target.value })}
                   placeholder="Ex: Livraison, Nettoyage..."
                 />
               </div>
@@ -266,7 +274,7 @@ export default function ServiceCategoriesPage() {
                 <Textarea
                   id="description"
                   value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  onChange={e => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Décrivez cette catégorie de services..."
                 />
               </div>
@@ -276,7 +284,7 @@ export default function ServiceCategoriesPage() {
                   id="color"
                   type="color"
                   value={formData.color}
-                  onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                  onChange={e => setFormData({ ...formData, color: e.target.value })}
                 />
               </div>
               <div>
@@ -284,7 +292,7 @@ export default function ServiceCategoriesPage() {
                 <Input
                   id="icon"
                   value={formData.icon}
-                  onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
+                  onChange={e => setFormData({ ...formData, icon: e.target.value })}
                   placeholder="Ex: Package, Truck, Sparkles..."
                 />
               </div>
@@ -293,10 +301,7 @@ export default function ServiceCategoriesPage() {
               <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>
                 Annuler
               </Button>
-              <Button 
-                onClick={handleCreateCategory}
-                disabled={createCategoryMutation.isPending}
-              >
+              <Button onClick={handleCreateCategory} disabled={createCategoryMutation.isPending}>
                 {createCategoryMutation.isPending ? 'Création...' : 'Créer'}
               </Button>
             </DialogFooter>
@@ -313,12 +318,10 @@ export default function ServiceCategoriesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalCategories}</div>
-            <p className="text-xs text-muted-foreground">
-              {activeCategories} actives
-            </p>
+            <p className="text-xs text-muted-foreground">{activeCategories} actives</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Services Total</CardTitle>
@@ -326,12 +329,10 @@ export default function ServiceCategoriesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{totalServices}</div>
-            <p className="text-xs text-muted-foreground">
-              Répartis dans toutes les catégories
-            </p>
+            <p className="text-xs text-muted-foreground">Répartis dans toutes les catégories</p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Catégories Actives</CardTitle>
@@ -340,11 +341,12 @@ export default function ServiceCategoriesPage() {
           <CardContent>
             <div className="text-2xl font-bold">{activeCategories}</div>
             <p className="text-xs text-muted-foreground">
-              {totalCategories > 0 ? Math.round((activeCategories / totalCategories) * 100) : 0}% du total
+              {totalCategories > 0 ? Math.round((activeCategories / totalCategories) * 100) : 0}% du
+              total
             </p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Moyenne Services</CardTitle>
@@ -354,9 +356,7 @@ export default function ServiceCategoriesPage() {
             <div className="text-2xl font-bold">
               {totalCategories > 0 ? Math.round(totalServices / totalCategories) : 0}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Services par catégorie
-            </p>
+            <p className="text-xs text-muted-foreground">Services par catégorie</p>
           </CardContent>
         </Card>
       </div>
@@ -372,7 +372,7 @@ export default function ServiceCategoriesPage() {
             <Input
               placeholder="Rechercher par nom ou description..."
               value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              onChange={e => setSearchTerm(e.target.value)}
               className="max-w-sm"
             />
           </div>
@@ -383,9 +383,7 @@ export default function ServiceCategoriesPage() {
       <Card>
         <CardHeader>
           <CardTitle>Liste des catégories</CardTitle>
-          <CardDescription>
-            Gérez vos catégories de services et leur organisation
-          </CardDescription>
+          <CardDescription>Gérez vos catégories de services et leur organisation</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -400,35 +398,27 @@ export default function ServiceCategoriesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredCategories.map((category) => (
+              {filteredCategories.map(category => (
                 <TableRow key={category.id}>
                   <TableCell>
                     <div className="flex items-center space-x-3">
-                      <div 
-                        className="w-4 h-4 rounded-full" 
+                      <div
+                        className="w-4 h-4 rounded-full"
                         style={{ backgroundColor: category.color }}
                       />
                       <div>
                         <div className="font-medium">{category.name}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {category.icon}
-                        </div>
+                        <div className="text-sm text-muted-foreground">{category.icon}</div>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <div className="max-w-xs truncate">
-                      {category.description}
-                    </div>
+                    <div className="max-w-xs truncate">{category.description}</div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">
-                      {category.servicesCount} services
-                    </Badge>
+                    <Badge variant="outline">{category.servicesCount} services</Badge>
                   </TableCell>
-                  <TableCell>
-                    {getStatusBadge(category.isActive)}
-                  </TableCell>
+                  <TableCell>{getStatusBadge(category.isActive)}</TableCell>
                   <TableCell>
                     {new Intl.DateTimeFormat('fr-FR', {
                       day: '2-digit',
@@ -452,7 +442,7 @@ export default function ServiceCategoriesPage() {
                           <Eye className="mr-2 h-4 w-4" />
                           {category.isActive ? 'Désactiver' : 'Activer'}
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => handleDeleteCategory(category)}
                           className="text-red-600"
                         >
@@ -474,9 +464,7 @@ export default function ServiceCategoriesPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Modifier la catégorie</DialogTitle>
-            <DialogDescription>
-              Modifiez les informations de cette catégorie.
-            </DialogDescription>
+            <DialogDescription>Modifiez les informations de cette catégorie.</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
@@ -484,7 +472,7 @@ export default function ServiceCategoriesPage() {
               <Input
                 id="edit-name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={e => setFormData({ ...formData, name: e.target.value })}
                 placeholder="Ex: Livraison, Nettoyage..."
               />
             </div>
@@ -493,7 +481,7 @@ export default function ServiceCategoriesPage() {
               <Textarea
                 id="edit-description"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={e => setFormData({ ...formData, description: e.target.value })}
                 placeholder="Décrivez cette catégorie de services..."
               />
             </div>
@@ -503,7 +491,7 @@ export default function ServiceCategoriesPage() {
                 id="edit-color"
                 type="color"
                 value={formData.color}
-                onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                onChange={e => setFormData({ ...formData, color: e.target.value })}
               />
             </div>
             <div>
@@ -511,7 +499,7 @@ export default function ServiceCategoriesPage() {
               <Input
                 id="edit-icon"
                 value={formData.icon}
-                onChange={(e) => setFormData({ ...formData, icon: e.target.value })}
+                onChange={e => setFormData({ ...formData, icon: e.target.value })}
                 placeholder="Ex: Package, Truck, Sparkles..."
               />
             </div>
@@ -520,10 +508,7 @@ export default function ServiceCategoriesPage() {
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>
               Annuler
             </Button>
-            <Button 
-              onClick={handleEditCategory}
-              disabled={updateCategoryMutation.isPending}
-            >
+            <Button onClick={handleEditCategory} disabled={updateCategoryMutation.isPending}>
               {updateCategoryMutation.isPending ? 'Modification...' : 'Modifier'}
             </Button>
           </DialogFooter>

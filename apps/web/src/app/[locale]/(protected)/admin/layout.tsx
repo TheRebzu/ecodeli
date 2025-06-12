@@ -7,9 +7,9 @@ import { AdminSidebar } from '@/components/layout/sidebars/admin-sidebar';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
-  params: {
+  params: Promise<{
     locale: string;
-  };
+  }>;
 }
 
 export default function AdminLayout({ children, params }: AdminLayoutProps) {

@@ -11,9 +11,5 @@ interface OnboardingWrapperProps {
 export function OnboardingWrapper({ children }: OnboardingWrapperProps) {
   const t = useTranslations();
 
-  return (
-    <OnboardingProvider t={t}>
-      {children}
-    </OnboardingProvider>
-  );
-} 
+  return <OnboardingProvider t={t}>{children}</OnboardingProvider>;
+}

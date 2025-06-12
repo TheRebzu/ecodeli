@@ -7,14 +7,25 @@ const SCHEMAS_DIR = path.resolve(process.cwd(), 'prisma/schemas');
 const OUTPUT_SCHEMA = path.resolve(process.cwd(), 'prisma/schema.prisma');
 
 const DOMAIN_ORDER = [
-  'shared', 'users', 'client', 'deliveries', 'services', 'appointments', 
-  'storage', 'payments', 'billing', 'merchant', 'admin', 'messages'
+  'shared',
+  'users',
+  'client',
+  'deliveries',
+  'services',
+  'appointments',
+  'storage',
+  'payments',
+  'billing',
+  'merchant',
+  'admin',
+  'messages',
 ];
 
 function getDomainFiles(domain) {
   const domainPath = path.join(SCHEMAS_DIR, domain);
   if (!fs.existsSync(domainPath)) return [];
-  return fs.readdirSync(domainPath)
+  return fs
+    .readdirSync(domainPath)
     .filter(file => file.endsWith('.prisma'))
     .map(file => path.join(domainPath, file));
 }
@@ -24,10 +35,12 @@ function processSchemaFile(filePath) {
   const lines = content.split('\n');
   const filteredLines = lines.filter(line => {
     const trimmed = line.trim();
-    return !trimmed.startsWith('generator ') && 
-           !trimmed.startsWith('datasource ') &&
-           !trimmed.match(/^provider\s*=/) &&
-           !trimmed.match(/^url\s*=/);
+    return (
+      !trimmed.startsWith('generator ') &&
+      !trimmed.startsWith('datasource ') &&
+      !trimmed.match(/^provider\s*=/) &&
+      !trimmed.match(/^url\s*=/)
+    );
   });
   return filteredLines.join('\n');
 }
@@ -53,7 +66,7 @@ ${DOMAIN_ORDER.map(domain => `// Import schémas du domaine ${domain}`).join('\n
 function main() {
   console.log('🔄 Fusion des schémas Prisma...');
   let mergedContent = generateHeader();
-  
+
   for (const domain of DOMAIN_ORDER) {
     const files = getDomainFiles(domain);
     if (files.length > 0) {
@@ -65,7 +78,7 @@ function main() {
       });
     }
   }
-  
+
   fs.writeFileSync(OUTPUT_SCHEMA, mergedContent);
   console.log(`✅ Schéma fusionné: ${Math.round(mergedContent.length / 1024)} KB`);
 }

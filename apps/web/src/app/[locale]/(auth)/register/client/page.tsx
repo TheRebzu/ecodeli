@@ -7,12 +7,10 @@ import ClientRegisterForm from '@/components/auth/register/client-register-form'
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft } from 'lucide-react';
-import { PageProps, MetadataProps } from '@/server/auth/next-auth';
-
 export async function generateMetadata({
   params,
 }: {
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 }): Promise<Metadata> {
   // Attendre la résolution des paramètres
   const resolvedParams = await params;
@@ -26,7 +24,11 @@ export async function generateMetadata({
   };
 }
 
-export default async function ClientRegisterPage({ params }: { params: { locale: string } }) {
+export default async function ClientRegisterPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
   // Attendre que les paramètres soient résolus
   const resolvedParams = await params;
   const locale = resolvedParams.locale;

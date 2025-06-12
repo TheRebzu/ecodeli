@@ -44,12 +44,10 @@ export { default as ClientStorageStats } from './client-storage-stats';
 export * from './client-storage-stats';
 export { default as ClientWrapper } from './client-wrapper';
 export * from './client-wrapper';
-export { default as EnhancedReservationForm } from './enhanced-reservation-form';
-export * from './enhanced-reservation-form';
+
 export { default as ExtendReservationDialog } from './extend-reservation-dialog';
 export * from './extend-reservation-dialog';
 export { default as OptimalPricingCalculator } from './optimal-pricing-calculator';
 export * from './optimal-pricing-calculator';
 export { default as WarehouseMap } from './warehouse-map';
 export * from './warehouse-map';
-

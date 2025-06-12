@@ -14,13 +14,7 @@ import {
   FormLabel,
   FormMessage,
 } from '@/components/ui/form';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -56,56 +50,60 @@ import { AddressMapPicker } from './address-map-picker';
 const routeAnnouncementSchema = z.object({
   title: z.string().min(5, 'Le titre doit contenir au moins 5 caractères'),
   description: z.string().optional(),
-  
+
   // Trajets
-  departureAddress: z.string().min(5, 'L\'adresse de départ est requise'),
+  departureAddress: z.string().min(5, "L'adresse de départ est requise"),
   departureLatitude: z.number().optional(),
   departureLongitude: z.number().optional(),
-  arrivalAddress: z.string().min(5, 'L\'adresse d\'arrivée est requise'),
+  arrivalAddress: z.string().min(5, "L'adresse d'arrivée est requise"),
   arrivalLatitude: z.number().optional(),
   arrivalLongitude: z.number().optional(),
-  
+
   // Points intermédiaires
-  intermediatePoints: z.array(z.object({
-    address: z.string().min(3, 'Adresse requise'),
-    latitude: z.number().optional(),
-    longitude: z.number().optional(),
-    radius: z.number().min(1).max(50).default(5), // Rayon en km
-  })).default([]),
-  
+  intermediatePoints: z
+    .array(
+      z.object({
+        address: z.string().min(3, 'Adresse requise'),
+        latitude: z.number().optional(),
+        longitude: z.number().optional(),
+        radius: z.number().min(1).max(50).default(5), // Rayon en km
+      })
+    )
+    .default([]),
+
   // Horaires
   departureDate: z.string().optional(),
   departureTimeWindow: z.string().optional(),
   arrivalDate: z.string().optional(),
   arrivalTimeWindow: z.string().optional(),
-  
+
   // Récurrence
   isRecurring: z.boolean().default(false),
   recurringDays: z.array(z.number()).default([]),
   recurringEndDate: z.string().optional(),
-  
+
   // Capacités
   maxWeight: z.number().min(0).default(20),
   maxVolume: z.number().min(0).optional(),
   availableSeats: z.number().min(0).max(8).default(0),
-  
+
   // Types de colis acceptés
   acceptsFragile: z.boolean().default(true),
   acceptsCooling: z.boolean().default(false),
   acceptsLiveAnimals: z.boolean().default(false),
   acceptsOversized: z.boolean().default(false),
-  
+
   // Notifications et matching
   enableNotifications: z.boolean().default(true),
   autoMatch: z.boolean().default(true),
   minMatchDistance: z.number().min(1).max(50).default(10),
   maxDetour: z.number().min(0).max(100).default(20), // % de détour accepté
-  
+
   // Prix et conditions
   pricePerKm: z.number().min(0.1).max(5).default(0.5),
   fixedPrice: z.number().min(0).optional(),
   isNegotiable: z.boolean().default(true),
-  
+
   // Préférences
   preferredClientTypes: z.array(z.string()).default([]),
   specialInstructions: z.string().optional(),
@@ -189,13 +187,16 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
     const currentPoints = form.getValues('intermediatePoints');
     form.setValue('intermediatePoints', [
       ...currentPoints,
-      { address: '', latitude: undefined, longitude: undefined, radius: 5 }
+      { address: '', latitude: undefined, longitude: undefined, radius: 5 },
     ]);
   };
 
   const removeIntermediatePoint = (index: number) => {
     const currentPoints = form.getValues('intermediatePoints');
-    form.setValue('intermediatePoints', currentPoints.filter((_, i) => i !== index));
+    form.setValue(
+      'intermediatePoints',
+      currentPoints.filter((_, i) => i !== index)
+    );
   };
 
   return (
@@ -203,14 +204,9 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
       <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>
-              {mode === 'create' ? t('announceRoute') : t('editRoute')}
-            </CardTitle>
+            <CardTitle>{mode === 'create' ? t('announceRoute') : t('editRoute')}</CardTitle>
             <CardDescription>
-              {mode === 'create' 
-                ? t('announceRouteDescription') 
-                : t('editRouteDescription')
-              }
+              {mode === 'create' ? t('announceRouteDescription') : t('editRouteDescription')}
             </CardDescription>
           </CardHeader>
 
@@ -285,7 +281,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                 {/* Adresses */}
                 <div className="space-y-6">
                   <h3 className="text-lg font-medium">{t('routeDetails')}</h3>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <Controller
                       control={form.control}
@@ -296,7 +292,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                           <FormControl>
                             <AddressMapPicker
                               address={field.value}
-                              onAddressChange={(address) => {
+                              onAddressChange={address => {
                                 form.setValue('departureAddress', address);
                               }}
                               onCoordinatesChange={(lat, lng) => {
@@ -321,7 +317,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                           <FormControl>
                             <AddressMapPicker
                               address={field.value}
-                              onAddressChange={(address) => {
+                              onAddressChange={address => {
                                 form.setValue('arrivalAddress', address);
                               }}
                               onCoordinatesChange={(lat, lng) => {
@@ -383,7 +379,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                                     type="number"
                                     min="1"
                                     max="50"
-                                    onChange={(e) => field.onChange(Number(e.target.value))}
+                                    onChange={e => field.onChange(Number(e.target.value))}
                                   />
                                 </FormControl>
                                 <FormMessage />
@@ -403,9 +399,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                     ))}
 
                     {intermediatePoints.length === 0 && (
-                      <p className="text-sm text-muted-foreground">
-                        {t('noIntermediatePoints')}
-                      </p>
+                      <p className="text-sm text-muted-foreground">{t('noIntermediatePoints')}</p>
                     )}
                   </div>
                 </div>
@@ -439,7 +433,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                           <FormItem>
                             <FormLabel>{t('recurringDays')}</FormLabel>
                             <div className="grid grid-cols-4 md:grid-cols-7 gap-2">
-                              {DAYS_OF_WEEK.map((day) => (
+                              {DAYS_OF_WEEK.map(day => (
                                 <FormItem
                                   key={day.value}
                                   className="flex items-center space-x-2 space-y-0"
@@ -447,7 +441,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                                   <FormControl>
                                     <Checkbox
                                       checked={field.value?.includes(day.value)}
-                                      onCheckedChange={(checked) => {
+                                      onCheckedChange={checked => {
                                         const updatedDays = checked
                                           ? [...(field.value || []), day.value]
                                           : (field.value || []).filter(d => d !== day.value);
@@ -455,9 +449,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                                       }}
                                     />
                                   </FormControl>
-                                  <FormLabel className="text-sm font-normal">
-                                    {day.label}
-                                  </FormLabel>
+                                  <FormLabel className="text-sm font-normal">{day.label}</FormLabel>
                                 </FormItem>
                               ))}
                             </div>
@@ -534,7 +526,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                 {/* Capacités */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">{t('vehicleCapacity')}</h3>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <Controller
                       control={form.control}
@@ -548,7 +540,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                               type="number"
                               min="0"
                               max="1000"
-                              onChange={(e) => field.onChange(Number(e.target.value))}
+                              onChange={e => field.onChange(Number(e.target.value))}
                             />
                           </FormControl>
                           <FormMessage />
@@ -568,7 +560,9 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                               type="number"
                               min="0"
                               value={field.value || ''}
-                              onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                              onChange={e =>
+                                field.onChange(e.target.value ? Number(e.target.value) : undefined)
+                              }
                             />
                           </FormControl>
                           <FormMessage />
@@ -588,7 +582,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                               type="number"
                               min="0"
                               max="8"
-                              onChange={(e) => field.onChange(Number(e.target.value))}
+                              onChange={e => field.onChange(Number(e.target.value))}
                             />
                           </FormControl>
                           <FormMessage />
@@ -603,7 +597,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                 {/* Types de colis acceptés */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">{t('acceptedPackageTypes')}</h3>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Controller
                       control={form.control}
@@ -713,7 +707,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                 {/* Paramètres de matching */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">{t('matchingSettings')}</h3>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Controller
                       control={form.control}
@@ -727,7 +721,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                               type="number"
                               min="1"
                               max="50"
-                              onChange={(e) => field.onChange(Number(e.target.value))}
+                              onChange={e => field.onChange(Number(e.target.value))}
                             />
                           </FormControl>
                           <FormDescription>{t('minMatchDistanceDescription')}</FormDescription>
@@ -748,7 +742,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                               type="number"
                               min="0"
                               max="100"
-                              onChange={(e) => field.onChange(Number(e.target.value))}
+                              onChange={e => field.onChange(Number(e.target.value))}
                             />
                           </FormControl>
                           <FormDescription>{t('maxDetourDescription')}</FormDescription>
@@ -762,7 +756,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                 {/* Tarification */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">{t('pricing')}</h3>
-                  
+
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <Controller
                       control={form.control}
@@ -777,7 +771,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                               step="0.1"
                               min="0.1"
                               max="5"
-                              onChange={(e) => field.onChange(Number(e.target.value))}
+                              onChange={e => field.onChange(Number(e.target.value))}
                             />
                           </FormControl>
                           <FormMessage />
@@ -797,7 +791,9 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                               type="number"
                               min="0"
                               value={field.value || ''}
-                              onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
+                              onChange={e =>
+                                field.onChange(e.target.value ? Number(e.target.value) : undefined)
+                              }
                             />
                           </FormControl>
                           <FormDescription>{t('fixedPriceDescription')}</FormDescription>
@@ -827,7 +823,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                 {/* Préférences clients */}
                 <div className="space-y-4">
                   <h3 className="text-lg font-medium">{t('clientPreferences')}</h3>
-                  
+
                   <Controller
                     control={form.control}
                     name="preferredClientTypes"
@@ -835,7 +831,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                       <FormItem>
                         <FormLabel>{t('preferredClientTypes')}</FormLabel>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-                          {CLIENT_TYPES.map((type) => (
+                          {CLIENT_TYPES.map(type => (
                             <FormItem
                               key={type.value}
                               className="flex items-center space-x-2 space-y-0"
@@ -843,7 +839,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                               <FormControl>
                                 <Checkbox
                                   checked={field.value?.includes(type.value)}
-                                  onCheckedChange={(checked) => {
+                                  onCheckedChange={checked => {
                                     const updatedTypes = checked
                                       ? [...(field.value || []), type.value]
                                       : (field.value || []).filter(t => t !== type.value);
@@ -851,9 +847,7 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
                                   }}
                                 />
                               </FormControl>
-                              <FormLabel className="text-sm font-normal">
-                                {type.label}
-                              </FormLabel>
+                              <FormLabel className="text-sm font-normal">{type.label}</FormLabel>
                             </FormItem>
                           ))}
                         </div>
@@ -887,7 +881,12 @@ export const RouteAnnouncementForm: React.FC<RouteAnnouncementFormProps> = ({
             <CardContent>
               <div className="flex justify-between pt-6">
                 {onCancel && (
-                  <Button type="button" variant="outline" onClick={onCancel} disabled={isSubmitting}>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={onCancel}
+                    disabled={isSubmitting}
+                  >
                     {t('cancel')}
                   </Button>
                 )}

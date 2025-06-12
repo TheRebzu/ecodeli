@@ -8,4 +8,3 @@ export { default as CalendarView } from './calendar-view';
 export * from './calendar-view';
 export { default as TimeslotPicker } from './timeslot-picker';
 export * from './timeslot-picker';
-

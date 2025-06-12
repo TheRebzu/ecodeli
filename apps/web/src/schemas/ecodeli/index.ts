@@ -12,4 +12,3 @@ export * from './international-purchase.schema';
 export * from './person-transport.schema';
 export * from './pet-sitting.schema';
 export * from './shopping-service.schema';
-

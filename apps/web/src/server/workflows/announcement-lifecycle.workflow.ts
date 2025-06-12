@@ -8,16 +8,16 @@ import { logger } from '@/lib/utils/logger';
 import { AnnouncementMatchingService } from '../services/matching/announcement-matching.service';
 import { PartialDeliveryService } from '../services/matching/partial-delivery.service';
 
-export type AnnouncementStatus = 
-  | 'DRAFT' 
-  | 'ACTIVE' 
-  | 'MATCHED' 
-  | 'ASSIGNED' 
-  | 'IN_PROGRESS' 
-  | 'DELIVERED' 
-  | 'VALIDATED' 
-  | 'COMPLETED' 
-  | 'CANCELLED' 
+export type AnnouncementStatus =
+  | 'DRAFT'
+  | 'ACTIVE'
+  | 'MATCHED'
+  | 'ASSIGNED'
+  | 'IN_PROGRESS'
+  | 'DELIVERED'
+  | 'VALIDATED'
+  | 'COMPLETED'
+  | 'CANCELLED'
   | 'EXPIRED';
 
 export interface AnnouncementLifecycleEvent {
@@ -63,7 +63,7 @@ export class AnnouncementLifecycleWorkflow {
   async startWorkflow(announcementId: string): Promise<void> {
     try {
       await this.logEvent(announcementId, 'WORKFLOW_STARTED', 'DRAFT', 'ACTIVE', 'SYSTEM');
-      
+
       // Passer l'annonce en statut ACTIVE
       await this.updateAnnouncementStatus(announcementId, 'ACTIVE');
 
@@ -87,26 +87,22 @@ export class AnnouncementLifecycleWorkflow {
    * Traite la correspondance trouvée
    */
   async handleMatchFound(
-    announcementId: string, 
-    matchId: string, 
+    announcementId: string,
+    matchId: string,
     matchScore: number
   ): Promise<void> {
     try {
       const currentStatus = await this.getAnnouncementStatus(announcementId);
-      
+
       if (currentStatus !== 'ACTIVE') {
         logger.warn(`Correspondance trouvée pour annonce non active: ${announcementId}`);
         return;
       }
 
-      await this.logEvent(
-        announcementId, 
-        'MATCH_FOUND', 
-        'ACTIVE', 
-        'MATCHED', 
-        'SYSTEM',
-        { matchId, matchScore }
-      );
+      await this.logEvent(announcementId, 'MATCH_FOUND', 'ACTIVE', 'MATCHED', 'SYSTEM', {
+        matchId,
+        matchScore,
+      });
 
       await this.updateAnnouncementStatus(announcementId, 'MATCHED');
 
@@ -134,19 +130,14 @@ export class AnnouncementLifecycleWorkflow {
   ): Promise<void> {
     try {
       const currentStatus = await this.getAnnouncementStatus(announcementId);
-      
+
       if (currentStatus !== 'MATCHED') {
-        throw new Error('L\'annonce n\'est pas dans un état permettant l\'assignation');
+        throw new Error("L'annonce n'est pas dans un état permettant l'assignation");
       }
 
-      await this.logEvent(
-        announcementId,
-        'DELIVERER_ACCEPTED',
-        'MATCHED',
-        'ASSIGNED',
-        clientId,
-        { delivererId }
-      );
+      await this.logEvent(announcementId, 'DELIVERER_ACCEPTED', 'MATCHED', 'ASSIGNED', clientId, {
+        delivererId,
+      });
 
       await this.updateAnnouncementStatus(announcementId, 'ASSIGNED');
       await this.assignDeliverer(announcementId, delivererId);
@@ -162,7 +153,7 @@ export class AnnouncementLifecycleWorkflow {
 
       logger.info(`Livreur ${delivererId} assigné à l'annonce ${announcementId}`);
     } catch (error) {
-      logger.error('Erreur lors de l\'acceptation du livreur:', error);
+      logger.error("Erreur lors de l'acceptation du livreur:", error);
       throw error;
     }
   }
@@ -170,15 +161,12 @@ export class AnnouncementLifecycleWorkflow {
   /**
    * Traite le début de livraison
    */
-  async handleDeliveryStarted(
-    announcementId: string,
-    delivererId: string
-  ): Promise<void> {
+  async handleDeliveryStarted(announcementId: string, delivererId: string): Promise<void> {
     try {
       const currentStatus = await this.getAnnouncementStatus(announcementId);
-      
+
       if (currentStatus !== 'ASSIGNED') {
-        throw new Error('L\'annonce n\'est pas assignée');
+        throw new Error("L'annonce n'est pas assignée");
       }
 
       await this.logEvent(
@@ -219,9 +207,9 @@ export class AnnouncementLifecycleWorkflow {
   ): Promise<void> {
     try {
       const currentStatus = await this.getAnnouncementStatus(announcementId);
-      
+
       if (currentStatus !== 'IN_PROGRESS') {
-        throw new Error('La livraison n\'est pas en cours');
+        throw new Error("La livraison n'est pas en cours");
       }
 
       await this.logEvent(
@@ -265,9 +253,9 @@ export class AnnouncementLifecycleWorkflow {
   ): Promise<void> {
     try {
       const currentStatus = await this.getAnnouncementStatus(announcementId);
-      
+
       if (currentStatus !== 'DELIVERED') {
-        throw new Error('La livraison n\'est pas en attente de validation');
+        throw new Error("La livraison n'est pas en attente de validation");
       }
 
       if (validationData.isValid) {
@@ -291,7 +279,9 @@ export class AnnouncementLifecycleWorkflow {
         await this.handleValidationDispute(announcementId, clientId, validationData);
       }
 
-      logger.info(`Validation client traitée pour l'annonce ${announcementId}: ${validationData.isValid ? 'succès' : 'dispute'}`);
+      logger.info(
+        `Validation client traitée pour l'annonce ${announcementId}: ${validationData.isValid ? 'succès' : 'dispute'}`
+      );
     } catch (error) {
       logger.error('Erreur lors de la validation client:', error);
       throw error;
@@ -301,17 +291,17 @@ export class AnnouncementLifecycleWorkflow {
   /**
    * Traite l'annulation d'une annonce
    */
-  async handleAnnouncement  (
+  async handleAnnouncement(
     announcementId: string,
     cancelledBy: string,
     reason: string
   ): Promise<void> {
     try {
       const currentStatus = await this.getAnnouncementStatus(announcementId);
-      
+
       // Vérifier si l'annulation est possible
       if (['COMPLETED', 'VALIDATED', 'DELIVERED'].includes(currentStatus)) {
-        throw new Error('Impossible d\'annuler une livraison terminée');
+        throw new Error("Impossible d'annuler une livraison terminée");
       }
 
       await this.logEvent(
@@ -335,7 +325,7 @@ export class AnnouncementLifecycleWorkflow {
 
       logger.info(`Annonce ${announcementId} annulée par ${cancelledBy}: ${reason}`);
     } catch (error) {
-      logger.error('Erreur lors de l\'annulation:', error);
+      logger.error("Erreur lors de l'annulation:", error);
       throw error;
     }
   }
@@ -346,7 +336,7 @@ export class AnnouncementLifecycleWorkflow {
   async handleAnnouncementExpiration(announcementId: string): Promise<void> {
     try {
       const currentStatus = await this.getAnnouncementStatus(announcementId);
-      
+
       if (['COMPLETED', 'VALIDATED', 'CANCELLED'].includes(currentStatus)) {
         return; // Déjà dans un état final
       }
@@ -371,7 +361,7 @@ export class AnnouncementLifecycleWorkflow {
 
       logger.info(`Annonce ${announcementId} expirée automatiquement`);
     } catch (error) {
-      logger.error('Erreur lors de l\'expiration:', error);
+      logger.error("Erreur lors de l'expiration:", error);
     }
   }
 
@@ -397,7 +387,12 @@ export class AnnouncementLifecycleWorkflow {
           await this.getAnnouncementStatus(announcementId),
           await this.getAnnouncementStatus(announcementId),
           'SYSTEM',
-          { partialPlan: { totalSegments: partialPlan.totalSegments, totalPrice: partialPlan.totalPrice } }
+          {
+            partialPlan: {
+              totalSegments: partialPlan.totalSegments,
+              totalPrice: partialPlan.totalPrice,
+            },
+          }
         );
 
         // Notifier le client de la suggestion
@@ -433,11 +428,13 @@ export class AnnouncementLifecycleWorkflow {
     };
 
     // Sauvegarder l'événement (simulation)
-    logger.info(`Événement workflow: ${eventType} pour ${announcementId} (${fromStatus} → ${toStatus})`);
+    logger.info(
+      `Événement workflow: ${eventType} pour ${announcementId} (${fromStatus} → ${toStatus})`
+    );
   }
 
   private async updateAnnouncementStatus(
-    announcementId: string, 
+    announcementId: string,
     status: AnnouncementStatus
   ): Promise<void> {
     // Simulation de mise à jour du statut
@@ -470,18 +467,24 @@ export class AnnouncementLifecycleWorkflow {
   private async scheduleReminders(announcementId: string): Promise<void> {
     // Programmer les rappels selon la configuration
     for (const hours of this.config.reminderHours) {
-      setTimeout(() => {
-        this.sendReminder(announcementId, hours);
-      }, hours * 60 * 60 * 1000);
+      setTimeout(
+        () => {
+          this.sendReminder(announcementId, hours);
+        },
+        hours * 60 * 60 * 1000
+      );
     }
   }
 
   private async scheduleEscalations(announcementId: string): Promise<void> {
     // Programmer les escalations selon la configuration
     for (const rule of this.config.escalationRules) {
-      setTimeout(() => {
-        this.handleEscalation(announcementId, rule);
-      }, rule.noMatchAfterHours * 60 * 60 * 1000);
+      setTimeout(
+        () => {
+          this.handleEscalation(announcementId, rule);
+        },
+        rule.noMatchAfterHours * 60 * 60 * 1000
+      );
     }
   }
 
@@ -491,11 +494,11 @@ export class AnnouncementLifecycleWorkflow {
 
   private async handleEscalation(announcementId: string, rule: any): Promise<void> {
     const currentStatus = await this.getAnnouncementStatus(announcementId);
-    
+
     if (currentStatus === 'ACTIVE' && rule.action === 'SUGGEST_PARTIAL') {
       await this.suggestPartialDelivery(announcementId);
     }
-    
+
     logger.info(`Escalation traitée pour ${announcementId}: ${rule.action}`);
   }
 
@@ -505,10 +508,15 @@ export class AnnouncementLifecycleWorkflow {
     matchId: string,
     matchScore: number
   ): Promise<void> {
-    logger.info(`Notification client: correspondance trouvée (${matchScore}%) pour ${announcementId}`);
+    logger.info(
+      `Notification client: correspondance trouvée (${matchScore}%) pour ${announcementId}`
+    );
   }
 
-  private async notifyDelivererAssigned(delivererId: string, announcementId: string): Promise<void> {
+  private async notifyDelivererAssigned(
+    delivererId: string,
+    announcementId: string
+  ): Promise<void> {
     logger.info(`Notification livreur ${delivererId}: assigné à ${announcementId}`);
   }
 
@@ -520,7 +528,10 @@ export class AnnouncementLifecycleWorkflow {
     logger.info(`Notification client: validation requise pour ${announcementId}`);
   }
 
-  private async notifyAnnouncementCancellation(announcementId: string, reason: string): Promise<void> {
+  private async notifyAnnouncementCancellation(
+    announcementId: string,
+    reason: string
+  ): Promise<void> {
     logger.info(`Notification annulation: ${announcementId} - ${reason}`);
   }
 
@@ -566,14 +577,17 @@ export class AnnouncementLifecycleWorkflow {
 
   private async scheduleAutoValidation(announcementId: string): Promise<void> {
     // Validation automatique après 24h
-    setTimeout(() => {
-      this.handleAutoValidation(announcementId);
-    }, 24 * 60 * 60 * 1000);
+    setTimeout(
+      () => {
+        this.handleAutoValidation(announcementId);
+      },
+      24 * 60 * 60 * 1000
+    );
   }
 
   private async handleAutoValidation(announcementId: string): Promise<void> {
     const currentStatus = await this.getAnnouncementStatus(announcementId);
-    
+
     if (currentStatus === 'DELIVERED') {
       await this.handleClientValidation(announcementId, 'SYSTEM', {
         rating: 0,

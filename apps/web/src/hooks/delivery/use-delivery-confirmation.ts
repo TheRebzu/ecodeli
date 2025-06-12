@@ -89,97 +89,106 @@ export function useDeliveryConfirmation(deliveryId?: string) {
   }, [deliveryDetails, session]);
 
   // Fonction pour initier la confirmation
-  const initiateConfirmation = useCallback(async (options: { generateCode?: boolean } = {}) => {
-    if (!deliveryId) throw new Error('ID de livraison non spécifié');
+  const initiateConfirmation = useCallback(
+    async (options: { generateCode?: boolean } = {}) => {
+      if (!deliveryId) throw new Error('ID de livraison non spécifié');
 
-    setIsInitiating(true);
-    try {
-      await api.delivery.initiateConfirmation.mutate({
-        id: deliveryId,
-        generateCode: options.generateCode ?? true,
-      });
-      
-      setConfirmationStep('code_verification');
-      toast.success('Confirmation initiée. Veuillez entrer le code de vérification.');
-      
-      // Recharger les détails
-      await fetchDeliveryDetails();
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
-      toast.error(`Erreur lors de l'initiation de la confirmation: ${errorMessage}`);
-      throw error;
-    } finally {
-      setIsInitiating(false);
-    }
-  }, [deliveryId, fetchDeliveryDetails]);
+      setIsInitiating(true);
+      try {
+        await api.delivery.initiateConfirmation.mutate({
+          id: deliveryId,
+          generateCode: options.generateCode ?? true,
+        });
+
+        setConfirmationStep('code_verification');
+        toast.success('Confirmation initiée. Veuillez entrer le code de vérification.');
+
+        // Recharger les détails
+        await fetchDeliveryDetails();
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+        toast.error(`Erreur lors de l'initiation de la confirmation: ${errorMessage}`);
+        throw error;
+      } finally {
+        setIsInitiating(false);
+      }
+    },
+    [deliveryId, fetchDeliveryDetails]
+  );
 
   // Fonction pour vérifier le code de confirmation
-  const verifyCode = useCallback(async (code: string) => {
-    if (!deliveryId) throw new Error('ID de livraison non spécifié');
+  const verifyCode = useCallback(
+    async (code: string) => {
+      if (!deliveryId) throw new Error('ID de livraison non spécifié');
 
-    setIsVerifying(true);
-    try {
-      await api.delivery.verifyConfirmationCode.mutate({
-        id: deliveryId,
-        code,
-      });
-      
-      toast.success('Code vérifié avec succès.');
-      setConfirmationStep('signature');
-      
-      // Recharger les détails
-      await fetchDeliveryDetails();
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
-      toast.error(`Erreur lors de la vérification du code: ${errorMessage}`);
-      throw error;
-    } finally {
-      setIsVerifying(false);
-    }
-  }, [deliveryId, fetchDeliveryDetails]);
+      setIsVerifying(true);
+      try {
+        await api.delivery.verifyConfirmationCode.mutate({
+          id: deliveryId,
+          code,
+        });
+
+        toast.success('Code vérifié avec succès.');
+        setConfirmationStep('signature');
+
+        // Recharger les détails
+        await fetchDeliveryDetails();
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+        toast.error(`Erreur lors de la vérification du code: ${errorMessage}`);
+        throw error;
+      } finally {
+        setIsVerifying(false);
+      }
+    },
+    [deliveryId, fetchDeliveryDetails]
+  );
 
   // Fonction pour confirmer la livraison
-  const confirmDelivery = useCallback(async (options: ConfirmationOptions = {}) => {
-    if (!deliveryId) throw new Error('ID de livraison non spécifié');
+  const confirmDelivery = useCallback(
+    async (options: ConfirmationOptions = {}) => {
+      if (!deliveryId) throw new Error('ID de livraison non spécifié');
 
-    setIsConfirming(true);
-    try {
-      await api.delivery.confirmDelivery.mutate({
-        id: deliveryId,
-        notes: options.notes,
-        rating: options.rating,
-        signature: options.signature,
-        photos: options.photos,
-        location:
-          options.latitude && options.longitude
-            ? { latitude: options.latitude, longitude: options.longitude }
-            : undefined,
-      });
-      
-      toast.success('Livraison confirmée avec succès!');
-      setConfirmationStep('completed');
-      
-      // Recharger les détails
-      await fetchDeliveryDetails();
+      setIsConfirming(true);
+      try {
+        await api.delivery.confirmDelivery.mutate({
+          id: deliveryId,
+          notes: options.notes,
+          rating: options.rating,
+          signature: options.signature,
+          photos: options.photos,
+          location:
+            options.latitude && options.longitude
+              ? { latitude: options.latitude, longitude: options.longitude }
+              : undefined,
+        });
 
-      // Rediriger après un court délai
-      setTimeout(() => {
-        if (session?.user.role === 'CLIENT') {
-          router.push('/client/deliveries');
-        } else if (session?.user.role === 'DELIVERER') {
-          router.push('/deliverer/deliveries');
-        } else {
-          router.push('/');
-        }
-      }, 2000);
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
-      toast.error(`Erreur lors de la confirmation de la livraison: ${errorMessage}`);
-      throw error;
-    } finally {
-      setIsConfirming(false);
-    }
-  }, [deliveryId, fetchDeliveryDetails, session, router]);
+        toast.success('Livraison confirmée avec succès!');
+        setConfirmationStep('completed');
+
+        // Recharger les détails
+        await fetchDeliveryDetails();
+
+        // Rediriger après un court délai
+        setTimeout(() => {
+          if (session?.user.role === 'CLIENT') {
+            router.push('/client/deliveries');
+          } else if (session?.user.role === 'DELIVERER') {
+            router.push('/deliverer/deliveries');
+          } else {
+            router.push('/');
+          }
+        }, 2000);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+        toast.error(`Erreur lors de la confirmation de la livraison: ${errorMessage}`);
+        throw error;
+      } finally {
+        setIsConfirming(false);
+      }
+    },
+    [deliveryId, fetchDeliveryDetails, session, router]
+  );
 
   // Vérifier si la livraison est déjà confirmée
   useEffect(() => {
@@ -230,9 +239,7 @@ export const useSimpleDeliveryConfirmation = () => {
     } catch (error) {
       console.error('Erreur lors de la confirmation de livraison:', error);
       toast.error(
-        error instanceof Error 
-          ? error.message 
-          : 'Une erreur est survenue lors de la confirmation'
+        error instanceof Error ? error.message : 'Une erreur est survenue lors de la confirmation'
       );
       throw error;
     } finally {
@@ -250,11 +257,9 @@ export const useSimpleDeliveryConfirmation = () => {
       toast.success('Livraison annulée avec succès');
       return result;
     } catch (error) {
-      console.error('Erreur lors de l\'annulation de livraison:', error);
+      console.error("Erreur lors de l'annulation de livraison:", error);
       toast.error(
-        error instanceof Error 
-          ? error.message 
-          : 'Une erreur est survenue lors de l\'annulation'
+        error instanceof Error ? error.message : "Une erreur est survenue lors de l'annulation"
       );
       throw error;
     } finally {

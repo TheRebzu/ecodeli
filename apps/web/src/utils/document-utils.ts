@@ -2,7 +2,10 @@
  * Utilities pour la manipulation des documents
  */
 import { db } from '@/server/db';
-import { formatCurrency as formatCurrencyUtil, formatDate as formatDateUtil } from '@/lib/utils/common';
+import {
+  formatCurrency as formatCurrencyUtil,
+  formatDate as formatDateUtil,
+} from '@/lib/utils/common';
 
 // Import types from proper locations
 import type { Document, VerificationStatus } from '@/types/documents/verification';
@@ -10,7 +13,7 @@ import type { Document, VerificationStatus } from '@/types/documents/verificatio
 // UserRole enum values for typing
 export enum UserRole {
   CLIENT = 'CLIENT',
-  DELIVERER = 'DELIVERER', 
+  DELIVERER = 'DELIVERER',
   MERCHANT = 'MERCHANT',
   PROVIDER = 'PROVIDER',
   ADMIN = 'ADMIN',
@@ -136,7 +139,7 @@ export function formatRelativeDate(date: Date | string | null | undefined): stri
   }
 
   const targetDate = typeof date === 'string' ? new Date(date) : date;
-  
+
   // Vérifier si la date est valide
   if (isNaN(targetDate.getTime())) {
     return 'Date invalide';
@@ -154,12 +157,14 @@ export function formatRelativeDate(date: Date | string | null | undefined): stri
 
   // Format relatif en français
   if (Math.abs(diffInSeconds) < 60) {
-    return diffInSeconds >= 0 ? 'À l\'instant' : 'Dans quelques secondes';
+    return diffInSeconds >= 0 ? "À l'instant" : 'Dans quelques secondes';
   } else if (Math.abs(diffInMinutes) < 60) {
     if (diffInMinutes >= 0) {
       return diffInMinutes === 1 ? 'Il y a 1 minute' : `Il y a ${diffInMinutes} minutes`;
     } else {
-      return Math.abs(diffInMinutes) === 1 ? 'Dans 1 minute' : `Dans ${Math.abs(diffInMinutes)} minutes`;
+      return Math.abs(diffInMinutes) === 1
+        ? 'Dans 1 minute'
+        : `Dans ${Math.abs(diffInMinutes)} minutes`;
     }
   } else if (Math.abs(diffInHours) < 24) {
     if (diffInHours >= 0) {
@@ -177,7 +182,9 @@ export function formatRelativeDate(date: Date | string | null | undefined): stri
     if (diffInWeeks >= 0) {
       return diffInWeeks === 1 ? 'Il y a 1 semaine' : `Il y a ${diffInWeeks} semaines`;
     } else {
-      return Math.abs(diffInWeeks) === 1 ? 'Dans 1 semaine' : `Dans ${Math.abs(diffInWeeks)} semaines`;
+      return Math.abs(diffInWeeks) === 1
+        ? 'Dans 1 semaine'
+        : `Dans ${Math.abs(diffInWeeks)} semaines`;
     }
   } else if (Math.abs(diffInMonths) < 12) {
     if (diffInMonths >= 0) {
@@ -222,11 +229,11 @@ export function formatDate(date: string | Date): string {
  */
 export function formatTime(date: string | Date): string {
   const dateObj = typeof date === 'string' ? new Date(date) : date;
-  
+
   if (isNaN(dateObj.getTime())) {
     return '--:--';
   }
-  
+
   return new Intl.DateTimeFormat('fr-FR', {
     hour: '2-digit',
     minute: '2-digit',
@@ -240,11 +247,11 @@ export function formatTime(date: string | Date): string {
  */
 export function getDocumentTypeName(type: string): string {
   const typeNames: Record<string, string> = {
-    IDENTITY_CARD: 'Carte d\'identité',
+    IDENTITY_CARD: "Carte d'identité",
     PASSPORT: 'Passeport',
     DRIVING_LICENSE: 'Permis de conduire',
     VEHICLE_REGISTRATION: 'Carte grise',
-    INSURANCE_CERTIFICATE: 'Attestation d\'assurance',
+    INSURANCE_CERTIFICATE: "Attestation d'assurance",
     CRIMINAL_RECORD: 'Extrait de casier judiciaire',
     BANK_RIB: 'RIB',
     KBIS: 'Extrait Kbis',
@@ -256,7 +263,7 @@ export function getDocumentTypeName(type: string): string {
     RECEIPT: 'Reçu',
     OTHER: 'Autre document',
   };
-  
+
   return typeNames[type] || type;
 }
 
@@ -267,11 +274,11 @@ export function getDocumentTypeName(type: string): string {
  */
 export function formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 B';
-  
+
   const k = 1024;
   const sizes = ['B', 'KB', 'MB', 'GB'];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
+
   return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
 }
 
@@ -288,28 +295,98 @@ export function getRequiredDocumentTypesByRole(role: UserRole): Array<{
 }> {
   const documentTypes = {
     CLIENT: [
-      { type: 'IDENTITY_CARD', name: 'Carte d\'identité', required: true, description: 'Document d\'identité valide' },
-      { type: 'BANK_RIB', name: 'RIB', required: false, description: 'Relevé d\'identité bancaire' },
+      {
+        type: 'IDENTITY_CARD',
+        name: "Carte d'identité",
+        required: true,
+        description: "Document d'identité valide",
+      },
+      { type: 'BANK_RIB', name: 'RIB', required: false, description: "Relevé d'identité bancaire" },
     ],
     DELIVERER: [
-      { type: 'IDENTITY_CARD', name: 'Carte d\'identité', required: true, description: 'Document d\'identité valide' },
-      { type: 'DRIVING_LICENSE', name: 'Permis de conduire', required: true, description: 'Permis de conduire valide' },
-      { type: 'VEHICLE_REGISTRATION', name: 'Carte grise', required: true, description: 'Carte grise du véhicule' },
-      { type: 'INSURANCE_CERTIFICATE', name: 'Attestation d\'assurance', required: true, description: 'Assurance véhicule' },
-      { type: 'CRIMINAL_RECORD', name: 'Casier judiciaire', required: true, description: 'Extrait de casier judiciaire' },
+      {
+        type: 'IDENTITY_CARD',
+        name: "Carte d'identité",
+        required: true,
+        description: "Document d'identité valide",
+      },
+      {
+        type: 'DRIVING_LICENSE',
+        name: 'Permis de conduire',
+        required: true,
+        description: 'Permis de conduire valide',
+      },
+      {
+        type: 'VEHICLE_REGISTRATION',
+        name: 'Carte grise',
+        required: true,
+        description: 'Carte grise du véhicule',
+      },
+      {
+        type: 'INSURANCE_CERTIFICATE',
+        name: "Attestation d'assurance",
+        required: true,
+        description: 'Assurance véhicule',
+      },
+      {
+        type: 'CRIMINAL_RECORD',
+        name: 'Casier judiciaire',
+        required: true,
+        description: 'Extrait de casier judiciaire',
+      },
       { type: 'BANK_RIB', name: 'RIB', required: true, description: 'Pour les virements' },
     ],
     MERCHANT: [
-      { type: 'IDENTITY_CARD', name: 'Carte d\'identité', required: true, description: 'Document d\'identité du représentant' },
-      { type: 'KBIS', name: 'Extrait Kbis', required: true, description: 'Extrait Kbis récent (moins de 3 mois)' },
-      { type: 'BANK_RIB', name: 'RIB professionnel', required: true, description: 'RIB du compte professionnel' },
-      { type: 'INSURANCE_CERTIFICATE', name: 'Assurance professionnelle', required: false, description: 'RC professionnelle' },
+      {
+        type: 'IDENTITY_CARD',
+        name: "Carte d'identité",
+        required: true,
+        description: "Document d'identité du représentant",
+      },
+      {
+        type: 'KBIS',
+        name: 'Extrait Kbis',
+        required: true,
+        description: 'Extrait Kbis récent (moins de 3 mois)',
+      },
+      {
+        type: 'BANK_RIB',
+        name: 'RIB professionnel',
+        required: true,
+        description: 'RIB du compte professionnel',
+      },
+      {
+        type: 'INSURANCE_CERTIFICATE',
+        name: 'Assurance professionnelle',
+        required: false,
+        description: 'RC professionnelle',
+      },
     ],
     PROVIDER: [
-      { type: 'IDENTITY_CARD', name: 'Carte d\'identité', required: true, description: 'Document d\'identité valide' },
-      { type: 'PROFESSIONAL_CARD', name: 'Carte professionnelle', required: true, description: 'Justificatif d\'activité' },
-      { type: 'INSURANCE_CERTIFICATE', name: 'Assurance professionnelle', required: true, description: 'RC professionnelle' },
-      { type: 'DIPLOMA', name: 'Diplôme/Certification', required: false, description: 'Qualifications professionnelles' },
+      {
+        type: 'IDENTITY_CARD',
+        name: "Carte d'identité",
+        required: true,
+        description: "Document d'identité valide",
+      },
+      {
+        type: 'PROFESSIONAL_CARD',
+        name: 'Carte professionnelle',
+        required: true,
+        description: "Justificatif d'activité",
+      },
+      {
+        type: 'INSURANCE_CERTIFICATE',
+        name: 'Assurance professionnelle',
+        required: true,
+        description: 'RC professionnelle',
+      },
+      {
+        type: 'DIPLOMA',
+        name: 'Diplôme/Certification',
+        required: false,
+        description: 'Qualifications professionnelles',
+      },
       { type: 'BANK_RIB', name: 'RIB', required: true, description: 'Pour les paiements' },
     ],
     ADMIN: [],

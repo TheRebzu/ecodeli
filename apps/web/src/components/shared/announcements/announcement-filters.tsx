@@ -7,7 +7,13 @@ import { z } from 'zod';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Form, FormControl, FormField, FormItem, FormLabel } from '@/components/ui/form';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { FilterX, Search } from 'lucide-react';
@@ -30,10 +36,10 @@ interface AnnouncementFilterProps {
   isLoading?: boolean;
 }
 
-export function AnnouncementFilter({ 
-  onFiltersChange, 
+export function AnnouncementFilter({
+  onFiltersChange,
   activeFilters = {},
-  isLoading = false 
+  isLoading = false,
 }: AnnouncementFilterProps) {
   const form = useForm<FilterFormData>({
     resolver: zodResolver(filterSchema),
@@ -59,9 +65,7 @@ export function AnnouncementFilter({
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">Filtres de recherche</CardTitle>
           {getActiveFiltersCount() > 0 && (
-            <Badge variant="secondary">
-              {getActiveFiltersCount()} filtre(s) actif(s)
-            </Badge>
+            <Badge variant="secondary">{getActiveFiltersCount()} filtre(s) actif(s)</Badge>
           )}
         </div>
       </CardHeader>
@@ -98,8 +102,8 @@ export function AnnouncementFilter({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Statut</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
+                    <Select
+                      onValueChange={field.onChange}
                       defaultValue={field.value}
                       disabled={isLoading}
                     >
@@ -128,8 +132,8 @@ export function AnnouncementFilter({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>Trier par</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
+                    <Select
+                      onValueChange={field.onChange}
                       defaultValue={field.value}
                       disabled={isLoading}
                     >
@@ -199,9 +203,9 @@ export function AnnouncementFilter({
                 <Search className="w-4 h-4 mr-2" />
                 Appliquer les filtres
               </Button>
-              <Button 
-                type="button" 
-                variant="outline" 
+              <Button
+                type="button"
+                variant="outline"
                 onClick={handleReset}
                 disabled={isLoading}
                 className="flex-1 sm:flex-initial"

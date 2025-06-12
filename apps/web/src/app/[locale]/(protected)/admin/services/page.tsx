@@ -6,13 +6,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
 } from '@/components/ui/table';
 import {
   DropdownMenu,
@@ -53,7 +53,12 @@ export default function AdminServicesPage() {
   const { toast } = useToast();
 
   // Récupérer les services via tRPC
-  const { data: servicesData, isLoading, error, refetch } = api.admin.services.getAll.useQuery({
+  const {
+    data: servicesData,
+    isLoading,
+    error,
+    refetch,
+  } = api.admin.services.getAll.useQuery({
     search: searchTerm,
     status: statusFilter === 'ALL' ? undefined : statusFilter,
     category: categoryFilter === 'ALL' ? undefined : categoryFilter,
@@ -70,7 +75,7 @@ export default function AdminServicesPage() {
       });
       refetch();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: 'Erreur lors de la suppression: ' + error.message,
@@ -87,7 +92,7 @@ export default function AdminServicesPage() {
       });
       refetch();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: 'Erreur lors de la mise à jour: ' + error.message,
@@ -99,7 +104,11 @@ export default function AdminServicesPage() {
   const getStatusBadge = (status: ServiceStatus) => {
     switch (status) {
       case 'ACTIVE':
-        return <Badge variant="default" className="bg-green-100 text-green-800">Actif</Badge>;
+        return (
+          <Badge variant="default" className="bg-green-100 text-green-800">
+            Actif
+          </Badge>
+        );
       case 'INACTIVE':
         return <Badge variant="secondary">Inactif</Badge>;
       case 'DRAFT':
@@ -137,9 +146,9 @@ export default function AdminServicesPage() {
 
   const handleToggleStatus = (serviceId: string, currentStatus: ServiceStatus) => {
     const newStatus = currentStatus === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
-    updateServiceStatusMutation.mutate({ 
-      id: serviceId, 
-      status: newStatus 
+    updateServiceStatusMutation.mutate({
+      id: serviceId,
+      status: newStatus,
     });
   };
 
@@ -154,9 +163,7 @@ export default function AdminServicesPage() {
   if (error) {
     return (
       <div className="container mx-auto py-6">
-        <div className="text-center text-red-500">
-          Erreur lors du chargement des services.
-        </div>
+        <div className="text-center text-red-500">Erreur lors du chargement des services.</div>
       </div>
     );
   }
@@ -195,7 +202,7 @@ export default function AdminServicesPage() {
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total services</CardTitle>
@@ -213,8 +220,10 @@ export default function AdminServicesPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {services.length > 0 
-                ? (services.reduce((acc, s) => acc + (s.rating || 0), 0) / services.length).toFixed(1)
+              {services.length > 0
+                ? (services.reduce((acc, s) => acc + (s.rating || 0), 0) / services.length).toFixed(
+                    1
+                  )
                 : '0.0'}
             </div>
           </CardContent>
@@ -226,9 +235,7 @@ export default function AdminServicesPage() {
             <MapPin className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {new Set(services.map(s => s.category)).size}
-            </div>
+            <div className="text-2xl font-bold">{new Set(services.map(s => s.category)).size}</div>
           </CardContent>
         </Card>
       </div>
@@ -245,12 +252,15 @@ export default function AdminServicesPage() {
               <Input
                 placeholder="Rechercher un service..."
                 value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+                onChange={e => setSearchTerm(e.target.value)}
                 className="pl-8"
               />
             </div>
-            
-            <Select value={statusFilter} onValueChange={(value) => setStatusFilter(value as ServiceStatus | 'ALL')}>
+
+            <Select
+              value={statusFilter}
+              onValueChange={value => setStatusFilter(value as ServiceStatus | 'ALL')}
+            >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Statut" />
               </SelectTrigger>
@@ -263,7 +273,10 @@ export default function AdminServicesPage() {
               </SelectContent>
             </Select>
 
-            <Select value={categoryFilter} onValueChange={(value) => setCategoryFilter(value as ServiceCategory | 'ALL')}>
+            <Select
+              value={categoryFilter}
+              onValueChange={value => setCategoryFilter(value as ServiceCategory | 'ALL')}
+            >
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Catégorie" />
               </SelectTrigger>
@@ -284,9 +297,7 @@ export default function AdminServicesPage() {
       <Card>
         <CardHeader>
           <CardTitle>Liste des Services ({totalServices})</CardTitle>
-          <CardDescription>
-            Gérez et modifiez tous les services disponibles
-          </CardDescription>
+          <CardDescription>Gérez et modifiez tous les services disponibles</CardDescription>
         </CardHeader>
         <CardContent>
           <Table>
@@ -302,7 +313,7 @@ export default function AdminServicesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {services.map((service) => (
+              {services.map(service => (
                 <TableRow key={service.id}>
                   <TableCell>
                     <div>
@@ -313,9 +324,7 @@ export default function AdminServicesPage() {
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge variant="outline">
-                      {getCategoryLabel(service.category)}
-                    </Badge>
+                    <Badge variant="outline">{getCategoryLabel(service.category)}</Badge>
                   </TableCell>
                   <TableCell>{formatPrice(service.price)}</TableCell>
                   <TableCell>{getStatusBadge(service.status)}</TableCell>
@@ -325,9 +334,7 @@ export default function AdminServicesPage() {
                       {service.rating?.toFixed(1) || '0.0'}
                     </div>
                   </TableCell>
-                  <TableCell>
-                    {new Date(service.createdAt).toLocaleDateString('fr-FR')}
-                  </TableCell>
+                  <TableCell>{new Date(service.createdAt).toLocaleDateString('fr-FR')}</TableCell>
                   <TableCell className="text-right">
                     <DropdownMenu>
                       <DropdownMenuTrigger asChild>
@@ -348,12 +355,12 @@ export default function AdminServicesPage() {
                             Modifier
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => handleToggleStatus(service.id, service.status)}
                         >
                           {service.status === 'ACTIVE' ? 'Désactiver' : 'Activer'}
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => handleDeleteService(service.id)}
                           className="text-red-600"
                         >

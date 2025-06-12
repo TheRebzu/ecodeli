@@ -12,4 +12,3 @@ export { default as MerchantTutorial } from './merchant-tutorial';
 export * from './merchant-tutorial';
 export { default as ProviderTutorial } from './provider-tutorial';
 export * from './provider-tutorial';
-

@@ -25,33 +25,34 @@ import { cn } from '@/lib/utils/common';
 
 // Déclaration pour étendre l'interface Leaflet avec Routing Machine
 declare module 'leaflet' {
-  namespace Routing {
-    interface RoutingControlOptions {
-      waypoints: L.LatLng[];
-      lineOptions?: {
-        styles?: {
-          color?: string;
-          weight?: number;
-        }[];
-        extendToWaypoints?: boolean;
-        missingRouteTolerance?: number;
-      };
-      show?: boolean;
-      addWaypoints?: boolean;
-      routeWhileDragging?: boolean;
-      fitSelectedRoutes?: boolean;
-      showAlternatives?: boolean;
-    }
-
-    class Control extends L.Control {
-      constructor(options: RoutingControlOptions);
-      getPlan(): any;
-      getWaypoints(): L.LatLng[];
-      setWaypoints(waypoints: L.LatLng[]): this;
-    }
-
-    function control(options: RoutingControlOptions): Control;
+  interface RoutingControlOptions {
+    waypoints: L.LatLng[];
+    lineOptions?: {
+      styles?: {
+        color?: string;
+        weight?: number;
+      }[];
+      extendToWaypoints?: boolean;
+      missingRouteTolerance?: number;
+    };
+    show?: boolean;
+    addWaypoints?: boolean;
+    routeWhileDragging?: boolean;
+    fitSelectedRoutes?: boolean;
+    showAlternatives?: boolean;
   }
+
+  interface RoutingControl extends L.Control {
+    getPlan(): any;
+    getWaypoints(): L.LatLng[];
+    setWaypoints(waypoints: L.LatLng[]): this;
+  }
+
+  interface RoutingStatic {
+    control(options: RoutingControlOptions): RoutingControl;
+  }
+
+  const Routing: RoutingStatic;
 }
 
 // Définir l'interface pour les coordonnées

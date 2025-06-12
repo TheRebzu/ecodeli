@@ -18,11 +18,11 @@ export const subscriptionRouter = router({
   getMySubscription: protectedProcedure.query(async ({ ctx }) => {
     try {
       const { user } = ctx.session;
-      
+
       if (user.role !== 'CLIENT') {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les clients peuvent consulter leurs abonnements"
+          code: 'FORBIDDEN',
+          message: 'Seuls les clients peuvent consulter leurs abonnements',
         });
       }
 
@@ -30,24 +30,24 @@ export const subscriptionRouter = router({
       const activeSubscription = await ctx.db.clientSubscriptionPlan.findFirst({
         where: {
           clientId: user.id,
-          isActive: true
+          isActive: true,
         },
         include: {
           usageHistory: {
             where: {
               month: new Date().getMonth() + 1,
-              year: new Date().getFullYear()
+              year: new Date().getFullYear(),
             },
-            orderBy: { createdAt: 'desc' }
+            orderBy: { createdAt: 'desc' },
           },
           client: {
             select: {
               id: true,
               name: true,
-              email: true
-            }
-          }
-        }
+              email: true,
+            },
+          },
+        },
       });
 
       // Si pas d'abonnement, créer un plan FREE par défaut
@@ -61,31 +61,34 @@ export const subscriptionRouter = router({
             monthlyPrice: 0,
             announcementsIncluded: 3,
             storageGBIncluded: 0,
-            supportLevel: 'COMMUNITY'
-          }
+            supportLevel: 'COMMUNITY',
+          },
         });
-        
+
         return {
           subscription: freePlan,
           currentUsage: null,
           limits: getPlanLimits('FREE'),
-          availableUpgrades: await getAvailableUpgrades('FREE')
+          availableUpgrades: await getAvailableUpgrades('FREE'),
         };
       }
 
       // Calculer l'usage du mois en cours
       const currentUsage = await calculateCurrentMonthUsage(user.id, ctx.db);
       const limits = getPlanLimits(activeSubscription.plan);
-      
+
       return {
         subscription: activeSubscription,
         currentUsage,
         limits,
         availableUpgrades: await getAvailableUpgrades(activeSubscription.plan),
         usagePercentages: {
-          announcements: limits.announcements > 0 ? (currentUsage.announcements / limits.announcements) * 100 : 0,
-          storage: limits.storage > 0 ? (currentUsage.storage / limits.storage) * 100 : 0
-        }
+          announcements:
+            limits.announcements > 0
+              ? (currentUsage.announcements / limits.announcements) * 100
+              : 0,
+          storage: limits.storage > 0 ? (currentUsage.storage / limits.storage) * 100 : 0,
+        },
       };
     } catch (error: any) {
       throw new TRPCError({
@@ -102,11 +105,11 @@ export const subscriptionRouter = router({
   getAvailablePlans: protectedProcedure.query(async ({ ctx }) => {
     try {
       const { user } = ctx.session;
-      
+
       if (user.role !== 'CLIENT') {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les clients peuvent consulter les plans"
+          code: 'FORBIDDEN',
+          message: 'Seuls les clients peuvent consulter les plans',
         });
       }
 
@@ -120,35 +123,35 @@ export const subscriptionRouter = router({
             '3 annonces par mois',
             'Support communautaire',
             'Accès aux services de base',
-            'Notifications par email'
+            'Notifications par email',
           ],
           limits: {
             announcements: 3,
             storage: 0,
             prioritySupport: false,
-            advancedFeatures: false
+            advancedFeatures: false,
           },
-          popular: false
+          popular: false,
         },
         {
           id: 'STARTER',
           name: 'Starter',
-          price: 9.90,
+          price: 9.9,
           description: 'Pour les utilisateurs réguliers',
           features: [
             '20 annonces par mois',
             '2 GB stockage cloud',
             'Support par email',
             'Statistiques de base',
-            'Notifications en temps réel'
+            'Notifications en temps réel',
           ],
           limits: {
             announcements: 20,
             storage: 2, // GB
             prioritySupport: false,
-            advancedFeatures: true
+            advancedFeatures: true,
           },
-          popular: true
+          popular: true,
         },
         {
           id: 'PREMIUM',
@@ -162,24 +165,24 @@ export const subscriptionRouter = router({
             'Analytics avancées',
             'API access',
             'Intégrations tierces',
-            'Matching prioritaire'
+            'Matching prioritaire',
           ],
           limits: {
             announcements: -1, // Illimité
             storage: 10, // GB
             prioritySupport: true,
-            advancedFeatures: true
+            advancedFeatures: true,
           },
-          popular: false
-        }
+          popular: false,
+        },
       ];
 
       // Obtenir le plan actuel de l'utilisateur
       const currentSubscription = await ctx.db.clientSubscriptionPlan.findFirst({
         where: {
           clientId: user.id,
-          isActive: true
-        }
+          isActive: true,
+        },
       });
 
       const currentPlan = currentSubscription?.plan || 'FREE';
@@ -189,9 +192,9 @@ export const subscriptionRouter = router({
           ...plan,
           isCurrent: plan.id === currentPlan,
           canUpgrade: canUpgrade(currentPlan, plan.id as ClientSubscriptionPlan),
-          canDowngrade: canDowngrade(currentPlan, plan.id as ClientSubscriptionPlan)
+          canDowngrade: canDowngrade(currentPlan, plan.id as ClientSubscriptionPlan),
         })),
-        currentPlan
+        currentPlan,
       };
     } catch (error: any) {
       throw new TRPCError({
@@ -209,18 +212,18 @@ export const subscriptionRouter = router({
     .input(
       z.object({
         newPlan: z.nativeEnum(ClientSubscriptionPlan),
-        paymentMethodId: z.string().optional()
+        paymentMethodId: z.string().optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       try {
         const { user } = ctx.session;
         const { newPlan, paymentMethodId } = input;
-        
+
         if (user.role !== 'CLIENT') {
           throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Seuls les clients peuvent changer d'abonnement"
+            code: 'FORBIDDEN',
+            message: "Seuls les clients peuvent changer d'abonnement",
           });
         }
 
@@ -228,24 +231,24 @@ export const subscriptionRouter = router({
         const currentSubscription = await ctx.db.clientSubscriptionPlan.findFirst({
           where: {
             clientId: user.id,
-            isActive: true
-          }
+            isActive: true,
+          },
         });
 
         const currentPlan = currentSubscription?.plan || 'FREE';
-        
+
         if (currentPlan === newPlan) {
           throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Vous êtes déjà sur ce plan"
+            code: 'BAD_REQUEST',
+            message: 'Vous êtes déjà sur ce plan',
           });
         }
 
         // Valider la transition de plan
         if (!canUpgrade(currentPlan, newPlan) && !canDowngrade(currentPlan, newPlan)) {
           throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Transition de plan non autorisée"
+            code: 'BAD_REQUEST',
+            message: 'Transition de plan non autorisée',
           });
         }
 
@@ -258,8 +261,8 @@ export const subscriptionRouter = router({
             where: { id: currentSubscription.id },
             data: {
               isActive: false,
-              endDate: new Date()
-            }
+              endDate: new Date(),
+            },
           });
         }
 
@@ -271,12 +274,13 @@ export const subscriptionRouter = router({
             isActive: true,
             startDate: new Date(),
             monthlyPrice: planDetails.price,
-            announcementsIncluded: planDetails.limits.announcements === -1 ? null : planDetails.limits.announcements,
+            announcementsIncluded:
+              planDetails.limits.announcements === -1 ? null : planDetails.limits.announcements,
             storageGBIncluded: planDetails.limits.storage,
             supportLevel: planDetails.limits.prioritySupport ? 'PRIORITY' : 'STANDARD',
             paymentMethodId,
-            autoRenew: newPlan !== 'FREE'
-          }
+            autoRenew: newPlan !== 'FREE',
+          },
         });
 
         // Enregistrer l'historique de changement
@@ -288,8 +292,8 @@ export const subscriptionRouter = router({
             fromPlan: currentPlan,
             toPlan: newPlan,
             effectiveDate: new Date(),
-            reason: isUpgrade ? 'Plan upgrade requested' : 'Plan downgrade requested'
-          }
+            reason: isUpgrade ? 'Plan upgrade requested' : 'Plan downgrade requested',
+          },
         });
 
         // TODO: Gérer le paiement pour les plans payants
@@ -300,13 +304,13 @@ export const subscriptionRouter = router({
           subscription: newSubscription,
           message: `Abonnement mis à jour vers ${planDetails.name} avec succès`,
           isUpgrade,
-          effectiveImmediately: true
+          effectiveImmediately: true,
         };
       } catch (error: any) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: "Erreur lors du changement d'abonnement"
+          message: "Erreur lors du changement d'abonnement",
         });
       }
     }),
@@ -318,18 +322,18 @@ export const subscriptionRouter = router({
     .input(
       z.object({
         reason: z.string().optional(),
-        feedback: z.string().max(1000).optional()
+        feedback: z.string().max(1000).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       try {
         const { user } = ctx.session;
         const { reason, feedback } = input;
-        
+
         if (user.role !== 'CLIENT') {
           throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Seuls les clients peuvent annuler leurs abonnements"
+            code: 'FORBIDDEN',
+            message: 'Seuls les clients peuvent annuler leurs abonnements',
           });
         }
 
@@ -337,8 +341,8 @@ export const subscriptionRouter = router({
         const activeSubscription = await ctx.db.clientSubscriptionPlan.findFirst({
           where: {
             clientId: user.id,
-            isActive: true
-          }
+            isActive: true,
+          },
         });
 
         if (!activeSubscription || activeSubscription.plan === 'FREE') {
@@ -362,8 +366,8 @@ export const subscriptionRouter = router({
             scheduledEndDate: endOfMonth,
             cancellationReason: reason,
             cancellationFeedback: feedback,
-            cancelledAt: new Date()
-          }
+            cancelledAt: new Date(),
+          },
         });
 
         // Créer un plan FREE pour la suite
@@ -376,8 +380,8 @@ export const subscriptionRouter = router({
             monthlyPrice: 0,
             announcementsIncluded: 3,
             storageGBIncluded: 0,
-            supportLevel: 'COMMUNITY'
-          }
+            supportLevel: 'COMMUNITY',
+          },
         });
 
         // Enregistrer l'historique
@@ -389,21 +393,21 @@ export const subscriptionRouter = router({
             fromPlan: activeSubscription.plan,
             toPlan: 'FREE',
             effectiveDate: endOfMonth,
-            reason: reason || 'User cancellation request'
-          }
+            reason: reason || 'User cancellation request',
+          },
         });
 
         return {
           success: true,
           message: `Abonnement programmé pour se terminer le ${format(endOfMonth, 'PPP', { locale: fr })}. Vous conservez vos avantages jusqu'à cette date.`,
           endDate: endOfMonth,
-          nextPlan: freePlan
+          nextPlan: freePlan,
         };
       } catch (error: any) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: "Erreur lors de l'annulation de l'abonnement"
+          message: "Erreur lors de l'annulation de l'abonnement",
         });
       }
     }),
@@ -416,18 +420,18 @@ export const subscriptionRouter = router({
       z.object({
         type: z.nativeEnum(UsageType),
         amount: z.number().min(0).default(1),
-        metadata: z.record(z.any()).optional()
+        metadata: z.record(z.any()).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
       try {
         const { user } = ctx.session;
         const { type, amount, metadata } = input;
-        
+
         if (user.role !== 'CLIENT') {
           throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Seuls les clients peuvent enregistrer de l'usage"
+            code: 'FORBIDDEN',
+            message: "Seuls les clients peuvent enregistrer de l'usage",
           });
         }
 
@@ -435,26 +439,26 @@ export const subscriptionRouter = router({
         const subscription = await ctx.db.clientSubscriptionPlan.findFirst({
           where: {
             clientId: user.id,
-            isActive: true
-          }
+            isActive: true,
+          },
         });
 
         if (!subscription) {
           throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Aucun abonnement trouvé"
+            code: 'NOT_FOUND',
+            message: 'Aucun abonnement trouvé',
           });
         }
 
         // Vérifier les limites avant d'enregistrer l'usage
         const currentUsage = await calculateCurrentMonthUsage(user.id, ctx.db);
         const limits = getPlanLimits(subscription.plan);
-        
+
         const canUse = await checkUsageLimit(type, currentUsage, limits, amount);
         if (!canUse.allowed) {
           throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: canUse.message
+            code: 'BAD_REQUEST',
+            message: canUse.message,
           });
         }
 
@@ -468,8 +472,8 @@ export const subscriptionRouter = router({
             month: new Date().getMonth() + 1,
             year: new Date().getFullYear(),
             metadata,
-            recordedAt: new Date()
-          }
+            recordedAt: new Date(),
+          },
         });
 
         // Mettre à jour le compteur mensuel
@@ -478,34 +482,34 @@ export const subscriptionRouter = router({
             clientId_month_year: {
               clientId: user.id,
               month: new Date().getMonth() + 1,
-              year: new Date().getFullYear()
-            }
+              year: new Date().getFullYear(),
+            },
           },
           update: {
             [getUsageFieldName(type)]: {
-              increment: amount
+              increment: amount,
             },
-            updatedAt: new Date()
+            updatedAt: new Date(),
           },
           create: {
             clientId: user.id,
             month: new Date().getMonth() + 1,
             year: new Date().getFullYear(),
             [getUsageFieldName(type)]: amount,
-            subscriptionPlan: subscription.plan
-          }
+            subscriptionPlan: subscription.plan,
+          },
         });
 
         return {
           success: true,
           usage,
-          remainingQuota: calculateRemainingQuota(type, currentUsage, limits, amount)
+          remainingQuota: calculateRemainingQuota(type, currentUsage, limits, amount),
         };
       } catch (error: any) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: "Erreur lors de l'enregistrement de l'usage"
+          message: "Erreur lors de l'enregistrement de l'usage",
         });
       }
     }),
@@ -519,25 +523,25 @@ export const subscriptionRouter = router({
         type: z.nativeEnum(UsageType).optional(),
         month: z.number().min(1).max(12).optional(),
         year: z.number().min(2020).optional(),
-        limit: z.number().min(1).max(100).default(50)
+        limit: z.number().min(1).max(100).default(50),
       })
     )
     .query(async ({ ctx, input }) => {
       try {
         const { user } = ctx.session;
         const { type, month, year, limit } = input;
-        
+
         if (user.role !== 'CLIENT') {
           throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Seuls les clients peuvent consulter leur historique d'usage"
+            code: 'FORBIDDEN',
+            message: "Seuls les clients peuvent consulter leur historique d'usage",
           });
         }
 
         const where: any = {
-          clientId: user.id
+          clientId: user.id,
         };
-        
+
         if (type) where.type = type;
         if (month) where.month = month;
         if (year) where.year = year;
@@ -549,10 +553,10 @@ export const subscriptionRouter = router({
           include: {
             subscription: {
               select: {
-                plan: true
-              }
-            }
-          }
+                plan: true,
+              },
+            },
+          },
         });
 
         // Calculer les statistiques par type
@@ -561,24 +565,27 @@ export const subscriptionRouter = router({
           where: {
             clientId: user.id,
             month: month || new Date().getMonth() + 1,
-            year: year || new Date().getFullYear()
+            year: year || new Date().getFullYear(),
           },
           _sum: {
-            amount: true
-          }
+            amount: true,
+          },
         });
 
         return {
           history,
-          monthlyStats: stats.reduce((acc, stat) => {
-            acc[stat.type] = stat._sum.amount || 0;
-            return acc;
-          }, {} as Record<string, number>)
+          monthlyStats: stats.reduce(
+            (acc, stat) => {
+              acc[stat.type] = stat._sum.amount || 0;
+              return acc;
+            },
+            {} as Record<string, number>
+          ),
         };
       } catch (error: any) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: "Erreur lors de la récupération de l'historique"
+          message: "Erreur lors de la récupération de l'historique",
         });
       }
     }),
@@ -590,18 +597,18 @@ export const subscriptionRouter = router({
     .input(
       z.object({
         type: z.nativeEnum(UsageType),
-        amount: z.number().min(1).default(1)
+        amount: z.number().min(1).default(1),
       })
     )
     .query(async ({ ctx, input }) => {
       try {
         const { user } = ctx.session;
         const { type, amount } = input;
-        
+
         if (user.role !== 'CLIENT') {
           throw new TRPCError({
-            code: "FORBIDDEN",
-            message: "Seuls les clients peuvent vérifier leurs limites"
+            code: 'FORBIDDEN',
+            message: 'Seuls les clients peuvent vérifier leurs limites',
           });
         }
 
@@ -609,8 +616,8 @@ export const subscriptionRouter = router({
         const subscription = await ctx.db.clientSubscriptionPlan.findFirst({
           where: {
             clientId: user.id,
-            isActive: true
-          }
+            isActive: true,
+          },
         });
 
         if (!subscription) {
@@ -622,12 +629,12 @@ export const subscriptionRouter = router({
 
         const currentUsage = await calculateCurrentMonthUsage(user.id, ctx.db);
         const limits = getPlanLimits(subscription.plan);
-        
+
         return await checkUsageLimit(type, currentUsage, limits, amount);
       } catch (error: any) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
-          message: "Erreur lors de la vérification des limites"
+          message: 'Erreur lors de la vérification des limites',
         });
       }
     }),
@@ -1181,8 +1188,6 @@ export const subscriptionRouter = router({
     }),
 });
 
-});
-
 // Helper functions
 function getPlanLimits(plan: ClientSubscriptionPlan) {
   switch (plan) {
@@ -1191,21 +1196,21 @@ function getPlanLimits(plan: ClientSubscriptionPlan) {
         announcements: 3,
         storage: 0, // GB
         prioritySupport: false,
-        advancedFeatures: false
+        advancedFeatures: false,
       };
     case 'STARTER':
       return {
         announcements: 20,
         storage: 2, // GB
         prioritySupport: false,
-        advancedFeatures: true
+        advancedFeatures: true,
       };
     case 'PREMIUM':
       return {
         announcements: -1, // Illimité
         storage: 10, // GB
         prioritySupport: true,
-        advancedFeatures: true
+        advancedFeatures: true,
       };
     default:
       return getPlanLimits('FREE');
@@ -1218,19 +1223,19 @@ function getPlanDetails(plan: ClientSubscriptionPlan) {
       return {
         name: 'Gratuit',
         price: 0,
-        limits: getPlanLimits('FREE')
+        limits: getPlanLimits('FREE'),
       };
     case 'STARTER':
       return {
         name: 'Starter',
-        price: 9.90,
-        limits: getPlanLimits('STARTER')
+        price: 9.9,
+        limits: getPlanLimits('STARTER'),
       };
     case 'PREMIUM':
       return {
         name: 'Premium',
         price: 19.99,
-        limits: getPlanLimits('PREMIUM')
+        limits: getPlanLimits('PREMIUM'),
       };
     default:
       return getPlanDetails('FREE');
@@ -1239,10 +1244,14 @@ function getPlanDetails(plan: ClientSubscriptionPlan) {
 
 function getPlanPriority(plan: ClientSubscriptionPlan): number {
   switch (plan) {
-    case 'FREE': return 0;
-    case 'STARTER': return 1;
-    case 'PREMIUM': return 2;
-    default: return 0;
+    case 'FREE':
+      return 0;
+    case 'STARTER':
+      return 1;
+    case 'PREMIUM':
+      return 2;
+    default:
+      return 0;
   }
 }
 
@@ -1262,21 +1271,21 @@ async function getAvailableUpgrades(currentPlan: ClientSubscriptionPlan) {
 async function calculateCurrentMonthUsage(clientId: string, db: any) {
   const currentMonth = new Date().getMonth() + 1;
   const currentYear = new Date().getFullYear();
-  
+
   const usage = await db.clientMonthlyUsage.findUnique({
     where: {
       clientId_month_year: {
         clientId,
         month: currentMonth,
-        year: currentYear
-      }
-    }
+        year: currentYear,
+      },
+    },
   });
-  
+
   return {
     announcements: usage?.announcementsCount || 0,
     storage: usage?.storageUsedGB || 0,
-    apiCalls: usage?.apiCallsCount || 0
+    apiCalls: usage?.apiCallsCount || 0,
   };
 }
 
@@ -1287,26 +1296,26 @@ async function checkUsageLimit(type: UsageType, currentUsage: any, limits: any, 
         return { allowed: true, message: 'Illimité' };
       }
       if (currentUsage.announcements + amount > limits.announcements) {
-        return { 
-          allowed: false, 
-          message: `Limite d'annonces atteinte (${limits.announcements}/mois). Passez à un plan supérieur.` 
+        return {
+          allowed: false,
+          message: `Limite d'annonces atteinte (${limits.announcements}/mois). Passez à un plan supérieur.`,
         };
       }
       return { allowed: true, message: 'OK' };
-      
+
     case 'STORAGE':
       if (currentUsage.storage + amount > limits.storage) {
-        return { 
-          allowed: false, 
-          message: `Limite de stockage atteinte (${limits.storage}GB). Passez à un plan supérieur.` 
+        return {
+          allowed: false,
+          message: `Limite de stockage atteinte (${limits.storage}GB). Passez à un plan supérieur.`,
         };
       }
       return { allowed: true, message: 'OK' };
-      
+
     case 'API_CALLS':
       // Les appels API ne sont pas limités pour l'instant
       return { allowed: true, message: 'OK' };
-      
+
     default:
       return { allowed: true, message: 'OK' };
   }
@@ -1314,14 +1323,23 @@ async function checkUsageLimit(type: UsageType, currentUsage: any, limits: any, 
 
 function getUsageFieldName(type: UsageType): string {
   switch (type) {
-    case 'ANNOUNCEMENTS': return 'announcementsCount';
-    case 'STORAGE': return 'storageUsedGB';
-    case 'API_CALLS': return 'apiCallsCount';
-    default: return 'announcementsCount';
+    case 'ANNOUNCEMENTS':
+      return 'announcementsCount';
+    case 'STORAGE':
+      return 'storageUsedGB';
+    case 'API_CALLS':
+      return 'apiCallsCount';
+    default:
+      return 'announcementsCount';
   }
 }
 
-function calculateRemainingQuota(type: UsageType, currentUsage: any, limits: any, usedAmount: number) {
+function calculateRemainingQuota(
+  type: UsageType,
+  currentUsage: any,
+  limits: any,
+  usedAmount: number
+) {
   switch (type) {
     case 'ANNOUNCEMENTS':
       if (limits.announcements === -1) return -1; // Illimité
@@ -1332,5 +1350,3 @@ function calculateRemainingQuota(type: UsageType, currentUsage: any, limits: any
       return -1;
   }
 }
-
-export { subscriptionRouter };

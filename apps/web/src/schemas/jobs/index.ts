@@ -7,4 +7,3 @@
 export * from './job-execution.schema';
 export * from './job-history.schema';
 export * from './scheduled-task.schema';
-

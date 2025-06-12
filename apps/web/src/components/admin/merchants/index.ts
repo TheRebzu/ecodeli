@@ -10,4 +10,3 @@ export { default as MerchantContracts } from './merchant-contracts';
 export * from './merchant-contracts';
 export { default as MerchantValidation } from './merchant-validation';
 export * from './merchant-validation';
-

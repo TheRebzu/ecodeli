@@ -8,9 +8,9 @@ import { api } from '@/trpc/server';
 import { PageProps, MetadataProps } from '@/server/auth/next-auth';
 
 interface ServicePageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export async function generateMetadata({ params }: ServicePageProps): Promise<Metadata> {

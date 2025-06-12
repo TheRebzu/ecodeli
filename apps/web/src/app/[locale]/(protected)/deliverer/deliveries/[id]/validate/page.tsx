@@ -16,10 +16,10 @@ import { DeliveryCodeValidator } from '@/components/shared/deliveries/delivery-c
 import type { ValidationPhoto } from '@/components/shared/deliveries/delivery-code-validator';
 
 interface DeliveryValidationPageProps {
-  params: {
+  params: Promise<{
     id: string;
     locale: string;
-  };
+  }>;
 }
 
 // Types pour les données de livraison (simulation)
@@ -40,7 +40,7 @@ interface DeliveryData {
   createdAt: Date;
 }
 
-export default function DeliveryValidationPage({ params }: DeliveryValidationPageProps) {
+export default async function DeliveryValidationPage({ params }: DeliveryValidationPageProps) {
   useRoleProtection(['DELIVERER']);
   const t = useTranslations('delivery');
   const router = useRouter();
@@ -66,7 +66,8 @@ export default function DeliveryValidationPage({ params }: DeliveryValidationPag
             deliveryAddress: '456 Rue de la République, 69002 Lyon',
             clientName: 'Marie Dubois',
             clientPhone: '+33 6 12 34 56 78',
-            specialInstructions: 'Sonner à l\'interphone "Dubois". Si absent, laisser chez la gardienne.',
+            specialInstructions:
+              'Sonner à l\'interphone "Dubois". Si absent, laisser chez la gardienne.',
             requiresSignature: true,
             requiresId: false,
             isFragile: true,
@@ -80,7 +81,8 @@ export default function DeliveryValidationPage({ params }: DeliveryValidationPag
           setIsLoading(false);
         }, 1000);
       } catch (err) {
-        const message = err instanceof Error ? err.message : 'Erreur lors du chargement de la livraison';
+        const message =
+          err instanceof Error ? err.message : 'Erreur lors du chargement de la livraison';
         setError(message);
         setIsLoading(false);
       }
@@ -91,8 +93,8 @@ export default function DeliveryValidationPage({ params }: DeliveryValidationPag
 
   // Gérer la validation de la livraison
   const handleValidateCode = async (
-    code: string, 
-    photos: ValidationPhoto[], 
+    code: string,
+    photos: ValidationPhoto[],
     location?: GeolocationPosition
   ): Promise<boolean> => {
     try {
@@ -122,12 +124,14 @@ export default function DeliveryValidationPage({ params }: DeliveryValidationPag
         deliveryId: params.id,
         code,
         photos: photos.length,
-        location: location ? `${location.coords.latitude},${location.coords.longitude}` : 'Non fournie'
+        location: location
+          ? `${location.coords.latitude},${location.coords.longitude}`
+          : 'Non fournie',
       });
 
       setValidationSuccess(true);
       toast.success(t('deliveryValidatedSuccess'));
-      
+
       // Rediriger après 3 secondes
       setTimeout(() => {
         router.push('/deliverer/deliveries');
@@ -180,9 +184,7 @@ export default function DeliveryValidationPage({ params }: DeliveryValidationPag
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertTitle>{t('error')}</AlertTitle>
-            <AlertDescription>
-              {error || t('deliveryNotFound')}
-            </AlertDescription>
+            <AlertDescription>{error || t('deliveryNotFound')}</AlertDescription>
           </Alert>
           <div className="mt-6">
             <Button variant="outline" asChild>
@@ -206,29 +208,21 @@ export default function DeliveryValidationPage({ params }: DeliveryValidationPag
             <CardContent className="text-center py-12">
               <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
               <h2 className="text-2xl font-bold mb-2">{t('deliveryValidated')}</h2>
-              <p className="text-muted-foreground mb-6">
-                {t('deliveryValidatedDescription')}
-              </p>
-              
+              <p className="text-muted-foreground mb-6">{t('deliveryValidatedDescription')}</p>
+
               <div className="space-y-4">
                 <Alert className="max-w-md mx-auto">
                   <CheckCircle className="h-4 w-4" />
                   <AlertTitle>{t('paymentProcessing')}</AlertTitle>
-                  <AlertDescription>
-                    {t('paymentWillBeProcessed')}
-                  </AlertDescription>
+                  <AlertDescription>{t('paymentWillBeProcessed')}</AlertDescription>
                 </Alert>
 
                 <div className="flex justify-center space-x-4">
                   <Button asChild>
-                    <Link href="/deliverer/deliveries">
-                      {t('backToDeliveries')}
-                    </Link>
+                    <Link href="/deliverer/deliveries">{t('backToDeliveries')}</Link>
                   </Button>
                   <Button variant="outline" asChild>
-                    <Link href="/deliverer/wallet">
-                      {t('viewEarnings')}
-                    </Link>
+                    <Link href="/deliverer/wallet">{t('viewEarnings')}</Link>
                   </Button>
                 </div>
               </div>
@@ -270,9 +264,7 @@ export default function DeliveryValidationPage({ params }: DeliveryValidationPag
                 <Package className="h-5 w-5" />
                 <span>{t('deliveryStatus')}</span>
               </CardTitle>
-              <Badge 
-                variant={deliveryData.status === 'IN_PROGRESS' ? 'default' : 'secondary'}
-              >
+              <Badge variant={deliveryData.status === 'IN_PROGRESS' ? 'default' : 'secondary'}>
                 {t(`status.${deliveryData.status}`)}
               </Badge>
             </div>
@@ -284,17 +276,16 @@ export default function DeliveryValidationPage({ params }: DeliveryValidationPag
                 <div>
                   <div className="font-medium">{t('estimatedArrival')}</div>
                   <div className="text-muted-foreground">
-                    {deliveryData.estimatedArrival 
+                    {deliveryData.estimatedArrival
                       ? new Date(deliveryData.estimatedArrival).toLocaleTimeString('fr-FR', {
                           hour: '2-digit',
-                          minute: '2-digit'
+                          minute: '2-digit',
                         })
-                      : t('notSpecified')
-                    }
+                      : t('notSpecified')}
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <MapPin className="h-4 w-4 text-muted-foreground" />
                 <div>
@@ -302,7 +293,7 @@ export default function DeliveryValidationPage({ params }: DeliveryValidationPag
                   <div className="text-muted-foreground">1.2 km du point de livraison</div>
                 </div>
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <Package className="h-4 w-4 text-muted-foreground" />
                 <div>

@@ -51,7 +51,9 @@ export function LanguageSwitcher({ locale }: LanguageSwitcherProps) {
       <DropdownMenuTrigger asChild>
         <Button variant="outline" size="sm" className="h-8 gap-1">
           <Globe className="h-4 w-4" />
-          <span className="hidden md:inline-block">{languageNames[locale as keyof typeof languageNames]}</span>
+          <span className="hidden md:inline-block">
+            {languageNames[locale as keyof typeof languageNames]}
+          </span>
           <ChevronDown className="h-4 w-4 opacity-50" />
         </Button>
       </DropdownMenuTrigger>

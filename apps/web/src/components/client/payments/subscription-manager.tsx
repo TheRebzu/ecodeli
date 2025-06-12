@@ -1,11 +1,33 @@
-// subscription-manager
-import React from 'react';
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 
-export default function subscriptionmanager() {
+interface SubscriptionManagerProps {
+  currentPlan?: string;
+  onUpgrade?: () => void;
+  onCancel?: () => void;
+}
+
+export function SubscriptionManager({ 
+  currentPlan = 'Free', 
+  onUpgrade, 
+  onCancel 
+}: SubscriptionManagerProps) {
   return (
-    <div>
-      <h1>subscription manager</h1>
-      {/* TODO: Implémenter ce composant selon la Mission 1 */}
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Abonnement actuel</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p>Plan actuel: <strong>{currentPlan}</strong></p>
+        <div className="flex gap-2">
+          <Button onClick={onUpgrade} variant="default">
+            Mettre à niveau
+          </Button>
+          <Button onClick={onCancel} variant="outline">
+            Annuler l'abonnement
+          </Button>
+        </div>
+      </CardContent>
+    </Card>
   );
 }

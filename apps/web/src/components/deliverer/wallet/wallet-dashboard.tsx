@@ -68,10 +68,7 @@ import {
   WithdrawalStatus,
   type WalletBalanceInfo,
 } from '@/types/financial/payment';
-import {
-  WalletTransaction as Transaction,
-  WithdrawalRequest as Withdrawal,
-} from '@/trpc/client';
+import { WalletTransaction as Transaction, WithdrawalRequest as Withdrawal } from '@/trpc/client';
 import { WalletBalance } from '@/components/shared/payments/wallet-balance';
 import { useWallet } from '@/hooks/payment/use-wallet';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';

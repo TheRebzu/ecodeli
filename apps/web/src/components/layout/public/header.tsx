@@ -145,7 +145,7 @@ export function PublicHeader({ locale = 'fr', showSearch = false }: PublicHeader
             <div className="text-2xl font-bold text-green-600">EcoDeli</div>
             <div className="text-sm text-gray-500 hidden sm:block">Livraison écologique</div>
           </Link>
-          
+
           {/* Actions utilisateur */}
           <div className="flex items-center gap-2">
             <Button variant="ghost" asChild>

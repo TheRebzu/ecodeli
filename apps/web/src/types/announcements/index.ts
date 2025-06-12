@@ -10,4 +10,3 @@ export * from './deliverer-response';
 export * from './matching';
 export * from './merchant-announcement';
 export * from './status';
-

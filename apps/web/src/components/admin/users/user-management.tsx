@@ -99,7 +99,7 @@ export default function UserTable({
     isArray: Array.isArray(users),
     usersLength: Array.isArray(users) ? users.length : 'N/A',
     isLoading: isLoading,
-    firstUser: Array.isArray(users) ? users[0] : null
+    firstUser: Array.isArray(users) ? users[0] : null,
   });
 
   // Vérification défensive

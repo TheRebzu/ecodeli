@@ -4,11 +4,11 @@
  */
 
 export { EscrowPaymentService } from './escrow-payment.service';
-export type { 
+export type {
   EscrowTransaction,
   EscrowEvent,
   EscrowReleaseRule,
   EscrowConfig,
   EscrowStatus,
-  PaymentMethod 
+  PaymentMethod,
 } from './escrow-payment.service';

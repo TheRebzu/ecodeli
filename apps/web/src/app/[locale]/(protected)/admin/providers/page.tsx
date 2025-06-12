@@ -6,25 +6,38 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { 
-  DownloadIcon, 
-  PlusIcon, 
-  UsersIcon, 
-  EyeIcon, 
-  EditIcon, 
-  BanIcon, 
-  LoaderIcon, 
+import {
+  DownloadIcon,
+  PlusIcon,
+  UsersIcon,
+  EyeIcon,
+  EditIcon,
+  BanIcon,
+  LoaderIcon,
   RefreshCcwIcon,
   Briefcase,
   Package,
   Award,
-  Star
+  Star,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { api } from '@/trpc/react';
 
 // Fonctions de formatage
@@ -55,7 +68,12 @@ export default function AdminProvidersPage() {
   });
 
   // 🔧 FIX: Utiliser la même API que /admin/users qui fonctionne
-  const { data: usersData, isLoading, error, refetch } = api.adminUser.getUsers.useQuery({
+  const {
+    data: usersData,
+    isLoading,
+    error,
+    refetch,
+  } = api.adminUser.getUsers.useQuery({
     page: 1,
     limit: 100, // Récupérer plus d'utilisateurs pour filtrer côté client
   });
@@ -73,14 +91,17 @@ export default function AdminProvidersPage() {
 
   if (filters.search) {
     const searchLower = filters.search.toLowerCase();
-    filteredProviders = filteredProviders.filter((provider: any) =>
-      provider.name?.toLowerCase().includes(searchLower) ||
-      provider.email?.toLowerCase().includes(searchLower)
+    filteredProviders = filteredProviders.filter(
+      (provider: any) =>
+        provider.name?.toLowerCase().includes(searchLower) ||
+        provider.email?.toLowerCase().includes(searchLower)
     );
   }
 
   if (filters.status) {
-    filteredProviders = filteredProviders.filter((provider: any) => provider.status === filters.status);
+    filteredProviders = filteredProviders.filter(
+      (provider: any) => provider.status === filters.status
+    );
   }
 
   // Trier les prestataires
@@ -133,7 +154,9 @@ export default function AdminProvidersPage() {
     newProvidersThisMonth: providerUsers.filter((p: any) => {
       const createdAt = new Date(p.createdAt);
       const now = new Date();
-      return createdAt.getMonth() === now.getMonth() && createdAt.getFullYear() === now.getFullYear();
+      return (
+        createdAt.getMonth() === now.getMonth() && createdAt.getFullYear() === now.getFullYear()
+      );
     }).length,
   };
 
@@ -244,11 +267,15 @@ export default function AdminProvidersPage() {
                 </div>
                 <div className="flex flex-col space-y-1">
                   <span className="text-sm text-muted-foreground">Prestataires suspendus</span>
-                  <span className="text-2xl font-bold text-red-600">{stats.suspendedProviders}</span>
+                  <span className="text-2xl font-bold text-red-600">
+                    {stats.suspendedProviders}
+                  </span>
                 </div>
                 <div className="flex flex-col space-y-1">
                   <span className="text-sm text-muted-foreground">Nouveaux ce mois</span>
-                  <span className="text-2xl font-bold text-blue-600">{stats.newProvidersThisMonth}</span>
+                  <span className="text-2xl font-bold text-blue-600">
+                    {stats.newProvidersThisMonth}
+                  </span>
                 </div>
               </div>
             </CardContent>
@@ -262,14 +289,11 @@ export default function AdminProvidersPage() {
                   <Input
                     placeholder="Rechercher par nom, email ou spécialité..."
                     value={filters.search || ''}
-                    onChange={(e) => handleSearchChange(e.target.value)}
+                    onChange={e => handleSearchChange(e.target.value)}
                   />
                 </div>
                 <div className="w-48">
-                  <Select 
-                    value={filters.status || 'all'} 
-                    onValueChange={handleStatusChange}
-                  >
+                  <Select value={filters.status || 'all'} onValueChange={handleStatusChange}>
                     <SelectTrigger>
                       <SelectValue placeholder="Filtrer par statut" />
                     </SelectTrigger>
@@ -282,11 +306,7 @@ export default function AdminProvidersPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={clearFilters}
-                >
+                <Button variant="outline" size="sm" onClick={clearFilters}>
                   Effacer les filtres
                 </Button>
               </div>
@@ -330,10 +350,12 @@ export default function AdminProvidersPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-12">
-                        <input 
+                        <input
                           type="checkbox"
-                          checked={selectedProviderIds.length === providers.length && providers.length > 0}
-                          onChange={(e) => handleSelectAll(e.target.checked)}
+                          checked={
+                            selectedProviderIds.length === providers.length && providers.length > 0
+                          }
+                          onChange={e => handleSelectAll(e.target.checked)}
                         />
                       </TableHead>
                       <TableHead>Prestataire</TableHead>
@@ -358,10 +380,10 @@ export default function AdminProvidersPage() {
                       providers.map((provider: any) => (
                         <TableRow key={provider.id}>
                           <TableCell>
-                            <input 
+                            <input
                               type="checkbox"
                               checked={selectedProviderIds.includes(provider.id)}
-                              onChange={(e) => handleProviderSelection(provider.id, e.target.checked)}
+                              onChange={e => handleProviderSelection(provider.id, e.target.checked)}
                             />
                           </TableCell>
                           <TableCell>
@@ -375,14 +397,22 @@ export default function AdminProvidersPage() {
                             <div className="text-sm">
                               {provider.provider?.city}, {provider.provider?.postalCode}
                               <br />
-                              <span className="text-muted-foreground">{provider.provider?.country}</span>
+                              <span className="text-muted-foreground">
+                                {provider.provider?.country}
+                              </span>
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge variant={provider.status === 'ACTIVE' ? 'default' : 'destructive'}>
-                              {provider.status === 'ACTIVE' ? 'Actif' : 
-                               provider.status === 'PENDING_VERIFICATION' ? 'En attente' : 
-                               provider.status === 'SUSPENDED' ? 'Suspendu' : 'Inactif'}
+                            <Badge
+                              variant={provider.status === 'ACTIVE' ? 'default' : 'destructive'}
+                            >
+                              {provider.status === 'ACTIVE'
+                                ? 'Actif'
+                                : provider.status === 'PENDING_VERIFICATION'
+                                  ? 'En attente'
+                                  : provider.status === 'SUSPENDED'
+                                    ? 'Suspendu'
+                                    : 'Inactif'}
                             </Badge>
                             {provider.isVerified && (
                               <Badge variant="outline" className="ml-1 text-xs">
@@ -392,7 +422,9 @@ export default function AdminProvidersPage() {
                             )}
                           </TableCell>
                           <TableCell>
-                            <div className="text-sm font-medium">{provider.stats?.totalServices || 0}</div>
+                            <div className="text-sm font-medium">
+                              {provider.stats?.totalServices || 0}
+                            </div>
                             <div className="text-xs text-muted-foreground">
                               {provider.stats?.totalBookings || 0} réservations
                             </div>
@@ -400,7 +432,9 @@ export default function AdminProvidersPage() {
                           <TableCell>
                             <div className="flex items-center gap-1">
                               <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                              <span className="font-medium">{provider.stats?.averageRating?.toFixed(1) || '4.3'}</span>
+                              <span className="font-medium">
+                                {provider.stats?.averageRating?.toFixed(1) || '4.3'}
+                              </span>
                             </div>
                             <div className="text-xs text-muted-foreground">
                               {provider.stats?.completionRate || 95}% réussite
@@ -444,8 +478,8 @@ export default function AdminProvidersPage() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">
-                Affichage de {providers.length} prestataire(s) sur {totalProviders} au total
-                (Page {currentPage} sur {totalPages})
+                Affichage de {providers.length} prestataire(s) sur {totalProviders} au total (Page{' '}
+                {currentPage} sur {totalPages})
               </div>
               <div className="flex space-x-2">
                 <Button

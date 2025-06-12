@@ -15,7 +15,10 @@ import {
 import { SaveIcon, XIcon } from 'lucide-react';
 import { useProfile } from '@/hooks/shared/use-profile';
 import { useProfileStore } from '@/store/use-profile-store';
-import { updateProviderProfileSchema, type UpdateProviderProfile } from '@/schemas/user/profile.schema';
+import {
+  updateProviderProfileSchema,
+  type UpdateProviderProfile,
+} from '@/schemas/user/profile.schema';
 
 export function ProviderProfileForm() {
   const { profile, roleSpecificProfile, updateProfile, isUpdatingProfile } = useProfile();

@@ -9,9 +9,9 @@ async function main() {
   console.log('🌱 Début du seed simple...');
 
   // 1. Créer un utilisateur admin
-  console.log('👤 Création de l\'utilisateur admin...');
+  console.log("👤 Création de l'utilisateur admin...");
   const hashedPassword = await bcrypt.hash('admin123', 12);
-  
+
   const adminUser = await prisma.user.upsert({
     where: { email: 'admin@test.com' },
     update: {},
@@ -31,8 +31,8 @@ async function main() {
         notifications: {
           email: true,
           push: true,
-        }
-      }
+        },
+      },
     },
   });
 
@@ -40,7 +40,7 @@ async function main() {
 
   // 2. Créer quelques utilisateurs clients
   console.log('👥 Création des utilisateurs clients...');
-  
+
   const clientUser1 = await prisma.user.upsert({
     where: { email: 'client1@test.com' },
     update: {},
@@ -75,7 +75,7 @@ async function main() {
 
   // 3. Créer des utilisateurs commerçants
   console.log('🏪 Création des commerçants...');
-  
+
   const merchantUser1 = await prisma.user.upsert({
     where: { email: 'merchant1@test.com' },
     update: {},
@@ -138,7 +138,7 @@ async function main() {
 
   // 4. Créer des contrats
   console.log('📄 Création des contrats...');
-  
+
   const contract1 = await prisma.contract.create({
     data: {
       merchantId: merchant1.id,
@@ -163,7 +163,7 @@ async function main() {
       merchantId: merchant2.id,
       contractNumber: 'CT-002-2024',
       title: 'Contrat Premium Épicerie',
-      content: '<p>Contrat premium pour l\'épicerie Paul</p>',
+      content: "<p>Contrat premium pour l'épicerie Paul</p>",
       status: ContractStatus.ACTIVE,
       type: ContractType.PREMIUM,
       monthlyFee: 149.99,
@@ -195,7 +195,7 @@ async function main() {
 
   // 5. Créer des livreurs
   console.log('🚚 Création des livreurs...');
-  
+
   const delivererUser1 = await prisma.user.upsert({
     where: { email: 'deliverer1@test.com' },
     update: {},
@@ -238,10 +238,10 @@ async function main() {
 }
 
 main()
-  .catch((e) => {
+  .catch(e => {
     console.error('❌ Erreur lors du seed:', e);
     process.exit(1);
   })
   .finally(async () => {
     await prisma.$disconnect();
-  }); 
+  });

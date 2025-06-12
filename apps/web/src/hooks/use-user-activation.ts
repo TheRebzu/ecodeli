@@ -24,7 +24,7 @@ export function useUserActivation() {
         variant: 'default',
       });
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: `Erreur lors de la modification de l'activation : ${error.message}`,
@@ -57,4 +57,4 @@ export function useUserActivation() {
     error: toggleUserActivationMutation.error,
     isSuccess: toggleUserActivationMutation.isSuccess,
   };
-} 
+}

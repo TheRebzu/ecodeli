@@ -4,11 +4,7 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Clock, ChevronDown } from 'lucide-react';
 import { cn } from '@/lib/utils/common';
 
@@ -46,19 +42,19 @@ export function TimeslotPicker({
     const slots: string[] = [];
     const startHour = 8; // 8h00
     const endHour = 20; // 20h00
-    
+
     for (let hour = startHour; hour < endHour; hour++) {
       for (let minute = 0; minute < 60; minute += interval) {
         const timeString = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
-        
+
         // Filtrer selon minTime et maxTime si définis
         if (minTime && timeString <= minTime) continue;
         if (maxTime && timeString >= maxTime) continue;
-        
+
         slots.push(timeString);
       }
     }
-    
+
     return slots;
   };
 
@@ -96,16 +92,16 @@ export function TimeslotPicker({
           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
         </Button>
       </PopoverTrigger>
-      
+
       <PopoverContent className="w-[200px] p-0" align="start">
         <div className="max-h-[300px] overflow-y-auto">
           <div className="p-2">
             <div className="text-sm font-medium text-muted-foreground mb-2">
               {mode === 'start' ? t('start') : t('end')}
             </div>
-            
+
             <div className="grid gap-1">
-              {timeSlots.map((time) => (
+              {timeSlots.map(time => (
                 <Button
                   key={time}
                   variant={value === time ? 'default' : 'ghost'}
@@ -116,7 +112,7 @@ export function TimeslotPicker({
                 </Button>
               ))}
             </div>
-            
+
             {timeSlots.length === 0 && (
               <div className="p-4 text-center text-sm text-muted-foreground">
                 Aucun créneau disponible
@@ -143,11 +139,11 @@ export function TimeslotInput({
       <Input
         type="time"
         value={value || ''}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={e => onChange(e.target.value)}
         placeholder={placeholder}
         disabled={disabled}
         className={cn('pl-9', className)}
       />
     </div>
   );
-} 
+}

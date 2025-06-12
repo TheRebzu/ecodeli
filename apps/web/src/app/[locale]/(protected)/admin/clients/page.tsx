@@ -6,12 +6,34 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { DownloadIcon, PlusIcon, UsersIcon, EyeIcon, EditIcon, BanIcon, LoaderIcon, RefreshCcwIcon } from 'lucide-react';
+import {
+  DownloadIcon,
+  PlusIcon,
+  UsersIcon,
+  EyeIcon,
+  EditIcon,
+  BanIcon,
+  LoaderIcon,
+  RefreshCcwIcon,
+} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useAdminClients } from '@/hooks/use-admin-clients';
 
 // Fonctions de formatage temporaires
@@ -31,13 +53,11 @@ const formatDate = (date: Date | string) => {
   }).format(dateObj);
 };
 
-
-
 export default function AdminClientsPage() {
   const t = useTranslations('Admin.clients');
   const [selectedClientIds, setSelectedClientIds] = useState<string[]>([]);
   const [activeTab, setActiveTab] = useState<string>('list');
-  
+
   // Utilisation du hook pour les vraies données
   const {
     clients,
@@ -54,8 +74,6 @@ export default function AdminClientsPage() {
     setCurrentPage,
     refetch,
   } = useAdminClients();
-
-
 
   // Gérer la sélection des clients
   const handleClientSelection = (clientId: string, selected: boolean) => {
@@ -80,7 +98,7 @@ export default function AdminClientsPage() {
   };
 
   const handleStatusChange = (status: string) => {
-    const statusValue = status === 'all' ? undefined : status as any;
+    const statusValue = status === 'all' ? undefined : (status as any);
     updateFilters({ status: statusValue });
   };
 
@@ -102,7 +120,6 @@ export default function AdminClientsPage() {
 
   return (
     <div className="container mx-auto py-6 space-y-8">
-
       <div className="flex flex-col space-y-2 md:flex-row md:items-center md:justify-between md:space-y-0">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Gestion des Clients</h1>
@@ -164,11 +181,15 @@ export default function AdminClientsPage() {
                   </div>
                   <div className="flex flex-col space-y-1">
                     <span className="text-sm text-muted-foreground">Clients suspendus</span>
-                    <span className="text-2xl font-bold text-red-600">{stats.suspendedClients}</span>
+                    <span className="text-2xl font-bold text-red-600">
+                      {stats.suspendedClients}
+                    </span>
                   </div>
                   <div className="flex flex-col space-y-1">
                     <span className="text-sm text-muted-foreground">Nouveaux ce mois</span>
-                    <span className="text-2xl font-bold text-blue-600">{stats.newClientsThisMonth}</span>
+                    <span className="text-2xl font-bold text-blue-600">
+                      {stats.newClientsThisMonth}
+                    </span>
                   </div>
                 </div>
               ) : (
@@ -187,14 +208,11 @@ export default function AdminClientsPage() {
                   <Input
                     placeholder="Rechercher par nom, email ou ville..."
                     value={filters.search || ''}
-                    onChange={(e) => handleSearchChange(e.target.value)}
+                    onChange={e => handleSearchChange(e.target.value)}
                   />
                 </div>
                 <div className="w-48">
-                  <Select 
-                    value={filters.status || 'all'} 
-                    onValueChange={handleStatusChange}
-                  >
+                  <Select value={filters.status || 'all'} onValueChange={handleStatusChange}>
                     <SelectTrigger>
                       <SelectValue placeholder="Filtrer par statut" />
                     </SelectTrigger>
@@ -207,11 +225,7 @@ export default function AdminClientsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={clearFilters}
-                >
+                <Button variant="outline" size="sm" onClick={clearFilters}>
                   Effacer les filtres
                 </Button>
               </div>
@@ -255,10 +269,12 @@ export default function AdminClientsPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-12">
-                        <input 
+                        <input
                           type="checkbox"
-                          checked={selectedClientIds.length === clients.length && clients.length > 0}
-                          onChange={(e) => handleSelectAll(e.target.checked)}
+                          checked={
+                            selectedClientIds.length === clients.length && clients.length > 0
+                          }
+                          onChange={e => handleSelectAll(e.target.checked)}
                         />
                       </TableHead>
                       <TableHead>Client</TableHead>
@@ -282,10 +298,10 @@ export default function AdminClientsPage() {
                       clients.map((client: any) => (
                         <TableRow key={client.id}>
                           <TableCell>
-                            <input 
+                            <input
                               type="checkbox"
                               checked={selectedClientIds.includes(client.id)}
-                              onChange={(e) => handleClientSelection(client.id, e.target.checked)}
+                              onChange={e => handleClientSelection(client.id, e.target.checked)}
                             />
                           </TableCell>
                           <TableCell>
@@ -299,24 +315,30 @@ export default function AdminClientsPage() {
                             <div className="text-sm">
                               {client.client?.city}, {client.client?.postalCode}
                               <br />
-                              <span className="text-muted-foreground">{client.client?.country}</span>
+                              <span className="text-muted-foreground">
+                                {client.client?.country}
+                              </span>
                             </div>
                           </TableCell>
                           <TableCell>
                             <Badge variant={client.status === 'ACTIVE' ? 'default' : 'destructive'}>
-                              {client.status === 'ACTIVE' ? 'Actif' : 
-                               client.status === 'PENDING_VERIFICATION' ? 'En attente' : 
-                               client.status === 'SUSPENDED' ? 'Suspendu' : 'Inactif'}
+                              {client.status === 'ACTIVE'
+                                ? 'Actif'
+                                : client.status === 'PENDING_VERIFICATION'
+                                  ? 'En attente'
+                                  : client.status === 'SUSPENDED'
+                                    ? 'Suspendu'
+                                    : 'Inactif'}
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <div className="text-sm font-medium">{client.stats?.totalOrders || 0}</div>
+                            <div className="text-sm font-medium">
+                              {client.stats?.totalOrders || 0}
+                            </div>
                             <div className="text-xs text-muted-foreground">
-                              {client.stats?.lastOrderDate ? (
-                                `Dernière: ${formatDate(client.stats.lastOrderDate)}`
-                              ) : (
-                                'Aucune commande'
-                              )}
+                              {client.stats?.lastOrderDate
+                                ? `Dernière: ${formatDate(client.stats.lastOrderDate)}`
+                                : 'Aucune commande'}
                             </div>
                           </TableCell>
                           <TableCell>
@@ -357,8 +379,8 @@ export default function AdminClientsPage() {
           {pagination && (
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">
-                Affichage de {clients.length} client(s) sur {pagination.total} au total
-                (Page {pagination.page} sur {pagination.totalPages})
+                Affichage de {clients.length} client(s) sur {pagination.total} au total (Page{' '}
+                {pagination.page} sur {pagination.totalPages})
               </div>
               <div className="flex space-x-2">
                 <Button
@@ -386,9 +408,7 @@ export default function AdminClientsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Statistiques Détaillées</CardTitle>
-              <CardDescription>
-                Analyse complète des clients et de leur activité
-              </CardDescription>
+              <CardDescription>Analyse complète des clients et de leur activité</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid gap-6 md:grid-cols-2">
@@ -403,7 +423,9 @@ export default function AdminClientsPage() {
                         </div>
                         <div className="flex justify-between">
                           <span>Panier moyen:</span>
-                          <span className="font-bold">{formatCurrency(stats.averageOrderValue)}</span>
+                          <span className="font-bold">
+                            {formatCurrency(stats.averageOrderValue)}
+                          </span>
                         </div>
                       </>
                     ) : (
@@ -443,4 +465,4 @@ export default function AdminClientsPage() {
       </Tabs>
     </div>
   );
-} 
+}

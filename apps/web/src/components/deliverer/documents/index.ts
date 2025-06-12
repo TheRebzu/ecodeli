@@ -18,4 +18,3 @@ export { default as DocumentVerificationStatus } from './document-verification-s
 export * from './document-verification-status';
 export { default as ForceVerifyDelivererButton } from './force-verify-deliverer-button';
 export * from './force-verify-deliverer-button';
-

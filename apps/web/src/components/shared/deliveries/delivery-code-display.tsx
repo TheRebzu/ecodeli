@@ -2,13 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -78,12 +72,14 @@ export const DeliveryCodeDisplay: React.FC<DeliveryCodeDisplayProps> = ({
   useEffect(() => {
     const generateQRCode = async () => {
       try {
-        const dataToEncode = qrCodeData || JSON.stringify({
-          deliveryId,
-          code,
-          timestamp: new Date().toISOString(),
-        });
-        
+        const dataToEncode =
+          qrCodeData ||
+          JSON.stringify({
+            deliveryId,
+            code,
+            timestamp: new Date().toISOString(),
+          });
+
         const url = await QRCode.toDataURL(dataToEncode, {
           width: 256,
           margin: 2,
@@ -92,7 +88,7 @@ export const DeliveryCodeDisplay: React.FC<DeliveryCodeDisplayProps> = ({
             light: '#FFFFFF',
           },
         });
-        
+
         setQrCodeUrl(url);
       } catch (error) {
         console.error('Erreur lors de la génération du QR code:', error);
@@ -173,22 +169,26 @@ export const DeliveryCodeDisplay: React.FC<DeliveryCodeDisplayProps> = ({
   const getStatusColor = () => {
     const status = getCodeStatus();
     switch (status) {
-      case 'valid': return 'text-green-600 bg-green-50 border-green-200';
-      case 'expired': return 'text-red-600 bg-red-50 border-red-200';
-      case 'invalid': return 'text-orange-600 bg-orange-50 border-orange-200';
-      default: return 'text-gray-600 bg-gray-50 border-gray-200';
+      case 'valid':
+        return 'text-green-600 bg-green-50 border-green-200';
+      case 'expired':
+        return 'text-red-600 bg-red-50 border-red-200';
+      case 'invalid':
+        return 'text-orange-600 bg-orange-50 border-orange-200';
+      default:
+        return 'text-gray-600 bg-gray-50 border-gray-200';
     }
   };
 
   const formatEstimatedArrival = (date: Date) => {
     const now = new Date();
     const diff = date.getTime() - now.getTime();
-    
+
     if (diff < 0) return t('arrived');
-    
+
     const hours = Math.floor(diff / (1000 * 60 * 60));
     const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-    
+
     if (hours > 0) {
       return t('arrivesInHours', { hours, minutes });
     } else {
@@ -205,18 +205,13 @@ export const DeliveryCodeDisplay: React.FC<DeliveryCodeDisplayProps> = ({
             <Shield className="h-5 w-5" />
             <CardTitle className="text-xl">{t('validationCode')}</CardTitle>
           </div>
-          <CardDescription>
-            {t('shareCodeWithDeliverer')}
-          </CardDescription>
+          <CardDescription>{t('shareCodeWithDeliverer')}</CardDescription>
         </CardHeader>
-        
+
         <CardContent className="space-y-4">
           {/* Statut */}
           <div className="text-center">
-            <Badge 
-              variant="outline" 
-              className={cn('text-lg px-4 py-2', getStatusColor())}
-            >
+            <Badge variant="outline" className={cn('text-lg px-4 py-2', getStatusColor())}>
               {isExpired && <AlertCircle className="h-4 w-4 mr-2" />}
               {!isExpired && isValid && <CheckCircle className="h-4 w-4 mr-2" />}
               {!isExpired && !isValid && <AlertCircle className="h-4 w-4 mr-2" />}
@@ -227,24 +222,22 @@ export const DeliveryCodeDisplay: React.FC<DeliveryCodeDisplayProps> = ({
           {/* Code avec contrôle de visibilité */}
           <div className="text-center space-y-4">
             <div className="relative">
-              <div className={cn(
-                'text-4xl font-mono font-bold tracking-widest p-6 rounded-lg border-2 border-dashed',
-                codeVisible ? 'bg-blue-50 border-blue-300' : 'bg-gray-50 border-gray-300'
-              )}>
+              <div
+                className={cn(
+                  'text-4xl font-mono font-bold tracking-widest p-6 rounded-lg border-2 border-dashed',
+                  codeVisible ? 'bg-blue-50 border-blue-300' : 'bg-gray-50 border-gray-300'
+                )}
+              >
                 {codeVisible ? formatCode(code) : '••• •••'}
               </div>
-              
+
               <Button
                 variant="outline"
                 size="sm"
                 className="absolute top-2 right-2"
                 onClick={() => setCodeVisible(!codeVisible)}
               >
-                {codeVisible ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
+                {codeVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
               </Button>
             </div>
 
@@ -258,13 +251,10 @@ export const DeliveryCodeDisplay: React.FC<DeliveryCodeDisplayProps> = ({
                 <Copy className="h-4 w-4 mr-2" />
                 {t('copyCode')}
               </Button>
-              
+
               <Dialog>
                 <DialogTrigger asChild>
-                  <Button
-                    variant="outline"
-                    disabled={!qrCodeUrl || !isValid || isExpired}
-                  >
+                  <Button variant="outline" disabled={!qrCodeUrl || !isValid || isExpired}>
                     <QrCode className="h-4 w-4 mr-2" />
                     {t('showQRCode')}
                   </Button>
@@ -272,14 +262,12 @@ export const DeliveryCodeDisplay: React.FC<DeliveryCodeDisplayProps> = ({
                 <DialogContent className="sm:max-w-md">
                   <DialogHeader>
                     <DialogTitle>{t('qrCodeTitle')}</DialogTitle>
-                    <DialogDescription>
-                      {t('qrCodeDescription')}
-                    </DialogDescription>
+                    <DialogDescription>{t('qrCodeDescription')}</DialogDescription>
                   </DialogHeader>
                   <div className="flex justify-center p-6">
                     {qrCodeUrl && (
-                      <img 
-                        src={qrCodeUrl} 
+                      <img
+                        src={qrCodeUrl}
                         alt={t('qrCodeAlt')}
                         className="w-64 h-64 border rounded-lg"
                       />
@@ -289,10 +277,7 @@ export const DeliveryCodeDisplay: React.FC<DeliveryCodeDisplayProps> = ({
               </Dialog>
 
               {onRefreshCode && (isExpired || !isValid) && (
-                <Button
-                  variant="outline"
-                  onClick={onRefreshCode}
-                >
+                <Button variant="outline" onClick={onRefreshCode}>
                   <RefreshCw className="h-4 w-4 mr-2" />
                   {t('refreshCode')}
                 </Button>
@@ -306,10 +291,7 @@ export const DeliveryCodeDisplay: React.FC<DeliveryCodeDisplayProps> = ({
               <Clock className="h-4 w-4" />
               <AlertTitle>{t('expiresIn')}</AlertTitle>
               <AlertDescription>
-                {timeToExpiry ? 
-                  t('codeExpiresIn', { time: timeToExpiry }) : 
-                  t('codeExpired')
-                }
+                {timeToExpiry ? t('codeExpiresIn', { time: timeToExpiry }) : t('codeExpired')}
               </AlertDescription>
             </Alert>
           )}
@@ -319,9 +301,7 @@ export const DeliveryCodeDisplay: React.FC<DeliveryCodeDisplayProps> = ({
             <Alert variant="destructive">
               <AlertCircle className="h-4 w-4" />
               <AlertTitle>{t('codeExpired')}</AlertTitle>
-              <AlertDescription>
-                {t('codeExpiredDescription')}
-              </AlertDescription>
+              <AlertDescription>{t('codeExpiredDescription')}</AlertDescription>
             </Alert>
           )}
         </CardContent>
@@ -349,12 +329,8 @@ export const DeliveryCodeDisplay: React.FC<DeliveryCodeDisplayProps> = ({
                 <div className="flex-1">
                   <div className="font-medium">{delivererInfo.name}</div>
                   <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                    <span className="flex items-center">
-                      ⭐ {delivererInfo.rating.toFixed(1)}
-                    </span>
-                    {delivererInfo.phone && (
-                      <span>• {delivererInfo.phone}</span>
-                    )}
+                    <span className="flex items-center">⭐ {delivererInfo.rating.toFixed(1)}</span>
+                    {delivererInfo.phone && <span>• {delivererInfo.phone}</span>}
                   </div>
                 </div>
               </div>
@@ -371,15 +347,11 @@ export const DeliveryCodeDisplay: React.FC<DeliveryCodeDisplayProps> = ({
 
               {onContactDeliverer && (
                 <div className="flex space-x-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={onContactDeliverer}
-                  >
+                  <Button variant="outline" className="flex-1" onClick={onContactDeliverer}>
                     <MessageCircle className="h-4 w-4 mr-2" />
                     {t('messageDeliverer')}
                   </Button>
-                  
+
                   {delivererInfo.phone && (
                     <Button
                       variant="outline"

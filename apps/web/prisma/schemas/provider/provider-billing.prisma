@@ -1,0 +1,291 @@
+// ===== MODÈLES FACTURATION AUTOMATIQUE PRESTATAIRES =====
+// Ce fichier contient les modèles pour la facturation automatique des prestataires selon le cahier des charges
+
+/// Configuration de facturation automatique pour un prestataire
+model ProviderAutoBilling {
+  id                String               @id @default(cuid())
+  providerId        String               @unique
+  
+  // Configuration de base
+  status            AutoInvoicingStatus  @default(PENDING)
+  isEnabled         Boolean              @default(false)
+  
+  // Paramètres de facturation
+  billingFrequency  String               @default("MONTHLY") // WEEKLY, MONTHLY, QUARTERLY
+  billingDay        Int                  @default(1) // Jour de facturation (1-31 pour mois, 1-7 pour semaine)
+  
+  // Informations bancaires
+  bankName          String?              // Nom de la banque
+  iban              String?              // IBAN pour virement
+  bic               String?              // Code BIC/SWIFT
+  accountHolderName String?              // Nom du titulaire
+  
+  // Paramètres de virement automatique
+  autoTransferEnabled Boolean            @default(false)
+  minimumAmount     Decimal              @db.Decimal(8,2) @default(50) // Montant minimum pour virement
+  transferDelay     Int                  @default(2) // Délai en jours après facturation
+  
+  // Statut auto-entrepreneur
+  siretNumber       String?              // Numéro SIRET
+  vatNumber         String?              // Numéro TVA intracommunautaire
+  businessAddress   String?              // Adresse professionnelle
+  
+  // Paramètres de facture
+  invoicePrefix     String               @default("FACT") // Préfixe numéro facture
+  lastInvoiceNumber Int                  @default(0) // Dernier numéro utilisé
+  
+  // Taxes et frais
+  vatRate           Decimal              @db.Decimal(4,2) @default(20) // Taux TVA (%)
+  platformCommission Decimal            @db.Decimal(4,2) @default(15) // Commission EcoDeli (%)
+  
+  // Notifications
+  emailNotifications Boolean             @default(true)
+  smsNotifications  Boolean              @default(false)
+  
+  // Métadonnées
+  setupCompletedAt  DateTime?            // Configuration terminée
+  lastBillingAt     DateTime?            // Dernière facturation
+  nextBillingAt     DateTime?            // Prochaine facturation
+  
+  createdAt         DateTime             @default(now())
+  updatedAt         DateTime             @updatedAt
+  
+  // Relations
+  provider          User                 @relation("ProviderAutoBilling", fields: [providerId], references: [id], onDelete: Cascade)
+  
+  // Factures générées
+  monthlyInvoices   ProviderMonthlyInvoice[]
+  
+  // Virements effectués
+  transfers         ProviderTransfer[]
+  
+  // Historique des configurations
+  configHistory     ProviderBillingHistory[]
+
+  @@index([status])
+  @@index([nextBillingAt])
+  @@index([autoTransferEnabled])
+  @@map("provider_auto_billing")
+}
+
+/// Facture mensuelle générée automatiquement
+model ProviderMonthlyInvoice {
+  id                String              @id @default(cuid())
+  billingConfigId   String
+  providerId        String
+  
+  // Informations de la facture
+  invoiceNumber     String              @unique // Numéro de facture généré
+  status            InvoiceStatus       @default(DRAFT)
+  
+  // Période facturée
+  periodStart       DateTime            // Début de la période
+  periodEnd         DateTime            // Fin de la période
+  periodLabel       String              // Label période (ex: "Janvier 2024")
+  
+  // Récapitulatif des prestations
+  totalInterventions Int                @default(0) // Nombre d'interventions
+  totalHours        Decimal             @db.Decimal(8,2) @default(0) // Heures facturables
+  grossAmount       Decimal             @db.Decimal(10,2) @default(0) // Montant brut
+  
+  // Calculs financiers
+  platformCommission Decimal            @db.Decimal(8,2) @default(0) // Commission EcoDeli
+  netAmount         Decimal             @db.Decimal(10,2) @default(0) // Montant net
+  vatAmount         Decimal             @db.Decimal(8,2) @default(0) // Montant TVA
+  totalAmount       Decimal             @db.Decimal(10,2) @default(0) // Total TTC
+  
+  // Détails des prestations
+  serviceBreakdown  Json                // Détail par type de service (JSON)
+  interventionDetails Json              // Liste des interventions (JSON)
+  
+  // Génération et archivage
+  pdfUrl            String?             // URL du PDF généré
+  pdfPath           String?             // Chemin du fichier PDF
+  isArchived        Boolean             @default(false)
+  
+  // Paiement/Virement
+  isPaid            Boolean             @default(false)
+  paidAt            DateTime?
+  transferId        String?             // ID du virement associé
+  
+  // Métadonnées
+  generatedAt       DateTime            @default(now())
+  dueDate           DateTime            // Date d'échéance
+  sentAt            DateTime?           // Date d'envoi au prestataire
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  // Relations
+  billingConfig     ProviderAutoBilling @relation(fields: [billingConfigId], references: [id], onDelete: Restrict)
+  provider          User                @relation("ProviderMonthlyInvoices", fields: [providerId], references: [id], onDelete: Cascade)
+  transfer          ProviderTransfer?   @relation(fields: [transferId], references: [id])
+  
+  // Interventions facturées
+  billedInterventions ProviderInterventionBilling[]
+
+  @@index([providerId])
+  @@index([status])
+  @@index([periodStart, periodEnd])
+  @@index([dueDate])
+  @@map("provider_monthly_invoices")
+}
+
+/// Association entre interventions et factures
+model ProviderInterventionBilling {
+  id              String                 @id @default(cuid())
+  invoiceId       String
+  interventionId  String                 @unique // Une intervention = une facture
+  
+  // Détails de facturation pour cette intervention
+  serviceTitle    String                 // Titre du service
+  duration        Int                    // Durée en minutes
+  hourlyRate      Decimal                @db.Decimal(6,2) // Taux horaire appliqué
+  amount          Decimal                @db.Decimal(8,2) // Montant de l'intervention
+  
+  // Données client (anonymisées dans la facture)
+  clientCode      String                 // Code client anonyme
+  serviceDate     DateTime               // Date d'intervention
+  serviceAddress  String                 // Adresse (peut être approximative)
+  
+  // Relations
+  invoice         ProviderMonthlyInvoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  // Note: pas de relation directe avec Intervention pour éviter les contraintes
+
+  @@index([invoiceId])
+  @@map("provider_intervention_billing")
+}
+
+/// Virement automatique vers prestataire
+model ProviderTransfer {
+  id                String              @id @default(cuid())
+  billingConfigId   String
+  providerId        String
+  
+  // Informations du virement
+  transferAmount    Decimal             @db.Decimal(10,2) // Montant viré
+  transferFee       Decimal             @db.Decimal(6,2) @default(0) // Frais bancaires
+  netAmount         Decimal             @db.Decimal(10,2) // Montant net reçu
+  
+  // Détails bancaires utilisés
+  recipientIban     String              // IBAN destinataire
+  recipientName     String              // Nom destinataire
+  bankReference     String?             // Référence bancaire
+  
+  // Statut et suivi
+  status            WithdrawalStatus    @default(PENDING)
+  initiatedAt       DateTime            @default(now())
+  processedAt       DateTime?           // Traité par la banque
+  completedAt       DateTime?           // Reçu par le destinataire
+  
+  // Erreurs et rejets
+  errorMessage      String?             // Message d'erreur si échec
+  rejectionReason   String?             // Raison du rejet
+  retryCount        Int                 @default(0) // Nombre de tentatives
+  
+  // Période couverte
+  periodStart       DateTime            // Début période couverte
+  periodEnd         DateTime            // Fin période couverte
+  
+  // Factures incluses dans ce virement
+  invoiceIds        String[]            // IDs des factures payées
+  
+  // Métadonnées
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  // Relations
+  billingConfig     ProviderAutoBilling @relation(fields: [billingConfigId], references: [id], onDelete: Restrict)
+  provider          User                @relation("ProviderTransfers", fields: [providerId], references: [id], onDelete: Cascade)
+  
+  // Factures payées par ce virement
+  paidInvoices      ProviderMonthlyInvoice[]
+
+  @@index([providerId])
+  @@index([status])
+  @@index([initiatedAt])
+  @@map("provider_transfers")
+}
+
+/// Historique des modifications de configuration
+model ProviderBillingHistory {
+  id                String              @id @default(cuid())
+  billingConfigId   String
+  
+  // Modification effectuée
+  action            String              // CREATE, UPDATE, ENABLE, DISABLE, BANK_UPDATE
+  previousValues    Json?               // Valeurs précédentes (JSON)
+  newValues         Json                // Nouvelles valeurs (JSON)
+  changeReason      String?             // Raison du changement
+  
+  // Qui a fait la modification
+  changedBy         String?             // ID utilisateur (prestataire ou admin)
+  changedByRole     String              // Role de celui qui a modifié
+  ipAddress         String?             // Adresse IP
+  userAgent         String?             // User agent
+  
+  // Impact
+  impactDescription String?             // Description de l'impact
+  
+  // Métadonnées
+  createdAt         DateTime            @default(now())
+  
+  // Relations
+  billingConfig     ProviderAutoBilling @relation(fields: [billingConfigId], references: [id], onDelete: Cascade)
+  changedByUser     User?               @relation("BillingHistoryUser", fields: [changedBy], references: [id])
+
+  @@index([billingConfigId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("provider_billing_history")
+}
+
+/// Récapitulatif mensuel des gains par prestataire
+model ProviderMonthlySummary {
+  id                String    @id @default(cuid())
+  providerId        String
+  
+  // Période
+  year              Int
+  month             Int
+  
+  // Statistiques d'activité
+  totalInterventions Int      @default(0)
+  totalHours        Decimal   @db.Decimal(8,2) @default(0)
+  averageRating     Float?    // Note moyenne du mois
+  
+  // Données financières
+  grossEarnings     Decimal   @db.Decimal(10,2) @default(0)
+  platformCommission Decimal @db.Decimal(8,2) @default(0)
+  netEarnings       Decimal   @db.Decimal(10,2) @default(0)
+  
+  // Comparaison
+  previousMonthGross Decimal? @db.Decimal(10,2) // Mois précédent
+  growthRate        Decimal?  @db.Decimal(6,4)  // Taux de croissance (%)
+  
+  // Top services
+  topServiceType    PersonalServiceType? // Service le plus demandé
+  topServiceRevenue Decimal?            @db.Decimal(8,2) // CA du top service
+  
+  // Clients
+  uniqueClients     Int       @default(0) // Clients uniques servis
+  repeatClients     Int       @default(0) // Clients récurrents
+  
+  // Facturation
+  invoiceGenerated  Boolean   @default(false)
+  invoiceId         String?   // ID de la facture générée
+  transferCompleted Boolean   @default(false)
+  transferDate      DateTime? // Date du virement
+  
+  // Métadonnées
+  calculatedAt      DateTime  @default(now())
+  createdAt         DateTime  @default(now())
+  
+  // Relations
+  provider          User      @relation("ProviderMonthlySummaries", fields: [providerId], references: [id], onDelete: Cascade)
+
+  @@unique([providerId, year, month])
+  @@index([providerId])
+  @@index([year, month])
+  @@map("provider_monthly_summaries")
+}

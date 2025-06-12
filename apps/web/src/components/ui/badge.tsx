@@ -37,4 +37,27 @@ function Badge({
   );
 }
 
-export { Badge, badgeVariants };
+export { Badge, badgeVariants }
+
+// Component pour les statuts d'annonces
+interface AnnouncementStatusBadgeProps {
+  status: string;
+  className?: string;
+}
+
+export function AnnouncementStatusBadge({ status, className }: AnnouncementStatusBadgeProps) {
+  const getVariant = (status: string) => {
+    switch (status.toLowerCase()) {
+      case 'active': return 'default';
+      case 'pending': return 'secondary';
+      case 'cancelled': return 'destructive';
+      default: return 'outline';
+    }
+  };
+
+  return (
+    <Badge variant={getVariant(status)} className={className}>
+      {status}
+    </Badge>
+  );
+};

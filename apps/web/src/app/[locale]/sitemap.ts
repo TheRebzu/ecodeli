@@ -2,7 +2,7 @@
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://ecodeli.me';
-  
+
   return [
     {
       url: baseUrl,

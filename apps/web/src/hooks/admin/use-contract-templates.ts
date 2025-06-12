@@ -31,13 +31,11 @@ export const useContractTemplates = () => {
   const {
     data: templates,
     isLoading: templatesLoading,
-    refetch: refetchTemplates
+    refetch: refetchTemplates,
   } = api.admin.contracts.getTemplates.useQuery();
 
-  const {
-    data: activeTemplates,
-    isLoading: activeTemplatesLoading
-  } = api.admin.contracts.getActiveTemplates.useQuery();
+  const { data: activeTemplates, isLoading: activeTemplatesLoading } =
+    api.admin.contracts.getActiveTemplates.useQuery();
 
   // Mutations
   const createTemplateMutation = api.admin.contracts.createTemplate.useMutation({
@@ -49,7 +47,7 @@ export const useContractTemplates = () => {
       refetchTemplates();
       setIsCreateModalOpen(false);
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: `Erreur lors de la création : ${error.message}`,
@@ -66,7 +64,7 @@ export const useContractTemplates = () => {
       });
       refetchTemplates();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: `Erreur lors de la mise à jour : ${error.message}`,
@@ -83,7 +81,7 @@ export const useContractTemplates = () => {
       });
       refetchTemplates();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: `Erreur lors de la suppression : ${error.message}`,
@@ -100,7 +98,7 @@ export const useContractTemplates = () => {
       });
       refetchTemplates();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: `Erreur lors de l'activation : ${error.message}`,
@@ -117,7 +115,7 @@ export const useContractTemplates = () => {
       });
       refetchTemplates();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: `Erreur lors de la désactivation : ${error.message}`,
@@ -176,6 +174,6 @@ export const useContractTemplates = () => {
     deactivateTemplate,
     openCreateModal,
     closeCreateModal,
-    refetch: refetchTemplates
+    refetch: refetchTemplates,
   };
-}; 
+};

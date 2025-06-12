@@ -82,8 +82,6 @@ const allowedNonVerifiedPaths: Record<UserRole, string[]> = {
   ADMIN: [], // Les admins n'ont pas besoin de vérification
 };
 
-
-
 export async function middleware(request: NextRequest) {
   try {
     const { pathname } = request.nextUrl;

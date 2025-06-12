@@ -1,5 +1,10 @@
 import { z } from 'zod';
-import { router, publicProcedure, protectedProcedure, verifiedDelivererProcedure } from '@/server/api/trpc';
+import {
+  router,
+  publicProcedure,
+  protectedProcedure,
+  verifiedDelivererProcedure,
+} from '@/server/api/trpc';
 import { AnnouncementService } from '@/server/services/shared/announcement.service';
 import {
   createAnnouncementSchema,
@@ -18,17 +23,19 @@ import { UserRole } from '@prisma/client';
 
 export const announcementRouter = router({
   // Récupération de toutes les annonces avec filtres
-  getAll: publicProcedure.input(announcementFilterSchema.optional().default({})).query(async ({ input }) => {
-    try {
-      return await AnnouncementService.getAll(input);
-    } catch (error) {
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: error instanceof Error ? error.message : 'Une erreur est survenue',
-        cause: error,
-      });
-    }
-  }),
+  getAll: publicProcedure
+    .input(announcementFilterSchema.optional().default({}))
+    .query(async ({ input }) => {
+      try {
+        return await AnnouncementService.getAll(input);
+      } catch (error) {
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: error instanceof Error ? error.message : 'Une erreur est survenue',
+          cause: error,
+        });
+      }
+    }),
 
   // Récupération des annonces d'un client spécifique
   getMyAnnouncements: protectedProcedure
@@ -768,115 +775,117 @@ export const announcementRouter = router({
     }),
 
   // Obtenir des statistiques sur les annonces
-  getStats: protectedProcedure.input(announcementStatsSchema.optional().default({})).query(async ({ ctx, input }) => {
-    try {
-      // Vérifier que l'utilisateur est un admin, sinon limiter aux statistiques personnelles
-      const isAdmin = ctx.session.user.role === UserRole.ADMIN;
-      const userId = ctx.session.user.id;
+  getStats: protectedProcedure
+    .input(announcementStatsSchema.optional().default({}))
+    .query(async ({ ctx, input }) => {
+      try {
+        // Vérifier que l'utilisateur est un admin, sinon limiter aux statistiques personnelles
+        const isAdmin = ctx.session.user.role === UserRole.ADMIN;
+        const userId = ctx.session.user.id;
 
-      // Construire les filtres
-      const where: any = {};
+        // Construire les filtres
+        const where: any = {};
 
-      // Filtres temporels
-      if (input.startDate) {
-        where.createdAt = {
-          ...where.createdAt,
-          gte: new Date(input.startDate),
-        };
-      }
-
-      if (input.endDate) {
-        where.createdAt = {
-          ...where.createdAt,
-          lte: new Date(input.endDate),
-        };
-      }
-
-      // Filtrer par type d'annonce
-      if (input.type) {
-        where.type = input.type;
-      }
-
-      // Appliquer les filtres de client/livreur
-      if (input.clientId && (isAdmin || input.clientId === userId)) {
-        where.clientId = input.clientId;
-      } else if (!isAdmin) {
-        // Si non admin, limiter aux annonces de l'utilisateur
-        if (
-          ctx.session.user.role === UserRole.CLIENT ||
-          ctx.session.user.role === UserRole.MERCHANT
-        ) {
-          where.clientId = userId;
-        } else if (ctx.session.user.role === UserRole.DELIVERER) {
-          where.delivererId = userId;
+        // Filtres temporels
+        if (input.startDate) {
+          where.createdAt = {
+            ...where.createdAt,
+            gte: new Date(input.startDate),
+          };
         }
-      }
 
-      if (input.delivererId && (isAdmin || input.delivererId === userId)) {
-        where.delivererId = input.delivererId;
-      }
+        if (input.endDate) {
+          where.createdAt = {
+            ...where.createdAt,
+            lte: new Date(input.endDate),
+          };
+        }
 
-      // Obtenir les statistiques
-      const [
-        totalCount,
-        publishedCount,
-        assignedCount,
-        completedCount,
-        cancelledCount,
-        averagePrice,
-        totalRevenue,
-      ] = await Promise.all([
-        ctx.db.announcement.count({ where }),
-        ctx.db.announcement.count({ where: { ...where, status: 'PUBLISHED' } }),
-        ctx.db.announcement.count({ where: { ...where, status: 'ASSIGNED' } }),
-        ctx.db.announcement.count({ where: { ...where, status: 'COMPLETED' } }),
-        ctx.db.announcement.count({ where: { ...where, status: 'CANCELLED' } }),
-        ctx.db.announcement.aggregate({
-          where: { ...where, suggestedPrice: { not: null } },
-          _avg: { suggestedPrice: true },
-        }),
-        ctx.db.announcement.aggregate({
-          where: {
-            ...where,
-            status: 'COMPLETED',
-            suggestedPrice: { not: null },
-          },
-          _sum: { suggestedPrice: true },
-        }),
-      ]);
+        // Filtrer par type d'annonce
+        if (input.type) {
+          where.type = input.type;
+        }
 
-      // Obtenir la distribution par type si admin
-      let typeDistribution = {};
-      if (isAdmin) {
-        const typeCounts = await ctx.db.announcement.groupBy({
-          by: ['type'],
-          where,
-          _count: true,
+        // Appliquer les filtres de client/livreur
+        if (input.clientId && (isAdmin || input.clientId === userId)) {
+          where.clientId = input.clientId;
+        } else if (!isAdmin) {
+          // Si non admin, limiter aux annonces de l'utilisateur
+          if (
+            ctx.session.user.role === UserRole.CLIENT ||
+            ctx.session.user.role === UserRole.MERCHANT
+          ) {
+            where.clientId = userId;
+          } else if (ctx.session.user.role === UserRole.DELIVERER) {
+            where.delivererId = userId;
+          }
+        }
+
+        if (input.delivererId && (isAdmin || input.delivererId === userId)) {
+          where.delivererId = input.delivererId;
+        }
+
+        // Obtenir les statistiques
+        const [
+          totalCount,
+          publishedCount,
+          assignedCount,
+          completedCount,
+          cancelledCount,
+          averagePrice,
+          totalRevenue,
+        ] = await Promise.all([
+          ctx.db.announcement.count({ where }),
+          ctx.db.announcement.count({ where: { ...where, status: 'PUBLISHED' } }),
+          ctx.db.announcement.count({ where: { ...where, status: 'ASSIGNED' } }),
+          ctx.db.announcement.count({ where: { ...where, status: 'COMPLETED' } }),
+          ctx.db.announcement.count({ where: { ...where, status: 'CANCELLED' } }),
+          ctx.db.announcement.aggregate({
+            where: { ...where, suggestedPrice: { not: null } },
+            _avg: { suggestedPrice: true },
+          }),
+          ctx.db.announcement.aggregate({
+            where: {
+              ...where,
+              status: 'COMPLETED',
+              suggestedPrice: { not: null },
+            },
+            _sum: { suggestedPrice: true },
+          }),
+        ]);
+
+        // Obtenir la distribution par type si admin
+        let typeDistribution = {};
+        if (isAdmin) {
+          const typeCounts = await ctx.db.announcement.groupBy({
+            by: ['type'],
+            where,
+            _count: true,
+          });
+
+          typeDistribution = typeCounts.reduce((acc, curr) => {
+            return { ...acc, [curr.type]: curr._count };
+          }, {});
+        }
+
+        return {
+          totalCount,
+          publishedCount,
+          assignedCount,
+          completedCount,
+          cancelledCount,
+          averagePrice: averagePrice._avg.suggestedPrice || 0,
+          totalRevenue: totalRevenue._sum.suggestedPrice || 0,
+          typeDistribution: isAdmin ? typeDistribution : undefined,
+        };
+      } catch (error) {
+        console.error('Erreur lors de la récupération des statistiques:', error);
+        throw new TRPCError({
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Une erreur est survenue lors de la récupération des statistiques',
         });
-
-        typeDistribution = typeCounts.reduce((acc, curr) => {
-          return { ...acc, [curr.type]: curr._count };
-        }, {});
       }
-
-      return {
-        totalCount,
-        publishedCount,
-        assignedCount,
-        completedCount,
-        cancelledCount,
-        averagePrice: averagePrice._avg.suggestedPrice || 0,
-        totalRevenue: totalRevenue._sum.suggestedPrice || 0,
-        typeDistribution: isAdmin ? typeDistribution : undefined,
-      };
-    } catch (error) {
-      console.error('Erreur lors de la récupération des statistiques:', error);
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Une erreur est survenue lors de la récupération des statistiques',
-      });
-    }
-  }),
+    }),
 
   // Récupérer les annonces d'un utilisateur
   getByUserId: protectedProcedure

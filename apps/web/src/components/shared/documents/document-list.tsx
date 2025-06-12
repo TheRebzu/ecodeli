@@ -127,3 +127,40 @@ export function DocumentList({
     </Card>
   );
 }
+
+// Ajout de ProfileDocumentsList pour compatibilité
+interface ProfileDocument {
+  id: string;
+  name: string;
+  type: string;
+  status: string;
+}
+
+interface ProfileDocumentsListProps {
+  documents: ProfileDocument[];
+  onUpload?: () => void;
+}
+
+export function ProfileDocumentsList({ documents, onUpload }: ProfileDocumentsListProps) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Documents du profil</CardTitle>
+      </CardHeader>
+      <CardContent>
+        {documents.length === 0 ? (
+          <p className="text-muted-foreground">Aucun document trouvé</p>
+        ) : (
+          <div className="space-y-2">
+            {documents.map((doc) => (
+              <div key={doc.id} className="flex justify-between items-center p-2 border rounded">
+                <span>{doc.name}</span>
+                <span className="text-sm text-muted-foreground">{doc.status}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}

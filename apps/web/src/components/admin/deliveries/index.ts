@@ -18,4 +18,3 @@ export { default as DeliveryTable } from './delivery-table';
 export * from './delivery-table';
 export { default as LiveMap } from './live-map';
 export * from './live-map';
-

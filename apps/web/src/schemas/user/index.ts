@@ -10,4 +10,3 @@ export * from './user-ban.schema';
 export * from './user-management.schema';
 export * from './user-preferences.schema';
 export * from './user.schema';
-

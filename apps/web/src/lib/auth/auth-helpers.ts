@@ -18,15 +18,15 @@ export function isRoleAllowed(userRole: UserRole, allowedRoles: UserRole[]): boo
  * @returns boolean - true si l'accès est autorisé
  */
 export function checkPaymentAccessRights(
-  userRole: UserRole, 
-  userId: string, 
+  userRole: UserRole,
+  userId: string,
   resourceOwnerId?: string
 ): boolean {
   // Admin a accès à tout
   if (userRole === UserRole.ADMIN) {
     return true;
   }
-  
+
   // Pour les autres rôles, ils ne peuvent accéder qu'à leurs propres données
   return userId === resourceOwnerId;
 }
@@ -59,15 +59,15 @@ export function canModifyPayment(userRole: UserRole): boolean {
  * @returns boolean - true si l'accès est autorisé
  */
 export function hasDocumentAccess(
-  userRole: UserRole, 
-  userId: string, 
+  userRole: UserRole,
+  userId: string,
   documentOwnerId?: string
 ): boolean {
   // Admin a accès à tous les documents
   if (userRole === UserRole.ADMIN) {
     return true;
   }
-  
+
   // Pour les autres rôles, ils ne peuvent accéder qu'à leurs propres documents
   return userId === documentOwnerId;
-} 
+}

@@ -15,7 +15,7 @@ export interface OnboardingContextType {
   isActive: boolean;
   currentStep: number;
   steps: OnboardingStep[];
-  
+
   // Actions
   startOnboarding: () => void;
   nextStep: () => void;
@@ -61,9 +61,7 @@ export function OnboardingProvider({ children, steps = [] }: OnboardingProviderP
 
   const completeStep = (stepId: string) => {
     setOnboardingSteps((prev: OnboardingStep[]) =>
-      prev.map((step: OnboardingStep) =>
-        step.id === stepId ? { ...step, completed: true } : step
-      )
+      prev.map((step: OnboardingStep) => (step.id === stepId ? { ...step, completed: true } : step))
     );
   };
 
@@ -101,4 +99,4 @@ export const useOnboarding = (): OnboardingContextType => {
     throw new Error('useOnboarding doit être utilisé dans un OnboardingProvider');
   }
   return context;
-}; 
+};

@@ -24,4 +24,3 @@ export * from './report.schema';
 export * from './statistics.schema';
 export * from './system-log.schema';
 export * from './system-settings.schema';
-

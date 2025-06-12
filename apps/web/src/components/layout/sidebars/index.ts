@@ -16,4 +16,3 @@ export { default as MerchantSidebar } from './merchant-sidebar';
 export * from './merchant-sidebar';
 export { default as ProviderSidebar } from './provider-sidebar';
 export * from './provider-sidebar';
-

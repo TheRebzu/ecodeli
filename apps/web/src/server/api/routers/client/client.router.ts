@@ -1,4 +1,10 @@
-import { router, protectedProcedure, clientProcedure, adminProcedure, type Context } from '@/server/api/trpc';
+import {
+  router,
+  protectedProcedure,
+  clientProcedure,
+  adminProcedure,
+  type Context,
+} from '@/server/api/trpc';
 import { z } from 'zod';
 import { TRPCError } from '@trpc/server';
 import type { User, Client } from '@prisma/client';
@@ -595,28 +601,33 @@ export const clientRouter = router({
     }),
 
   // === MÉTHODES ADMIN ===
-  
+
   /**
    * Get all clients for admin (paginated with filters)
    */
   getAllClients: adminProcedure
-    .input(z.object({
-      page: z.number().min(1).default(1),
-      limit: z.number().min(1).max(100).default(10),
-      search: z.string().optional(),
-      status: z.enum(['ACTIVE', 'PENDING_VERIFICATION', 'SUSPENDED', 'INACTIVE']).optional(),
-      sortBy: z.enum(['name', 'email', 'createdAt', 'lastLoginAt']).default('createdAt'),
-      sortDirection: z.enum(['asc', 'desc']).default('desc'),
-    }).optional().default({}))
-          .query(async ({ ctx, input }) => {
-        const {
-          page = 1,
-          limit = 10,
-          search,
-          status,
-          sortBy = 'createdAt',
-          sortDirection = 'desc',
-        } = input || {};
+    .input(
+      z
+        .object({
+          page: z.number().min(1).default(1),
+          limit: z.number().min(1).max(100).default(10),
+          search: z.string().optional(),
+          status: z.enum(['ACTIVE', 'PENDING_VERIFICATION', 'SUSPENDED', 'INACTIVE']).optional(),
+          sortBy: z.enum(['name', 'email', 'createdAt', 'lastLoginAt']).default('createdAt'),
+          sortDirection: z.enum(['asc', 'desc']).default('desc'),
+        })
+        .optional()
+        .default({})
+    )
+    .query(async ({ ctx, input }) => {
+      const {
+        page = 1,
+        limit = 10,
+        search,
+        status,
+        sortBy = 'createdAt',
+        sortDirection = 'desc',
+      } = input || {};
 
       // Construire les conditions de filtrage
       const where: any = {
@@ -660,7 +671,7 @@ export const clientRouter = router({
 
       // Calculer statistiques pour chaque client
       const clientsWithStats = await Promise.all(
-        clients.map(async (client) => {
+        clients.map(async client => {
           if (!client.client) return null;
 
           // Récupérer les statistiques du client
@@ -770,5 +781,94 @@ export const clientRouter = router({
       totalRevenue: totalRevenue._sum.amount?.toNumber() || 0,
       averageOrderValue: averageOrderValue._avg.amount?.toNumber() || 0,
     };
+  }),
+
+  // Nouveaux endpoints pour le dashboard amélioré
+  services: router({
+    getUpcomingBookings: clientProcedure
+      .input(
+        z.object({
+          limit: z.number().min(1).max(20).default(5),
+        })
+      )
+      .query(async ({ ctx, input }) => {
+        const userId = ctx.session.user.id;
+        const user = await ctx.db.user.findUnique({
+          where: { id: userId },
+          include: { client: true },
+        });
+
+        if (!user?.client) {
+          throw new TRPCError({
+            code: 'NOT_FOUND',
+            message: 'Client non trouvé',
+          });
+        }
+
+        return await ctx.db.serviceBooking.findMany({
+          where: {
+            clientId: user.client.id,
+            startTime: { gte: new Date() },
+            status: { in: ['CONFIRMED', 'PENDING'] },
+          },
+          include: {
+            service: { select: { name: true, category: true } },
+            provider: { select: { name: true, image: true, rating: true } },
+          },
+          orderBy: { startTime: 'asc' },
+          take: input.limit,
+        });
+      }),
+  }),
+
+  storage: router({
+    getActiveBoxes: clientProcedure.query(async ({ ctx }) => {
+      const userId = ctx.session.user.id;
+      const user = await ctx.db.user.findUnique({
+        where: { id: userId },
+        include: { client: true },
+      });
+
+      if (!user?.client) {
+        throw new TRPCError({
+          code: 'NOT_FOUND',
+          message: 'Client non trouvé',
+        });
+      }
+
+      return await ctx.db.storageBoxReservation.findMany({
+        where: {
+          clientId: user.client.id,
+          status: 'ACTIVE',
+          endDate: { gte: new Date() },
+        },
+        include: {
+          box: {
+            include: {
+              warehouse: { select: { name: true, address: true } },
+            },
+          },
+        },
+        orderBy: { startDate: 'desc' },
+      });
+    }),
+  }),
+
+  invoices: router({
+    getRecent: clientProcedure
+      .input(
+        z.object({
+          limit: z.number().min(1).max(20).default(5),
+        })
+      )
+      .query(async ({ ctx, input }) => {
+        const userId = ctx.session.user.id;
+
+        return await ctx.db.invoice.findMany({
+          where: { userId },
+          orderBy: { createdAt: 'desc' },
+          take: input.limit,
+        });
+      }),
   }),
 });

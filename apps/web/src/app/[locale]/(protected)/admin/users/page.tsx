@@ -122,20 +122,28 @@ export default function AdminUsersPage() {
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                     <div className="flex flex-col space-y-1">
                       <span className="text-sm text-muted-foreground">Total utilisateurs</span>
-                      <span className="text-2xl font-bold">{usersQuery.data?.json?.total || usersQuery.data?.total || 0}</span>
+                      <span className="text-2xl font-bold">
+                        {usersQuery.data?.json?.total || usersQuery.data?.total || 0}
+                      </span>
                     </div>
                     <div className="flex flex-col space-y-1">
                       <span className="text-sm text-muted-foreground">Utilisateurs actifs</span>
-                      <span className="text-2xl font-bold">{(usersQuery.data?.json?.users || usersQuery.data?.users || []).filter(u => u.status === 'ACTIVE').length}</span>
+                      <span className="text-2xl font-bold">
+                        {
+                          (usersQuery.data?.json?.users || usersQuery.data?.users || []).filter(
+                            u => u.status === 'ACTIVE'
+                          ).length
+                        }
+                      </span>
                     </div>
                     <div className="flex flex-col space-y-1">
                       <span className="text-sm text-muted-foreground">Page actuelle</span>
-                      <span className="text-2xl font-bold">{usersQuery.data?.json?.page || usersQuery.data?.page || 1}</span>
+                      <span className="text-2xl font-bold">
+                        {usersQuery.data?.json?.page || usersQuery.data?.page || 1}
+                      </span>
                     </div>
                     <div className="flex flex-col space-y-1">
-                      <span className="text-sm text-muted-foreground">
-                        Pages totales
-                      </span>
+                      <span className="text-sm text-muted-foreground">Pages totales</span>
                       <span className="text-2xl font-bold">
                         {usersQuery.data?.json?.totalPages || usersQuery.data?.totalPages || 1}
                       </span>
@@ -151,16 +159,24 @@ export default function AdminUsersPage() {
                 onSelectionChange={handleUserSelection}
                 isLoading={usersQuery.isLoading}
               />
-              
+
               {/* Debug temporaire */}
               <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded text-xs">
-                <strong>🔍 DEBUG - Données passées au UserTable:</strong><br />
-                <strong>Raw usersQuery.data:</strong> {JSON.stringify(usersQuery.data)}<br />
-                <strong>Type:</strong> {typeof usersQuery.data}<br />
-                <strong>Keys:</strong> {usersQuery.data ? Object.keys(usersQuery.data).join(', ') : 'null'}<br />
-                <strong>users property:</strong> {JSON.stringify(usersQuery.data?.users)}<br />
-                <strong>users length:</strong> {usersQuery.data?.users?.length || 'undefined'}<br />
-                isLoading: {usersQuery.isLoading.toString()}<br />
+                <strong>🔍 DEBUG - Données passées au UserTable:</strong>
+                <br />
+                <strong>Raw usersQuery.data:</strong> {JSON.stringify(usersQuery.data)}
+                <br />
+                <strong>Type:</strong> {typeof usersQuery.data}
+                <br />
+                <strong>Keys:</strong>{' '}
+                {usersQuery.data ? Object.keys(usersQuery.data).join(', ') : 'null'}
+                <br />
+                <strong>users property:</strong> {JSON.stringify(usersQuery.data?.users)}
+                <br />
+                <strong>users length:</strong> {usersQuery.data?.users?.length || 'undefined'}
+                <br />
+                isLoading: {usersQuery.isLoading.toString()}
+                <br />
                 isError: {usersQuery.isError.toString()}
               </div>
             </div>

@@ -86,3 +86,22 @@ export function useLiveTracking(deliveryId: string) {
 }
 
 export default useLiveTracking;
+
+
+// Export ajouté automatiquement
+import { api } from '@/hooks/system/use-trpc';
+
+export function useLiveTrackingDetails(deliveryId: string) {
+  const { data: tracking, isLoading } = api.delivery.getLiveTracking.useQuery(
+    { deliveryId },
+    { refetchInterval: 5000 }
+  );
+  
+  return {
+    tracking,
+    isLoading,
+    // TODO: Ajouter d'autres propriétés nécessaires
+  };
+}
+
+// ... existing code ...

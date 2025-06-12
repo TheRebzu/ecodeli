@@ -6,4 +6,3 @@
 // Exports des fichiers locaux
 export { default as BookingConfirmation } from './booking-confirmation';
 export * from './booking-confirmation';
-

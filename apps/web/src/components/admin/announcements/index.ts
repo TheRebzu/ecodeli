@@ -12,4 +12,3 @@ export { default as AnnouncementStats } from './announcement-stats';
 export * from './announcement-stats';
 export { default as AnnouncementTable } from './announcement-table';
 export * from './announcement-table';
-

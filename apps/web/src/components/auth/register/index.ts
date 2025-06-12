@@ -14,4 +14,3 @@ export { default as ProviderRegisterForm } from './provider-register-form';
 export * from './provider-register-form';
 export { default as RegisterTypeSelector } from './register-type-selector';
 export * from './register-type-selector';
-

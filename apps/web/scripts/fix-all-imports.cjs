@@ -185,7 +185,7 @@ export const accountVerificationSchema = z.object({
 export const twoFactorSchema = z.object({
   token: z.string().length(6)
 });
-`
+`,
 };
 
 // Correspondance des imports vers les bons chemins
@@ -194,35 +194,36 @@ const IMPORT_MAPPINGS = [
   { from: '@/lib/tokens', to: '@/lib/security/tokens' },
   { from: '@/lib/totp', to: '@/lib/security/totp' },
   { from: '@/lib/user-locale', to: '@/lib/i18n/user-locale' },
-  { from: '@/lib/auth-helpers', to: '@/lib/auth/auth-helpers' }
+  { from: '@/lib/auth-helpers', to: '@/lib/auth/auth-helpers' },
 ];
 
 // Correspondance des exports mal nommés dans root.ts
 const ROUTER_EXPORT_FIXES = {
-  'adminUsersRouter': 'adminUserRouter',
-  'clientStorageRouter': 'storageRouter',
-  'clientSubscriptionRouter': 'subscriptionRouter',
-  'adminFinancialRouter': 'financialRouter',
-  'adminCommissionRouter': 'commissionRouter',
-  'adminAuditRouter': 'auditRouter'
+  adminUsersRouter: 'adminUserRouter',
+  clientStorageRouter: 'storageRouter',
+  clientSubscriptionRouter: 'subscriptionRouter',
+  adminFinancialRouter: 'financialRouter',
+  adminCommissionRouter: 'commissionRouter',
+  adminAuditRouter: 'auditRouter',
 };
 
 function createMissingFile(relativePath) {
   const fullPath = path.resolve(relativePath);
   const dir = path.dirname(fullPath);
-  
+
   if (!fs.existsSync(dir)) {
     fs.mkdirSync(dir, { recursive: true });
     console.log('📁 Répertoire créé:', dir);
   }
-  
+
   if (fs.existsSync(fullPath)) {
     console.log('✅ Existe déjà:', relativePath);
     return false;
   }
-  
-  const content = SPECIFIC_FILES[relativePath] || '// Fichier généré automatiquement\nexport default {};';
-  
+
+  const content =
+    SPECIFIC_FILES[relativePath] || '// Fichier généré automatiquement\nexport default {};';
+
   fs.writeFileSync(fullPath, content, 'utf8');
   console.log('📄 Créé:', relativePath);
   return true;
@@ -230,22 +231,24 @@ function createMissingFile(relativePath) {
 
 function findAllTsFiles() {
   const allFiles = [];
-  
+
   function scanDirectory(dir) {
     if (!fs.existsSync(dir)) return;
-    
+
     const items = fs.readdirSync(dir);
-    
+
     for (const item of items) {
       const fullPath = path.join(dir, item);
       const stat = fs.statSync(fullPath);
-      
+
       if (stat.isDirectory()) {
-        if (!item.startsWith('.') && 
-            item !== 'node_modules' && 
-            item !== 'dist' && 
-            item !== 'build' &&
-            item !== '.next') {
+        if (
+          !item.startsWith('.') &&
+          item !== 'node_modules' &&
+          item !== 'dist' &&
+          item !== 'build' &&
+          item !== '.next'
+        ) {
           scanDirectory(fullPath);
         }
       } else if (stat.isFile() && item.match(/\.(ts|tsx)$/)) {
@@ -253,7 +256,7 @@ function findAllTsFiles() {
       }
     }
   }
-  
+
   scanDirectory('./src');
   return allFiles;
 }
@@ -263,26 +266,29 @@ function fixImportsInFile(filePath) {
     let content = fs.readFileSync(filePath, 'utf8');
     let modified = false;
     let changes = 0;
-    
+
     // Corriger les imports mal mappés
     IMPORT_MAPPINGS.forEach(mapping => {
       const searchText = `from '${mapping.from}'`;
       const replaceText = `from '${mapping.to}'`;
-      
+
       if (content.includes(searchText)) {
-        content = content.replace(new RegExp(searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), replaceText);
+        content = content.replace(
+          new RegExp(searchText.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'),
+          replaceText
+        );
         changes++;
         modified = true;
       }
     });
-    
+
     // Aucune correction spéciale pour root.ts pour l'instant
-    
+
     if (modified) {
       fs.writeFileSync(filePath, content, 'utf8');
       return changes;
     }
-    
+
     return 0;
   } catch (error) {
     console.error('❌ Erreur avec', filePath, ':', error.message);
@@ -292,22 +298,23 @@ function fixImportsInFile(filePath) {
 
 function fixTrpcExports() {
   const trpcPath = path.resolve('src/server/api/trpc.ts');
-  
+
   if (!fs.existsSync(trpcPath)) {
     console.log('❌ Fichier trpc.ts non trouvé');
     return 0;
   }
-  
+
   try {
     let content = fs.readFileSync(trpcPath, 'utf8');
-    
+
     if (!content.includes('createCallerFactory')) {
-      content += '\n\n// Export pour compatibilité\nexport const createCallerFactory = (router: any) => {\n  return (ctx?: any) => router.createCaller(ctx);\n};\n';
+      content +=
+        '\n\n// Export pour compatibilité\nexport const createCallerFactory = (router: any) => {\n  return (ctx?: any) => router.createCaller(ctx);\n};\n';
       fs.writeFileSync(trpcPath, content, 'utf8');
       console.log('🔧 Ajouté createCallerFactory dans trpc.ts');
       return 1;
     }
-    
+
     return 0;
   } catch (error) {
     console.error('❌ Erreur avec trpc.ts:', error.message);
@@ -323,23 +330,26 @@ function createEmptyRouterFiles() {
     'src/server/api/routers/deliverer/deliverer-documents.router.ts',
     'src/server/api/routers/deliverer/deliverer-planning.router.ts',
     'src/server/api/routers/provider/provider-validation.router.ts',
-    'src/server/api/routers/provider/provider-calendar.router.ts'
+    'src/server/api/routers/provider/provider-calendar.router.ts',
   ];
-  
+
   let created = 0;
-  
+
   routerFiles.forEach(routerPath => {
     const fullPath = path.resolve(routerPath);
     const dir = path.dirname(fullPath);
-    
+
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true });
     }
-    
+
     if (!fs.existsSync(fullPath)) {
-      const routerName = path.basename(routerPath, '.ts').replace(/^admin-|^client-|^deliverer-|^provider-/, '');
-      const exportName = routerName.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase()) + 'Router';
-      
+      const routerName = path
+        .basename(routerPath, '.ts')
+        .replace(/^admin-|^client-|^deliverer-|^provider-/, '');
+      const exportName =
+        routerName.replace(/-([a-z])/g, (match, letter) => letter.toUpperCase()) + 'Router';
+
       const content = `import { router, protectedProcedure } from '@/server/api/trpc';
 import { z } from 'zod';
 
@@ -347,24 +357,24 @@ export const ${exportName} = router({
   // TODO: Implémenter les procédures
 });
 `;
-      
+
       fs.writeFileSync(fullPath, content, 'utf8');
       console.log('📄 Router créé:', routerPath);
       created++;
     }
   });
-  
+
   return created;
 }
 
 function main() {
   console.log('🔧 Correction automatique générique de TOUS les imports...');
   console.log('');
-  
+
   let totalCreated = 0;
   let totalImportChanges = 0;
   let totalFilesModified = 0;
-  
+
   // 1. Créer les fichiers spécifiques manquants
   console.log('🔍 Création des fichiers manquants...');
   Object.keys(SPECIFIC_FILES).forEach(filePath => {
@@ -372,40 +382,40 @@ function main() {
       totalCreated++;
     }
   });
-  
+
   // 2. Créer les routeurs vides manquants
   const routersCreated = createEmptyRouterFiles();
   totalCreated += routersCreated;
-  
+
   // 3. Corriger trpc.ts
   const trpcChanges = fixTrpcExports();
   totalImportChanges += trpcChanges;
-  
+
   console.log('');
-  
+
   // 4. Corriger tous les imports dans tous les fichiers
   console.log('🔄 Correction des imports...');
   const allFiles = findAllTsFiles();
-  
+
   allFiles.forEach(filePath => {
     const changes = fixImportsInFile(filePath);
-    
+
     if (changes > 0) {
       totalFilesModified++;
       totalImportChanges += changes;
       console.log('🔧', filePath, ':', changes, 'correction(s)');
     }
   });
-  
+
   console.log('');
-  
+
   // 5. Résumé
   console.log('📊 Résumé:');
   console.log('- Fichiers créés:', totalCreated);
   console.log('- Fichiers modifiés:', totalFilesModified);
   console.log('- Total des corrections:', totalImportChanges);
   console.log('');
-  
+
   if (totalCreated === 0 && totalImportChanges === 0) {
     console.log('✅ Aucune correction nécessaire');
   } else {
@@ -413,4 +423,4 @@ function main() {
   }
 }
 
-main(); 
+main();

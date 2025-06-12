@@ -167,8 +167,11 @@ model User {
   evaluationModerations    ProviderEvaluation[]      @relation("EvaluationModerator")
   
   // Relations facturation automatique
-  autoInvoicing            ProviderAutoInvoicing?    @relation("ProviderAutoInvoicing")
+  autoBilling              ProviderAutoBilling?      @relation("ProviderAutoBilling")
   monthlyInvoices          ProviderMonthlyInvoice[]  @relation("ProviderMonthlyInvoices")
+  providerTransfers        ProviderTransfer[]        @relation("ProviderTransfers")
+  billingHistory           ProviderBillingHistory[]  @relation("BillingHistoryUser")
+  monthlySummaries         ProviderMonthlySummary[]  @relation("ProviderMonthlySummaries")
   
   // Relations KPIs et monitoring
   createdForecasts         FinancialForecast[]       @relation("ForecastCreator")
@@ -176,9 +179,14 @@ model User {
   resolvedAlerts           AlertTrigger[]            @relation("AlertResolver")
   
   // Relations tutoriels
-  createdTutorials         Tutorial[]                @relation("TutorialCreator")
-  tutorialProgress         TutorialProgress[]        @relation("TutorialProgressToUser")
-  overlayConfigs           OverlayConfig[]           @relation("OverlayConfigToUser")
+  createdTutorialConfigs   ClientTutorialConfig[]    @relation("TutorialConfigCreator")
+  clientTutorialProgress   ClientTutorialProgress[]  @relation("ClientTutorialUser")
+  
+  // Relations entrepôts
+  warehouseActivities      WarehouseActivity[]       @relation("WarehouseActivityUser")
+  transferRequests         InterWarehouseTransfer[]  @relation("TransferRequester")
+  transferApprovals        InterWarehouseTransfer[]  @relation("TransferApprover")
+  transferHandling         InterWarehouseTransfer[]  @relation("TransferHandler")
   
   // Relations cartes NFC
   nfcCards                 NFCCard[]                 @relation("NFCCardToDeliverer")

@@ -2,7 +2,10 @@
 
 import { PrismaClient } from '@prisma/client';
 import { SeedLogger } from './utils/seed-logger';
-import { seedMultiVerificationUsers, validateMultiVerificationUsers } from './users/multi-verification-users-seed';
+import {
+  seedMultiVerificationUsers,
+  validateMultiVerificationUsers,
+} from './users/multi-verification-users-seed';
 
 /**
  * Script rapide pour créer des utilisateurs de test avec différents statuts
@@ -15,11 +18,11 @@ async function main() {
 
   try {
     logger.info('TEST_USERS', '🚀 Démarrage du seed des utilisateurs de test...');
-    
+
     // Options pour forcer la recréation
     const options = {
       force: true, // Supprime et recrée les utilisateurs de test
-      verbose: true
+      verbose: true,
     };
 
     // Exécuter le seed
@@ -48,12 +51,10 @@ async function main() {
       logger.info('TEST_USERS', '   📧 paul.plombier@test-ecodeli.fr (PROVIDER ACTIF)');
       logger.info('TEST_USERS', '');
       logger.info('TEST_USERS', '🔒 Mot de passe pour tous: Test2024!');
-      
     } else {
       logger.error('TEST_USERS', '❌ Erreurs lors de la création des utilisateurs de test');
       process.exit(1);
     }
-
   } catch (error) {
     logger.error('TEST_USERS', `❌ Erreur fatale: ${error}`);
     process.exit(1);
@@ -63,7 +64,7 @@ async function main() {
 }
 
 // Point d'entrée
-main().catch((error) => {
-  console.error('❌ Erreur lors de l\'exécution du script:', error);
+main().catch(error => {
+  console.error("❌ Erreur lors de l'exécution du script:", error);
   process.exit(1);
-}); 
+});

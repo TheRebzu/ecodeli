@@ -5,4 +5,3 @@
 
 // Exports des fichiers locaux
 export * from './use-search-services';
-

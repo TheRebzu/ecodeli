@@ -10,4 +10,3 @@ export { default as PaymentMethods } from './payment-methods';
 export * from './payment-methods';
 export { default as SubscriptionManager } from './subscription-manager';
 export * from './subscription-manager';
-

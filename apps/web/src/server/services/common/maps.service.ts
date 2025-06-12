@@ -12,11 +12,11 @@ export const MapsService = {
           key: GOOGLE_MAPS_API_KEY,
         },
       });
-      
+
       if (response.data.status === 'OK') {
         const distance = response.data.rows[0].elements[0].distance;
         const duration = response.data.rows[0].elements[0].duration;
-        
+
         return {
           distanceText: distance.text,
           distanceValue: distance.value, // en mètres
@@ -24,14 +24,14 @@ export const MapsService = {
           durationValue: duration.value, // en secondes
         };
       }
-      
+
       throw new Error('Calcul de distance impossible');
     } catch (error) {
       console.error('Erreur API Google Maps:', error);
       throw new Error('Calcul de distance impossible');
     }
   },
-  
+
   async geocodeAddress(address: string) {
     try {
       const response = await axios.get('https://maps.googleapis.com/maps/api/geocode/json', {
@@ -40,16 +40,16 @@ export const MapsService = {
           key: GOOGLE_MAPS_API_KEY,
         },
       });
-      
+
       if (response.data.status === 'OK') {
         const { lat, lng } = response.data.results[0].geometry.location;
         return { lat, lng };
       }
-      
+
       throw new Error('Géocodage impossible');
     } catch (error) {
       console.error('Erreur API Google Maps:', error);
       throw new Error('Géocodage impossible');
     }
-  }
+  },
 };

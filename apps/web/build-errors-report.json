@@ -1,0 +1,372 @@
+{
+  "timestamp": "2025-06-12T10:01:45.221Z",
+  "projectRoot": "C:\\Users\\Amine\\WebstormProjects\\ecodeli\\apps\\web",
+  "errorsFound": 71,
+  "errorsByCategory": {
+    "import": 0,
+    "type": 0,
+    "syntax": 0,
+    "other": 71
+  },
+  "fixesApplied": 0,
+  "successfulFixes": 0,
+  "failedFixes": 0,
+  "errors": [
+    {
+      "message": "src/app/[locale]/robots.ts(14,15): error TS1005: ',' expected.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/app/[locale]/robots.ts(14,24): error TS1161: Unterminated regular expression literal.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/app/[locale]/robots.ts(16,1): error TS1128: Declaration or statement expected.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,47): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,49): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,50): error TS1435: Unknown keyword or identifier. Did you mean 'export'?",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,86): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,87): error TS1434: Unexpected keyword or identifier.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,168): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,169): error TS1434: Unexpected keyword or identifier.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,251): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,255): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,256): error TS1434: Unexpected keyword or identifier.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,332): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,333): error TS1434: Unexpected keyword or identifier.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,409): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,413): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,414): error TS1434: Unexpected keyword or identifier.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,482): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,483): error TS1434: Unexpected keyword or identifier.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,554): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,560): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,564): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,565): error TS1434: Unexpected keyword or identifier.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,590): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,591): error TS1434: Unexpected keyword or identifier.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,632): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,638): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,642): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,643): error TS1434: Unexpected keyword or identifier.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,654): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,660): error TS1005: ',' expected.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,682): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,688): error TS1005: ',' expected.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,703): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,709): error TS1005: ',' expected.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,719): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,725): error TS1005: ',' expected.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,735): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,741): error TS1005: ',' expected.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,748): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,754): error TS1005: ',' expected.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,797): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,803): error TS1005: ',' expected.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,842): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/hooks/payment/use-subscription.ts(1,848): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/lib/api/client.ts(5,48): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/lib/api/client.ts(5,50): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/lib/api/client.ts(5,51): error TS1435: Unknown keyword or identifier. Did you mean 'export'?",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/lib/api/client.ts(5,108): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/lib/api/client.ts(5,109): error TS1434: Unexpected keyword or identifier.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/lib/api/client.ts(5,151): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/lib/api/client.ts(5,152): error TS1434: Unexpected keyword or identifier.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/lib/api/client.ts(5,178): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/lib/api/client.ts(5,183): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/lib/api/client.ts(5,187): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/lib/api/client.ts(5,188): error TS1434: Unexpected keyword or identifier.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/lib/api/client.ts(5,220): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/lib/api/client.ts(5,221): error TS1434: Unexpected keyword or identifier.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/lib/api/client.ts(5,247): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/lib/api/client.ts(5,252): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/lib/api/client.ts(5,256): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/lib/api/client.ts(5,257): error TS1434: Unexpected keyword or identifier.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/lib/api/client.ts(5,302): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/server/services/common/messaging.service.ts(1,34): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/server/services/common/messaging.service.ts(1,36): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/server/services/common/messaging.service.ts(1,37): error TS1435: Unknown keyword or identifier. Did you mean 'export'?",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/server/services/common/messaging.service.ts(1,71): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/server/services/common/messaging.service.ts(1,75): error TS1005: ',' expected.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/server/services/common/messaging.service.ts(1,115): error TS1127: Invalid character.",
+      "severity": "error",
+      "category": "other"
+    },
+    {
+      "message": "src/server/services/common/messaging.service.ts(1,591): error TS1005: '}' expected.",
+      "severity": "error",
+      "category": "other"
+    }
+  ],
+  "fixes": []
+}

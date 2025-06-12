@@ -10,4 +10,3 @@ export { default as InterventionList } from './intervention-list';
 export * from './intervention-list';
 export { default as InterventionReport } from './intervention-report';
 export * from './intervention-report';
-

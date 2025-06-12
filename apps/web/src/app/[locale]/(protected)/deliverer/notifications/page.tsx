@@ -7,12 +7,12 @@ export const metadata: Metadata = {
 };
 
 interface DelivererNotificationsPageProps {
-  params: {
+  params: Promise<{
     locale: string;
-  };
+  }>;
 }
 
-export default function DelivererNotificationsPage({ params }: DelivererNotificationsPageProps) {
+export default async function DelivererNotificationsPage({ params }: DelivererNotificationsPageProps) {
   return (
     <div className="container py-6 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold mb-6">Notifications</h1>

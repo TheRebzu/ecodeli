@@ -14,7 +14,7 @@ import {
   CardTitle,
 } from '@/components/ui/card';
 import { Link } from '@/navigation';
-import { useUserBan } from '@/hooks/common/use-user-preferences';
+import { useUserBan } from '@/hooks/use-user-ban';
 import { UserBanAction } from '@/types/users/verification';
 
 export default function AccountSuspendedPage() {

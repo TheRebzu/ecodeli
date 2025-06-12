@@ -52,53 +52,64 @@ export default function UserDetailPage() {
     page: 1,
     limit: 50, // Récupérer plus d'utilisateurs pour être sûr de trouver le bon
   });
-  
+
   // DEBUG: Afficher les données reçues
   console.log('🔍 DEBUG - usersData:', usersData);
   console.log('🔍 DEBUG - userId cherché:', userId);
   console.log('🔍 DEBUG - usersData?.json?.users:', usersData?.json?.users);
-  
+
   // Trouver l'utilisateur avec l'ID correct dans la liste (les données sont dans json.users)
   const user = usersData?.json?.users?.find((u: any) => u.id === userId);
   console.log('🔍 DEBUG - user trouvé:', user);
-  
+
   // Si l'utilisateur n'est pas trouvé, créer des données par défaut
-  const displayUser = user ? {
-    id: user.id,
-    name: user.name || 'Nom non défini',
-    email: user.email,
-    role: user.role,
-    status: user.status,
-    phoneNumber: user.phoneNumber || 'Non défini',
-    createdAt: user.createdAt,
-    updatedAt: user.createdAt, // Utiliser createdAt comme updatedAt
-    emailVerified: user.isVerified ? user.createdAt : null,
-    isVerified: user.isVerified,
-    lastLoginAt: user.lastLoginAt,
-    twoFactorEnabled: false, // Ajouter cette propriété manquante
-    // Profils simulés basés sur le rôle
-    client: user.role === 'CLIENT' ? { id: 'client-' + user.id, address: null } : null,
-    deliverer: user.role === 'DELIVERER' ? { 
-      id: 'deliverer-' + user.id, 
-      isVerified: user.isVerified,
-      address: null,
-      vehicleType: null 
-    } : null,
-    merchant: user.role === 'MERCHANT' ? { 
-      id: 'merchant-' + user.id,
-      isVerified: user.isVerified,
-      address: null 
-    } : null,
-    provider: user.role === 'PROVIDER' ? { 
-      id: 'provider-' + user.id,
-      isVerified: user.isVerified,
-      address: null 
-    } : null,
-    admin: user.role === 'ADMIN' ? { id: 'admin-' + user.id } : null,
-    documents: [],
-    verificationHistory: [],
-    activityLogs: [],
-  } : null;
+  const displayUser = user
+    ? {
+        id: user.id,
+        name: user.name || 'Nom non défini',
+        email: user.email,
+        role: user.role,
+        status: user.status,
+        phoneNumber: user.phoneNumber || 'Non défini',
+        createdAt: user.createdAt,
+        updatedAt: user.createdAt, // Utiliser createdAt comme updatedAt
+        emailVerified: user.isVerified ? user.createdAt : null,
+        isVerified: user.isVerified,
+        lastLoginAt: user.lastLoginAt,
+        twoFactorEnabled: false, // Ajouter cette propriété manquante
+        // Profils simulés basés sur le rôle
+        client: user.role === 'CLIENT' ? { id: 'client-' + user.id, address: null } : null,
+        deliverer:
+          user.role === 'DELIVERER'
+            ? {
+                id: 'deliverer-' + user.id,
+                isVerified: user.isVerified,
+                address: null,
+                vehicleType: null,
+              }
+            : null,
+        merchant:
+          user.role === 'MERCHANT'
+            ? {
+                id: 'merchant-' + user.id,
+                isVerified: user.isVerified,
+                address: null,
+              }
+            : null,
+        provider:
+          user.role === 'PROVIDER'
+            ? {
+                id: 'provider-' + user.id,
+                isVerified: user.isVerified,
+                address: null,
+              }
+            : null,
+        admin: user.role === 'ADMIN' ? { id: 'admin-' + user.id } : null,
+        documents: [],
+        verificationHistory: [],
+        activityLogs: [],
+      }
+    : null;
 
   // TODO: Remettre l'API réelle quand l'authentification admin sera configurée
   // const { data: user, isLoading } = api.adminUser.getUserDetail.useQuery({ userId });
@@ -364,7 +375,9 @@ export default function UserDetailPage() {
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span className="font-semibold">Last Login:</span>
                       <span>
-                        {displayUser.lastLoginAt ? format(new Date(displayUser.lastLoginAt), 'PPP') : 'Never'}
+                        {displayUser.lastLoginAt
+                          ? format(new Date(displayUser.lastLoginAt), 'PPP')
+                          : 'Never'}
                       </span>
                     </div>
                     <div className="flex items-center gap-2">
@@ -389,7 +402,9 @@ export default function UserDetailPage() {
                   <CardContent className="space-y-4">
                     <div>
                       <span className="font-semibold">Vehicle Type:</span>
-                      <span className="ml-2">{displayUser.deliverer.vehicleType || 'Not specified'}</span>
+                      <span className="ml-2">
+                        {displayUser.deliverer.vehicleType || 'Not specified'}
+                      </span>
                     </div>
                     <div>
                       <span className="font-semibold">License Plate:</span>
@@ -469,9 +484,7 @@ export default function UserDetailPage() {
                     </div>
                     <div>
                       <span className="font-semibold">Offered Services:</span>
-                      <div className="mt-1 flex flex-wrap gap-1">
-                        {'No services listed'}
-                      </div>
+                      <div className="mt-1 flex flex-wrap gap-1">{'No services listed'}</div>
                     </div>
                     <div>
                       <span className="font-semibold">Verification Status:</span>
@@ -509,9 +522,7 @@ export default function UserDetailPage() {
                     </div>
                     <div>
                       <span className="font-semibold">Permissions:</span>
-                      <div className="mt-1 flex flex-wrap gap-1">
-                        {'No specific permissions'}
-                      </div>
+                      <div className="mt-1 flex flex-wrap gap-1">{'No specific permissions'}</div>
                     </div>
                   </CardContent>
                 </Card>

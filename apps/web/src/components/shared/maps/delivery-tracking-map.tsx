@@ -1,589 +1,483 @@
 'use client';
 
-import React, { useEffect, useMemo, useState } from 'react';
-import { Marker, Popup, Polyline, Circle, useMap } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet-rotatedmarker';
-import { Truck, MapPin, Home, Store, Clock, Navigation, AlertTriangle } from 'lucide-react';
-import { cn } from '@/lib/utils/common';
-import { useTheme } from 'next-themes';
-import LeafletMap, { MapBounds, MapPoint } from '@/components/shared/maps/leaflet-map';
-import { useDeliveryLiveTracking } from '@/hooks/features/use-delivery-tracking';
-import { useDeliveryETA } from '@/hooks/delivery/use-delivery-status';
+import { useState, useEffect, useRef } from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
-import { DeliveryStatus } from '@prisma/client';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useSocket } from '@/hooks/system/use-socket';
+import { api } from '@/trpc/react';
+import {
+  MapPin,
+  Navigation,
+  Truck,
+  Clock,
+  Phone,
+  MessageCircle,
+  Route,
+  Maximize2,
+  Minimize2,
+  RefreshCw,
+  AlertTriangle,
+  Target,
+  Navigation2,
+} from 'lucide-react';
+import { cn } from '@/lib/utils/common';
 
-// Types
+interface DeliveryLocation {
+  lat: number;
+  lng: number;
+  type: 'pickup' | 'delivery' | 'current';
+  address?: string;
+  timestamp?: Date;
+}
+
 interface DeliveryTrackingMapProps {
   deliveryId: string;
   height?: string | number;
-  width?: string | number;
-  className?: string;
   showControls?: boolean;
   showEta?: boolean;
-  onRouteClick?: () => void;
-  interactiveDetails?: boolean;
   autoCenter?: boolean;
-  showTraffic?: boolean;
+  className?: string;
 }
 
-// Types pour les objets de position
-interface PositionPoint {
-  latitude: number;
-  longitude: number;
-  timestamp?: string | Date;
-}
-
-// Couleurs pour les parcours
-const COLORS = {
-  plannedRoute: '#3b82f6', // blue-500
-  actualRoute: '#8b5cf6', // violet-500
-  deviation: '#ef4444', // red-500
-  deliverer: '#8b5cf6', // violet-500
-  pickup: '#10b981', // emerald-500
-  delivery: '#3b82f6', // blue-500
-  checkpoint: '#f59e0b', // amber-500
-  issue: '#ef4444', // red-500
-};
-
-// Convertir un SVG en URL data pour les icônes
-const svgToDataUrl = (svg: string) => {
-  return `data:image/svg+xml;base64,${btoa(svg)}`;
-};
-
-// Créer un marqueur personnalisé avec un svg et une couleur
-const createCustomMarker = (icon: React.ReactNode, color: string, size = 42) => {
-  // Convertir le composant React en chaîne SVG
-  const svgString = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="${size}" height="${size}" fill="${color}" stroke="white" stroke-width="1">
-      <path d="M12 0c-4.4 0-8 3.6-8 8 0 1.5.4 2.9 1.2 4.1.3.5.7 1.1 1.2 1.7l5.6 7.9 5.6-7.9c.5-.6.8-1.1 1.2-1.7.7-1.2 1.2-2.6 1.2-4.1 0-4.4-3.6-8-8-8zm0 11c-1.7 0-3-1.3-3-3s1.3-3 3-3 3 1.3 3 3-1.3 3-3 3z"/>
-    </svg>
-  `;
-
-  // Créer une icône Leaflet
-  return L.icon({
-    iconUrl: svgToDataUrl(svgString),
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size],
-    popupAnchor: [0, -size],
-  });
-};
-
-// Créer un marqueur pour véhicule avec rotation
-const createVehicleMarker = (size = 36) => {
-  // SVG d'un camion simplifié
-  const svgString = `
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="${size}" height="${size}" fill="#8b5cf6" stroke="white" stroke-width="0.5">
-      <path d="M1,11V3c0-1.1,0.9-2,2-2h9c1.1,0,2,0.9,2,2l0,0v8l0,0c0,1.1-0.9,2-2,2H3C1.9,13,1,12.1,1,11L1,11z M18,8h1.5
-      c0.8,0,1.5,0.7,1.5,1.5V11h-3V8z M20.64,15H19v-2c0.64,0,1.4-1.08,1.64-2.56L20.64,15L20.64,15z M19,15H5
-      c-1.1,0-2-0.9-2-2v4c0,1.1,0.9,2,2,2h14c1.1,0,2-0.9,2-2v-4C21,14.1,20.1,15,19,15z M7,17.5C7,18.33,6.33,19,5.5,19S4,18.33,4,17.5
-      S4.67,16,5.5,16S7,16.67,7,17.5z M19,17.5c0,0.83-0.67,1.5-1.5,1.5s-1.5-0.67-1.5-1.5s0.67-1.5,1.5-1.5S19,16.67,19,17.5z"/>
-    </svg>
-  `;
-
-  // Créer une icône Leaflet
-  return L.icon({
-    iconUrl: svgToDataUrl(svgString),
-    iconSize: [size, size],
-    iconAnchor: [size / 2, size / 2],
-    popupAnchor: [0, -size / 2],
-  });
-};
-
-// Marqueurs personnalisés
-const ICONS = {
-  pickup: createCustomMarker(<Store />, COLORS.pickup),
-  delivery: createCustomMarker(<Home />, COLORS.delivery),
-  deliverer: createVehicleMarker(),
-  checkpoint: createCustomMarker(<MapPin />, COLORS.checkpoint),
-  issue: createCustomMarker(<AlertTriangle />, COLORS.issue),
-};
-
-// Composant pour centrer la carte automatiquement
-const AutoCenterMap = ({
-  delivererPosition,
-  pickupPosition,
-  deliveryPosition,
-  enabled = true,
-}: {
-  delivererPosition?: MapPoint;
-  pickupPosition?: MapPoint;
-  deliveryPosition?: MapPoint;
-  enabled?: boolean;
-}) => {
-  const map = useMap();
-
-  useEffect(() => {
-    if (!enabled) return;
-
-    // Créer les limites à partir des positions disponibles
-    const points: MapPoint[] = [];
-    if (delivererPosition) points.push(delivererPosition);
-    if (pickupPosition) points.push(pickupPosition);
-    if (deliveryPosition) points.push(deliveryPosition);
-
-    // S'il n'y a pas assez de points, ne pas faire de centrage
-    if (points.length < 1) return;
-
-    // S'il n'y a qu'un seul point, centrer sur celui-ci
-    if (points.length === 1) {
-      map.setView([points[0].lat, points[0].lng], 15);
-      return;
-    }
-
-    // Créer les limites et ajuster la vue
-    const bounds = L.latLngBounds(points.map(p => L.latLng(p.lat, p.lng)));
-    map.fitBounds(bounds, {
-      padding: [50, 50],
-      maxZoom: 16,
-      animate: true,
-    });
-  }, [map, delivererPosition, pickupPosition, deliveryPosition, enabled]);
-
-  return null;
-};
-
-// Carte de suivi de livraison en temps réel
-const DeliveryTrackingMap: React.FC<DeliveryTrackingMapProps> = ({
-  deliveryId,
-  height = '400px',
-  width = '100%',
-  className = '',
-  showControls = true,
-  showEta = true,
-  onRouteClick,
-  interactiveDetails = true,
-  autoCenter = true,
-  showTraffic = false,
-}) => {
-  const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === 'dark';
-  const [map, setMap] = useState<L.Map | null>(null);
-
-  // Récupérer les données de suivi
-  const { delivery, deliveryInfo, currentPosition, isLoading, startTracking, refresh } =
-    useDeliveryLiveTracking(deliveryId);
-
-  // Récupérer l'ETA
-  const { formatETA, remainingDistance, completionPercentage } = useDeliveryETA(deliveryId);
-
-  // Convertir les adresses en points de carte (si pas de géocodage déjà fait)
-  const pickupPosition = useMemo<MapPoint | undefined>(() => {
-    if (!delivery) return undefined;
-
-    if (delivery.pickupLat && delivery.pickupLng) {
-      return { lat: delivery.pickupLat, lng: delivery.pickupLng };
-    }
-
-    return undefined;
-  }, [delivery]);
-
-  const deliveryPosition = useMemo<MapPoint | undefined>(() => {
-    if (!delivery) return undefined;
-
-    if (delivery.deliveryLat && delivery.deliveryLng) {
-      return { lat: delivery.deliveryLat, lng: delivery.deliveryLng };
-    }
-
-    return undefined;
-  }, [delivery]);
-
-  // Position actuelle du livreur
-  const delivererPosition = useMemo<MapPoint | undefined>(() => {
-    if (currentPosition) {
-      return {
-        lat: currentPosition.latitude,
-        lng: currentPosition.longitude,
-      };
-    }
-
-    if (deliveryInfo?.currentLat && deliveryInfo?.currentLng) {
-      return {
-        lat: deliveryInfo.currentLat,
-        lng: deliveryInfo.currentLng,
-      };
-    }
-
-    return undefined;
-  }, [currentPosition, deliveryInfo]);
-
-  // Direction du livreur (pour la rotation du marqueur)
-  const delivererHeading = useMemo<number | undefined>(() => {
-    if (currentPosition?.heading !== undefined) {
-      return currentPosition.heading;
-    }
-    return undefined;
-  }, [currentPosition]);
-
-  // Historique du parcours réel
-  const positionHistory = useMemo(() => {
-    // Données provenant du store
-    if (
-      deliveryInfo &&
-      'positionHistory' in deliveryInfo &&
-      Array.isArray(deliveryInfo.positionHistory) &&
-      deliveryInfo.positionHistory.length > 0
-    ) {
-      return deliveryInfo.positionHistory.map(
-        (p: PositionPoint) => [p.latitude, p.longitude] as [number, number]
-      );
-    }
-
-    // Données provenant de l'API
-    if (
-      delivery &&
-      'positionHistory' in delivery &&
-      Array.isArray(delivery.positionHistory) &&
-      delivery.positionHistory.length > 0
-    ) {
-      return delivery.positionHistory.map(
-        (p: PositionPoint) => [p.latitude, p.longitude] as [number, number]
-      );
-    }
-
-    return [];
-  }, [deliveryInfo, delivery]);
-
-  // Parcours planifié
-  const plannedRoute = useMemo(() => {
-    if (
-      delivery &&
-      'plannedRoute' in delivery &&
-      Array.isArray(delivery.plannedRoute) &&
-      delivery.plannedRoute.length > 0
-    ) {
-      return delivery.plannedRoute.map(
-        (p: PositionPoint) => [p.latitude, p.longitude] as [number, number]
-      );
-    }
-    return [];
-  }, [delivery]);
-
-  // Points de passage
-  const checkpoints = useMemo(() => {
-    if (
-      delivery &&
-      'checkpoints' in delivery &&
-      Array.isArray(delivery.checkpoints) &&
-      delivery.checkpoints.length > 0
-    ) {
-      return delivery.checkpoints.map((c: any) => ({
-        position: [c.latitude, c.longitude] as [number, number],
-        label: c.label || 'Point de passage',
-        type: c.type || 'checkpoint',
-        timestamp: c.timestamp,
-      }));
-    }
-    return [];
-  }, [delivery]);
-
-  // Problèmes signalés
-  const issues = useMemo(() => {
-    if (
-      delivery &&
-      'issues' in delivery &&
-      Array.isArray(delivery.issues) &&
-      delivery.issues.length > 0
-    ) {
-      return delivery.issues.map((i: any) => ({
-        position: [i.latitude, i.longitude] as [number, number],
-        label: i.description || 'Problème',
-        type: i.type || 'issue',
-        timestamp: i.timestamp,
-      }));
-    }
-    return [];
-  }, [delivery]);
-
-  // Centre initial de la carte
-  const initialCenter = useMemo<MapPoint>(() => {
-    if (delivererPosition) return delivererPosition;
-    if (deliveryPosition) return deliveryPosition;
-    if (pickupPosition) return pickupPosition;
-
-    // Position par défaut (Paris)
-    return { lat: 48.8566, lng: 2.3522 };
-  }, [delivererPosition, deliveryPosition, pickupPosition]);
-
-  // Limites de la carte pour le centrage automatique
-  const mapBounds = useMemo<MapBounds | undefined>(() => {
-    const points: MapPoint[] = [];
-
-    if (delivererPosition) points.push(delivererPosition);
-    if (pickupPosition) points.push(pickupPosition);
-    if (deliveryPosition) points.push(deliveryPosition);
-
-    if (points.length < 2) return undefined;
-
-    // Trouver les limites des points
-    const lats = points.map(p => p.lat);
-    const lngs = points.map(p => p.lng);
-
-    const minLat = Math.min(...lats);
-    const maxLat = Math.max(...lats);
-    const minLng = Math.min(...lngs);
-    const maxLng = Math.max(...lngs);
-
-    // Ajouter une marge
-    const latMargin = (maxLat - minLat) * 0.2;
-    const lngMargin = (maxLng - minLng) * 0.2;
-
-    return {
-      northEast: { lat: maxLat + latMargin, lng: maxLng + lngMargin },
-      southWest: { lat: minLat - latMargin, lng: minLng - lngMargin },
-    };
-  }, [delivererPosition, pickupPosition, deliveryPosition]);
-
-  // URL du tile layer selon le thème
-  const tileLayerUrl = useMemo(() => {
-    if (isDark) {
-      return 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png';
-    }
-    return 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
-  }, [isDark]);
-
-  // Attribution selon le tile layer
-  const attribution = useMemo(() => {
-    if (isDark) {
-      return '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>';
-    }
-    return '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
-  }, [isDark]);
-
-  // Gérer le clic sur la carte
-  const handleMapClick = (e: L.LeafletMouseEvent) => {
-    console.log('Map clicked at:', e.latlng.lat, e.latlng.lng);
+interface DeliveryPosition {
+  deliveryId: string;
+  position: {
+    lat: number;
+    lng: number;
   };
+  heading?: number;
+  speed?: number;
+  accuracy?: number;
+  timestamp: Date;
+}
 
-  // État de livraison formaté
-  const formattedStatus = useMemo(() => {
-    if (!deliveryInfo?.status) return 'Inconnu';
+// Composant simulé de carte (à remplacer par une vraie intégration de carte)
+const MapContainer = ({
+  locations,
+  currentPosition,
+  onLocationClick,
+  height = '100%',
+  autoCenter = false,
+}: {
+  locations: DeliveryLocation[];
+  currentPosition?: DeliveryPosition;
+  onLocationClick?: (location: DeliveryLocation) => void;
+  height?: string | number;
+  autoCenter?: boolean;
+}) => {
+  const [isSimulating, setIsSimulating] = useState(false);
 
-    const statusMap: Record<string, string> = {
-      [DeliveryStatus.PENDING]: 'En attente',
-      [DeliveryStatus.ACCEPTED]: 'Acceptée',
-      [DeliveryStatus.PICKED_UP]: 'Collectée',
-      [DeliveryStatus.IN_TRANSIT]: 'En transit',
-      [DeliveryStatus.DELIVERED]: 'Livrée',
-      [DeliveryStatus.CONFIRMED]: 'Confirmée',
-      [DeliveryStatus.CANCELLED]: 'Annulée',
-    };
-
-    return statusMap[deliveryInfo.status] || deliveryInfo.status;
-  }, [deliveryInfo]);
-
-  // Rafraîchir la carte quand le centrage automatique est activé
+  // Simulation du mouvement pour la démo
   useEffect(() => {
-    if (map && delivererPosition && autoCenter) {
-      map.setView([delivererPosition.lat, delivererPosition.lng], map.getZoom());
+    if (currentPosition && !isSimulating) {
+      setIsSimulating(true);
+      const timer = setTimeout(() => setIsSimulating(false), 3000);
+      return () => clearTimeout(timer);
     }
-  }, [map, delivererPosition, autoCenter]);
-
-  // Commencer le suivi au chargement
-  useEffect(() => {
-    startTracking();
-  }, [startTracking]);
+  }, [currentPosition, isSimulating]);
 
   return (
-    <div className={cn('relative flex flex-col', className)}>
-      {/* Carte Leaflet */}
-      <LeafletMap
-        center={initialCenter}
-        zoom={14}
-        height={height}
-        width={width}
-        className="z-0 rounded-lg shadow-md"
-        onMapReady={setMap}
-        onMapClick={handleMapClick}
-        tileLayerUrl={tileLayerUrl}
-        attribution={attribution}
-        bounds={mapBounds}
-        animate={true}
-        touchZoom={true}
-        scrollWheelZoom={true}
-        dragging={true}
-        showZoomControl={true}
-      >
-        {/* Auto-centrage */}
-        <AutoCenterMap
-          delivererPosition={delivererPosition}
-          pickupPosition={pickupPosition}
-          deliveryPosition={deliveryPosition}
-          enabled={autoCenter && !isLoading}
-        />
+    <div
+      className="relative bg-muted/20 rounded-lg border flex items-center justify-center overflow-hidden"
+      style={{ height }}
+    >
+      {/* Fond de carte stylisé */}
+      <div className="absolute inset-0 bg-gradient-to-br from-blue-50 to-green-50 dark:from-blue-950/20 dark:to-green-950/20" />
 
-        {/* Marqueurs de points importants */}
-        {pickupPosition && (
-          <Marker position={[pickupPosition.lat, pickupPosition.lng]} icon={ICONS.pickup}>
-            <Popup>
-              <div className="p-2">
-                <h3 className="font-bold text-sm">Point de collecte</h3>
-                <p className="text-xs">{delivery?.pickupAddress}</p>
-              </div>
-            </Popup>
-          </Marker>
-        )}
-
-        {deliveryPosition && (
-          <Marker position={[deliveryPosition.lat, deliveryPosition.lng]} icon={ICONS.delivery}>
-            <Popup>
-              <div className="p-2">
-                <h3 className="font-bold text-sm">Point de livraison</h3>
-                <p className="text-xs">{delivery?.deliveryAddress}</p>
-              </div>
-            </Popup>
-          </Marker>
-        )}
-
-        {/* Parcours planifié */}
-        {plannedRoute.length > 0 && (
-          <Polyline
-            positions={plannedRoute}
-            color={COLORS.plannedRoute}
-            weight={4}
-            opacity={0.6}
-            dashArray="10, 10"
-            onClick={onRouteClick}
-          />
-        )}
-
-        {/* Parcours réel */}
-        {positionHistory.length > 0 && (
-          <Polyline
-            positions={positionHistory}
-            color={COLORS.actualRoute}
-            weight={4}
-            opacity={0.8}
-          />
-        )}
-
-        {/* Points de passage */}
-        {checkpoints.map((checkpoint, index) => (
-          <Marker
-            key={`checkpoint-${index}`}
-            position={checkpoint.position}
-            icon={ICONS.checkpoint}
-          >
-            <Popup>
-              <div className="p-2">
-                <h3 className="font-bold text-sm">{checkpoint.label}</h3>
-                {checkpoint.timestamp && (
-                  <p className="text-xs">{new Date(checkpoint.timestamp).toLocaleTimeString()}</p>
-                )}
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-
-        {/* Problèmes signalés */}
-        {issues.map((issue, index) => (
-          <Marker key={`issue-${index}`} position={issue.position} icon={ICONS.issue}>
-            <Popup>
-              <div className="p-2">
-                <h3 className="font-bold text-sm text-red-500">{issue.label}</h3>
-                {issue.timestamp && (
-                  <p className="text-xs">{new Date(issue.timestamp).toLocaleTimeString()}</p>
-                )}
-              </div>
-            </Popup>
-          </Marker>
-        ))}
-
-        {/* Position actuelle du livreur avec cercle de précision */}
-        {delivererPosition && (
-          <>
-            <Marker
-              position={[delivererPosition.lat, delivererPosition.lng]}
-              icon={ICONS.deliverer}
-              rotationAngle={delivererHeading}
-              rotationOrigin="center center"
-            >
-              <Popup>
-                <div className="p-2">
-                  <h3 className="font-bold text-sm">Position du livreur</h3>
-                  {deliveryInfo?.deliverer?.name && (
-                    <p className="text-xs mb-1">{deliveryInfo.deliverer.name}</p>
-                  )}
-                  <p className="text-xs">{new Date().toLocaleTimeString()}</p>
-                </div>
-              </Popup>
-            </Marker>
-
-            {/* Cercle de précision */}
-            {currentPosition?.accuracy && (
-              <Circle
-                center={[delivererPosition.lat, delivererPosition.lng]}
-                radius={currentPosition.accuracy}
-                color={COLORS.deliverer}
-                fillColor={COLORS.deliverer}
-                fillOpacity={0.1}
-                weight={1}
-              />
-            )}
-          </>
-        )}
-      </LeafletMap>
-
-      {/* Contrôles et informations */}
-      {showControls && !isLoading && deliveryInfo && (
-        <Card className="absolute bottom-4 left-4 right-4 z-10 p-3 bg-background/90 backdrop-blur-sm rounded-lg shadow-lg max-w-sm mx-auto">
-          <div className="flex flex-col space-y-2">
-            {/* Statut et ETA */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <div className="p-1.5 bg-primary/20 rounded-full">
-                  <Truck className="h-4 w-4 text-primary" />
-                </div>
-                <span className="text-sm font-medium">{formattedStatus}</span>
-              </div>
-
-              {showEta && (
-                <div className="flex items-center space-x-2">
-                  <Clock className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground">{formatETA()}</span>
-                </div>
+      {/* Éléments de la carte */}
+      <div className="relative w-full h-full p-4">
+        {/* Points de livraison */}
+        <div className="absolute top-4 left-4 space-y-2">
+          {locations.map((location, index) => (
+            <div
+              key={index}
+              className={cn(
+                'flex items-center gap-2 px-3 py-2 rounded-lg backdrop-blur-sm cursor-pointer transition-all hover:scale-105',
+                location.type === 'pickup' && 'bg-blue-100/80 dark:bg-blue-900/50',
+                location.type === 'delivery' && 'bg-green-100/80 dark:bg-green-900/50',
+                location.type === 'current' && 'bg-red-100/80 dark:bg-red-900/50'
               )}
+              onClick={() => onLocationClick?.(location)}
+            >
+              {location.type === 'pickup' && <MapPin className="h-4 w-4 text-blue-600" />}
+              {location.type === 'delivery' && <Navigation className="h-4 w-4 text-green-600" />}
+              {location.type === 'current' && <Truck className="h-4 w-4 text-red-600" />}
+              <span className="text-xs font-medium">
+                {location.type === 'pickup' && 'Récupération'}
+                {location.type === 'delivery' && 'Livraison'}
+                {location.type === 'current' && 'Position actuelle'}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Position actuelle du livreur (animée) */}
+        {currentPosition && (
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
+            <div
+              className={cn(
+                'relative flex items-center justify-center w-8 h-8 bg-red-500 rounded-full border-2 border-white shadow-lg transition-all duration-300',
+                isSimulating && 'animate-pulse scale-110'
+              )}
+            >
+              <Truck className="h-4 w-4 text-white" />
+
+              {/* Cercle de précision */}
+              <div className="absolute inset-0 border-2 border-red-300 rounded-full animate-ping opacity-75" />
             </div>
 
-            {/* Barre de progression */}
-            {typeof completionPercentage === 'number' && (
-              <div className="w-full bg-muted rounded-full h-1.5 mt-1">
-                <div
-                  className="bg-primary h-1.5 rounded-full"
-                  style={{ width: `${completionPercentage}%` }}
-                />
+            {/* Vitesse */}
+            {currentPosition.speed && (
+              <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 bg-black/70 text-white text-xs px-2 py-1 rounded">
+                {Math.round(currentPosition.speed)} km/h
               </div>
             )}
-
-            {/* Boutons d'action */}
-            <div className="flex justify-between mt-2">
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-xs px-2"
-                onClick={() => refresh()}
-              >
-                Rafraîchir
-              </Button>
-
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-xs px-2"
-                onClick={() =>
-                  map?.setView([initialCenter.lat, initialCenter.lng], 14, { animate: true })
-                }
-              >
-                <Navigation className="h-3.5 w-3.5 mr-1" />
-                Recentrer
-              </Button>
-            </div>
           </div>
-        </Card>
-      )}
+        )}
+
+        {/* Trajet (ligne pointillée) */}
+        <svg className="absolute inset-0 w-full h-full pointer-events-none">
+          <defs>
+            <pattern id="dashed" patternUnits="userSpaceOnUse" width="8" height="8">
+              <line
+                x1="0"
+                y1="4"
+                x2="8"
+                y2="4"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeDasharray="3,3"
+              />
+            </pattern>
+          </defs>
+          <path
+            d="M 20,50 Q 150,20 280,50 Q 350,80 400,120"
+            fill="none"
+            stroke="url(#dashed)"
+            strokeWidth="2"
+            className="text-primary opacity-60"
+          />
+        </svg>
+
+        {/* Légende */}
+        <div className="absolute bottom-4 right-4 bg-white/90 dark:bg-gray-900/90 rounded-lg p-3 space-y-1 text-xs backdrop-blur-sm">
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-blue-500 rounded-full" />
+            <span>Point de récupération</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-green-500 rounded-full" />
+            <span>Point de livraison</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-red-500 rounded-full" />
+            <span>Position actuelle</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default DeliveryTrackingMap;
+export default function DeliveryTrackingMap({
+  deliveryId,
+  height = '400px',
+  showControls = true,
+  showEta = true,
+  autoCenter = true,
+  className,
+}: DeliveryTrackingMapProps) {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState<DeliveryLocation | null>(null);
+  const [currentPosition, setCurrentPosition] = useState<DeliveryPosition | null>(null);
+  const { socket } = useSocket();
+
+  // Récupération des données de livraison
+  const {
+    data: delivery,
+    isLoading,
+    refetch,
+  } = api.delivery.getTrackingInfo.useQuery(
+    { deliveryId },
+    {
+      refetchInterval: 30000, // Actualisation toutes les 30 secondes
+    }
+  );
+
+  // Écoute des mises à jour temps réel via Socket.io
+  useEffect(() => {
+    if (!socket || !deliveryId) return;
+
+    const handlePositionUpdate = (data: DeliveryPosition) => {
+      if (data.deliveryId === deliveryId) {
+        setCurrentPosition(data);
+      }
+    };
+
+    const handleDeliveryStatusUpdate = () => {
+      refetch();
+    };
+
+    socket.on('delivery:position:update', handlePositionUpdate);
+    socket.on('delivery:status:update', handleDeliveryStatusUpdate);
+
+    // Rejoindre la room de tracking
+    socket.emit('delivery:join_tracking', { deliveryId });
+
+    return () => {
+      socket.off('delivery:position:update', handlePositionUpdate);
+      socket.off('delivery:status:update', handleDeliveryStatusUpdate);
+      socket.emit('delivery:leave_tracking', { deliveryId });
+    };
+  }, [socket, deliveryId, refetch]);
+
+  if (isLoading) {
+    return (
+      <Card className={className}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Route className="h-5 w-5" />
+            Suivi en temps réel
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="w-full" style={{ height }} />
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!delivery) {
+    return (
+      <Alert variant="destructive" className={className}>
+        <AlertTriangle className="h-4 w-4" />
+        <AlertDescription>
+          Impossible de charger les informations de suivi pour cette livraison.
+          <Button variant="link" className="p-0 h-auto ml-2" onClick={() => refetch()}>
+            <RefreshCw className="h-3 w-3 mr-1" />
+            Réessayer
+          </Button>
+        </AlertDescription>
+      </Alert>
+    );
+  }
+
+  // Préparation des locations pour la carte
+  const locations: DeliveryLocation[] = [
+    {
+      lat: delivery.pickupLatitude || 0,
+      lng: delivery.pickupLongitude || 0,
+      type: 'pickup',
+      address: delivery.pickupAddress,
+    },
+    {
+      lat: delivery.deliveryLatitude || 0,
+      lng: delivery.deliveryLongitude || 0,
+      type: 'delivery',
+      address: delivery.deliveryAddress,
+    },
+  ];
+
+  if (currentPosition) {
+    locations.push({
+      lat: currentPosition.position.lat,
+      lng: currentPosition.position.lng,
+      type: 'current',
+      timestamp: currentPosition.timestamp,
+    });
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'PENDING':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'ACCEPTED':
+        return 'bg-blue-100 text-blue-800';
+      case 'PICKED_UP':
+        return 'bg-purple-100 text-purple-800';
+      case 'IN_TRANSIT':
+        return 'bg-orange-100 text-orange-800';
+      case 'DELIVERED':
+        return 'bg-green-100 text-green-800';
+      case 'CANCELLED':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      PENDING: 'En attente',
+      ACCEPTED: 'Acceptée',
+      PICKED_UP: 'Récupérée',
+      IN_TRANSIT: 'En transit',
+      DELIVERED: 'Livrée',
+      CANCELLED: 'Annulée',
+    };
+    return labels[status] || status;
+  };
+
+  const calculateETA = () => {
+    if (!currentPosition || !delivery.deliveryLatitude || !delivery.deliveryLongitude) {
+      return null;
+    }
+
+    // Calcul simple de distance (à remplacer par un calcul de route réel)
+    const distanceKm =
+      Math.sqrt(
+        Math.pow(delivery.deliveryLatitude - currentPosition.position.lat, 2) +
+          Math.pow(delivery.deliveryLongitude - currentPosition.position.lng, 2)
+      ) * 111; // Approximation en km
+
+    const speed = currentPosition.speed || 30; // 30 km/h par défaut
+    const etaMinutes = Math.round((distanceKm / speed) * 60);
+
+    return etaMinutes;
+  };
+
+  const eta = calculateETA();
+
+  return (
+    <Card className={cn(className, isFullscreen && 'fixed inset-0 z-50 rounded-none')}>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Route className="h-5 w-5" />
+            Suivi en temps réel
+            {delivery.trackingCode && (
+              <Badge variant="outline" className="ml-2">
+                #{delivery.trackingCode}
+              </Badge>
+            )}
+          </CardTitle>
+
+          <div className="flex items-center gap-2">
+            <Badge className={getStatusColor(delivery.status)}>
+              {getStatusLabel(delivery.status)}
+            </Badge>
+
+            {showControls && (
+              <div className="flex gap-1">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => refetch()}
+                  className="h-8 w-8 p-0"
+                >
+                  <RefreshCw className="h-3 w-3" />
+                </Button>
+
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setIsFullscreen(!isFullscreen)}
+                  className="h-8 w-8 p-0"
+                >
+                  {isFullscreen ? (
+                    <Minimize2 className="h-3 w-3" />
+                  ) : (
+                    <Maximize2 className="h-3 w-3" />
+                  )}
+                </Button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ETA et informations */}
+        {showEta && (
+          <div className="flex items-center gap-4 text-sm text-muted-foreground">
+            {eta && (
+              <div className="flex items-center gap-1">
+                <Clock className="h-4 w-4" />
+                <span>ETA: {eta} min</span>
+              </div>
+            )}
+
+            {currentPosition?.timestamp && (
+              <div className="flex items-center gap-1">
+                <Target className="h-4 w-4" />
+                <span>
+                  Dernière position: {new Date(currentPosition.timestamp).toLocaleTimeString()}
+                </span>
+              </div>
+            )}
+
+            {delivery.deliverer && (
+              <div className="flex items-center gap-1">
+                <Truck className="h-4 w-4" />
+                <span>Livreur: {delivery.deliverer.name}</span>
+              </div>
+            )}
+          </div>
+        )}
+      </CardHeader>
+
+      <CardContent className="p-0">
+        <MapContainer
+          locations={locations}
+          currentPosition={currentPosition}
+          onLocationClick={setSelectedLocation}
+          height={isFullscreen ? 'calc(100vh - 180px)' : height}
+          autoCenter={autoCenter}
+        />
+
+        {/* Actions de contact (si en transit) */}
+        {delivery.status === 'IN_TRANSIT' && delivery.deliverer && (
+          <div className="p-4 border-t bg-muted/20">
+            <div className="flex items-center justify-between">
+              <span className="text-sm font-medium">Contact livreur</span>
+              <div className="flex gap-2">
+                <Button size="sm" variant="outline">
+                  <Phone className="h-4 w-4 mr-2" />
+                  Appeler
+                </Button>
+                <Button size="sm" variant="outline">
+                  <MessageCircle className="h-4 w-4 mr-2" />
+                  Message
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </CardContent>
+
+      {/* Modal d'information sur la location sélectionnée */}
+      {selectedLocation && (
+        <div className="absolute inset-0 bg-black/50 flex items-center justify-center p-4 z-10">
+          <div className="bg-background rounded-lg p-4 max-w-sm w-full">
+            <h3 className="font-medium mb-2">
+              {selectedLocation.type === 'pickup' && 'Point de récupération'}
+              {selectedLocation.type === 'delivery' && 'Point de livraison'}
+              {selectedLocation.type === 'current' && 'Position actuelle'}
+            </h3>
+
+            {selectedLocation.address && (
+              <p className="text-sm text-muted-foreground mb-3">{selectedLocation.address}</p>
+            )}
+
+            {selectedLocation.timestamp && (
+              <p className="text-xs text-muted-foreground mb-3">
+                {new Date(selectedLocation.timestamp).toLocaleString()}
+              </p>
+            )}
+
+            <div className="flex gap-2">
+              <Button size="sm" variant="outline" className="flex-1">
+                <Navigation2 className="h-4 w-4 mr-2" />
+                Itinéraire
+              </Button>
+              <Button size="sm" variant="outline" onClick={() => setSelectedLocation(null)}>
+                Fermer
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </Card>
+  );
+}

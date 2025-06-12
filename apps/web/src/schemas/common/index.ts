@@ -21,4 +21,3 @@ export * from './push-notification.schema';
 export * from './route.schema';
 export * from './sms.schema';
 export * from './translation.schema';
-

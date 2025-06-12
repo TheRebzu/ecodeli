@@ -6,4 +6,3 @@
 // Exports des fichiers locaux
 export { default as ContractList } from './contract-list';
 export * from './contract-list';
-

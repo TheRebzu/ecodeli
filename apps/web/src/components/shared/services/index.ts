@@ -10,4 +10,3 @@ export { default as ServiceDetail } from './service-detail';
 export * from './service-detail';
 export { default as ServiceFilter } from './service-filter';
 export * from './service-filter';
-

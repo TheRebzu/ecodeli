@@ -16,4 +16,3 @@ export { default as AnnouncementProposal } from './announcement-proposal';
 export * from './announcement-proposal';
 export { default as DelivererProposalsList } from './deliverer-proposals-list';
 export * from './deliverer-proposals-list';
-

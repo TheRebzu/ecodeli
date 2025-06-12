@@ -44,9 +44,10 @@ export function useAdminClients() {
 
   if (filters.search) {
     const searchLower = filters.search.toLowerCase();
-    filteredClients = filteredClients.filter((client: any) =>
-      client.name?.toLowerCase().includes(searchLower) ||
-      client.email?.toLowerCase().includes(searchLower)
+    filteredClients = filteredClients.filter(
+      (client: any) =>
+        client.name?.toLowerCase().includes(searchLower) ||
+        client.email?.toLowerCase().includes(searchLower)
     );
   }
 
@@ -58,7 +59,7 @@ export function useAdminClients() {
   filteredClients.sort((a: any, b: any) => {
     const field = filters.sortBy || 'createdAt';
     const direction = filters.sortDirection === 'asc' ? 1 : -1;
-    
+
     if (field === 'createdAt') {
       return direction * (new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
     }
@@ -111,7 +112,9 @@ export function useAdminClients() {
     newClientsThisMonth: clientUsers.filter((c: any) => {
       const createdAt = new Date(c.createdAt);
       const now = new Date();
-      return createdAt.getMonth() === now.getMonth() && createdAt.getFullYear() === now.getFullYear();
+      return (
+        createdAt.getMonth() === now.getMonth() && createdAt.getFullYear() === now.getFullYear()
+      );
     }).length,
   };
 
@@ -140,17 +143,17 @@ export function useAdminClients() {
       hasPrev: currentPage > 1,
     },
     stats: clientStats,
-    
+
     // State
     filters,
     currentPage,
     pageSize,
-    
+
     // Loading states
     isLoading,
     isLoadingStats: false, // Pas de loading séparé pour les stats
     error,
-    
+
     // Actions
     updateFilters,
     clearFilters,
@@ -159,4 +162,4 @@ export function useAdminClients() {
   };
 }
 
-export type AdminClient = NonNullable<ReturnType<typeof useAdminClients>['clients'][0]>; 
+export type AdminClient = NonNullable<ReturnType<typeof useAdminClients>['clients'][0]>;

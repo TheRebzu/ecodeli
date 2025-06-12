@@ -7,22 +7,20 @@ import { DeliverersTable } from '@/components/admin/deliverers/deliverers-table'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Users, 
-  Download, 
-  FileBarChart, 
-  RefreshCw, 
-  MessageCircle,
-  MapPin
-} from 'lucide-react';
+import { Users, Download, FileBarChart, RefreshCw, MessageCircle, MapPin } from 'lucide-react';
 import { api } from '@/trpc/react';
 
 export default function AdminDeliverersPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState('');
-  
+
   // 🔧 FIX: Utiliser la même API que /admin/users qui fonctionne
-  const { data: usersData, isLoading: isLoadingDeliverers, refetch: refetchDeliverers, error: deliverersError } = api.adminUser.getUsers.useQuery({
+  const {
+    data: usersData,
+    isLoading: isLoadingDeliverers,
+    refetch: refetchDeliverers,
+    error: deliverersError,
+  } = api.adminUser.getUsers.useQuery({
     page: 1,
     limit: 100, // Récupérer plus d'utilisateurs pour filtrer côté client
   });
@@ -40,9 +38,10 @@ export default function AdminDeliverersPage() {
 
   if (searchTerm) {
     const searchLower = searchTerm.toLowerCase();
-    filteredDeliverers = filteredDeliverers.filter((deliverer: any) =>
-      deliverer.name?.toLowerCase().includes(searchLower) ||
-      deliverer.email?.toLowerCase().includes(searchLower)
+    filteredDeliverers = filteredDeliverers.filter(
+      (deliverer: any) =>
+        deliverer.name?.toLowerCase().includes(searchLower) ||
+        deliverer.email?.toLowerCase().includes(searchLower)
     );
   }
 
@@ -80,7 +79,8 @@ export default function AdminDeliverersPage() {
   const safeStatsData = {
     totalDeliverers: delivererUsers.length,
     activeDeliverers: delivererUsers.filter((d: any) => d.status === 'ACTIVE').length,
-    pendingDeliverers: delivererUsers.filter((d: any) => d.status === 'PENDING_VERIFICATION').length,
+    pendingDeliverers: delivererUsers.filter((d: any) => d.status === 'PENDING_VERIFICATION')
+      .length,
     suspendedDeliverers: delivererUsers.filter((d: any) => d.status === 'SUSPENDED').length,
     totalDeliveries: 0,
     totalEarnings: 0,
@@ -99,12 +99,14 @@ export default function AdminDeliverersPage() {
     if (!safeDeliverersData?.deliverers) {
       return [];
     }
-    
+
     switch (status) {
       case 'active':
         return safeDeliverersData.deliverers.filter((d: any) => d.status === 'ACTIVE');
       case 'pending':
-        return safeDeliverersData.deliverers.filter((d: any) => d.status === 'PENDING_VERIFICATION');
+        return safeDeliverersData.deliverers.filter(
+          (d: any) => d.status === 'PENDING_VERIFICATION'
+        );
       case 'suspended':
         return safeDeliverersData.deliverers.filter((d: any) => d.status === 'SUSPENDED');
       default:
@@ -144,10 +146,7 @@ export default function AdminDeliverersPage() {
       </div>
 
       {/* Statistiques */}
-      <DeliverersStats 
-        data={safeStatsData} 
-        isLoading={isLoadingStats} 
-      />
+      <DeliverersStats data={safeStatsData} isLoading={isLoadingStats} />
 
       {/* Contenu principal avec onglets */}
       <Tabs defaultValue="all" className="space-y-4">
@@ -262,9 +261,7 @@ export default function AdminDeliverersPage() {
           <Card>
             <CardHeader>
               <CardTitle>Zones de Couverture</CardTitle>
-              <CardDescription>
-                Visualisation des zones couvertes par les livreurs
-              </CardDescription>
+              <CardDescription>Visualisation des zones couvertes par les livreurs</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="flex items-center justify-center h-64 text-muted-foreground">

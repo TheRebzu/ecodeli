@@ -444,6 +444,339 @@ export const providerRouter = router({
       return serviceService.searchProviders(input);
     }),
 
+  // Dashboard Provider - Statistiques principales
+  getDashboardStats: protectedProcedure.query(async ({ ctx }) => {
+    const userId = ctx.session.user.id;
+
+    // Vérifier que l'utilisateur est un prestataire
+    const provider = await ctx.db.user.findUnique({
+      where: { id: userId, role: 'PROVIDER' },
+      include: { provider: true },
+    });
+
+    if (!provider?.provider) {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Accès non autorisé',
+      });
+    }
+
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const startOfDay = new Date(now);
+    startOfDay.setHours(0, 0, 0, 0);
+    const endOfDay = new Date(now);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const [
+      monthlyRevenue,
+      dailyRevenue,
+      appointmentsToday,
+      appointmentsWeek,
+      completedMonth,
+      averageRating,
+      clientsServed,
+      activeContracts,
+    ] = await Promise.all([
+      // Revenus mensuels
+      ctx.db.serviceBooking.aggregate({
+        where: {
+          providerId: provider.provider.id,
+          status: 'COMPLETED',
+          completedAt: { gte: startOfMonth },
+        },
+        _sum: { price: true },
+      }),
+      // Revenus du jour
+      ctx.db.serviceBooking.aggregate({
+        where: {
+          providerId: provider.provider.id,
+          status: 'COMPLETED',
+          completedAt: { gte: startOfDay, lte: endOfDay },
+        },
+        _sum: { price: true },
+      }),
+      // RDV aujourd'hui
+      ctx.db.serviceBooking.count({
+        where: {
+          providerId: provider.provider.id,
+          scheduledDate: { gte: startOfDay, lte: endOfDay },
+          status: { in: ['CONFIRMED', 'IN_PROGRESS'] },
+        },
+      }),
+      // RDV cette semaine
+      ctx.db.serviceBooking.count({
+        where: {
+          providerId: provider.provider.id,
+          scheduledDate: {
+            gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+            lte: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000),
+          },
+          status: { in: ['CONFIRMED', 'IN_PROGRESS'] },
+        },
+      }),
+      // Interventions terminées ce mois
+      ctx.db.serviceBooking.count({
+        where: {
+          providerId: provider.provider.id,
+          status: 'COMPLETED',
+          completedAt: { gte: startOfMonth },
+        },
+      }),
+      // Note moyenne
+      ctx.db.serviceBooking.aggregate({
+        where: {
+          providerId: provider.provider.id,
+          rating: { not: null },
+        },
+        _avg: { rating: true },
+      }),
+      // Clients uniques servis ce mois
+      ctx.db.serviceBooking.groupBy({
+        by: ['clientId'],
+        where: {
+          providerId: provider.provider.id,
+          status: 'COMPLETED',
+          completedAt: { gte: startOfMonth },
+        },
+      }),
+      // Contrats actifs
+      ctx.db.providerContract.count({
+        where: {
+          providerId: provider.provider.id,
+          status: 'ACTIVE',
+        },
+      }),
+    ]);
+
+    return {
+      monthlyRevenue: monthlyRevenue._sum.price || 0,
+      dailyRevenue: dailyRevenue._sum.price || 0,
+      appointmentsToday,
+      appointmentsWeek,
+      completedMonth,
+      averageRating: averageRating._avg.rating || 0,
+      clientsServed: clientsServed.length,
+      activeContracts,
+      certificationsCount: provider.provider.certificationsCount || 0,
+      skillsCount: provider.provider.skillsCount || 0,
+    };
+  }),
+
+  // Prochains rendez-vous
+  getUpcomingAppointments: protectedProcedure
+    .input(z.object({ limit: z.number().min(1).max(20).default(5) }))
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      const provider = await ctx.db.user.findUnique({
+        where: { id: userId, role: 'PROVIDER' },
+        include: { provider: true },
+      });
+
+      if (!provider?.provider) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Accès non autorisé',
+        });
+      }
+
+      return await ctx.db.serviceBooking.findMany({
+        where: {
+          providerId: provider.provider.id,
+          scheduledDate: { gte: new Date() },
+          status: { in: ['CONFIRMED', 'IN_PROGRESS'] },
+        },
+        include: {
+          client: {
+            select: {
+              id: true,
+              profile: {
+                select: { firstName: true, lastName: true, phone: true },
+              },
+            },
+          },
+          service: {
+            select: { name: true, description: true, category: true },
+          },
+        },
+        orderBy: { scheduledDate: 'asc' },
+        take: input.limit,
+      });
+    }),
+
+  // Historique des interventions récentes
+  getRecentInterventions: protectedProcedure
+    .input(z.object({ limit: z.number().min(1).max(20).default(10) }))
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      const provider = await ctx.db.user.findUnique({
+        where: { id: userId, role: 'PROVIDER' },
+        include: { provider: true },
+      });
+
+      if (!provider?.provider) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Accès non autorisé',
+        });
+      }
+
+      return await ctx.db.serviceBooking.findMany({
+        where: {
+          providerId: provider.provider.id,
+          status: 'COMPLETED',
+        },
+        include: {
+          client: {
+            select: {
+              id: true,
+              profile: {
+                select: { firstName: true, lastName: true },
+              },
+            },
+          },
+          service: {
+            select: { name: true, category: true },
+          },
+        },
+        orderBy: { completedAt: 'desc' },
+        take: input.limit,
+      });
+    }),
+
+  // Revenus et statistiques détaillées
+  getRevenueChart: protectedProcedure
+    .input(
+      z.object({
+        period: z.enum(['week', 'month', 'quarter']).default('month'),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      const provider = await ctx.db.user.findUnique({
+        where: { id: userId, role: 'PROVIDER' },
+        include: { provider: true },
+      });
+
+      if (!provider?.provider) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Accès non autorisé',
+        });
+      }
+
+      const now = new Date();
+      let startDate: Date;
+      let groupBy: string;
+
+      switch (input.period) {
+        case 'week':
+          startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          groupBy = 'day';
+          break;
+        case 'quarter':
+          startDate = new Date(now.getTime() - 90 * 24 * 60 * 60 * 1000);
+          groupBy = 'week';
+          break;
+        default:
+          startDate = new Date(now.getFullYear(), now.getMonth() - 6, 1);
+          groupBy = 'month';
+      }
+
+      const bookings = await ctx.db.serviceBooking.findMany({
+        where: {
+          providerId: provider.provider.id,
+          status: 'COMPLETED',
+          completedAt: { gte: startDate },
+        },
+        select: {
+          price: true,
+          completedAt: true,
+        },
+        orderBy: { completedAt: 'asc' },
+      });
+
+      // Grouper les données par période
+      const chartData: Array<{ date: string; revenue: number; count: number }> = [];
+      const groupedData = new Map<string, { revenue: number; count: number }>();
+
+      bookings.forEach(booking => {
+        if (!booking.completedAt) return;
+
+        let key: string;
+        if (groupBy === 'day') {
+          key = booking.completedAt.toISOString().split('T')[0];
+        } else if (groupBy === 'week') {
+          const weekStart = new Date(booking.completedAt);
+          weekStart.setDate(weekStart.getDate() - weekStart.getDay());
+          key = weekStart.toISOString().split('T')[0];
+        } else {
+          key = `${booking.completedAt.getFullYear()}-${String(booking.completedAt.getMonth() + 1).padStart(2, '0')}`;
+        }
+
+        const existing = groupedData.get(key) || { revenue: 0, count: 0 };
+        groupedData.set(key, {
+          revenue: existing.revenue + booking.price,
+          count: existing.count + 1,
+        });
+      });
+
+      groupedData.forEach((value, key) => {
+        chartData.push({
+          date: key,
+          revenue: value.revenue,
+          count: value.count,
+        });
+      });
+
+      return chartData.sort((a, b) => a.date.localeCompare(b.date));
+    }),
+
+  // Évaluations récentes
+  getRecentRatings: protectedProcedure
+    .input(z.object({ limit: z.number().min(1).max(10).default(5) }))
+    .query(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      const provider = await ctx.db.user.findUnique({
+        where: { id: userId, role: 'PROVIDER' },
+        include: { provider: true },
+      });
+
+      if (!provider?.provider) {
+        throw new TRPCError({
+          code: 'FORBIDDEN',
+          message: 'Accès non autorisé',
+        });
+      }
+
+      return await ctx.db.serviceBooking.findMany({
+        where: {
+          providerId: provider.provider.id,
+          rating: { not: null },
+          review: { not: null },
+        },
+        include: {
+          client: {
+            select: {
+              id: true,
+              profile: {
+                select: { firstName: true, lastName: true },
+              },
+            },
+          },
+          service: {
+            select: { name: true },
+          },
+        },
+        orderBy: { completedAt: 'desc' },
+        take: input.limit,
+      });
+    }),
+
   // Profil public du prestataire
   getPublicProfile: publicProcedure
     .input(z.object({ providerId: z.string() }))

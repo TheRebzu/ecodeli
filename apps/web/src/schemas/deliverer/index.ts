@@ -10,4 +10,3 @@ export * from './deliverer-earnings.schema';
 export * from './deliverer-register.schema';
 export * from './nfc-card.schema';
 export * from './planned-route.schema';
-

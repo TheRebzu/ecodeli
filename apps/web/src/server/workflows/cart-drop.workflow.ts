@@ -7,10 +7,10 @@ import { PrismaClient } from '@prisma/client';
 import { logger } from '@/lib/utils/logger';
 import { CartDropService, CartDropOrder } from '../services/matching/cart-drop.service';
 
-export type CartDropStatus = 
+export type CartDropStatus =
   | 'CREATED'
   | 'PAYMENT_PENDING'
-  | 'PAYMENT_FAILED' 
+  | 'PAYMENT_FAILED'
   | 'CONFIRMED'
   | 'PREPARING'
   | 'READY_FOR_PICKUP'
@@ -63,19 +63,12 @@ export class CartDropWorkflow {
       // Créer la commande
       const order = await this.cartDropService.createCartDropOrder(orderData);
 
-      await this.logEvent(
-        order.id,
-        'ORDER_CREATED',
-        'CREATED',
-        'PAYMENT_PENDING',
-        'SYSTEM',
-        { 
-          clientId: order.clientId,
-          merchantId: order.merchantId,
-          totalPrice: order.totalPrice,
-          productCount: order.products.length
-        }
-      );
+      await this.logEvent(order.id, 'ORDER_CREATED', 'CREATED', 'PAYMENT_PENDING', 'SYSTEM', {
+        clientId: order.clientId,
+        merchantId: order.merchantId,
+        totalPrice: order.totalPrice,
+        productCount: order.products.length,
+      });
 
       // Programmer le timeout de paiement
       await this.schedulePaymentTimeout(order.id);
@@ -104,7 +97,7 @@ export class CartDropWorkflow {
   ): Promise<void> {
     try {
       const currentStatus = await this.getOrderStatus(orderId);
-      
+
       if (currentStatus !== 'PAYMENT_PENDING') {
         throw new Error('Paiement non attendu pour cette commande');
       }
@@ -139,10 +132,7 @@ export class CartDropWorkflow {
   /**
    * Traite l'échec de paiement
    */
-  async handlePaymentFailure(
-    orderId: string,
-    failureReason: string
-  ): Promise<void> {
+  async handlePaymentFailure(orderId: string, failureReason: string): Promise<void> {
     try {
       await this.logEvent(
         orderId,
@@ -166,20 +156,17 @@ export class CartDropWorkflow {
 
       logger.info(`Paiement échoué pour la commande ${orderId}: ${failureReason}`);
     } catch (error) {
-      logger.error('Erreur lors du traitement de l\'échec de paiement:', error);
+      logger.error("Erreur lors du traitement de l'échec de paiement:", error);
     }
   }
 
   /**
    * Traite le début de préparation
    */
-  async handlePreparationStarted(
-    orderId: string,
-    merchantStaffId: string
-  ): Promise<void> {
+  async handlePreparationStarted(orderId: string, merchantStaffId: string): Promise<void> {
     try {
       const currentStatus = await this.getOrderStatus(orderId);
-      
+
       if (currentStatus !== 'CONFIRMED') {
         throw new Error('Commande non confirmée');
       }
@@ -225,16 +212,17 @@ export class CartDropWorkflow {
   ): Promise<void> {
     try {
       const currentStatus = await this.getOrderStatus(orderId);
-      
+
       if (currentStatus !== 'PREPARING') {
         throw new Error('Commande non en préparation');
       }
 
       // Contrôle qualité si activé
       if (this.config.qualityControlEnabled && qualityCheck) {
-        const qualityOk = qualityCheck.allItemsPresent && 
-                         qualityCheck.packagingCorrect && 
-                         qualityCheck.specialInstructionsFollowed;
+        const qualityOk =
+          qualityCheck.allItemsPresent &&
+          qualityCheck.packagingCorrect &&
+          qualityCheck.specialInstructionsFollowed;
 
         if (!qualityOk) {
           await this.handleQualityCheckFailure(orderId, qualityCheck);
@@ -274,25 +262,17 @@ export class CartDropWorkflow {
   /**
    * Traite l'assignation du livreur
    */
-  async handleDelivererAssigned(
-    orderId: string,
-    delivererId: string
-  ): Promise<void> {
+  async handleDelivererAssigned(orderId: string, delivererId: string): Promise<void> {
     try {
       const currentStatus = await this.getOrderStatus(orderId);
-      
+
       if (currentStatus !== 'READY_FOR_PICKUP') {
         throw new Error('Commande non prête pour assignation');
       }
 
-      await this.logEvent(
-        orderId,
-        'DELIVERER_ASSIGNED',
-        'READY_FOR_PICKUP',
-        'ASSIGNED',
-        'SYSTEM',
-        { delivererId }
-      );
+      await this.logEvent(orderId, 'DELIVERER_ASSIGNED', 'READY_FOR_PICKUP', 'ASSIGNED', 'SYSTEM', {
+        delivererId,
+      });
 
       await this.updateOrderStatus(orderId, 'ASSIGNED');
 
@@ -310,7 +290,7 @@ export class CartDropWorkflow {
 
       logger.info(`Livreur ${delivererId} assigné à la commande ${orderId}`);
     } catch (error) {
-      logger.error('Erreur lors de l\'assignation du livreur:', error);
+      logger.error("Erreur lors de l'assignation du livreur:", error);
       throw error;
     }
   }
@@ -330,7 +310,7 @@ export class CartDropWorkflow {
   ): Promise<void> {
     try {
       const currentStatus = await this.getOrderStatus(orderId);
-      
+
       if (currentStatus !== 'ASSIGNED') {
         throw new Error('Commande non assignée à ce livreur');
       }
@@ -341,14 +321,9 @@ export class CartDropWorkflow {
         throw new Error('Code de collecte invalide');
       }
 
-      await this.logEvent(
-        orderId,
-        'ORDER_PICKED_UP',
-        'ASSIGNED',
-        'PICKED_UP',
-        delivererId,
-        { pickupData }
-      );
+      await this.logEvent(orderId, 'ORDER_PICKED_UP', 'ASSIGNED', 'PICKED_UP', delivererId, {
+        pickupData,
+      });
 
       await this.updateOrderStatus(orderId, 'PICKED_UP');
 
@@ -365,18 +340,9 @@ export class CartDropWorkflow {
   /**
    * Traite le début de livraison
    */
-  async handleDeliveryStarted(
-    orderId: string,
-    delivererId: string
-  ): Promise<void> {
+  async handleDeliveryStarted(orderId: string, delivererId: string): Promise<void> {
     try {
-      await this.logEvent(
-        orderId,
-        'DELIVERY_STARTED',
-        'PICKED_UP',
-        'IN_DELIVERY',
-        delivererId
-      );
+      await this.logEvent(orderId, 'DELIVERY_STARTED', 'PICKED_UP', 'IN_DELIVERY', delivererId);
 
       await this.updateOrderStatus(orderId, 'IN_DELIVERY');
 
@@ -418,7 +384,7 @@ export class CartDropWorkflow {
   ): Promise<void> {
     try {
       const currentStatus = await this.getOrderStatus(orderId);
-      
+
       if (currentStatus !== 'IN_DELIVERY') {
         throw new Error('Livraison non en cours');
       }
@@ -430,19 +396,17 @@ export class CartDropWorkflow {
       }
 
       // Vérifier la localisation (tolérance de 100m)
-      const isValidLocation = await this.validateDeliveryLocation(orderId, deliveryData.deliveryLocation);
+      const isValidLocation = await this.validateDeliveryLocation(
+        orderId,
+        deliveryData.deliveryLocation
+      );
       if (!isValidLocation) {
         throw new Error('Localisation de livraison incorrecte');
       }
 
-      await this.logEvent(
-        orderId,
-        'DELIVERY_COMPLETED',
-        'IN_DELIVERY',
-        'DELIVERED',
-        delivererId,
-        { deliveryData }
-      );
+      await this.logEvent(orderId, 'DELIVERY_COMPLETED', 'IN_DELIVERY', 'DELIVERED', delivererId, {
+        deliveryData,
+      });
 
       await this.updateOrderStatus(orderId, 'DELIVERED');
 
@@ -479,20 +443,16 @@ export class CartDropWorkflow {
   ): Promise<void> {
     try {
       const currentStatus = await this.getOrderStatus(orderId);
-      
+
       // Vérifier si l'annulation est possible
       if (['DELIVERED', 'COMPLETED'].includes(currentStatus)) {
-        throw new Error('Impossible d\'annuler une commande livrée');
+        throw new Error("Impossible d'annuler une commande livrée");
       }
 
-      await this.logEvent(
-        orderId,
-        'ORDER_CANCELLED',
-        currentStatus,
-        'CANCELLED',
-        cancelledBy,
-        { reason, refundRequired }
-      );
+      await this.logEvent(orderId, 'ORDER_CANCELLED', currentStatus, 'CANCELLED', cancelledBy, {
+        reason,
+        refundRequired,
+      });
 
       await this.updateOrderStatus(orderId, 'CANCELLED');
 
@@ -500,7 +460,10 @@ export class CartDropWorkflow {
       await this.handleCancellationCleanup(orderId, currentStatus);
 
       // Traiter le remboursement si nécessaire
-      if (refundRequired && ['CONFIRMED', 'PREPARING', 'READY_FOR_PICKUP', 'ASSIGNED'].includes(currentStatus)) {
+      if (
+        refundRequired &&
+        ['CONFIRMED', 'PREPARING', 'READY_FOR_PICKUP', 'ASSIGNED'].includes(currentStatus)
+      ) {
         await this.processRefund(orderId);
       }
 
@@ -509,7 +472,7 @@ export class CartDropWorkflow {
 
       logger.info(`Commande ${orderId} annulée par ${cancelledBy}: ${reason}`);
     } catch (error) {
-      logger.error('Erreur lors de l\'annulation:', error);
+      logger.error("Erreur lors de l'annulation:", error);
       throw error;
     }
   }
@@ -560,7 +523,7 @@ export class CartDropWorkflow {
   private async triggerDelivererAssignment(orderId: string): Promise<void> {
     // Déclencher l'assignation automatique
     const result = await this.cartDropService.assignDelivererToOrder(orderId);
-    
+
     if (result.success && result.delivererId) {
       await this.handleDelivererAssigned(orderId, result.delivererId);
     }
@@ -574,52 +537,58 @@ export class CartDropWorkflow {
   }
 
   private async completeOrder(orderId: string): Promise<void> {
-    await this.logEvent(
-      orderId,
-      'ORDER_COMPLETED',
-      'DELIVERED',
-      'COMPLETED',
-      'SYSTEM'
-    );
+    await this.logEvent(orderId, 'ORDER_COMPLETED', 'DELIVERED', 'COMPLETED', 'SYSTEM');
 
     await this.updateOrderStatus(orderId, 'COMPLETED');
   }
 
   // Méthodes de timeout et planification
   private async schedulePaymentTimeout(orderId: string): Promise<void> {
-    setTimeout(async () => {
-      const status = await this.getOrderStatus(orderId);
-      if (status === 'PAYMENT_PENDING') {
-        await this.handlePaymentFailure(orderId, 'Timeout de paiement');
-      }
-    }, this.config.paymentTimeoutMinutes * 60 * 1000);
+    setTimeout(
+      async () => {
+        const status = await this.getOrderStatus(orderId);
+        if (status === 'PAYMENT_PENDING') {
+          await this.handlePaymentFailure(orderId, 'Timeout de paiement');
+        }
+      },
+      this.config.paymentTimeoutMinutes * 60 * 1000
+    );
   }
 
   private async schedulePreparationTimeout(orderId: string): Promise<void> {
-    setTimeout(async () => {
-      const status = await this.getOrderStatus(orderId);
-      if (status === 'PREPARING') {
-        await this.handlePreparationDelay(orderId);
-      }
-    }, this.config.preparationTimeMinutes * 60 * 1000);
+    setTimeout(
+      async () => {
+        const status = await this.getOrderStatus(orderId);
+        if (status === 'PREPARING') {
+          await this.handlePreparationDelay(orderId);
+        }
+      },
+      this.config.preparationTimeMinutes * 60 * 1000
+    );
   }
 
   private async schedulePickupTimeout(orderId: string): Promise<void> {
-    setTimeout(async () => {
-      const status = await this.getOrderStatus(orderId);
-      if (status === 'ASSIGNED') {
-        await this.handlePickupTimeout(orderId);
-      }
-    }, this.config.pickupTimeoutMinutes * 60 * 1000);
+    setTimeout(
+      async () => {
+        const status = await this.getOrderStatus(orderId);
+        if (status === 'ASSIGNED') {
+          await this.handlePickupTimeout(orderId);
+        }
+      },
+      this.config.pickupTimeoutMinutes * 60 * 1000
+    );
   }
 
   private async scheduleDeliveryTimeout(orderId: string): Promise<void> {
-    setTimeout(async () => {
-      const status = await this.getOrderStatus(orderId);
-      if (status === 'IN_DELIVERY') {
-        await this.handleDeliveryTimeout(orderId);
-      }
-    }, this.config.deliveryTimeoutMinutes * 60 * 1000);
+    setTimeout(
+      async () => {
+        const status = await this.getOrderStatus(orderId);
+        if (status === 'IN_DELIVERY') {
+          await this.handleDeliveryTimeout(orderId);
+        }
+      },
+      this.config.deliveryTimeoutMinutes * 60 * 1000
+    );
   }
 
   // Méthodes de gestion des timeouts
@@ -653,7 +622,10 @@ export class CartDropWorkflow {
     logger.warn(`Échec du contrôle qualité pour la commande ${orderId}`);
   }
 
-  private async handleCancellationCleanup(orderId: string, currentStatus: CartDropStatus): Promise<void> {
+  private async handleCancellationCleanup(
+    orderId: string,
+    currentStatus: CartDropStatus
+  ): Promise<void> {
     switch (currentStatus) {
       case 'CONFIRMED':
       case 'PREPARING':
@@ -776,11 +748,17 @@ export class CartDropWorkflow {
     logger.info(`Notification assignation envoyée au livreur ${delivererId} pour ${orderId}`);
   }
 
-  private async notifyCustomerDelivererAssigned(orderId: string, delivererId: string): Promise<void> {
+  private async notifyCustomerDelivererAssigned(
+    orderId: string,
+    delivererId: string
+  ): Promise<void> {
     logger.info(`Notification livreur assigné envoyée au client pour ${orderId}`);
   }
 
-  private async notifyMerchantDelivererAssigned(orderId: string, delivererId: string): Promise<void> {
+  private async notifyMerchantDelivererAssigned(
+    orderId: string,
+    delivererId: string
+  ): Promise<void> {
     logger.info(`Notification livreur assigné envoyée au commerçant pour ${orderId}`);
   }
 

@@ -27,7 +27,7 @@ import {
 
 import { api } from '@/trpc/react';
 import { cn } from '@/lib/utils/common';
-import { formatCurrency, formatDate  } from '@/utils/document-utils';
+import { formatCurrency, formatDate } from '@/utils/document-utils';
 import { useToast } from '@/components/ui/use-toast';
 
 import {

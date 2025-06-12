@@ -10,4 +10,3 @@ export { default as ContractStatus } from './contract-status';
 export * from './contract-status';
 export { default as ContractViewer } from './contract-viewer';
 export * from './contract-viewer';
-

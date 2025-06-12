@@ -60,7 +60,11 @@ export default function UserDocumentsList({ userId }: UserDocumentsListProps) {
   const [documentToApprove, setDocumentToApprove] = useState<string | null>(null);
 
   // 🔧 FIX: Utiliser l'API adminUser.getUsers qui fonctionne au lieu de getUserDetail
-  const { data: usersData, isLoading, refetch } = api.adminUser.getUsers.useQuery({
+  const {
+    data: usersData,
+    isLoading,
+    refetch,
+  } = api.adminUser.getUsers.useQuery({
     page: 1,
     limit: 100,
   });
@@ -70,23 +74,27 @@ export default function UserDocumentsList({ userId }: UserDocumentsListProps) {
   const userData = allUsers.find((user: any) => user.id === userId);
 
   // Simuler des documents pour la démo (l'utilisateur Sophia a des documents)
-  const mockDocuments = userData ? [
-    {
-      id: `doc-${userData.id}-1`,
-      type: 'ID_CARD',
-      status: 'PENDING',
-      uploadedAt: '2025-04-17T10:00:00Z',
-      createdAt: '2025-04-17T10:00:00Z',
-      fileUrl: '/uploads/id-card-example.jpg',
-      notes: 'Document d\'identité'
-    }
-  ] : [];
+  const mockDocuments = userData
+    ? [
+        {
+          id: `doc-${userData.id}-1`,
+          type: 'ID_CARD',
+          status: 'PENDING',
+          uploadedAt: '2025-04-17T10:00:00Z',
+          createdAt: '2025-04-17T10:00:00Z',
+          fileUrl: '/uploads/id-card-example.jpg',
+          notes: "Document d'identité",
+        },
+      ]
+    : [];
 
   // Ajouter les documents simulés à userData
-  const userDataWithDocs = userData ? {
-    ...userData,
-    documents: mockDocuments
-  } : null;
+  const userDataWithDocs = userData
+    ? {
+        ...userData,
+        documents: mockDocuments,
+      }
+    : null;
 
   // 🔧 FIX: Simuler les mutations pour la démo (à remplacer par les vraies APIs)
   const approveDocumentMutation = {
@@ -98,7 +106,7 @@ export default function UserDocumentsList({ userId }: UserDocumentsListProps) {
         setApprovalNotes('');
         refetch();
       }, 1000);
-    }
+    },
   };
 
   const rejectDocumentMutation = {
@@ -110,7 +118,7 @@ export default function UserDocumentsList({ userId }: UserDocumentsListProps) {
         setRejectionReason('');
         refetch();
       }, 1000);
-    }
+    },
   };
 
   const handleTabChange = (value: string) => {
@@ -231,7 +239,9 @@ export default function UserDocumentsList({ userId }: UserDocumentsListProps) {
         <div>
           <h1 className="text-2xl font-bold">{t('userDocumentsTitle', 'User Documents')}</h1>
           <p className="text-muted-foreground">
-            {userDataWithDocs?.name ? `${userDataWithDocs.name} (${userDataWithDocs.email})` : t('loading', 'Loading...')}
+            {userDataWithDocs?.name
+              ? `${userDataWithDocs.name} (${userDataWithDocs.email})`
+              : t('loading', 'Loading...')}
           </p>
         </div>
         <Button variant="outline" onClick={handleBackToUsers}>

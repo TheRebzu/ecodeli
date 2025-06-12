@@ -6,23 +6,36 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { 
-  DownloadIcon, 
-  PlusIcon, 
-  UsersIcon, 
-  EyeIcon, 
-  EditIcon, 
-  BanIcon, 
-  LoaderIcon, 
+import {
+  DownloadIcon,
+  PlusIcon,
+  UsersIcon,
+  EyeIcon,
+  EditIcon,
+  BanIcon,
+  LoaderIcon,
   RefreshCcwIcon,
   Store,
-  Package
+  Package,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { api } from '@/trpc/react';
 
 // Fonctions de formatage
@@ -54,7 +67,12 @@ export default function AdminMerchantsPage() {
   });
 
   // 🔧 FIX: Utiliser la même API que /admin/users qui fonctionne
-  const { data: usersData, isLoading, error, refetch } = api.adminUser.getUsers.useQuery({
+  const {
+    data: usersData,
+    isLoading,
+    error,
+    refetch,
+  } = api.adminUser.getUsers.useQuery({
     page: 1,
     limit: 100, // Récupérer plus d'utilisateurs pour filtrer côté client
   });
@@ -72,14 +90,17 @@ export default function AdminMerchantsPage() {
 
   if (filters.search) {
     const searchLower = filters.search.toLowerCase();
-    filteredMerchants = filteredMerchants.filter((merchant: any) =>
-      merchant.name?.toLowerCase().includes(searchLower) ||
-      merchant.email?.toLowerCase().includes(searchLower)
+    filteredMerchants = filteredMerchants.filter(
+      (merchant: any) =>
+        merchant.name?.toLowerCase().includes(searchLower) ||
+        merchant.email?.toLowerCase().includes(searchLower)
     );
   }
 
   if (filters.status) {
-    filteredMerchants = filteredMerchants.filter((merchant: any) => merchant.status === filters.status);
+    filteredMerchants = filteredMerchants.filter(
+      (merchant: any) => merchant.status === filters.status
+    );
   }
 
   // Trier les marchands
@@ -130,7 +151,9 @@ export default function AdminMerchantsPage() {
     newMerchantsThisMonth: merchantUsers.filter((m: any) => {
       const createdAt = new Date(m.createdAt);
       const now = new Date();
-      return createdAt.getMonth() === now.getMonth() && createdAt.getFullYear() === now.getFullYear();
+      return (
+        createdAt.getMonth() === now.getMonth() && createdAt.getFullYear() === now.getFullYear()
+      );
     }).length,
   };
 
@@ -186,7 +209,6 @@ export default function AdminMerchantsPage() {
 
   return (
     <div className="container mx-auto py-6 space-y-8">
-
       <div className="flex flex-col space-y-2 md:flex-row md:items-center md:justify-between md:space-y-0">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Gestion des Marchands</h1>
@@ -242,11 +264,15 @@ export default function AdminMerchantsPage() {
                 </div>
                 <div className="flex flex-col space-y-1">
                   <span className="text-sm text-muted-foreground">Marchands suspendus</span>
-                  <span className="text-2xl font-bold text-red-600">{stats.suspendedMerchants}</span>
+                  <span className="text-2xl font-bold text-red-600">
+                    {stats.suspendedMerchants}
+                  </span>
                 </div>
                 <div className="flex flex-col space-y-1">
                   <span className="text-sm text-muted-foreground">Nouveaux ce mois</span>
-                  <span className="text-2xl font-bold text-blue-600">{stats.newMerchantsThisMonth}</span>
+                  <span className="text-2xl font-bold text-blue-600">
+                    {stats.newMerchantsThisMonth}
+                  </span>
                 </div>
               </div>
             </CardContent>
@@ -260,14 +286,11 @@ export default function AdminMerchantsPage() {
                   <Input
                     placeholder="Rechercher par nom, email ou entreprise..."
                     value={filters.search || ''}
-                    onChange={(e) => handleSearchChange(e.target.value)}
+                    onChange={e => handleSearchChange(e.target.value)}
                   />
                 </div>
                 <div className="w-48">
-                  <Select 
-                    value={filters.status || 'all'} 
-                    onValueChange={handleStatusChange}
-                  >
+                  <Select value={filters.status || 'all'} onValueChange={handleStatusChange}>
                     <SelectTrigger>
                       <SelectValue placeholder="Filtrer par statut" />
                     </SelectTrigger>
@@ -280,11 +303,7 @@ export default function AdminMerchantsPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={clearFilters}
-                >
+                <Button variant="outline" size="sm" onClick={clearFilters}>
                   Effacer les filtres
                 </Button>
               </div>
@@ -328,10 +347,12 @@ export default function AdminMerchantsPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead className="w-12">
-                        <input 
+                        <input
                           type="checkbox"
-                          checked={selectedMerchantIds.length === merchants.length && merchants.length > 0}
-                          onChange={(e) => handleSelectAll(e.target.checked)}
+                          checked={
+                            selectedMerchantIds.length === merchants.length && merchants.length > 0
+                          }
+                          onChange={e => handleSelectAll(e.target.checked)}
                         />
                       </TableHead>
                       <TableHead>Marchand</TableHead>
@@ -355,10 +376,10 @@ export default function AdminMerchantsPage() {
                       merchants.map((merchant: any) => (
                         <TableRow key={merchant.id}>
                           <TableCell>
-                            <input 
+                            <input
                               type="checkbox"
                               checked={selectedMerchantIds.includes(merchant.id)}
-                              onChange={(e) => handleMerchantSelection(merchant.id, e.target.checked)}
+                              onChange={e => handleMerchantSelection(merchant.id, e.target.checked)}
                             />
                           </TableCell>
                           <TableCell>
@@ -372,18 +393,28 @@ export default function AdminMerchantsPage() {
                             <div className="text-sm">
                               {merchant.merchant?.city}, {merchant.merchant?.postalCode}
                               <br />
-                              <span className="text-muted-foreground">{merchant.merchant?.country}</span>
+                              <span className="text-muted-foreground">
+                                {merchant.merchant?.country}
+                              </span>
                             </div>
                           </TableCell>
                           <TableCell>
-                            <Badge variant={merchant.status === 'ACTIVE' ? 'default' : 'destructive'}>
-                              {merchant.status === 'ACTIVE' ? 'Actif' : 
-                               merchant.status === 'PENDING_VERIFICATION' ? 'En attente' : 
-                               merchant.status === 'SUSPENDED' ? 'Suspendu' : 'Inactif'}
+                            <Badge
+                              variant={merchant.status === 'ACTIVE' ? 'default' : 'destructive'}
+                            >
+                              {merchant.status === 'ACTIVE'
+                                ? 'Actif'
+                                : merchant.status === 'PENDING_VERIFICATION'
+                                  ? 'En attente'
+                                  : merchant.status === 'SUSPENDED'
+                                    ? 'Suspendu'
+                                    : 'Inactif'}
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <div className="text-sm font-medium">{merchant.stats?.totalProducts || 0}</div>
+                            <div className="text-sm font-medium">
+                              {merchant.stats?.totalProducts || 0}
+                            </div>
                             <div className="text-xs text-muted-foreground">
                               {merchant.stats?.totalOrders || 0} commandes
                             </div>
@@ -426,8 +457,8 @@ export default function AdminMerchantsPage() {
           {totalPages > 1 && (
             <div className="flex items-center justify-between">
               <div className="text-sm text-muted-foreground">
-                Affichage de {merchants.length} marchand(s) sur {totalMerchants} au total
-                (Page {currentPage} sur {totalPages})
+                Affichage de {merchants.length} marchand(s) sur {totalMerchants} au total (Page{' '}
+                {currentPage} sur {totalPages})
               </div>
               <div className="flex space-x-2">
                 <Button
@@ -455,9 +486,7 @@ export default function AdminMerchantsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Statistiques Détaillées</CardTitle>
-              <CardDescription>
-                Analyse complète des marchands et de leur activité
-              </CardDescription>
+              <CardDescription>Analyse complète des marchands et de leur activité</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid gap-6 md:grid-cols-2">

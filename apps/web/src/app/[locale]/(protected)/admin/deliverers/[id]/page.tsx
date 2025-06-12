@@ -54,8 +54,13 @@ export default function DelivererDetailPage() {
   } | null>(null);
 
   // Récupérer les données du livreur depuis la base de données
-  const { data: delivererData, isLoading, error, refetch } = api.admin.deliverers.getById.useQuery({
-    id: delivererId
+  const {
+    data: delivererData,
+    isLoading,
+    error,
+    refetch,
+  } = api.admin.deliverers.getById.useQuery({
+    id: delivererId,
   });
 
   // Mutations pour les actions
@@ -67,7 +72,7 @@ export default function DelivererDetailPage() {
       });
       refetch();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: 'Erreur lors de la mise à jour du statut: ' + error.message,
@@ -100,7 +105,11 @@ export default function DelivererDetailPage() {
   const getStatusBadge = (status: DelivererStatus) => {
     switch (status) {
       case 'ACTIVE':
-        return <Badge variant="default" className="bg-green-100 text-green-800">Actif</Badge>;
+        return (
+          <Badge variant="default" className="bg-green-100 text-green-800">
+            Actif
+          </Badge>
+        );
       case 'INACTIVE':
         return <Badge variant="secondary">Inactif</Badge>;
       case 'SUSPENDED':
@@ -182,7 +191,8 @@ export default function DelivererDetailPage() {
   const handleSuspendDeliverer = () => {
     setDialogAction({
       title: 'Suspendre le livreur',
-      description: 'Êtes-vous sûr de vouloir suspendre ce livreur ? Il perdra l\'accès à la plateforme.',
+      description:
+        "Êtes-vous sûr de vouloir suspendre ce livreur ? Il perdra l'accès à la plateforme.",
       action: () => {
         updateDelivererStatusMutation.mutate({
           userId: delivererId,
@@ -201,7 +211,8 @@ export default function DelivererDetailPage() {
         <div className="flex items-center space-x-4">
           <Avatar className="h-16 w-16">
             <AvatarFallback className="text-lg">
-              {deliverer.firstName[0]}{deliverer.lastName[0]}
+              {deliverer.firstName[0]}
+              {deliverer.lastName[0]}
             </AvatarFallback>
           </Avatar>
           <div>
@@ -215,7 +226,7 @@ export default function DelivererDetailPage() {
             </div>
           </div>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <Button variant="outline" asChild>
             <Link href={`/admin/deliverers/${deliverer.id}/edit`}>
@@ -224,8 +235,8 @@ export default function DelivererDetailPage() {
             </Link>
           </Button>
           {deliverer.status === 'ACTIVE' ? (
-            <Button 
-              variant="destructive" 
+            <Button
+              variant="destructive"
               onClick={handleSuspendDeliverer}
               disabled={updateDelivererStatusMutation.isPending}
             >
@@ -233,8 +244,8 @@ export default function DelivererDetailPage() {
               Suspendre
             </Button>
           ) : (
-            <Button 
-              variant="default" 
+            <Button
+              variant="default"
               onClick={handleActivateDeliverer}
               disabled={updateDelivererStatusMutation.isPending}
             >
@@ -261,7 +272,7 @@ export default function DelivererDetailPage() {
             </p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Note moyenne</CardTitle>
@@ -273,11 +284,15 @@ export default function DelivererDetailPage() {
               <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
             </div>
             <p className="text-xs text-muted-foreground">
-              {deliverer.rating >= 4 ? 'Excellent service' : deliverer.rating >= 3 ? 'Bon service' : 'Service à améliorer'}
+              {deliverer.rating >= 4
+                ? 'Excellent service'
+                : deliverer.rating >= 3
+                  ? 'Bon service'
+                  : 'Service à améliorer'}
             </p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Gains totaux</CardTitle>
@@ -290,7 +305,7 @@ export default function DelivererDetailPage() {
             </p>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Zones couvertes</CardTitle>
@@ -298,9 +313,7 @@ export default function DelivererDetailPage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{deliverer.preferredZones.length}</div>
-            <p className="text-xs text-muted-foreground">
-              {deliverer.preferredZones.join(', ')}
-            </p>
+            <p className="text-xs text-muted-foreground">{deliverer.preferredZones.join(', ')}</p>
           </CardContent>
         </Card>
       </div>
@@ -375,7 +388,7 @@ export default function DelivererDetailPage() {
                     )}
                   </div>
                 </div>
-                
+
                 <div>
                   <p className="text-sm font-medium mb-2">Zones préférées</p>
                   <div className="flex flex-wrap gap-1">
@@ -386,12 +399,13 @@ export default function DelivererDetailPage() {
                     ))}
                   </div>
                 </div>
-                
+
                 <div>
                   <p className="text-sm font-medium mb-1">Taux de réussite</p>
                   <div className="flex items-center gap-2">
                     <div className="text-sm text-muted-foreground">
-                      {getCompletionRate()}% ({deliverer.completedDeliveries}/{deliverer.totalDeliveries})
+                      {getCompletionRate()}% ({deliverer.completedDeliveries}/
+                      {deliverer.totalDeliveries})
                     </div>
                     {getCompletionRate() >= 90 ? (
                       <Badge variant="default" className="bg-green-100 text-green-800 text-xs">
@@ -422,9 +436,7 @@ export default function DelivererDetailPage() {
         <CardContent>
           <div className="flex flex-wrap gap-2">
             <Button variant="outline" asChild>
-              <Link href={`/admin/verification/deliverer/${deliverer.id}`}>
-                Voir les documents
-              </Link>
+              <Link href={`/admin/verification/deliverer/${deliverer.id}`}>Voir les documents</Link>
             </Button>
             <Button variant="outline" asChild>
               <Link href={`/admin/deliverers/${deliverer.id}/deliveries`}>
@@ -432,14 +444,10 @@ export default function DelivererDetailPage() {
               </Link>
             </Button>
             <Button variant="outline" asChild>
-              <Link href={`/admin/messaging/deliverer/${deliverer.id}`}>
-                Contacter le livreur
-              </Link>
+              <Link href={`/admin/messaging/deliverer/${deliverer.id}`}>Contacter le livreur</Link>
             </Button>
             <Button variant="outline" asChild>
-              <Link href={`/admin/reports/deliverer/${deliverer.id}`}>
-                Générer un rapport
-              </Link>
+              <Link href={`/admin/reports/deliverer/${deliverer.id}`}>Générer un rapport</Link>
             </Button>
           </div>
         </CardContent>
@@ -462,4 +470,4 @@ export default function DelivererDetailPage() {
       </AlertDialog>
     </div>
   );
-} 
+}

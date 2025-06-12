@@ -14,4 +14,4 @@ export function ThemeInitializer() {
   }, [theme]);
 
   return null;
-} 
+}

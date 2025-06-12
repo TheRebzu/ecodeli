@@ -36,4 +36,3 @@ export { default as UserVerificationHistory } from './user-verification-history'
 export * from './user-verification-history';
 export { default as UserVerification } from './user-verification';
 export * from './user-verification';
-

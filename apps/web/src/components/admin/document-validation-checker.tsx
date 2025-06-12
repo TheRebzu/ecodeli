@@ -6,21 +6,27 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AlertTriangle } from 'lucide-react';
 import { api } from '@/trpc/react';
 import { UserRole } from '@prisma/client';
-import { 
-  CheckCircle, 
-  XCircle, 
-  AlertTriangle, 
-  Clock, 
+import {
+  CheckCircle,
+  XCircle,
+  AlertTriangle,
+  Clock,
   RefreshCw,
   Search,
   FileText,
-  User
+  User,
 } from 'lucide-react';
 
 export default function DocumentValidationChecker() {
@@ -100,13 +106,13 @@ export default function DocumentValidationChecker() {
               <Input
                 id="userId"
                 value={userId}
-                onChange={(e) => setUserId(e.target.value)}
+                onChange={e => setUserId(e.target.value)}
                 placeholder="Entrez l'ID de l'utilisateur"
               />
             </div>
             <div>
               <Label htmlFor="userRole">Rôle Utilisateur</Label>
-              <Select value={userRole} onValueChange={(value) => setUserRole(value as UserRole)}>
+              <Select value={userRole} onValueChange={value => setUserRole(value as UserRole)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -178,17 +184,17 @@ export default function DocumentValidationChecker() {
 
                     <Alert>
                       <AlertTriangle className="h-4 w-4" />
-                      <AlertDescription>
-                        {checkStatusQuery.data.message}
-                      </AlertDescription>
+                      <AlertDescription>{checkStatusQuery.data.message}</AlertDescription>
                     </Alert>
 
                     {checkStatusQuery.data.missingDocuments.length > 0 && (
                       <div>
                         <h4 className="font-medium mb-2">Documents manquants :</h4>
                         <div className="flex flex-wrap gap-2">
-                          {checkStatusQuery.data.missingDocuments.map((doc) => (
-                            <Badge key={doc} variant="outline">{doc}</Badge>
+                          {checkStatusQuery.data.missingDocuments.map(doc => (
+                            <Badge key={doc} variant="outline">
+                              {doc}
+                            </Badge>
                           ))}
                         </div>
                       </div>
@@ -224,13 +230,24 @@ export default function DocumentValidationChecker() {
                           <div className="space-y-2">
                             <div className="flex justify-between">
                               <span>Tous approuvés :</span>
-                              <Badge variant={compareLogicQuery.data.comparison.oldLogic.allApproved ? 'default' : 'destructive'}>
-                                {compareLogicQuery.data.comparison.oldLogic.allApproved ? 'OUI' : 'NON'}
+                              <Badge
+                                variant={
+                                  compareLogicQuery.data.comparison.oldLogic.allApproved
+                                    ? 'default'
+                                    : 'destructive'
+                                }
+                              >
+                                {compareLogicQuery.data.comparison.oldLogic.allApproved
+                                  ? 'OUI'
+                                  : 'NON'}
                               </Badge>
                             </div>
                             <div className="flex justify-between">
                               <span>Documents approuvés :</span>
-                              <span>{compareLogicQuery.data.comparison.oldLogic.approvedCount}/{compareLogicQuery.data.comparison.oldLogic.requiredCount}</span>
+                              <span>
+                                {compareLogicQuery.data.comparison.oldLogic.approvedCount}/
+                                {compareLogicQuery.data.comparison.oldLogic.requiredCount}
+                              </span>
                             </div>
                             <div className="text-sm text-muted-foreground">
                               {compareLogicQuery.data.comparison.oldLogic.method}
@@ -247,13 +264,23 @@ export default function DocumentValidationChecker() {
                           <div className="space-y-2">
                             <div className="flex justify-between">
                               <span>Tous approuvés :</span>
-                              <Badge variant={compareLogicQuery.data.comparison.newLogic.allApproved ? 'default' : 'destructive'}>
-                                {compareLogicQuery.data.comparison.newLogic.allApproved ? 'OUI' : 'NON'}
+                              <Badge
+                                variant={
+                                  compareLogicQuery.data.comparison.newLogic.allApproved
+                                    ? 'default'
+                                    : 'destructive'
+                                }
+                              >
+                                {compareLogicQuery.data.comparison.newLogic.allApproved
+                                  ? 'OUI'
+                                  : 'NON'}
                               </Badge>
                             </div>
                             <div className="flex justify-between">
                               <span>Statut :</span>
-                              {getStatusBadge(compareLogicQuery.data.comparison.newLogic.status.verificationStatus)}
+                              {getStatusBadge(
+                                compareLogicQuery.data.comparison.newLogic.status.verificationStatus
+                              )}
                             </div>
                             <div className="text-sm text-muted-foreground">
                               {compareLogicQuery.data.comparison.newLogic.method}
@@ -263,10 +290,17 @@ export default function DocumentValidationChecker() {
                       </Card>
                     </div>
 
-                    <Alert className={compareLogicQuery.data.comparison.isDifferent ? 'border-red-200 bg-red-50' : 'border-green-200 bg-green-50'}>
+                    <Alert
+                      className={
+                        compareLogicQuery.data.comparison.isDifferent
+                          ? 'border-red-200 bg-red-50'
+                          : 'border-green-200 bg-green-50'
+                      }
+                    >
                       <AlertTriangle className="h-4 w-4" />
                       <AlertDescription>
-                        <strong>Résultat :</strong> {compareLogicQuery.data.comparison.recommendation}
+                        <strong>Résultat :</strong>{' '}
+                        {compareLogicQuery.data.comparison.recommendation}
                       </AlertDescription>
                     </Alert>
                   </div>
@@ -283,7 +317,7 @@ export default function DocumentValidationChecker() {
               <CardContent>
                 {documentsQuery.data && (
                   <div className="space-y-4">
-                    {documentsQuery.data.map((doc) => (
+                    {documentsQuery.data.map(doc => (
                       <Card key={doc.id}>
                         <CardContent className="p-4">
                           <div className="flex items-center justify-between">
@@ -301,19 +335,23 @@ export default function DocumentValidationChecker() {
                               </div>
                             </div>
                           </div>
-                          
+
                           <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-2 text-xs">
                             <div>
-                              <span className="font-medium">Statut original:</span> {doc.statusExplanation.originalStatus}
+                              <span className="font-medium">Statut original:</span>{' '}
+                              {doc.statusExplanation.originalStatus}
                             </div>
                             <div>
-                              <span className="font-medium">Vérification:</span> {doc.statusExplanation.verificationStatus}
+                              <span className="font-medium">Vérification:</span>{' '}
+                              {doc.statusExplanation.verificationStatus}
                             </div>
                             <div>
-                              <span className="font-medium">Vérifié:</span> {doc.statusExplanation.isVerified ? 'OUI' : 'NON'}
+                              <span className="font-medium">Vérifié:</span>{' '}
+                              {doc.statusExplanation.isVerified ? 'OUI' : 'NON'}
                             </div>
                             <div>
-                              <span className="font-medium">Expiré:</span> {doc.statusExplanation.isExpired ? 'OUI' : 'NON'}
+                              <span className="font-medium">Expiré:</span>{' '}
+                              {doc.statusExplanation.isExpired ? 'OUI' : 'NON'}
                             </div>
                           </div>
                         </CardContent>
@@ -362,7 +400,8 @@ export default function DocumentValidationChecker() {
                 <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                   <h4 className="font-semibold text-green-800 mb-2">✅ Correction Appliquée</h4>
                   <p className="text-green-700 text-sm mb-2">
-                    La fonction <code>REQUIRED_DOCUMENTS_BY_ROLE</code> a été mise à jour pour utiliser les bons types :
+                    La fonction <code>REQUIRED_DOCUMENTS_BY_ROLE</code> a été mise à jour pour
+                    utiliser les bons types :
                   </p>
                   <div className="bg-green-100 rounded p-2 font-mono text-sm text-green-800">
                     MERCHANT: ['IDENTITY_CARD', 'KBIS', 'BANK_RIB']
@@ -372,8 +411,9 @@ export default function DocumentValidationChecker() {
                 <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                   <h4 className="font-semibold text-blue-800 mb-2">🔍 Vérification</h4>
                   <p className="text-blue-700 text-sm">
-                    Utilisez l'onglet "Vérification Statut" ci-dessus pour tester un utilisateur marchand.
-                    Vous devriez maintenant voir ses documents IDENTITY_CARD, KBIS et BANK_RIB être correctement reconnus.
+                    Utilisez l'onglet "Vérification Statut" ci-dessus pour tester un utilisateur
+                    marchand. Vous devriez maintenant voir ses documents IDENTITY_CARD, KBIS et
+                    BANK_RIB être correctement reconnus.
                   </p>
                 </div>
 
@@ -381,8 +421,9 @@ export default function DocumentValidationChecker() {
                   <AlertTriangle className="h-4 w-4" />
                   <AlertTitle>Action Recommandée</AlertTitle>
                   <AlertDescription>
-                    Après avoir vérifié que la correction fonctionne, utilisez le bouton "Forcer Mise à Jour" 
-                    pour mettre à jour le statut de vérification de tous les utilisateurs concernés.
+                    Après avoir vérifié que la correction fonctionne, utilisez le bouton "Forcer
+                    Mise à Jour" pour mettre à jour le statut de vérification de tous les
+                    utilisateurs concernés.
                   </AlertDescription>
                 </Alert>
               </CardContent>
@@ -392,4 +433,4 @@ export default function DocumentValidationChecker() {
       )}
     </div>
   );
-} 
+}

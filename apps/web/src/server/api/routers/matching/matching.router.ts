@@ -1,47 +1,59 @@
-import { z } from "zod";
+import { z } from 'zod';
 import { router, protectedProcedure, publicProcedure } from '@/server/api/trpc';
-import { TRPCError } from "@trpc/server";
-import { MatchingAlgorithm, MatchingPriority, MatchingResultStatus, MatchingCriteriaType } from "@prisma/client";
+import { TRPCError } from '@trpc/server';
+import {
+  MatchingAlgorithm,
+  MatchingPriority,
+  MatchingResultStatus,
+  MatchingCriteriaType,
+} from '@prisma/client';
+import {
+  calculateDistance,
+  calculateDistanceScore,
+  isWithinRadius,
+} from '@/server/utils/geo-calculations';
 
 /**
- * Router pour le système de matching automatique
- * Gère le matching entre annonces et livreurs/routes planifiées
+ * Router pour le systï¿½me de matching automatique
+ * Gï¿½re le matching entre annonces et livreurs/routes planifiï¿½es
  */
 
-// Schémas de validation
+// Schï¿½mas de validation
 const createMatchingCriteriaSchema = z.object({
   announcementId: z.string().cuid(),
   algorithm: z.nativeEnum(MatchingAlgorithm).default('HYBRID'),
   priority: z.nativeEnum(MatchingPriority).default('NORMAL'),
-  
-  // Critères géographiques
+
+  // Critï¿½res gï¿½ographiques
   maxDistance: z.number().min(0).max(100).optional(),
   preferredRadius: z.number().min(0).max(50).optional(),
   allowPartialRoute: z.boolean().default(true),
-  
-  // Critères temporels
+
+  // Critï¿½res temporels
   timeWindowStart: z.date().optional(),
   timeWindowEnd: z.date().optional(),
   maxDelay: z.number().min(0).max(240).optional(), // minutes
-  
-  // Critères de véhicule
-  requiredVehicleTypes: z.array(z.enum(['FOOT', 'BIKE', 'SCOOTER', 'CAR', 'VAN', 'TRUCK'])).optional(),
+
+  // Critï¿½res de vï¿½hicule
+  requiredVehicleTypes: z
+    .array(z.enum(['FOOT', 'BIKE', 'SCOOTER', 'CAR', 'VAN', 'TRUCK']))
+    .optional(),
   minVehicleCapacity: z.number().min(0).optional(),
-  
-  // Critères de livreur
+
+  // Critï¿½res de livreur
   minDelivererRating: z.number().min(1).max(5).optional(),
   preferredLanguages: z.array(z.string()).optional(),
   genderPreference: z.enum(['MALE', 'FEMALE', 'OTHER']).optional(),
-  
-  // Critères de prix
+
+  // Critï¿½res de prix
   maxPrice: z.number().min(0).optional(),
   minPrice: z.number().min(0).optional(),
   allowNegotiation: z.boolean().default(true),
-  
-  // Configuration avancée
+
+  // Configuration avancï¿½e
   autoAssignAfter: z.number().min(0).max(480).optional(), // minutes
   maxSuggestions: z.number().min(1).max(20).default(5),
-  scoreThreshold: z.number().min(0).max(1).default(0.6)
+  scoreThreshold: z.number().min(0).max(1).default(0.6),
 });
 
 const matchingResultsFilterSchema = z.object({
@@ -50,7 +62,7 @@ const matchingResultsFilterSchema = z.object({
   status: z.nativeEnum(MatchingResultStatus).optional(),
   minScore: z.number().min(0).max(1).optional(),
   limit: z.number().min(1).max(50).default(20),
-  offset: z.number().min(0).default(0)
+  offset: z.number().min(0).default(0),
 });
 
 const respondToMatchSchema = z.object({
@@ -58,50 +70,50 @@ const respondToMatchSchema = z.object({
   accept: z.boolean(),
   proposedPrice: z.number().min(0).optional(),
   message: z.string().max(500).optional(),
-  rejectionReason: z.string().max(200).optional()
+  rejectionReason: z.string().max(200).optional(),
 });
 
 export const matchingRouter = router({
   /**
-   * Créer des critères de matching pour une annonce
+   * Crï¿½er des critï¿½res de matching pour une annonce
    */
   createCriteria: protectedProcedure
     .input(createMatchingCriteriaSchema)
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
-      
+
       try {
-        // Vérifier que l'annonce existe et appartient à l'utilisateur
+        // Vï¿½rifier que l'annonce existe et appartient ï¿½ l'utilisateur
         const announcement = await ctx.db.announcement.findFirst({
           where: {
             id: input.announcementId,
             clientId: user.id,
-            status: { in: ['DRAFT', 'PUBLISHED'] }
-          }
+            status: { in: ['DRAFT', 'PUBLISHED'] },
+          },
         });
 
         if (!announcement) {
           throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Annonce non trouvée ou non autorisée"
+            code: 'NOT_FOUND',
+            message: 'Annonce non trouvï¿½e ou non autorisï¿½e',
           });
         }
 
-        // Créer ou mettre à jour les critères
+        // Crï¿½er ou mettre ï¿½ jour les critï¿½res
         const criteria = await ctx.db.matchingCriteria.upsert({
           where: { announcementId: input.announcementId },
           update: {
             ...input,
-            updatedAt: new Date()
+            updatedAt: new Date(),
           },
           create: {
             ...input,
-            packageTypes: ['STANDARD'], // Valeur par défaut
-            scoreThreshold: input.scoreThreshold
-          }
+            packageTypes: ['STANDARD'], // Valeur par dï¿½faut
+            scoreThreshold: input.scoreThreshold,
+          },
         });
 
-        // Si l'annonce est publiée et autoAssign est activé, lancer le matching
+        // Si l'annonce est publiï¿½e et autoAssign est activï¿½, lancer le matching
         if (announcement.status === 'PUBLISHED' && announcement.autoAssign) {
           await triggerMatchingProcess(criteria.id);
         }
@@ -109,106 +121,101 @@ export const matchingRouter = router({
         return {
           success: true,
           data: criteria,
-          message: "Critères de matching créés avec succès"
+          message: 'Critï¿½res de matching crï¿½ï¿½s avec succï¿½s',
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la création des critères"
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erreur lors de la crï¿½ation des critï¿½res',
         });
       }
     }),
 
   /**
-   * Déclencher le processus de matching pour une annonce
+   * Dï¿½clencher le processus de matching pour une annonce
    */
   triggerMatching: protectedProcedure
-    .input(z.object({
-      announcementId: z.string().cuid(),
-      forceRefresh: z.boolean().default(false)
-    }))
+    .input(
+      z.object({
+        announcementId: z.string().cuid(),
+        forceRefresh: z.boolean().default(false),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
-      
+
       try {
-        // Vérifier les permissions
+        // Vï¿½rifier les permissions
         const announcement = await ctx.db.announcement.findFirst({
           where: {
             id: input.announcementId,
-            OR: [
-              { clientId: user.id },
-              { ...(user.role === 'ADMIN' ? {} : { id: 'impossible' }) }
-            ]
+            OR: [{ clientId: user.id }, { ...(user.role === 'ADMIN' ? {} : { id: 'impossible' }) }],
           },
           include: {
-            matchingCriteria: true
-          }
+            matchingCriteria: true,
+          },
         });
 
         if (!announcement) {
           throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Annonce non trouvée ou non autorisée"
+            code: 'NOT_FOUND',
+            message: 'Annonce non trouvï¿½e ou non autorisï¿½e',
           });
         }
 
         if (!announcement.matchingCriteria) {
           throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Aucun critère de matching défini pour cette annonce"
+            code: 'BAD_REQUEST',
+            message: 'Aucun critï¿½re de matching dï¿½fini pour cette annonce',
           });
         }
 
         // Lancer le processus de matching
-        const results = await performMatching(
-          announcement,
-          announcement.matchingCriteria,
-          ctx.db
-        );
+        const results = await performMatching(announcement, announcement.matchingCriteria, ctx.db);
 
         return {
           success: true,
           data: {
             announcementId: input.announcementId,
             resultsCount: results.length,
-            topMatches: results.slice(0, 3)
+            topMatches: results.slice(0, 3),
           },
-          message: `Matching terminé: ${results.length} livreurs trouvés`
+          message: `Matching terminï¿½: ${results.length} livreurs trouvï¿½s`,
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors du matching"
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erreur lors du matching',
         });
       }
     }),
 
   /**
-   * Obtenir les résultats de matching
+   * Obtenir les rï¿½sultats de matching
    */
   getMatchingResults: protectedProcedure
     .input(matchingResultsFilterSchema)
     .query(async ({ ctx, input }) => {
       const { user } = ctx.session;
-      
+
       try {
         const where: any = {};
-        
-        // Filtrer selon le rôle
+
+        // Filtrer selon le rï¿½le
         if (user.role === 'CLIENT') {
           // Les clients ne voient que les matchings de leurs annonces
           const userAnnouncements = await ctx.db.announcement.findMany({
             where: { clientId: user.id },
-            select: { id: true }
+            select: { id: true },
           });
           where.announcementId = { in: userAnnouncements.map(a => a.id) };
         } else if (user.role === 'DELIVERER') {
           // Les livreurs ne voient que leurs propres matchings
           where.delivererId = user.id;
         }
-        
+
         // Appliquer les filtres
         if (input.announcementId) where.announcementId = input.announcementId;
         if (input.delivererId && user.role === 'ADMIN') where.delivererId = input.delivererId;
@@ -228,10 +235,10 @@ export const matchingRouter = router({
                   select: {
                     averageRating: true,
                     totalDeliveries: true,
-                    completedDeliveries: true
-                  }
-                }
-              }
+                    completedDeliveries: true,
+                  },
+                },
+              },
             },
             announcement: {
               select: {
@@ -240,23 +247,20 @@ export const matchingRouter = router({
                 pickupCity: true,
                 deliveryCity: true,
                 suggestedPrice: true,
-                status: true
-              }
+                status: true,
+              },
             },
             criteria: {
               select: {
                 algorithm: true,
                 priority: true,
-                scoreThreshold: true
-              }
-            }
+                scoreThreshold: true,
+              },
+            },
           },
-          orderBy: [
-            { overallScore: 'desc' },
-            { suggestedAt: 'desc' }
-          ],
+          orderBy: [{ overallScore: 'desc' }, { suggestedAt: 'desc' }],
           skip: input.offset,
-          take: input.limit
+          take: input.limit,
         });
 
         const totalCount = await ctx.db.matchingResult.count({ where });
@@ -268,62 +272,62 @@ export const matchingRouter = router({
             total: totalCount,
             offset: input.offset,
             limit: input.limit,
-            hasMore: input.offset + input.limit < totalCount
-          }
+            hasMore: input.offset + input.limit < totalCount,
+          },
         };
       } catch (error) {
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la récupération des résultats"
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erreur lors de la rï¿½cupï¿½ration des rï¿½sultats',
         });
       }
     }),
 
   /**
-   * Répondre à une suggestion de matching (livreur)
+   * Rï¿½pondre ï¿½ une suggestion de matching (livreur)
    */
   respondToMatch: protectedProcedure
     .input(respondToMatchSchema)
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
-      
+
       if (user.role !== 'DELIVERER') {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les livreurs peuvent répondre aux matchings"
+          code: 'FORBIDDEN',
+          message: 'Seuls les livreurs peuvent rï¿½pondre aux matchings',
         });
       }
 
       try {
-        // Vérifier que le matching existe et appartient au livreur
+        // Vï¿½rifier que le matching existe et appartient au livreur
         const matchingResult = await ctx.db.matchingResult.findFirst({
           where: {
             id: input.matchingResultId,
             delivererId: user.id,
-            status: { in: ['PENDING', 'SUGGESTED'] }
+            status: { in: ['PENDING', 'SUGGESTED'] },
           },
           include: {
             announcement: true,
-            criteria: true
-          }
+            criteria: true,
+          },
         });
 
         if (!matchingResult) {
           throw new TRPCError({
-            code: "NOT_FOUND",
-            message: "Matching non trouvé ou déjà traité"
+            code: 'NOT_FOUND',
+            message: 'Matching non trouvï¿½ ou dï¿½jï¿½ traitï¿½',
           });
         }
 
-        // Vérifier que l'annonce est toujours disponible
+        // Vï¿½rifier que l'annonce est toujours disponible
         if (matchingResult.announcement.status !== 'PUBLISHED') {
           throw new TRPCError({
-            code: "BAD_REQUEST",
-            message: "Cette annonce n'est plus disponible"
+            code: 'BAD_REQUEST',
+            message: "Cette annonce n'est plus disponible",
           });
         }
 
-        // Mettre à jour le résultat
+        // Mettre ï¿½ jour le rï¿½sultat
         const updatedResult = await ctx.db.matchingResult.update({
           where: { id: input.matchingResultId },
           data: {
@@ -331,33 +335,35 @@ export const matchingRouter = router({
             respondedAt: new Date(),
             rejectionReason: input.rejectionReason,
             ...(input.proposedPrice && {
-              suggestedPrice: input.proposedPrice
-            })
-          }
+              suggestedPrice: input.proposedPrice,
+            }),
+          },
         });
 
         if (input.accept) {
-          // Créer une candidature pour l'annonce
+          // Crï¿½er une candidature pour l'annonce
           await ctx.db.deliveryApplication.create({
             data: {
               announcementId: matchingResult.announcementId,
               delivererId: user.id,
               proposedPrice: input.proposedPrice || matchingResult.suggestedPrice.toNumber(),
-              message: input.message || "Candidature via matching automatique",
+              message: input.message || 'Candidature via matching automatique',
               status: 'PENDING',
-              isFromMatching: true
-            }
+              isFromMatching: true,
+            },
           });
 
-          // Si auto-assign est activé et score suffisant, assigner automatiquement
-          if (matchingResult.criteria.autoAssignAfter && 
-              matchingResult.overallScore >= matchingResult.criteria.scoreThreshold) {
+          // Si auto-assign est activï¿½ et score suffisant, assigner automatiquement
+          if (
+            matchingResult.criteria.autoAssignAfter &&
+            matchingResult.overallScore >= matchingResult.criteria.scoreThreshold
+          ) {
             await ctx.db.announcement.update({
               where: { id: matchingResult.announcementId },
               data: {
                 delivererId: user.id,
-                status: 'ASSIGNED'
-              }
+                status: 'ASSIGNED',
+              },
             });
           }
         }
@@ -365,100 +371,109 @@ export const matchingRouter = router({
         return {
           success: true,
           data: updatedResult,
-          message: input.accept ? "Candidature envoyée" : "Matching refusé"
+          message: input.accept ? 'Candidature envoyï¿½e' : 'Matching refusï¿½',
         };
       } catch (error) {
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la réponse"
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erreur lors de la rï¿½ponse',
         });
       }
     }),
 
   /**
-   * Obtenir les préférences de matching du livreur
+   * Obtenir les prï¿½fï¿½rences de matching du livreur
    */
-  getMyPreferences: protectedProcedure
-    .query(async ({ ctx }) => {
-      const { user } = ctx.session;
-      
-      if (user.role !== 'DELIVERER') {
-        throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les livreurs peuvent gérer leurs préférences"
+  getMyPreferences: protectedProcedure.query(async ({ ctx }) => {
+    const { user } = ctx.session;
+
+    if (user.role !== 'DELIVERER') {
+      throw new TRPCError({
+        code: 'FORBIDDEN',
+        message: 'Seuls les livreurs peuvent gï¿½rer leurs prï¿½fï¿½rences',
+      });
+    }
+
+    try {
+      let preferences = await ctx.db.delivererMatchingPreferences.findUnique({
+        where: { delivererId: user.id },
+      });
+
+      // Crï¿½er les prï¿½fï¿½rences par dï¿½faut si elles n'existent pas
+      if (!preferences) {
+        preferences = await ctx.db.delivererMatchingPreferences.create({
+          data: {
+            delivererId: user.id,
+            preferredRadius: 10.0,
+            maxRadius: 25.0,
+            maxWorkingHours: 8,
+            acceptedPackageTypes: ['STANDARD', 'FRAGILE'],
+            maxPackageWeight: 20.0,
+            acceptFragile: true,
+            acceptRefrigerated: false,
+            minPrice: 5.0,
+            acceptNegotiation: true,
+            instantNotification: true,
+            maxSuggestions: 10,
+            autoDeclineAfter: 60,
+          },
         });
       }
 
-      try {
-        let preferences = await ctx.db.delivererMatchingPreferences.findUnique({
-          where: { delivererId: user.id }
-        });
-
-        // Créer les préférences par défaut si elles n'existent pas
-        if (!preferences) {
-          preferences = await ctx.db.delivererMatchingPreferences.create({
-            data: {
-              delivererId: user.id,
-              preferredRadius: 10.0,
-              maxRadius: 25.0,
-              maxWorkingHours: 8,
-              acceptedPackageTypes: ['STANDARD', 'FRAGILE'],
-              maxPackageWeight: 20.0,
-              acceptFragile: true,
-              acceptRefrigerated: false,
-              minPrice: 5.00,
-              acceptNegotiation: true,
-              instantNotification: true,
-              maxSuggestions: 10,
-              autoDeclineAfter: 60
-            }
-          });
-        }
-
-        return {
-          success: true,
-          data: preferences
-        };
-      } catch (error) {
-        throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la récupération des préférences"
-        });
-      }
-    }),
+      return {
+        success: true,
+        data: preferences,
+      };
+    } catch (error) {
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de la rï¿½cupï¿½ration des prï¿½fï¿½rences',
+      });
+    }
+  }),
 
   /**
-   * Mettre à jour les préférences de matching
+   * Mettre ï¿½ jour les prï¿½fï¿½rences de matching
    */
   updateMyPreferences: protectedProcedure
-    .input(z.object({
-      preferredRadius: z.number().min(1).max(50).optional(),
-      maxRadius: z.number().min(1).max(100).optional(),
-      homeLatitude: z.number().optional(),
-      homeLongitude: z.number().optional(),
-      availableFrom: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).optional(),
-      availableTo: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).optional(),
-      availableDays: z.array(z.number().min(0).max(6)).optional(),
-      maxWorkingHours: z.number().min(1).max(12).optional(),
-      acceptedPackageTypes: z.array(z.enum(['STANDARD', 'FRAGILE', 'REFRIGERATED', 'DANGEROUS', 'OVERSIZED'])).optional(),
-      maxPackageWeight: z.number().min(1).max(100).optional(),
-      acceptFragile: z.boolean().optional(),
-      acceptRefrigerated: z.boolean().optional(),
-      minPrice: z.number().min(0).optional(),
-      maxPrice: z.number().min(0).optional(),
-      acceptNegotiation: z.boolean().optional(),
-      instantNotification: z.boolean().optional(),
-      maxSuggestions: z.number().min(1).max(50).optional(),
-      autoDeclineAfter: z.number().min(0).max(480).optional()
-    }))
+    .input(
+      z.object({
+        preferredRadius: z.number().min(1).max(50).optional(),
+        maxRadius: z.number().min(1).max(100).optional(),
+        homeLatitude: z.number().optional(),
+        homeLongitude: z.number().optional(),
+        availableFrom: z
+          .string()
+          .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)
+          .optional(),
+        availableTo: z
+          .string()
+          .regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)
+          .optional(),
+        availableDays: z.array(z.number().min(0).max(6)).optional(),
+        maxWorkingHours: z.number().min(1).max(12).optional(),
+        acceptedPackageTypes: z
+          .array(z.enum(['STANDARD', 'FRAGILE', 'REFRIGERATED', 'DANGEROUS', 'OVERSIZED']))
+          .optional(),
+        maxPackageWeight: z.number().min(1).max(100).optional(),
+        acceptFragile: z.boolean().optional(),
+        acceptRefrigerated: z.boolean().optional(),
+        minPrice: z.number().min(0).optional(),
+        maxPrice: z.number().min(0).optional(),
+        acceptNegotiation: z.boolean().optional(),
+        instantNotification: z.boolean().optional(),
+        maxSuggestions: z.number().min(1).max(50).optional(),
+        autoDeclineAfter: z.number().min(0).max(480).optional(),
+      })
+    )
     .mutation(async ({ ctx, input }) => {
       const { user } = ctx.session;
-      
+
       if (user.role !== 'DELIVERER') {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Seuls les livreurs peuvent modifier leurs préférences"
+          code: 'FORBIDDEN',
+          message: 'Seuls les livreurs peuvent modifier leurs prï¿½fï¿½rences',
         });
       }
 
@@ -467,7 +482,7 @@ export const matchingRouter = router({
           where: { delivererId: user.id },
           update: {
             ...input,
-            updatedAt: new Date()
+            updatedAt: new Date(),
           },
           create: {
             delivererId: user.id,
@@ -479,23 +494,23 @@ export const matchingRouter = router({
             maxPackageWeight: input.maxPackageWeight || 20.0,
             acceptFragile: input.acceptFragile ?? true,
             acceptRefrigerated: input.acceptRefrigerated ?? false,
-            minPrice: input.minPrice || 5.00,
+            minPrice: input.minPrice || 5.0,
             acceptNegotiation: input.acceptNegotiation ?? true,
             instantNotification: input.instantNotification ?? true,
             maxSuggestions: input.maxSuggestions || 10,
-            autoDeclineAfter: input.autoDeclineAfter || 60
-          }
+            autoDeclineAfter: input.autoDeclineAfter || 60,
+          },
         });
 
         return {
           success: true,
           data: preferences,
-          message: "Préférences mises à jour avec succès"
+          message: 'Prï¿½fï¿½rences mises ï¿½ jour avec succï¿½s',
         };
       } catch (error) {
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la mise à jour des préférences"
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erreur lors de la mise ï¿½ jour des prï¿½fï¿½rences',
         });
       }
     }),
@@ -504,17 +519,19 @@ export const matchingRouter = router({
    * Obtenir les statistiques de matching (Admin)
    */
   getMatchingStats: protectedProcedure
-    .input(z.object({
-      period: z.enum(['day', 'week', 'month']).default('week'),
-      algorithm: z.nativeEnum(MatchingAlgorithm).optional()
-    }))
+    .input(
+      z.object({
+        period: z.enum(['day', 'week', 'month']).default('week'),
+        algorithm: z.nativeEnum(MatchingAlgorithm).optional(),
+      })
+    )
     .query(async ({ ctx, input }) => {
       const { user } = ctx.session;
-      
+
       if (user.role !== 'ADMIN') {
         throw new TRPCError({
-          code: "FORBIDDEN",
-          message: "Accès réservé aux administrateurs"
+          code: 'FORBIDDEN',
+          message: 'Accï¿½s rï¿½servï¿½ aux administrateurs',
         });
       }
 
@@ -533,9 +550,9 @@ export const matchingRouter = router({
         }
 
         const where: any = {
-          suggestedAt: { gte: startDate }
+          suggestedAt: { gte: startDate },
         };
-        
+
         if (input.algorithm) {
           where.algorithm = input.algorithm;
         }
@@ -547,7 +564,7 @@ export const matchingRouter = router({
           rejectedMatches,
           expiredMatches,
           avgResponseTime,
-          avgScore
+          avgScore,
         ] = await Promise.all([
           ctx.db.matchingResult.count({ where }),
           ctx.db.matchingResult.count({ where: { ...where, status: 'ACCEPTED' } }),
@@ -556,8 +573,8 @@ export const matchingRouter = router({
           ctx.db.matchingResult.aggregate({
             where: { ...where, respondedAt: { not: null } },
             _avg: {
-              processingTime: true
-            }
+              processingTime: true,
+            },
           }),
           ctx.db.matchingResult.aggregate({
             where,
@@ -566,14 +583,12 @@ export const matchingRouter = router({
               distanceScore: true,
               timeScore: true,
               priceScore: true,
-              ratingScore: true
-            }
-          })
+              ratingScore: true,
+            },
+          }),
         ]);
 
-        const acceptanceRate = totalMatches > 0 
-          ? (acceptedMatches / totalMatches) * 100 
-          : 0;
+        const acceptanceRate = totalMatches > 0 ? (acceptedMatches / totalMatches) * 100 : 0;
 
         return {
           success: true,
@@ -584,96 +599,256 @@ export const matchingRouter = router({
               rejectedMatches,
               expiredMatches,
               acceptanceRate: Math.round(acceptanceRate * 100) / 100,
-              avgResponseTimeMinutes: Math.round(avgResponseTime._avg.processingTime || 0)
+              avgResponseTimeMinutes: Math.round(avgResponseTime._avg.processingTime || 0),
             },
             scores: {
               overall: Math.round((avgScore._avg.overallScore || 0) * 100) / 100,
               distance: Math.round((avgScore._avg.distanceScore || 0) * 100) / 100,
               time: Math.round((avgScore._avg.timeScore || 0) * 100) / 100,
               price: Math.round((avgScore._avg.priceScore || 0) * 100) / 100,
-              rating: Math.round((avgScore._avg.ratingScore || 0) * 100) / 100
+              rating: Math.round((avgScore._avg.ratingScore || 0) * 100) / 100,
             },
-            period: input.period
-          }
+            period: input.period,
+          },
         };
       } catch (error) {
         throw new TRPCError({
-          code: "INTERNAL_SERVER_ERROR",
-          message: "Erreur lors de la récupération des statistiques"
+          code: 'INTERNAL_SERVER_ERROR',
+          message: 'Erreur lors de la rï¿½cupï¿½ration des statistiques',
         });
       }
-    })
+    }),
 });
 
 // Helper functions
 async function triggerMatchingProcess(criteriaId: string) {
-  // TODO: Implémenter le processus de matching asynchrone
-  console.log("Matching process triggered for criteria:", criteriaId);
+  // TODO: Implï¿½menter le processus de matching asynchrone
+  console.log('Matching process triggered for criteria:', criteriaId);
 }
 
 async function performMatching(announcement: any, criteria: any, db: any) {
-  // TODO: Implémenter l'algorithme de matching
+  // TODO: Implï¿½menter l'algorithme de matching
   // - Rechercher les livreurs disponibles
   // - Calculer les scores selon l'algorithme choisi
-  // - Créer les résultats de matching
+  // - Crï¿½er les rï¿½sultats de matching
   // - Notifier les livreurs
-  
+
   // Placeholder implementation
   const deliverers = await db.user.findMany({
     where: {
       role: 'DELIVERER',
       status: 'ACTIVE',
       deliverer: {
-        isAvailable: true
-      }
+        isAvailable: true,
+      },
     },
     include: {
       deliverer: true,
-      matchingPreferences: true
+      matchingPreferences: true,
     },
-    take: criteria.maxSuggestions
+    take: criteria.maxSuggestions,
   });
 
   const results = [];
+  const announcementLocation = {
+    lat: announcement.pickupLatitude,
+    lng: announcement.pickupLongitude,
+  };
+
   for (const deliverer of deliverers) {
-    // Calculer les scores (simplifié)
-    const distanceScore = Math.random();
-    const timeScore = Math.random();
-    const priceScore = Math.random();
-    const ratingScore = deliverer.deliverer?.averageRating ? deliverer.deliverer.averageRating / 5 : 0.5;
-    
-    const overallScore = (
-      distanceScore * 0.3 +
-      timeScore * 0.3 +
-      priceScore * 0.2 +
-      ratingScore * 0.2
+    // Calculer la distance rÃ©elle entre le livreur et l'annonce
+    const delivererLocation = {
+      lat: deliverer.latitude || 0,
+      lng: deliverer.longitude || 0,
+    };
+
+    const calculatedDistance = calculateDistance(
+      announcementLocation.lat,
+      announcementLocation.lng,
+      delivererLocation.lat,
+      delivererLocation.lng
     );
 
-    if (overallScore >= criteria.scoreThreshold) {
+    // Score de distance (plus proche = meilleur score)
+    const maxDistance = criteria.maxDistance || 50; // km
+    const distanceScore = Math.max(0, 1 - calculatedDistance / maxDistance);
+
+    // Score de temps basÃ© sur la disponibilitÃ© du livreur
+    const timeScore = await calculateTimeScore(db, deliverer.id, announcement.pickupTimeStart);
+
+    // Score de prix basÃ© sur la diffÃ©rence avec le prix souhaitÃ©
+    const priceScore = calculatePriceScore(
+      announcement.suggestedPrice || 0,
+      deliverer.deliverer?.pricePerKm || 1,
+      calculatedDistance
+    );
+
+    // Score de notation du livreur
+    const ratingScore = deliverer.deliverer?.averageRating
+      ? Math.min(deliverer.deliverer.averageRating / 5, 1)
+      : 0.5;
+
+    // Calculer le score global avec pondÃ©ration
+    const overallScore =
+      distanceScore * 0.3 + timeScore * 0.3 + priceScore * 0.2 + ratingScore * 0.2;
+
+    // Estimation du temps de trajet
+    const estimatedDuration = Math.max(15, Math.round(calculatedDistance * 2.5)); // ~2.5 min par km en ville
+
+    // Prix suggÃ©rÃ© basÃ© sur la distance et le tarif du livreur
+    const suggestedPrice = Math.max(
+      announcement.suggestedPrice || 0,
+      calculatedDistance * (deliverer.deliverer?.pricePerKm || 1.5)
+    );
+
+    if (overallScore >= criteria.scoreThreshold && calculatedDistance <= maxDistance) {
+      const startTime = performance.now();
+
       const result = await db.matchingResult.create({
         data: {
           criteriaId: criteria.id,
           delivererId: deliverer.id,
           announcementId: announcement.id,
-          overallScore,
-          distanceScore,
-          timeScore,
-          priceScore,
-          ratingScore,
-          calculatedDistance: Math.random() * 20,
-          estimatedDuration: Math.round(Math.random() * 60 + 15),
-          suggestedPrice: announcement.suggestedPrice || 10,
+          overallScore: Math.round(overallScore * 100) / 100,
+          distanceScore: Math.round(distanceScore * 100) / 100,
+          timeScore: Math.round(timeScore * 100) / 100,
+          priceScore: Math.round(priceScore * 100) / 100,
+          ratingScore: Math.round(ratingScore * 100) / 100,
+          calculatedDistance: Math.round(calculatedDistance * 100) / 100,
+          estimatedDuration,
+          suggestedPrice: Math.round(suggestedPrice * 100) / 100,
           algorithm: criteria.algorithm,
-          processingTime: Math.round(Math.random() * 1000),
-          confidenceLevel: overallScore,
+          processingTime: Math.round(performance.now() - startTime),
+          confidenceLevel: Math.round(overallScore * 100) / 100,
           status: 'SUGGESTED',
-          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000)
-        }
+          expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
+        },
       });
-      
+
       results.push(result);
     }
   }
 
   return results;
+}
+
+// Helper functions pour l'algorithme de matching
+
+/**
+ * Calcule la distance entre deux points gÃ©ographiques en utilisant la formule de Haversine
+ */
+function calculateDistance(lat1: number, lng1: number, lat2: number, lng2: number): number {
+  const R = 6371; // Rayon de la Terre en km
+  const dLat = ((lat2 - lat1) * Math.PI) / 180;
+  const dLng = ((lng2 - lng1) * Math.PI) / 180;
+
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos((lat1 * Math.PI) / 180) *
+      Math.cos((lat2 * Math.PI) / 180) *
+      Math.sin(dLng / 2) *
+      Math.sin(dLng / 2);
+
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
+/**
+ * Calcule le score de temps basÃ© sur la disponibilitÃ© du livreur
+ */
+async function calculateTimeScore(
+  db: any,
+  delivererId: string,
+  requestedTime: Date
+): Promise<number> {
+  try {
+    // VÃ©rifier la disponibilitÃ© du livreur Ã  l'heure demandÃ©e
+    const requestedDate = new Date(requestedTime);
+    const dayOfWeek = requestedDate.getDay();
+    const timeOfDay = requestedDate.toTimeString().substring(0, 5);
+
+    // Chercher les disponibilitÃ©s rÃ©currentes
+    const availability = await db.providerAvailability.findFirst({
+      where: {
+        providerId: delivererId,
+        dayOfWeek,
+        startTime: { lte: timeOfDay },
+        endTime: { gte: timeOfDay },
+        isActive: true,
+      },
+    });
+
+    if (availability) {
+      // Le livreur est disponible : score Ã©levÃ©
+      return 1.0;
+    }
+
+    // Chercher des crÃ©neaux proches
+    const availabilities = await db.providerAvailability.findMany({
+      where: {
+        providerId: delivererId,
+        dayOfWeek,
+        isActive: true,
+      },
+    });
+
+    if (availabilities.length === 0) {
+      return 0.1; // Pas de disponibilitÃ© ce jour-lÃ 
+    }
+
+    // Calculer la proximitÃ© avec les crÃ©neaux disponibles
+    let bestScore = 0;
+    for (const avail of availabilities) {
+      const timeScore = calculateTimeProximity(timeOfDay, avail.startTime, avail.endTime);
+      bestScore = Math.max(bestScore, timeScore);
+    }
+
+    return bestScore;
+  } catch (error) {
+    console.error('Error calculating time score:', error);
+    return 0.5; // Score neutre en cas d'erreur
+  }
+}
+
+/**
+ * Calcule la proximitÃ© temporelle entre l'heure demandÃ©e et un crÃ©neau disponible
+ */
+function calculateTimeProximity(requestedTime: string, startTime: string, endTime: string): number {
+  const timeToMinutes = (time: string): number => {
+    const [hours, minutes] = time.split(':').map(Number);
+    return hours * 60 + minutes;
+  };
+
+  const requested = timeToMinutes(requestedTime);
+  const start = timeToMinutes(startTime);
+  const end = timeToMinutes(endTime);
+
+  // Si dans le crÃ©neau, score parfait
+  if (requested >= start && requested <= end) {
+    return 1.0;
+  }
+
+  // Calculer la distance minimale au crÃ©neau
+  const distanceToSlot = Math.min(Math.abs(requested - start), Math.abs(requested - end));
+
+  // Score inversement proportionnel Ã  la distance (max 4h = 240 min)
+  return Math.max(0, 1 - distanceToSlot / 240);
+}
+
+/**
+ * Calcule le score de prix
+ */
+function calculatePriceScore(
+  suggestedPrice: number,
+  delivererRate: number,
+  distance: number
+): number {
+  if (suggestedPrice <= 0) return 0.5; // Prix non spÃ©cifiÃ©
+
+  const delivererPrice = distance * delivererRate;
+  const priceDifference = Math.abs(suggestedPrice - delivererPrice);
+  const pricePercentage = priceDifference / Math.max(suggestedPrice, delivererPrice);
+
+  // Score Ã©levÃ© si les prix sont proches
+  return Math.max(0, 1 - pricePercentage);
 }

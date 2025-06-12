@@ -33,7 +33,7 @@ export function useDeliveryStatusUpdate(deliveryId?: string) {
   // Fonction pour charger les statuts disponibles
   const fetchAvailableStatuses = useCallback(async () => {
     if (!deliveryId) return;
-    
+
     setIsLoadingStatuses(true);
     try {
       const statuses = await api.delivery.getAvailableStatuses.query({ id: deliveryId });
@@ -46,49 +46,46 @@ export function useDeliveryStatusUpdate(deliveryId?: string) {
   }, [deliveryId]);
 
   // Fonction pour mettre à jour le statut
-  const updateStatus = useCallback(async ({
-    status,
-    options = {},
-  }: {
-    status: DeliveryStatus;
-    options?: StatusUpdateOptions;
-  }) => {
-    if (!deliveryId) throw new Error('ID de livraison non spécifié');
+  const updateStatus = useCallback(
+    async ({ status, options = {} }: { status: DeliveryStatus; options?: StatusUpdateOptions }) => {
+      if (!deliveryId) throw new Error('ID de livraison non spécifié');
 
-    setIsUpdating(true);
-    try {
-      await api.delivery.updateStatus.mutate({
-        id: deliveryId,
-        status,
-        notes: options.notes,
-        notifyClient: options.notifyClient,
-        notifyMerchant: options.notifyMerchant,
-        location:
-          options.latitude && options.longitude
-            ? { latitude: options.latitude, longitude: options.longitude }
-            : undefined,
-      });
+      setIsUpdating(true);
+      try {
+        await api.delivery.updateStatus.mutate({
+          id: deliveryId,
+          status,
+          notes: options.notes,
+          notifyClient: options.notifyClient,
+          notifyMerchant: options.notifyMerchant,
+          location:
+            options.latitude && options.longitude
+              ? { latitude: options.latitude, longitude: options.longitude }
+              : undefined,
+        });
 
-      // Mettre à jour le dernier statut
-      setLastStatusUpdate({
-        status,
-        timestamp: new Date(),
-        success: true,
-      });
+        // Mettre à jour le dernier statut
+        setLastStatusUpdate({
+          status,
+          timestamp: new Date(),
+          success: true,
+        });
 
-      // Message de succès
-      toast.success(`Statut mis à jour: ${status}`);
+        // Message de succès
+        toast.success(`Statut mis à jour: ${status}`);
 
-      // Recharger les données
-      await fetchAvailableStatuses();
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
-      toast.error(`Erreur lors de la mise à jour du statut: ${errorMessage}`);
-      throw error;
-    } finally {
-      setIsUpdating(false);
-    }
-  }, [deliveryId, fetchAvailableStatuses]);
+        // Recharger les données
+        await fetchAvailableStatuses();
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Erreur inconnue';
+        toast.error(`Erreur lors de la mise à jour du statut: ${errorMessage}`);
+        throw error;
+      } finally {
+        setIsUpdating(false);
+      }
+    },
+    [deliveryId, fetchAvailableStatuses]
+  );
 
   // Charger les statuts disponibles au montage
   useEffect(() => {
@@ -144,7 +141,7 @@ export function useDeliveryStatusHistory(deliveryId?: string) {
     } catch (err) {
       const errorObj = err instanceof Error ? err : new Error('Erreur inconnue');
       setError(errorObj);
-      console.error('Erreur lors du chargement de l\'historique des statuts:', errorObj);
+      console.error("Erreur lors du chargement de l'historique des statuts:", errorObj);
     } finally {
       setIsLoading(false);
     }
@@ -249,7 +246,7 @@ export function useDeliveryStatusHistory(deliveryId?: string) {
 export function useDeliveryETA(deliveryId?: string) {
   const [eta, setEta] = useState<Date | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
-  
+
   const calculateETA = useCallback(async () => {
     if (!deliveryId) return;
 
@@ -258,7 +255,7 @@ export function useDeliveryETA(deliveryId?: string) {
       const etaData = await api.delivery.calculateETA.query({ id: deliveryId });
       setEta(etaData.estimatedDeliveryTime ? new Date(etaData.estimatedDeliveryTime) : null);
     } catch (error) {
-      console.error('Erreur lors du calcul de l\'ETA:', error);
+      console.error("Erreur lors du calcul de l'ETA:", error);
     } finally {
       setIsCalculating(false);
     }
@@ -272,5 +269,17 @@ export function useDeliveryETA(deliveryId?: string) {
     eta,
     isCalculating,
     recalculate: calculateETA,
+  };
+}
+
+
+// Hook pour obtenir les détails d'une livraison
+export function useDeliveryDetails(deliveryId: string) {
+  const { data: delivery, isLoading } = api.delivery.getDetails.useQuery({ deliveryId });
+  
+  return {
+    delivery,
+    isLoading,
+    // TODO: Ajouter d'autres propriétés nécessaires
   };
 }

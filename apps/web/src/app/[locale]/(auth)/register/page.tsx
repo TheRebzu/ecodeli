@@ -4,10 +4,9 @@ import { getServerSession } from 'next-auth';
 import { redirect, notFound } from 'next/navigation';
 import { authOptions } from '@/server/auth/next-auth';
 import { getTranslations } from 'next-intl/server';
-import { PageProps, MetadataProps } from '@/server/auth/next-auth';
 
 type Props = {
-  params: { locale: string };
+  params: Promise<{ locale: string }>;
 };
 
 // Définition des métadonnées de la page

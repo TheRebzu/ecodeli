@@ -89,8 +89,8 @@ export class MerchantBillingService extends BillingService {
       // Traiter chaque merchant
       for (const merchant of merchantsWithContracts) {
         try {
-          // Utiliser la méthode améliorée avec contrat
-          const result = await this.generateEnhancedMerchantInvoice(
+          // Utiliser la méthode complète avec contrat
+          const result = await this.generateMerchantInvoiceWithContract(
             merchant.id,
             merchant.contracts[0].id,
             billingPeriod.startDate,
@@ -132,7 +132,7 @@ export class MerchantBillingService extends BillingService {
    * Génère la facture d'un merchant avec intégration contrat
    * Prend en compte les frais fixes, commissions et termes du contrat
    */
-  async generateEnhancedMerchantInvoice(
+  async generateMerchantInvoiceWithContract(
     merchantId: string,
     contractId: string,
     startDate: Date,

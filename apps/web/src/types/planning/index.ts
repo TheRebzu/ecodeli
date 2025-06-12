@@ -9,4 +9,3 @@ export * from './availability';
 export * from './intervention';
 export * from './route-planning';
 export * from './schedule';
-

@@ -12,4 +12,3 @@ export * from './password-reset.schema';
 export * from './register.schema';
 export * from './two-factor.schema';
 export * from './verification.schema';
-

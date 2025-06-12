@@ -50,7 +50,7 @@ const hardcodedTranslations = {
     client: 'Client',
     price: 'Prix',
     date: 'Date',
-    actions: 'Actions'
+    actions: 'Actions',
   },
   actions: 'Actions',
   view: 'Voir',
@@ -62,7 +62,8 @@ const hardcodedTranslations = {
   markAsResolved: 'Marquer comme résolu',
   reportProblem: 'Signaler un problème',
   deleteConfirmTitle: 'Confirmer la suppression',
-  deleteConfirmMessage: 'Êtes-vous sûr de vouloir supprimer cette annonce ? Cette action est irréversible.',
+  deleteConfirmMessage:
+    'Êtes-vous sûr de vouloir supprimer cette annonce ? Cette action est irréversible.',
   deleteSuccess: 'Annonce supprimée avec succès',
   deleteError: 'Erreur lors de la suppression : {error}',
   statusUpdateSuccess: 'Statut mis à jour avec succès',
@@ -79,17 +80,17 @@ const hardcodedTranslations = {
     paid: 'Payée',
     problem: 'Problème',
     dispute: 'Litige',
-    cancelled: 'Annulée'
+    cancelled: 'Annulée',
   },
   type: {
     packageDelivery: 'Livraison de colis',
     groceryShopping: 'Courses alimentaires',
     personTransport: 'Transport de personne',
     airportTransfer: 'Navette aéroport',
-    foreignPurchase: 'Achat à l\'étranger',
-    petCare: 'Garde d\'animaux',
-    homeServices: 'Services à domicile'
-  }
+    foreignPurchase: "Achat à l'étranger",
+    petCare: "Garde d'animaux",
+    homeServices: 'Services à domicile',
+  },
 };
 
 // Types pour les annonces basées sur le modèle Prisma
@@ -152,12 +153,12 @@ export function AnnouncementTable({
         return key; // Retourner la clé si pas trouvée
       }
     }
-    
+
     // Gestion des paramètres pour les erreurs
     if (typeof value === 'string' && params && params.error) {
       return value.replace('{error}', params.error);
     }
-    
+
     return value || key;
   };
 
@@ -501,7 +502,9 @@ export function AnnouncementTable({
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>{getTranslation('deleteConfirmTitle')}</AlertDialogTitle>
-            <AlertDialogDescription>{getTranslation('deleteConfirmMessage')}</AlertDialogDescription>
+            <AlertDialogDescription>
+              {getTranslation('deleteConfirmMessage')}
+            </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>{getTranslation('cancel')}</AlertDialogCancel>

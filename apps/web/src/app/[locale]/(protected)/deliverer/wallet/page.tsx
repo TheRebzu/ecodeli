@@ -18,7 +18,7 @@ import {
 import { api } from '@/trpc/react';
 import { useToast } from '@/components/ui/use-toast';
 import { cn } from '@/lib/utils/common';
-import { formatCurrency  } from '@/utils/document-utils';
+import { formatCurrency } from '@/utils/document-utils';
 
 import { DelivererWalletDashboard } from '@/config/dashboard';
 import { Button } from '@/components/ui/button';

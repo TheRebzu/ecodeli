@@ -6,4 +6,3 @@
 // Exports des fichiers locaux
 export { default as InvoiceDownload } from './invoice-download';
 export * from './invoice-download';
-

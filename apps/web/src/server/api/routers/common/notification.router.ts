@@ -56,6 +56,30 @@ export const notificationRouter = router({
       }
     }),
 
+  // Get urgent notifications (high priority)
+  getUrgentNotifications: protectedProcedure.query(async ({ ctx }) => {
+    try {
+      return await ctx.db.notification.findMany({
+        where: {
+          userId: ctx.session.user.id,
+          priority: 'HIGH',
+          read: false,
+          createdAt: {
+            gte: new Date(Date.now() - 24 * 60 * 60 * 1000), // Dernières 24h
+          },
+        },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+      });
+    } catch (error) {
+      console.error('Error fetching urgent notifications:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Failed to fetch urgent notifications',
+      });
+    }
+  }),
+
   // Get unread notification count with optional type filtering
   getUnreadCount: protectedProcedure
     .input(

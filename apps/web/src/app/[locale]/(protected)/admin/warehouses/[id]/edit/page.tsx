@@ -3,21 +3,21 @@ import { getTranslations } from 'next-intl/server';
 import { WarehouseForm } from '@/components/admin/warehouses/warehouse-form';
 import { createCaller } from '@/trpc/server';
 import { notFound } from 'next/navigation';
-import { PageProps, MetadataProps } from '@/server/auth/next-auth';
 
 export async function generateMetadata({
   params,
 }: {
-  params: { locale: string; id: string };
+  params: Promise<{ locale: string; id: string }>;
 }): Promise<Metadata> {
+  const { locale, id } = await params;
   const t = await getTranslations({
-    locale: params.locale,
+    locale,
     namespace: 'admin.warehouses.form.meta',
   });
 
   try {
     const caller = await createCaller();
-    const warehouse = await caller.adminWarehouse.getWarehouseById({ id: params.id });
+    const warehouse = await caller.adminWarehouse.getWarehouseById({ id });
 
     return {
       title: `${t('editTitle')} - ${warehouse.warehouse.name}`,
@@ -31,10 +31,12 @@ export async function generateMetadata({
   }
 }
 
-export default async function EditWarehousePage({ params }: { params: { id: string } }) {
+export default async function EditWarehousePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  
   try {
     const caller = await createCaller();
-    const warehouseData = await caller.adminWarehouse.getWarehouseById({ id: params.id });
+    const warehouseData = await caller.adminWarehouse.getWarehouseById({ id });
     const warehouse = warehouseData.warehouse;
 
     return (

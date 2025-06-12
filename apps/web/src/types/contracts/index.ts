@@ -9,4 +9,3 @@ export * from './merchant-contract';
 export * from './negotiation';
 export * from './provider-contract';
 export * from './terms';
-

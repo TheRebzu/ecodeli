@@ -74,8 +74,16 @@ interface ServicesListProps {
 const statusConfig = {
   ACTIVE: { label: 'Actif', variant: 'default' as const, color: 'bg-green-100 text-green-800' },
   INACTIVE: { label: 'Inactif', variant: 'secondary' as const, color: 'bg-gray-100 text-gray-800' },
-  DRAFT: { label: 'Brouillon', variant: 'outline' as const, color: 'bg-yellow-100 text-yellow-800' },
-  SUSPENDED: { label: 'Suspendu', variant: 'destructive' as const, color: 'bg-red-100 text-red-800' },
+  DRAFT: {
+    label: 'Brouillon',
+    variant: 'outline' as const,
+    color: 'bg-yellow-100 text-yellow-800',
+  },
+  SUSPENDED: {
+    label: 'Suspendu',
+    variant: 'destructive' as const,
+    color: 'bg-red-100 text-red-800',
+  },
 };
 
 export function ServicesList({
@@ -201,7 +209,7 @@ export function ServicesList({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {services.map((service) => (
+              {services.map(service => (
                 <TableRow key={service.id}>
                   <TableCell>
                     <div className="space-y-1">
@@ -227,7 +235,7 @@ export function ServicesList({
                     </div>
                   </TableCell>
                   <TableCell>
-                    <Badge 
+                    <Badge
                       variant={statusConfig[service.status].variant}
                       className={statusConfig[service.status].color}
                     >
@@ -250,7 +258,7 @@ export function ServicesList({
                           <Edit className="mr-2 h-4 w-4" />
                           Modifier
                         </DropdownMenuItem>
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => handleStatusToggle(service)}
                           disabled={isUpdatingStatus}
                         >
@@ -258,7 +266,7 @@ export function ServicesList({
                           {service.status === 'ACTIVE' ? 'Désactiver' : 'Activer'}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem 
+                        <DropdownMenuItem
                           onClick={() => handleDeleteClick(service)}
                           className="text-red-600"
                           disabled={isDeleting}
@@ -306,15 +314,16 @@ export function ServicesList({
       )}
 
       {/* Dialog de confirmation de suppression */}
-      <AlertDialog open={deleteDialog.isOpen} onOpenChange={(open) => 
-        setDeleteDialog({ isOpen: open, service: null })
-      }>
+      <AlertDialog
+        open={deleteDialog.isOpen}
+        onOpenChange={open => setDeleteDialog({ isOpen: open, service: null })}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Confirmer la suppression</AlertDialogTitle>
             <AlertDialogDescription>
-              Êtes-vous sûr de vouloir supprimer le service "{deleteDialog.service?.name}" ?
-              Cette action est irréversible.
+              Êtes-vous sûr de vouloir supprimer le service "{deleteDialog.service?.name}" ? Cette
+              action est irréversible.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -330,4 +339,4 @@ export function ServicesList({
       </AlertDialog>
     </>
   );
-} 
+}

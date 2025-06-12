@@ -20,4 +20,3 @@ export * from './matching.schema';
 export * from './real-time-tracking.schema';
 export * from './route-suggestion.schema';
 export * from './tracking-history.schema';
-

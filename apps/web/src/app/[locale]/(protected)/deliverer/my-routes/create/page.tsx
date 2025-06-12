@@ -4,13 +4,7 @@ import { useState } from 'react';
 import { useTranslations } from 'next-intl';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from '@/components/ui/card';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
 import { ArrowLeft, CheckCircle, AlertCircle } from 'lucide-react';
@@ -77,9 +71,9 @@ export default function CreateRoutePage() {
 
       // Dans une implémentation réelle, on utiliserait un appel tRPC
       // const response = await api.delivererRoute.createRoute.mutate(data);
-      
+
       console.log('Données de route soumises:', data);
-      
+
       // Simuler un délai pour la démo
       setTimeout(() => {
         setCreatedRouteId('route-123');

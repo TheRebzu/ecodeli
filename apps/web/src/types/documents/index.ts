@@ -9,4 +9,3 @@ export * from './document';
 export * from './invoice-document';
 export * from './justificative';
 export * from './verification';
-

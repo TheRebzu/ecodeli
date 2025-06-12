@@ -18,4 +18,3 @@ export { default as AnnouncementPhotoUpload } from './announcement-photo-upload'
 export * from './announcement-photo-upload';
 export { default as PhotoUpload } from './photo-upload';
 export * from './photo-upload';
-

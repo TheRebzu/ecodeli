@@ -27,10 +27,12 @@ export const financialRouter = createTRPCRouter({
    * STATISTIQUES FINANCIÈRES
    */
   getStats: adminProcedure
-    .input(z.object({
-      startDate: z.coerce.date(),
-      endDate: z.coerce.date(),
-    }))
+    .input(
+      z.object({
+        startDate: z.coerce.date(),
+        endDate: z.coerce.date(),
+      })
+    )
     .query(async ({ ctx, input }) => {
       try {
         const [

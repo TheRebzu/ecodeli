@@ -102,9 +102,7 @@ export function ServicesStats({ stats, isLoading }: ServicesStatsProps) {
                 {stats.activeServices} actifs
               </span>
               {' • '}
-              <span className="text-muted-foreground">
-                {stats.inactiveServices} inactifs
-              </span>
+              <span className="text-muted-foreground">{stats.inactiveServices} inactifs</span>
             </p>
           </CardContent>
         </Card>
@@ -132,9 +130,7 @@ export function ServicesStats({ stats, isLoading }: ServicesStatsProps) {
               {stats.averageRating.toFixed(1)}
               <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
             </div>
-            <p className="text-xs text-muted-foreground">
-              Sur {stats.totalBookings} réservations
-            </p>
+            <p className="text-xs text-muted-foreground">Sur {stats.totalBookings} réservations</p>
           </CardContent>
         </Card>
 
@@ -145,9 +141,7 @@ export function ServicesStats({ stats, isLoading }: ServicesStatsProps) {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{stats.totalCategories}</div>
-            <p className="text-xs text-muted-foreground">
-              Types de services disponibles
-            </p>
+            <p className="text-xs text-muted-foreground">Types de services disponibles</p>
           </CardContent>
         </Card>
       </div>
@@ -160,7 +154,7 @@ export function ServicesStats({ stats, isLoading }: ServicesStatsProps) {
             <CardDescription>Services les plus demandés</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {stats.recentServices.map((service) => (
+            {stats.recentServices.map(service => (
               <div key={service.id} className="flex items-center justify-between">
                 <div className="space-y-1">
                   <p className="text-sm font-medium leading-none">{service.name}</p>
@@ -187,13 +181,11 @@ export function ServicesStats({ stats, isLoading }: ServicesStatsProps) {
             <CardDescription>Services et revenus par catégorie</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            {stats.categoryStats.map((category) => (
+            {stats.categoryStats.map(category => (
               <div key={category.category} className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">{category.category}</span>
-                  <span className="text-sm text-muted-foreground">
-                    {category.count} services
-                  </span>
+                  <span className="text-sm text-muted-foreground">{category.count} services</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <div className="w-full bg-secondary rounded-full h-2 mr-2">
@@ -215,4 +207,4 @@ export function ServicesStats({ stats, isLoading }: ServicesStatsProps) {
       </div>
     </div>
   );
-} 
+}

@@ -34,7 +34,7 @@ export function useServiceCategories() {
       });
       refetch();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: error.message,
@@ -51,7 +51,7 @@ export function useServiceCategories() {
       });
       refetch();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: error.message,
@@ -68,7 +68,7 @@ export function useServiceCategories() {
       });
       refetch();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: error.message,
@@ -85,7 +85,7 @@ export function useServiceCategories() {
       });
       refetch();
     },
-    onError: (error) => {
+    onError: error => {
       toast({
         title: 'Erreur',
         description: error.message,
@@ -120,22 +120,22 @@ export function useServiceCategories() {
     // Données
     categories: categoriesData?.categories || [],
     total: categoriesData?.total || 0,
-    
+
     // États
     isLoading,
     error,
-    
+
     // Actions
     createCategory,
     updateCategory,
     toggleCategoryStatus,
     deleteCategory,
     refetch,
-    
+
     // États des mutations
     isCreating: createCategoryMutation.isPending,
     isUpdating: updateCategoryMutation.isPending,
     isTogglingStatus: toggleStatusMutation.isPending,
     isDeleting: deleteCategoryMutation.isPending,
   };
-} 
+}

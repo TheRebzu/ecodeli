@@ -20,4 +20,3 @@ export { default as TariffSettingsForm } from './tariff-settings-form';
 export * from './tariff-settings-form';
 export { default as TermsConditionsForm } from './terms-conditions-form';
 export * from './terms-conditions-form';
-

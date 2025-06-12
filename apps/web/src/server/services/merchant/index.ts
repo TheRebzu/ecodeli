@@ -10,4 +10,3 @@ export * from './merchant-announcement.service';
 export * from './merchant-catalog.service';
 export * from './merchant-delivery.service';
 export * from './merchant.service';
-

@@ -5,10 +5,6 @@ export const metadata: Metadata = {
   description: 'Gérez et supervisez tous les livreurs de la plateforme EcoDeli',
 };
 
-export default function DeliverersLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function DeliverersLayout({ children }: { children: React.ReactNode }) {
   return children;
-} 
+}

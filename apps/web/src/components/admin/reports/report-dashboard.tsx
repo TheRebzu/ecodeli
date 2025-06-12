@@ -7,7 +7,8 @@ import { api } from '@/trpc/react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { DownloadIcon, RefreshCw, Calendar } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { DownloadIcon, RefreshCw, FileText, BarChart3, TrendingUp, Calendar } from 'lucide-react';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { SalesReport } from '@/components/admin/reports/sales-report';
@@ -32,8 +33,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
-import { Badge } from '@/components/ui/badge';
-import { InfoCircle, MapPin } from 'lucide-react';
+import { Info, MapPin } from 'lucide-react';
 import {
   DeliveryPerformanceReport as DeliveryPerformanceReportType,
   SalesReport as SalesReportType,
@@ -130,48 +130,109 @@ export function ReportDashboard({
     }
   };
 
-  const handleExport = async () => {
+  // Fonction pour exporter en PDF
+  const handleExportPdf = async () => {
     try {
-      // Logique pour l'export selon le rapport actif
-      let response;
+      let data;
+      let reportType;
 
-      if (activeTab === 'sales') {
-        response = await fetch('/api/export/sales-report', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(filters),
-        });
-      } else if (activeTab === 'user-activity') {
-        response = await fetch('/api/export/user-activity-report', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(filters),
-        });
-      } else if (activeTab === 'delivery-performance') {
-        response = await fetch('/api/export/delivery-performance-report', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(filters),
-        });
+      switch (activeTab) {
+        case 'sales':
+          data = salesQuery.data;
+          reportType = 'sales';
+          break;
+        case 'user-activity':
+          data = userActivityQuery.data;
+          reportType = 'user-activity';
+          break;
+        case 'delivery-performance':
+          data = deliveryPerformanceQuery.data;
+          reportType = 'delivery';
+          break;
+        default:
+          throw new Error('Type de rapport non supporté');
       }
 
-      if (response && response.ok) {
+      const response = await fetch('/api/admin/reports/export-pdf', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reportType,
+          data,
+          filters,
+        }),
+      });
+
+      if (response.ok) {
         const blob = await response.blob();
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = `${activeTab}-report-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+        a.download = `${reportType}-report-${format(new Date(), 'yyyy-MM-dd')}.pdf`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-        toast.success(t('exportSuccess'));
+        toast.success('Rapport PDF généré avec succès');
       } else {
-        throw new Error('Export failed');
+        throw new Error('Erreur lors de la génération du PDF');
       }
     } catch (error) {
-      console.error('Export error:', error);
-      toast.error(t('exportError'));
+      console.error('Export PDF error:', error);
+      toast.error("Erreur lors de l'export PDF");
+    }
+  };
+
+  // Fonction pour exporter en CSV
+  const handleExportCsv = async () => {
+    try {
+      let data;
+      let reportType;
+
+      switch (activeTab) {
+        case 'sales':
+          data = salesQuery.data;
+          reportType = 'sales';
+          break;
+        case 'user-activity':
+          data = userActivityQuery.data;
+          reportType = 'user-activity';
+          break;
+        case 'delivery-performance':
+          data = deliveryPerformanceQuery.data;
+          reportType = 'delivery';
+          break;
+        default:
+          throw new Error('Type de rapport non supporté');
+      }
+
+      const response = await fetch('/api/admin/reports/export-csv', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          reportType,
+          data,
+          filters,
+        }),
+      });
+
+      if (response.ok) {
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${reportType}-report-${format(new Date(), 'yyyy-MM-dd')}.csv`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        toast.success('Rapport CSV généré avec succès');
+      } else {
+        throw new Error('Erreur lors de la génération du CSV');
+      }
+    } catch (error) {
+      console.error('Export CSV error:', error);
+      toast.error("Erreur lors de l'export CSV");
     }
   };
 

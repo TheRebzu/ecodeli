@@ -242,7 +242,11 @@ export function AnnouncementDetail({
               {announcement.deliverer && (
                 <Button
                   variant="default"
-                  onClick={() => onChatWith && announcement.deliverer?.userId && onChatWith(announcement.deliverer.userId)}
+                  onClick={() =>
+                    onChatWith &&
+                    announcement.deliverer?.userId &&
+                    onChatWith(announcement.deliverer.userId)
+                  }
                 >
                   <MessageSquare className="mr-2 h-4 w-4" />
                   {t('chatWithDeliverer')}
@@ -307,7 +311,9 @@ export function AnnouncementDetail({
                 {announcement.client && (
                   <Button
                     variant="outline"
-                    onClick={() => onChatWith && announcement.client?.id && onChatWith(announcement.client.id)}
+                    onClick={() =>
+                      onChatWith && announcement.client?.id && onChatWith(announcement.client.id)
+                    }
                   >
                     <MessageSquare className="mr-2 h-4 w-4" />
                     {t('chatWithClient')}
@@ -329,7 +335,9 @@ export function AnnouncementDetail({
                 {announcement.client && (
                   <Button
                     variant="outline"
-                    onClick={() => onChatWith && announcement.client?.id && onChatWith(announcement.client.id)}
+                    onClick={() =>
+                      onChatWith && announcement.client?.id && onChatWith(announcement.client.id)
+                    }
                   >
                     <MessageSquare className="mr-2 h-4 w-4" />
                     {t('chatWithClient')}
@@ -356,7 +364,7 @@ export function AnnouncementDetail({
         <HoverCardTrigger asChild>
           <div className="flex items-center gap-2 cursor-pointer">
             <Avatar className="h-8 w-8">
-                                    <AvatarImage src={user.image || undefined} alt={user.name} />
+              <AvatarImage src={user.image || undefined} alt={user.name} />
               <AvatarFallback>
                 {user.name
                   .split(' ')
@@ -373,7 +381,7 @@ export function AnnouncementDetail({
         <HoverCardContent className="w-80">
           <div className="flex justify-between space-x-4">
             <Avatar>
-                                <AvatarImage src={user.image || undefined} />
+              <AvatarImage src={user.image || undefined} />
               <AvatarFallback>
                 {user.name
                   .split(' ')
@@ -720,12 +728,12 @@ export function AnnouncementDetail({
             <Separator className="my-4" />
             <div className="flex flex-wrap justify-between items-center">
               <div className="space-y-2">
-                {announcement.client &&
-                  userRole !== 'CLIENT' &&
-                  renderUserCard(announcement.client, t('client'))}
-                {announcement.deliverer &&
-                  userRole !== 'DELIVERER' &&
-                  renderUserCard(announcement.deliverer, t('deliverer'))}
+                {announcement.client && userRole !== 'CLIENT'
+                  ? renderUserCard(announcement.client, t('client'))
+                  : null}
+                {announcement.deliverer && userRole !== 'DELIVERER'
+                  ? renderUserCard(announcement.deliverer, t('deliverer'))
+                  : null}
               </div>
 
               {announcement.status === 'CANCELLED' && announcement.cancelReason && (
@@ -842,7 +850,9 @@ export function AnnouncementDetail({
             <Button
               variant="destructive"
               onClick={() => {
-                onCancel && onCancel(announcement.id, cancelReason);
+                if (onCancel) {
+                  onCancel(announcement.id, cancelReason);
+                }
                 setShowCancelDialog(false);
               }}
             >
@@ -891,7 +901,9 @@ export function AnnouncementDetail({
             <Button
               variant="default"
               onClick={() => {
-                onApply && onApply(announcement.id, proposedPrice, message);
+                if (onApply) {
+                  onApply(announcement.id, proposedPrice, message);
+                }
                 setShowApplyDialog(false);
               }}
             >

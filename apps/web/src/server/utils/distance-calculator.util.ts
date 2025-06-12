@@ -1,9 +1,9 @@
 /**
- * Utilitaires de calcul de distance et géolocalisation
+ * Utilitaires de calcul de distance et gÃ©olocalisation
  */
 
 /**
- * Interface pour les coordonnées géographiques
+ * Interface pour les coordonnÃ©es gÃ©ographiques
  */
 export interface GeoPoint {
   latitude: number;
@@ -11,13 +11,13 @@ export interface GeoPoint {
 }
 
 /**
- * Calcule la distance entre deux points géographiques en utilisant la formule de Haversine
+ * Calcule la distance entre deux points gÃ©ographiques en utilisant la formule de Haversine
  * @param point1 Premier point (latitude, longitude)
- * @param point2 Deuxième point (latitude, longitude)
- * @returns Distance en kilomètres
+ * @param point2 DeuxiÃ¨me point (latitude, longitude)
+ * @returns Distance en kilomÃ¨tres
  */
 export function getDistance(point1: GeoPoint, point2: GeoPoint): number {
-  const R = 6371; // Rayon de la Terre en kilomètres
+  const R = 6371; // Rayon de la Terre en kilomÃ¨tres
   const dLat = toRadians(point2.latitude - point1.latitude);
   const dLon = toRadians(point2.longitude - point1.longitude);
 
@@ -31,14 +31,14 @@ export function getDistance(point1: GeoPoint, point2: GeoPoint): number {
   const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   const distance = R * c;
 
-  return Math.round(distance * 100) / 100; // Arrondi à 2 décimales
+  return Math.round(distance * 100) / 100; // Arrondi Ã  2 dÃ©cimales
 }
 
 /**
- * Calcule le bearing (direction) entre deux points géographiques
- * @param point1 Point de départ
- * @param point2 Point d'arrivée
- * @returns Bearing en degrés (0-360)
+ * Calcule le bearing (direction) entre deux points gÃ©ographiques
+ * @param point1 Point de dÃ©part
+ * @param point2 Point d'arrivÃ©e
+ * @returns Bearing en degrÃ©s (0-360)
  */
 export function getBearing(point1: GeoPoint, point2: GeoPoint): number {
   const dLon = toRadians(point2.longitude - point1.longitude);
@@ -46,26 +46,21 @@ export function getBearing(point1: GeoPoint, point2: GeoPoint): number {
   const lat2 = toRadians(point2.latitude);
 
   const y = Math.sin(dLon) * Math.cos(lat2);
-  const x =
-    Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
+  const x = Math.cos(lat1) * Math.sin(lat2) - Math.sin(lat1) * Math.cos(lat2) * Math.cos(dLon);
 
-  let bearing = toDegrees(Math.atan2(y, x));
-  return (bearing + 360) % 360; // Normaliser à 0-360
+  const bearing = Math.atan2(y, x);
+  return (bearing + 360) % 360; // Normaliser Ã  0-360
 }
 
 /**
- * Calcule un point de destination à partir d'un point de départ, d'une distance et d'un bearing
- * @param point Point de départ
- * @param distance Distance en kilomètres
- * @param bearing Direction en degrés
+ * Calcule un point de destination Ã  partir d'un point de dÃ©part, d'une distance et d'un bearing
+ * @param point Point de dÃ©part
+ * @param distance Distance en kilomÃ¨tres
+ * @param bearing Direction en degrÃ©s
  * @returns Point de destination
  */
-export function getDestinationPoint(
-  point: GeoPoint,
-  distance: number,
-  bearing: number
-): GeoPoint {
-  const R = 6371; // Rayon de la Terre en kilomètres
+export function getDestinationPoint(point: GeoPoint, distance: number, bearing: number): GeoPoint {
+  const R = 6371; // Rayon de la Terre en kilomÃ¨tres
   const lat1 = toRadians(point.latitude);
   const lon1 = toRadians(point.longitude);
   const bearingRad = toRadians(bearing);
@@ -89,10 +84,10 @@ export function getDestinationPoint(
 }
 
 /**
- * Calcule si un point est à l'intérieur d'un rayon donné autour d'un centre
+ * Calcule si un point est Ã  l'intÃ©rieur d'un rayon donnÃ© autour d'un centre
  * @param center Point central
- * @param point Point à tester
- * @param radiusKm Rayon en kilomètres
+ * @param point Point Ã  tester
+ * @param radiusKm Rayon en kilomÃ¨tres
  * @returns true si le point est dans le rayon
  */
 export function isWithinRadius(center: GeoPoint, point: GeoPoint, radiusKm: number): boolean {
@@ -100,9 +95,9 @@ export function isWithinRadius(center: GeoPoint, point: GeoPoint, radiusKm: numb
 }
 
 /**
- * Calcule le point le plus proche d'un point de référence dans une liste de points
- * @param reference Point de référence
- * @param points Liste de points à évaluer
+ * Calcule le point le plus proche d'un point de rÃ©fÃ©rence dans une liste de points
+ * @param reference Point de rÃ©fÃ©rence
+ * @param points Liste de points Ã  Ã©valuer
  * @returns Point le plus proche et sa distance
  */
 export function getClosestPoint(
@@ -126,7 +121,7 @@ export function getClosestPoint(
 }
 
 /**
- * Calcule le centre géographique (centroïde) d'une liste de points
+ * Calcule le centre gÃ©ographique (centroÃ¯de) d'une liste de points
  * @param points Liste de points
  * @returns Point central
  */
@@ -143,11 +138,11 @@ export function getCentroid(points: GeoPoint[]): GeoPoint | null {
 }
 
 /**
- * Calcule le détour en pourcentage entre un itinéraire direct et un itinéraire avec escale
- * @param origin Point de départ
- * @param destination Point d'arrivée
+ * Calcule le dÃ©tour en pourcentage entre un itinÃ©raire direct et un itinÃ©raire avec escale
+ * @param origin Point de dÃ©part
+ * @param destination Point d'arrivÃ©e
  * @param waypoint Point d'escale
- * @returns Pourcentage de détour
+ * @returns Pourcentage de dÃ©tour
  */
 export function calculateDetourPercentage(
   origin: GeoPoint,
@@ -160,13 +155,13 @@ export function calculateDetourPercentage(
   if (directDistance === 0) return 0;
 
   const detourPercentage = ((detourDistance - directDistance) / directDistance) * 100;
-  return Math.round(detourPercentage * 100) / 100; // Arrondi à 2 décimales
+  return Math.round(detourPercentage * 100) / 100; // Arrondi Ã  2 dÃ©cimales
 }
 
 /**
- * Valide si des coordonnées sont valides
- * @param point Coordonnées à valider
- * @returns true si les coordonnées sont valides
+ * Valide si des coordonnÃ©es sont valides
+ * @param point CoordonnÃ©es Ã  valider
+ * @returns true si les coordonnÃ©es sont valides
  */
 export function isValidGeoPoint(point: GeoPoint): boolean {
   return (
@@ -178,23 +173,23 @@ export function isValidGeoPoint(point: GeoPoint): boolean {
 }
 
 /**
- * Convertit des degrés en radians
+ * Convertit des degrÃ©s en radians
  */
 function toRadians(degrees: number): number {
   return (degrees * Math.PI) / 180;
 }
 
 /**
- * Convertit des radians en degrés
+ * Convertit des radians en degrÃ©s
  */
 function toDegrees(radians: number): number {
   return (radians * 180) / Math.PI;
 }
 
 /**
- * Calcule l'aire d'un polygone défini par des points géographiques
+ * Calcule l'aire d'un polygone dÃ©fini par des points gÃ©ographiques
  * @param points Points du polygone (ordre important)
- * @returns Aire en kilomètres carrés
+ * @returns Aire en kilomÃ¨tres carrÃ©s
  */
 export function calculatePolygonArea(points: GeoPoint[]): number {
   if (points.length < 3) return 0;
@@ -204,18 +199,19 @@ export function calculatePolygonArea(points: GeoPoint[]): number {
 
   for (let i = 0; i < points.length; i++) {
     const j = (i + 1) % points.length;
-    area += toRadians(points[j].longitude - points[i].longitude) *
+    area +=
+      toRadians(points[j].longitude - points[i].longitude) *
       (2 + Math.sin(toRadians(points[i].latitude)) + Math.sin(toRadians(points[j].latitude)));
   }
 
-  area = Math.abs(area) * R * R / 2;
+  area = (Math.abs(area) * R * R) / 2;
   return Math.round(area * 100) / 100;
 }
 
 /**
  * Trouve le point d'intersection le plus proche entre deux routes
- * @param route1 Première route (tableau de points)
- * @param route2 Deuxième route (tableau de points)
+ * @param route1 PremiÃ¨re route (tableau de points)
+ * @param route2 DeuxiÃ¨me route (tableau de points)
  * @returns Informations sur l'intersection la plus proche
  */
 export function findClosestIntersection(

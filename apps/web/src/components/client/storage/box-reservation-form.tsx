@@ -1,8 +1,17 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { boxReservationCreateSchema, BoxReservationCreateInput } from '@/schemas/storage/storage.schema';
+import {
+  boxReservationCreateSchema,
+  BoxReservationCreateInput,
+} from '@/schemas/storage/storage.schema';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Separator } from '@/components/ui/separator';
+import { Progress } from '@/components/ui/progress';
+import { OptimalPricingCalculator } from '@/components/client/storage/optimal-pricing-calculator';
+import { BoxRecommendations } from '@/components/client/storage/box-recommendations';
 import {
   Form,
   FormControl,
@@ -19,25 +28,49 @@ import { BoxWithWarehouse } from '@/types/warehouses/storage-box';
 import { useTranslations } from 'next-intl';
 import { BoxDetailCard } from '@/components/client/storage/box-detail-card';
 import { useBoxReservation } from '@/hooks/common/use-storage';
-import { AlertCircle, CheckCircle2 } from 'lucide-react';
+import {
+  AlertCircle,
+  CheckCircle2,
+  ArrowLeft,
+  ArrowRight,
+  CreditCard,
+  Package,
+  FileText,
+  MapPin,
+  Clock,
+} from 'lucide-react';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { api } from '@/trpc/react';
 
 interface BoxReservationFormProps {
   box: BoxWithWarehouse;
   startDate: Date;
   endDate: Date;
   onBack?: () => void;
+  onSuccess?: (reservationId: string) => void;
 }
 
-export function BoxReservationForm({ box, startDate, endDate, onBack }: BoxReservationFormProps) {
+type ReservationStep = 'selection' | 'details' | 'payment' | 'confirmation';
+
+export function BoxReservationForm({
+  box,
+  startDate,
+  endDate,
+  onBack,
+  onSuccess,
+}: BoxReservationFormProps) {
   const t = useTranslations('storage');
-  const [step, setStep] = useState<'details' | 'payment' | 'confirmation'>('details');
-  const { createReservation } = useBoxReservation();
+  const [step, setStep] = useState<ReservationStep>('selection');
+  const [selectedBox, setSelectedBox] = useState(box);
+  const [calculatedPricing, setCalculatedPricing] = useState<any>(null);
+
+  // Mutation pour créer la réservation
+  const createReservation = api.storage.createBoxReservation.useMutation();
 
   const form = useForm<BoxReservationCreateInput>({
     resolver: zodResolver(boxReservationCreateSchema),
     defaultValues: {
-      boxId: box.id,
+      boxId: selectedBox.id,
       startDate,
       endDate,
       notes: '',
@@ -48,56 +81,150 @@ export function BoxReservationForm({ box, startDate, endDate, onBack }: BoxReser
   const durationInDays = Math.ceil(
     (endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)
   );
-  const totalPrice = durationInDays * box.pricePerDay;
+  const totalPrice = durationInDays * selectedBox.pricePerDay;
 
   const onSubmit = (data: BoxReservationCreateInput) => {
-    if (step === 'details') {
-      setStep('payment');
-    } else if (step === 'payment') {
-      createReservation.mutate(data, {
-        onSuccess: () => {
+    createReservation.mutate(
+      {
+        ...data,
+        boxId: selectedBox.id,
+      },
+      {
+        onSuccess: result => {
           setStep('confirmation');
+          onSuccess?.(result.id);
         },
-      });
+      }
+    );
+  };
+
+  const handleStepForward = () => {
+    const steps: ReservationStep[] = ['selection', 'details', 'payment', 'confirmation'];
+    const currentIndex = steps.indexOf(step);
+    if (currentIndex < steps.length - 1) {
+      setStep(steps[currentIndex + 1]);
+    }
+  };
+
+  const handleStepBack = () => {
+    const steps: ReservationStep[] = ['selection', 'details', 'payment', 'confirmation'];
+    const currentIndex = steps.indexOf(step);
+    if (currentIndex > 0) {
+      setStep(steps[currentIndex - 1]);
+    } else {
+      onBack?.();
+    }
+  };
+
+  const getStepProgress = () => {
+    const steps = ['selection', 'details', 'payment', 'confirmation'];
+    return ((steps.indexOf(step) + 1) / steps.length) * 100;
+  };
+
+  const getStepIcon = (stepName: ReservationStep) => {
+    switch (stepName) {
+      case 'selection':
+        return Package;
+      case 'details':
+        return FileText;
+      case 'payment':
+        return CreditCard;
+      case 'confirmation':
+        return CheckCircle2;
     }
   };
 
   const renderStepContent = () => {
     switch (step) {
+      case 'selection':
+        return (
+          <div className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Box sélectionnée</CardTitle>
+                <CardDescription>
+                  Vérifiez votre sélection ou explorez d'autres options
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="p-4 border rounded-lg">
+                  <div className="flex justify-between items-start mb-3">
+                    <h3 className="font-semibold">{selectedBox.name}</h3>
+                    <Badge variant="outline">{selectedBox.boxType}</Badge>
+                  </div>
+                  <div className="space-y-2 text-sm text-muted-foreground">
+                    <div>Taille: {selectedBox.size}m²</div>
+                    <div>Prix: {selectedBox.pricePerDay}€/jour</div>
+                    <div>Entrepôt: {selectedBox.warehouse.name}</div>
+                    <div>Adresse: {selectedBox.warehouse.address}</div>
+                  </div>
+                  {selectedBox.features && selectedBox.features.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-3">
+                      {selectedBox.features.map((feature: string, index: number) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          {feature}
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Calculateur de prix optimal */}
+            <OptimalPricingCalculator
+              box={selectedBox}
+              startDate={startDate}
+              endDate={endDate}
+              onPricingCalculated={setCalculatedPricing}
+            />
+
+            {/* Recommandations alternatives */}
+            <BoxRecommendations
+              filters={{
+                warehouseId: selectedBox.warehouse.id,
+                startDate,
+                endDate,
+              }}
+              onBoxSelect={boxId => {
+                // Dans un cas réel, il faudrait récupérer les détails de la box
+                console.log('Box alternative sélectionnée:', boxId);
+              }}
+              maxRecommendations={3}
+            />
+          </div>
+        );
+
       case 'details':
         return (
           <div className="space-y-6">
-            <BoxDetailCard
-              box={box}
-              onSelect={() => {}}
-              startDate={startDate}
-              endDate={endDate}
-              showReserveButton={false}
-            />
-
-            <div className="bg-muted/50 p-4 rounded-lg">
-              <h3 className="font-medium mb-2">{t('reservation.summary')}</h3>
-              <div className="space-y-1 text-sm">
-                <div className="flex justify-between">
-                  <span>{t('reservation.period')}</span>
-                  <span>
-                    {format(startDate, 'PPP', { locale: fr })} &mdash;{' '}
-                    {format(endDate, 'PPP', { locale: fr })}
-                  </span>
+            <Card>
+              <CardHeader>
+                <CardTitle>Détails de la réservation</CardTitle>
+                <CardDescription>
+                  Période du {format(startDate, 'PPP', { locale: fr })} au{' '}
+                  {format(endDate, 'PPP', { locale: fr })}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Box sélectionnée</span>
+                    <span className="font-medium">{selectedBox.name}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Durée</span>
+                    <span className="font-medium">
+                      {durationInDays} {durationInDays > 1 ? 'jours' : 'jour'}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-muted-foreground">Prix total</span>
+                    <span className="font-bold text-lg">{totalPrice}€</span>
+                  </div>
                 </div>
-                <div className="flex justify-between">
-                  <span>{t('reservation.duration')}</span>
-                  <span>
-                    {durationInDays}{' '}
-                    {durationInDays > 1 ? t('reservation.days') : t('reservation.day')}
-                  </span>
-                </div>
-                <div className="flex justify-between font-medium">
-                  <span>{t('reservation.totalPrice')}</span>
-                  <span>{totalPrice}€</span>
-                </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
 
             <FormField
               control={form.control}
@@ -184,36 +311,71 @@ export function BoxReservationForm({ box, startDate, endDate, onBack }: BoxReser
   };
 
   return (
-    <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-        {renderStepContent()}
+    <div className="space-y-6">
+      {/* Indicateur de progression */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold">Réservation de box</h2>
+          <Badge variant="outline">{step === 'confirmation' ? 'Confirmée' : 'En cours'}</Badge>
+        </div>
+        <Progress value={getStepProgress()} className="w-full" />
+        <div className="flex justify-between text-xs text-muted-foreground">
+          <span>Sélection</span>
+          <span>Détails</span>
+          <span>Paiement</span>
+          <span>Confirmation</span>
+        </div>
+      </div>
 
-        <div className="flex gap-2 justify-between mt-6">
-          {step === 'details' && onBack && (
-            <Button type="button" variant="outline" onClick={onBack}>
-              {t('reservation.back')}
-            </Button>
-          )}
-
-          {step === 'payment' && (
-            <Button type="button" variant="outline" onClick={() => setStep('details')}>
-              {t('reservation.back')}
-            </Button>
-          )}
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          {renderStepContent()}
 
           {step !== 'confirmation' && (
-            <Button
-              type="submit"
-              className={`${step === 'details' && onBack ? '' : 'w-full'}`}
-              disabled={createReservation.isLoading}
-            >
-              {step === 'details'
-                ? t('reservation.continueToPayment')
-                : t('reservation.confirmAndPay')}
-            </Button>
+            <div className="flex gap-2 justify-between mt-6">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleStepBack}
+                disabled={step === 'selection' && !onBack}
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Retour
+              </Button>
+
+              <div className="flex gap-2">
+                {step === 'selection' && (
+                  <Button type="button" onClick={handleStepForward}>
+                    Continuer
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                )}
+
+                {step === 'details' && (
+                  <Button type="button" onClick={handleStepForward}>
+                    Procéder au paiement
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                )}
+
+                {step === 'payment' && (
+                  <Button
+                    type="submit"
+                    disabled={createReservation.isLoading}
+                    className="bg-primary"
+                  >
+                    {createReservation.isLoading && (
+                      <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent" />
+                    )}
+                    <CreditCard className="h-4 w-4 mr-2" />
+                    Confirmer le paiement
+                  </Button>
+                )}
+              </div>
+            </div>
           )}
-        </div>
-      </form>
-    </Form>
+        </form>
+      </Form>
+    </div>
   );
 }

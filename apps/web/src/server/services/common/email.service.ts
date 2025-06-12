@@ -14,19 +14,19 @@ type EmailTemplate = {
 const sendVerificationEmailUtil = (email: string, token: string) => ({
   to: email,
   subject: 'Vérification de votre compte',
-  html: `<p>Cliquez sur ce lien pour vérifier votre compte: <a href="${process.env.NEXTAUTH_URL}/verify?token=${token}">Vérifier</a></p>`
+  html: `<p>Cliquez sur ce lien pour vérifier votre compte: <a href="${process.env.NEXTAUTH_URL}/verify?token=${token}">Vérifier</a></p>`,
 });
 
 const sendPasswordResetEmailUtil = (email: string, name: string, token: string) => ({
   to: email,
   subject: 'Réinitialisation de votre mot de passe',
-  html: `<p>Bonjour ${name}, cliquez sur ce lien pour réinitialiser votre mot de passe: <a href="${process.env.NEXTAUTH_URL}/reset-password?token=${token}">Réinitialiser</a></p>`
+  html: `<p>Bonjour ${name}, cliquez sur ce lien pour réinitialiser votre mot de passe: <a href="${process.env.NEXTAUTH_URL}/reset-password?token=${token}">Réinitialiser</a></p>`,
 });
 
 const sendWelcomeEmailUtil = (email: string, name: string) => ({
   to: email,
   subject: 'Bienvenue sur EcoDeli',
-  html: `<p>Bonjour ${name}, bienvenue sur EcoDeli !</p>`
+  html: `<p>Bonjour ${name}, bienvenue sur EcoDeli !</p>`,
 });
 
 /**
