@@ -255,9 +255,7 @@ export const billingRouter = router({
           invoicePrefix: 'ECO-',
           invoiceNumberFormat: 'YYYY-MM-[N]',
           isDefault: true,
-          isDemo: process.env.DEMO_MODE === 'true',
         },
-        isDemoMode: process.env.DEMO_MODE === 'true',
       };
     } catch (error: any) {
       throw new TRPCError({
@@ -344,14 +342,12 @@ export const billingRouter = router({
             { entityType: 'DELIVERER', rate: 15, isPercentage: true, isActive: true },
             { entityType: 'PROVIDER', rate: 12, isPercentage: true, isActive: true },
           ],
-          isDemoMode: process.env.DEMO_MODE === 'true',
         };
       }
 
-      return {
-        rates: commissionRates,
-        isDemoMode: process.env.DEMO_MODE === 'true',
-      };
+              return {
+          rates: commissionRates,
+        };
     } catch (error: any) {
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
@@ -1167,7 +1163,6 @@ export const billingRouter = router({
             },
           },
           topClients: topClientsWithDetails,
-          isDemoMode: process.env.DEMO_MODE === 'true',
         };
       } catch (error: any) {
         throw new TRPCError({

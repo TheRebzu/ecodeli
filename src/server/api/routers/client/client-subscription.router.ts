@@ -732,7 +732,7 @@ export const subscriptionRouter = router({
             byPlan: statsByPlan,
             total: total,
           },
-          isDemoMode: process.env.DEMO_MODE === 'true',
+
         };
       } catch (error: any) {
         throw new TRPCError({

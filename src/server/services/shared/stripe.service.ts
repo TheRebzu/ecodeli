@@ -4,29 +4,19 @@ import { db } from '@/server/db';
 import { walletService } from '@/server/services/shared/wallet.service';
 import { TRPCError } from '@trpc/server';
 import { v4 as uuidv4 } from 'uuid';
-import { TransactionType } from '@prisma/client';
+
 import { Decimal } from '@prisma/client/runtime/library';
 
-// Vérifier si une clé Stripe est disponible
-const hasStripeKey = !!(process.env.STRIPE_SECRET_KEY && process.env.STRIPE_SECRET_KEY.length > 0);
-const isDemoMode = process.env.DEMO_MODE === 'true' || !hasStripeKey;
-
 /**
- * Configuration du client Stripe, avec fallback sur client mock si pas de clé API
+ * Configuration du client Stripe
  */
-let stripeClient: Stripe | null = null;
-
-// N'initialise le client Stripe que si nous avons une clé valide
-if (hasStripeKey) {
-  try {
-    stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY || '', {
-      apiVersion: '2025-04-30.basil',
-    });
-  } catch (error) {
-    console.warn("Impossible d'initialiser Stripe:", error);
-    stripeClient = null;
-  }
+if (!process.env.STRIPE_SECRET_KEY) {
+  throw new Error('STRIPE_SECRET_KEY est requis pour le service Stripe');
 }
+
+const stripeClient = new Stripe(process.env.STRIPE_SECRET_KEY, {
+  apiVersion: '2025-05-28.basil',
+});
 
 /**
  * Service Stripe pour la gestion des paiements
@@ -34,130 +24,81 @@ if (hasStripeKey) {
 export const stripeService = {
   /**
    * Crée une intention de paiement Stripe
-   * En mode démo, simule une intention de paiement sans appeler Stripe API
    */
   async createPaymentIntent(
     amount: number,
     currency: string = 'eur',
     metadata: Record<string, string> = {}
   ) {
-    // En mode démo ou sans clé API, simuler le paiement
-    if (isDemoMode || !stripeClient) {
-      return {
-        id: `demo_pi_${Math.random().toString(36).substring(2, 15)}`,
-        client_secret: `demo_seti_${Math.random().toString(36).substring(2, 15)}`,
-        amount,
-        currency,
-        status: 'succeeded',
-        metadata: {
-          ...metadata,
-          demo: 'true',
-        },
-      };
-    }
-
-    // Code réel pour Stripe en production
     try {
       return await stripeClient.paymentIntents.create({
         amount: Math.round(amount * 100), // Stripe utilise les centimes
         currency,
         payment_method_types: ['card'],
-        metadata: {
-          ...metadata,
-          demo: 'false',
-        },
+        metadata,
       });
     } catch (error) {
       console.error('Erreur lors de la création du paiement Stripe:', error);
-      // Fallback sur le mode démo en cas d'erreur
-      return {
-        id: `error_pi_${Math.random().toString(36).substring(2, 15)}`,
-        client_secret: `error_seti_${Math.random().toString(36).substring(2, 15)}`,
-        amount,
-        currency,
-        status: 'succeeded',
-        metadata: {
-          ...metadata,
-          demo: 'true',
-          error: 'true',
-        },
-      };
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Impossible de créer l\'intention de paiement',
+        cause: error,
+      });
     }
   },
 
   /**
    * Récupère les détails d'un paiement
-   * En mode démo, simule une réponse sans appeler Stripe API
    */
   async retrievePaymentIntent(paymentIntentId: string) {
-    if (
-      isDemoMode ||
-      !stripeClient ||
-      paymentIntentId.startsWith('demo_pi_') ||
-      paymentIntentId.startsWith('error_pi_')
-    ) {
-      return {
-        id: paymentIntentId,
-        status: 'succeeded',
-        amount: 1000, // Exemple
-        currency: 'eur',
-        metadata: { demo: 'true' },
-      };
-    }
-
     try {
       return await stripeClient.paymentIntents.retrieve(paymentIntentId);
     } catch (error) {
       console.error('Erreur lors de la récupération du paiement Stripe:', error);
-      // Fallback sur le mode démo en cas d'erreur
-      return {
-        id: paymentIntentId,
-        status: 'succeeded',
-        amount: 1000,
-        currency: 'eur',
-        metadata: { demo: 'true', error: 'true' },
-      };
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Paiement introuvable',
+        cause: error,
+      });
     }
   },
 
   /**
-   * Simule un retrait vers un compte bancaire externe
-   * En mode démo, retourne une simulation sans réellement effectuer de transfert
+   * Effectue un retrait vers un compte bancaire externe
    */
-  async simulatePayoutToBank(
+  async createPayoutToBank(
     amount: number,
     userId: string,
     metadata: Record<string, string> = {}
   ) {
-    if (isDemoMode || !stripeClient) {
-      return {
-        id: `demo_po_${Math.random().toString(36).substring(2, 15)}`,
-        amount,
+    try {
+      // Récupérer le compte Connect de l'utilisateur
+      const wallet = await walletService.getOrCreateWallet(userId);
+      
+      if (!wallet.stripeAccountId) {
+        throw new TRPCError({
+          code: 'PRECONDITION_FAILED',
+          message: 'Compte Stripe Connect non configuré',
+        });
+      }
+
+      return await stripeClient.transfers.create({
+        amount: Math.round(amount * 100),
         currency: 'eur',
-        status: 'paid',
-        arrival_date: Math.floor(Date.now() / 1000) + 86400 * 3, // +3 jours
+        destination: wallet.stripeAccountId,
         metadata: {
           ...metadata,
           userId,
-          demo: 'true',
         },
-      };
+      });
+    } catch (error) {
+      console.error('Erreur lors du retrait Stripe:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Impossible d\'effectuer le retrait',
+        cause: error,
+      });
     }
-
-    // En production, utiliser Stripe Connect pour les virements
-    // Code non implémenté pour la démo
-    return {
-      id: `not_implemented_po_${Math.random().toString(36).substring(2, 15)}`,
-      amount,
-      currency: 'eur',
-      status: 'pending',
-      arrival_date: Math.floor(Date.now() / 1000) + 86400 * 3,
-      metadata: {
-        ...metadata,
-        userId,
-        demo: 'false',
-      },
-    };
   },
 
   /**
@@ -173,67 +114,25 @@ export const stripeService = {
   ) {
     const { email, country = 'FR', type = 'express' } = accountInfo;
 
-    if (isDemoMode || !stripeClient) {
-      const demoAccountId = `acct_demo_${Math.random().toString(36).substring(2, 15)}`;
-
-      // Créer ou mettre à jour le wallet avec l'ID du compte Connect démo
-      const wallet = await walletService.getOrCreateWallet(delivererId);
-      await db.wallet.update({
-        where: { id: wallet.id },
-        data: {
-          stripeAccountId: demoAccountId,
-          accountType: type,
-          accountVerified: true, // En mode démo, on considère le compte comme vérifié
-        },
-      });
-
-      return {
-        id: demoAccountId,
-        type,
-        email,
-        country,
-        details_submitted: true,
-        charges_enabled: true,
-        payouts_enabled: true,
-        requirements: {
-          currently_due: [],
-          eventually_due: [],
-          past_due: [],
-          pending_verification: [],
-          disabled_reason: null,
-        },
-        demo: true,
-      };
-    }
-
     try {
       const account = await stripeClient.accounts.create({
-        type,
+        type: type as Stripe.AccountCreateParams.Type,
         country,
         email,
         capabilities: {
           card_payments: { requested: true },
           transfers: { requested: true },
         },
-        business_type: 'individual',
-        settings: {
-          payouts: {
-            schedule: {
-              interval: 'weekly',
-              weekly_anchor: 'friday',
-            },
-          },
-        },
       });
 
-      // Mettre à jour le wallet avec l'ID du compte Connect
+      // Créer ou mettre à jour le wallet avec l'ID du compte Connect
       const wallet = await walletService.getOrCreateWallet(delivererId);
       await db.wallet.update({
         where: { id: wallet.id },
         data: {
           stripeAccountId: account.id,
-          accountType: account.type,
-          accountVerified: account.details_submitted && !account.requirements?.disabled_reason,
+          accountType: type,
+          accountVerified: account.details_submitted || false,
         },
       });
 
@@ -242,7 +141,7 @@ export const stripeService = {
       console.error('Erreur lors de la création du compte Connect:', error);
       throw new TRPCError({
         code: 'INTERNAL_SERVER_ERROR',
-        message: 'Échec de la création du compte Connect',
+        message: 'Impossible de créer le compte Connect',
         cause: error,
       });
     }
@@ -252,16 +151,6 @@ export const stripeService = {
    * STRIPE CONNECT - Génère un lien d'onboarding pour un compte Connect
    */
   async createAccountLink(accountId: string, refreshUrl: string, returnUrl: string) {
-    if (isDemoMode || !stripeClient) {
-      return {
-        object: 'account_link',
-        url: `${returnUrl}?demo=true&account=${accountId}&success=true`,
-        created: Math.floor(Date.now() / 1000),
-        expires_at: Math.floor(Date.now() / 1000) + 3600,
-        demo: true,
-      };
-    }
-
     try {
       return await stripeClient.accountLinks.create({
         account: accountId,
@@ -283,28 +172,6 @@ export const stripeService = {
    * STRIPE CONNECT - Récupère les informations d'un compte Connect
    */
   async retrieveConnectAccount(accountId: string) {
-    if (isDemoMode || !stripeClient || accountId.startsWith('acct_demo_')) {
-      return {
-        id: accountId,
-        type: 'express',
-        details_submitted: true,
-        charges_enabled: true,
-        payouts_enabled: true,
-        requirements: {
-          currently_due: [],
-          eventually_due: [],
-          past_due: [],
-          pending_verification: [],
-          disabled_reason: null,
-        },
-        capabilities: {
-          card_payments: 'active',
-          transfers: 'active',
-        },
-        demo: true,
-      };
-    }
-
     try {
       return await stripeClient.accounts.retrieve(accountId);
     } catch (error) {
@@ -321,42 +188,6 @@ export const stripeService = {
    * STRIPE CONNECT - Crée un transfert vers un compte Connect
    */
   async createTransfer(accountId: string, amount: number, metadata: Record<string, string> = {}) {
-    if (isDemoMode || !stripeClient) {
-      const transferId = `tr_demo_${Math.random().toString(36).substring(2, 15)}`;
-
-      // En mode démo, simuler l'ajout immédiat des fonds au wallet
-      const wallet = await db.wallet.findFirst({
-        where: { stripeAccountId: accountId },
-      });
-
-      if (wallet) {
-        await walletService.createWalletTransaction(wallet.id, {
-          amount,
-          type: TransactionType.EARNING,
-          description: 'Transfert Stripe Connect (démonstration)',
-          reference: transferId,
-          metadata: {
-            ...metadata,
-            demo: true,
-            stripeTransferId: transferId,
-          },
-        });
-      }
-
-      return {
-        id: transferId,
-        amount: amount * 100, // Stripe utilise les centimes
-        currency: 'eur',
-        destination: accountId,
-        created: Math.floor(Date.now() / 1000),
-        metadata: {
-          ...metadata,
-          demo: 'true',
-        },
-        demo: true,
-      };
-    }
-
     try {
       const transfer = await stripeClient.transfers.create({
         amount: Math.round(amount * 100), // Convertir en centimes
@@ -373,7 +204,7 @@ export const stripeService = {
       if (wallet) {
         await walletService.createWalletTransaction(wallet.id, {
           amount,
-          type: TransactionType.EARNING,
+          type: 'EARNING',
           description: 'Transfert Stripe Connect',
           reference: transfer.id,
           metadata: {
@@ -397,41 +228,7 @@ export const stripeService = {
   /**
    * STRIPE CONNECT - Crée un payout depuis un compte Connect
    */
-  async createPayout(accountId: string, amount: number, method: string = 'standard') {
-    if (isDemoMode || !stripeClient) {
-      const payoutId = `po_demo_${Math.random().toString(36).substring(2, 15)}`;
-
-      // En mode démo, simuler le retrait des fonds du wallet
-      const wallet = await db.wallet.findFirst({
-        where: { stripeAccountId: accountId },
-      });
-
-      if (wallet) {
-        await walletService.createWalletTransaction(wallet.id, {
-          amount: -amount,
-          type: TransactionType.WITHDRAWAL,
-          description: 'Paiement Stripe Connect (démonstration)',
-          reference: payoutId,
-          metadata: {
-            demo: true,
-            stripePayoutId: payoutId,
-            method,
-          },
-        });
-      }
-
-      return {
-        id: payoutId,
-        amount: amount * 100,
-        currency: 'eur',
-        method,
-        status: 'paid',
-        arrival_date: Math.floor(Date.now() / 1000) + (method === 'instant' ? 0 : 86400),
-        created: Math.floor(Date.now() / 1000),
-        demo: true,
-      };
-    }
-
+  async createPayout(accountId: string, amount: number, method: 'standard' | 'instant' = 'standard') {
     try {
       const payout = await stripeClient.payouts.create(
         {
@@ -452,7 +249,7 @@ export const stripeService = {
       if (wallet) {
         await walletService.createWalletTransaction(wallet.id, {
           amount: -amount,
-          type: TransactionType.WITHDRAWAL,
+          type: 'WITHDRAWAL',
           description: 'Paiement Stripe Connect',
           reference: payout.id,
           metadata: {
@@ -477,21 +274,6 @@ export const stripeService = {
    * ABONNEMENTS - Crée un customer Stripe pour les abonnements récurrents
    */
   async createCustomer(email: string, name?: string, metadata: Record<string, string> = {}) {
-    if (isDemoMode || !stripeClient) {
-      const customerId = `cus_demo_${Math.random().toString(36).substring(2, 15)}`;
-      return {
-        id: customerId,
-        email,
-        name,
-        created: Math.floor(Date.now() / 1000),
-        metadata: {
-          ...metadata,
-          demo: 'true',
-        },
-        demo: true,
-      };
-    }
-
     try {
       return await stripeClient.customers.create({
         email,
@@ -519,15 +301,6 @@ export const stripeService = {
 
     if (user?.stripeCustomerId) {
       // Récupérer le customer existant
-      if (isDemoMode || !stripeClient) {
-        return {
-          id: user.stripeCustomerId,
-          email,
-          name,
-          demo: true,
-        };
-      }
-
       try {
         return await stripeClient.customers.retrieve(user.stripeCustomerId);
       } catch (error) {
@@ -552,20 +325,6 @@ export const stripeService = {
    * ABONNEMENTS - Crée un Setup Intent pour enregistrer une méthode de paiement
    */
   async createSetupIntent(customerId: string, metadata: Record<string, string> = {}) {
-    if (isDemoMode || !stripeClient) {
-      return {
-        id: `seti_demo_${Math.random().toString(36).substring(2, 15)}`,
-        client_secret: `seti_demo_secret_${Math.random().toString(36).substring(2, 15)}`,
-        customer: customerId,
-        status: 'succeeded',
-        metadata: {
-          ...metadata,
-          demo: 'true',
-        },
-        demo: true,
-      };
-    }
-
     try {
       return await stripeClient.setupIntents.create({
         customer: customerId,
@@ -595,35 +354,6 @@ export const stripeService = {
     } = {}
   ) {
     const { trialPeriodDays, metadata = {}, defaultPaymentMethod } = options;
-
-    if (isDemoMode || !stripeClient) {
-      const now = Math.floor(Date.now() / 1000);
-      const subscriptionId = `sub_demo_${Math.random().toString(36).substring(2, 15)}`;
-
-      return {
-        id: subscriptionId,
-        customer: customerId,
-        status: 'active',
-        current_period_start: now,
-        current_period_end: now + (trialPeriodDays ? trialPeriodDays * 86400 : 86400 * 30),
-        trial_start: trialPeriodDays ? now : null,
-        trial_end: trialPeriodDays ? now + trialPeriodDays * 86400 : null,
-        items: {
-          data: [
-            {
-              id: `si_demo_${Math.random().toString(36).substring(2, 10)}`,
-              price: { id: priceId },
-              quantity: 1,
-            },
-          ],
-        },
-        metadata: {
-          ...metadata,
-          demo: 'true',
-        },
-        demo: true,
-      };
-    }
 
     try {
       const subscriptionData: any = {
@@ -664,28 +394,6 @@ export const stripeService = {
       cancelAtPeriodEnd?: boolean;
     }
   ) {
-    if (isDemoMode || !stripeClient || subscriptionId.startsWith('sub_demo_')) {
-      const now = Math.floor(Date.now() / 1000);
-      return {
-        id: subscriptionId,
-        status: updates.cancelAtPeriodEnd ? 'active' : 'active',
-        cancel_at_period_end: updates.cancelAtPeriodEnd || false,
-        current_period_start: now,
-        current_period_end: now + 86400 * 30,
-        items: {
-          data: [
-            {
-              id: `si_demo_${Math.random().toString(36).substring(2, 10)}`,
-              price: { id: updates.priceId || 'price_demo' },
-              quantity: updates.quantity || 1,
-            },
-          ],
-        },
-        metadata: updates.metadata || {},
-        demo: true,
-      };
-    }
-
     try {
       const updateData: any = {};
 
@@ -724,16 +432,6 @@ export const stripeService = {
    * ABONNEMENTS - Annule un abonnement
    */
   async cancelSubscription(subscriptionId: string, cancelImmediately: boolean = false) {
-    if (isDemoMode || !stripeClient || subscriptionId.startsWith('sub_demo_')) {
-      return {
-        id: subscriptionId,
-        status: cancelImmediately ? 'canceled' : 'active',
-        cancel_at_period_end: !cancelImmediately,
-        canceled_at: cancelImmediately ? Math.floor(Date.now() / 1000) : null,
-        demo: true,
-      };
-    }
-
     try {
       if (cancelImmediately) {
         return await stripeClient.subscriptions.cancel(subscriptionId);

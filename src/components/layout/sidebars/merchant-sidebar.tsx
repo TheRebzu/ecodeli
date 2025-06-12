@@ -204,7 +204,7 @@ export function MerchantSidebar({ locale }: MerchantSidebarProps) {
 
   const userInfo = {
     name: 'Commerçant EcoDeli',
-    email: 'merchant@ecodeli.com',
+    email: 'merchant@ecodeli.me',
     avatar: '',
   };
 

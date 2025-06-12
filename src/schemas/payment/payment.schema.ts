@@ -39,10 +39,7 @@ export const createPaymentSchema = paymentBaseSchema.extend({
   source: z.string().optional(),
   notes: z.string().optional(),
 
-  // Champs spécifiques au mode démonstration
-  isDemo: z.boolean().default(true),
-  demoSuccessScenario: z.boolean().default(true).optional(),
-  demoDelayMs: z.number().min(0).max(5000).optional(),
+
 });
 
 /**
@@ -64,9 +61,6 @@ export const processPaymentSchema = z.object({
   action: z.enum(['capture', 'cancel', 'refund', 'dispute']),
   amount: z.number().positive('Le montant doit être positif').optional(),
   reason: z.string().optional(),
-
-  // Champs spécifiques au mode démonstration
-  demoSuccessScenario: z.boolean().default(true).optional(),
 });
 
 /**
@@ -96,9 +90,6 @@ export const refundPaymentSchema = z.object({
   paymentId: z.string().cuid('ID paiement invalide'),
   amount: z.number().positive('Le montant doit être positif').optional(),
   reason: z.string().min(3, 'La raison doit contenir au moins 3 caractères'),
-
-  // Champs spécifiques au mode démonstration
-  demoSuccessScenario: z.boolean().default(true).optional(),
 });
 
 /**

@@ -2,7 +2,7 @@
 <network-security-config>
     <!-- Configuration pour le domaine principal en production -->
     <domain-config cleartextTrafficPermitted="false">
-        <domain includeSubdomains="true">api.ecodeli.com</domain>
+        <domain includeSubdomains="true">api.ecodeli.me</domain>
         <pin-set expiration="2025-12-31">
             <!-- Empreintes SHA256 des certificats SSL - À REMPLACER par les vraies -->
             <pin digest="SHA256">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</pin>

@@ -137,95 +137,6 @@ export function useWalletBalance(options: UseWalletBalanceOptions = {}) {
     }
   }, [refetch, refetchStats]);
 
-  /**
-   * Réinitialise le solde en mode démonstration
-   */
-  const resetDemoWallet = useCallback(async () => {
-    try {
-      const resetMutation = trpc.wallet.resetDemo.useMutation();
-      const result = await resetMutation.mutateAsync();
-
-      if (result.success) {
-        toast({
-          title: 'Portefeuille réinitialisé',
-          description: 'Le portefeuille de démonstration a été réinitialisé avec succès',
-        });
-
-        // Rafraîchir les données
-        await refreshBalance();
-        return true;
-      }
-
-      return false;
-    } catch (error) {
-      console.error('Erreur lors de la réinitialisation du portefeuille:', error);
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : 'Une erreur est survenue lors de la réinitialisation du portefeuille';
-
-      toast({
-        variant: 'destructive',
-        title: 'Erreur',
-        description: errorMessage,
-      });
-
-      return false;
-    }
-  }, [refreshBalance]);
-
-  /**
-   * Génère des données de démonstration
-   */
-  const generateDemoData = useCallback(
-    async (
-      options: {
-        numTransactions?: number;
-        maxAmount?: number;
-        includeWithdrawals?: boolean;
-        periodDays?: number;
-      } = {}
-    ) => {
-      try {
-        const demoDataMutation = trpc.wallet.generateDemoData.useMutation();
-        const result = await demoDataMutation.mutateAsync({
-          numTransactions: options.numTransactions || 10,
-          maxAmount: options.maxAmount || 100,
-          includeWithdrawals: options.includeWithdrawals !== false,
-          periodDays: options.periodDays || 30,
-        });
-
-        if (result.success) {
-          toast({
-            title: 'Données générées',
-            description: `${result.transactionsGenerated} transactions de démonstration ont été créées`,
-          });
-
-          // Rafraîchir les données
-          await refreshBalance();
-          return true;
-        }
-
-        return false;
-      } catch (error) {
-        console.error('Erreur lors de la génération des données de démonstration:', error);
-        const errorMessage =
-          error instanceof Error
-            ? error.message
-            : 'Une erreur est survenue lors de la génération des données';
-
-        toast({
-          variant: 'destructive',
-          title: 'Erreur',
-          description: errorMessage,
-        });
-
-        return false;
-      }
-    },
-    [refreshBalance]
-  );
-
   return {
     balance: balanceData,
     stats: statsData,
@@ -234,9 +145,6 @@ export function useWalletBalance(options: UseWalletBalanceOptions = {}) {
     isRefreshing,
     error,
     refreshBalance,
-    resetDemoWallet,
-    generateDemoData,
-    isDemoMode: process.env.NEXT_PUBLIC_DEMO_MODE === 'true',
   };
 }
 
@@ -410,7 +318,6 @@ export function useWalletTransactions(options: UseWalletTransactionsOptions = {}
     setPageSize,
     filterTransactions,
     exportTransactions,
-    isDemoMode: process.env.NEXT_PUBLIC_DEMO_MODE === 'true',
   };
 }
 
@@ -626,7 +533,6 @@ export function useWithdrawalRequest(options: UseWithdrawalRequestOptions = {}) 
     getEstimatedArrivalDate,
     refetchWithdrawals,
     refetchBankAccountStatus,
-    isDemoMode: process.env.NEXT_PUBLIC_DEMO_MODE === 'true',
   };
 }
 

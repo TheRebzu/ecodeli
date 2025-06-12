@@ -55,7 +55,7 @@ object NetworkModule {
         // Certificate Pinning pour la production
         if (!BuildConfig.DEBUG) {
             val certificatePinner = CertificatePinner.Builder()
-                .add("api.ecodeli.com", "sha256/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=")
+                .add("api.ecodeli.me", "sha256/AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=")
                 // Ajouter les empreintes SHA256 des certificats SSL
                 .build()
             builder.certificatePinner(certificatePinner)

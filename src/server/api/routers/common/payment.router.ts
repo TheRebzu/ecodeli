@@ -327,7 +327,6 @@ export const paymentRouter = router({
           canCancel:
             payment.status === PaymentStatus.PENDING &&
             (payment.userId === userId || role === 'ADMIN'),
-          isDemoMode: process.env.DEMO_MODE === 'true',
         };
       } catch (error: any) {
         throw new TRPCError({
@@ -359,7 +358,6 @@ export const paymentRouter = router({
           eventType: 'PAYMENT_CREATED',
           description: `Paiement créé: ${input.amount} ${input.currency}`,
           metadata: {
-            isDemo: process.env.DEMO_MODE === 'true',
             createdBy: ctx.session.user.id,
           },
         },
@@ -444,7 +442,6 @@ export const paymentRouter = router({
             description: `Paiement confirmé`,
             metadata: {
               confirmedBy: ctx.session.user.id,
-              isDemo: process.env.DEMO_MODE === 'true',
             },
           },
         });
@@ -606,7 +603,6 @@ export const paymentRouter = router({
             metadata: {
               cancelledBy: userId,
               cancelledAt: new Date().toISOString(),
-              isDemo: process.env.DEMO_MODE === 'true',
             },
           },
         });
@@ -619,7 +615,6 @@ export const paymentRouter = router({
             description: 'Paiement annulé',
             metadata: {
               cancelledBy: userId,
-              isDemo: process.env.DEMO_MODE === 'true',
             },
           },
         });
@@ -701,7 +696,6 @@ export const paymentRouter = router({
           metadata: {
             refundedBy: userId,
             reason: input.reason,
-            isDemo: process.env.DEMO_MODE === 'true',
           },
         },
       });
@@ -815,199 +809,7 @@ export const paymentRouter = router({
     }
   }),
 
-  /**
-   * Simule un paiement réussi (uniquement pour le mode démo)
-   */
-  simulateSuccessfulPayment: protectedProcedure
-    .input(
-      z.object({
-        paymentId: z.string(),
-        delay: z.number().min(0).max(3000).optional(),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      try {
-        // Vérifier qu'on est en mode démo
-        if (process.env.DEMO_MODE !== 'true') {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Cette fonctionnalité est uniquement disponible en mode démonstration',
-          });
-        }
 
-        const payment = await ctx.db.payment.findUnique({
-          where: { id: input.paymentId },
-          select: {
-            userId: true,
-            status: true,
-            amount: true,
-          },
-        });
-
-        if (!payment) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Paiement non trouvé',
-          });
-        }
-
-        // Vérifier que le paiement est en attente
-        if (payment.status !== PaymentStatus.PENDING) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Seuls les paiements en attente peuvent être simulés',
-          });
-        }
-
-        // Vérifier que l'utilisateur est le propriétaire du paiement ou un admin
-        const userId = ctx.session.user.id;
-        const role = ctx.session.user.role;
-
-        if (payment.userId !== userId && role !== 'ADMIN') {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: "Vous n'êtes pas autorisé à simuler ce paiement",
-          });
-        }
-
-        // Simuler un délai si demandé
-        if (input.delay && input.delay > 0) {
-          await new Promise(resolve => setTimeout(resolve, input.delay));
-        }
-
-        // Simuler le paiement réussi
-        const result = await paymentService.processSuccessfulPayment(
-          input.paymentId,
-          Number(payment.amount),
-          {
-            simulatedByUser: userId,
-            demoMode: true,
-            simulatedAt: new Date().toISOString(),
-          }
-        );
-
-        // Logger l'événement de simulation
-        await ctx.db.paymentEvent.create({
-          data: {
-            paymentId: input.paymentId,
-            eventType: 'PAYMENT_SIMULATED',
-            description: 'Paiement simulé en mode démo',
-            metadata: {
-              simulatedBy: userId,
-              isDemo: true,
-            },
-          },
-        });
-
-        return result;
-      } catch (error: any) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de la simulation du paiement',
-          cause: error,
-        });
-      }
-    }),
-
-  /**
-   * Simule un paiement échoué (uniquement pour le mode démo)
-   */
-  simulateFailedPayment: protectedProcedure
-    .input(
-      z.object({
-        paymentId: z.string(),
-        reason: z.string().optional(),
-        delay: z.number().min(0).max(3000).optional(),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      try {
-        // Vérifier qu'on est en mode démo
-        if (process.env.DEMO_MODE !== 'true') {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Cette fonctionnalité est uniquement disponible en mode démonstration',
-          });
-        }
-
-        const payment = await ctx.db.payment.findUnique({
-          where: { id: input.paymentId },
-          select: {
-            userId: true,
-            status: true,
-          },
-        });
-
-        if (!payment) {
-          throw new TRPCError({
-            code: 'NOT_FOUND',
-            message: 'Paiement non trouvé',
-          });
-        }
-
-        // Vérifier que le paiement est en attente
-        if (payment.status !== PaymentStatus.PENDING) {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Seuls les paiements en attente peuvent être simulés',
-          });
-        }
-
-        // Vérifier que l'utilisateur est le propriétaire du paiement ou un admin
-        const userId = ctx.session.user.id;
-        const role = ctx.session.user.role;
-
-        if (payment.userId !== userId && role !== 'ADMIN') {
-          throw new TRPCError({
-            code: 'FORBIDDEN',
-            message: "Vous n'êtes pas autorisé à simuler ce paiement",
-          });
-        }
-
-        // Simuler un délai si demandé
-        if (input.delay && input.delay > 0) {
-          await new Promise(resolve => setTimeout(resolve, input.delay));
-        }
-
-        // Simuler l'échec du paiement
-        const result = await ctx.db.payment.update({
-          where: { id: input.paymentId },
-          data: {
-            status: PaymentStatus.FAILED,
-            errorMessage: input.reason || 'Paiement échoué (simulation)',
-            updatedAt: new Date(),
-            metadata: {
-              simulatedByUser: userId,
-              demoMode: true,
-              simulatedAt: new Date().toISOString(),
-              simulatedFailure: true,
-            },
-          },
-        });
-
-        // Logger l'événement de simulation d'échec
-        await ctx.db.paymentEvent.create({
-          data: {
-            paymentId: input.paymentId,
-            eventType: 'PAYMENT_SIMULATION_FAILED',
-            description: input.reason || "Simulation d'échec de paiement en mode démo",
-            metadata: {
-              simulatedBy: userId,
-              isDemo: true,
-              failureReason: input.reason || 'Échec simulé',
-            },
-          },
-        });
-
-        return result;
-      } catch (error: any) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || "Erreur lors de la simulation d'échec du paiement",
-          cause: error,
-        });
-      }
-    }),
 
   /**
    * Génère un rapport de paiements (admin uniquement)
@@ -1032,29 +834,23 @@ export const paymentRouter = router({
           });
         }
 
-        // Simuler la génération d'un rapport en mode démo
-        if (process.env.DEMO_MODE === 'true') {
-          // Attendre pour simuler un traitement
-          await new Promise(resolve => setTimeout(resolve, 1500));
-
-          const fileName = `rapport-paiements-${input.startDate.toISOString().split('T')[0]}-${
-            input.endDate.toISOString().split('T')[0]
-          }.${input.format.toLowerCase()}`;
-
-          return {
-            success: true,
-            fileUrl: `/demo/reports/${fileName}`,
-            fileName,
-            isDemo: true,
-          };
-        }
-
-        // En production, il faudrait implémenter la génération réelle du rapport ici
-
-        throw new TRPCError({
-          code: 'NOT_IMPLEMENTED',
-          message: "La génération de rapports réels n'est pas encore implémentée",
+        // Générer le rapport réel
+        const report = await paymentService.generatePaymentReport({
+          startDate: input.startDate,
+          endDate: input.endDate,
+          status: input.status,
+          type: input.type,
+          format: input.format,
+          generatedBy: ctx.session.user.id,
         });
+
+        return {
+          success: true,
+          fileUrl: report.fileUrl,
+          fileName: report.fileName,
+          totalPayments: report.totalPayments,
+          totalAmount: report.totalAmount,
+        };
       } catch (error: any) {
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',

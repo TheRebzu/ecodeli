@@ -852,24 +852,18 @@ export class NotificationService {
         formattedMessage += ` ${options.actionUrl}`;
       }
 
-      // Mode démo
-      if (process.env.DEMO_MODE === 'true') {
-        console.log(`[DEMO SMS] À ${phoneNumber}: ${formattedMessage}`);
-        return;
+      // Envoyer le SMS via le service configuré (Twilio, etc.)
+      if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN) {
+        const client = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+        await client.messages.create({
+          body: formattedMessage,
+          from: process.env.TWILIO_PHONE_NUMBER,
+          to: phoneNumber
+        });
+        console.log(`SMS envoyé à l'utilisateur ${user.id} (${phoneNumber})`);
+      } else {
+        console.log(`[CONFIG MANQUANTE] SMS non envoyé à ${phoneNumber}: ${formattedMessage}`);
       }
-
-      // Logique d'envoi de SMS réel (Twilio, etc.)
-      // Cette implémentation dépend du service utilisé
-
-      // Exemple avec Twilio
-      // const client = require('twilio')(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-      // await client.messages.create({
-      //   body: formattedMessage,
-      //   from: process.env.TWILIO_PHONE_NUMBER,
-      //   to: phoneNumber
-      // });
-
-      console.log(`SMS envoyé à l'utilisateur ${user.id} (${phoneNumber})`);
     } catch (error) {
       console.error("Erreur lors de l'envoi du SMS:", error);
       // Ne pas faire échouer le processus si le SMS échoue
@@ -2461,7 +2455,7 @@ const sendDeliveryDelayedEmail = async (
         newEta: etaFormatted,
         reason: reason || 'Conditions de trafic',
         trackingUrl: `${process.env.NEXT_PUBLIC_APP_URL}/client/deliveries/${deliveryId}`,
-        supportEmail: process.env.SUPPORT_EMAIL || 'support@ecodeli.com',
+        supportEmail: process.env.SUPPORT_EMAIL || 'support@ecodeli.me',
       },
       locale: 'fr',
     });

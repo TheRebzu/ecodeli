@@ -41,7 +41,97 @@ const registerSchema = z.object({
 });
 
 export const authRouter = router({
-  // Méthode pour l'inscription utilisateur (tous rôles)
+  /**
+   * @openapi
+   * /auth/register:
+   *   post:
+   *     tags:
+   *       - Authentication
+   *     summary: Register a new user account
+   *     description: Create a new user account for any role (CLIENT, DELIVERER, MERCHANT, PROVIDER)
+   *     requestBody:
+   *       required: true
+   *       content:
+   *         application/json:
+   *           schema:
+   *             type: object
+   *             required:
+   *               - email
+   *               - password
+   *               - name
+   *               - role
+   *             properties:
+   *               email:
+   *                 type: string
+   *                 format: email
+   *                 description: User's email address
+   *                 example: "user@example.com"
+   *               password:
+   *                 type: string
+   *                 minLength: 8
+   *                 description: User's password (minimum 8 characters)
+   *                 example: "SecurePass123!"
+   *               name:
+   *                 type: string
+   *                 minLength: 2
+   *                 description: User's full name
+   *                 example: "John Doe"
+   *               role:
+   *                 type: string
+   *                 enum: [CLIENT, DELIVERER, MERCHANT, PROVIDER]
+   *                 description: User role type
+   *                 example: "CLIENT"
+   *               phone:
+   *                 type: string
+   *                 description: User's phone number (optional)
+   *                 example: "+33123456789"
+   *               companyName:
+   *                 type: string
+   *                 description: Company name (required for MERCHANT/PROVIDER)
+   *                 example: "Acme Corp"
+   *               siret:
+   *                 type: string
+   *                 description: SIRET number (required for MERCHANT/PROVIDER)
+   *                 example: "12345678901234"
+   *               address:
+   *                 type: string
+   *                 description: User's address
+   *                 example: "123 Main St, Paris, France"
+   *     responses:
+   *       200:
+   *         description: User registered successfully
+   *         content:
+   *           application/json:
+   *             schema:
+   *               type: object
+   *               properties:
+   *                 result:
+   *                   type: object
+   *                   properties:
+   *                     data:
+   *                       type: object
+   *                       properties:
+   *                         success:
+   *                           type: boolean
+   *                           example: true
+   *                         message:
+   *                           type: string
+   *                           example: "Compte créé avec succès"
+   *                         userId:
+   *                           type: string
+   *                           example: "clh1234567890"
+   *                         requiresVerification:
+   *                           type: boolean
+   *                           example: true
+   *       400:
+   *         $ref: '#/components/responses/ValidationError'
+   *       409:
+   *         description: Email already exists
+   *         content:
+   *           application/json:
+   *             schema:
+   *               $ref: '#/components/schemas/Error'
+   */
   register: publicProcedure.input(registerSchema).mutation(async ({ ctx, input }) => {
     const { email, password, name, role } = input;
 

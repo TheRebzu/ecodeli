@@ -3,7 +3,10 @@ import { db } from '@/server/db';
 import { Decimal } from '@prisma/client/runtime/library';
 import { TRPCError } from '@trpc/server';
 import { v4 as uuidv4 } from 'uuid';
-import { TransactionStatus, TransactionType, WithdrawalStatus } from '@prisma/client';
+// Types pour les transactions et retraits
+type TransactionType = 'EARNING' | 'WITHDRAWAL' | 'ADJUSTMENT' | 'FEE' | 'REFUND';
+type TransactionStatus = 'PENDING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
+type WithdrawalStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
 import { addDays, endOfDay, startOfDay, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 
 /**
@@ -113,7 +116,6 @@ export const walletService = {
       totalEarned: wallet.totalEarned,
       totalWithdrawn: wallet.totalWithdrawn,
       lastUpdated: wallet.lastTransactionAt || wallet.updatedAt,
-      demoMode: process.env.DEMO_MODE === 'true',
       minimumWithdrawalAmount: wallet.minimumWithdrawalAmount,
     };
   },
@@ -218,27 +220,9 @@ export const walletService = {
       deliveryId?: string;
       serviceId?: string;
       paymentId?: string;
-      demoOptions?: {
-        delayMs?: number;
-        simulateFailure?: boolean;
-      };
     }
   ) {
-    const { demoOptions, ...transactionData } = data;
-    const decimalAmount = new Decimal(transactionData.amount);
-
-    // Simuler un délai en mode démo si demandé
-    if (process.env.DEMO_MODE === 'true' && demoOptions?.delayMs) {
-      await new Promise(resolve => setTimeout(resolve, demoOptions.delayMs));
-    }
-
-    // Simuler un échec en mode démo si demandé
-    if (process.env.DEMO_MODE === 'true' && demoOptions?.simulateFailure) {
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: 'Échec simulé de la transaction en mode démonstration',
-      });
-    }
+    const decimalAmount = new Decimal(data.amount);
 
     const wallet = await db.wallet.findUnique({
       where: { id: walletId },
@@ -267,33 +251,33 @@ export const walletService = {
     let earningsThisMonth = wallet.earningsThisMonth || new Decimal(0);
     let totalEarned = wallet.totalEarned || new Decimal(0);
 
-    if (transactionData.type === 'EARNING' && decimalAmount.gt(0)) {
+    if (data.type === 'EARNING' && decimalAmount.gt(0)) {
       earningsThisMonth = earningsThisMonth.add(decimalAmount);
       totalEarned = totalEarned.add(decimalAmount);
     }
 
     let totalWithdrawn = wallet.totalWithdrawn || new Decimal(0);
-    if (transactionData.type === 'WITHDRAWAL' && decimalAmount.lt(0)) {
+    if (data.type === 'WITHDRAWAL' && decimalAmount.lt(0)) {
       totalWithdrawn = totalWithdrawn.add(decimalAmount.abs());
     }
 
     // Créer la transaction et mettre à jour le portefeuille en une seule transaction
-    return await db.$transaction(async tx => {
+    return await db.$transaction(async (tx: any) => {
       const transaction = await tx.walletTransaction.create({
         data: {
           walletId,
           amount: decimalAmount,
-          type: transactionData.type,
-          status: 'COMPLETED', // Toujours réussi en mode démo (sauf simulation d'erreur)
-          description: transactionData.description,
-          reference: transactionData.reference || uuidv4(),
+          type: data.type,
+          status: 'COMPLETED',
+          description: data.description,
+          reference: data.reference || uuidv4(),
           previousBalance,
           balanceAfter: newBalance,
-          metadata: transactionData.metadata || {},
+          metadata: data.metadata || {},
           currency: wallet.currency,
-          deliveryId: transactionData.deliveryId,
-          serviceId: transactionData.serviceId,
-          paymentId: transactionData.paymentId,
+          deliveryId: data.deliveryId,
+          serviceId: data.serviceId,
+          paymentId: data.paymentId,
         },
       });
 
@@ -314,12 +298,12 @@ export const walletService = {
           entityType: 'WALLET_TRANSACTION',
           entityId: transaction.id,
           performedById: wallet.userId,
-          action: transactionData.type,
+          action: data.type,
           changes: {
             amount: decimalAmount.toString(),
             previousBalance: previousBalance.toString(),
             newBalance: newBalance.toString(),
-            description: transactionData.description,
+            description: data.description,
           },
         },
       });
@@ -374,15 +358,11 @@ export const walletService = {
       });
     }
 
-    // En mode démo, on peut simuler un retrait immédiat ou en attente
-    const isDemoModeInstant =
-      process.env.DEMO_MODE === 'true' && process.env.DEMO_INSTANT_WITHDRAWALS === 'true';
-
     // Calculer la date estimée d'arrivée selon si c'est accéléré ou non
     const baseDelay = expedited ? 1 : 3; // 1 jour pour expedited, 3 jours sinon
     const estimatedArrival = addDays(new Date(), baseDelay);
 
-    return await db.$transaction(async tx => {
+    return await db.$transaction(async (tx: any) => {
       // Générer une référence unique
       const reference = `WD-${Date.now()}-${Math.random().toString(36).substring(2, 10)}`;
 
@@ -392,32 +372,16 @@ export const walletService = {
           walletId: wallet.id,
           amount: withdrawalAmount,
           currency: wallet.currency,
-          status: isDemoModeInstant ? 'COMPLETED' : 'PENDING',
+          status: 'PENDING',
           preferredMethod: method,
           accountVerified: true,
           expedited,
           reference,
-          processedAt: isDemoModeInstant ? new Date() : undefined,
           estimatedArrival,
           accountDetails: accountDetails,
           notes,
         },
       });
-
-      // Si en mode démo avec retrait instantané, mettre à jour le solde immédiatement
-      if (isDemoModeInstant) {
-        await this.createWalletTransaction(wallet.id, {
-          amount: -amount,
-          type: 'WITHDRAWAL',
-          description: `Retrait instantané (simulation) - Référence: ${reference}`,
-          metadata: {
-            withdrawalId: withdrawalRequest.id,
-            method,
-            demo: true,
-            expedited,
-          },
-        });
-      }
 
       // Enregistrer dans les logs d'audit
       await tx.auditLog.create({
@@ -429,7 +393,7 @@ export const walletService = {
           changes: {
             amount: withdrawalAmount.toString(),
             method,
-            status: isDemoModeInstant ? 'COMPLETED' : 'PENDING',
+            status: 'PENDING',
             expedited: expedited.toString(),
           },
         },
@@ -486,23 +450,21 @@ export const walletService = {
         },
       });
 
-      // Simuler un transfert bancaire en mode démo
-      if (process.env.DEMO_MODE === 'true') {
-        await db.bankTransfer.create({
-          data: {
-            withdrawalRequestId: withdrawalId,
-            amount: withdrawal.amount,
-            currency: withdrawal.currency,
-            recipientName: withdrawal.wallet.accountHolder || 'Utilisateur démo',
-            recipientIban: withdrawal.wallet.iban || 'DEMO1234567890',
-            initiatedAt: new Date(),
-            status: 'COMPLETED',
-            transferMethod: withdrawal.preferredMethod || 'SEPA',
-            transferReference:
-              transferReference || `DEMO-TRANSFER-${Math.random().toString(36).substring(2, 10)}`,
-          },
-        });
-      }
+      // Créer un transfert bancaire réel
+      await db.bankTransfer.create({
+        data: {
+          withdrawalRequestId: withdrawalId,
+          amount: withdrawal.amount,
+          currency: withdrawal.currency,
+          recipientName: withdrawal.wallet.accountHolder || 'Utilisateur',
+          recipientIban: withdrawal.wallet.iban || '',
+          initiatedAt: new Date(),
+          status: 'PENDING',
+          transferMethod: withdrawal.preferredMethod || 'SEPA',
+          transferReference:
+            transferReference || `TRANSFER-${Math.random().toString(36).substring(2, 10)}`,
+        },
+      });
 
       // Mettre à jour le statut de la demande
       return await db.withdrawalRequest.update({
@@ -621,13 +583,13 @@ export const walletService = {
     }
 
     // Transformations
-    const earnings = earningsByType.map(group => ({
+    const earnings = earningsByType.map((group: any) => ({
       type: group.type,
       amount: Number(group._sum.amount) || 0,
     }));
 
     // Calcul du total des gains
-    const totalEarnings = earnings.reduce((sum, item) => sum + item.amount, 0);
+    const totalEarnings = earnings.reduce((sum: number, item: any) => sum + item.amount, 0);
     const totalWithdrawals = Math.abs(Number(withdrawals._sum.amount) || 0);
 
     // Construire la réponse
@@ -647,7 +609,6 @@ export const walletService = {
         currentBalance: Number(wallet.balance),
       },
       earnings,
-      demoMode: process.env.DEMO_MODE === 'true',
     };
 
     // Ajouter les détails si demandés
@@ -656,100 +617,6 @@ export const walletService = {
     }
 
     return result;
-  },
-
-  /**
-   * Réinitialise un portefeuille en mode démo (utile pour les tests)
-   * Cette fonction ne doit être utilisée qu'en mode démo
-   */
-  async resetDemoWallet(walletId: string) {
-    if (process.env.DEMO_MODE !== 'true') {
-      throw new TRPCError({
-        code: 'FORBIDDEN',
-        message: "Cette fonction n'est disponible qu'en mode démonstration",
-      });
-    }
-
-    const wallet = await db.wallet.findUnique({
-      where: { id: walletId },
-    });
-
-    if (!wallet) {
-      throw new TRPCError({
-        code: 'NOT_FOUND',
-        message: 'Portefeuille non trouvé',
-      });
-    }
-
-    return await db.$transaction(async tx => {
-      // Annuler toutes les demandes de retrait en attente
-      await tx.withdrawalRequest.updateMany({
-        where: {
-          walletId,
-          status: 'PENDING',
-        },
-        data: {
-          status: 'CANCELLED',
-          processorComments: 'Réinitialisation du portefeuille de démonstration',
-        },
-      });
-
-      // Marquer toutes les transactions comme annulées
-      await tx.walletTransaction.updateMany({
-        where: {
-          walletId,
-          status: 'PENDING',
-        },
-        data: {
-          status: 'CANCELLED',
-        },
-      });
-
-      // Réinitialiser le portefeuille
-      await tx.wallet.update({
-        where: { id: walletId },
-        data: {
-          balance: new Decimal(0),
-          earningsThisMonth: new Decimal(0),
-          lastTransactionAt: new Date(),
-        },
-      });
-
-      // Création d'une transaction d'ajustement pour tracer la réinitialisation
-      await tx.walletTransaction.create({
-        data: {
-          walletId,
-          amount: new Decimal(0),
-          type: 'ADJUSTMENT',
-          status: 'COMPLETED',
-          description: 'Réinitialisation du portefeuille de démonstration',
-          reference: `RESET-${uuidv4()}`,
-          previousBalance: wallet.balance,
-          balanceAfter: new Decimal(0),
-          currency: wallet.currency,
-          metadata: {
-            reason: 'demo_reset',
-            previousBalance: wallet.balance.toString(),
-          },
-        },
-      });
-
-      // Log d'audit
-      await tx.auditLog.create({
-        data: {
-          entityType: 'WALLET',
-          entityId: walletId,
-          performedById: wallet.userId,
-          action: 'RESET_DEMO_WALLET',
-          changes: {
-            previousBalance: wallet.balance.toString(),
-            newBalance: '0',
-          },
-        },
-      });
-
-      return { success: true, message: 'Portefeuille de démonstration réinitialisé avec succès' };
-    });
   },
 };
 
@@ -763,7 +630,6 @@ export const {
   createWithdrawalRequest,
   processWithdrawalRequest,
   calculateEarnings,
-  resetDemoWallet,
 } = walletService;
 
 // Type pour les transactions (pour compatibilité avec payment.service.ts)

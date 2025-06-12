@@ -24,7 +24,7 @@ android {
         }
 
         // Configuration des variables d'environnement
-        buildConfigField("String", "API_BASE_URL", "\"https://api.ecodeli.com\"")
+        buildConfigField("String", "API_BASE_URL", "\"https://api.ecodeli.me\"")
         buildConfigField("String", "ONESIGNAL_APP_ID", "\"YOUR_ONESIGNAL_APP_ID\"")
         
         // Pour le développement local
@@ -42,7 +42,7 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            buildConfigField("String", "API_BASE_URL", "\"https://api.ecodeli.com\"")
+            buildConfigField("String", "API_BASE_URL", "\"https://api.ecodeli.me\"")
         }
     }
 

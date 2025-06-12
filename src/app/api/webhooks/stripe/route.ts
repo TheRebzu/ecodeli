@@ -20,16 +20,7 @@ const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET!;
  * Gère les requêtes POST du webhook Stripe
  */
 export async function POST(req: NextRequest) {
-  // Si nous sommes en mode démo et que la demande n'est pas un événement simulé,
-  // nous la redirigeons vers une réponse simulée
-  if (process.env.DEMO_MODE === 'true' && !req.headers.get('x-stripe-demo-webhook')) {
-    console.log('[DÉMO] Redirection vers une réponse simulée');
-    return NextResponse.json({
-      received: true,
-      demo: true,
-      message: 'Mode démonstration activé. Utilisez /api/webhooks/stripe/demo pour les tests.',
-    });
-  }
+  // Traitement direct des webhooks Stripe réels
 
   try {
     const body = await req.text();
@@ -38,22 +29,12 @@ export async function POST(req: NextRequest) {
 
     let event: Stripe.Event;
 
-    // En mode démo, nous pouvons accepter un payload direct sans vérification de signature
-    if (process.env.DEMO_MODE === 'true' && req.headers.get('x-stripe-demo-webhook')) {
-      try {
-        event = JSON.parse(body) as Stripe.Event;
-      } catch (err) {
-        console.error('Erreur de parsing JSON:', err);
-        return NextResponse.json({ error: 'Payload JSON invalide' }, { status: 400 });
-      }
-    } else {
-      // Vérifier la signature du webhook
-      try {
-        event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
-      } catch (err) {
-        console.error('Erreur de signature webhook:', err);
-        return NextResponse.json({ error: 'Signature invalide' }, { status: 400 });
-      }
+    // Vérifier la signature du webhook
+    try {
+      event = stripe.webhooks.constructEvent(body, signature, webhookSecret);
+    } catch (err) {
+      console.error('Erreur de signature webhook:', err);
+      return NextResponse.json({ error: 'Signature invalide' }, { status: 400 });
     }
 
     // Traiter l'événement selon son type
@@ -68,7 +49,7 @@ export async function POST(req: NextRequest) {
           changes: {
             eventType: event.type,
             eventId: event.id,
-            demoMode: process.env.DEMO_MODE === 'true' ? 'true' : 'false',
+            webhookProcessed: new Date().toISOString(),
           },
         },
       });

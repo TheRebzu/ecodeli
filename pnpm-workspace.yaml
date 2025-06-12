@@ -1,12 +1,17 @@
 onlyBuiltDependencies:
   - '@prisma/client'
   - '@prisma/engines'
+  - '@scarf/scarf'
   - '@sentry/cli'
   - '@tailwindcss/oxide'
+  - '@tree-sitter-grammars/tree-sitter-yaml'
   - bcrypt
   - canvas
+  - core-js-pure
   - esbuild
   - msw
   - prisma
   - sharp
+  - tree-sitter
+  - tree-sitter-json
   - unrs-resolver

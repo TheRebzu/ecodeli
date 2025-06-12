@@ -68,7 +68,7 @@
                     
                 <data
                     android:scheme="https"
-                    android:host="ecodeli.com"
+                    android:host="ecodeli.me"
                     android:pathPrefix="/app" />
             </intent-filter>
             

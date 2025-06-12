@@ -532,7 +532,7 @@ export const renderTemplate = (
 
   // Ajouter l'URL de base de l'application si non fournie
   if (!data.appUrl) {
-    data.appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://ecodeli.com';
+    data.appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://ecodeli.me';
   }
 
   // Remplacer les variables {{var}} dans le template

@@ -57,12 +57,11 @@ export const withdrawalRouter = router({
           });
         }
 
-        // Vérifier que le compte est vérifié
-        if (!wallet.accountVerified && process.env.DEMO_MODE !== 'true') {
+        // Vérifier que le compte est vérifié pour les retraits
+        if (!wallet.accountVerified) {
           throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message:
-              'Votre compte bancaire doit être vérifié avant de pouvoir effectuer un retrait',
+            code: 'FORBIDDEN',
+            message: 'Votre compte doit être vérifié pour effectuer des retraits',
           });
         }
 
@@ -242,7 +241,6 @@ export const withdrawalRouter = router({
           },
           canCancel: withdrawal.status === 'PENDING' && withdrawal.wallet.userId === userId,
           isAdmin: ctx.session.user.role === 'ADMIN',
-          isDemoMode: process.env.DEMO_MODE === 'true',
         };
       } catch (error: any) {
         throw new TRPCError({
@@ -833,69 +831,7 @@ export const withdrawalRouter = router({
       }
     }),
 
-  /**
-   * Simule un retrait en mode démonstration
-   */
-  simulateWithdrawal: protectedProcedure
-    .input(
-      z.object({
-        amount: z.number().positive().min(10),
-        expedited: z.boolean().default(false),
-        method: z.enum(['BANK_TRANSFER', 'STRIPE_CONNECT']).default('BANK_TRANSFER'),
-        simulateAdminProcess: z.boolean().default(false),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      try {
-        // Vérifier qu'on est en mode démo
-        if (process.env.DEMO_MODE !== 'true') {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Cette fonctionnalité est uniquement disponible en mode démonstration',
-          });
-        }
 
-        const userId = ctx.session.user.id;
-        const { amount, expedited, method, simulateAdminProcess } = input;
-
-        // Créer la demande de retrait
-        const withdrawalRequest = await createWithdrawalRequest(userId, amount, {
-          method,
-          expedited,
-          notes: 'Retrait simulé en mode démonstration',
-        });
-
-        // Simuler le traitement automatique par un admin si demandé
-        if (simulateAdminProcess) {
-          const adminUser = await ctx.db.user.findFirst({
-            where: { role: 'ADMIN' },
-            select: { id: true },
-          });
-
-          if (adminUser) {
-            await processWithdrawalRequest(withdrawalRequest.id, {
-              action: 'APPROVE',
-              adminId: adminUser.id,
-              notes: 'Retrait approuvé automatiquement (simulation)',
-              completeImmediately: true,
-            });
-          }
-        }
-
-        return {
-          success: true,
-          withdrawal: withdrawalRequest,
-          message: `Demande de retrait de ${amount}€ créée avec succès`,
-          simulatedAdminProcess: simulateAdminProcess,
-        };
-      } catch (error: any) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de la simulation du retrait',
-          cause: error,
-        });
-      }
-    }),
 });
 
 export default withdrawalRouter;

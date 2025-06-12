@@ -85,9 +85,9 @@ export const invoiceRouter = router({
             limit,
             pages: Math.ceil(total / limit),
           },
-          isDemoMode: process.env.DEMO_MODE === 'true',
         };
       } catch (error: any) {
+        console.error('Erreur lors de la récupération des factures:', error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: error.message || 'Erreur lors de la récupération des factures',
@@ -144,9 +144,13 @@ export const invoiceRouter = router({
 
         return {
           invoice,
-          isDemoMode: process.env.DEMO_MODE === 'true',
+          payments: invoice.payments,
+          hasPayments: invoice.payments.length > 0,
+          canPay: invoice.status === 'PENDING' && invoice.dueDate > new Date(),
+          isOverdue: invoice.status === 'PENDING' && invoice.dueDate < new Date(),
         };
       } catch (error: any) {
+        console.error('Erreur lors de la récupération de la facture:', error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: error.message || 'Erreur lors de la récupération de la facture',
@@ -203,9 +207,13 @@ export const invoiceRouter = router({
 
         return {
           invoice,
-          isDemoMode: process.env.DEMO_MODE === 'true',
+          payments: invoice.payments,
+          hasPayments: invoice.payments.length > 0,
+          canPay: invoice.status === 'PENDING' && invoice.dueDate > new Date(),
+          isOverdue: invoice.status === 'PENDING' && invoice.dueDate < new Date(),
         };
       } catch (error: any) {
+        console.error('Erreur lors de la récupération des détails de la facture:', error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: error.message || 'Erreur lors de la récupération des détails de la facture',
@@ -384,9 +392,9 @@ export const invoiceRouter = router({
 
         return {
           stats,
-          isDemoMode: process.env.DEMO_MODE === 'true',
         };
       } catch (error: any) {
+        console.error('Erreur lors de la récupération des statistiques:', error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: error.message || 'Erreur lors de la récupération des statistiques',
@@ -457,9 +465,9 @@ export const invoiceRouter = router({
           pdfUrl: pdfResult.url,
           pdfData: pdfResult.data,
           invoice,
-          isDemoMode: process.env.DEMO_MODE === 'true',
         };
       } catch (error: any) {
+        console.error('Erreur lors du téléchargement de la facture:', error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: error.message || 'Erreur lors du téléchargement de la facture',
@@ -542,6 +550,7 @@ export const invoiceRouter = router({
           message: `Facture envoyée avec succès à ${emailTo}`,
         };
       } catch (error: any) {
+        console.error("Erreur lors de l'envoi de la facture par email:", error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: error.message || "Erreur lors de l'envoi de la facture par email",
@@ -594,20 +603,19 @@ export const invoiceRouter = router({
           });
         }
 
-        // En mode démonstration, créer un paiement simulé
-        if (process.env.DEMO_MODE === 'true') {
-          // Créer un paiement simulé
+        // Créer un paiement réel si un moyen de paiement est fourni
+        if (paymentMethod) {
           await ctx.db.payment.create({
             data: {
               userId,
               invoiceId,
               amount: invoice.amount,
               currency: invoice.currency,
-              paymentMethod: paymentMethod || 'DEMO_PAYMENT',
+              paymentMethod,
               status: 'COMPLETED',
               metadata: {
-                demo: true,
-                notes: notes || 'Paiement simulé en mode démonstration',
+                notes: notes || 'Paiement manuel confirmé',
+                confirmedBy: ctx.session.user.id,
               },
             },
           });
@@ -632,7 +640,7 @@ export const invoiceRouter = router({
             entityId: invoiceId,
             details: {
               paymentMethod: paymentMethod || 'MANUAL',
-              isDemo: process.env.DEMO_MODE === 'true',
+              confirmedBy: ctx.session.user.id,
             },
           },
         });
@@ -641,9 +649,9 @@ export const invoiceRouter = router({
           success: true,
           invoice: updatedInvoice,
           message: 'Facture marquée comme payée avec succès',
-          isDemoMode: process.env.DEMO_MODE === 'true',
         };
       } catch (error: any) {
+        console.error('Erreur lors de la mise à jour de la facture:', error);
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: error.message || 'Erreur lors de la mise à jour de la facture',
@@ -740,7 +748,6 @@ export const invoiceRouter = router({
           start: format(threeMonthsAgo, 'PPP', { locale: fr }),
           end: format(new Date(), 'PPP', { locale: fr }),
         },
-        isDemoMode: process.env.DEMO_MODE === 'true',
       };
     } catch (error: any) {
       throw new TRPCError({
@@ -868,7 +875,6 @@ export const invoiceRouter = router({
             pages: Math.ceil(total / limit),
           },
           stats,
-          isDemoMode: process.env.DEMO_MODE === 'true',
         };
       } catch (error: any) {
         throw new TRPCError({
@@ -932,7 +938,6 @@ export const invoiceRouter = router({
         success: true,
         invoice,
         message: 'Facture créée avec succès',
-        isDemoMode: process.env.DEMO_MODE === 'true',
       };
     } catch (error: any) {
       throw new TRPCError({
@@ -1021,7 +1026,6 @@ export const invoiceRouter = router({
           success: true,
           invoice: updatedInvoice,
           message: 'Facture mise à jour avec succès',
-          isDemoMode: process.env.DEMO_MODE === 'true',
         };
       } catch (error: any) {
         throw new TRPCError({
@@ -1100,7 +1104,6 @@ export const invoiceRouter = router({
           success: true,
           invoice: cancelledInvoice,
           message: 'Facture annulée avec succès',
-          isDemoMode: process.env.DEMO_MODE === 'true',
         };
       } catch (error: any) {
         throw new TRPCError({
@@ -1138,7 +1141,6 @@ export const invoiceRouter = router({
         return {
           success: true,
           stats,
-          isDemoMode: process.env.DEMO_MODE === 'true',
         };
       } catch (error: any) {
         throw new TRPCError({
@@ -1191,7 +1193,6 @@ export const invoiceRouter = router({
           success: true,
           report,
           message: `Rapport de facturation généré avec succès au format ${input.format}`,
-          isDemoMode: process.env.DEMO_MODE === 'true',
         };
       } catch (error: any) {
         throw new TRPCError({
@@ -1482,7 +1483,6 @@ export const invoiceRouter = router({
         success: true,
         stats,
         period: input.period,
-        isDemoMode: process.env.DEMO_MODE === 'true',
       };
     } catch (error: any) {
       throw new TRPCError({

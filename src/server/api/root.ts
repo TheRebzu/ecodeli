@@ -15,6 +15,9 @@ import { userPreferencesRouter } from './routers/common/user-preferences.router'
 import { walletRouter } from './routers/common/wallet.router';
 import { uploadRouter } from './routers/common/upload.router';
 import { geocodingRouter } from './routers/common/geocoding.router';
+import { exportRouter } from './routers/common/export.router';
+import { pdfRouter } from './routers/common/pdf.router';
+import { i18nRouter } from './routers/common/i18n.router';
 
 // Shared routers
 import { announcementRouter } from './routers/shared/announcement.router';
@@ -29,6 +32,7 @@ import { adminRouter } from './routers/admin/admin.router';
 import { adminUserRouter } from './routers/admin/admin-users.router';
 import { adminServicesRouter } from './routers/admin/admin-services.router';
 import { adminContractsRouter } from './routers/admin/admin-contracts.router';
+
 
 // Client routers
 import { clientRouter } from './routers/client/client.router';
@@ -99,6 +103,9 @@ export const appRouter = router({
   wallet: walletRouter,
   upload: uploadRouter,
   geocoding: geocodingRouter,
+  export: exportRouter,
+  pdf: pdfRouter,
+  i18n: i18nRouter,
 
   // Shared
   announcement: announcementRouter,
@@ -114,6 +121,7 @@ export const appRouter = router({
   adminServices: adminServicesRouter, // Direct access to admin services router
   adminContracts: adminContractsRouter, // Direct access to admin contracts router
   adminWarehouse: warehouseRouter, // alias pour admin warehouse
+
 
   // Client
   client: clientRouter,

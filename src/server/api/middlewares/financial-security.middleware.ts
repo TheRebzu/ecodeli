@@ -95,8 +95,8 @@ export const financialProtect = (allowedRoles: UserRole[] = []) => {
       });
     }
 
-    // Journaliser les opérations financières sensibles en mode démo
-    if (process.env.DEMO_MODE === 'true' && path.includes('financial.')) {
+    // Journaliser les opérations financières sensibles
+    if (path.includes('financial.')) {
       await _logFinancialOperation(ctx, path, rawInput);
     }
 

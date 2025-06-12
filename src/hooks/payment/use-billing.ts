@@ -235,7 +235,6 @@ export function useInvoices(options: UseInvoicesOptions = {}) {
     filterInvoices,
     exportInvoices,
     refreshInvoices,
-    isDemoMode: process.env.NEXT_PUBLIC_DEMO_MODE === 'true',
   };
 }
 
@@ -405,7 +404,6 @@ export function useSubscription(options: UseSubscriptionOptions = {}) {
     formatPeriodEnd,
     hasActiveSubscription: !!subscription?.status && subscription.status === 'ACTIVE',
     isCancelled: !!subscription?.cancelAtPeriodEnd,
-    isDemoMode: process.env.NEXT_PUBLIC_DEMO_MODE === 'true',
   };
 }
 

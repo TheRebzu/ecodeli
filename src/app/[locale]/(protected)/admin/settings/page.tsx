@@ -100,7 +100,7 @@ export default function AdminSettingsPage() {
       general: {
         siteName: 'EcoDeli',
         siteDescription: 'Plateforme de livraison écologique',
-        contactEmail: 'contact@ecodeli.com',
+        contactEmail: 'contact@ecodeli.me',
         supportPhone: '+33 1 23 45 67 89',
         maintenanceMode: false,
         debugMode: false,
@@ -108,10 +108,10 @@ export default function AdminSettingsPage() {
       email: {
         smtpHost: 'smtp.gmail.com',
         smtpPort: 587,
-        smtpUsername: 'noreply@ecodeli.com',
+        smtpUsername: 'noreply@ecodeli.me',
         smtpPassword: '••••••••',
         smtpSecure: true,
-        fromEmail: 'noreply@ecodeli.com',
+        fromEmail: 'noreply@ecodeli.me',
         fromName: 'EcoDeli',
       },
       security: {

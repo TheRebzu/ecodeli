@@ -221,7 +221,7 @@ export function ProviderSidebar({ locale }: ProviderSidebarProps) {
 
   const userInfo = {
     name: 'Prestataire EcoDeli',
-    email: 'provider@ecodeli.com',
+    email: 'provider@ecodeli.me',
     avatar: '',
   };
 

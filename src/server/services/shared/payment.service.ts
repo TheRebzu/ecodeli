@@ -15,6 +15,9 @@ import { createInvoice } from '@/server/services/shared/invoice.service';
 import { addWalletTransaction } from '@/server/services/shared/wallet.service';
 import { logger } from '@/lib/utils/logger';
 import { createCommission } from '@/server/services/admin/commission.service';
+import { addDays } from '@/lib/utils/date';
+import { invoiceService } from '@/server/services/shared/invoice.service';
+import { commissionService } from '@/server/services/admin/commission.service';
 
 /**
  * Service de gestion des paiements
@@ -62,29 +65,12 @@ export const paymentService = {
         isEscrow,
         paymentMethodId,
         paymentMethodType: paymentMethodId ? 'CARD' : 'WALLET',
-        source: process.env.DEMO_MODE === 'true' ? 'DEMO' : 'STRIPE',
+        source: 'STRIPE',
         metadata,
       },
     });
 
-    // En mode démo, on peut simuler un paiement direct depuis le portefeuille
-    if (process.env.DEMO_MODE === 'true' && process.env.DEMO_DIRECT_PAYMENTS === 'true') {
-      await this.processSuccessfulPayment(payment.id, amount, {
-        ...metadata,
-        demoDirectPayment: true,
-      });
-
-      return {
-        payment: await db.payment.findUnique({
-          where: { id: payment.id },
-        }),
-        redirectUrl: null,
-        clientSecret: null,
-        demoMode: true,
-      };
-    }
-
-    // Sinon, créer une intention de paiement Stripe
+    // Créer une intention de paiement Stripe
     const paymentMetadata = {
       paymentId: payment.id,
       userId,
@@ -115,7 +101,6 @@ export const paymentService = {
         payment,
         clientSecret: intent.client_secret,
         redirectUrl: null,
-        demoMode: process.env.DEMO_MODE === 'true',
       };
     } catch (error) {
       // En cas d'erreur, marquer le paiement comme échoué
@@ -395,22 +380,20 @@ export const paymentService = {
           },
         });
 
-        // En mode démo, simuler un remboursement sur le portefeuille du client
-        if (process.env.DEMO_MODE === 'true') {
-          const wallet = await walletService.getOrCreateWallet(payment.userId);
+        // Rembourser sur le portefeuille du client
+        const wallet = await walletService.getOrCreateWallet(payment.userId);
 
-          await walletService.createWalletTransaction(wallet.id, {
-            amount: Number(refundAmount),
-            type: TransactionType.REFUND,
-            description: `Remboursement: ${payment.description}`,
-            reference: `REFUND-${uuidv4()}`,
-            metadata: {
-              originalPaymentId: paymentId,
-              refundPaymentId: refundPayment.id,
-              reason: reason || 'Remboursement demandé',
-            },
-          });
-        }
+        await walletService.createWalletTransaction(wallet.id, {
+          amount: Number(refundAmount),
+          type: 'REFUND',
+          description: `Remboursement: ${payment.description}`,
+          reference: `REFUND-${uuidv4()}`,
+          metadata: {
+            originalPaymentId: paymentId,
+            refundPaymentId: refundPayment.id,
+            reason: reason || 'Remboursement demandé',
+          },
+        });
 
         return {
           originalPayment: updatedPayment,
@@ -433,90 +416,71 @@ export const paymentService = {
 
   /**
    * Traite le paiement d'une livraison
-   * @private
    */
   async _processDeliveryPayment(tx: any, payment: any, metadata: Record<string, any> = {}) {
-    if (!payment.delivery) {
-      throw new Error('Données de livraison manquantes');
-    }
+    if (!payment.delivery) return;
+
+    const delivery = payment.delivery;
+    const delivererId = delivery.delivererId;
 
     // Mettre à jour le statut de la livraison
     await tx.delivery.update({
-      where: { id: payment.deliveryId },
+      where: { id: delivery.id },
       data: {
-        currentStatus: 'PAID',
-        // Ajouter d'autres mises à jour de statut si nécessaire
+        paymentStatus: 'PAID',
+        paidAt: new Date(),
+        currentStatus: 'PAYMENT_CONFIRMED',
       },
     });
 
-    // Si la livraison a un livreur assigné, ajouter les fonds à son portefeuille
-    // avec la commission déduite
-    if (payment.delivery.delivererId && process.env.DEMO_MODE === 'true') {
-      // Pour la démo, calculer une commission simple de 15%
-      const commissionRate = 0.15;
-      const commissionAmount = payment.amount.mul(commissionRate);
-      const delivererAmount = payment.amount.sub(commissionAmount);
+    // Calculer la commission
+    const commissionRate = 0.15; // 15% par défaut
+    const delivererEarnings = payment.amount * (1 - commissionRate);
+    const commissionAmount = payment.amount * commissionRate;
 
-      // Créer l'enregistrement de commission
-      const commission = await tx.commission.create({
-        data: {
-          rate: new Decimal(commissionRate),
-          serviceType: 'DELIVERY',
-          isActive: true,
-          applicableRoles: ['DELIVERER'],
-          description: `Commission sur livraison #${payment.deliveryId}`,
-        },
-      });
-
-      // Mise à jour du paiement avec la commission
-      await tx.payment.update({
-        where: { id: payment.id },
-        data: {
-          commissionAmount,
-          commissionId: commission.id,
-        },
-      });
-
-      // Ajouter les fonds au portefeuille du livreur
-      const delivererWallet = await walletService.getOrCreateWallet(payment.delivery.delivererId);
-
-      await walletService.createWalletTransaction(delivererWallet.id, {
-        amount: Number(delivererAmount),
-        type: TransactionType.EARNING,
-        description: `Paiement pour livraison #${payment.deliveryId} (commission déduite)`,
+    // Créer les gains pour le livreur si nécessaire
+    if (delivererId) {
+      await walletService.createWalletTransaction(delivererId, {
+        amount: delivererEarnings,
+        type: 'EARNING',
+        description: `Gains de livraison - ${delivery.trackingNumber}`,
+        deliveryId: delivery.id,
         paymentId: payment.id,
-        deliveryId: payment.deliveryId,
-        metadata: {
-          commissionId: commission.id,
-          commissionAmount: Number(commissionAmount),
-          commissionRate,
-        },
-      });
-    }
-
-    // Ajouter les fonds au portefeuille du marchand si nécessaire
-    if (payment.merchantId && payment.merchantWalletId) {
-      const wallet = await walletService.getWallet(payment.merchantId);
-
-      // Calcul de la commission marchande
-      const merchantFeeRate = 0.1; // 10% de commission pour les marchands
-      const merchantFee = payment.amount * merchantFeeRate;
-      const merchantAmount = payment.amount - merchantFee;
-
-      // Ajouter les fonds au portefeuille du marchand
-      await walletService.createWalletTransaction(wallet.id, {
-        amount: merchantAmount,
-        type: TransactionType.EARNING,
-        description: `Paiement pour livraison #${payment.deliveryId}`,
-        paymentId: payment.id,
-        deliveryId: payment.deliveryId,
         metadata: {
           ...metadata,
-          feeAmount: merchantFee,
-          feeRate: merchantFeeRate,
+          commissionRate,
+          originalAmount: payment.amount,
         },
       });
+
+      // Créer l'entrée de commission
+      await commissionService.createCommission({
+        paymentId: payment.id,
+        serviceType: 'DELIVERY',
+        amount: commissionAmount,
+        rate: commissionRate,
+      });
     }
+
+    // Créer la facture associée
+    await invoiceService.createInvoice({
+      userId: payment.userId,
+      items: [
+        {
+          description: `Livraison ${delivery.trackingNumber}`,
+          quantity: 1,
+          unitPrice: payment.amount,
+          deliveryId: delivery.id,
+        },
+      ],
+      deliveryId: delivery.id,
+      dueDate: addDays(new Date(), 30),
+      metadata: {
+        deliveryId: delivery.id,
+        delivererEarnings: delivererEarnings.toString(),
+        commissionAmount: commissionAmount.toString(),
+      },
+    });
   },
 
   /**
@@ -541,54 +505,51 @@ export const paymentService = {
       },
     });
 
-    // Si en mode démo, simuler le paiement au prestataire avec commission
-    if (process.env.DEMO_MODE === 'true') {
-      // Pour la démo, calculer une commission simple de 20%
-      const commissionRate = 0.2;
-      const commissionAmount = payment.amount.mul(commissionRate);
-      const providerAmount = payment.amount.sub(commissionAmount);
+    // Calculer la commission pour le prestataire
+    const commissionRate = 0.2; // 20% de commission
+    const commissionAmount = payment.amount * commissionRate;
+    const providerAmount = payment.amount - commissionAmount;
 
-      // Créer l'enregistrement de commission
-      const commission = await tx.commission.create({
-        data: {
-          rate: new Decimal(commissionRate),
-          serviceType: 'SERVICE',
-          isActive: true,
-          applicableRoles: ['PROVIDER'],
-          description: `Commission sur service #${payment.serviceId}`,
-        },
-      });
+    // Créer l'enregistrement de commission
+    const commission = await tx.commission.create({
+      data: {
+        rate: commissionRate,
+        serviceType: 'SERVICE',
+        isActive: true,
+        applicableRoles: ['PROVIDER'],
+        description: `Commission sur service #${payment.serviceId}`,
+      },
+    });
 
-      // Mise à jour du paiement avec la commission
-      await tx.payment.update({
-        where: { id: payment.id },
-        data: {
-          commissionAmount,
+    // Mise à jour du paiement avec la commission
+    await tx.payment.update({
+      where: { id: payment.id },
+      data: {
+        commissionAmount,
+        commissionId: commission.id,
+      },
+    });
+
+    // Ajouter les fonds au portefeuille du prestataire
+    const service = await tx.service.findUnique({
+      where: { id: payment.serviceId },
+    });
+
+    if (service?.providerId) {
+      const providerWallet = await walletService.getOrCreateWallet(service.providerId);
+
+      await walletService.createWalletTransaction(providerWallet.id, {
+        amount: providerAmount,
+        type: 'EARNING',
+        description: `Paiement pour service #${payment.serviceId} (commission déduite)`,
+        paymentId: payment.id,
+        serviceId: payment.serviceId,
+        metadata: {
           commissionId: commission.id,
+          commissionAmount,
+          commissionRate,
         },
       });
-
-      // Ajouter les fonds au portefeuille du prestataire
-      const service = await tx.service.findUnique({
-        where: { id: payment.serviceId },
-      });
-
-      if (service?.providerId) {
-        const providerWallet = await walletService.getOrCreateWallet(service.providerId);
-
-        await walletService.createWalletTransaction(providerWallet.id, {
-          amount: Number(providerAmount),
-          type: TransactionType.EARNING,
-          description: `Paiement pour service #${payment.serviceId} (commission déduite)`,
-          paymentId: payment.id,
-          serviceId: payment.serviceId,
-          metadata: {
-            commissionId: commission.id,
-            commissionAmount: Number(commissionAmount),
-            commissionRate,
-          },
-        });
-      }
     }
   },
 
@@ -647,17 +608,7 @@ export async function createPayment(input: CreatePaymentInput): Promise<Payment>
     deliveryId,
     serviceId,
     subscriptionId,
-    demoSuccessScenario = true,
-    demoDelayMs = 1000,
   } = input;
-
-  // Si ce n'est pas une démo et qu'on n'est pas en environnement de test, vérifier que le mode démo est activé
-  if (!input.isDemo && process.env.NODE_ENV !== 'test' && !process.env.DEMO_PAYMENTS_ENABLED) {
-    throw new TRPCError({
-      code: 'FORBIDDEN',
-      message: 'Les paiements réels ne sont pas activés sur cette instance',
-    });
-  }
 
   // Vérifier l'existence de l'utilisateur
   const user = await db.user.findUnique({
@@ -693,21 +644,20 @@ export async function createPayment(input: CreatePaymentInput): Promise<Payment>
     });
   }
 
-  // Simuler un délai de traitement
-  if (demoDelayMs > 0) {
-    await new Promise(resolve => setTimeout(resolve, demoDelayMs));
-  }
-
-  // Simuler un scénario d'échec si demandé
-  if (!demoSuccessScenario) {
-    throw new TRPCError({
-      code: 'BAD_REQUEST',
-      message: "Paiement refusé (simulation de scénario d'échec)",
-    });
-  }
-
-  // Générer un ID de paiement Stripe simulé
-  const stripePaymentId = `demo_pi_${randomUUID().replace(/-/g, '')}`;
+  // Créer un vrai PaymentIntent avec Stripe
+  const paymentIntent = await stripe.paymentIntents.create({
+    amount: Math.round(amount * 100), // Convertir en centimes
+    currency: currency.toLowerCase(),
+    description,
+    metadata: {
+      userId,
+      deliveryId: deliveryId || '',
+      serviceId: serviceId || '',
+      subscriptionId: subscriptionId || '',
+      ...input.metadata,
+    },
+    capture_method: isEscrow ? 'manual' : 'automatic',
+  });
 
   // Créer le paiement dans la base de données
   const payment = await db.payment.create({
@@ -716,16 +666,16 @@ export async function createPayment(input: CreatePaymentInput): Promise<Payment>
       amount,
       currency,
       description,
-      status: isEscrow ? PaymentStatus.PENDING : PaymentStatus.COMPLETED,
+      status: PaymentStatus.PENDING,
       isEscrow,
-      stripePaymentId,
-      paymentIntentId: stripePaymentId,
+      stripePaymentId: paymentIntent.id,
+      paymentIntentId: paymentIntent.id,
       deliveryId,
       serviceId,
       subscriptionId,
       paymentProvider: 'STRIPE',
-      capturedAt: isEscrow ? null : new Date(),
-      source: input.source || 'DEMO',
+      capturedAt: null,
+      source: input.source || 'STRIPE',
       notes: input.notes,
       metadata: input.metadata || {},
     },
@@ -744,51 +694,24 @@ export async function createPayment(input: CreatePaymentInput): Promise<Payment>
     });
   }
 
-  // Calculer et créer la commission si applicable
-  if (
-    payment.status === PaymentStatus.COMPLETED &&
-    (serviceType === 'DELIVERY' || serviceType === 'SERVICE')
-  ) {
-    try {
-      await createCommission({
-        paymentId: payment.id,
-        serviceType,
-        amount,
-      });
-    } catch (error) {
-      logger.error('Erreur lors de la création de la commission', error);
-      // Ne pas échouer le paiement si la commission échoue
-    }
-  }
-
-  // Créer une facture si le paiement est complété
-  if (payment.status === PaymentStatus.COMPLETED) {
-    try {
-      await createInvoice({
-        userId,
-        paymentId: payment.id,
-        amount,
-        invoiceType: serviceType,
-        billingName: user.name,
-      });
-    } catch (error) {
-      logger.error('Erreur lors de la création de la facture', error);
-      // Ne pas échouer le paiement si la facture échoue
-    }
-  }
+  // Les commissions et factures seront créées lors de la confirmation du paiement via webhook
 
   return payment;
 }
 
 /**
- * Crée une intention de paiement simulée
+ * Traite une intention de paiement réelle
  */
-export async function processPaymentIntent(input: ProcessPaymentInput): Promise<{
+export async function processPaymentIntent(input: {
+  paymentId: string;
+  action: string;
+  amount: number;
+}): Promise<{
   clientSecret: string;
   paymentIntentId: string;
   status: string;
 }> {
-  const { paymentId, action, amount, demoSuccessScenario = true } = input;
+  const { paymentId, action, amount } = input;
 
   // Récupérer le paiement
   const payment = await db.payment.findUnique({
@@ -802,14 +725,6 @@ export async function processPaymentIntent(input: ProcessPaymentInput): Promise<
     });
   }
 
-  // Simuler un scénario d'échec si demandé
-  if (!demoSuccessScenario) {
-    throw new TRPCError({
-      code: 'BAD_REQUEST',
-      message: `Action ${action} refusée (simulation de scénario d'échec)`,
-    });
-  }
-
   // Traiter selon l'action demandée
   switch (action) {
     case 'capture':
@@ -819,6 +734,9 @@ export async function processPaymentIntent(input: ProcessPaymentInput): Promise<
           message: 'Ce paiement ne peut pas être capturé',
         });
       }
+
+      // Capturer le paiement via Stripe
+      await stripe.paymentIntents.capture(payment.paymentIntentId!);
 
       await db.payment.update({
         where: { id: paymentId },
@@ -836,6 +754,9 @@ export async function processPaymentIntent(input: ProcessPaymentInput): Promise<
           message: 'Ce paiement ne peut pas être annulé',
         });
       }
+
+      // Annuler le paiement via Stripe
+      await stripe.paymentIntents.cancel(payment.paymentIntentId!);
 
       await db.payment.update({
         where: { id: paymentId },
@@ -894,9 +815,12 @@ export async function processPaymentIntent(input: ProcessPaymentInput): Promise<
   });
 
   // Générer une réponse simulée pour l'intention de paiement
+  // Récupérer le PaymentIntent mis à jour depuis Stripe
+  const paymentIntent = await stripe.paymentIntents.retrieve(payment.paymentIntentId!);
+
   return {
-    clientSecret: `demo_pi_secret_${randomUUID().replace(/-/g, '')}`,
-    paymentIntentId: updatedPayment?.paymentIntentId || `demo_pi_${randomUUID().replace(/-/g, '')}`,
+    clientSecret: paymentIntent.client_secret!,
+    paymentIntentId: paymentIntent.id,
     status: updatedPayment?.status || 'unknown',
   };
 }
@@ -953,8 +877,12 @@ export async function confirmPayment(paymentId: string): Promise<Payment> {
 /**
  * Rembourse un paiement simulé
  */
-export async function refundPayment(input: RefundPaymentInput): Promise<Payment> {
-  const { paymentId, amount, reason, demoSuccessScenario = true } = input;
+export async function refundPayment(input: {
+  paymentId: string;
+  amount?: number;
+  reason?: string;
+}): Promise<any> {
+  const { paymentId, amount, reason } = input;
 
   // Récupérer le paiement
   const payment = await db.payment.findUnique({

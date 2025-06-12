@@ -1,6 +1,8 @@
 import { db } from '@/server/db';
 import { TRPCError } from '@trpc/server';
-import { PlanType, SubscriptionStatus } from '@prisma/client';
+// Types pour les abonnements
+type PlanType = 'FREE' | 'STARTER' | 'PREMIUM' | 'CUSTOM';
+type SubscriptionStatus = 'ACTIVE' | 'CANCELLED' | 'TRIALING' | 'PAST_DUE' | 'INCOMPLETE';
 import { stripeService } from '@/server/services/shared/stripe.service';
 import { paymentService } from '@/server/services/shared/payment.service';
 import { invoiceService } from '@/server/services/shared/invoice.service';
@@ -259,25 +261,7 @@ export const subscriptionService = {
       });
     }
 
-    // En mode démo, on simule l'annulation directement
-    if (process.env.DEMO_MODE === 'true') {
-      // Mettre à jour l'abonnement
-      return await db.subscription.update({
-        where: { id: subscription.id },
-        data: {
-          status: SubscriptionStatus.CANCELLED,
-          cancelledAt: new Date(),
-          cancelAtPeriodEnd: options.cancelAtPeriodEnd,
-          metadata: {
-            ...(subscription.metadata || {}),
-            cancellationReason: options.reason,
-            cancelledInDemo: true,
-          },
-        },
-      });
-    }
-
-    // En production, annuler via Stripe si c'est un abonnement payant
+    // Annuler via Stripe si c'est un abonnement payant
     if (subscription.stripeSubscriptionId) {
       await stripeService.cancelSubscription(
         subscription.stripeSubscriptionId,
@@ -290,8 +274,8 @@ export const subscriptionService = {
       where: { id: subscription.id },
       data: {
         status: options.cancelAtPeriodEnd
-          ? SubscriptionStatus.ACTIVE
-          : SubscriptionStatus.CANCELLED,
+          ? 'ACTIVE'
+          : 'CANCELLED',
         cancelledAt: new Date(),
         cancelAtPeriodEnd: options.cancelAtPeriodEnd,
         metadata: {
@@ -358,22 +342,6 @@ export const subscriptionService = {
       benefits,
       nextRenewalDate,
       statusInfo,
-      // Ajouter des informations simulées pour la démo
-      demo:
-        process.env.DEMO_MODE === 'true'
-          ? {
-              remainingTrialDays: subscription.trialEndsAt
-                ? Math.ceil(
-                    (subscription.trialEndsAt.getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-                  )
-                : 0,
-              usageStats: {
-                announcementsUsed: Math.floor(Math.random() * 20),
-                storageUsed: (Math.random() * 5).toFixed(2),
-                apiCallsThisMonth: Math.floor(Math.random() * 1000),
-              },
-            }
-          : undefined,
     };
   },
 
@@ -431,7 +399,7 @@ export const subscriptionService = {
         Number(plan.price)
       );
 
-      // Simuler un paiement pour le renouvellement
+      // Initier un paiement pour le renouvellement
       await paymentService.initiatePayment({
         userId: subscription.userId,
         amount: Number(plan.price),
@@ -442,7 +410,6 @@ export const subscriptionService = {
         metadata: {
           isRenewal: true,
           planType: subscription.planType,
-          isDemo: process.env.DEMO_MODE === 'true',
         },
       });
 
@@ -565,21 +532,21 @@ export const subscriptionService = {
     const discountAmount = (amount * discountPercent) / 100;
     const discountedAmount = amount - discountAmount;
 
-    // Enregistrer cette remise dans l'historique si on est en mode production
-    if (process.env.DEMO_MODE !== 'true' && discountAmount > 0) {
-      await db.discountHistory.create({
-        data: {
-          userId,
-          subscriptionId: subscription.id,
-          originalAmount: new Decimal(amount),
-          discountedAmount: new Decimal(discountedAmount),
-          discountAmount: new Decimal(discountAmount),
-          discountPercent,
-          itemType: options.type,
-          itemId: options.itemId,
-          appliedAt: new Date(),
-        },
-      });
+    // Appliquer la remise si disponible et non en mode démo
+    if (discountAmount > 0) {
+      // Logique de remise réelle
+      return {
+        originalAmount: amount,
+        discountAmount,
+        finalAmount: Math.max(0, amount - discountAmount),
+        appliedDiscounts: [
+          {
+            type: options.type,
+            description: `Remise ${options.type.toLowerCase()}`,
+            amount: discountAmount,
+          },
+        ],
+      };
     }
 
     return {
@@ -610,27 +577,22 @@ export const subscriptionService = {
       data: {
         userId,
         planType,
-        status: SubscriptionStatus.ACTIVE,
-        startDate: now,
+        status: plan.price && plan.price > 0 ? 'PENDING' : 'ACTIVE',
+        startDate: new Date(),
         endDate,
-        autoRenew: planType !== 'FREE',
-        price: plan.price ? new Decimal(plan.price) : null,
-        currency: 'EUR',
-        currentPeriodStart: now,
-        currentPeriodEnd: endDate,
-        planName: plan.name,
-        planDescription: plan.description,
-        planFeatures: plan.features,
+        currentPeriodStart: new Date(),
+        currentPeriodEnd: addMonths(new Date(), 1),
+        autoRenew: true,
         metadata: {
-          createdInDemo: process.env.DEMO_MODE === 'true',
-          limits: plan.limits,
           ...options,
+          planPrice: plan.price,
+          planFeatures: plan.features,
         },
       },
     });
 
-    // Si c'est un plan payant et en mode démo, simuler un paiement
-    if (plan.price && plan.price > 0 && process.env.DEMO_MODE === 'true') {
+    // Si c'est un plan payant, créer la facturation réelle
+    if (plan.price && plan.price > 0) {
       // Créer une facture
       const invoice = await invoiceService.createSubscriptionInvoice(
         userId,
@@ -639,7 +601,7 @@ export const subscriptionService = {
         plan.price
       );
 
-      // Simuler un paiement
+      // Initier le paiement réel
       await paymentService.initiatePayment({
         userId,
         amount: plan.price,
@@ -649,7 +611,7 @@ export const subscriptionService = {
         invoiceId: invoice.id,
         metadata: {
           planType,
-          isDemo: true,
+          subscriptionCreation: true,
         },
       });
     }
@@ -700,8 +662,8 @@ export const subscriptionService = {
       },
     });
 
-    // En mode démo, simuler la facturation de la mise à niveau
-    if (process.env.DEMO_MODE === 'true' && newPlan.price && newPlan.price > 0) {
+    // Si le nouveau plan est payant, créer la facturation réelle
+    if (newPlan.price && newPlan.price > 0) {
       // Créer une facture pour la mise à niveau
       const invoice = await invoiceService.createInvoice({
         userId: subscription.userId,
@@ -722,7 +684,7 @@ export const subscriptionService = {
         },
       });
 
-      // Simuler un paiement pour la mise à niveau
+      // Initier le paiement pour la mise à niveau
       if (proRataAmount > 0 || newPlan.price > 0) {
         await paymentService.initiatePayment({
           userId: subscription.userId,
@@ -735,7 +697,6 @@ export const subscriptionService = {
             isUpgrade: true,
             oldPlanType: subscription.planType,
             newPlanType,
-            isDemo: true,
           },
         });
       }
@@ -789,17 +750,13 @@ export const subscriptionService = {
   },
 
   /**
-   * Gère le renouvellement des abonnements (pour la démo)
+   * Gère le renouvellement des abonnements
    */
   async processSubscriptionRenewals() {
-    if (process.env.DEMO_MODE !== 'true') {
-      return { success: true, renewals: 0, message: 'Non exécuté - Mode démo désactivé' };
-    }
-
     // Trouver les abonnements à renouveler
     const subscriptionsToRenew = await db.subscription.findMany({
       where: {
-        status: SubscriptionStatus.ACTIVE,
+        status: 'ACTIVE',
         autoRenew: true,
         endDate: { lte: new Date() },
       },
@@ -829,8 +786,7 @@ export const subscriptionService = {
       success: true,
       renewals: renewedCount,
       failed: failedCount,
-      total: subscriptionsToRenew.length,
-      message: `${renewedCount} abonnements renouvelés sur ${subscriptionsToRenew.length} (${failedCount} échecs)`,
+      message: `${renewedCount} abonnements renouvelés, ${failedCount} échecs`,
     };
   },
 

@@ -176,7 +176,7 @@ export const invoiceService = {
       },
     });
 
-    // Génération du PDF
+    // Générer le PDF
     try {
       const pdfUrl = await this.generateInvoice(invoice.id);
 
@@ -208,19 +208,6 @@ export const invoiceService = {
         code: 'NOT_FOUND',
         message: 'Facture non trouvée',
       });
-    }
-
-    // Vérifier si on est en mode démo
-    if (process.env.DEMO_MODE === 'true') {
-      // Simuler un délai pour la génération (plus réaliste)
-      await new Promise(resolve => setTimeout(resolve, 300));
-
-      const fileHash = createHash('md5')
-        .update(`${invoice.id}-${Date.now()}`)
-        .digest('hex')
-        .substring(0, 8);
-
-      return `/demo/invoices/${invoice.invoiceNumber}-${fileHash}.pdf`;
     }
 
     // Préparer les données pour le PDF
@@ -275,12 +262,6 @@ export const invoiceService = {
    * Stocke une facture dans le système
    */
   async storeInvoice(invoice: any, pdfBuffer: Buffer): Promise<string> {
-    // Vérifier si on est en mode démo
-    if (process.env.DEMO_MODE === 'true') {
-      // En mode démo, on simule le stockage
-      return `/demo/invoices/${invoice.invoiceNumber}.pdf`;
-    }
-
     // Stocker le PDF
     const uploadPath =
       process.env.NODE_ENV === 'development'
@@ -335,12 +316,15 @@ export const invoiceService = {
     }
 
     // Si on demande le PDF et qu'il n'existe pas déjà, le générer
-    if (includePdf && !invoice.pdfUrl) {
-      const pdfUrl = await this.generateInvoice(invoiceId);
+    if (includePdf && !invoice.pdfPath) {
+      const pdfPath = await this.generateInvoice(invoiceId);
 
       return await db.invoice.update({
         where: { id: invoiceId },
-        data: { pdfUrl },
+        data: {
+          pdfPath,
+          pdfGenerated: true,
+        },
         include: {
           items: true,
           user: {
@@ -497,7 +481,6 @@ export const invoiceService = {
       scheduleType,
       userType: userType || 'ALL',
       dryRun,
-      demo: process.env.DEMO_MODE === 'true',
     };
   },
 
@@ -521,18 +504,6 @@ export const invoiceService = {
         code: 'NOT_FOUND',
         message: 'Facture non trouvée',
       });
-    }
-
-    // Vérifier si on est en mode démo
-    if (process.env.DEMO_MODE === 'true') {
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      const fileHash = createHash('md5')
-        .update(`${invoice.id}-${templateType}-${Date.now()}`)
-        .digest('hex')
-        .substring(0, 8);
-
-      return `/demo/invoices/${invoice.invoiceNumber}-${templateType.toLowerCase()}-${fileHash}.pdf`;
     }
 
     // Préparer les données selon le template
@@ -588,7 +559,7 @@ export const invoiceService = {
       // Mettre à jour la facture avec l'URL du PDF
       await db.invoice.update({
         where: { id: invoiceId },
-        data: { pdfUrl: `/uploads/invoices/${filename}` },
+        data: { pdfPath: `/uploads/invoices/${filename}` },
       });
 
       return `/uploads/invoices/${filename}`;
@@ -813,7 +784,6 @@ export const invoiceService = {
       },
       timeSeriesData,
       projections,
-      demo: process.env.DEMO_MODE === 'true',
     };
   },
 
@@ -867,8 +837,12 @@ export const invoiceService = {
       await this._generateDelivererInvoices(periodStart, periodEnd, periodLabel, simulateOnly);
     }
 
-    // En mode démo, renvoyez des données simulées si demandé
-    if (process.env.DEMO_MODE === 'true' && simulateOnly) {
+    // En mode simulation, calculer les estimations réelles
+    if (simulateOnly) {
+      const estimatedMerchants = await this._estimateMerchantInvoices(periodStart, periodEnd);
+      const estimatedProviders = await this._estimateProviderInvoices(periodStart, periodEnd);
+      const estimatedDeliverers = await this._estimateDelivererInvoices(periodStart, periodEnd);
+
       return {
         period: {
           start: periodStart,
@@ -876,12 +850,11 @@ export const invoiceService = {
           label: periodLabel,
         },
         estimated: {
-          merchantInvoices: 5,
-          providerInvoices: 8,
-          delivererInvoices: 12,
-          totalAmount: 4250.75,
+          merchantInvoices: estimatedMerchants.count,
+          providerInvoices: estimatedProviders.count,
+          delivererInvoices: estimatedDeliverers.count,
+          totalAmount: estimatedMerchants.amount + estimatedProviders.amount + estimatedDeliverers.amount,
         },
-        demo: true,
       };
     }
 
@@ -1118,39 +1091,35 @@ export const invoiceService = {
 
     // Cette fonction serait implémentée en production pour générer les factures mensuelles
     // des commerçants (abonnements, frais de plateforme, etc.)
-
-    // En mode démo, on peut simuler la génération de quelques factures
-    if (process.env.DEMO_MODE === 'true') {
-      const merchants = await db.user.findMany({
-        where: {
-          role: 'MERCHANT',
-          merchant: {
-            isActive: true,
-          },
+    // Générer les factures réelles pour les commerçants actifs
+    const merchants = await db.user.findMany({
+      where: {
+        role: 'MERCHANT',
+        merchant: {
+          isActive: true,
         },
-        take: 5, // Limiter à 5 commerçants pour la démo
-      });
+      },
+      include: {
+        merchant: true,
+      },
+    });
 
-      for (const merchant of merchants) {
+    for (const merchant of merchants) {
+      // Calculer les frais réels basés sur l'activité
+      const merchantData = await this._calculateMerchantData(merchant, { start: periodStart, end: periodEnd });
+      
+      if (merchantData.items.length > 0) {
         await this.createInvoice({
           userId: merchant.id,
-          items: [
-            {
-              description: `Frais de plateforme - ${periodLabel}`,
-              quantity: 1,
-              unitPrice: 49.99,
-              taxRate: 0.2,
-            },
-          ],
+          items: merchantData.items,
           issueDate: new Date(),
           dueDate: addDays(new Date(), 15),
-          notes: 'Facture mensuelle générée automatiquement',
+          notes: `Facture mensuelle - ${periodLabel}`,
           invoiceType: 'MERCHANT_FEE',
           metadata: {
             periodStart: formatISO(periodStart),
             periodEnd: formatISO(periodEnd),
             isRecurring: true,
-            demo: true,
           },
         });
       }
@@ -1172,38 +1141,25 @@ export const invoiceService = {
     // Cette fonction serait implémentée en production pour générer les factures de commission
     // pour les prestataires
 
-    // En mode démo, on peut simuler la génération de quelques factures
-    if (process.env.DEMO_MODE === 'true') {
-      const providers = await db.user.findMany({
-        where: {
-          role: 'PROVIDER',
-          provider: {
-            isActive: true,
-          },
+    // Générer les factures réelles pour les prestataires actifs
+    const providers = await db.user.findMany({
+      where: {
+        role: 'PROVIDER',
+        provider: {
+          isActive: true,
         },
-        take: 3, // Limiter à 3 prestataires pour la démo
-      });
+      },
+      include: {
+        provider: true,
+      },
+    });
 
-      for (const provider of providers) {
-        // Simuler 2-4 services par prestataire
-        const serviceCount = Math.floor(Math.random() * 3) + 2;
-        const items = [];
-
-        for (let i = 0; i < serviceCount; i++) {
-          const serviceAmount = Math.floor(Math.random() * 200) + 50;
-          const commissionRate = 0.15; // 15%
-          const commissionAmount = serviceAmount * commissionRate;
-
-          items.push({
-            description: `Commission sur service #SERV-${Date.now()}-${i} - ${periodLabel}`,
-            quantity: 1,
-            unitPrice: commissionAmount,
-            taxRate: 0.2, // 20% TVA
-            serviceId: `demo-service-${i}`,
-          });
-        }
-
-        await this.createCommissionInvoice(provider.id, items, {
+    for (const provider of providers) {
+      // Calculer les commissions réelles basées sur l'activité
+      const providerData = await this._calculateProviderData(provider, { start: periodStart, end: periodEnd });
+      
+      if (providerData.items.length > 0) {
+        await this.createCommissionInvoice(provider.id, providerData.items, {
           start: periodStart,
           end: periodEnd,
         });
@@ -1226,38 +1182,25 @@ export const invoiceService = {
     // Cette fonction serait implémentée en production pour générer les factures de commission
     // pour les livreurs
 
-    // En mode démo, on peut simuler la génération de quelques factures
-    if (process.env.DEMO_MODE === 'true') {
-      const deliverers = await db.user.findMany({
-        where: {
-          role: 'DELIVERER',
-          deliverer: {
-            isActive: true,
-          },
+    // Générer les factures réelles pour les livreurs actifs
+    const deliverers = await db.user.findMany({
+      where: {
+        role: 'DELIVERER',
+        deliverer: {
+          isActive: true,
         },
-        take: 4, // Limiter à 4 livreurs pour la démo
-      });
+      },
+      include: {
+        deliverer: true,
+      },
+    });
 
-      for (const deliverer of deliverers) {
-        // Simuler 5-10 livraisons par livreur
-        const deliveryCount = Math.floor(Math.random() * 6) + 5;
-        const items = [];
-
-        for (let i = 0; i < deliveryCount; i++) {
-          const deliveryAmount = Math.floor(Math.random() * 30) + 10;
-          const commissionRate = 0.1; // 10%
-          const commissionAmount = deliveryAmount * commissionRate;
-
-          items.push({
-            description: `Commission sur livraison #DEL-${Date.now()}-${i} - ${periodLabel}`,
-            quantity: 1,
-            unitPrice: commissionAmount,
-            taxRate: 0.2, // 20% TVA
-            deliveryId: `demo-delivery-${i}`,
-          });
-        }
-
-        await this.createCommissionInvoice(deliverer.id, items, {
+    for (const deliverer of deliverers) {
+      // Calculer les commissions réelles basées sur l'activité
+      const delivererData = await this._calculateDelivererData(deliverer, { start: periodStart, end: periodEnd });
+      
+      if (delivererData.items.length > 0) {
+        await this.createCommissionInvoice(deliverer.id, delivererData.items, {
           start: periodStart,
           end: periodEnd,
         });
@@ -1327,12 +1270,7 @@ export const invoiceService = {
     period: { start: Date; end: Date },
     userType: 'MERCHANT' | 'PROVIDER' | 'DELIVERER'
   ) {
-    // En mode démo, simuler des données
-    if (process.env.DEMO_MODE === 'true') {
-      return this._generateDemoInvoiceData(user, period, userType);
-    }
-
-    // Logic pour calculer les vraies données basées sur l'activité
+    // Calculer les vraies données basées sur l'activité
     switch (userType) {
       case 'MERCHANT':
         return await this._calculateMerchantData(user, period);
@@ -1345,67 +1283,7 @@ export const invoiceService = {
     }
   },
 
-  /**
-   * Génère des données de démonstration pour la facturation
-   * @private
-   */
-  _generateDemoInvoiceData(
-    user: any,
-    period: { start: Date; end: Date },
-    userType: 'MERCHANT' | 'PROVIDER' | 'DELIVERER'
-  ) {
-    const items = [];
 
-    switch (userType) {
-      case 'MERCHANT':
-        items.push({
-          description: `Frais d'abonnement plateforme - ${format(period.start, 'MMMM yyyy', { locale: fr })}`,
-          quantity: 1,
-          unitPrice: 29.99,
-          taxRate: 0.2,
-        });
-        if (Math.random() > 0.5) {
-          items.push({
-            description: 'Frais de transaction supplémentaires',
-            quantity: Math.floor(Math.random() * 50) + 10,
-            unitPrice: 0.3,
-            taxRate: 0.2,
-          });
-        }
-        return { items, type: 'MERCHANT_FEE' };
-
-      case 'PROVIDER':
-        const serviceCount = Math.floor(Math.random() * 8) + 2;
-        for (let i = 0; i < serviceCount; i++) {
-          const serviceAmount = Math.floor(Math.random() * 150) + 50;
-          const commissionRate = 0.15;
-          items.push({
-            description: `Commission service #${i + 1} - ${format(period.start, 'MMM yyyy', { locale: fr })}`,
-            quantity: 1,
-            unitPrice: serviceAmount * commissionRate,
-            taxRate: 0.2,
-          });
-        }
-        return { items, type: 'COMMISSION' };
-
-      case 'DELIVERER':
-        const deliveryCount = Math.floor(Math.random() * 15) + 5;
-        for (let i = 0; i < deliveryCount; i++) {
-          const deliveryAmount = Math.floor(Math.random() * 25) + 8;
-          const commissionRate = 0.1;
-          items.push({
-            description: `Commission livraison #${i + 1} - ${format(period.start, 'MMM yyyy', { locale: fr })}`,
-            quantity: 1,
-            unitPrice: deliveryAmount * commissionRate,
-            taxRate: 0.2,
-          });
-        }
-        return { items, type: 'COMMISSION' };
-
-      default:
-        return { items: [], type: 'OTHER' };
-    }
-  },
 
   /**
    * Calcule les données réelles pour un marchand
@@ -1534,15 +1412,48 @@ export const invoiceService = {
    * @private
    */
   async _sendInvoiceEmail(invoiceId: string, recipientEmail: string) {
-    // En mode démo, simuler l'envoi
-    if (process.env.DEMO_MODE === 'true') {
-      console.log(`[DEMO] Envoi email facture ${invoiceId} à ${recipientEmail}`);
-      return { sent: true, demo: true };
+    // Récupérer la facture avec ses détails
+    const invoice = await db.invoice.findUnique({
+      where: { id: invoiceId },
+      include: {
+        user: true,
+        items: true,
+      },
+    });
+
+    if (!invoice) {
+      throw new TRPCError({
+        code: 'NOT_FOUND',
+        message: 'Facture non trouvée',
+      });
     }
 
-    // Ici, implémenter l'envoi réel d'email
-    // Utiliser un service comme SendGrid, Mailgun, etc.
-    return { sent: false, reason: 'Service email non configuré' };
+    // Envoyer l'email avec la facture en pièce jointe
+    try {
+      await emailService.sendInvoiceEmail({
+        to: recipientEmail,
+        invoiceId,
+        subject: `Votre facture ${invoice.invoiceNumber}`,
+        attachPdf: true,
+      });
+
+      // Marquer la facture comme envoyée
+      await db.invoice.update({
+        where: { id: invoiceId },
+        data: {
+          sentAt: new Date(),
+          status: 'SENT',
+        },
+      });
+
+      return { success: true };
+    } catch (error) {
+      console.error('Erreur lors de l\'envoi de la facture par email:', error);
+      throw new TRPCError({
+        code: 'INTERNAL_SERVER_ERROR',
+        message: 'Erreur lors de l\'envoi de la facture par email',
+      });
+    }
   },
 
   /**
@@ -1566,32 +1477,55 @@ export const invoiceService = {
    * @private
    */
   async _getInvoiceTimeSeries(baseWhere: any, groupBy: 'DAY' | 'WEEK' | 'MONTH') {
-    // En mode démo, générer des données simulées
-    if (process.env.DEMO_MODE === 'true') {
-      const data = [];
-      const days = groupBy === 'DAY' ? 30 : groupBy === 'WEEK' ? 12 : 6;
+    // Générer des données réelles basées sur les factures existantes
+    const invoices = await db.invoice.findMany({
+      where: baseWhere,
+      select: {
+        issueDate: true,
+        totalAmount: true,
+      },
+      orderBy: {
+        issueDate: 'asc',
+      },
+    });
 
-      for (let i = days - 1; i >= 0; i--) {
-        const date = new Date();
-        date.setDate(date.getDate() - i * (groupBy === 'DAY' ? 1 : groupBy === 'WEEK' ? 7 : 30));
-
-        data.push({
-          period: format(
-            date,
-            groupBy === 'DAY' ? 'dd/MM' : groupBy === 'WEEK' ? 'ww/yyyy' : 'MM/yyyy'
-          ),
-          date: date,
-          count: Math.floor(Math.random() * 20) + 5,
-          amount: Math.floor(Math.random() * 5000) + 1000,
-        });
+    // Grouper les données selon la période demandée
+    const groupedData = new Map();
+    
+    invoices.forEach(invoice => {
+      const date = new Date(invoice.issueDate);
+      let periodKey: string;
+      
+      switch (groupBy) {
+        case 'DAY':
+          periodKey = format(date, 'dd/MM/yyyy');
+          break;
+        case 'WEEK':
+          periodKey = format(date, 'ww/yyyy');
+          break;
+        case 'MONTH':
+          periodKey = format(date, 'MM/yyyy');
+          break;
+        default:
+          periodKey = format(date, 'dd/MM/yyyy');
       }
+      
+      if (!groupedData.has(periodKey)) {
+        groupedData.set(periodKey, { count: 0, amount: 0, date });
+      }
+      
+      const existing = groupedData.get(periodKey);
+      existing.count += 1;
+      existing.amount += Number(invoice.totalAmount || 0);
+    });
 
-      return data;
-    }
-
-    // Implémentation réelle basée sur groupBy
-    // Pour simplifier, retourner des données vides pour l'instant
-    return [];
+    // Convertir en tableau et trier
+    return Array.from(groupedData.entries()).map(([period, data]) => ({
+      period,
+      date: data.date,
+      count: data.count,
+      amount: data.amount,
+    })).sort((a, b) => a.date.getTime() - b.date.getTime());
   },
 
   /**

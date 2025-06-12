@@ -9,7 +9,6 @@ import {
   listWalletTransactions,
   createWalletTransaction,
   calculateEarnings,
-  resetDemoWallet,
 } from '@/server/services/shared/wallet.service';
 import { TransactionType, UserRole } from '@prisma/client';
 import { isRoleAllowed } from '@/lib/auth/auth-helpers';
@@ -74,7 +73,6 @@ export const walletRouter = router({
           totalEarned: wallet.totalEarned || 0,
           totalWithdrawn: wallet.totalWithdrawn || 0,
         },
-        isDemoMode: process.env.DEMO_MODE === 'true',
       };
     } catch (error: any) {
       throw new TRPCError({
@@ -369,7 +367,7 @@ export const walletRouter = router({
             bankName: input.bankName,
             accountHolder: input.accountHolder,
             accountHolderType: input.accountHolderType,
-            accountVerified: process.env.DEMO_MODE === 'true' ? true : false, // Auto-vérification en démo
+            accountVerified: false, // Vérification obligatoire en production
           },
         });
 
@@ -394,7 +392,7 @@ export const walletRouter = router({
           success: true,
           wallet: updatedWallet,
           message: 'Informations bancaires mises à jour avec succès',
-          requiresVerification: process.env.DEMO_MODE !== 'true',
+          requiresVerification: true,
         };
       } catch (error: any) {
         throw new TRPCError({
@@ -454,7 +452,6 @@ export const walletRouter = router({
           wallet,
           user,
           pendingWithdrawals,
-          isDemoMode: process.env.DEMO_MODE === 'true',
         };
       } catch (error: any) {
         throw new TRPCError({
@@ -492,7 +489,6 @@ export const walletRouter = router({
             reason: input.reason,
             adjustedBy: adminId,
             adjustedAt: new Date().toISOString(),
-            isDemo: process.env.DEMO_MODE === 'true',
           },
         });
 
@@ -521,126 +517,6 @@ export const walletRouter = router({
         throw new TRPCError({
           code: 'INTERNAL_SERVER_ERROR',
           message: error.message || "Erreur lors de la création de l'ajustement",
-          cause: error,
-        });
-      }
-    }),
-
-  /**
-   * Réinitialise un portefeuille de démonstration (uniquement en mode démo)
-   */
-  resetDemo: protectedProcedure.mutation(async ({ ctx }) => {
-    try {
-      // Vérifier qu'on est en mode démo
-      if (process.env.DEMO_MODE !== 'true') {
-        throw new TRPCError({
-          code: 'BAD_REQUEST',
-          message: 'Cette fonctionnalité est uniquement disponible en mode démonstration',
-        });
-      }
-
-      const userId = ctx.session.user.id;
-      const wallet = await getOrCreateWallet(userId);
-
-      // Réinitialiser le portefeuille
-      const result = await resetDemoWallet(wallet.id);
-
-      return result;
-    } catch (error: any) {
-      throw new TRPCError({
-        code: 'INTERNAL_SERVER_ERROR',
-        message: error.message || 'Erreur lors de la réinitialisation du portefeuille',
-        cause: error,
-      });
-    }
-  }),
-
-  /**
-   * Génère des données de démonstration pour le portefeuille (uniquement en mode démo)
-   */
-  generateDemoData: protectedProcedure
-    .input(
-      z.object({
-        numTransactions: z.number().int().min(1).max(50).default(10),
-        maxAmount: z.number().positive().max(1000).default(100),
-        includeWithdrawals: z.boolean().default(true),
-        periodDays: z.number().int().positive().max(90).default(30),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      try {
-        // Vérifier qu'on est en mode démo
-        if (process.env.DEMO_MODE !== 'true') {
-          throw new TRPCError({
-            code: 'BAD_REQUEST',
-            message: 'Cette fonctionnalité est uniquement disponible en mode démonstration',
-          });
-        }
-
-        const userId = ctx.session.user.id;
-        const wallet = await getOrCreateWallet(userId);
-
-        // Générer des transactions aléatoires
-        const transactions = [];
-        const now = new Date();
-
-        for (let i = 0; i < input.numTransactions; i++) {
-          // Date aléatoire dans la période spécifiée
-          const randomDaysAgo = Math.floor(Math.random() * input.periodDays);
-          const transactionDate = new Date(now);
-          transactionDate.setDate(now.getDate() - randomDaysAgo);
-
-          // Montant aléatoire
-          const amount = Math.random() * input.maxAmount;
-
-          // Type de transaction (70% earnings, 30% withdrawals si activés)
-          const isWithdrawal = input.includeWithdrawals && Math.random() > 0.7;
-          const type = isWithdrawal ? 'WITHDRAWAL' : 'EARNING';
-
-          // Description selon le type
-          const descriptions = isWithdrawal
-            ? ['Retrait vers compte bancaire', 'Virement SEPA', 'Retrait mensuel']
-            : [
-                'Commission livraison #',
-                'Paiement client #',
-                'Prime de service #',
-                'Bonus fidélité',
-              ];
-
-          const descriptionIndex = Math.floor(Math.random() * descriptions.length);
-          const description =
-            descriptions[descriptionIndex] + (Math.floor(Math.random() * 1000) + 1);
-
-          // Créer la transaction
-          const transaction = await createWalletTransaction(wallet.id, {
-            amount: isWithdrawal ? -amount : amount,
-            type: type as TransactionType,
-            description,
-            reference: `DEMO-${Date.now()}-${i}`,
-            metadata: {
-              demo: true,
-              generatedAt: now.toISOString(),
-            },
-          });
-
-          // Modifier la date de création (pour simuler des transactions historiques)
-          await ctx.db.walletTransaction.update({
-            where: { id: transaction.id },
-            data: { createdAt: transactionDate },
-          });
-
-          transactions.push(transaction);
-        }
-
-        return {
-          success: true,
-          message: `${input.numTransactions} transactions de démonstration générées`,
-          transactionsCount: transactions.length,
-        };
-      } catch (error: any) {
-        throw new TRPCError({
-          code: 'INTERNAL_SERVER_ERROR',
-          message: error.message || 'Erreur lors de la génération des données de démonstration',
           cause: error,
         });
       }

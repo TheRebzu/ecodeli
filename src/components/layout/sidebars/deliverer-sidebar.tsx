@@ -215,7 +215,7 @@ export function DelivererSidebar({ locale }: DelivererSidebarProps) {
 
   const userInfo = {
     name: 'Livreur EcoDeli',
-    email: 'deliverer@ecodeli.com',
+    email: 'deliverer@ecodeli.me',
     avatar: '',
   };
 

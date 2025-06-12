@@ -58,7 +58,7 @@ app/
 3. Configurer les variables d'environnement :
    ```bash
    # .env ou dans build.gradle.kts
-   API_BASE_URL=https://api.ecodeli.com
+   API_BASE_URL=https://api.ecodeli.me
    ONESIGNAL_APP_ID=your_onesignal_app_id
    ```
 
@@ -266,8 +266,8 @@ Ce projet est sous licence MIT. Voir le fichier [LICENSE](LICENSE) pour plus de 
 
 ## 📞 Support
 
-- 📧 Email : support@ecodeli.com
-- 📖 Documentation : [docs.ecodeli.com](https://docs.ecodeli.com)
+- 📧 Email : support@ecodeli.me
+- 📖 Documentation : [docs.ecodeli.me](https://docs.ecodeli.me)
 - 🐛 Issues : [GitHub Issues](https://github.com/ecodeli/mobile/issues)
 
 ---

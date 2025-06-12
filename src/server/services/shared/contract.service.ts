@@ -560,24 +560,17 @@ export class ContractService {
       });
     }
 
-    // En mode démo, retourner une URL simulée
-    if (process.env.DEMO_MODE === 'true') {
-      const fileHash = crypto
-        .createHash('md5')
-        .update(`${contract.id}-${Date.now()}`)
-        .digest('hex')
-        .substring(0, 8);
-
-      return `/demo/contracts/${contract.contractNumber}-${fileHash}.pdf`;
-    }
-
-    // TODO: Implémenter la génération PDF réelle
-    // Utiliser un service comme Puppeteer ou une API externe
-
-    throw new TRPCError({
-      code: 'NOT_IMPLEMENTED',
-      message: 'Génération PDF non encore implémentée',
-    });
+    // Générer le PDF du contrat avec les vraies données
+    const contractPdf = await generateContractPDF(contract);
+    
+    // Sauvegarder le PDF
+    const pdfPath = await saveContractPDF(contract.id, contractPdf);
+    
+    return {
+      contract,
+      pdfUrl: pdfPath,
+      downloadUrl: `/api/contracts/${contract.id}/download`,
+    };
   }
 }
 

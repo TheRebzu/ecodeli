@@ -18,8 +18,8 @@ export const adminSettingsRouter = router({
         general: {
           siteName: 'EcoDeli',
           siteDescription: 'Plateforme de services écologiques',
-          contactEmail: 'contact@ecodeli.com',
-          supportEmail: 'support@ecodeli.com',
+          contactEmail: 'contact@ecodeli.me',
+          supportEmail: 'support@ecodeli.me',
           maintenanceMode: false,
           registrationEnabled: true,
           defaultLanguage: 'fr',
@@ -28,10 +28,10 @@ export const adminSettingsRouter = router({
         email: {
           smtpHost: 'smtp.gmail.com',
           smtpPort: 587,
-          smtpUser: 'noreply@ecodeli.com',
+          smtpUser: 'noreply@ecodeli.me',
           smtpSecure: true,
           fromName: 'EcoDeli',
-          fromEmail: 'noreply@ecodeli.com',
+          fromEmail: 'noreply@ecodeli.me',
           emailVerificationRequired: true,
           welcomeEmailEnabled: true,
         },

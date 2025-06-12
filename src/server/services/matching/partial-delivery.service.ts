@@ -576,4 +576,69 @@ export class PartialDeliveryService {
     // Simulation de finalisation
     logger.info(`Livraison partielle ${planId} terminée avec succès`);
   }
+
+  /**
+   * Trouve les points relais disponibles selon les critères
+   */
+  async findAvailableRelayPoints(criteria: {
+    centerLat: number;
+    centerLng: number;
+    radius: number;
+    minCapacity?: number;
+    timeSlot?: { start: Date; end: Date };
+  }): Promise<RelayPoint[]> {
+    const { centerLat, centerLng, radius, minCapacity = 5, timeSlot } = criteria;
+
+    // Récupérer les points relais depuis la base de données
+    const relayPoints = await this.prisma.relayPoint.findMany({
+      where: {
+        isActive: true,
+        capacity: {
+          gte: minCapacity,
+        },
+        // Filtrer par géolocalisation si possible
+        latitude: {
+          gte: centerLat - radius / 111, // Approximation 1 degré = 111km
+          lte: centerLat + radius / 111,
+        },
+        longitude: {
+          gte: centerLng - radius / 111,
+          lte: centerLng + radius / 111,
+        },
+      },
+      include: {
+        location: true,
+        availability: {
+          where: timeSlot ? {
+            startTime: { lte: timeSlot.start },
+            endTime: { gte: timeSlot.end },
+          } : undefined,
+        },
+      },
+    });
+
+    // Filtrer par distance exacte
+    const filteredPoints = relayPoints.filter(point => {
+      const distance = this.calculateDistance(
+        centerLat,
+        centerLng,
+        point.latitude,
+        point.longitude
+      );
+      return distance <= radius;
+    });
+
+    return filteredPoints.map(point => ({
+      id: point.id,
+      name: point.name,
+      address: point.address,
+      lat: point.latitude,
+      lng: point.longitude,
+      capacity: point.capacity,
+      currentUsage: point.currentUsage || 0,
+      operatingHours: point.operatingHours as any,
+      contactInfo: point.contactInfo as any,
+      distance: this.calculateDistance(centerLat, centerLng, point.latitude, point.longitude),
+    }));
+  }
 }

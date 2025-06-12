@@ -121,10 +121,25 @@ export default function MerchantBillingDashboard({ merchantId }: MerchantBilling
   const [currentPage, setCurrentPage] = useState(1);
   const pageSize = 10;
 
-  // Dans un cas réel, ces données seraient récupérées via tRPC
-  const billingStats = MOCK_STATS;
-  const invoices = MOCK_INVOICES;
-  const isLoading = false;
+  const { data: billingStats, isLoading: isLoadingStats } = api.billing.getStats.useQuery();
+  const { data: invoices, isLoading: isLoadingInvoices } = api.billing.getInvoices.useQuery({
+    page: 1,
+    limit: 10,
+    status: 'all'
+  });
+
+  if (isLoadingStats || isLoadingInvoices) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="h-32 bg-gray-200 animate-pulse rounded-lg" />
+          ))}
+        </div>
+        <div className="h-96 bg-gray-200 animate-pulse rounded-lg" />
+      </div>
+    );
+  }
 
   // Handlers pour les interactions
   const handleDownloadInvoice = (invoiceId: string) => {
@@ -247,7 +262,7 @@ export default function MerchantBillingDashboard({ merchantId }: MerchantBilling
             <CardContent>
               <InvoiceList
                 invoices={invoices.slice(0, 5)}
-                isLoading={isLoading}
+                isLoading={isLoadingInvoices}
                 onDownload={handleDownloadInvoice}
                 onView={handleViewInvoice}
                 pagination={{ currentPage: 1, totalPages: 1, totalItems: invoices.length }}
@@ -290,7 +305,7 @@ export default function MerchantBillingDashboard({ merchantId }: MerchantBilling
         <TabsContent value="invoices" className="pt-4">
           <InvoiceList
             invoices={invoices}
-            isLoading={isLoading}
+            isLoading={isLoadingInvoices}
             onDownload={handleDownloadInvoice}
             onView={handleViewInvoice}
             onPageChange={handlePageChange}

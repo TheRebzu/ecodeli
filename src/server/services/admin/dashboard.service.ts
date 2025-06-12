@@ -243,6 +243,7 @@ export const dashboardService = {
           PROVIDER: providerCount,
           ADMIN: adminCount,
         },
+        totalActiveUsersToday: activeUsersToday,
       };
     } catch (error) {
       console.error('Erreur lors de la récupération des statistiques utilisateurs:', error);
@@ -312,6 +313,30 @@ export const dashboardService = {
         },
       ];
 
+      // Récupérer les demandes de vérification récemment soumises
+      const recentlySubmitted = await db.verificationRequest.findMany({
+        where: {
+          status: 'PENDING',
+          createdAt: {
+            gte: startOfWeek(new Date()),
+          },
+        },
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              role: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        take: 5,
+      });
+
       return {
         // Propriétés pour l'interface DocumentStats
         pending: pendingReview,
@@ -323,7 +348,18 @@ export const dashboardService = {
           MERCHANT: Math.round(pendingReview * 0.15),
           PROVIDER: Math.round(pendingReview * 0.05),
         },
-        recentlySubmitted: mockRecentlySubmitted,
+        recentlySubmitted: recentlySubmitted.map(request => ({
+          id: request.id,
+          status: request.status,
+          createdAt: request.createdAt,
+          type: request.type,
+          user: {
+            id: request.user.id,
+            name: request.user.name,
+            email: request.user.email,
+            role: request.user.role,
+          },
+        })),
 
         // Garder les propriétés originales pour la compatibilité
         totalDocuments,

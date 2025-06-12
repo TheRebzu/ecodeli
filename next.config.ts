@@ -7,6 +7,11 @@ const nextConfig: NextConfig = {
   // Configurer le serveur de fichiers statiques
   output: 'standalone',
   
+  // Optimisations de build (swcMinify est maintenant par défaut dans Next.js 15+)
+  compiler: {
+    removeConsole: process.env.NODE_ENV === 'production',
+  },
+  
   // Temporairement ignorer les erreurs ESLint durant le build
   eslint: {
     ignoreDuringBuilds: true,
@@ -15,6 +20,23 @@ const nextConfig: NextConfig = {
   // Ignorer aussi les warnings TypeScript non critiques
   typescript: {
     ignoreBuildErrors: false, // Garder les erreurs TS critiques
+  },
+  
+  // Turbopack configuration (stable)
+  turbopack: {
+    rules: {
+      '*.svg': {
+        loaders: ['@svgr/webpack'],
+        as: '*.js',
+      },
+    },
+  },
+  
+  // Optimisation expérimentale
+  experimental: {
+    optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react'],
+    ppr: false, // Partial Prerendering
+    optimizeCss: true,
   },
   
   // Activer les images externes avec la nouvelle configuration
@@ -33,12 +55,37 @@ const nextConfig: NextConfig = {
       },
     ],
   },
-  webpack: (config, { isServer }) => {
+  webpack: (config, { isServer, dev }) => {
     // Configurer les alias pour s'assurer que @/ pointe vers src/
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': path.resolve(__dirname, './src'),
     };
+
+    // Optimisations de performance
+    if (!dev) {
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: {
+          chunks: 'all',
+          cacheGroups: {
+            vendor: {
+              test: /[\\/]node_modules[\\/]/,
+              name: 'vendors',
+              chunks: 'all',
+              priority: 10,
+            },
+            common: {
+              name: 'common',
+              minChunks: 2,
+              chunks: 'all',
+              priority: 5,
+              reuseExistingChunk: true,
+            },
+          },
+        },
+      };
+    }
 
     // Gérer les modules Node.js côté client (uniquement pour le client)
     if (!isServer) {

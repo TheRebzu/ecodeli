@@ -378,7 +378,7 @@ export function AdminSidebar({ locale }: AdminSidebarProps) {
 
   const userInfo = {
     name: 'Administrateur',
-    email: 'admin@ecodeli.com',
+    email: 'admin@ecodeli.me',
     avatar: '',
   };
 

@@ -393,9 +393,7 @@ export const walletTransactionSchema = z.object({
   serviceId: z.string().cuid('ID service invalide').optional(),
 
   // Champs spécifiques au mode démonstration
-  isDemo: z.boolean().default(true).optional(),
-  demoSuccessScenario: z.boolean().default(true).optional(),
-  demoDelayMs: z.number().min(0).max(3000).optional(),
+
 });
 
 // Schéma pour rechercher les transactions d'un portefeuille

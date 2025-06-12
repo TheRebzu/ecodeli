@@ -63,15 +63,7 @@ function CheckoutForm({
     setPaymentStatus('processing');
 
     try {
-      // En mode démo, simuler un paiement réussi après un court délai
-      if (isDemoMode) {
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        setPaymentStatus('success');
-        if (onSuccess) {
-          onSuccess('demo_pi_' + Math.random().toString(36).substring(2, 15));
-        }
-        return;
-      }
+      // Traitement du paiement réel uniquement
 
       // Confirmer le paiement avec les éléments Stripe
       const { error, paymentIntent } = await stripe.confirmPayment({
@@ -246,59 +238,60 @@ function CheckoutForm({
 }
 
 interface StripeElementsProps {
-  paymentIntentId: string;
-  clientSecret: string;
   amount: number;
   currency?: string;
-  onSuccess?: (paymentIntentId: string) => void;
-  onCancel?: () => void;
-  demo?: boolean;
+  onSuccess?: (paymentIntent: any) => void;
+  onError?: (error: any) => void;
+  clientSecret?: string;
+  metadata?: Record<string, any>;
 }
 
-export function StripeElements({
-  paymentIntentId,
-  clientSecret,
+const StripeElementsComponent: React.FC<StripeElementsProps> = ({
   amount,
   currency = 'EUR',
   onSuccess,
-  onCancel,
-  demo = false,
-}: StripeElementsProps) {
-  const t = useTranslations('payment');
-  const [stripeReady, setStripeReady] = useState(false);
-  const { isDemoMode } = usePaymentConfirmation();
+  onError,
+  clientSecret,
+  metadata = {},
+}) => {
+  const [paymentStatus, setPaymentStatus] = useState<'idle' | 'processing' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
-  // Déterminer si on est en mode démo
-  const isInDemoMode = demo || isDemoMode || process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
+  const stripe = useStripe();
+  const elements = useElements();
 
-  useEffect(() => {
-    // Marquer Stripe comme prêt une fois le client secret disponible
-    if (clientSecret) {
-      setStripeReady(true);
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    if (!stripe || !elements || !clientSecret) {
+      setErrorMessage('Stripe n\'est pas encore chargé');
+      return;
     }
-  }, [clientSecret]);
 
-  if (!stripeReady) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
+    setPaymentStatus('processing');
 
-  const options: StripeElementsOptions = {
-    clientSecret,
-    appearance: {
-      theme: 'stripe',
-      variables: {
-        colorPrimary: '#10b981',
-        colorBackground: '#ffffff',
-        colorText: '#1f2937',
-        colorDanger: '#ef4444',
-        borderRadius: '0.375rem',
-      },
-    },
-    locale: 'fr',
+    try {
+      const { error, paymentIntent } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url: `${window.location.origin}/payment/success`,
+        },
+        redirect: 'if_required',
+      });
+
+      if (error) {
+        setErrorMessage(error.message || 'Une erreur est survenue');
+        setPaymentStatus('error');
+        onError?.(error);
+      } else if (paymentIntent?.status === 'succeeded') {
+        setPaymentStatus('success');
+        onSuccess?.(paymentIntent);
+      }
+    } catch (error: any) {
+      setErrorMessage(error.message || 'Une erreur est survenue');
+      setPaymentStatus('error');
+      onError?.(error);
+    }
   };
 
   return (
@@ -309,24 +302,6 @@ export function StripeElements({
             <CreditCard className="h-5 w-5" />
             {t('securePayment')}
           </CardTitle>
-          {isInDemoMode && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Badge
-                    variant="outline"
-                    className="bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1"
-                  >
-                    <Zap className="h-3 w-3" />
-                    {t('demoMode')}
-                  </Badge>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>{t('demoPaymentDescription')}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          )}
         </div>
         <CardDescription>
           {t('amountToPay', { amount: formatCurrency(amount, currency) })}
@@ -346,7 +321,7 @@ export function StripeElements({
       </CardContent>
     </Card>
   );
-}
+};
 
 // Type pour les méthodes de paiement
 interface PaymentMethod {
@@ -374,8 +349,8 @@ export function StripePaymentMethodSelector({
   const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const { isDemoMode } = usePaymentConfirmation();
 
-  // Déterminer si on est en mode démo
-  const isInDemoMode = demo || isDemoMode || process.env.NEXT_PUBLIC_DEMO_MODE === 'true';
+  // Utiliser uniquement les vraies méthodes de paiement
+  const isInDemoMode = false;
 
   // Récupérer les méthodes de paiement sauvegardées via l'API tRPC
   const paymentMethodsQuery = api.payment.getPaymentMethods.useQuery();
@@ -446,15 +421,6 @@ export function StripePaymentMethodSelector({
     <div className="space-y-2">
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-sm font-medium">{t('selectSavedPaymentMethod')}</h3>
-        {isInDemoMode && (
-          <Badge
-            variant="outline"
-            className="text-xs bg-amber-50 text-amber-700 border-amber-200 flex items-center gap-1"
-          >
-            <Zap className="h-3 w-3" />
-            {t('demoMode')}
-          </Badge>
-        )}
       </div>
       <div className="space-y-2">
         {paymentMethods.map(method => (
