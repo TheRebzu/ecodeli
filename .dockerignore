@@ -1,96 +1,116 @@
-# =============================================================================
-# DOCKERIGNORE POUR CONTEXTE RACINE - PROJET ECODELI
-# =============================================================================
+# Dependencies
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
 
-# Node modules
-**/node_modules
-**/npm-debug.log*
-**/yarn-debug.log*
-**/yarn-error.log*
-**/.pnpm-debug.log*
+# Testing
+coverage
+.nyc_output
+*.lcov
 
-# Next.js build
-**/.next/
-**/out/
-**/build/
-**/dist/
+# Next.js
+.next/
+out/
+build/
+dist/
 
 # Environment files
-**/.env*
-!**/.env.example
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
 
 # Logs
-**/logs
-**/*.log
-
-# Cache
-**/.cache
-**/.parcel-cache
-**/.npm
-**/.yarn
+logs
+*.log
 
 # Editor directories and files
-**/.vscode/
-**/.idea
-**/*.swp
-**/*.swo
-**/*~
+.vscode/*
+!.vscode/extensions.json
+.idea
+*.swp
+*.swo
+*~
 
-# OS files
-**/.DS_Store
-**/Thumbs.db
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
 # Git
-.git/
-**/.git/
-**/.gitignore
+.git
+.gitignore
 
-# Docker files
-**/Dockerfile*
-**/.dockerignore
-**/docker-compose*.yml
+# Docker
+Dockerfile
+.dockerignore
+docker-compose*.yml
 
 # Documentation
-**/*.md
-**/docs/
+README.md
+*.md
 
-# Backup and temp files
-**/*.backup
-**/*.bak
-**/*.tmp
-**/tmp/
-**/temp/
+# Backup files
+*.backup
+*.bak
+*.tmp
 
-# Coverage and testing
-**/coverage/
-**/.nyc_output
+# Cache directories
+.cache
+.parcel-cache
+.npm
+
+# Temporary folders
+tmp/
+temp/
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+.nyc_output
 
 # TypeScript cache
-**/*.tsbuildinfo
+*.tsbuildinfo
 
-# Prisma generated files (will be regenerated in container)
-**/prisma/migrations/
-**/prisma/.env
+# Optional npm cache directory
+.npm
 
-# Desktop Java specific
-**/apps/desktop/target/
-**/apps/desktop/*.jar
+# Optional eslint cache
+.eslintcache
 
-# Mobile specific
-**/apps/mobile/build/
-**/apps/mobile/.gradle/
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
 
-# Monitoring data
-**/monitoring/grafana/data/
-**/monitoring/prometheus/data/
+# Optional REPL history
+.node_repl_history
 
-# Scripts de développement
-**/scripts/dev/
-**/scripts/test/
+# Output of 'npm pack'
+*.tgz
 
-# Uploads et fichiers temporaires
-**/public/uploads/
-**/uploads/
+# Yarn Integrity file
+.yarn-integrity
 
-# Docker volumes
-**/volumes/ 
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+
+# Yarn v2
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
